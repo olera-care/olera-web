@@ -42,11 +42,12 @@ interface Summary {
   compareClick: { sends: number; opened: number; clicked: number; openRate: number; clickRate: number };
   emailPerformance: PerfRow[];
   funnel: {
-    emailed: number; opened: number; clicked: number; answered: number;
+    emailed: number; opened: number; clicked: number; introRequested: number; answered: number;
     engaged: number; benefitsStarted: number; benefitsCompleted: number; published: number;
   };
   sensor: { sent: number; answered: number; yes: number; no: number; notYet: number; responseRate: number; yesRate: number };
   conversions: { compareSaved: number; guideSaved: number; benefitsStarted: number; benefitsCompleted: number; published: number };
+  outcomes: { total: number; connected: number; active: number; guided: number; stalled: number; lookbackDays: number };
   cutover: { anchor: string; cutoverWeekIndex: number; weekStartsISO: string[]; sendsWeekly: number[]; goLivesWeekly: number[] };
 }
 
@@ -267,6 +268,54 @@ function EmailTypeDrawer({
   );
 }
 
+/**
+ * Outcome distribution — every family that inquired in the lookback, split into
+ * connected / active / guided / stalled. Matchmaking outcomes (connected/active)
+ * on the warm side, Guidance outcomes (guided/stalled) on the cool side; the
+ * sensor is the conceptual switch between them. Calm palette, not a RAG heatmap.
+ */
+function OutcomePanel({ oc }: { oc: NonNullable<Summary["outcomes"]> }) {
+  const segs = [
+    { key: "connected", label: "Connected", value: oc.connected, bar: "bg-emerald-500", text: "text-emerald-700", note: "a real match formed" },
+    { key: "active", label: "Active", value: oc.active, bar: "bg-teal-400", text: "text-teal-700", note: "still matchmaking" },
+    { key: "guided", label: "Guided", value: oc.guided, bar: "bg-amber-400", text: "text-amber-700", note: "onto self-serve help" },
+    { key: "stalled", label: "Stalled", value: oc.stalled, bar: "bg-stone-400", text: "text-stone-500", note: "no connection, no engagement" },
+  ] as const;
+  const total = oc.total;
+  const share = (v: number) => (total > 0 ? v / total : 0);
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        {segs.map((s) => (
+          <div key={s.key} className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              <span className={`inline-block h-2 w-2 rounded-full ${s.bar}`} />
+              <span>{s.label}</span>
+            </div>
+            <div className={`mt-1 text-[26px] font-semibold tabular-nums ${s.text}`}>{num(s.value)}</div>
+            <div className="mt-0.5 text-[11px] text-gray-500">{total > 0 ? pct(share(s.value)) : "—"} · {s.note}</div>
+          </div>
+        ))}
+      </div>
+      {total > 0 && (
+        <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100">
+          {segs.map((s) => (
+            <div key={s.key} className={s.bar} style={{ width: `${share(s.value) * 100}%` }} title={`${s.label}: ${num(s.value)}`} />
+          ))}
+        </div>
+      )}
+      <p className="mt-3 text-[11px] text-gray-400 leading-relaxed">
+        {num(total)} families that inquired in the last {oc.lookbackDays} days (rolling — independent of the date range above,
+        since a family that connected weeks ago is still connected). <span className="text-emerald-700 font-medium">Connected</span> = provider
+        engaged/accepted or the family self-reported a reply; <span className="text-teal-700 font-medium">Active</span> = inquiry &lt; 7d, still
+        matchmaking; <span className="text-amber-700 font-medium">Guided</span> = engaged compare/guide/benefits after matchmaking stalled;
+        <span className="text-stone-500 font-medium"> Stalled</span> = silent, no engagement (the set v2 exists to shrink). Derived from
+        connections + self-report + seeker_activity — no new tracking.
+      </p>
+    </>
+  );
+}
+
 /** Horizontal funnel step with a width bar relative to the top of the funnel. */
 function FunnelStep({ label, value, base, note }: { label: string; value: number; base: number; note?: string }) {
   const w = base > 0 ? Math.max(2, (value / base) * 100) : 0;
@@ -323,6 +372,7 @@ export default function FamilyCommsAnalyticsPage() {
   const f = data?.funnel;
   const sensor = data?.sensor;
   const conv = data?.conversions;
+  const oc = data?.outcomes;
 
   const sensorBreakdown = useMemo(() => {
     if (!sensor || sensor.answered === 0) return null;
@@ -358,14 +408,23 @@ export default function FamilyCommsAnalyticsPage() {
       {data && !error && (
         <>
           {/* Top-line stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
             <Stat label="Emails sent" value={num(data.totals.sent)} info="Total family emails sent in this window (recipient is a family, not a provider)." />
             <Stat label="Open rate" value={pct(data.totals.sent ? data.totals.opened / (data.totals.delivered || data.totals.sent) : 0)} sub={`${num(data.totals.opened)} opened`} info="Share of delivered family emails that were opened (Resend webhook)." />
             <Stat label="Click rate" value={pct(data.totals.opened ? data.totals.clicked / data.totals.opened : 0)} sub={`${num(data.totals.clicked)} clicked`} info="Share of opened emails where a link was clicked." />
+            <Stat label="Intros requested" value={num(data.funnel.introRequested)} sub="one-tap intros" accent info="Families who tapped 'Introduce me' on a compare card, creating a real inquiry to that provider (B2). The clearest signal the curated shortlist drove action — the connection-driver we built it for." />
             <Stat label="Reply rate" value={pct(sensor?.responseRate ?? 0)} sub={`${num(sensor?.answered ?? 0)} / ${num(sensor?.sent ?? 0)} answered`} accent info={`Share of "Outcome check" emails where the family answered the question "Did the provider get back to you?" — our ground-truth signal. ${num(sensor?.answered ?? 0)} of ${num(sensor?.sent ?? 0)} sent answered.`} />
             <Stat label="Provider got back" value={pct(sensor?.yesRate ?? 0)} sub="of those who answered" info="Of families who answered the outcome-check, the share who said YES, a provider did get back to them. A 'no / not yet' routes them into the help cascade." />
             <Stat label="Went live" value={num(conv?.published ?? 0)} sub="profiles published" accent info="Family care-seeker profiles that were published (went live) in this window — the North-Star proxy. Counts the action across all families, not attributed to a single email." />
           </div>
+
+          {/* Where families land — the outcome distribution (Phase 0).
+              The north star made legible: we count outcomes, not just sends. */}
+          {oc && (
+            <CollapsibleSection title="Where families land — outcomes" storageKey="fc.outcomes" defaultCollapsed={false}>
+              <OutcomePanel oc={oc} />
+            </CollapsibleSection>
+          )}
 
           {/* Flywheel funnel */}
           <CollapsibleSection title="Family engagement flywheel" storageKey="fc.funnel" defaultCollapsed={false}>
@@ -375,6 +434,7 @@ export default function FamilyCommsAnalyticsPage() {
                   <FunnelStep label="Emailed" value={f.emailed} base={f.emailed} />
                   <FunnelStep label="Opened" value={f.opened} base={f.emailed} />
                   <FunnelStep label="Clicked" value={f.clicked} base={f.emailed} />
+                  <FunnelStep label="Introductions requested" value={f.introRequested} base={f.emailed} />
                   <FunnelStep label="Replied to outcome-check" value={f.answered} base={f.emailed} />
                   <FunnelStep label="Saved compare / guide" value={f.engaged} base={f.emailed} />
                   <FunnelStep label="Benefits quiz completed" value={f.benefitsCompleted} base={f.emailed} />

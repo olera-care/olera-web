@@ -6,6 +6,7 @@ import PlatformMarquee from "@/components/provider/PlatformMarquee";
 import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
 import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
 
 /**
  * The Managed Ads pitch — shared between the boost page (above the gate/picker)
@@ -45,7 +46,7 @@ function ValuePillars() {
 
 export default function ManagedAdsPitch({
   ctaHref,
-  ctaLabel = "Get my launch plan",
+  ctaLabel = "Start my free campaign",
   providerSlug,
   providerName,
 }: {
@@ -57,6 +58,7 @@ export default function ManagedAdsPitch({
 }) {
   const assignedVariant = useManagedAdsVariant(providerSlug);
   const copy = managedAdsPitchCopy(assignedVariant ?? "direct_reach");
+  const mobileNavVariant = useMobileNavVariant();
   const firedView = useRef(false);
 
   useEffect(() => {
@@ -97,18 +99,59 @@ export default function ManagedAdsPitch({
       <PlatformMarquee />
       <ValuePillars />
 
+      {/* Desktop CTA - hidden on mobile */}
       {ctaHref && (
-        <Link
-          href={ctaHref}
-          onClick={trackCta}
-          className="inline-flex items-center gap-2.5 mt-10 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
-        >
-          {ctaLabel}
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
-        </Link>
+        <div className="mt-10 hidden sm:block">
+          <p className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+            <span className="text-primary-600">✦</span>
+            <span>
+              First campaign on us — <span className="text-primary-600 font-medium">$50, free</span>
+            </span>
+          </p>
+          <Link
+            href={ctaHref}
+            onClick={trackCta}
+            className="inline-flex items-center gap-2.5 px-9 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
+          >
+            {ctaLabel}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </div>
       )}
+
+      {/* Mobile sticky CTA - fixed at bottom of viewport, raised above bottom tabs when active */}
+      {ctaHref && (
+        <div
+          className={`fixed left-0 right-0 z-50 sm:hidden bg-white border-t border-gray-200 px-4 py-4 ${
+            mobileNavVariant === "bottom_tabs"
+              ? ""
+              : "bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+          }`}
+          style={mobileNavVariant === "bottom_tabs" ? { bottom: "calc(72px + env(safe-area-inset-bottom, 0px))" } : undefined}
+        >
+          <p className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+            <span className="text-primary-600">✦</span>
+            <span>
+              First campaign on us — <span className="text-primary-600 font-medium">$50, free</span>
+            </span>
+          </p>
+          <Link
+            href={ctaHref}
+            onClick={trackCta}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
+          >
+            {ctaLabel}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </div>
+      )}
+
+      {/* Spacer for mobile sticky CTA - taller when bottom tabs are present */}
+      {ctaHref && <div className={`sm:hidden ${mobileNavVariant === "bottom_tabs" ? "h-48" : "h-36"}`} />}
     </div>
   );
 }

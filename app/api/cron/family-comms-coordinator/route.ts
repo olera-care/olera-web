@@ -3,17 +3,46 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
+import { generateFamilyInboxUrl, generateIntroUrl } from "@/lib/claim-tokens";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
-import { findAlternativeProviders, careTypeToBrowseSlug } from "@/lib/family-comms/alternatives";
+import {
+  findAlternativeProviders,
+  careTypeToBrowseSlug,
+  categoryStockImage,
+} from "@/lib/family-comms/alternatives";
+import { normalizeCareLabel } from "@/lib/provider-highlights";
+import { familySelfReportedYes } from "@/lib/family-comms/outcome";
 import {
   connectionOutcomeCheckEmail,
   providerSilentEmail,
   familyNeverEngagedEmail,
+  familyNeverEngagedSubject,
   day10AwaitingEmail,
   familyPendingReachOutNudgeEmail,
-  familyNudgeEmail,
+  completionNudge1Email,
+  completionNudge2Email,
+  completionNudge3Email,
+  completionNudge4Email,
+  completionMaintenanceEmail,
+  completionNudgeSubject,
+  careUnsubscribeUrl,
 } from "@/lib/email-templates";
+import type { CompareCardItem } from "@/lib/email-templates";
+import {
+  getSequenceWithMigration,
+  shouldSendCompletionNudge,
+  advanceSequence,
+  COMPLETION_ACTIVE_COUNT,
+  MAX_MAINTENANCE_NUDGES,
+  COMPLETION_GHOST_WINDOW_DAYS,
+  isCompletionGhost,
+} from "@/lib/family-comms/nudge-sequence";
+import {
+  countProvidersInArea,
+  countNewProvidersInArea,
+  getTopProviders,
+} from "@/lib/family-comms/provider-recs.server";
+import type { NudgeSequence } from "@/lib/types";
 
 /**
  * GET /api/cron/family-comms-coordinator
@@ -36,8 +65,12 @@ import {
  *   3. never-engaged → compare cards (guide fallback)      → family_never_engaged
  *   4. provider-responded → compare + how-to-choose        → day_10_awaiting
  *   5. pending reach-out      → family_reach_out_nudge
- *   6. stuck → completion-as-value-exchange (the quiz)     → family_nudge
- *      (publish nudges are DEMOTED out — owned by the subordinated family-nudges cron)
+ *   6. completion track (signup cadence)  → completion_nudge_1-4 / completion_maintenance
+ *      (Track 2 / Option B: the coordinator is now the SINGLE owner of the "fill your
+ *      profile" ask — for ALL incomplete families, with OR without a connection. It
+ *      reuses the family-nudges completion cadence + step-state, so in-flight sequences
+ *      continue seamlessly. PUBLISH nudges remain DEMOTED to the subordinated
+ *      family-nudges cron.)
  *
  * Sends flow through sendEmail(), which now enforces the per-family nudge cap, so
  * the coordinator can never over-mail. ?dry_run=true returns the per-family
@@ -69,6 +102,9 @@ interface ProfileRow {
   metadata?: Record<string, unknown> | null;
   lat?: number | null;
   lng?: number | null;
+  created_at?: string | null;
+  image_url?: string | null;
+  description?: string | null;
 }
 
 interface ConnRow {
@@ -170,7 +206,7 @@ export async function GET(request: NextRequest) {
       skipped: 0,
       dry_run: dryRun,
       byRung: {} as Record<string, number>,
-      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0 },
+      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, completion_ghost: 0 },
     };
     const bump = (rung: string) => {
       counts.byRung[rung] = (counts.byRung[rung] || 0) + 1;
@@ -180,7 +216,7 @@ export async function GET(request: NextRequest) {
     //    connections drive rung 5. day-10 (rung 4) keys off provider-response age, not
     //    connection age, so we pull all pending/accepted inquiries (the rung filters).
     const familySel =
-      "id, display_name, email, phone, city, state, care_types, account_id, metadata, lat, lng";
+      "id, display_name, email, phone, city, state, care_types, account_id, metadata, lat, lng, created_at, image_url, description";
     const providerSel = "id, display_name, slug, city, state, care_types, metadata";
 
     const { data: inquiryRows, error: inqErr } = await db
@@ -230,6 +266,82 @@ export async function GET(request: NextRequest) {
       if (!b.profile) b.profile = norm(row.to_profile);
     }
 
+    // 2b. Second candidate source (Track 2 / Option B): the completion rung must reach
+    //     incomplete families with NO connection too. Page through all family profiles
+    //     (4h post-signup grace) and merge — a family already bucketed via a connection
+    //     keeps its connection context; a connection-less family gets an empty bucket
+    //     with just its profile. Completeness is computed per-family in the loop; the
+    //     expensive provider fetches still run only after the completion rung is picked.
+    const profileGraceCutoff = new Date(now - 4 * HOUR).toISOString();
+    const FAM_PAGE = 1000;
+    for (let pageFrom = 0; ; pageFrom += FAM_PAGE) {
+      const { data: profRows, error: profErr } = await db
+        .from("business_profiles")
+        .select(familySel)
+        .eq("type", "family")
+        .lte("created_at", profileGraceCutoff)
+        .order("created_at", { ascending: false })
+        .range(pageFrom, pageFrom + FAM_PAGE - 1);
+      if (profErr) throw new Error(`family profile fetch: ${profErr.message}`);
+      const rows = (profRows as unknown as ProfileRow[]) || [];
+      for (const p of rows) {
+        const b = ensure(p.id);
+        // Connection joins win for context, but the standalone row is the authoritative
+        // profile source (and the only one for connection-less families).
+        if (!b.profile) b.profile = p;
+      }
+      if (rows.length < FAM_PAGE) break;
+    }
+
+    // 2c. Completion engagement (Track 2 / Option B engagement gate): one batched read of
+    //     completion-email open history, aggregated per recipient. The completion rung uses
+    //     this to cut families that have been sent >=3 completion nudges and opened none —
+    //     stop wasting the monthly tail on proven non-openers. Keyed by recipient address
+    //     (what email_log stores); the rung looks up by the family's profile email.
+    const COMPLETION_EMAIL_TYPES = [
+      "completion_nudge_1",
+      "completion_nudge_2",
+      "completion_nudge_3",
+      "completion_nudge_4",
+      "completion_maintenance",
+    ];
+    const ghostKey = (e: string | null | undefined) => (e || "").trim().toLowerCase();
+    const completionEngagement = new Map<string, { sends: number; opens: number }>();
+    {
+      const windowStart = new Date(now - COMPLETION_GHOST_WINDOW_DAYS * DAY).toISOString();
+      const EL_PAGE = 1000;
+      for (let elFrom = 0; ; elFrom += EL_PAGE) {
+        const { data: elRows, error: elErr } = await db
+          .from("email_log")
+          .select("recipient, first_opened_at")
+          .eq("recipient_type", "family")
+          .eq("status", "sent")
+          .in("email_type", COMPLETION_EMAIL_TYPES)
+          .gte("created_at", windowStart)
+          .range(elFrom, elFrom + EL_PAGE - 1);
+        if (elErr) {
+          // Non-load-bearing: the gate is an optimization. On read failure, degrade to
+          // "gate off" (clear the map → nobody suppressed → pre-gate behavior) rather than
+          // abort the whole family-comms run. Clear (not just break) so we never act on a
+          // PARTIAL map — partial open-history could misclassify an opener whose opened
+          // sends were in an un-fetched page. All-or-nothing keeps the gate strictly safe.
+          console.error(`[family-comms-coordinator] completion engagement fetch failed (gate off this run): ${elErr.message}`);
+          completionEngagement.clear();
+          break;
+        }
+        const rows = (elRows as { recipient: string | null; first_opened_at: string | null }[]) || [];
+        for (const r of rows) {
+          const k = ghostKey(r.recipient);
+          if (!k) continue;
+          const e = completionEngagement.get(k) || { sends: 0, opens: 0 };
+          e.sends++;
+          if (r.first_opened_at) e.opens++;
+          completionEngagement.set(k, e);
+        }
+        if (rows.length < EL_PAGE) break;
+      }
+    }
+
     // 3. Evaluate each family through the ladder; send the first eligible rung.
     for (const fam of fams.values()) {
       counts.families++;
@@ -246,10 +358,14 @@ export async function GET(request: NextRequest) {
         counts.stops.unsubscribed++;
         continue;
       }
-      const selfReportedYes = fam.inquiries.some(
-        (c) => (metaOf(c).outcome as { value?: string } | undefined)?.value === "yes",
-      );
-      if (selfReportedYes) {
+      // The sensor's own predicate drives the "connected" stop — one definition of
+      // "the provider got back to me" shared with the Phase-0 outcome layer
+      // (lib/family-comms/outcome). NOTE: we deliberately do NOT stop on
+      // computeFamilyOutcome() === "connected" here — that folds in
+      // isSuccessfulConnection (provider merely *responded*), which is exactly R4's
+      // target (provider replied, family hasn't). Stopping on it would silently kill
+      // the awaiting-match rung. Self-report "yes" is the only unambiguous "done".
+      if (familySelfReportedYes(fam.inquiries)) {
         counts.skipped++;
         counts.stops.self_reported_yes++;
         continue;
@@ -291,6 +407,20 @@ export async function GET(request: NextRequest) {
       const completeness = calculateFamilyCompleteness(fp, directEmail || "");
       const isComplete = completeness.percentage >= 60;
 
+      // ── Completion-rung inputs (Track 2 / Option B) ─────────────────────
+      // The completion track keys off signup cadence (the only anchor a connection-less
+      // family has). recentConnActivity mirrors family-nudges' "don't nag the actively
+      // engaged" guard — one-sided, so it also defers families a higher rung didn't claim.
+      // Connection-less families have empty threads → false.
+      const recentConnActivity = [...fam.inquiries, ...fam.requests].some((c) =>
+        threadOf(c).some((m) => m.created_at && now - new Date(m.created_at).getTime() < 7 * DAY),
+      );
+      const familyCity = fp.city || undefined;
+      const familyState = fp.state || undefined;
+      const familyCareTypes = (fp.care_types as string[] | null) || [];
+      const familyFirstName = fp.display_name?.split(/\s+/)[0] || "there";
+      const familyCreatedAt = fp.created_at || new Date(now).toISOString();
+
       // ── Compare-led URL builders (v2 flywheel) ──────────────────────────
       // Both read authEmailFinal at *invocation* time (inside buildHtml, after the
       // send-path resolves the deliverable email) — never during rung eligibility.
@@ -312,10 +442,15 @@ export async function GET(request: NextRequest) {
       const buildQuizUrl = (eid: string | null): string =>
         generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/benefits/finder", eid), siteUrl);
       // Map an alternative provider → a compare card (image + rating + distance), with a
-      // tracked, auth deep-linked view URL. Shared across the compare rungs (R2/R3/R4).
+      // tracked, auth deep-linked view URL AND a one-tap "introduce me" write link (B2).
+      // The intro link carries the family + this provider + the source inquiry (whose
+      // intent it forwards) in a signed token; per-provider consent, never a blast-all.
+      // `sourceConnectionId` is the family's original inquiry for this rung. Shared
+      // across the compare rungs (R2/R3/R4).
       const toCard = (
         p: Awaited<ReturnType<typeof findAlternativeProviders>>[number],
         eid: string | null,
+        sourceConnectionId: string,
       ) => ({
         name: p.name,
         viewUrl: generateFamilyInboxUrl(
@@ -323,14 +458,21 @@ export async function GET(request: NextRequest) {
           appendTrackingParams(`/provider/${p.slug}?rp=${p.slug}`, eid),
           siteUrl,
         ),
+        introUrl: appendTrackingParams(
+          generateIntroUrl(fam.familyId, p.profileId, sourceConnectionId, authEmailFinal, siteUrl),
+          eid,
+        ),
         imageUrl: p.imageUrl,
         priceRange: p.priceRange,
         rating: p.rating,
         reviewCount: p.reviewCount,
         distanceMi: p.distanceMi,
+        reason: p.reason,
       });
 
-      // Build the ladder for this family; first non-null plan wins.
+      // Build the ladder for this family; first non-null plan wins. `ghostSkip` is set by
+      // the completion rung when it suppresses a non-opener (distinct skip reason vs no_rung).
+      let ghostSkip = false;
       const plan = await pickRung();
 
       async function pickRung(): Promise<RungPlan | null> {
@@ -358,6 +500,7 @@ export async function GET(request: NextRequest) {
               const link = (v: string) =>
                 `${siteUrl}${appendTrackingParams(`/connection-outcome?cid=${r1.id}&v=${v}`, eid)}`;
               return connectionOutcomeCheckEmail({
+                unsubscribeUrl: careUnsubscribeUrl(fam.familyId),
                 familyName,
                 providerName,
                 yesUrl: link("yes"),
@@ -377,11 +520,12 @@ export async function GET(request: NextRequest) {
         // ── Rung 2: provider silent → alternatives — inquiry 96-120h, family engaged,
         //    provider silent everywhere, ≥3 responsive alternatives ──
         const alreadyAlt = fam.inquiries.some((c) => metaOf(c).family_alternatives_sent_at);
+        const alreadyGuidance = fam.inquiries.some((c) => metaOf(c).family_guidance_sent_at);
         const r2trigger = fam.inquiries.find((c) => {
           const a = ageMs(c);
           return a >= 96 * HOUR && a <= 120 * HOUR;
         });
-        if (r2trigger && familyEngagedAnywhere && !providerRespondedAnywhere && !alreadyAlt) {
+        if (r2trigger && familyEngagedAnywhere && !providerRespondedAnywhere && !alreadyAlt && !alreadyGuidance) {
           const provider = norm(r2trigger.to_profile);
           const providerName = provider?.display_name || "the provider";
           const alts = await findAlternativeProviders(
@@ -405,8 +549,9 @@ export async function GET(request: NextRequest) {
               metadata: { connection_id: r2trigger.id, recommended_count: alts.length, provider_passed: providerPassed },
               buildHtml: (eid) => {
                 const browseUrl = buildBrowseUrl(provider, eid);
-                const recommendedProviders = alts.map((p) => toCard(p, eid));
+                const recommendedProviders = alts.map((p) => toCard(p, eid, r2trigger.id));
                 return providerSilentEmail({
+                  unsubscribeId: fam.familyId,
                   familyName,
                   providerName,
                   providerPassed,
@@ -414,6 +559,9 @@ export async function GET(request: NextRequest) {
                   recommendedProviders,
                   browseUrl,
                   city: provider?.city || null,
+                  careType: normalizeCareLabel(
+                    ((provider?.care_types as string[] | undefined)?.[0] || "").split("|")[0].trim(),
+                  ),
                   benefitsQuizUrl: buildQuizUrl(eid),
                 });
               },
@@ -434,6 +582,48 @@ export async function GET(request: NextRequest) {
               },
             };
           }
+          // ── The switch flips: Matchmaking → Guidance ────────────────────────
+          // Family engaged, provider silent, but the market is too thin for a real
+          // shortlist (<3 alternatives). Going silent here is the designed-away dead
+          // end (direction-doc blind spot #1). Instead, pivot to the guidance journey:
+          // lead with the cost/benefits unlock (the real paralyzer) + the guide, keep
+          // the original provider reachable. Reuses the never-engaged template's
+          // guide-led fallback (recommendedProviders omitted) + its governed emailType
+          // so no new email_type / governance wiring is needed.
+          return {
+            rung: "provider_silent_guidance",
+            emailType: "family_never_engaged",
+            subject: familyNeverEngagedSubject(false),
+            metadata: { connection_id: r2trigger.id, guidance: true, alternatives_count: alts.length },
+            buildHtml: (eid) => {
+              const guideUrl = `${siteUrl}${appendTrackingParams("/olera-senior-care-guide-one-page.pdf", eid)}`;
+              const inboxUrl = generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/portal/inbox", eid), siteUrl);
+              return familyNeverEngagedEmail({
+                unsubscribeId: fam.familyId,
+                familyName,
+                providerName,
+                guideUrl,
+                inboxUrl,
+                recommendedProviders: undefined,
+                browseUrl: null,
+                benefitsQuizUrl: buildQuizUrl(eid),
+              });
+            },
+            stamp: async (sentAt) => {
+              for (const c of fam.inquiries) {
+                await db
+                  .from("connections")
+                  .update({
+                    metadata: {
+                      ...metaOf(c),
+                      family_guidance_sent_at: sentAt,
+                      family_guidance_sent_by: "cron:family-comms-coordinator",
+                    },
+                  })
+                  .eq("id", c.id);
+              }
+            },
+          };
         }
 
         // ── Rung 3: never engaged → resource — inquiry 120-144h, family NEVER engaged,
@@ -460,15 +650,14 @@ export async function GET(request: NextRequest) {
           return {
             rung: "never_engaged",
             emailType: "family_never_engaged",
-            subject: hasAlts3
-              ? "A few other providers near you worth comparing"
-              : "A quick resource while you're thinking things over",
+            subject: familyNeverEngagedSubject(hasAlts3),
             metadata: { connection_id: r3trigger.id, recommended_count: alts3.length },
             buildHtml: (eid) => {
               const guideUrl = `${siteUrl}${appendTrackingParams("/olera-senior-care-guide-one-page.pdf", eid)}`;
               const inboxUrl = generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/portal/inbox", eid), siteUrl);
-              const recommendedProviders = hasAlts3 ? alts3.map((p) => toCard(p, eid)) : undefined;
+              const recommendedProviders = hasAlts3 ? alts3.map((p) => toCard(p, eid, r3trigger.id)) : undefined;
               return familyNeverEngagedEmail({
+                unsubscribeId: fam.familyId,
                 familyName,
                 providerName,
                 guideUrl,
@@ -529,8 +718,9 @@ export async function GET(request: NextRequest) {
               const inboxUrl = generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/portal/inbox", eid), siteUrl);
               const alternativesUrl = buildBrowseUrl(provider, eid);
               const supportUrl = "mailto:support@olera.care?subject=Help%20with%20next%20steps";
-              const recommendedProviders = hasAlts4 ? alts4.slice(0, 2).map((p) => toCard(p, eid)) : undefined;
+              const recommendedProviders = hasAlts4 ? alts4.slice(0, 2).map((p) => toCard(p, eid, r4.id)) : undefined;
               return day10AwaitingEmail({
+                unsubscribeId: fam.familyId,
                 familyName,
                 providerName,
                 inboxUrl,
@@ -567,6 +757,7 @@ export async function GET(request: NextRequest) {
             buildHtml: (eid) => {
               const viewUrl = generateFamilyInboxUrl(authEmailFinal, appendTrackingParams("/portal/inbox", eid), siteUrl);
               return familyPendingReachOutNudgeEmail({
+                unsubscribeId: fam.familyId,
                 familyName,
                 providerName,
                 providerCity,
@@ -592,48 +783,113 @@ export async function GET(request: NextRequest) {
           };
         }
 
-        // ── Rung 6: stuck → completion as VALUE-EXCHANGE (the quiz) — inquiry ≥2d,
-        //    profile incomplete, cooldown 7d. v2: completion is never a naked ask —
-        //    the quiz both sharpens matches AND surfaces benefits. PUBLISH nudges are
-        //    DEMOTED out of the coordinator entirely: the subordinated family-nudges
-        //    machine owns them now (so complete-but-unpublished families match no
-        //    coordinator rung here). ──
-        if (!isComplete) {
-          const flag = "family_nudged_at";
-          const r6 = fam.inquiries.find((c) => {
-            if (ageMs(c) < 2 * DAY) return false;
-            const last = metaOf(c)[flag] as string | undefined;
-            return !last || now - new Date(last).getTime() > 7 * DAY;
-          });
-          if (r6) {
-            const provider = norm(r6.to_profile);
-            const providerName = provider?.display_name || "the provider";
+        // ── Rung 6: completion track (Track 2 / Option B) — the SINGLE owner of the
+        //    "fill your profile" ask. Fires for ANY incomplete family on signup cadence
+        //    (days 0/2/6/13, then monthly maintenance), with OR without a connection,
+        //    unless they have recent connection activity (let the engaged be). Reuses the
+        //    family-nudges completion sequence + step-state in
+        //    business_profiles.metadata.completion_sequence, so a sequence in flight when
+        //    ownership moved continues seamlessly. PUBLISH stays demoted to family-nudges.
+        if (!isComplete && !recentConnActivity) {
+          const seq = getSequenceWithMigration(
+            familyMeta.completion_sequence as NudgeSequence | undefined,
+            familyMeta.profile_incomplete_reminder_sent as boolean | undefined,
+          );
+          const nudgeNumber = seq.nudge_count + 1;
+          const isMaintenance = seq.phase === "maintenance";
+          const maintenanceExhausted =
+            isMaintenance && nudgeNumber > COMPLETION_ACTIVE_COUNT + MAX_MAINTENANCE_NUDGES;
+          if (shouldSendCompletionNudge(seq, familyCreatedAt) && !maintenanceExhausted) {
+            // Engagement gate: a family sent >=3 completion nudges with ZERO opens has
+            // proven it isn't reading — stop before nudge_4 + the monthly tail. Openers
+            // (opens>0) ride the full sequence. Self-healing: an open lets them back in.
+            const eng = completionEngagement.get(ghostKey(directEmail));
+            if (eng && isCompletionGhost(eng.sends, eng.opens)) {
+              ghostSkip = true;
+              return null;
+            }
+            const hasLocation = !!(familyCity && familyState);
+            const locationText = familyCity || familyState || "your area";
+            const emailType = isMaintenance ? "completion_maintenance" : `completion_nudge_${nudgeNumber}`;
+            // Subject built WITHOUT providerCount (it degrades gracefully) so dry-run
+            // skips the provider fetch — completion is the dominant volume.
+            const subject = isMaintenance
+              ? `Top providers in ${locationText} you might have missed`
+              : completionNudgeSubject(nudgeNumber, { city: familyCity, state: familyState });
             return {
               rung: "lead_complete",
-              emailType: "family_nudge",
-              // The real inbox subject (front-loaded, mobile-safe). The cost hook
-              // rides in the template's preheader so both show in the inbox row.
-              subject: "A few more care options near you",
-              metadata: { connection_id: r6.id },
-              buildHtml: (eid) => {
-                const profileUrl = appendTrackingParams(`${siteUrl}/portal/profile`, eid);
-                return familyNudgeEmail({
-                  unsubscribeId: fam.familyId,
-                  familyName,
-                  providerName,
-                  missingFields: completeness.missingFields.slice(0, 5),
-                  completionPercent: completeness.percentage,
-                  profileUrl,
-                  benefitsQuizUrl: buildQuizUrl(eid),
-                });
-              },
-              stamp: async (sentAt) => {
-                for (const c of fam.inquiries) {
-                  await db
-                    .from("connections")
-                    .update({ metadata: { ...metaOf(c), [flag]: sentAt, family_nudged_by: "cron:family-comms-coordinator" } })
-                    .eq("id", c.id);
+              emailType,
+              subject,
+              metadata: { family_profile_id: fam.familyId, completion_nudge_number: nudgeNumber },
+              // Provider data fetched lazily (real send only, not dry-run).
+              buildHtml: async (eid) => {
+                const welcomeUrl = generateFamilyInboxUrl(
+                  authEmailFinal,
+                  appendTrackingParams("/welcome", eid),
+                  siteUrl,
+                );
+                const providerCount = hasLocation
+                  ? await countProvidersInArea(db, familyCity!, familyState!, familyCareTypes)
+                  : undefined;
+                if (isMaintenance) {
+                  const [newProviderCount, topProviders] = hasLocation
+                    ? await Promise.all([
+                        countNewProvidersInArea(db, familyCity!, familyState!, familyCareTypes),
+                        getTopProviders(db, familyCity!, familyState!, familyCareTypes, 3),
+                      ])
+                    : [0, []];
+                  return completionMaintenanceEmail({
+                    unsubscribeId: fam.familyId,
+                    familyName: familyFirstName,
+                    welcomeUrl,
+                    providers: topProviders,
+                    newProviderCount,
+                    missingFields: completeness.missingFields,
+                    completionPercent: completeness.percentage,
+                    city: familyCity,
+                    state: familyState,
+                  });
                 }
+                const common = {
+                  unsubscribeId: fam.familyId,
+                  familyName: familyFirstName,
+                  welcomeUrl,
+                  missingFields: completeness.missingFields,
+                  completionPercent: completeness.percentage,
+                  providerCount,
+                  city: familyCity,
+                };
+                switch (nudgeNumber) {
+                  case 1:
+                    return completionNudge1Email(common).html;
+                  case 2:
+                    return completionNudge2Email({ ...common, state: familyState }).html;
+                  case 3:
+                    return completionNudge3Email({ ...common, state: familyState }).html;
+                  case 4:
+                  default: {
+                    const topProviders = hasLocation
+                      ? await getTopProviders(db, familyCity!, familyState!, familyCareTypes, 3)
+                      : [];
+                    const recCards: CompareCardItem[] = topProviders.map((p, i) => ({
+                      name: p.name,
+                      viewUrl: `${siteUrl}/provider/${p.slug}`,
+                      imageUrl: categoryStockImage(p.category, i),
+                      priceRange: p.priceRange ?? null,
+                      rating: p.rating || null,
+                      reviewCount: p.reviewCount || null,
+                    }));
+                    return completionNudge4Email({ ...common, state: familyState, providers: recCards }).html;
+                  }
+                }
+              },
+              stamp: async () => {
+                // Advance the sequence on the SHARED familyMeta object so the generic
+                // post-send business_profiles stamp persists it in ONE write (no second
+                // update → no clobber). family-nudges reads the same field.
+                familyMeta.completion_sequence = advanceSequence(nudgeNumber, COMPLETION_ACTIVE_COUNT);
+                familyMeta.profile_incomplete_reminder_sent = true;
+                familyMeta.profile_completeness = completeness.percentage;
               },
             };
           }
@@ -644,7 +900,8 @@ export async function GET(request: NextRequest) {
 
       if (!plan) {
         counts.skipped++;
-        counts.stops.no_rung++;
+        if (ghostSkip) counts.stops.completion_ghost++;
+        else counts.stops.no_rung++;
         continue;
       }
 
@@ -696,6 +953,7 @@ export async function GET(request: NextRequest) {
         recipientType: "family",
         metadata: { ...plan.metadata, coordinator_rung: plan.rung },
         emailLogId: emailLogId ?? undefined,
+        listUnsubscribeUrl: careUnsubscribeUrl(fam.familyId),
       });
       if (!success) {
         counts.skipped++;

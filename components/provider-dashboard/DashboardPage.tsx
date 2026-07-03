@@ -8,6 +8,7 @@ import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useGuidedOnboarding } from "@/hooks/useGuidedOnboarding";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
 import {
   calculateProfileCompleteness,
   type ExtendedMetadata,
@@ -70,20 +71,48 @@ export default function DashboardPage() {
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
 
-  // Arrival tracking: when the dashboard mounts with `?from=qa-success`, the
-  // provider just answered a question on /provider/[slug]/onboard and was
-  // auto-redirected here. Fire one dashboard_arrival event so the admin Q&A
-  // funnel can measure whether the redirect mechanic is working separately
-  // from whether the dashboard hero successfully nudges them into action
-  // (the existing edited_profile column tracks the latter). Strip the param
-  // so reloads don't replay; ref-guarded so a re-render doesn't double-fire.
+  // Arrival tracking: fires once per session for Device Breakdown analytics.
+  // Uses sessionStorage to dedupe across page navigations (consistent with how
+  // mobile_nav_variant_impression dedupes via Navbar's persistent ref).
+  // When `?from=` param is present, that source is captured; otherwise "direct".
+  // Strip the ?from= param after capturing so reloads don't replay.
   const firedArrival = useRef(false);
   useEffect(() => {
     if (firedArrival.current) return;
     if (!profile) return;
-    const fromParam = searchParams.get("from");
-    if (!fromParam) return;
+
+    // Session-level deduplication: only fire once per browser session per provider.
+    // Wrapped in try-catch because sessionStorage throws in Safari private mode.
+    const sessionKey = `dashboard_arrival_${profile.slug}`;
+    let alreadyFired = false;
+    try {
+      alreadyFired = typeof window !== "undefined" && !!sessionStorage.getItem(sessionKey);
+    } catch {
+      // sessionStorage unavailable - fall back to ref-only deduplication
+    }
+
+    if (alreadyFired) {
+      firedArrival.current = true;
+      // Still strip ?from= if present, even if we don't fire
+      const fromParam = searchParams.get("from");
+      if (fromParam) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("from");
+        router.replace(url.pathname + (url.search ? url.search : ""));
+      }
+      return;
+    }
+
     firedArrival.current = true;
+    try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(sessionKey, "1");
+      }
+    } catch {
+      // sessionStorage unavailable - ref deduplication still works for this page session
+    }
+
+    const fromParam = searchParams.get("from");
     fetch("/api/activity/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,14 +122,18 @@ export default function DashboardPage() {
         actor_type: "provider",
         provider_id: profile.slug,
         event_type: "dashboard_arrival",
-        metadata: { source: fromParam },
+        metadata: { source: fromParam || "direct" },
       }),
     }).catch(() => {
       /* fire-and-forget */
     });
-    const url = new URL(window.location.href);
-    url.searchParams.delete("from");
-    router.replace(url.pathname + (url.search ? url.search : ""));
+
+    // Strip ?from= param if present
+    if (fromParam) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("from");
+      router.replace(url.pathname + (url.search ? url.search : ""));
+    }
   }, [profile, searchParams, router]);
 
   // Deep-link to a specific edit modal: a `?edit=<section>` link (the
@@ -232,6 +265,7 @@ function DashboardContent({
   v2Data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data | null;
 }) {
   const guided = useGuidedOnboarding(completeness);
+  const mobileNavVariant = useMobileNavVariant();
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   // Mirrors the hero's chosen next-action so the mobile sticky bar shows the
@@ -417,6 +451,7 @@ function DashboardContent({
                 providerSlug={profile.slug}
                 onHeroAction={setHeroAction}
                 onBannerResolved={setHeroBannerId}
+                hasActiveBoostRequest={v2Data.hasActiveBoostRequest}
               />
             </div>
           ) : (
@@ -429,7 +464,7 @@ function DashboardContent({
               not as an always-on card. The earned, high-intent moment. Hidden
               when the hero already resolved to the managed-ads banner, so the
               pitch never doubles on one screen. */}
-          {showEditNudge && heroBannerId !== "managed_ads" && (
+          {showEditNudge && heroBannerId !== "managed_ads" && !v2Data?.hasActiveBoostRequest && (
             <PostEditAdsNudge
               providerSlug={profile.slug}
               providerName={profile.display_name}
@@ -465,6 +500,21 @@ function DashboardContent({
               <LeftColumnActivityCard
                 activities={v2Data.recentActivity}
                 onSeeAll={() => setShowActivityModal(true)}
+              />
+            </div>
+          )}
+
+          {/* Questions engagement (mobile only) — the desktop copy lives in the
+              sticky sidebar; on phones the sidebar is hidden, so surface it here
+              in the flow. Top hairline separates it from the activity block. */}
+          {v2Data && v2Data.questions.received > 0 && (
+            <div
+              className="lg:hidden"
+              style={{ animation: "card-enter 0.25s ease-out both", animationDelay: "90ms" }}
+            >
+              <QuestionsCard
+                questions={v2Data.questions}
+                className="border-t border-gray-100 pt-4"
               />
             </div>
           )}
@@ -563,6 +613,16 @@ function DashboardContent({
               />
             )}
 
+            {/* Questions engagement — persistent count + click-through to the
+                answer flow. Only when they've ever received one (no empty card).
+                Hairline separates it from the bare stats block above. */}
+            {v2Data && (v2Data.questions?.received ?? 0) > 0 && (
+              <QuestionsCard
+                questions={v2Data.questions}
+                className="border-t border-gray-100 pt-4"
+              />
+            )}
+
             {/* Badge request card - shown if form not submitted or was rejected */}
             <VerificationStatusCard
               metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
@@ -581,8 +641,11 @@ function DashboardContent({
       </div>
       )}
 
-      {/* Spacer so the last card clears the fixed mobile action bar. */}
-      {!previewMode && heroAction && <div className="lg:hidden h-20" aria-hidden />}
+      {/* Spacer so the last card clears the fixed mobile action bar.
+          Not needed when bottom tabs are active (layout handles spacing). */}
+      {!previewMode && heroAction && mobileNavVariant !== "bottom_tabs" && (
+        <div className="lg:hidden h-20" aria-hidden />
+      )}
 
       {/* Edit Modals */}
       {editingSection === "overview" && <EditOverviewModal {...modalProps} />}
@@ -616,8 +679,9 @@ function DashboardContent({
 
       {/* Sticky mobile action bar — keeps the hero's chosen next-action in
           thumb reach across the whole scroll (Airbnb Reserve / Wise Send /
-          Robinhood Buy). Hidden in preview and when the tier carries no CTA. */}
-      {!previewMode && heroAction && (
+          Robinhood Buy). Hidden in preview, when bottom tabs are active
+          (they replace this bar), and when the tier carries no CTA. */}
+      {!previewMode && heroAction && mobileNavVariant !== "bottom_tabs" && (
         <MobileActionBar action={heroAction} onOpenSection={setEditingSection} />
       )}
 
@@ -1352,6 +1416,77 @@ function StatsOnlyCard({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Persistent Questions card. Surfaces lifetime question engagement and the
+ * action number (unanswered) at a glance, with a click-through to the existing
+ * answer flow (/provider/qna). Only rendered when the provider has ever
+ * received a question — no empty "0 questions" card for the majority who
+ * haven't, matching the activity card's `length > 0` gate.
+ *
+ * Bare block (no card chrome) to sit cleanly beside the equally-bare
+ * StatsOnlyCard in the desktop sidebar and among the chromeless mobile flow.
+ * The hero already surfaces unanswered as its Priority-2 banner, but that's a
+ * single rotating slot — when a fresher lead wins the hero, questions fall off
+ * it entirely. This card keeps the count persistently in reach.
+ */
+function QuestionsCard({
+  questions,
+  className = "",
+}: {
+  questions: { received: number; answered: number; unanswered: number };
+  className?: string;
+}) {
+  const { received, answered, unanswered } = questions;
+  const hasUnanswered = unanswered > 0;
+
+  return (
+    <div className={`space-y-3 ${className}`}>
+      <div className="flex items-baseline justify-between">
+        <h3 className="text-base font-display font-bold text-gray-900">
+          Questions
+        </h3>
+        <span className="text-xs text-gray-400 tabular-nums">
+          {received} asked
+        </span>
+      </div>
+
+      {hasUnanswered ? (
+        <div className="space-y-1">
+          <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+            {unanswered}
+          </p>
+          <p className="text-sm text-gray-500">
+            {unanswered === 1 ? "question" : "questions"} waiting for your reply
+          </p>
+          <Link
+            href="/provider/qna"
+            className="inline-block text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            Answer now →
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <p className="font-display text-[20px] font-semibold text-gray-900 leading-tight">
+            All caught up
+          </p>
+          <p className="text-sm text-gray-500">
+            {answered === received
+              ? `You've answered all ${received === 1 ? "your question" : `${received} questions`}`
+              : `You've answered ${answered} of ${received}`}
+          </p>
+          <Link
+            href="/provider/qna"
+            className="inline-block text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            View questions →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

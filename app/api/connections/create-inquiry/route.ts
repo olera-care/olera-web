@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { readManagedUtmFromRequest, managedUtmMetadata } from "@/lib/ad-boost/managed-utm";
+import { sendAdBoostLeadDeliveredEmail } from "@/lib/ad-boost/lead-notifications.server";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,6 +24,9 @@ function getAdminClient() {
  */
 export async function POST(request: Request) {
   try {
+    // Managed-ads attribution from the provider-page-load cookie (rides along on
+    // this same-origin fetch). See lib/ad-boost/managed-utm.
+    const managedUtm = readManagedUtmFromRequest(request);
     const supabase = await createServerClient();
     const {
       data: { user },
@@ -75,7 +80,7 @@ export async function POST(request: Request) {
     // Get provider info from olera-providers
     const { data: provider, error: providerErr } = await db
       .from("olera-providers")
-      .select("provider_id, slug, provider_name, provider_category, city, state")
+      .select("provider_id, slug, provider_name, provider_category, city, state, email")
       .eq("provider_id", providerId)
       .single();
 
@@ -128,6 +133,16 @@ export async function POST(request: Request) {
 
       toProfileId = newProfile.id;
     }
+
+    const { data: providerProfileForEmail } = await db
+      .from("business_profiles")
+      .select("email, display_name, metadata")
+      .eq("id", toProfileId)
+      .maybeSingle();
+    const providerEmail = providerProfileForEmail?.email || provider.email || null;
+    const providerDisplayName = providerProfileForEmail?.display_name || provider.provider_name;
+    const providerMeta = (providerProfileForEmail?.metadata || {}) as Record<string, unknown>;
+    const providerLeadsUnsubscribed = !!providerMeta.leads_unsubscribed;
 
     // Check for existing connection
     const { data: existingConnection } = await db
@@ -225,8 +240,24 @@ export async function POST(request: Request) {
         // session_id makes leads joinable back to arm impressions in
         // seeker_activity / provider_activity for cannibalization analysis.
         session_id: sessionId || null,
+        ...managedUtmMetadata(managedUtm),
       },
     });
+
+    if (managedUtm.utmCampaign && providerEmail && !providerLeadsUnsubscribed) {
+      void sendAdBoostLeadDeliveredEmail({
+        managedUtm,
+        connectionId: connection.id,
+        providerEmail,
+        providerName: providerDisplayName,
+        providerSlug: provider.slug || null,
+        providerProfileId: toProfileId as string,
+        familyName: firstName || "A family",
+        careType: null,
+        city: provider.city,
+        careRecipient: null,
+      });
+    }
 
     return NextResponse.json({
       success: true,

@@ -8,7 +8,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
  * By default exports "needs_email" questions with provider contact info.
  *
  * Query params:
- *   tab - "needs_email" (default), "unanswered", "answered", "archived", "all"
+ *   tab - "needs_email" (default), "delivery_issues", "unanswered", "answered", "archived", "all"
  *   date_from - ISO date (inclusive)
  *   date_to - ISO date (exclusive)
  *   search - filter by provider name
@@ -94,13 +94,19 @@ export async function GET(request: NextRequest) {
       // Apply tab filter
       if (tab === "needs_email") {
         query = query.contains("metadata", { needs_provider_email: true });
+        // Exclude email_dead - those belong in delivery_issues
+        query = (query as any).not("metadata", "cs", '{"email_dead":true}');
+        query = query.neq("status", "archived").neq("status", "rejected");
+      } else if (tab === "delivery_issues") {
+        query = query.contains("metadata", { email_dead: true });
+        query = query.neq("status", "archived").neq("status", "rejected").neq("status", "answered");
+      } else if (tab === "not_interested") {
+        query = query.contains("metadata", { provider_not_interested: true });
         query = query.neq("status", "archived").neq("status", "rejected");
       } else if (tab === "unanswered") {
         query = query.eq("status", "pending");
       } else if (tab === "answered") {
         query = query.eq("status", "answered");
-      } else if (tab === "removed") {
-        query = query.eq("status", "rejected");
       } else if (tab === "archived") {
         query = query.eq("status", "archived");
       }
@@ -125,7 +131,18 @@ export async function GET(request: NextRequest) {
       hasMore = rows.length === PAGE_SIZE;
     }
 
-    const questionRows = allQuestions;
+    // For unanswered tab, filter out questions that belong in other tabs
+    // (same logic as the main API)
+    let questionRows = allQuestions;
+    if (tab === "unanswered") {
+      questionRows = allQuestions.filter((q) => {
+        const meta = q.metadata as Record<string, unknown> | null;
+        if (meta?.email_dead === true) return false;
+        if (meta?.provider_not_interested === true) return false;
+        if (meta?.needs_provider_email === true) return false;
+        return true;
+      });
+    }
 
     // Collect unique provider slugs
     const slugs = [...new Set(questionRows.map((q) => q.provider_id).filter(Boolean))];
@@ -134,11 +151,14 @@ export async function GET(request: NextRequest) {
     const providerInfo: Record<string, ProviderInfo> = {};
 
     if (slugs.length > 0) {
-      // Try business_profiles first
+      // Try business_profiles first (include source_provider_id for email fallback)
       const { data: bpProviders } = await db
         .from("business_profiles")
-        .select("slug, display_name, city, state, phone, email, address_line1, address_line2")
+        .select("slug, display_name, city, state, phone, email, address_line1, address_line2, source_provider_id")
         .in("slug", slugs);
+
+      // Track which slugs need email fallback from olera-providers
+      const slugsNeedingEmailFallback: { slug: string; sourceId: string }[] = [];
 
       for (const p of bpProviders ?? []) {
         if (p.slug) {
@@ -151,20 +171,57 @@ export async function GET(request: NextRequest) {
             email: p.email || "",
             address: addressParts.join(", "),
           };
+          // If no email but has source_provider_id, mark for fallback lookup
+          if (!p.email && p.source_provider_id) {
+            slugsNeedingEmailFallback.push({ slug: p.slug, sourceId: p.source_provider_id });
+          }
         }
       }
 
       // For slugs not found in business_profiles, try olera-providers
       const missingSlugs = slugs.filter((s) => !providerInfo[s]);
+      const sourceIdsForFallback = slugsNeedingEmailFallback.map((x) => x.sourceId);
+
+      // Build OR conditions (only include non-empty arrays)
+      const orConditions: string[] = [];
       if (missingSlugs.length > 0) {
+        orConditions.push(`slug.in.(${missingSlugs.map(s => `"${s}"`).join(',')})`);
+      }
+      if (sourceIdsForFallback.length > 0) {
+        orConditions.push(`provider_id.in.(${sourceIdsForFallback.map(s => `"${s}"`).join(',')})`);
+      }
+
+      if (orConditions.length > 0) {
         const { data: iosProviders } = await db
           .from("olera-providers")
-          .select("slug, provider_name, city, state, phone, email, address")
-          .in("slug", missingSlugs)
+          .select("slug, provider_id, provider_name, city, state, phone, email, address")
+          .or(orConditions.join(','))
           .not("deleted", "is", true);
 
+        // Build lookup by provider_id for email/phone fallback
+        const iosByProviderId = new Map<string, { email?: string; phone?: string }>();
         for (const p of iosProviders ?? []) {
-          if (p.slug) {
+          if (p.provider_id) {
+            iosByProviderId.set(p.provider_id, { email: p.email || undefined, phone: p.phone || undefined });
+          }
+        }
+
+        // Fill in email/phone for business_profiles providers via source_provider_id fallback
+        for (const { slug, sourceId } of slugsNeedingEmailFallback) {
+          const fallback = iosByProviderId.get(sourceId);
+          if (fallback) {
+            if (!providerInfo[slug].email && fallback.email) {
+              providerInfo[slug].email = fallback.email;
+            }
+            if (!providerInfo[slug].phone && fallback.phone) {
+              providerInfo[slug].phone = fallback.phone;
+            }
+          }
+        }
+
+        // Fill in data for providers only in olera-providers
+        for (const p of iosProviders ?? []) {
+          if (p.slug && !providerInfo[p.slug]) {
             providerInfo[p.slug] = {
               name: p.provider_name || "",
               city: p.city || "",

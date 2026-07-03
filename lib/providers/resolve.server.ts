@@ -26,6 +26,8 @@ export async function resolveProvider(
   db: SupabaseClient,
 ): Promise<ResolveResult> {
   // 1. Directory (olera-providers) — slug first, then legacy provider_id.
+  //    BUT: if the directory row has been claimed, prefer the business_profiles
+  //    record since that's where provider edits live.
   try {
     const { data: bySlug } = await db
       .from("olera-providers")
@@ -33,7 +35,32 @@ export async function resolveProvider(
       .eq("slug", slugOrId)
       .not("deleted", "is", true)
       .single<IOSProvider>();
-    if (bySlug) return { kind: "active", provider: directoryRowToProvider(bySlug) };
+    if (bySlug) {
+      // Check if this directory row has been claimed
+      const { data: claimedProfile } = await db
+        .from("business_profiles")
+        .select("*")
+        .eq("source_provider_id", bySlug.provider_id)
+        .eq("is_active", true)
+        .maybeSingle<Profile>();
+      // Return claimed profile if:
+      // 1. It exists
+      // 2. claim_state is "claimed" (not unclaimed, pending, rejected, archived)
+      // 3. verification_state is "verified" or "not_required" OR badge_approved
+      // Unverified/pending/rejected providers' edits don't show — use directory data
+      if (claimedProfile && claimedProfile.claim_state === "claimed") {
+        const metadata = claimedProfile.metadata as Record<string, unknown> | null;
+        const badgeApproved = metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          claimedProfile.verification_state === "verified" ||
+          claimedProfile.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+        }
+      }
+      return { kind: "active", provider: directoryRowToProvider(bySlug) };
+    }
 
     const { data: byId } = await db
       .from("olera-providers")
@@ -41,7 +68,32 @@ export async function resolveProvider(
       .eq("provider_id", slugOrId)
       .not("deleted", "is", true)
       .single<IOSProvider>();
-    if (byId) return { kind: "active", provider: directoryRowToProvider(byId) };
+    if (byId) {
+      // Check if this directory row has been claimed
+      const { data: claimedProfile } = await db
+        .from("business_profiles")
+        .select("*")
+        .eq("source_provider_id", byId.provider_id)
+        .eq("is_active", true)
+        .maybeSingle<Profile>();
+      // Return claimed profile if:
+      // 1. It exists
+      // 2. claim_state is "claimed" (not unclaimed, pending, rejected, archived)
+      // 3. verification_state is "verified" or "not_required" OR badge_approved
+      // Unverified/pending/rejected providers' edits don't show — use directory data
+      if (claimedProfile && claimedProfile.claim_state === "claimed") {
+        const metadata = claimedProfile.metadata as Record<string, unknown> | null;
+        const badgeApproved = metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          claimedProfile.verification_state === "verified" ||
+          claimedProfile.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+        }
+      }
+      return { kind: "active", provider: directoryRowToProvider(byId) };
+    }
   } catch {
     // iOS Supabase not configured / not found — fall through.
   }
@@ -55,11 +107,40 @@ export async function resolveProvider(
       .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
       .single<Profile>();
-    // The business_profile is the canonical, hydrated provider record (the
-    // directory row is copied in at claim time), so render it directly — this is
-    // what surfaces the provider's edits. (No directory read-through: that was a
-    // band-aid for the old thin-profile model.)
-    if (data) return { kind: "active", provider: accountRowToProvider(data) };
+
+    if (data) {
+      // If this is a directory-claimed profile, enforce verification gate.
+      // Unverified providers' edits should not be publicly visible — fall back
+      // to the original directory data until they complete verification.
+      // badge_approved is an admin override that grants verified status.
+      if (data.source_provider_id) {
+        const metadata = data.metadata as Record<string, unknown> | null;
+        const badgeApproved = metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          data.claim_state === "claimed" &&
+          (data.verification_state === "verified" ||
+           data.verification_state === "not_required" ||
+           badgeApproved);
+
+        if (!isVerifiedClaim) {
+          // Fetch original directory data
+          const { data: dirRow } = await db
+            .from("olera-providers")
+            .select("*")
+            .eq("provider_id", data.source_provider_id)
+            .not("deleted", "is", true)
+            .single<IOSProvider>();
+
+          if (dirRow) {
+            return { kind: "active", provider: directoryRowToProvider(dirRow) };
+          }
+          // If directory row is deleted/missing, fall through to show profile
+          // (edge case: provider claimed then directory was purged)
+        }
+      }
+      // Native profiles (no source_provider_id) or verified claims: show as-is
+      return { kind: "active", provider: accountRowToProvider(data) };
+    }
   } catch {
     // fall through
   }
@@ -275,22 +356,82 @@ export async function resolveProviderForMeta(
   db: SupabaseClient,
 ): Promise<ProviderMeta | null> {
   const COLS = "provider_name, provider_category, city, state, provider_description, provider_images, provider_logo";
+  const PROFILE_COLS = "display_name, category, city, state, description, image_url, claim_state, verification_state, metadata";
+
+  // Helper to convert business_profiles row to ProviderMeta
+  const profileToMeta = (d: {
+    display_name: string | null;
+    category: string | null;
+    city: string | null;
+    state: string | null;
+    description: string | null;
+    image_url: string | null;
+  }): ProviderMeta => ({
+    provider_name: d.display_name,
+    provider_category: d.category,
+    city: d.city,
+    state: d.state,
+    provider_description: d.description,
+    provider_images: null,
+    provider_logo: d.image_url,
+  });
+
   try {
     const { data: bySlug } = await db
       .from("olera-providers")
-      .select(COLS)
+      .select(`${COLS}, provider_id`)
       .eq("slug", slugOrId)
       .not("deleted", "is", true)
       .single();
-    if (bySlug) return bySlug as unknown as ProviderMeta;
+    if (bySlug) {
+      // Check if actively claimed (claim_state = "claimed" and not rejected)
+      const { data: claimedProfile } = await db
+        .from("business_profiles")
+        .select(PROFILE_COLS)
+        .eq("source_provider_id", (bySlug as { provider_id: string }).provider_id)
+        .eq("is_active", true)
+        .maybeSingle();
+      const cp = claimedProfile as { claim_state: string; verification_state: string; metadata: Record<string, unknown> | null } | null;
+      if (cp && cp.claim_state === "claimed") {
+        const badgeApproved = cp.metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          cp.verification_state === "verified" ||
+          cp.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
+        }
+      }
+      return bySlug as unknown as ProviderMeta;
+    }
 
     const { data: byId } = await db
       .from("olera-providers")
-      .select(COLS)
+      .select(`${COLS}, provider_id`)
       .eq("provider_id", slugOrId)
       .not("deleted", "is", true)
       .single();
-    if (byId) return byId as unknown as ProviderMeta;
+    if (byId) {
+      // Check if verified claim (claim_state = "claimed" and verified/not_required)
+      const { data: claimedProfile } = await db
+        .from("business_profiles")
+        .select(PROFILE_COLS)
+        .eq("source_provider_id", (byId as { provider_id: string }).provider_id)
+        .eq("is_active", true)
+        .maybeSingle();
+      const cp = claimedProfile as { claim_state: string; verification_state: string; metadata: Record<string, unknown> | null } | null;
+      if (cp && cp.claim_state === "claimed") {
+        const badgeApproved = cp.metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          cp.verification_state === "verified" ||
+          cp.verification_state === "not_required" ||
+          badgeApproved;
+        if (isVerifiedClaim) {
+          return profileToMeta(claimedProfile as Parameters<typeof profileToMeta>[0]);
+        }
+      }
+      return byId as unknown as ProviderMeta;
+    }
   } catch {
     // fall through
   }
@@ -298,29 +439,51 @@ export async function resolveProviderForMeta(
   try {
     const { data } = await db
       .from("business_profiles")
-      .select("display_name, category, city, state, description, image_url")
+      .select("display_name, category, city, state, description, image_url, source_provider_id, claim_state, verification_state, metadata")
       .eq("slug", slugOrId)
       .eq("is_active", true)
       .in("type", ["organization", "caregiver"])
       .single();
+
     if (data) {
-      const d = data as unknown as {
+      const profile = data as {
         display_name: string | null;
         category: string | null;
         city: string | null;
         state: string | null;
         description: string | null;
         image_url: string | null;
+        source_provider_id: string | null;
+        claim_state: string | null;
+        verification_state: string | null;
+        metadata: Record<string, unknown> | null;
       };
-      return {
-        provider_name: d.display_name,
-        provider_category: d.category,
-        city: d.city,
-        state: d.state,
-        provider_description: d.description,
-        provider_images: null,
-        provider_logo: d.image_url,
-      };
+
+      // If this is a directory-claimed profile, enforce verification gate.
+      // Matches the gate logic in step 1 (claim_state + verification_state + badge_approved).
+      if (profile.source_provider_id) {
+        const badgeApproved = profile.metadata?.badge_approved === true;
+        const isVerifiedClaim =
+          profile.claim_state === "claimed" &&
+          (profile.verification_state === "verified" ||
+           profile.verification_state === "not_required" ||
+           badgeApproved);
+
+        if (!isVerifiedClaim) {
+          // Fetch original directory data for meta
+          const { data: dirRow } = await db
+            .from("olera-providers")
+            .select(COLS)
+            .eq("provider_id", profile.source_provider_id)
+            .not("deleted", "is", true)
+            .single();
+
+          if (dirRow) {
+            return dirRow as unknown as ProviderMeta;
+          }
+        }
+      }
+      return profileToMeta(profile);
     }
   } catch {
     // fall through

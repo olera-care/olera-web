@@ -42,6 +42,14 @@ const PROVIDER_EVENT_TYPES = [
   "your_market_playbook_clicked", // Provider tapped a Your Market playbook step
   // Review SMS demand signal
   "review_no_email_signal",    // Provider clicked "I only have their phone number" on reviews
+  // Ad pitch touchpoint tracking (separate from managed_ads funnel)
+  "ads_touchpoint_viewed",     // Provider saw an ad pitch touchpoint (nudge/banner)
+  "ads_touchpoint_clicked",    // Provider clicked a touchpoint CTA
+  "ads_touchpoint_dismissed",  // Provider dismissed a touchpoint
+  // Mobile nav variant A/B test
+  "mobile_nav_variant_impression", // Provider mobile nav rendered with variant
+  "nav_families_clicked",          // Provider clicked Find Families (mobile nav)
+  "nav_hire_clicked",              // Provider clicked Hire Caregivers (mobile nav)
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -335,13 +343,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Enrich provider events with device classification
+    const userAgent = request.headers.get("user-agent");
+    const enrichedProviderMetadata = {
+      ...(metadata || {}),
+      ua_class: classifyUserAgent(userAgent),
+    };
+
     const { error } = await db.from("provider_activity").insert({
       provider_id,
       profile_id: profile_id || null,
       event_type,
       email_log_id: email_log_id || null,
       email_type: email_type || null,
-      metadata: metadata || {},
+      metadata: enrichedProviderMetadata,
     });
 
     if (error) {

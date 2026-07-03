@@ -40,6 +40,7 @@ import {
 } from "@/lib/student-outreach/state-derivation";
 import { countProspectGeneration } from "@/lib/medjobs/prospect-counts";
 import { resolvePartnerProspectUnlocks } from "@/lib/medjobs/partner-prospect-gate";
+import { displayContactName, displayContactRole } from "@/lib/student-outreach/formatters";
 import type {
   AwaitingCallbackKind,
   Campus,
@@ -59,7 +60,9 @@ const REPLIES_STATUSES: Status[] = ["outreach_sent", "engaged"];
 // Terminal states (not_interested, do_not_contact, wrong_contact,
 // redirected) are NOT archived — they stay in All only as historical
 // records.
-const ARCHIVE_STATUSES: Status[] = ["no_response_closed"];
+// Manually "archived" rows (whole-prospect Archive action) join no_response_closed
+// in the Archive tab — both are "parked, reopenable" rather than terminal.
+const ARCHIVE_STATUSES: Status[] = ["no_response_closed", "archived"];
 const PARTNER_STATUSES: Status[] = ["active_partner"];
 const CLOSED_STATUSES: Status[] = [
   "not_interested",
@@ -67,6 +70,7 @@ const CLOSED_STATUSES: Status[] = [
   "do_not_contact",
   "wrong_contact",
   "redirected",
+  "archived",
 ];
 // Legacy active-partner values (pre-migration 065); still surface in Partners.
 const PARTNER_ALL: string[] = [...PARTNER_STATUSES, "agreed", "distributed"];
@@ -193,7 +197,7 @@ export async function GET(req: NextRequest) {
   // Counts for all tabs (one efficient pass + a few small queries).
   // v9.0 Phase 4: also returns per-tab unread counts mirroring the
   // shape, so the UI can render `Label unread/total`.
-  const { counts: tabCounts, unread: tabUnreadCounts } = await computeTabCounts(db, {
+  const { counts: tabCounts, unread: tabUnreadCounts, callsTotal } = await computeTabCounts(db, {
     campusId: selectedCampus?.id ?? null,
     type: typeFilter,
   });
@@ -231,6 +235,7 @@ export async function GET(req: NextRequest) {
       total: 0,
       tab_counts: tabCounts,
       tab_unread_counts: tabUnreadCounts,
+      calls_total: callsTotal,
       research_campuses: researchCampuses,
     });
   }
@@ -252,6 +257,7 @@ export async function GET(req: NextRequest) {
     total: rows.length,
     tab_counts: tabCounts,
     tab_unread_counts: tabUnreadCounts,
+    calls_total: callsTotal,
     research_campuses: researchCampuses,
   });
 }
@@ -407,9 +413,12 @@ async function fetchResearchCampuses(
 async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
-): Promise<{ counts: TabCounts; unread: TabCounts }> {
+): Promise<{ counts: TabCounts; unread: TabCounts; callsTotal: number }> {
   const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
   const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
+  // Total pending calls across ALL days (Calls-tab denominator); counts.calls
+  // stays "due today" (the numerator).
+  let callsTotal = 0;
 
   // Single status scan in scope. v9.0 Phase 4: also pull viewed_at so
   // we can split totals into unread/total per tab in one pass. kind lets
@@ -498,36 +507,27 @@ async function computeTabCounts(
     }
   }
 
-  // Calls count: distinct outreach_id with a pending call task due now.
-  // Scope to current filters.
-  // We filter out partner statuses at the SQL level so the join shape
-  // doesn't need a runtime status check (and avoids supabase-js's array
-  // typing on inner joins from leaking into our consumer code).
+  // Calls counts: one query for ALL pending call tasks, then split into
+  // "due today" (numerator, counts.calls) and "total queued" (denominator,
+  // callsTotal). Both count TASKS — one card per task — scoped to the current
+  // filters, partner statuses excluded at the SQL level.
   let callQ = db
     .from("student_outreach_tasks")
-    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type)")
+    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type)")
     .eq("status", "pending")
     .eq("task_type", "outreach_followup_call")
-    .lte("due_at", new Date().toISOString())
     .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`);
   if (filters.campusId) callQ = callQ.eq("student_outreach.campus_id", filters.campusId);
   if (filters.type) callQ = callQ.eq("student_outreach.stakeholder_type", filters.type);
   const { data: callTasks } = await callQ;
-  // v9 final: Calls tab fans out one card per pending call task
-  // (General Contact + each Specific Contact each get their own
-  // operational card). Counts must match the rendered cards — count
-  // tasks, not outreach rows. Earlier behavior collapsed via Set on
-  // outreach_id and showed "1/1" when two cards were rendered.
-  const callTaskRows = (callTasks ?? []) as Array<{ outreach_id: string }>;
-  counts.calls = callTaskRows.length;
-  // Unread = tasks whose outreach row is unread. The viewed_at
-  // state lives on student_outreach, so all per-recipient cards on
-  // the same outreach share that state until per-task read tracking
-  // ships.
-  for (const t of callTaskRows) if (unreadIds.has(t.outreach_id)) unread.calls++;
-  // Keep a Set form for the partners/calls invariants below — they
-  // index by outreach_id, not task.
-  const callSet = new Set(callTaskRows.map((t) => t.outreach_id));
+  const nowIsoForCalls = new Date().toISOString();
+  const allCallTasks = (callTasks ?? []) as Array<{ outreach_id: string; due_at: string }>;
+  const dueTodayCallTasks = allCallTasks.filter((t) => t.due_at <= nowIsoForCalls);
+  counts.calls = dueTodayCallTasks.length; // numerator: due today / overdue
+  callsTotal = allCallTasks.length; // denominator: all queued, every day
+  // Unread = due-today tasks whose outreach row is unread. viewed_at lives on
+  // student_outreach, so all per-recipient cards on a row share that state.
+  for (const t of dueTodayCallTasks) if (unreadIds.has(t.outreach_id)) unread.calls++;
 
   // v9.0 Phase 6.5: Partners count for the In Basket tab is task-driven
   // (smart-hide when no partners have open tasks). Override the
@@ -809,7 +809,7 @@ async function computeTabCounts(
   unread.partner_book =
     partnerResearchUnread + prospectGen.researchCards.unread + unread.partners;
 
-  return { counts, unread };
+  return { counts, unread, callsTotal };
 }
 
 /**
@@ -1099,24 +1099,20 @@ async function idsByPartnersWithTasks(db: DB, opts: QueryOpts): Promise<string[]
 }
 
 async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
-  // v10 Bullet 7 (2026-06-04): widen the Calls tab window from
-  // "due_at <= now" to "due_at <= end_of_next_week" so Today's Calls +
-  // Upcoming both surface in the tab. The MedJobsTabPage client-side
-  // splits the rendered list into the two sections. Past-due rows still
-  // include here (overdue calls naturally fall into Today).
-  const endOfNextWeek = new Date();
-  endOfNextWeek.setDate(endOfNextWeek.getDate() + 14);
-  endOfNextWeek.setHours(23, 59, 59, 999);
-
+  // Calls tab surfaces ALL queued calls, however far out (no date window) —
+  // the client groups them into per-day sections (Today, Tomorrow, …). Past-due
+  // rows are included (overdue calls fall into Today). No cap — every queued
+  // call surfaces; the explicit high limit just lifts PostgREST's silent
+  // 1000-row default so nothing is truncated.
   let q = db
     .from("student_outreach_tasks")
     .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type, organization_name)")
     .eq("status", "pending")
     .eq("task_type", "outreach_followup_call")
-    .lte("due_at", endOfNextWeek.toISOString())
     .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`)
     .order("due_at", { ascending: true })
-    .order("id", { ascending: true });
+    .order("id", { ascending: true })
+    .limit(10000);
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
   if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
@@ -1127,7 +1123,8 @@ async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
     if (seen.has(t.outreach_id)) continue;
     seen.add(t.outreach_id);
     ids.push(t.outreach_id);
-    if (ids.length >= opts.pageSize) break;
+    // No pageSize cap on Calls — every queued call surfaces (grouped per day
+    // client-side). The query's own row ceiling is the only bound.
   }
   return ids;
 }
@@ -1267,14 +1264,14 @@ async function hydrateRows(
     phone: string | null;
   }>) {
     if (primaryByOutreach.has(c.outreach_id)) continue;
-    const composed = [c.title, c.first_name, c.last_name]
-      .map((s) => s?.trim() ?? "")
-      .filter(Boolean)
-      .join(" ");
+    // Shared display logic: `title` doubles as the role in the add-contact UI,
+    // so displayContactName only prepends it when it's a real honorific — the
+    // person's name leads, the role goes to `role`. Keeps card titles in sync
+    // with the drawer header.
     primaryByOutreach.set(c.outreach_id, {
-      name: composed || c.name,
+      name: displayContactName(c) ?? c.name,
       phone: c.phone,
-      role: c.role,
+      role: displayContactRole(c),
     });
   }
 
@@ -1447,7 +1444,16 @@ async function hydrateRows(
       const tps = tpsByOutreach.get(id) ?? [];
       const seen = new Map<string, ReplyRecipient>();
       for (const tp of tps) {
-        if (tp.touchpoint_type !== "email_sent") continue;
+        // Include repliers/bouncers, not just who we emailed: a provider with
+        // no general email is emailed only through a decision maker, whose reply
+        // must surface as that person's card — even if the email_sent event was
+        // never received (only the reply was).
+        if (
+          tp.touchpoint_type !== "email_sent" &&
+          tp.touchpoint_type !== "email_replied" &&
+          tp.touchpoint_type !== "email_bounced"
+        )
+          continue;
         const tpAny = tp as unknown as {
           contact_id: string | null;
           payload: Record<string, unknown> | null;

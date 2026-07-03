@@ -42,6 +42,14 @@ export interface ProviderDashboardV2Data {
     answeredCount: number;
     windowDays: number;
   };
+  /** All-time question counts for the persistent Questions card. `received` and
+   *  `answered` are lifetime (capped at the last 500); `unanswered` matches the
+   *  hero banner / Q&A queue's action number. */
+  questions: {
+    received: number;
+    answered: number;
+    unanswered: number;
+  };
   recentActivity: Array<{
     id: string;
     kind: "question" | "question_answered" | "lead" | "review";
@@ -66,6 +74,10 @@ export interface ProviderDashboardV2Data {
    *  the provider — the rare "concrete leads" that drive the hero's
    *  high-priority "family near you" tier. */
   nearbyFamilies: { count: number };
+  /** True if the provider has an active ad boost request (pending_profile,
+   *  requested, scheduled, or live). Drives banner prioritization — shows
+   *  reviews banner instead of managed_ads when they already have a launch plan. */
+  hasActiveBoostRequest: boolean;
 }
 
 /**

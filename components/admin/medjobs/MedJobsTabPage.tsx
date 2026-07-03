@@ -34,6 +34,7 @@ import type {
   TabUnreadCounts,
   TabRow,
 } from "@/lib/student-outreach/types";
+import { CLOSED_STATUSES } from "@/lib/student-outreach/types";
 import {
   STOP_OUTREACH_ACTIONS,
   MENU_TABS,
@@ -92,6 +93,9 @@ export function MedJobsTabPage({
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [rows, setRows] = useState<TabRow[]>([]);
   const [tabCounts, setTabCounts] = useState<TabCounts | null>(null);
+  // Total queued calls across all days (Calls-tab denominator; the tab_counts
+  // `calls` value is the "due today" numerator).
+  const [callsTotal, setCallsTotal] = useState<number | null>(null);
   const [tabUnreadCounts, setTabUnreadCounts] = useState<TabUnreadCounts | null>(null);
   const [providerProspects, setProviderProspects] = useState<ProviderProspectRow[]>([]);
   // Active partners (TabRows) for the Partners audience tab's active section.
@@ -120,6 +124,12 @@ export function MedJobsTabPage({
   const [openOutreachName, setOpenOutreachName] = useState<string | undefined>(undefined);
   const [openProviderName, setOpenProviderName] = useState<string | undefined>(undefined);
   const [openCandidateSeed, setOpenCandidateSeed] = useState<CandidateRow | undefined>(undefined);
+  // Per-recipient focus (Model 2): when a fanned-out card opens the shared
+  // drawer, remember which recipient it was so the drawer header reads the
+  // right subject (general → org name; specific → that person's name).
+  const [openFocusKind, setOpenFocusKind] = useState<"general" | "specific" | null>(null);
+  const [openFocusName, setOpenFocusName] = useState<string | null>(null);
+  const [openFocusRole, setOpenFocusRole] = useState<string | null>(null);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
 
   useEffect(() => {
@@ -208,6 +218,7 @@ export function MedJobsTabPage({
         setCampuses(data.campuses ?? []);
         setTabCounts(data.tab_counts ?? null);
         setTabUnreadCounts(data.tab_unread_counts ?? null);
+        setCallsTotal(typeof data.calls_total === "number" ? data.calls_total : null);
 
         // Ordered lists. A view change (skeleton) takes the fresh server order;
         // a SILENT refresh merges in place — existing rows keep their position
@@ -391,7 +402,20 @@ export function MedJobsTabPage({
         row={row}
         recentlyMoved={isRecent(row.id)}
         onOpenDrawer={() => {
-          setOpenOutreachName(row.organization_name || undefined);
+          // Seed the instant-render headline with the same subject the drawer
+          // will settle on: a Specific card seeds the person's name, everything
+          // else seeds the org name — so there's no flash on open.
+          setOpenOutreachName(
+            (row.recipient_kind === "specific"
+              ? row.primary_contact_name || row.organization_name
+              : row.organization_name) || undefined,
+          );
+          // Mirror the clicked card's recipient into the drawer header. Only
+          // fanned-out cards (Calls/Replies) carry recipient_kind; org-level
+          // cards leave focus null so the kind-aware default applies.
+          setOpenFocusKind(row.recipient_kind ?? null);
+          setOpenFocusName(row.recipient_kind ? row.primary_contact_name ?? null : null);
+          setOpenFocusRole(row.recipient_kind ? row.primary_contact_role ?? null : null);
           setOpenOutreachId(row.id);
           setStakeholderRead(row, true, false); // drawer persists mark_read
         }}
@@ -403,6 +427,28 @@ export function MedJobsTabPage({
           catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
         }}
         onMarkUnread={async () => setStakeholderRead(row, false, true)}
+        onArchive={
+          row.status === "archived"
+            ? undefined
+            : async () => {
+                if (
+                  !window.confirm(
+                    "Archive this prospect? This halts outreach and parks it. You can reopen it later.",
+                  )
+                )
+                  return;
+                try { await callAction(row.id, "archive"); }
+                catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+              }
+        }
+        onReopen={
+          CLOSED_STATUSES.includes(row.status)
+            ? async () => {
+                try { await callAction(row.id, "reopen"); }
+                catch (e) { setError(e instanceof Error ? e.message : "Action failed"); }
+              }
+            : undefined
+        }
         onOpenDirectory={
           row.kind === "provider" && row.provider_slug
             ? () => {
@@ -504,8 +550,11 @@ export function MedJobsTabPage({
 
   const isInboxEmpty = useMemo(() => {
     if (!tabCounts) return false;
+    // Queued calls (even none due today) count as work, so the Calls tab —
+    // with its "0/N" badge — stays visible.
+    if ((callsTotal ?? 0) > 0) return false;
     return TABS.every((t) => (tabCounts[t.key] ?? 0) === 0);
-  }, [tabCounts]);
+  }, [tabCounts, callsTotal]);
 
   const setTabAndUrl = useCallback(
     (next: TabKey) => {
@@ -602,6 +651,14 @@ export function MedJobsTabPage({
               const unread = tabUnreadCounts?.[t.key] ?? 0;
               const active = t.key === tab;
               const isUnreadTab = unread > 0;
+              // Calls tab shows "due today / total queued" (always, even 0/N),
+              // bold when there are unread calls due today. Every other tab
+              // keeps the generic "unread/total" (or bare total) badge.
+              const isCallsTab = t.key === "calls";
+              const callsBadge =
+                isCallsTab && callsTotal != null && callsTotal > 0
+                  ? `${count}/${callsTotal}`
+                  : null;
               return (
                 <button
                   key={t.key}
@@ -624,7 +681,7 @@ export function MedJobsTabPage({
                   }`}
                 >
                   {t.label}
-                  {count > 0 && (
+                  {(callsBadge ?? (count > 0 ? String(count) : null)) && (
                     <span
                       className={`ml-1.5 text-xs tabular-nums ${
                         isUnreadTab
@@ -632,7 +689,7 @@ export function MedJobsTabPage({
                           : "text-gray-400"
                       }`}
                     >
-                      {isUnreadTab ? `${unread}/${count}` : count}
+                      {callsBadge ?? (isUnreadTab ? `${unread}/${count}` : count)}
                     </span>
                   )}
                 </button>
@@ -840,12 +897,18 @@ export function MedJobsTabPage({
           outreachId={openOutreachId}
           seedName={openOutreachName}
           activeTab={tab}
+          focusRecipientKind={openFocusKind}
+          focusRecipientName={openFocusName}
+          focusRecipientRole={openFocusRole}
           onClose={() => {
             // No refetch on close. Read state was already applied
             // optimistically on open (markRowReadLocally), and any real
             // action inside the drawer refreshed via onAction. Closing a
             // drawer you only viewed must not reload + re-sort the list.
             setOpenOutreachId(null);
+            setOpenFocusKind(null);
+            setOpenFocusName(null);
+            setOpenFocusRole(null);
           }}
           onAction={handleDrawerAction}
         />
@@ -930,11 +993,10 @@ function ListSkeleton() {
 }
 
 
-// ── v10 Bullet 7 (2026-06-04): Calls tab sectioned rendering ──────────────
-// Splits the rows into Today + Upcoming sections. "Today" = due_at by
-// end-of-day local; everything past that is Upcoming, grouped by day.
-// Sort priority: within Today, clicked-not-activated rows surface FIRST
-// (engagement-driven priority bump from Pass A strategy depth).
+// ── Calls tab sectioned rendering ─────────────────────────────────────────
+// One top-level section PER DAY — Today, Tomorrow, then each weekday/date —
+// so every call sits on its own due day (no "Upcoming" wrapper, no window).
+// Within Today, clicked-not-activated rows surface FIRST (engagement bump).
 
 function CallsSectioned({
   rows,
@@ -943,96 +1005,78 @@ function CallsSectioned({
   rows: TabRow[];
   renderRow: (row: TabRow) => React.ReactNode;
 }) {
-  const endOfToday = (() => {
-    const d = new Date();
-    d.setHours(23, 59, 59, 999);
-    return d.getTime();
-  })();
-
-  // Partition by due_at; rows without due_call_task fall into Today as
-  // safety (overdue or anomalous — admin still sees them).
-  const todayRows: TabRow[] = [];
-  const upcomingRows: TabRow[] = [];
+  // One section per actual due date — labeled with the real calendar date
+  // ("Thursday, Jul 2, 2026"), not "Today"/"Tomorrow"/weekday-only. Grouping
+  // strictly by the call's own due day makes it trivial to confirm every card
+  // is in the right bucket. Overdue calls surface under their real (past) date
+  // and sort first; rows with no scheduled call fall into a trailing section.
+  const byDay = new Map<string, { sortKey: number; label: string; rows: TabRow[] }>();
+  const undated: TabRow[] = [];
   for (const r of rows) {
     const dueIso = r.due_call_task?.due_at;
-    const due = dueIso ? new Date(dueIso).getTime() : 0;
-    if (!dueIso || due <= endOfToday) todayRows.push(r);
-    else upcomingRows.push(r);
+    if (!dueIso) {
+      undated.push(r);
+      continue;
+    }
+    const d = new Date(dueIso);
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const label = formatCallDayLabel(dueIso);
+    const bucket = byDay.get(label) ?? { sortKey: dayStart, label, rows: [] };
+    bucket.rows.push(r);
+    byDay.set(label, bucket);
   }
 
-  // Today: clicked-not-activated first, then by due_at ASC.
-  todayRows.sort((a, b) => {
-    const ac = a.engagement_substate === "clicked_not_activated" ? 0 : 1;
-    const bc = b.engagement_substate === "clicked_not_activated" ? 0 : 1;
-    if (ac !== bc) return ac - bc;
-    const ad = a.due_call_task?.due_at ?? "";
-    const bd = b.due_call_task?.due_at ?? "";
-    return ad.localeCompare(bd);
-  });
-
-  // Upcoming: by due_at ASC. Group by day label for visual scanning.
-  upcomingRows.sort((a, b) =>
-    (a.due_call_task?.due_at ?? "").localeCompare(b.due_call_task?.due_at ?? ""),
-  );
-  const upcomingByDay = new Map<string, TabRow[]>();
-  for (const r of upcomingRows) {
-    const dueIso = r.due_call_task?.due_at;
-    if (!dueIso) continue;
-    const label = formatUpcomingDayLabel(dueIso);
-    const list = upcomingByDay.get(label) ?? [];
-    list.push(r);
-    upcomingByDay.set(label, list);
+  const sections = [...byDay.values()].sort((a, b) => a.sortKey - b.sortKey);
+  // Within a day: clicked-not-activated first (engagement bump), then earliest
+  // due time first.
+  for (const s of sections) {
+    s.rows.sort((a, b) => {
+      const ac = a.engagement_substate === "clicked_not_activated" ? 0 : 1;
+      const bc = b.engagement_substate === "clicked_not_activated" ? 0 : 1;
+      if (ac !== bc) return ac - bc;
+      return (a.due_call_task?.due_at ?? "").localeCompare(b.due_call_task?.due_at ?? "");
+    });
   }
 
+  const dayHeader = "mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500";
   return (
     <div className="space-y-6">
-      {todayRows.length > 0 && (
-        <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Today’s Calls ({todayRows.length})
+      {sections.map((s) => (
+        <section key={s.label}>
+          <h3 className={dayHeader}>
+            {s.label} ({s.rows.length})
           </h3>
           <ul className="space-y-2">
-            {todayRows.map((row) => (
+            {s.rows.map((row) => (
               <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
             ))}
           </ul>
         </section>
-      )}
-      {upcomingByDay.size > 0 && (
+      ))}
+      {undated.length > 0 && (
         <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Upcoming ({upcomingRows.length})
-          </h3>
-          <div className="space-y-4">
-            {[...upcomingByDay.entries()].map(([dayLabel, dayRows]) => (
-              <div key={dayLabel}>
-                <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                  {dayLabel} · {dayRows.length}
-                </p>
-                <ul className="space-y-2">
-                  {dayRows.map((row) => (
-                    <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
-                  ))}
-                </ul>
-              </div>
+          <h3 className={dayHeader}>No scheduled date ({undated.length})</h3>
+          <ul className="space-y-2">
+            {undated.map((row) => (
+              <li key={row.row_key ?? row.id}>{renderRow(row)}</li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
     </div>
   );
 }
 
-function formatUpcomingDayLabel(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const oneDay = 86_400_000;
-  const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  const diff = Math.round((dayStart - startOfToday) / oneDay);
-  if (diff === 1) return "Tomorrow";
-  if (diff < 7) return d.toLocaleDateString(undefined, { weekday: "long" });
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+// Full, unambiguous calendar date for a Calls-tab day section —
+// "Thursday, Jul 2, 2026". Uses the browser's local day, consistent with the
+// per-row due timestamps.
+function formatCallDayLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 

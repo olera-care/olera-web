@@ -27,6 +27,18 @@ export function careUnsubscribeUrl(unsubscribeId?: string): string {
     : `${BASE_URL}/account/settings`;
 }
 
+/**
+ * Shared care-seeker unsubscribe footer for lifecycle / nudge emails. Every
+ * family nudge needs a visible opt-out (CAN-SPAM) — the coordinator compare-
+ * cascade rungs (outcome-check, provider-silent, never-engaged, day-10,
+ * pending-reach-out, stale) were missing it while the completion/publish
+ * sequences had one. Readable gray (#9ca3af), not the near-invisible #d1d5db.
+ */
+function careUnsubscribeFooter(unsubscribeId?: string): string {
+  return `<div style="height:1px;background:#eef1f0;margin:28px 0 0;"></div>
+    <p style="font-size:12px;color:#9ca3af;margin:14px 0 0;line-height:1.5;">You're getting this because you reached out for care on Olera. <a href="${careUnsubscribeUrl(unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a> from care-search updates.</p>`;
+}
+
 // ── Layout helpers ──────────────────────────────────────────────
 
 /**
@@ -87,6 +99,14 @@ function layout(body: string, preheader?: string): string {
 
 function button(label: string, href: string): string {
   return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
+}
+
+// "Explore more" browse CTA — a calm teal text link with a trailing arrow, in the
+// same restrained register as the per-card "Introduce me" links (no heavy pill
+// competing with the content). Center it in a block for a clean "see more" footer.
+// (Distinct from the muted-gray secondaryLink and underlined ctaLink defined below.)
+function browseLink(label: string, href: string): string {
+  return `<a href="${href}" style="color:${BRAND_COLOR};font-size:14px;font-weight:600;text-decoration:none;">${label}&nbsp;&rarr;</a>`;
 }
 
 /**
@@ -200,6 +220,317 @@ export function providerManagedAdsEmail(opts: {
     demand
       ? `${demand.toLocaleString()} families searched for ${cat}${where} this week`
       : `Families${opts.city ? ` near ${escapeHtml(opts.city)}` : ""} are searching for care right now.`,
+  );
+}
+
+export function adBoostQueuedEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  setupWeek: string;
+  completeness: number;
+  threshold: number;
+  missingSectionLabel?: string | null;
+  needsVerification?: boolean;
+}): string {
+  const nextStep = opts.needsVerification
+    ? "finish verification"
+    : opts.missingSectionLabel
+      ? `finish ${escapeHtml(opts.missingSectionLabel.toLowerCase())}`
+      : "finish your profile";
+  const launchWeek = formatEmailDate(opts.setupWeek);
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost request received</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">We saved your Ad Boost launch plan</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Thanks for requesting managed ads. Your preferred setup week is <strong>${launchWeek}</strong>, and your campaign is queued while your Olera page gets ready for paid traffic.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;"><strong>Current readiness:</strong> ${opts.completeness}% complete</p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Launch threshold:</strong> ${opts.threshold}% complete and verified</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">The next best step is to ${nextStep}. Once your page clears the launch threshold, we&rsquo;ll move the request into setup and email you before the campaign goes live.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">We will not send paid traffic to a thin page. That protects your first $50 promotional test and gives families a better reason to contact you.</p>
+    <div>${button("Finish launch setup", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost request is queued while your page gets ready.",
+  );
+}
+
+export function adBoostProfileReminderEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  setupWeek: string;
+  completeness: number;
+  threshold: number;
+  missingSectionLabel?: string | null;
+  needsVerification?: boolean;
+}): string {
+  const nextStep = opts.needsVerification
+    ? "finish verification"
+    : opts.missingSectionLabel
+      ? `finish ${escapeHtml(opts.missingSectionLabel.toLowerCase())}`
+      : "finish your profile";
+  const launchWeek = formatEmailDate(opts.setupWeek);
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost launch setup</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your launch plan is still waiting on your page</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your Ad Boost launch plan for ${escapeHtml(opts.providerName)} is saved for the week of <strong>${launchWeek}</strong>. Before we send paid traffic to it, your Olera page needs a little more detail.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;"><strong>Current readiness:</strong> ${opts.completeness}% complete</p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Launch threshold:</strong> ${opts.threshold}% complete and verified</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">The next best step is to ${nextStep}. Once the page clears the launch threshold, we&rsquo;ll move your request into setup automatically.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">This protects your $50 promotional test: families are more likely to contact you when the page has enough detail to trust.</p>
+    <div>${button("Finish launch setup", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost launch plan is saved, but your page still needs one more step.",
+  );
+}
+
+export function adBoostRequestedEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  setupWeek: string;
+  channel?: string | null;
+}): string {
+  const launchWeek = formatEmailDate(opts.setupWeek);
+  const channel = formatAdBoostChannel(opts.channel);
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost setup</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is ready for setup</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your managed-ads request came through, and your Olera page has enough detail for us to start setting up the campaign.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s how it works: we run a local ${channel} campaign for families searching for care, send them straight to your Olera page, and any who reach out land directly in your dashboard.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">To get started, the first $50 of ad spend is on us. That is enough to get the campaign live and let you see the flow end to end. After that, you choose the monthly budget and we run the campaign.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
+    </div>
+    <div>${button("View Ad Boost", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost request is ready for setup.",
+  );
+}
+
+export function adBoostReadyEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  setupWeek: string;
+  channel?: string | null;
+}): string {
+  const launchWeek = formatEmailDate(opts.setupWeek);
+  const channel = formatAdBoostChannel(opts.channel);
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost now launch-ready</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is now launch-ready</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Good news: your Olera page now has enough detail for us to start setting up the campaign, so your queued Ad Boost request has moved into the setup queue.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;ll use your Olera page as the landing page for the ${channel} campaign, with families who reach out appearing in your dashboard.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. Once it is complete, we can review the results together and talk through the right monthly budget.</p>
+    <div>${button("View Ad Boost", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost request is now ready for setup.",
+  );
+}
+
+export function adBoostLeadDeliveredEmail(opts: {
+  providerName: string;
+  familyName: string;
+  careType: string | null;
+  city?: string | null;
+  careRecipient?: string | null;
+  viewUrl: string;
+}): string {
+  const safeFamilyName = firstName(opts.familyName, "");
+  const familyRef = safeFamilyName || "A family";
+  const careType = opts.careType ? opts.careType.toLowerCase() : "care";
+  const city = opts.city ? ` in ${escapeHtml(opts.city)}` : "";
+  const recipient = opts.careRecipient ? ` for ${escapeHtml(opts.careRecipient)}` : "";
+  const leadLine = `${escapeHtml(familyRef)}${city} is looking for ${escapeHtml(careType)}${recipient}.`;
+  const buttonText = safeFamilyName
+    ? `View ${escapeHtml(safeFamilyName)}'s request`
+    : "View the family's request";
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families campaign</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your campaign brought in a new family</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.65;">Good news: a family reached out through your Ad Boost campaign for ${escapeHtml(opts.providerName)}.</p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">${leadLine}</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">Open the request to see the family&rsquo;s contact details and respond from your Olera dashboard.</p>
+    <div>${button(buttonText, opts.viewUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">This lead was attributed to your Find Families campaign. More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "A new family reached out through your Find Families campaign.",
+  );
+}
+
+export function adBoostCampaignLaunchedEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  channel?: string | null;
+}): string {
+  const channel = formatAdBoostChannel(opts.channel);
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families campaign</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your campaign is live</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your Find Families campaign for ${escapeHtml(opts.providerName)} is now running.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;re sending local families from ${channel} to your Olera page. When someone reaches out, they&rsquo;ll appear in your dashboard and we&rsquo;ll email you.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. We&rsquo;ll keep watching the early signal and summarize what happened before you choose any monthly budget.</p>
+    <div>${button("View campaign", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Find Families campaign is live.",
+  );
+}
+
+export function adBoostTractionEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  visitors: number;
+  leads: number;
+  clicks?: number | null;
+  spendCents?: number | null;
+}): string {
+  const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : null;
+  const conversion =
+    opts.visitors > 0 ? `${Math.min(100, Math.round((opts.leads / opts.visitors) * 100))}%` : "—";
+  const costPerFamily =
+    opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
+      ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
+      : "—";
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Campaign traction</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your campaign is getting activity</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s the early signal from the Find Families campaign for ${escapeHtml(opts.providerName)}.</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:0 0 20px;">
+      <tr>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${conversion}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Conversion</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:14px;border-right:1px solid #e5e7eb;">
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${opts.clicks != null ? opts.clicks.toLocaleString() : "—"}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad clicks</p>
+        </td>
+        <td style="padding:14px;border-right:1px solid #e5e7eb;">
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${spend ?? "—"}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad spend</p>
+        </td>
+        <td style="padding:14px;">
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${costPerFamily}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / family</p>
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly budget after the promotional test.</p>
+    <div>${button("View performance", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    `${opts.visitors.toLocaleString()} visitors and ${opts.leads.toLocaleString()} families so far.`,
+  );
+}
+
+export function adBoostPromoCompleteEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  visitors: number;
+  leads: number;
+  clicks?: number | null;
+  spendCents?: number | null;
+  intendedMonthlyBudget?: number | null;
+}): string {
+  const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : "—";
+  const costPerFamily =
+    opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
+      ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
+      : "—";
+  const budgetLine = opts.intendedMonthlyBudget
+    ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo budget as a starting point and adjust from the results.`
+    : "When you&rsquo;re ready, we can talk through the monthly budget that makes sense from the results.";
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Promotional campaign complete</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your starter campaign is complete</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">The first promotional Find Families campaign for ${escapeHtml(opts.providerName)} has wrapped. Here&rsquo;s the result summary before you decide whether to continue.</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:0 0 20px;">
+      <tr>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.clicks != null ? opts.clicks.toLocaleString() : "—"}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad clicks</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:14px;border-right:1px solid #e5e7eb;">
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${spend}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad spend</p>
+        </td>
+        <td style="padding:14px;border-right:1px solid #e5e7eb;">
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${costPerFamily}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / family</p>
+        </td>
+        <td style="padding:14px;">
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">$50</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Starter promo</p>
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${budgetLine}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Reply to this email and we&rsquo;ll review the numbers together before anything else runs.</p>
+    <div>${button("Review results", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    `Your starter campaign delivered ${opts.leads.toLocaleString()} families.`,
   );
 }
 
@@ -388,6 +719,28 @@ function authorBylineBlock(opts: { topBorder?: boolean; heading?: string; tail?:
             <img src="${photoUrl}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
           </td>
           <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">${heading}${byline}${tail}</td>
+        </tr>
+      </table>
+    </div>`;
+}
+
+function adBoostAuthorBylineBlock(opts: { topBorder?: boolean } = {}): string {
+  const photoUrl =
+    "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/tj.jpg";
+  const wrapStyle = opts.topBorder
+    ? "margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;"
+    : "margin:24px 0 0;";
+
+  return `
+    <div style="${wrapStyle}">
+      <table cellpadding="0" cellspacing="0" style="margin:0;">
+        <tr>
+          <td style="vertical-align:top;padding-right:12px;">
+            <img src="${photoUrl}" alt="TJ Falohun" width="48" height="48" style="border-radius:50%;display:block;" />
+          </td>
+          <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;">
+            <p style="margin:0;">Olera is built by <a href="https://www.linkedin.com/in/tfalohun/" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering, and <a href="https://www.linkedin.com/in/logan-dubose/" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, co-founder and physician-researcher funded by NIH SBIR. We&rsquo;re working to make senior care easier to understand and compare.</p>
+          </td>
         </tr>
       </table>
     </div>`;
@@ -1117,13 +1470,13 @@ export function connectionOutcomeCheckEmail(opts: {
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       A couple of days ago you reached out to <strong>${provider}</strong> through Olera.
-      Quick check-in — <strong>did they get back to you?</strong>
+      Quick check-in: <strong>did they get back to you?</strong>
     </p>
     <div style="margin:0 0 12px;">${primaryBtn("Yes, we connected", opts.yesUrl)}</div>
     <div style="margin:0 0 12px;">${neutralBtn("Not yet", opts.notYetUrl)}</div>
     <div style="margin:0 0 24px;">${neutralBtn("No, I haven't heard back", opts.noUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">
-      One tap is all it takes — it helps us make sure you actually get the care you're looking for.
+      One tap is all it takes. It helps us make sure you actually get the care you're looking for.
       If a provider's gone quiet, we'll show you others nearby who are ready to help.
     </p>
     ${footer}
@@ -1145,7 +1498,7 @@ function benefitsQuizModule(url?: string | null): string {
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:14px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
       It also helps to know what you can afford.
-      <a href="${url}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">See programs you may qualify for</a> — a quick 2-minute check that also sharpens your matches.
+      <a href="${url}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">See programs you may qualify for</a>. It takes about 2 minutes and can show what may help lower the cost of care.
     </p>
   `;
 }
@@ -1160,43 +1513,65 @@ export interface CompareCardItem {
   rating?: number | null;
   reviewCount?: number | null;
   distanceMi?: number | null;
+  /** Short honest "why we picked this" line (e.g. "Highly Rated · State Licensed").
+   *  Built from verified signals upstream; omitted when there's nothing to stand
+   *  behind. Never a response-time claim. */
+  reason?: string | null;
+  /** One-tap "introduce me" write link (B2). When set, the card gets an
+   *  "Introduce me" button that creates a real inquiry to this provider —
+   *  per-provider consent ("ask this one"), never a blast-all. Omitted →
+   *  the card stays a plain view link (legacy/transactional callers). */
+  introUrl?: string | null;
   /** Tolerated (some callers build cards with a slug); not rendered. */
   slug?: string;
 }
 
 function compareCardRow(p: CompareCardItem): string {
+  // One muted meta line — rating · distance · price — instead of three stacked
+  // lines. Fewer lines = a calmer, Airbnb-style listing row.
   const stars =
-    p.rating != null ? `★ ${p.rating.toFixed(1)}${p.reviewCount ? ` (${p.reviewCount})` : ""}` : "";
+    p.rating != null ? `★&nbsp;${p.rating.toFixed(1)}${p.reviewCount ? ` (${p.reviewCount})` : ""}` : "";
   const dist =
     p.distanceMi != null
-      ? `${p.distanceMi < 10 ? p.distanceMi.toFixed(1) : Math.round(p.distanceMi)} mi away`
+      ? `${p.distanceMi < 10 ? p.distanceMi.toFixed(1) : Math.round(p.distanceMi)} mi`
       : "";
-  const metaLine = [stars, dist].filter(Boolean).join("&nbsp;&nbsp;·&nbsp;&nbsp;");
+  const price = p.priceRange ? escapeHtml(p.priceRange) : "";
+  const metaLine = [stars, dist, price].filter(Boolean).join("&nbsp;&nbsp;·&nbsp;&nbsp;");
   const meta = metaLine
-    ? `<p style="font-size:13px;color:#6b7280;margin:0 0 2px;line-height:1.4;">${metaLine}</p>`
+    ? `<p style="font-size:13px;color:#6b7280;margin:3px 0 0;line-height:1.4;">${metaLine}</p>`
     : "";
-  const price = p.priceRange
-    ? `<p style="font-size:13px;color:#6b7280;margin:0;line-height:1.4;">${escapeHtml(p.priceRange)}</p>`
+  // The "why we picked this" line — the curated-shortlist differentiator, in a
+  // confident green under the name.
+  const reason = p.reason
+    ? `<p style="font-size:13px;color:#047857;font-weight:500;margin:3px 0 0;line-height:1.4;">${escapeHtml(p.reason)}</p>`
     : "";
-  const textCol = `
-        <td style="vertical-align:top;">
-          <p style="font-size:16px;color:${BRAND_COLOR};font-weight:600;margin:0 0 3px;line-height:1.3;">${escapeHtml(p.name)}</p>
-          ${meta}
-          ${price}
-        </td>`;
-  // Image is an enhancement layer — name/meta/price carry the card with images off
-  // (and when a legacy caller supplies no imageUrl, the row degrades to text-only).
+  // Image is an enhancement layer — the text carries the row with images off.
+  // Top-aligned: a standard listing row where the content is a touch taller than
+  // the thumbnail.
   const imageCol = p.imageUrl
-    ? `<td width="72" style="vertical-align:top;padding-right:14px;">
-          <img src="${p.imageUrl}" alt="${escapeHtml(p.name)}" width="72" height="72" style="width:72px;height:72px;border-radius:10px;object-fit:cover;display:block;background:#eef1f0;border:0;" />
+    ? `<td width="64" style="vertical-align:top;padding-right:14px;">
+          <img src="${p.imageUrl}" alt="${escapeHtml(p.name)}" width="64" height="64" style="width:64px;height:64px;border-radius:10px;object-fit:cover;display:block;background:#eef1f0;border:0;" />
         </td>`
     : "";
+  // One-tap "introduce me" — a calm teal text link as the last line of the
+  // content, not a pill on a lower row. Its own anchor (never nested inside the
+  // card's view link), and no fixed width to clip on mobile. Airbnb-style: airy,
+  // a clear affordance, one accent.
+  const introLink = p.introUrl
+    ? `<a href="${p.introUrl}" style="display:inline-block;margin:8px 0 0;color:${BRAND_COLOR};font-size:14px;font-weight:600;text-decoration:none;">Introduce me&nbsp;&rarr;</a>`
+    : "";
   return `
-    <a href="${p.viewUrl}" style="text-decoration:none;display:block;">
-      <table cellpadding="0" cellspacing="0" width="100%" style="margin:0;"><tr>
-        ${imageCol}${textCol}
-      </tr></table>
-    </a>`;
+    <table cellpadding="0" cellspacing="0" width="100%" style="margin:0;"><tr>
+      ${imageCol}
+      <td style="vertical-align:top;">
+        <a href="${p.viewUrl}" style="text-decoration:none;">
+          <p style="font-size:16px;color:${BRAND_COLOR};font-weight:600;margin:0;line-height:1.3;">${escapeHtml(p.name)}</p>
+          ${reason}
+          ${meta}
+        </a>
+        ${introLink}
+      </td>
+    </tr></table>`;
 }
 
 /** Stacked compare cards with hairline separators (Zillow/Airbnb listing rhythm). */
@@ -1214,10 +1589,27 @@ export function providerSilentEmail(opts: {
   recommendedProviders: CompareCardItem[];
   browseUrl: string;
   city: string | null;
+  /** Care type the family inquired about (friendly label, e.g. "memory care"),
+   *  used for the entry-bridge opening sentence. Optional — degrades cleanly. */
+  careType?: string | null;
   /** Benefits quiz deep-link (the closer). Omitted by transactional callers. */
   benefitsQuizUrl?: string | null;
+  /** Family profile id for the unsubscribe footer. */
+  unsubscribeId?: string;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
+  // Entry-bridge sentence: name their actual situation (care type + city) so the
+  // email reads as "Olera is helping me with THIS", not a generic blast. Only
+  // when we have the context; degrades to nothing otherwise.
+  const bridgeContext = [
+    opts.careType ? `about ${escapeHtml(opts.careType.toLowerCase())}` : "",
+    opts.city ? `in ${escapeHtml(opts.city)}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const bridge = bridgeContext
+    ? `You reached out to <strong>${escapeHtml(opts.providerName)}</strong> ${bridgeContext}. `
+    : "";
   const hasDeclineMessage = opts.providerPassed && opts.declineMessage?.trim();
   const hasRecommendedProviders = opts.recommendedProviders.length > 0;
 
@@ -1228,22 +1620,24 @@ export function providerSilentEmail(opts: {
     if (hasDeclineMessage) {
       openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now and left you a message:`;
     } else if (hasRecommendedProviders) {
-      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but you've got other strong options nearby worth comparing:`;
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now, but you've got other strong options nearby worth comparing:`;
     } else {
-      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now — but there are other providers in your area worth a look.`;
+      openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> isn't able to take new families right now, but there are other providers in your area worth a look.`;
     }
+  } else if (bridge) {
+    openingLine = `${bridge}They haven't gotten back to you yet, and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few others worth comparing:" : ""}`;
   } else {
-    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet — and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you worth comparing:" : ""}`;
+    openingLine = `<strong>${escapeHtml(opts.providerName)}</strong> hasn't gotten back to you yet, and the good thing about Olera is you're never limited to just one.${hasRecommendedProviders ? " Here are a few other providers near you worth comparing:" : ""}`;
   }
 
   // Adjust closing line based on whether we showed recommendations
   const closingLine = opts.providerPassed
     ? (hasRecommendedProviders
-        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
-        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls. It's your call.`)
+        ? `You can reach out to any of them the same way, directly in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.`
+        : `You can browse providers and reach out the same way, directly in your inbox, with no forms and no flood of calls. It's your call.`)
     : (hasRecommendedProviders
-        ? `You can reach out to any of them the same way — directly, in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`
-        : `You can browse providers and reach out the same way — directly, in your inbox, with no forms and no flood of calls.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`);
+        ? `You can reach out to any of them the same way, directly in your inbox, with no forms and no flood of calls. Message as many as you'd like, or just one. It's your call.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`
+        : `You can browse providers and reach out the same way, directly in your inbox, with no forms and no flood of calls.<br><br>And if ${escapeHtml(opts.providerName)} does get back to you, that conversation will still be right there waiting.`);
 
   // Show provider's decline message if present (similar to message preview style)
   // Only say "plenty of other options" if we actually have recommendations
@@ -1269,19 +1663,15 @@ export function providerSilentEmail(opts: {
       ${openingLine}
     </p>
     ${declineMessageSection}
-    ${hasRecommendedProviders ? `
-    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
-      ${providersSection}
-    </div>
-    ` : ""}
-    <div style="margin:0 0 24px;">${button("Compare more providers near you", opts.browseUrl)}</div>
+    ${hasRecommendedProviders ? `<div style="margin:0 0 24px;">${providersSection}</div>` : ""}
+    <div style="margin:8px 0 24px;text-align:center;">${browseLink("Compare more providers near you", opts.browseUrl)}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
       ${closingLine}
     </p>
     ${benefitsQuizModule(opts.benefitsQuizUrl)}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
       Warmly,
@@ -1290,7 +1680,8 @@ export function providerSilentEmail(opts: {
       The Olera team
     </p>
     ${authorBylineBlock({ topBorder: true })}
-  `, `You're never limited to one — here are others worth comparing.`);
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `, `You're never limited to one. Here are others worth comparing.`);
 }
 
 /** Email #6: Email to family when provider is STILL silent after 7+ days - trust recovery with intervention */
@@ -1343,6 +1734,18 @@ export function providerStillSilentEmail(opts: {
  * have alternatives to show (≥3 from the coordinator); falls back to the gentle
  * guide-led version when we don't. Benefits quiz rides alongside as the closer.
  */
+/**
+ * Single source of truth for the R3 never-engaged inbox subject — mirrors
+ * completionNudgeSubject so the coordinator's pre-send log reservation and the
+ * preview drawer can't drift from what the template implies. `hasAlts` is the
+ * same branch the template uses to pick compare-led vs guide-fallback.
+ */
+export function familyNeverEngagedSubject(hasAlts: boolean): string {
+  return hasAlts
+    ? "A few care options near you worth a look"
+    : "What could help you pay for care";
+}
+
 export function familyNeverEngagedEmail(opts: {
   familyName: string;
   providerName: string;
@@ -1354,71 +1757,69 @@ export function familyNeverEngagedEmail(opts: {
   browseUrl?: string | null;
   /** Benefits quiz deep-link (the closer). */
   benefitsQuizUrl?: string | null;
+  /** Family profile id for the unsubscribe footer. */
+  unsubscribeId?: string;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const hasRecs = !!opts.recommendedProviders?.length;
 
   const providersSection = hasRecs ? compareCardsBlock(opts.recommendedProviders!) : "";
 
-  // Compare-led body (we have options to show)
+  // Compare-led body (we have options to show) — confident, compare-HERO angle.
+  // Matches the completion_nudge_4 bar: h1 headline + de-boxed photo/hairline
+  // cards as the hero (compareCardsBlock carries its own separators, so no gray
+  // wrapper box), benefits as the soft closer, founder byline.
   if (hasRecs) {
     return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(familyFirstName)},
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">You have real choices nearby</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${escapeHtml(familyFirstName)}, finding the right care is a big decision, and you&rsquo;ve got real options. Here are a few providers near you worth comparing side by side:
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Finding the right care is a big decision, and you don't have to settle on the first option. Here are a few providers near you worth comparing:
-    </p>
-    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 24px;">
-      ${providersSection}
-    </div>
-    ${opts.browseUrl ? `<div style="margin:0 0 24px;">${button("Compare more providers near you", opts.browseUrl)}</div>` : ""}
+    ${providersSection}
+    ${opts.browseUrl ? `<div style="margin:24px 0 0;text-align:center;">${browseLink("Compare more providers near you", opts.browseUrl)}</div>` : ""}
     ${benefitsQuizModule(opts.benefitsQuizUrl)}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
-    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      And <strong>${escapeHtml(opts.providerName)}</strong> is still there whenever you're ready — message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>. No forms, no phone calls you didn't ask for. New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> walks through what to look for.
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
+      And <strong>${escapeHtml(opts.providerName)}</strong> is still there whenever you&rsquo;re ready. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for. New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> walks through what to look for.
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      Want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
-      Warmly,
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
-      The Olera team
+    <p style="font-size:14px;color:#6b7280;margin:0 0 0;line-height:1.6;">
+      Want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
-  `, `A few other providers near you worth comparing.`);
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `, `A few real options near you, worth a look. No rush.`);
   }
 
-  // Fallback: gentle guide-led body (no alternatives to show)
+  // Fallback (no alternatives to show — the thinnest hand). Lead with RECOGNITION,
+  // not presumption: care searches stall for everyone, usually on two questions —
+  // who's good, and how to pay. We make the second one (the real paralyzer, and our
+  // strongest free asset) the hero; the guide drops to a soft inline link; the human
+  // offer routes to /contact, never "reply" (From is noreply@). One reassurance line.
+  const hasQuiz = !!opts.benefitsQuizUrl;
+  const heroCta = hasQuiz
+    ? button("See what could help with the cost", opts.benefitsQuizUrl!)
+    : button("Get the free guide", opts.guideUrl);
   return layout(`
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(familyFirstName)},
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.3;">Choosing care for someone you love is a lot to carry</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
+      Hi ${escapeHtml(familyFirstName)}, you&rsquo;re weighing options, cost, trust, and timing all at once, trying to make a call you won&rsquo;t second-guess. It&rsquo;s completely normal for a search like that to stall for a while. So take it at your pace.
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      It's completely okay if you're still thinking things over — finding the right care isn't a small decision. While you do, here's a free guide that walks through what to look for, what to ask, and how families pay for care:
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">
+      ${hasQuiz
+        ? "When you&rsquo;re ready, the heaviest part is usually the cost, and that&rsquo;s the one we can help lift first. A quick look shows which programs and benefits could help cover it. Most families are surprised by what they qualify for."
+        : "When you&rsquo;re ready, here&rsquo;s a free guide that walks through what to look for, what to ask, and how families actually pay for care."}
     </p>
-    <div style="margin:0 0 24px;">${button("Get the free guide", opts.guideUrl)}</div>
-    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    <div style="margin:0 0 24px;">${heroCta}</div>
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
-    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      And whenever you're ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. You can message them anytime, right from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a> — no forms, no phone calls you didn't ask for. Just reach out when it feels right.
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
+      And whenever you&rsquo;re ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for.${hasQuiz ? ` New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> covers what to look for and what to ask.` : ""}
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      We're not going anywhere. Take all the time you need.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      If anything would help, or you just want to talk it through, a real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">contact us anytime</a>.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
-      Warmly,
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
-      The Olera team
+    <p style="font-size:14px;color:#6b7280;margin:0 0 0;line-height:1.6;">
+      No rush. The conversation will be here when you&rsquo;re ready. And if you&rsquo;d rather talk it through with a real person, you can <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
-  `, `We're not going anywhere, and your provider is still one message away.`);
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `, `When you're ready, a little help with the heaviest part: the cost.`);
 }
 
 /** Email to admin when a provider claims their page */
@@ -1868,7 +2269,7 @@ export function matchesNudgeEmail(opts: {
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still waiting to hear back?</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating — but there's a better way.
+      Hi ${escapeHtml(firstName(opts.familyName, "there"))}, you've reached out to ${opts.unansweredCount} ${providerWord} but haven't heard back yet. That's frustrating, but there's a better way.
     </p>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Instead of chasing providers one by one, let them come to you. Share your care needs once, and qualified providers will reach out directly.
@@ -1881,7 +2282,7 @@ export function matchesNudgeEmail(opts: {
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -2122,7 +2523,7 @@ export function goLiveReminderEmail(opts: {
   const cityText = opts.city || "your area";
   const countText = opts.providerCount ? `${opts.providerCount} care` : "Care";
   const providersHtml = opts.topProviders?.length ? providerCardsBlock(opts.topProviders) : "";
-  const preheader = `${countText} providers in ${cityText} are ready to help — let them reach out to you`;
+  const preheader = `${countText} providers in ${cityText} are ready to help. Let them reach out to you.`;
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${countText} providers in ${escapeHtml(cityText)} are looking for families like yours</h1>
@@ -2131,14 +2532,14 @@ export function goLiveReminderEmail(opts: {
     </p>
     ${providersHtml}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      You're always in control — you decide which providers to respond to.
+      You're always in control. You decide which providers to respond to.
     </p>
     <div>${button("Let Providers Reach Out", opts.matchesUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Have questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us anytime</a>, we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -2152,21 +2553,21 @@ export function postConnectionFollowupEmail(opts: {
   providerSlug: string;
   reviewUrl: string;
 }): string {
-  const preheader = `Your feedback helps other families find great care — tell us about ${opts.providerName}`;
+  const preheader = `Your feedback helps other families find great care. Tell us about ${opts.providerName}`;
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">How was your experience with ${escapeHtml(opts.providerName)}?</h1>
     <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
       Hi ${firstName(opts.familyName, "there")}, you connected with ${escapeHtml(opts.providerName)} on Olera about a month ago. We'd love to hear how it went.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Your feedback helps other families make informed decisions — and helps great providers get the recognition they deserve.
+      Your feedback helps other families make informed decisions, and helps great providers get the recognition they deserve.
     </p>
     <div>${button("Share your experience", opts.reviewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+      Have questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us anytime</a>, we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from follow-up emails</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from follow-up emails</a>
     </p>
   `, preheader);
 }
@@ -2201,7 +2602,7 @@ export function completionNudge1Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">Care is hard to figure out. Cost is harder.</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; you started a care search on Olera, and we can help with both: finding the right fit, and figuring out how to pay for it.
+      Hi ${firstName(opts.familyName, "there")}, you started a care search on Olera, and we can help with both: finding the right fit, and figuring out how to pay for it.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
       Whenever you&rsquo;re ready, tell us a little more and we&rsquo;ll point you to providers near ${escapeHtml(locationText)} that actually fit.
@@ -2210,11 +2611,11 @@ export function completionNudge1Email(opts: {
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `,
       // Preheader (inbox preview after the subject) — the subject is the warm
@@ -2256,7 +2657,7 @@ export function completionNudge2Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">There&rsquo;s more help near you than you might think</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; since you started looking, here&rsquo;s the good news: there really are ${countClause} who can help.
+      Hi ${firstName(opts.familyName, "there")}, since you started looking, here&rsquo;s the good news: there really are ${countClause} who can help.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
       The hard part is knowing which ones fit your situation. Tell us a little more and we&rsquo;ll narrow it down for you.
@@ -2265,11 +2666,11 @@ export function completionNudge2Email(opts: {
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `,
       // Subject carries the count; preheader carries the next step.
@@ -2305,17 +2706,17 @@ export function completionNudge3Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A little more, and providers can actually help</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; here&rsquo;s something we&rsquo;ve noticed: when providers can see what you&rsquo;re looking for, they can reply faster, with real answers instead of &ldquo;can you tell me more?&rdquo;
+      Hi ${firstName(opts.familyName, "there")}, here&rsquo;s something we&rsquo;ve noticed: when providers can see what you&rsquo;re looking for, they can reply faster, with real answers instead of &ldquo;can you tell me more?&rdquo;
     </p>
     ${progressLine}
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `,
       // Subject is the warm hook; preheader carries the mechanism.
@@ -2356,32 +2757,51 @@ export function completionNudge4Email(opts: {
       `
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">A few providers near you who could help</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
-      Hi ${firstName(opts.familyName, "there")} &mdash; you started a care search a little while back, so here are a few highly-rated providers near ${escapeHtml(locationText)} to give you a real starting point:
+      Hi ${firstName(opts.familyName, "there")}, you started a care search a little while back, so here are a few highly-rated providers near ${escapeHtml(locationText)} to give you a real starting point:
     </p>
     ${providersHtml}
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
-      ${remainingCount > 0 ? `There are ${remainingCount} more near you. ` : ""}Whenever you&rsquo;re ready, tell us a little more and the ones that fit can reach out to you directly &mdash; already knowing your situation.
+      ${remainingCount > 0 ? `There are ${remainingCount} more near you. ` : ""}Whenever you&rsquo;re ready, tell us a little more and the ones that fit can reach out to you directly, already knowing your situation.
     </p>
     ${progressLine}
     ${askLine}
     <div>${button("Get better matches", opts.welcomeUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here &mdash; <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `,
       // Subject lists the providers; preheader carries the low-pressure tone.
-      `Real options near you — no rush.`,
+      `Real options near you. No rush.`,
     ),
   };
 }
 
 // ── Profile Publish Sequence (4 active + 1 maintenance) ──────────
 
-/** Publish Nudge #1 (Day 0 after complete): The Flip — let providers come to you */
+/**
+ * Single source of truth for the publish-sequence inbox subjects — mirrors
+ * completionNudgeSubject / familyNeverEngagedSubject so the family-nudges send
+ * path and the preview drawer can't drift from each other.
+ */
+export function publishNudgeSubject(n: number): string {
+  switch (n) {
+    case 1:
+      return "Let providers come to you";
+    case 2:
+      return "These providers want to help families like yours";
+    case 3:
+      return "Skip the phone tag";
+    case 4:
+    default:
+      return "Your care search on Olera is still here";
+  }
+}
+
+/** Publish Nudge #1 (Day 0 after complete): The Flip, let providers come to you */
 export function publishNudge1Email(opts: {
   /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
   unsubscribeId?: string;
@@ -2395,28 +2815,29 @@ export function publishNudge1Email(opts: {
     ? `${opts.providerCount} providers in ${escapeHtml(cityText)} are ready to help`
     : `Providers in ${escapeHtml(cityText)} are ready to help`;
 
-  const preheader = "No more calling around — let them reach out to you";
+  const preheader = "No more calling around. Let them reach out to you.";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Let providers come to you</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">Let providers come to you</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
       Hi ${firstName(opts.familyName, "there")}, instead of calling provider after provider, let them reach out to you.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.5;"><strong>Here's how it works:</strong></p>
-    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
-      <li>${providerText} — they can see your care needs and send you a message</li>
-      <li>Not a phone call. A message you can read on your own time</li>
-      <li>You decide who's worth responding to</li>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.6;"><strong>Here's how it works:</strong></p>
+    <ul style="font-size:15px;color:#374151;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li>${providerText}. They can see your care needs and send you a message.</li>
+      <li>Not a phone call. A message you can read on your own time.</li>
+      <li>You decide who's worth responding to.</li>
     </ul>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">
       No pressure. You're in control.
     </p>
-    <div>${button("See How It Works", opts.matchesUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+    <div>${button("See how it works", opts.matchesUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions about how it works? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -2428,12 +2849,13 @@ export function publishNudge2Email(opts: {
   familyName: string;
   matchesUrl: string;
   providerCount?: number;
-  providers?: EmailProviderCard[];
+  /** Photo + hairline compare cards (the matches-email / completion_nudge_4 style). */
+  providers?: CompareCardItem[];
   city?: string;
 }): string {
   const cityText = opts.city || "your area";
   const hasProviders = opts.providers && opts.providers.length > 0;
-  const providersHtml = hasProviders ? providerCardsBlock(opts.providers!.slice(0, 3)) : "";
+  const providersHtml = hasProviders ? compareCardsBlock(opts.providers!.slice(0, 3)) : "";
   const remainingCount = (opts.providerCount ?? 0) - (opts.providers?.length ?? 0);
 
   // Adjust headline and intro based on whether we have providers to show
@@ -2441,28 +2863,29 @@ export function publishNudge2Email(opts: {
     ? "These providers want to help families like yours"
     : `Providers in ${escapeHtml(cityText)} want to help families like yours`;
   const intro = hasProviders
-    ? `here are a few highly-rated providers in ${escapeHtml(cityText)}:`
-    : `providers in ${escapeHtml(cityText)} are looking for families to help.`;
+    ? `Here are a few highly-rated providers in ${escapeHtml(cityText)} who could help:`
+    : `Providers in ${escapeHtml(cityText)} are looking for families to help.`;
 
   const preheader = hasProviders
     ? "These providers help families like yours"
     : "Providers are looking for families to help";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${headline}</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, ${intro}
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">${headline}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")}, when you started your care search on Olera, you saved what you're looking for. ${intro}
     </p>
     ${providersHtml}
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      ${remainingCount > 0 ? `These providers (and ${remainingCount} others) are looking for families to help. ` : ""}When you publish, they can see your needs and reach out. No forms to fill out. No calls to make. They do the work — you choose who to talk to.
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">
+      ${remainingCount > 0 ? `These providers (and ${remainingCount} others) are looking for families to help. ` : ""}When you publish, they can see your needs and reach out. No forms to fill out, no calls to make. They do the work, and you choose who to talk to.
     </p>
-    <div>${button("Let Providers Reach Out", opts.matchesUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+    <div>${button("Let providers reach out", opts.matchesUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions about how it works? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -2484,34 +2907,33 @@ export function publishNudge3Email(opts: {
   // Build social proof line with real data
   let socialProof: string;
   if (opts.familiesThisWeek && opts.familiesThisWeek >= 5) {
-    socialProof = `${opts.familiesThisWeek} families got responses this week — without making a single call.`;
+    socialProof = `${opts.familiesThisWeek} families got responses this week, without making a single call.`;
   } else if (opts.familiesThisMonth && opts.familiesThisMonth >= 10) {
-    socialProof = `${opts.familiesThisMonth} families heard back from providers this month — without making a single call.`;
+    socialProof = `${opts.familiesThisMonth} families heard back from providers this month, without making a single call.`;
   } else {
-    socialProof = "Families on Olera are hearing back from providers — without making a single call.";
+    socialProof = "Families on Olera are hearing back from providers, without making a single call.";
   }
 
-  const preheader = "No more phone tag — let providers come to you";
+  const preheader = "No more phone tag. Let providers come to you.";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Skip the phone tag</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, most families spend hours calling providers, leaving voicemails, waiting for callbacks.
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.25;">Skip the phone tag</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")}, when you started your care search on Olera, you saved a profile with the care you need. From there, most families take it the hard way: hours calling providers, leaving voicemails, waiting for callbacks.
     </p>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
       Families on Olera do it differently: they publish what they need, and providers reach out with real answers.
     </p>
-    <div style="background:#f0fdfa;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
-        ${escapeHtml(socialProof)}
-      </p>
-    </div>
-    <div>${button("Publish and Let Them Come to You", opts.matchesUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? Just reply to this email — we're here to help.
+    <p style="font-size:16px;font-weight:600;color:${BRAND_COLOR};margin:0 0 24px;line-height:1.5;">
+      ${escapeHtml(socialProof)}
     </p>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+    <div>${button("Let providers come to you", opts.matchesUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Questions about how it works? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -2526,22 +2948,23 @@ export function publishNudge4Email(opts: {
 }): string {
   const cityText = opts.city || "your area";
 
-  const preheader = "Your profile is ready whenever you are";
+  const preheader = "A quick reminder of where your care search left off.";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still thinking it over?</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, no rush. Finding care is a big decision.
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.3;">Your care profile is ready when you are</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Hi ${firstName(opts.familyName, "there")}, a little while ago you started a care search on Olera and saved a profile with the kind of care you're looking for. It's still here, no rush.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      When you're ready, your profile is set. One click and providers in ${escapeHtml(cityText)} can start reaching out to you.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      There's just one step left: making your profile visible to care providers near you in ${escapeHtml(cityText)}. Once it's visible, they can see what you need and reach out to you directly, so you're not the one calling around.
     </p>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Not sure how it works? Have questions? <strong>Reply to this email</strong> — we're happy to explain.
+    <div>${button("Let providers reach out to me", opts.matchesUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
+      Not sure how it works, or have questions? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a> and we're happy to explain.
     </p>
-    <div>${button("Publish When Ready", opts.matchesUrl)}</div>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+    ${authorBylineBlock({ topBorder: true })}
+    <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -2678,7 +3101,7 @@ export function completionCelebrationEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from care search updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
     </p>
   `, preheader);
 }
@@ -2823,7 +3246,7 @@ export function savedProviderDigestEmail(opts: {
       Have questions? Just reply to this email — we're here to help.
     </p>
     <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Manage your email preferences</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Manage your email preferences</a>
     </p>
   `, preheader);
 }
@@ -3271,6 +3694,28 @@ function humanCategoryLabel(category: string | null): string {
     independent_living: "independent living",
   };
   return map[category] ?? category.replace(/_/g, " ");
+}
+
+function formatAdBoostChannel(channel: string | null | undefined): string {
+  if (channel === "google") return "Google";
+  if (channel === "meta") return "Meta";
+  if (channel === "both") return "Google and Meta";
+  return "Google";
+}
+
+function formatEmailDate(value: string): string {
+  const [year, month, day] = value.split("-").map((part) => Number.parseInt(part, 10));
+  const date =
+    year && month && day
+      ? new Date(Date.UTC(year, month - 1, day))
+      : new Date(value);
+  if (Number.isNaN(date.getTime())) return escapeHtml(value);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function digestHeadline(opts: DigestOpts): string {
@@ -4707,14 +5152,14 @@ export function familyNudgeEmail(opts: {
     ${askLine}
     <div>${button(primaryLabel, primaryUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:18px 0 0;line-height:1.6;">
-      Cost is often the first question families have — this same step shows what financial help you may qualify for.
+      Cost is often the first question families have, and this same step shows what financial help you may qualify for.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:12px 0 0;line-height:1.6;">
-      Questions, or want a hand choosing? A real person is here — <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
+      Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     <p style="font-size:12px;color:#d1d5db;margin:20px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#d1d5db;text-decoration:underline;">Unsubscribe from these updates</a>
+      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from these updates</a>
     </p>
   `,
     // Preheader (inbox preview text, after the subject) — NOT the subject, which
@@ -5093,6 +5538,8 @@ export function familyPendingReachOutNudgeEmail(opts: {
   messagePreview: string | null;
   daysSinceReachOut: number;
   viewUrl: string;
+  /** Family profile id for the unsubscribe footer. */
+  unsubscribeId?: string;
 }): string {
   const safeProviderName = escapeHtml(opts.providerName);
   const daysText = opts.daysSinceReachOut === 1 ? "1 day" : `${opts.daysSinceReachOut} days`;
@@ -5110,12 +5557,13 @@ export function familyPendingReachOutNudgeEmail(opts: {
     </p>
     ${messageBlock}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      They took the time to reach out — a quick response helps them know if you're still looking for care. Even a "not interested" is helpful so they can assist other families.
+      They took the time to reach out, and a quick response helps them know if you're still looking for care. Even a "not interested" is helpful so they can assist other families.
     </p>
     <div style="margin:0 0 24px;">${button("View and Respond", opts.viewUrl)}</div>
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
   `, `${opts.providerName} is still waiting for your response`);
 }
 
@@ -5145,7 +5593,7 @@ export function staleConversationProviderEmail(opts: {
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `, `Your conversation with ${safeFamilyName} went quiet — send a follow-up`);
+  `, `Your conversation with ${safeFamilyName} went quiet. Send a follow-up`);
 }
 
 /**
@@ -5157,6 +5605,8 @@ export function staleConversationFamilyEmail(opts: {
   providerName: string;
   daysSinceLastMessage: number;
   viewUrl: string;
+  /** Family profile id for the unsubscribe footer. */
+  unsubscribeId?: string;
 }): string {
   const safeProviderName = escapeHtml(opts.providerName);
   const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
@@ -5173,7 +5623,8 @@ export function staleConversationFamilyEmail(opts: {
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
-  `, `${opts.providerName} is still here to help — continue the conversation`);
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `, `${opts.providerName} is still here to help. Continue the conversation`);
 }
 
 /**
@@ -5191,6 +5642,8 @@ export function day10AwaitingEmail(opts: {
   recommendedProviders?: CompareCardItem[];
   /** Benefits quiz deep-link (the closer). */
   benefitsQuizUrl?: string | null;
+  /** Family profile id for the unsubscribe footer. */
+  unsubscribeId?: string;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const safeProviderName = escapeHtml(opts.providerName);
@@ -5203,21 +5656,19 @@ export function day10AwaitingEmail(opts: {
       Hi ${escapeHtml(familyFirstName)},
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      You heard back from <strong>${safeProviderName}</strong> — that's a good place to be. If you've been meaning to reply but haven't found the moment, that's completely normal; there's a lot to weigh, and there's no wrong pace.
+      You heard back from <strong>${safeProviderName}</strong>, and that's a good place to be. If you've been meaning to reply but haven't found the moment, that's completely normal; there's a lot to weigh, and there's no wrong pace.
     </p>
     ${hasRecs ? `
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
       One thing that helps before you decide: seeing how they stack up against a couple of others nearby.
     </p>
-    <div style="background:#f9fafb;border-radius:8px;padding:20px;margin:0 0 20px;">
-      ${providersSection}
-    </div>
-    <div style="margin:0 0 24px;">${button("Compare your options", opts.alternativesUrl)}</div>
+    <div style="margin:0 0 24px;">${providersSection}</div>
+    <div style="margin:0 0 24px;${hasRecs ? "text-align:center;" : ""}">${hasRecs ? browseLink("Compare your options", opts.alternativesUrl) : button("Compare your options", opts.alternativesUrl)}</div>
     ` : ""}
     ${benefitsQuizModule(opts.benefitsQuizUrl)}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
-      Ready to keep going? <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Pick up right where you left off</a> with ${safeProviderName}. And if you'd rather not weigh it alone, a real person on our team is glad to help you think it through — <a href="${opts.supportUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">just reach out</a>.
+      Ready to keep going? <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Pick up right where you left off</a> with ${safeProviderName}. And if you'd rather not weigh it alone, a real person on our team is glad to help you think it through. <a href="${opts.supportUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Just reach out</a>.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       We're not going anywhere.
@@ -5229,5 +5680,6 @@ export function day10AwaitingEmail(opts: {
       The Olera team
     </p>
     ${authorBylineBlock({ topBorder: true })}
-  `, `You heard back from ${opts.providerName} — here's how to weigh your options.`);
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `, `You heard back from ${opts.providerName}. Here's how to weigh your options.`);
 }

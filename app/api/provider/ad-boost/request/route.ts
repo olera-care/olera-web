@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { loadAdBoostEligibility } from "@/lib/ad-boost/eligibility.server";
-import { countDeliveredByCampaign, getCampaignStats } from "@/lib/ad-boost/delivered.server";
+import { countDeliveredByCampaign, getCampaignStats, getCampaignQuestions } from "@/lib/ad-boost/delivered.server";
+import { sendAdBoostRequestEmail } from "@/lib/ad-boost/notifications.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
 import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
 
@@ -49,12 +50,13 @@ export async function GET() {
     .limit(1)
     .maybeSingle();
 
-  // Standing-order release: a campaign queued under 70% auto-promotes the moment
-  // the provider crosses the threshold. We re-check on every boost-page load
-  // (profile saves are client-direct with no server hook, so this is the
-  // promotion point), flip pending_profile -> requested, and page the concierge
-  // now — not at submit — so the queue only ever holds actionable work.
-  if (latest && latest.status === "pending_profile" && elig.eligibility.eligible) {
+  // Standing-order release: a campaign queued under 70% (or unverified) auto-
+  // promotes the moment the provider crosses the threshold AND verifies. We
+  // re-check on every boost-page load (profile saves are client-direct with no
+  // server hook, so this is the promotion point), flip pending_profile ->
+  // requested, and page the concierge now — not at submit — so the queue only
+  // ever holds actionable work.
+  if (latest && latest.status === "pending_profile" && elig.eligibility.eligible && elig.isVerified) {
     const { data: promoted } = await db
       .from("ad_campaign_requests")
       .update({
@@ -83,6 +85,20 @@ export async function GET() {
         launchReady: true,
       });
       await sendSlackAlert(alert.text, alert.blocks);
+      await sendAdBoostRequestEmail({
+        requestId: promoted.id,
+        kind: "promotion",
+        providerName: elig.displayName ?? elig.slug,
+        providerSlug: elig.slug,
+        providerEmail: elig.email,
+        setupWeek: promoted.requested_setup_week,
+        channel: promoted.channel,
+        intendedMonthlyBudget: promoted.intended_monthly_budget,
+        completeness: elig.eligibility.overall,
+        eligibility: elig.eligibility,
+        isVerified: elig.isVerified,
+        recipientProfileId: elig.profileId,
+      });
     }
   }
 
@@ -101,20 +117,26 @@ export async function GET() {
   // actually driving traffic; pre-live it's null and the UI shows a "numbers
   // arrive once live" state. Launch anchor = the requested setup week (when the
   // ads start), falling back to created_at for older rows with no week.
-  let campaignStats: { visitors: number; leads: number; since: string } | null = null;
+  let campaignStats:
+    | { visitors: number; leads: number; questions: { received: number; unanswered: number }; since: string }
+    | null = null;
   if (latest && latest.status === "live") {
     const since = new Date(
       latest.requested_setup_week || latest.created_at,
     ).toISOString();
-    const stats = await getCampaignStats(db, {
-      providerIdVariants: [elig.slug, elig.profileId],
-      since,
-    });
-    campaignStats = { ...stats, since };
+    const providerIdVariants = [elig.slug, elig.profileId];
+    // Questions are campaign engagement too — counted the same since-launch way
+    // as visitors/leads. Parallel with the page-traffic query.
+    const [stats, questions] = await Promise.all([
+      getCampaignStats(db, { providerIdVariants, since }),
+      getCampaignQuestions(db, { providerIdVariants, since }),
+    ]);
+    campaignStats = { ...stats, questions, since };
   }
 
   return NextResponse.json({
     eligibility: elig.eligibility,
+    isVerified: elig.isVerified,
     provider: {
       slug: elig.slug,
       displayName: elig.displayName,
@@ -137,10 +159,10 @@ export async function POST(request: NextRequest) {
 
   // Standing-order model: a provider can queue a campaign at any completeness.
   // Under 70% it lands as `pending_profile` (queued, concierge NOT paged); it
-  // auto-promotes to `requested` the moment they cross the threshold (see GET).
-  // The completeness gate still protects ad ROI — it just guards the *launch*,
-  // not entry. No 403; commitment-first is the whole point.
-  const queued = !elig.eligibility.eligible;
+  // auto-promotes to `requested` the moment they cross the threshold AND verify
+  // (see GET). Both completeness AND verification gate the *launch*, not entry.
+  // No 403; commitment-first is the whole point.
+  const queued = !elig.eligibility.eligible || !elig.isVerified;
 
   let body: { setupWeek?: unknown; channel?: unknown; intendedMonthlyBudget?: unknown };
   try {
@@ -254,6 +276,21 @@ export async function POST(request: NextRequest) {
     });
     await sendSlackAlert(alert.text, alert.blocks);
   }
+
+  await sendAdBoostRequestEmail({
+    requestId: inserted.id,
+    kind: queued ? "queued" : "requested",
+    providerName: elig.displayName ?? elig.slug,
+    providerSlug: elig.slug,
+    providerEmail: elig.email,
+    setupWeek,
+    channel,
+    intendedMonthlyBudget,
+    completeness: elig.eligibility.overall,
+    eligibility: elig.eligibility,
+    isVerified: elig.isVerified,
+    recipientProfileId: elig.profileId,
+  });
 
   return NextResponse.json({ ok: true, request: inserted, queued });
 }

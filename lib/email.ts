@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
 import { isUndeliverable, verifyAndCache, effectiveStatus } from "./email-verification";
 import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge, FAMILY_NUDGE_EMAIL_TYPES, FAMILY_NUDGE_WEEKLY_CAP, isGovernedFamilyNudge } from "./email-governance";
+import { isEmailDoNotContact } from "./do-not-contact";
 
 const FROM_ADDRESS = "Olera <noreply@olera.care>";
 
@@ -27,6 +28,11 @@ const FROM_ADDRESS = "Olera <noreply@olera.care>";
  * Verification, separately, applies to the WHOLE digest (see VERIFY_ON_SEND_TYPES).
  */
 const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
+  "ad_boost_profile_reminder",
+  "ad_boost_lead_delivered",
+  "ad_boost_campaign_launched",
+  "ad_boost_traction",
+  "ad_boost_promo_complete",
   "connection_request",
   "first_lead_celebration",
   "question_received",
@@ -56,10 +62,22 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
  * Every other (transactional) type stays cache-only and never makes a network
  * call on the send path. All checks fail OPEN (verify error → not suppressed).
  */
-const VERIFY_ON_SEND_TYPES = new Set<string>([
-  ...PROVIDER_NOTIFY_FROM_TYPES,
-  "weekly_analytics_digest",
+// MedJobs email types are intentionally EXCLUDED from verify-on-send. Per the
+// MedJobs flow decision (Task 3), email verification must never block or flag a
+// medjobs send — admins decide reachability. ZeroBounce stays for every other
+// cold/mixed type (provider nudges, digests). These types keep their domain
+// ring-fencing (they're still in PROVIDER_NOTIFY_FROM_TYPES); only the
+// suppression lever is removed for them.
+const MEDJOBS_NO_VERIFY_TYPES = new Set<string>([
+  "medjobs_student_interest",
+  "medjobs_candidate_ready",
 ]);
+
+const VERIFY_ON_SEND_TYPES = new Set<string>(
+  [...PROVIDER_NOTIFY_FROM_TYPES, "weekly_analytics_digest"].filter(
+    (t) => !MEDJOBS_NO_VERIFY_TYPES.has(t),
+  ),
+);
 
 /**
  * Resolve the From address. Precedence: explicit caller value > cold provider-
@@ -120,6 +138,8 @@ export interface SendEmailOptions {
   replyTo?: string;
   /** Recipient's profile ID for checking notification preferences. If provided, controllable notifications will respect user preferences. */
   recipientProfileId?: string;
+  /** When set, adds a List-Unsubscribe header pointing at this URL (deliverability + inbox one-click affordance). Family lifecycle/nudge sends pass the care-unsubscribe URL. */
+  listUnsubscribeUrl?: string;
 }
 
 function getServiceDb() {
@@ -428,6 +448,18 @@ export async function sendEmail(
       PROVIDER_NOTIFY_FROM_TYPES.has(emailType) ||
       (!!process.env.PROVIDER_NOTIFY_FROM && from === process.env.PROVIDER_NOTIFY_FROM);
     let suppressReason: string | null = null;
+    // Do-Not-Contact kill switch (admin-managed, cross-channel HARD suppression).
+    // Checked FIRST and NOT overridable by the email_overrides trust allowlist
+    // below — a recipient who demanded "remove me from everything" outranks any
+    // send-anyway signal. Auth/verification mail is already excluded by the
+    // SUPPRESSION_EXEMPT_TYPES guard on this whole block. Fails open.
+    if (await isEmailDoNotContact(soleRecipient)) {
+      console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — on do-not-contact list`);
+      if (existingLogId) {
+        updateEmailLog(existingLogId, { status: "failed", errorMessage: "Suppressed: do-not-contact list" });
+      }
+      return { success: true, skipped: true, skipReason: "do_not_contact", emailLogId: existingLogId ?? undefined };
+    }
     if (await isSuppressedRecipient(soleRecipient)) {
       suppressReason = "prior bounce/complaint on record";
     } else if (VERIFY_ON_SEND_TYPES.has(emailType)) {
@@ -578,6 +610,17 @@ export async function sendEmail(
       : undefined);
   if (replyTo) {
     sendPayload.replyTo = replyTo;
+  }
+  // List-Unsubscribe: points at the care-seeker unsubscribe page, which auto-POSTs
+  // the opt-out on mount (effectively one-click for a human, scanner-safe since a
+  // plain GET runs no JS). Improves deliverability and gives Gmail/Apple Mail the
+  // native unsubscribe affordance. We intentionally omit List-Unsubscribe-Post
+  // (RFC 8058 one-click) until the endpoint accepts that POST shape.
+  if (options.listUnsubscribeUrl) {
+    sendPayload.headers = {
+      ...(sendPayload.headers || {}),
+      "List-Unsubscribe": `<${options.listUnsubscribeUrl}>`,
+    };
   }
   const { data, error } = await resend.emails.send(sendPayload);
 

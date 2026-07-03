@@ -18,7 +18,11 @@ export type Status =
   | "no_response_closed"
   | "do_not_contact"
   | "wrong_contact"
-  | "redirected";
+  | "redirected"
+  // Whole-prospect "Archive" — halts the running cadence and parks the row.
+  // Distinct from the other closed statuses in that it is explicitly meant to
+  // be reopened later (the campus page shows it as an "Archived" tag).
+  | "archived";
 
 /**
  * Legacy values still accepted by the DB CHECK constraint but no longer
@@ -233,8 +237,16 @@ export interface ResearchData {
    *  mirrors the fan-out for fast lookup without re-querying Smartlead. */
   smartlead?: {
     campaign_id: number;
+    /** Primary resolvable address for reply/bounce webhooks (which carry no
+     *  custom_fields). The General Contact email when present, else the first
+     *  enrolled named/decision-maker email — so a provider with no general
+     *  email is still resolvable by the address that replied. */
     lead_email: string | null;
     enrolled_at: string;
+    /** Every email enrolled for this row (General Contact + each Named
+     *  Contact). The reply/bounce webhook matches the replier against this
+     *  list so DM-only providers resolve to the row. */
+    lead_emails?: string[];
     /** v9.x Named-Contact fan-out: contact_ids of Specific Contacts that
      *  were enrolled alongside the General Contact. Empty array (or
      *  undefined for rows enrolled before fan-out shipped) means General
@@ -768,6 +780,7 @@ export const STATUS_LABELS: Record<Status | LegacyStatus, string> = {
   do_not_contact: "Do Not Contact",
   wrong_contact: "Wrong Contact",
   redirected: "Redirected",
+  archived: "Archived",
   // Legacy — only present on un-migrated historical rows.
   agreed: "Partner",
   distributed: "Partner",
@@ -813,6 +826,7 @@ export function statusGroup(status: Status | LegacyStatus): StatusGroup {
     case "do_not_contact":
     case "wrong_contact":
     case "redirected":
+    case "archived":
       return "closed";
   }
 }
@@ -837,6 +851,7 @@ export const CLOSED_STATUSES: Status[] = [
   "do_not_contact",
   "wrong_contact",
   "redirected",
+  "archived",
 ];
 
 /** Stages from which "Mark as Partner" should be visible as a CTA. */

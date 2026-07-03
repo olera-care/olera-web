@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -9,8 +10,9 @@ import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import PasskeysSection from "@/components/account/PasskeysSection";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
 
-type SettingsTab = "account" | "notifications";
+type SettingsTab = "account" | "notifications" | "help";
 
 // Notification configurations per account type
 // Activity-based notifications are controllable by user
@@ -79,7 +81,7 @@ type NotificationKey =
 
 export default function AccountSettingsPage() {
   const router = useRouter();
-  const { user, activeProfile, refreshAccountData } = useAuth();
+  const { user, activeProfile, profiles, refreshAccountData } = useAuth();
 
   // Determine account type for notifications
   const profileType = activeProfile?.type;
@@ -88,6 +90,8 @@ export default function AccountSettingsPage() {
   const isCaregiver = profileType === "caregiver" || profileType === "student";
   const isProvider = isOrganization || isCaregiver;
 
+  // Mobile nav variant for providers
+  const mobileNavVariant = useMobileNavVariant();
   // Verification state (for providers only)
   const verificationState = activeProfile?.verification_state as string | null;
   const isVerified =
@@ -406,53 +410,102 @@ export default function AccountSettingsPage() {
     return "Family";
   };
 
+  // Show bottom tabs UI for organization providers with bottom_tabs variant
+  // (caregivers have different nav - the mobile nav variant is for org providers only)
+  // Default to true when variant is null (brief moment during load) to prevent flash
+  const showBottomTabs = isOrganization && mobileNavVariant !== "current";
+
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
-        <div className="mb-5">
-          <h2 className="text-2xl font-display font-bold text-gray-900">
-            Account Settings
-          </h2>
-          <p className="text-[15px] text-gray-500 mt-1">
-            Manage your {getAccountTypeLabel().toLowerCase()} account, login, and notification preferences.
-          </p>
-        </div>
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6 sm:py-8">
+            {/* Back button */}
+            {showBottomTabs ? (
+              <Link
+                href="/provider"
+                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+                Back
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+                Back
+              </button>
+            )}
 
-        <div className="max-w-2xl">
-          {/* Tabs - segmented control style */}
-          <div className="mb-6">
-            <div className="inline-flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
-              <button
-                onClick={() => setActiveTab("account")}
-                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all duration-150 min-h-[44px] ${
-                  activeTab === "account"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Account
-              </button>
-              <button
-                onClick={() => setActiveTab("notifications")}
-                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all duration-150 min-h-[44px] ${
-                  activeTab === "notifications"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Notifications
-              </button>
-            </div>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+              Account Settings
+            </h1>
+            <p className="text-[15px] text-gray-500 mt-1">
+              Manage your {getAccountTypeLabel().toLowerCase()} account, login, and notification preferences.
+            </p>
           </div>
 
-          {/* Tab Content */}
-          <div className="rounded-2xl bg-white border border-gray-200/80 divide-y divide-gray-100">
-            {activeTab === "account" ? (
-              <>
-                {/* ── Account Info ── */}
-                <div className="p-6">
-                  <div className="divide-y divide-gray-100">
-                    <AccountRow
+          {/* Tabs */}
+          <div className="flex gap-6 -mb-px">
+            <button
+              type="button"
+              onClick={() => setActiveTab("account")}
+              className={`relative pb-3 text-[15px] font-medium transition-colors ${
+                activeTab === "account"
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Account
+              {activeTab === "account" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("notifications")}
+              className={`relative pb-3 text-[15px] font-medium transition-colors ${
+                activeTab === "notifications"
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Notifications
+              {activeTab === "notifications" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("help")}
+              className={`relative pb-3 text-[15px] font-medium transition-colors ${
+                activeTab === "help"
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Get Help
+              {activeTab === "help" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 rounded-full" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === "account" ? (
+          <div className="divide-y divide-gray-200">
+                  <AccountRow
                       label="Email"
                       value={user?.email || "Not set"}
                       verified={!!user?.email_confirmed_at}
@@ -499,15 +552,13 @@ export default function AccountSettingsPage() {
                       success={editingField === "password" ? fieldSuccess : ""}
                       isPassword
                     />
-                  </div>
-                </div>
 
-                {/* ── Passkeys ── */}
+            {/* ── Passkeys ── */}
                 <PasskeysSection />
 
                 {/* ── Subscription (Providers only) ── */}
                 {isProvider && (
-                  <div className="p-6">
+                  <div className="py-4">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[15px] font-semibold text-gray-900">
                         Olera Pro
@@ -595,7 +646,7 @@ export default function AccountSettingsPage() {
 
                 {/* ── Google Business Profile (Providers only, when not connected) ── */}
                 {isProvider && (
-                  <div className="p-6">
+                  <div className="py-4">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[15px] font-semibold text-gray-900">
                         Google Business Profile
@@ -705,7 +756,7 @@ export default function AccountSettingsPage() {
                 )}
 
                 {/* ── Delete Account ── */}
-                <div className="p-6">
+                <div className="py-4">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-[15px] font-semibold text-gray-900">
@@ -725,10 +776,27 @@ export default function AccountSettingsPage() {
                     </button>
                   </div>
                 </div>
-              </>
-            ) : (
+
+                {/* ── Sign Out (bottom_tabs variant only - current variant has it in hamburger menu) ── */}
+                {showBottomTabs && (
+                  <div className="py-4">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const supabase = createClient();
+                        await supabase.auth.signOut();
+                        router.push("/");
+                      }}
+                      className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-xl text-[15px] font-medium text-gray-700 transition-colors"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+          </div>
+        ) : activeTab === "notifications" ? (
               /* ── Notifications Tab ── */
-              <div className="p-6">
+              <div>
                 {notifError && (
                   <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
                     <p className="text-[13px] text-rose-600 font-medium">{notifError}</p>
@@ -784,8 +852,34 @@ export default function AccountSettingsPage() {
                   ))}
                 </div>
               </div>
-            )}
-          </div>
+            ) : activeTab === "help" ? (
+              /* ── Get Help Tab ── */
+              <div className="divide-y divide-gray-100">
+                {/* Phone */}
+                <div className="py-4 first:pt-0">
+                  <p className="text-[13px] font-medium text-gray-500">Phone</p>
+                  <a
+                    href="tel:+19792439801"
+                    className="text-[15px] text-primary-600 hover:text-primary-700 font-medium mt-1 inline-block transition-colors"
+                  >
+                    +1 (979) 243-9801
+                  </a>
+                  <p className="text-sm text-gray-500 mt-0.5">United States</p>
+                </div>
+
+                {/* Email */}
+                <div className="py-4">
+                  <p className="text-[13px] font-medium text-gray-500">Email</p>
+                  <a
+                    href="mailto:support@olera.care"
+                    className="text-[15px] text-primary-600 hover:text-primary-700 font-medium mt-1 inline-block transition-colors"
+                  >
+                    support@olera.care
+                  </a>
+                  <p className="text-sm text-gray-500 mt-0.5">We typically respond within 1 business day</p>
+                </div>
+              </div>
+            ) : null}
 
           {/* Verification Modal (for providers) */}
           {isProvider && (
@@ -880,9 +974,10 @@ export default function AccountSettingsPage() {
               </div>
             </div>
           </Modal>
-
         </div>
-      </div>
+
+      {/* Bottom tabs are rendered by the Navbar for /account when user is organization */}
+      {/* MoreBottomSheet is also handled by Navbar, no need to duplicate here */}
     </div>
   );
 }

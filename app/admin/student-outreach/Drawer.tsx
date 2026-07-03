@@ -20,10 +20,6 @@ import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
-import {
-  CallOutcomeModal,
-  type OutcomeChoice,
-} from "@/components/admin/medjobs/CallOutcomeModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
@@ -33,6 +29,7 @@ import StyledSelect from "@/components/ui/Select";
 import {
   KIND_LABELS,
   STATUS_LABELS,
+  CLOSED_STATUSES,
   type Contact,
   type DrawerContext,
   type ResearchData,
@@ -41,7 +38,11 @@ import {
 } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import type { TabKey } from "@/lib/student-outreach/tab-config";
-import { cleanOrgName } from "@/lib/student-outreach/formatters";
+import {
+  cleanOrgName,
+  displayContactName,
+  displayContactRole,
+} from "@/lib/student-outreach/formatters";
 import {
   DEPARTMENTS,
   OTHER,
@@ -76,6 +77,13 @@ interface DrawerProps {
   /** Which In Basket tab the drawer was opened from — threaded to NextStepCard
    *  so the awaiting-reply call affordance adapts (Emails → link, else button). */
   activeTab?: TabKey;
+  /** Per-recipient focus (Model 2): when the drawer is opened from a fanned-out
+   *  card, this mirrors that card's subject so the header reads the right name —
+   *  a General Contact card → the org/provider name; a Specific/Decision-Maker
+   *  card → that person's name. Null/absent for org-level (non-fan-out) cards. */
+  focusRecipientKind?: "general" | "specific" | null;
+  focusRecipientName?: string | null;
+  focusRecipientRole?: string | null;
 }
 
 type ActionFn = (
@@ -83,30 +91,6 @@ type ActionFn = (
   payload?: Record<string, unknown>,
   opts?: { silent?: boolean },
 ) => Promise<DrawerContext>;
-
-// Dept-head pre-launch intro call — a recommended, non-gating courtesy call.
-// All three outcomes log a research call (no stage change); the email sequence
-// still launches explicitly afterward.
-const INTRO_CALL_OUTCOMES: OutcomeChoice[] = [
-  {
-    key: "connected",
-    label: "Reached them",
-    blurb: "Spoke with the department head (or their office). Introduced ourselves + Dr. DuBose.",
-    tone: "happy",
-  },
-  {
-    key: "voicemail",
-    label: "Left a voicemail",
-    blurb: "Left a brief professional message that information is on the way.",
-    tone: "neutral",
-  },
-  {
-    key: "no_answer",
-    label: "No answer",
-    blurb: "Nobody picked up. Launch anyway — the intro email still goes out.",
-    tone: "neutral",
-  },
-];
 
 // v8.10.37: terminal closed statuses — Step Board hides for these so the
 // drawer doesn't invite adding workflow steps to a closed/DNC stakeholder.
@@ -116,6 +100,7 @@ const TERMINAL_STATUSES: Status[] = [
   "do_not_contact",
   "wrong_contact",
   "redirected",
+  "archived",
   "no_response_closed",
 ];
 
@@ -165,6 +150,9 @@ export function Drawer(props: DrawerProps) {
       onClose={props.onClose}
       onAction={props.onAction ?? (() => {})}
       activeTab={props.activeTab}
+      focusRecipientKind={props.focusRecipientKind ?? null}
+      focusRecipientName={props.focusRecipientName ?? null}
+      focusRecipientRole={props.focusRecipientRole ?? null}
     />
   );
 }
@@ -177,11 +165,18 @@ export function Drawer(props: DrawerProps) {
 function DrawerHeaderOverflow({
   onMarkUnread,
   onStopOutreach,
+  onArchive,
+  onReopen,
 }: {
   onMarkUnread: () => Promise<void>;
   /** When provided, a "Stop all outreach" item appears under Mark as unread —
    *  a hard stop that cancels every queued email and call for the row. */
   onStopOutreach?: () => Promise<void>;
+  /** Whole-prospect Archive — halts the cadence and parks the row. Shown for
+   *  any non-archived row, separate from Stop all outreach. */
+  onArchive?: () => Promise<void>;
+  /** Reopen a closed/archived row back into active workflow. */
+  onReopen?: () => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -219,6 +214,28 @@ function DrawerHeaderOverflow({
           >
             Mark as unread
           </button>
+          {onReopen && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                void onReopen();
+              }}
+              className="block w-full px-3 py-1.5 text-left text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Reopen
+            </button>
+          )}
+          {onArchive && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                void onArchive();
+              }}
+              className="block w-full px-3 py-1.5 text-left text-xs font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Archive
+            </button>
+          )}
           {onStopOutreach && (
             <button
               onClick={() => {
@@ -255,12 +272,18 @@ function StakeholderDrawer({
   onAction,
   seedName,
   activeTab,
+  focusRecipientKind = null,
+  focusRecipientName = null,
+  focusRecipientRole = null,
 }: {
   outreachId: string;
   onClose: () => void;
   onAction: (refreshed: DrawerContext | null) => void;
   seedName?: string;
   activeTab?: TabKey;
+  focusRecipientKind?: "general" | "specific" | null;
+  focusRecipientName?: string | null;
+  focusRecipientRole?: string | null;
 }) {
   const [ctx, setCtx] = useState<DrawerContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -342,16 +365,35 @@ function StakeholderDrawer({
           // subline; if no contact exists yet, the org name takes the
           // headline so the card isn't blank.
           const primary = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
-          const contactDisplay = primary
-            ? [primary.title, primary.first_name, primary.last_name]
-                .filter(Boolean)
-                .join(" ")
-                .trim() || primary.name || null
-            : null;
+          // Shared name/role display (formatters.displayContactName): the
+          // person's name leads; a non-honorific `title` (the add-contact UI
+          // stores the role there) never stands in as the name and instead
+          // becomes the subline role. Same helper the In-Basket cards use.
+          const contactDisplay = primary ? displayContactName(primary) : null;
+          const primaryRole = primary ? displayContactRole(primary) : null;
           const orgDisplay = cleanOrgName(ctx.outreach.organization_name);
-          const headline = contactDisplay || orgDisplay;
-          const showOrgInSubline =
-            !!contactDisplay && contactDisplay !== orgDisplay;
+          const isProvider = ctx.outreach.kind === "provider";
+
+          // Resolve the drawer subject.
+          //   Part B — opened from a fanned-out card: mirror that card's
+          //     subject. General Contact card → the org/provider name; a
+          //     Specific/Decision-Maker card → that person's name.
+          //   Part A — org-level (non-fan-out) card: providers lead with the
+          //     org (the general contact IS the business); stakeholders lead
+          //     with the individual contact's name.
+          let headline: string;
+          let contactRole: string | null;
+          if (focusRecipientKind === "specific" && focusRecipientName) {
+            headline = focusRecipientName;
+            contactRole = focusRecipientRole ?? primaryRole;
+          } else if (focusRecipientKind === "general") {
+            headline = orgDisplay;
+            contactRole = null; // the org is the subject — no person role
+          } else {
+            headline = isProvider ? orgDisplay : contactDisplay || orgDisplay;
+            contactRole = primaryRole;
+          }
+          const showOrgInSubline = headline !== orgDisplay;
           // v8.10.37: surface a small "★ Partner since {date}" indicator
           // for active partners. NextStepPanel is suppressed for partners,
           // so without this header cue the drawer wouldn't show their
@@ -389,7 +431,7 @@ function StakeholderDrawer({
                   </>
                 )}
                 {ctx.campus.name} · {KIND_LABELS[ctx.outreach.kind ?? ctx.outreach.stakeholder_type]}
-                {primary?.role && ` · ${primary.role}`}
+                {contactRole && ` · ${contactRole}`}
               </p>
               {isPartner && (
                 <p className="mt-1 text-xs font-medium text-emerald-700">
@@ -441,6 +483,37 @@ function StakeholderDrawer({
                     setError(
                       e instanceof Error ? e.message : "Failed to stop outreach",
                     );
+                  }
+                }
+              : undefined
+          }
+          // Archive — whole-prospect park (halts cadence). Offered on any
+          // non-archived row, in any tab; reopen revives it.
+          onArchive={
+            ctx && ctx.outreach.status !== "archived"
+              ? async () => {
+                  if (
+                    !window.confirm(
+                      "Archive this prospect? This halts outreach and parks it. You can reopen it later.",
+                    )
+                  )
+                    return;
+                  try {
+                    await action("archive");
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Failed to archive");
+                  }
+                }
+              : undefined
+          }
+          // Reopen — only on closed/archived rows.
+          onReopen={
+            ctx && CLOSED_STATUSES.includes(ctx.outreach.status)
+              ? async () => {
+                  try {
+                    await action("reopen");
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Failed to reopen");
                   }
                 }
               : undefined
@@ -1093,19 +1166,15 @@ function ResearchModePanel({
   const type = ctx.outreach.stakeholder_type;
   const isOffice = isOfficeType(type);
   const [showPreFlight, setShowPreFlight] = useState(false);
+  // Pre-flight confirm call (offices + dept heads with a main phone). Blocking
+  // when a main phone is on file; the modal carries an always-on Override &
+  // launch button as the escape hatch when the contact can't be reached.
   const [showCallConfirm, setShowCallConfirm] = useState(false);
-  // Dept heads get an optional, NON-blocking pre-launch intro call (when a
-  // phone exists). It never gates launch — purely a courtesy + a logged touch.
-  const [showIntroCall, setShowIntroCall] = useState(false);
 
   // Readiness gating per stage.
   const haveContact = ctx.contacts.some((c) => c.status === "active");
   const primaryContact = ctx.contacts.find((c) => c.status === "active") ?? ctx.contacts[0] ?? null;
   const deptHeadPhone = type === "dept_head" ? (primaryContact?.phone ?? null) : null;
-  const deptHeadContactName =
-    [primaryContact?.title, primaryContact?.first_name, primaryContact?.last_name]
-      .filter(Boolean)
-      .join(" ") || null;
   const eligibleEmail = ctx.contacts.filter(
     (c) => c.status === "active" && c.email,
   ).length;
@@ -1178,14 +1247,34 @@ function ResearchModePanel({
   const requiresCall = isOffice && Boolean(officePhone);
   const officeCanLaunch = hasOfficeEmail && (requiresCall ? verificationState.can_launch : true);
 
+  // Non-office pre-flight call (P1, "all types"): dept heads confirm on the
+  // dept-head MAIN number when one is on file; with no number there's nothing
+  // to call, so they launch directly. Professors have no main number here, so
+  // they always launch directly. The launch flow records research-complete
+  // (non-office rows keep the prospect step) then opens the recipient review.
+  const launchNonOffice = async () => {
+    if (ctx.outreach.status === "prospect") await action("mark_research_complete");
+    setShowPreFlight(true);
+  };
+  const nonOfficeMainPhone = type === "dept_head" ? deptHeadPhone : null;
+  const nonOfficeRequiresCall = Boolean(nonOfficeMainPhone);
+  const nonOfficeCanLaunch =
+    ready && (nonOfficeRequiresCall ? verificationState.can_launch : true);
+
+  // One confirm-call modal serves both shapes — the phone it dials and the
+  // launch flow it runs (and its always-on Override & launch button) switch
+  // on whether the row is office-shaped.
+  const confirmPhone = isOffice ? officePhone : nonOfficeMainPhone;
+  const confirmLaunch = isOffice ? launchOffice : launchNonOffice;
+
   // Unified orientation across all stakeholder types (no per-type drift). Only
-  // the phoneless-office case drops the "call to confirm" clause.
-  const orientation =
-    isOffice && !requiresCall ? (
-      <>Check the info, then launch outreach.</>
-    ) : (
-      <>Check the info, call to confirm, then launch outreach.</>
-    );
+  // the no-main-phone case drops the "call to confirm" clause.
+  const callRequiredHere = isOffice ? requiresCall : nonOfficeRequiresCall;
+  const orientation = !callRequiredHere ? (
+    <>Check the info, then launch outreach.</>
+  ) : (
+    <>Check the info, call to confirm, then launch outreach.</>
+  );
 
   // Less is more: no readiness checklist on any stakeholder pre-flight. The
   // disabled-until-ready CTA (and its tooltip) already communicate what's needed.
@@ -1201,28 +1290,33 @@ function ResearchModePanel({
     // visual drift from the office flow.
     cta = (
       <div className="flex flex-wrap items-center gap-2">
-        {type === "dept_head" && deptHeadPhone && (
+        {nonOfficeRequiresCall && (
           <button
-            onClick={() => setShowIntroCall(true)}
+            onClick={() => setShowCallConfirm(true)}
             className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
           >
             📞 Call to Confirm
           </button>
         )}
         <button
-          onClick={async () => {
-            try {
-              await action("mark_research_complete");
-              setShowPreFlight(true);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Action failed");
-            }
+          onClick={() => {
+            if (nonOfficeCanLaunch) void launchNonOffice();
+            else if (!ready) setError("Add a contact first.");
+            else setError("Confirm the dept head on a Pre-Flight call, or override Pre-Flight.");
           }}
-          disabled={!ready}
-          title={ready ? "Review recipients and launch outreach." : "Add a contact first."}
+          disabled={!nonOfficeCanLaunch}
+          title={
+            nonOfficeCanLaunch
+              ? "Review recipients and launch outreach."
+              : !ready
+                ? "Add a contact first."
+                : "Confirm on a call first, or override Pre-Flight."
+          }
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Launch outreach →
+          {nonOfficeRequiresCall && verificationState.status === "overridden"
+            ? "Launch outreach (override) →"
+            : "Launch outreach →"}
         </button>
       </div>
     );
@@ -1289,44 +1383,14 @@ function ResearchModePanel({
         <PreFlightCallModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus.name}
-          phone={officePhone}
+          phone={confirmPhone}
           action={action}
           onCancel={() => setShowCallConfirm(false)}
           onDone={() => setShowCallConfirm(false)}
           setError={setError}
-        />
-      )}
-      {showIntroCall && (
-        <CallOutcomeModal
-          title="Intro call (recommended)"
-          subtitle={
-            <>
-              {ctx.outreach.organization_name}
-              {deptHeadContactName ? ` · ${deptHeadContactName}` : ""}
-              {deptHeadPhone ? ` · ${deptHeadPhone}` : ""}
-            </>
-          }
-          scriptLabel="Suggested script"
-          script={`"Hello, this is [your name], assistant to Dr. Logan DuBose at Olera. I'm reaching out about the Student Caregiver Program for ${
-            ctx.campus.name?.trim() || "your campus"
-          } students, which places pre-health students in paid caregiver roles with older adults. Before I send any details, are you the right person in the department to talk with, or is there a better contact?"`}
-          outcomes={INTRO_CALL_OUTCOMES}
-          onCancel={() => setShowIntroCall(false)}
-          onSubmit={async (outcomeKey, notes) => {
-            setError(null);
-            try {
-              // log_research_call records the call without advancing the stage —
-              // the row still launches via the email sequence afterward.
-              await action("log_research_call", {
-                outcome: outcomeKey ?? "connected",
-                notes,
-              });
-              setShowIntroCall(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Failed to log the intro call");
-              throw e;
-            }
-          }}
+          // Always-available escape hatch: override the confirm-call gate and
+          // go straight to the per-recipient launch review.
+          onOverrideLaunch={confirmLaunch}
         />
       )}
       {showPreFlight && isOffice && (

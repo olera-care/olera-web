@@ -27,8 +27,9 @@ type MatchesTab = "best_matches" | "near_you";
 import Pagination from "@/components/ui/Pagination";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
-import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
+import { getCachedBoostState, cacheBoostState, type BoostStateResponse } from "@/lib/ad-boost/boost-state";
 import { Star, Briefcase, LinkSimple, Check } from "@phosphor-icons/react";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
 
 
 // ── Timeline config ──
@@ -806,6 +807,185 @@ function ActivitySummary({
 }
 
 // ---------------------------------------------------------------------------
+// Campaign tracker — shown at the top of Find Families for a provider running a
+// live managed-ads campaign. Warm "campaign home" treatment (Perena/Wispr-
+// leaning): a vanilla hero that ORIENTS rather than dumping a cold stats box —
+// a serif "Your campaign is live", reassuring subline, the since-launch metrics
+// (visitors + families delivered + questions), with the waiting question
+// elevated as the one action. Early-stage zeros read as "day N, working", not
+// "broken". `compact` drops the headline/subline for the above-leads placement,
+// where the leads below are the story.
+// ---------------------------------------------------------------------------
+
+function CampaignMetric({
+  value,
+  label,
+  accent = false,
+}: {
+  value: number;
+  label: string;
+  accent?: boolean;
+}) {
+  return (
+    <div>
+      <p
+        className={`font-display text-[30px] md:text-[34px] font-semibold leading-none tabular-nums tracking-tight ${
+          accent ? "text-primary-700" : "text-warm-950"
+        }`}
+      >
+        {value.toLocaleString()}
+      </p>
+      <p className="mt-1.5 text-sm text-gray-500">{label}</p>
+    </div>
+  );
+}
+
+function CampaignTrackerCard({
+  stats,
+  compact = false,
+}: {
+  stats: NonNullable<BoostStateResponse["campaignStats"]>;
+  compact?: boolean;
+}) {
+  const launch = new Date(stats.since);
+  const sinceLabel = launch.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const dayN = Math.max(
+    1,
+    Math.floor((Date.now() - launch.getTime()) / (24 * 60 * 60 * 1000)) + 1,
+  );
+  const { questions } = stats;
+  const hasUnanswered = questions.unanswered > 0;
+
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-vanilla-200 bg-gradient-to-br from-vanilla-100 to-white px-6 py-7 shadow-[0_2px_20px_-6px_rgba(42,24,16,0.10)] md:px-9 md:py-9">
+      {/* Eyebrow — live pulse + day count, so the zeros below read as "early". */}
+      <div className="mb-3 flex items-center gap-2">
+        <span className="relative flex h-2 w-2" aria-hidden>
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
+        </span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-700">
+          Live · day {dayN} · since {sinceLabel}
+        </span>
+      </div>
+
+      {!compact && (
+        <>
+          <h2 className="font-display text-[26px] leading-[1.12] tracking-tight text-warm-950 md:text-[34px]">
+            Your campaign is live.
+          </h2>
+          <p className="mt-2.5 max-w-md text-[15px] leading-relaxed text-gray-500">
+            We&apos;re putting your page in front of families searching for care
+            nearby. New inquiries and questions land here as they come.
+          </p>
+        </>
+      )}
+
+      <div className={`grid max-w-lg grid-cols-3 gap-5 md:gap-7 ${compact ? "" : "mt-7"}`}>
+        <CampaignMetric value={stats.visitors} label={stats.visitors === 1 ? "Visitor" : "Visitors"} />
+        <CampaignMetric value={stats.leads} label={stats.leads === 1 ? "Family delivered" : "Families delivered"} />
+        <div>
+          <p
+            className={`font-display text-[30px] md:text-[34px] font-semibold leading-none tabular-nums tracking-tight ${
+              hasUnanswered ? "text-primary-700" : "text-warm-950"
+            }`}
+          >
+            {questions.received.toLocaleString()}
+          </p>
+          <p className="mt-1.5 text-sm text-gray-500">
+            {questions.received === 1 ? "Question" : "Questions"}
+          </p>
+          {hasUnanswered && (
+            <Link
+              href="/provider/qna"
+              className="group mt-1 inline-flex items-center text-sm font-semibold text-primary-600 transition-colors hover:text-primary-700"
+            >
+              Answer now
+              <span className="ml-1 transition-transform group-hover:translate-x-0.5">→</span>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <Link
+          href="/provider/boost"
+          className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
+        >
+          View campaign details →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// The three-step "how families reach you" orientation strip under the hero —
+// turns the empty-state void into a calm walk-through of how the campaign
+// delivers families, so an all-zeros provider understands the wait. Label-scale,
+// no paragraphs.
+function CampaignFlowStrip() {
+  const steps = [
+    { n: "1", label: "We run the ads" },
+    { n: "2", label: "Families find your page" },
+    { n: "3", label: "They reach out here" },
+  ];
+  return (
+    <div className="mt-10">
+      <p className="mb-5 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">
+        How families reach you
+      </p>
+      <div className="mx-auto grid max-w-xl grid-cols-3 gap-4">
+        {steps.map((s) => (
+          <div key={s.n} className="flex flex-col items-center text-center">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-vanilla-100 font-display text-[15px] text-warm-950">
+              {s.n}
+            </span>
+            <p className="mt-2.5 text-[13px] leading-snug text-gray-500">{s.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Module-level matches snapshot — survives client-side navigation within the
+// SPA session (e.g. Find Families → "Answer questions" → /provider/qna → back).
+// Lets a back-navigation repaint the last leads INSTANTLY from memory while a
+// silent background refresh reconciles, instead of a cold MatchesSkeleton + a
+// full re-fetch every time. Same pattern as the boost-state cache. A hard
+// reload clears it (cold → skeleton, fine). TTL guards acting on stale data.
+// ---------------------------------------------------------------------------
+type ConnDatum = {
+  id: string;
+  message: string | null;
+  created_at: string;
+  status: "pending" | "accepted" | "declined" | "expired";
+  reply_message?: string | null;
+  replied_at?: string | null;
+};
+interface MatchesSnapshot {
+  profileId: string;
+  families: Profile[];
+  contactedIds: Set<string>;
+  respondedIds: Set<string>;
+  connectionData: Map<string, ConnDatum>;
+  totalCount: number;
+  at: number;
+}
+let matchesSnapshot: MatchesSnapshot | null = null;
+const MATCHES_SNAPSHOT_TTL_MS = 5 * 60_000;
+
+/** The snapshot to seed initial state from — only when it belongs to this
+ *  provider and is still fresh. null → cold load (skeleton + fetch). */
+function readMatchesSnapshot(profileId: string | undefined): MatchesSnapshot | null {
+  if (!profileId || !matchesSnapshot) return null;
+  if (matchesSnapshot.profileId !== profileId) return null;
+  if (Date.now() - matchesSnapshot.at > MATCHES_SNAPSHOT_TTL_MS) return null;
+  return matchesSnapshot;
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -813,23 +993,27 @@ export default function ProviderMatchesPage() {
   const providerProfile = useProviderProfile();
   const { user, membership, refreshAccountData } = useAuth();
   const { metadata: dashboardMetadata } = useProviderDashboardData(providerProfile);
+  const mobileNavVariant = useMobileNavVariant();
   // Fetch v2 data (reviews, response rate) for accurate profile completeness
   const v2 = useProviderDashboardV2Data("30d", true, user?.id);
-  const [families, setFamilies] = useState<Profile[]>([]);
-  const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
-  const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
+  // Seed from the module snapshot when we already have fresh leads for this
+  // provider (a within-session back-navigation), so the page paints instantly
+  // instead of flashing the skeleton. Computed once; only the lazy useState
+  // initializers below read it.
+  const initialSnapshot = readMatchesSnapshot(providerProfile?.id);
+
+  const [families, setFamilies] = useState<Profile[]>(() => initialSnapshot?.families ?? []);
+  const [contactedIds, setContactedIds] = useState<Set<string>>(() => initialSnapshot?.contactedIds ?? new Set());
+  const [respondedIds, setRespondedIds] = useState<Set<string>>(() => initialSnapshot?.respondedIds ?? new Set());
   const [reachOutCounts, setReachOutCounts] = useState<Map<string, number>>(new Map());
   // Full connection data for Reached Out tab cards
-  const [connectionData, setConnectionData] = useState<Map<string, {
-    id: string;
-    message: string | null;
-    created_at: string;
-    status: "pending" | "accepted" | "declined" | "expired";
-    reply_message?: string | null;
-    replied_at?: string | null;
-  }>>(new Map());
+  const [connectionData, setConnectionData] = useState<Map<string, ConnDatum>>(
+    () => initialSnapshot?.connectionData ?? new Map(),
+  );
   const [archivedConnectionIds, setArchivedConnectionIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  // No skeleton when we seeded fresh leads from the snapshot — paint them now,
+  // refresh silently in the background.
+  const [loading, setLoading] = useState(() => !initialSnapshot);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MatchesFilters>(DEFAULT_FILTERS);
   const [modalFilters, setModalFilters] = useState<FiltersState>(() => {
@@ -897,9 +1081,11 @@ export default function ProviderMatchesPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Track if initial fetch has completed (ref to avoid re-renders)
-  const hasFetchedOnceRef = useRef(false);
-  const [totalCount, setTotalCount] = useState(0);
+  // Track if initial fetch has completed (ref to avoid re-renders). Seeded true
+  // when we hydrated from the snapshot, so the mount fetch runs as a silent
+  // background refresh (no skeleton) rather than a foreground load.
+  const hasFetchedOnceRef = useRef(!!initialSnapshot);
+  const [totalCount, setTotalCount] = useState(() => initialSnapshot?.totalCount ?? 0);
 
   // Track which family's drawer should reopen after verification
   const [pendingDrawerFamily, setPendingDrawerFamily] = useState<Profile | null>(null);
@@ -1220,22 +1406,17 @@ export default function ProviderMatchesPage() {
 
         // Derive contactedIds and respondedIds from fullConnectionsRes (eliminates 2 redundant queries)
         const connections = fullConnectionsRes.data || [];
-        setContactedIds(
-          new Set(connections.map((c: { to_profile_id: string }) => c.to_profile_id))
+        const contacted = new Set<string>(
+          connections.map((c: { to_profile_id: string }) => c.to_profile_id),
         );
-        setRespondedIds(
-          new Set(connections.filter((c: { status: string }) => c.status === "accepted").map((c: { to_profile_id: string }) => c.to_profile_id))
+        const responded = new Set<string>(
+          connections.filter((c: { status: string }) => c.status === "accepted").map((c: { to_profile_id: string }) => c.to_profile_id),
         );
+        setContactedIds(contacted);
+        setRespondedIds(responded);
 
         // Process full connection data for Reached Out tab
-        const connDataMap = new Map<string, {
-          id: string;
-          message: string | null;
-          created_at: string;
-          status: "pending" | "accepted" | "declined" | "expired";
-          reply_message?: string | null;
-          replied_at?: string | null;
-        }>();
+        const connDataMap = new Map<string, ConnDatum>();
 
         (fullConnectionsRes.data || []).forEach((conn: {
           id: string;
@@ -1271,6 +1452,20 @@ export default function ProviderMatchesPage() {
         setTotalCount(familiesRes.count || fetchedFamilies.length);
         setLoading(false);
         hasFetchedOnceRef.current = true;
+
+        // Cache this paint so a within-session back-navigation rehydrates
+        // instantly (see readMatchesSnapshot). Stores the critical-path leads +
+        // connections only; the secondary background fills (inactive families,
+        // reach-out counts) re-derive on the next refresh.
+        matchesSnapshot = {
+          profileId,
+          families: fetchedFamilies,
+          contactedIds: contacted,
+          respondedIds: responded,
+          connectionData: connDataMap,
+          totalCount: familiesRes.count || fetchedFamilies.length,
+          at: Date.now(),
+        };
 
         // Background: inactive families the provider previously contacted
         // (paused/deleted profiles — server API bypasses RLS). Append on arrival.
@@ -1368,11 +1563,56 @@ export default function ProviderMatchesPage() {
         city: providerProfile.city,
         state: providerProfile.state,
       });
-      // Warm the boost-state cache so "Get Started" → /provider/boost paints the
-      // correct page on the first frame (no loader, no wrong-page snap).
-      prefetchBoostState();
     }
   }, [providerProfile?.slug, activeTab]);
+
+  // Boost / campaign state — drives the live-campaign tracker shown at the top
+  // of Find Families (and also warms the shared cache so "Get Started" →
+  // /provider/boost paints the correct page on the first frame). Init from the
+  // cache for an instant first paint, then refetch to reconcile.
+  const [boostState, setBoostState] = useState<BoostStateResponse | null>(
+    () => getCachedBoostState(),
+  );
+  // Whether we yet KNOW the campaign status. Seeded true from a warm cache so
+  // back-navigation never holds. Set true once the fetch settles (success OR
+  // failure) so the pitch branch can't deadlock waiting on it. Gates the pitch
+  // vs. tracker decision so a live-campaign provider never flashes the "get a
+  // campaign" pitch before the tracker resolves.
+  const [boostStateLoaded, setBoostStateLoaded] = useState(
+    () => getCachedBoostState() != null,
+  );
+  useEffect(() => {
+    if (!providerProfile?.slug) return;
+    let cancelled = false;
+    const cached = getCachedBoostState();
+    if (cached) {
+      setBoostState(cached);
+      setBoostStateLoaded(true);
+    }
+    fetch("/api/provider/ad-boost/request", { credentials: "include" })
+      .then((r) => (r.ok ? (r.json() as Promise<BoostStateResponse>) : null))
+      .then((d) => {
+        if (cancelled) return;
+        if (d) {
+          setBoostState(d);
+          cacheBoostState(d);
+        }
+        setBoostStateLoaded(true);
+      })
+      .catch(() => {
+        // best-effort; tracker just won't show — but unblock the pitch branch.
+        if (!cancelled) setBoostStateLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [providerProfile?.slug]);
+
+  // The live campaign tracker payload (or null when there's no live campaign).
+  const liveCampaign =
+    boostState?.request?.status === "live" && boostState.campaignStats
+      ? boostState.campaignStats
+      : null;
 
   // Published care-seekers within ~50 mi of the provider (the catchment) — the rare
   // "concrete leads." These pin above the market diagnostic when they exist. Reuses the
@@ -1853,15 +2093,32 @@ export default function ProviderMatchesPage() {
   // links to /provider/boost for the actual eligibility gate + setup. Market
   // intelligence now lives on its own tab (/provider/growth), not here.
   if (nearbySeekers.length === 0) {
+    // Hold the skeleton until campaign status is known, so a live-campaign
+    // provider never flashes the "get a campaign" pitch before the tracker
+    // resolves. Warm cache makes this instant; only a cold load waits (briefly).
+    if (!boostStateLoaded) {
+      return <MatchesSkeleton />;
+    }
     return (
       <div className="min-h-[100dvh] bg-gradient-to-b from-vanilla-50 via-white to-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
-          <ManagedAdsPitch
-            ctaHref="/provider/boost"
-            providerSlug={providerProfile.slug}
-            providerName={providerProfile.display_name}
-          />
-        </div>
+        {liveCampaign ? (
+          // Already running a campaign → the warm "campaign home": orient + a
+          // calm walk-through of how families arrive, so the empty early-stage
+          // state reads as "working", not a lifeless stats box. Narrow + centered
+          // for an intimate, composed feel (Perena/Wispr).
+          <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+            <CampaignTrackerCard stats={liveCampaign} />
+            <CampaignFlowStrip />
+          </div>
+        ) : (
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+            <ManagedAdsPitch
+              ctaHref="/provider/boost"
+              providerSlug={providerProfile.slug}
+              providerName={providerProfile.display_name}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -1885,6 +2142,15 @@ export default function ProviderMatchesPage() {
           </p>
         </div>
       </div>
+
+      {/* Campaign tracker — full-width above the grid for a provider running a
+          live campaign. Their questions + delivered families live here, where
+          they came looking for campaign results. */}
+      {liveCampaign && (
+        <div className="mb-6">
+          <CampaignTrackerCard stats={liveCampaign} compact />
+        </div>
+      )}
 
       {/* ── Main layout (matches Profile page grid) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
@@ -2071,7 +2337,10 @@ export default function ProviderMatchesPage() {
       <button
         type="button"
         onClick={() => setIsFiltersModalOpen(true)}
-        className="sm:hidden fixed bottom-6 right-6 z-40 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        className={`sm:hidden fixed right-6 z-40 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 ${
+          mobileNavVariant === "bottom_tabs" ? "" : "bottom-6"
+        }`}
+        style={mobileNavVariant === "bottom_tabs" ? { bottom: "calc(72px + 16px + env(safe-area-inset-bottom, 0px))" } : undefined}
         aria-label="Open filters"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

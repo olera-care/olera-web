@@ -17,7 +17,7 @@
 export type CronAudience = "Providers" | "Care seekers" | "MedJobs" | "Students" | "Internal" | "Data & maintenance";
 
 /** What kind of automation it is — shown as a chip; also tells us whether to expect an email rollup. */
-export type CronFn = "nudge" | "alert" | "digest" | "outreach" | "refresh" | "maintenance";
+export type CronFn = "nudge" | "alert" | "digest" | "outreach" | "event" | "refresh" | "maintenance";
 
 export interface CronJob {
   /** Stable id. Matches the route folder name under app/api/cron/ and cron_runs.job_id. */
@@ -80,6 +80,48 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: ["verification_reminder_7d", "verification_reminder_21d"],
     successSignal: "Provider completes verification.",
     relatedAdminPath: "/admin/verification",
+  },
+  {
+    id: "ad-boost-profile-reminders",
+    name: "Ad Boost profile reminders",
+    description:
+      "Nudges providers whose Ad Boost launch plan is queued because their profile is still below the launch threshold. If a queued provider has become launch-ready, promotes the request instead of sending a reminder.",
+    recipientCohort:
+      "Providers with a pending-profile Ad Boost request that is at least 48 hours old and has not received this reminder yet.",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "30 14 * * *",
+    humanSchedule: "Daily, 14:30 UTC (~9–10 AM ET)",
+    path: "/api/cron/ad-boost-profile-reminders",
+    emailTypes: ["ad_boost_profile_reminder", "ad_boost_ready"],
+    successSignal: "Provider completes the page/verification work and the queued campaign moves into setup.",
+    relatedAdminPath: "/admin/ad-boost",
+  },
+  {
+    id: "ad-boost-emails",
+    name: "Ad Boost emails",
+    description:
+      "Event-triggered visibility for Find Families / Ad Boost provider emails: launch-plan receipt, queued-profile follow-up, launch-ready promotion, campaign launch, campaign-attributed lead, early traction, and starter-promo wrap-up.",
+    recipientCohort:
+      "Providers who request, queue, launch, or receive activity from Find Families managed-ad campaigns.",
+    audience: "Providers",
+    fn: "event",
+    schedule: "event-triggered",
+    humanSchedule: "Event-triggered by Ad Boost request, admin status changes, lead delivery, and metric saves",
+    path: "/admin/ad-boost",
+    emailTypes: [
+      "ad_boost_queued",
+      "ad_boost_requested",
+      "ad_boost_profile_reminder",
+      "ad_boost_ready",
+      "ad_boost_campaign_launched",
+      "ad_boost_lead_delivered",
+      "ad_boost_traction",
+      "ad_boost_promo_complete",
+    ],
+    successSignal:
+      "Provider completes setup, sees campaign progress, opens campaign-attributed leads, or replies to the promo wrap-up.",
+    relatedAdminPath: "/admin/ad-boost",
   },
   {
     id: "provider-welcome",
@@ -245,6 +287,20 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/matches",
   },
   {
+    id: "sms-queue-flush",
+    name: "SMS queue flush",
+    description: "Drains sms_queue — reactive care-seeker reply-alert texts held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out + the daily safety throttle at delivery.",
+    recipientCohort: "Families with a deferred reply-alert SMS whose send window has opened.",
+    audience: "Care seekers",
+    fn: "alert",
+    schedule: "0 * * * *",
+    humanSchedule: "Hourly, on the hour",
+    path: "/api/cron/sms-queue-flush",
+    emailTypes: [],
+    successSignal: "Held reply-alert texts deliver at a civil hour without re-texting opted-out families.",
+    relatedAdminPath: "/admin/family-comms",
+  },
+  {
     id: "matches-unread",
     name: "Matches unread-message alerts",
     description: "Hourly check for unread messages in Matches conversations (request type, provider-initiated) unread for 1h+ — alerts the recipient ('New message from …'). F4/P3.",
@@ -357,20 +413,6 @@ export const CRON_REGISTRY: CronJob[] = [
   },
 
   // ── MedJobs (student talent marketplace) ───────────────────────────
-  {
-    id: "medjobs-digest",
-    name: "MedJobs weekly candidate digest",
-    description: "Weekly roundup to MedJobs provider clients of new student candidates from the past week.",
-    recipientCohort: "MedJobs provider clients.",
-    audience: "MedJobs",
-    fn: "digest",
-    schedule: "0 13 * * 1",
-    humanSchedule: "Mondays, 13:00 UTC (~8 AM CT)",
-    path: "/api/cron/medjobs-digest",
-    emailTypes: ["new_candidate_alert"],
-    successSignal: "Provider opens a candidate / books an interview.",
-    relatedAdminPath: "/admin/medjobs/candidates",
-  },
   {
     id: "medjobs-nudge",
     name: "MedJobs student nudges",

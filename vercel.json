@@ -21,16 +21,16 @@
       "schedule": "0 */6 * * *"
     },
     {
-      "path": "/api/cron/medjobs-digest",
-      "schedule": "0 13 * * 1"
-    },
-    {
       "path": "/api/cron/medjobs-nudge",
       "schedule": "0 15 * * *"
     },
     {
       "path": "/api/cron/matches-nudge",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/sms-queue-flush",
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/cron/matches-unread",
@@ -59,6 +59,10 @@
     {
       "path": "/api/cron/verification-reminders",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/ad-boost-profile-reminders",
+      "schedule": "30 14 * * *"
     },
     {
       "path": "/api/cron/provider-welcome",

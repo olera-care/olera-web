@@ -35,6 +35,7 @@ export default function AdminOverviewPage() {
   const [unverifiedClaims, setUnverifiedClaims] = useState<number | null>(null);
   const [totalInquiries, setTotalInquiries] = useState<number | null>(null);
   const [needsEmail, setNeedsEmail] = useState<number | null>(null);
+  const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<number | null>(null);
   const [totalReviews, setTotalReviews] = useState<number | null>(null);
   const [liveProviders, setLiveProviders] = useState<number | null>(null);
@@ -51,13 +52,22 @@ export default function AdminOverviewPage() {
       .then((d) => setUnverifiedClaims(d?.counts?.unverified_claims ?? 0))
       .catch(() => { setUnverifiedClaims(0); setError("Some data failed to load."); });
 
-    fetchCount("/api/admin/leads?count_only=true")
-      .then(setTotalInquiries)
-      .catch(() => { setTotalInquiries(0); setError("Some data failed to load."); });
+    // Fetch connections counts (total + needs_email) in one call
+    fetch("/api/admin/connections?count_only=true")
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error("connections counts failed")))
+      .then((d) => {
+        setTotalInquiries(d?.total ?? 0);
+        setNeedsEmail(d?.engagementCounts?.needs_email ?? 0);
+      })
+      .catch(() => {
+        setTotalInquiries(0);
+        setNeedsEmail(0);
+        setError("Some data failed to load.");
+      });
 
-    fetchCount("/api/admin/leads?needs_email=true&count_only=true")
-      .then(setNeedsEmail)
-      .catch(() => { setNeedsEmail(0); setError("Some data failed to load."); });
+    fetchCount("/api/admin/questions?count_only=true")
+      .then(setTotalQuestions)
+      .catch(() => { setTotalQuestions(0); setError("Some data failed to load."); });
 
     fetchCount("/api/admin/questions?needs_email=true&count_only=true")
       .then(setQuestionsNeedEmail)
@@ -90,8 +100,9 @@ export default function AdminOverviewPage() {
 
   const primaryCards: StatCard[] = [
     { label: "Unverified Claims", value: unverifiedClaims, subtitle: "Claimed, not yet verified", href: "/admin/verification" },
-    { label: "Total Inquiries", value: totalInquiries, subtitle: "All connections", href: "/admin/leads" },
-    { label: "Needs Email", value: needsEmail, subtitle: "Leads awaiting email", href: "/admin/leads?tab=needs_email", isWarning: true },
+    { label: "Total Inquiries", value: totalInquiries, subtitle: "All connections", href: "/admin/connections" },
+    { label: "Needs Email", value: needsEmail, subtitle: "Connections needing email", href: "/admin/connections?filter=needs_email", isWarning: true },
+    { label: "Questions", value: totalQuestions, subtitle: "Total asked", href: "/admin/questions" },
     { label: "Q&A Needs Email", value: questionsNeedEmail, subtitle: "Questions blocked", href: "/admin/questions", isWarning: true },
     { label: "Public Profiles", value: publicProfiles, subtitle: "Care seekers live", href: "/admin/demand" },
     { label: "Provider Directory", value: liveProviders, subtitle: "Live listings", href: "/admin/directory" },

@@ -261,8 +261,8 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "family-nudges",
     name: "Family lifecycle nudges",
     description:
-      "Five-email priority waterfall for care-seeker profiles: Go-Live reminder (complete but not live, 24h+), Profile-incomplete (missing care types/location, 3d+), Provider-recommendation (complete, zero connections, 5d+), Dormant re-engagement (zero connections, 14d+), Post-connection follow-up. One email per family per run.",
-    recipientCohort: "Care-seeker profiles 24h+ old that match one of the five lifecycle states above — one email per family per run.",
+      "Publish/lifecycle waterfall for care-seeker profiles: publish nudges 1-4 (day 0/2/6/13) then monthly publish maintenance for publish-ready families, monthly provider recommendations for published families, inactivity re-engagement (30d+ idle, max 2), and post-connection follow-up. One email per family per run; stands down for any family the coordinator emailed in the last 20h. The completion track moved to family-comms-coordinator (Track 2).",
+    recipientCohort: "Care-seeker profiles 24h+ old matching a lifecycle state above — one email per family per run.",
     audience: "Care seekers",
     fn: "nudge",
     // 18:00 = one hour AFTER the family-comms-coordinator (17:00) so this engine's
@@ -272,7 +272,20 @@ export const CRON_REGISTRY: CronJob[] = [
     schedule: "0 18 * * *",
     humanSchedule: "Daily, 18:00 UTC (~1–2 PM ET)",
     path: "/api/cron/family-nudges",
-    emailTypes: ["go_live_reminder", "family_profile_incomplete", "provider_recommendation", "dormant_reengagement", "post_connection_followup"],
+    // Match what the route ACTUALLY sends — the automations monitor groups email_log
+    // by this list. The old list attributed provider-dormant's dormant_reengagement
+    // (provider mail) and paused lead-family-nudge's go_live_reminder to this cron,
+    // while missing every type it really emits.
+    emailTypes: [
+      "publish_nudge_1",
+      "publish_nudge_2",
+      "publish_nudge_3",
+      "publish_nudge_4",
+      "publish_maintenance",
+      "monthly_recommendations",
+      "inactivity_reengagement",
+      "post_connection_followup",
+    ],
     successSignal: "Family completes/lives their profile or initiates a connection.",
     relatedAdminPath: "/admin/care-seekers",
   },

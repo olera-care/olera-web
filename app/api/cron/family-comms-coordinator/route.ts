@@ -5,7 +5,7 @@ import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken, generateBriefToken } from "@/lib/claim-tokens";
-import { familyBenefitsFacts, getProgramsForFamily, pickQuizQuestion } from "@/lib/family-comms/benefits-guidance.server";
+import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import {
@@ -542,10 +542,8 @@ export async function GET(request: NextRequest) {
           // don't stamp, the 24h band ages out on its own.
           if (programs.length > 0) {
             const payProvider = norm(rPay.to_profile);
-            const careLabel = normalizeCareLabel(
-              ((payProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0] || "")
-                .split("|")[0]
-                .trim(),
+            const careLabel = friendlyCareLabel(
+              (payProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0],
             );
             const stateName = US_STATES.find((s) => s.value === (fpr.state || ""))?.label || null;
             const ask = pickQuizQuestion(facts);

@@ -19,6 +19,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BenefitProgram } from "@/lib/types/benefits";
 import type { QuizQuestion } from "@/lib/claim-tokens";
+import { normalizeCareLabel } from "@/lib/provider-highlights";
+
+/**
+ * A care label safe to drop into prose ("how families pay for memory care").
+ * Care-type values arrive in mixed shapes — family profiles hold Title Case
+ * ("Memory Care"), provider categories are snake_case ("home_care_agency") —
+ * and normalizeCareLabel passes both through untouched. Underscores out,
+ * trailing "agency" dropped, lowercased for mid-sentence use.
+ */
+export function friendlyCareLabel(raw: string | null | undefined): string | null {
+  const cleaned = (raw || "").split("|")[0].trim().replace(/_/g, " ").replace(/\s+agency$/i, "");
+  if (!cleaned) return null;
+  const norm = normalizeCareLabel(cleaned) || cleaned;
+  return norm.toLowerCase();
+}
 
 export interface GuidanceProgram {
   /** Program row id — used to build the program-brief link. */

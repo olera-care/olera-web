@@ -3,11 +3,11 @@ import { getServiceClient } from "@/lib/admin";
 import { validateQuizToken, generateQuizToken, generateBriefToken, type QuizQuestion } from "@/lib/claim-tokens";
 import {
   familyBenefitsFacts,
+  friendlyCareLabel,
   getProgramsForFamily,
   getPathNarrative,
   pickQuizQuestion,
 } from "@/lib/family-comms/benefits-guidance.server";
-import { normalizeCareLabel } from "@/lib/provider-highlights";
 import { US_STATES } from "@/lib/us-states";
 
 /**
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const programs = await getProgramsForFamily(db, facts, 4);
     const nextAsk = pickQuizQuestion(facts);
     const briefTok = generateBriefToken(familyProfileId, email);
-    const careLabel = normalizeCareLabel((facts.careTypes[0] || "").split("|")[0].trim()) || null;
+    const careLabel = friendlyCareLabel(facts.careTypes[0]);
     const stateName = US_STATES.find((st) => st.value === (facts.state || ""))?.label || null;
     const narrative =
       question === "path" && facts.financialPath

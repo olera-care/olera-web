@@ -250,6 +250,11 @@ export async function GET(request: NextRequest) {
     return p;
   };
 
+  // Seed a row for every governed family type up front — otherwise a rung that
+  // hasn't fired yet (e.g. paying_for_care right after deploy) is invisible on
+  // this dashboard until its first real send, which reads as "not integrated".
+  for (const t of familyTypes) ensure(t);
+
   const totals = { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
   let compareSends = 0;
   let compareSendsOpened = 0;

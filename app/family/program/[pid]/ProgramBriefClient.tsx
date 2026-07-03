@@ -95,15 +95,15 @@ export default function ProgramBriefClient({ pid, tok }: { pid: string; tok: str
 
   if (state === "error") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">That link has expired</h1>
-          <p className="text-gray-500 mb-6 leading-relaxed">
+      <div className="min-h-screen bg-[#F9F6F2] flex items-center justify-center px-5 py-16">
+        <div className="max-w-md w-full text-center">
+          <h1 className="font-serif text-3xl text-gray-900 mb-3">That link has expired</h1>
+          <p className="text-gray-500 mb-8 leading-relaxed">
             No problem. The benefits finder has every program you may qualify for, in a couple of minutes.
           </p>
           <Link
             href="/benefits/finder"
-            className="block w-full px-6 py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-colors"
+            className="inline-block px-8 py-4 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors"
           >
             Check your benefits
           </Link>
@@ -114,13 +114,12 @@ export default function ProgramBriefClient({ pid, tok }: { pid: string; tok: str
 
   if (state === "loading" || !data?.program) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
-        <div className="max-w-lg w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <div className="h-4 w-28 bg-gray-100 rounded animate-pulse mb-4" />
-          <div className="h-7 w-3/4 bg-gray-100 rounded animate-pulse mb-2" />
-          <div className="h-4 w-1/3 bg-gray-100 rounded animate-pulse mb-6" />
+      <div className="min-h-screen bg-[#F9F6F2] flex items-center justify-center px-5 py-16">
+        <div className="max-w-xl w-full">
+          <div className="h-3 w-28 bg-[#F1E5D6] rounded-full animate-pulse mx-auto mb-6" />
+          <div className="h-9 w-3/4 bg-[#F1E5D6]/70 rounded-xl animate-pulse mx-auto mb-10" />
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-4 w-full bg-gray-50 rounded animate-pulse mb-3" />
+            <div key={i} className="h-16 bg-white/70 border border-[#F1E5D6] rounded-2xl animate-pulse mb-3" />
           ))}
         </div>
       </div>
@@ -156,22 +155,22 @@ export default function ProgramBriefClient({ pid, tok }: { pid: string; tok: str
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-start justify-center px-4 py-10">
-      <div className="max-w-lg w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-3">
+    <div className="min-h-screen bg-[#F9F6F2] px-5 py-14">
+      <div className="max-w-xl mx-auto">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#a89a88] mb-4 text-center">
           {program.isState ? "State program" : "Federal program"}
         </p>
-        <h1 className="font-serif text-[24px] leading-snug text-gray-900 mb-1">{program.name}</h1>
+        <h1 className="font-serif text-[30px] sm:text-[36px] leading-[1.15] text-gray-900 mb-2 text-center">{program.name}</h1>
         {program.savingsRange ? (
-          <p className="text-[15px] font-semibold text-primary-600 mb-4">{program.savingsRange}</p>
+          <p className="text-[16px] font-semibold text-primary-600 mb-6 text-center">{program.savingsRange}</p>
         ) : (
-          <div className="mb-4" />
+          <div className="mb-6" />
         )}
-        <p className="text-sm text-gray-600 leading-relaxed mb-6">{program.description}</p>
+        <p className="text-[15px] text-gray-600 leading-relaxed mb-10 text-center">{program.description}</p>
 
         {checklist.length > 0 && (
-          <div className="border-t border-gray-100 pt-5 mb-6">
-            <h2 className="text-[15px] font-semibold text-gray-900 mb-3">Could you qualify?</h2>
+          <div className="bg-white border border-[#F1E5D6] rounded-2xl px-6 py-6 shadow-[0_1px_3px_rgba(42,24,16,0.05)] mb-4">
+            <h2 className="font-serif text-[19px] text-gray-900 mb-4">Could you qualify?</h2>
             <ul className="space-y-3">
               {checklist.map((item) => (
                 <li key={item.label} className="flex gap-2.5">
@@ -204,8 +203,8 @@ export default function ProgramBriefClient({ pid, tok }: { pid: string; tok: str
         )}
 
         {firstStep && (firstStep.phone || firstStep.script) ? (
-          <div className="rounded-2xl border border-[#F1E5D6] bg-[#F9F6F2] p-6 mb-6">
-            <h2 className="text-[15px] font-semibold text-gray-900 mb-1">Your first step</h2>
+          <div className="bg-white border border-[#F1E5D6] rounded-2xl px-6 py-6 shadow-[0_1px_3px_rgba(42,24,16,0.05)] mb-4">
+            <h2 className="font-serif text-[19px] text-gray-900 mb-1">Your first step</h2>
             <p className="text-sm text-gray-600 leading-relaxed mb-3">
               Call {firstStep.source}
               {firstStep.phone ? (
@@ -219,7 +218,7 @@ export default function ProgramBriefClient({ pid, tok }: { pid: string; tok: str
               . It usually takes about ten minutes.
             </p>
             {firstStep.script ? (
-              <div className="rounded-lg bg-white border border-[#F1E5D6] px-4 py-3">
+              <div className="rounded-xl bg-[#F9F6F2] border border-[#F1E5D6] px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">What to say</p>
                 <p className="text-sm text-gray-700 leading-relaxed">&ldquo;{firstStep.script}&rdquo;</p>
               </div>
@@ -227,7 +226,7 @@ export default function ProgramBriefClient({ pid, tok }: { pid: string; tok: str
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-3 border-t border-gray-100 pt-5">
+        <div className="flex items-center justify-between gap-3 pt-6">
           <Link href="/benefits/finder" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
             See all your programs →
           </Link>

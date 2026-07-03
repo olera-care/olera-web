@@ -5,10 +5,12 @@ import Link from "next/link";
 
 /**
  * Client half of /family/quiz-answer. POSTs the signed quiz token on mount
- * (recording the tapped answer), then renders the payoff: the program list
- * sharpened by that answer and the next question as chips. Chip taps POST
- * again and swap the payload in place — the whole intake chains without
- * navigation. Scanners fetching the page URL never write (no JS execution).
+ * (recording the tapped answer), then renders the payoff sequentially on the
+ * warm-vanilla field (the launcher/Wispr language, boutique pass 2026-07-03):
+ * serif playbook hero → three step cards with progressive exposure (one
+ * distilled line each; the full body opens on tap) → program cards → the next
+ * question as full-width choice cards. Chip taps POST again and swap the
+ * payload in place. Scanners fetching the page URL never write (no JS).
  */
 
 interface ProgramItem {
@@ -38,12 +40,12 @@ interface QuizPayload {
 
 function acknowledgment(question?: string, answer?: string): string {
   if (question === "path") {
-    if (answer === "a") return "That changes what's useful to you. Skip the aid programs; here's what actually matters:";
-    if (answer === "b") return "You're where most families are. There's a well-worn path through this:";
-    return "Good news: the strongest programs exist for exactly your situation.";
+    if (answer === "a") return "That changes what's useful to you";
+    if (answer === "b") return "You're where most families are";
+    return "The strongest programs exist for exactly your situation";
   }
   if (question === "medicaid") {
-    if (answer === "alreadyHas") return "Medicaid opens the most doors. These are strong fits for your situation:";
+    if (answer === "alreadyHas") return "Medicaid opens the most doors. These are strong fits:";
     if (answer === "doesNotHave") return "Good to know. None of these require Medicaid:";
     return "Good to know. While you sort out Medicaid, these are worth a look:";
   }
@@ -55,11 +57,23 @@ function acknowledgment(question?: string, answer?: string): string {
   return "Got it. Here's what fits:";
 }
 
+function firstLine(body: string): string {
+  const idx = body.indexOf(". ");
+  return idx > 20 ? body.slice(0, idx + 1) : body;
+}
+
+const fadeStyles = `
+@keyframes qaFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.qa-fade { opacity: 0; animation: qaFadeUp 0.5s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) { .qa-fade { animation: none; opacity: 1; } }
+`;
+
 export default function QuizAnswerClient({ tok }: { tok: string }) {
   const [state, setState] = useState<"loading" | "error" | "ready">("loading");
   const [data, setData] = useState<QuizPayload | null>(null);
   const [tapping, setTapping] = useState(false);
   const [chainError, setChainError] = useState(false);
+  const [openStep, setOpenStep] = useState<number | null>(null);
   const submitted = useRef(false);
 
   const submit = useCallback(async (token: string, isChain: boolean) => {
@@ -79,8 +93,10 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
         else setState("error");
         return;
       }
+      setOpenStep(null);
       setData(json);
       setState("ready");
+      if (isChain && typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       if (isChain) setChainError(true);
       else setState("error");
@@ -101,15 +117,15 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
 
   if (state === "error") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">That link has expired</h1>
-          <p className="text-gray-500 mb-6 leading-relaxed">
+      <div className="min-h-screen bg-[#F9F6F2] flex items-center justify-center px-5 py-16">
+        <div className="max-w-md w-full text-center">
+          <h1 className="font-serif text-3xl text-gray-900 mb-3">That link has expired</h1>
+          <p className="text-gray-500 mb-8 leading-relaxed">
             No problem. You can see every program you may qualify for in a couple of minutes with the benefits finder.
           </p>
           <Link
             href="/benefits/finder"
-            className="block w-full px-6 py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-colors"
+            className="inline-block px-8 py-4 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors"
           >
             Check your benefits
           </Link>
@@ -120,16 +136,12 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
 
   if (state === "loading" || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
-        <div className="max-w-lg w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <div className="w-12 h-12 rounded-full bg-gray-100 animate-pulse mb-5" />
-          <div className="h-5 w-24 bg-gray-100 rounded animate-pulse mb-3" />
-          <div className="h-4 w-3/4 bg-gray-100 rounded animate-pulse mb-6" />
+      <div className="min-h-screen bg-[#F9F6F2] flex items-center justify-center px-5 py-16">
+        <div className="max-w-xl w-full">
+          <div className="h-3 w-32 bg-[#F1E5D6] rounded-full animate-pulse mx-auto mb-6" />
+          <div className="h-9 w-3/4 bg-[#F1E5D6]/70 rounded-xl animate-pulse mx-auto mb-10" />
           {[0, 1, 2].map((i) => (
-            <div key={i} className="py-4 border-b border-gray-100 last:border-0">
-              <div className="h-4 w-2/3 bg-gray-100 rounded animate-pulse mb-2" />
-              <div className="h-3 w-full bg-gray-50 rounded animate-pulse" />
-            </div>
+            <div key={i} className="h-20 bg-white/70 border border-[#F1E5D6] rounded-2xl animate-pulse mb-3" />
           ))}
         </div>
       </div>
@@ -137,119 +149,164 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
   }
 
   const programs = data.programs || [];
+  const n = data.pathNarrative;
+  let seq = 0;
+  const fade = (extra = "") => ({
+    className: `qa-fade${extra ? ` ${extra}` : ""}`,
+    style: { animationDelay: `${Math.min(seq++ * 0.09, 0.9)}s` },
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-start justify-center px-4 py-10">
-      <div className="max-w-lg w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mb-5">
-          <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+    <div className="min-h-screen bg-[#F9F6F2] px-5 py-14">
+      {/* eslint-disable-next-line react/no-danger */}
+      <style dangerouslySetInnerHTML={{ __html: fadeStyles }} />
+      <div className="max-w-xl mx-auto">
+        {/* Acknowledgment eyebrow */}
+        <div {...fade()}>
+          <p className="flex items-center justify-center gap-2 text-[13px] text-gray-500 mb-4 text-center">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-3 w-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            {acknowledgment(data.question, data.answer)}
+          </p>
         </div>
 
-        <h1 className="text-xl font-semibold text-gray-900 mb-1">Got it</h1>
-        <p className="text-gray-500 mb-6 leading-relaxed">{acknowledgment(data.question, data.answer)}</p>
+        {n ? (
+          <>
+            <h1 {...fade("font-serif text-[34px] sm:text-[40px] leading-[1.15] text-gray-900 text-center mb-10")}>
+              {n.title}
+            </h1>
 
-        {data.pathNarrative ? (
-          <div className="mb-7 rounded-2xl border border-[#F1E5D6] bg-[#F9F6F2] p-6">
-            <h2 className="font-serif text-[19px] text-gray-900 leading-snug mb-1.5">{data.pathNarrative.title}</h2>
-            <p className="text-sm text-gray-600 leading-relaxed mb-5">{data.pathNarrative.intro}</p>
-            <ol className="space-y-4">
-              {data.pathNarrative.steps.map((step, i) => (
-                <li key={step.title} className="flex gap-3">
-                  <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-white border border-[#F1E5D6] text-[12px] font-medium text-gray-700">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <p className="text-[14px] font-semibold text-gray-900 leading-snug">{step.title}</p>
-                    <p className="text-sm text-gray-600 leading-relaxed mt-0.5">
-                      {step.body}{" "}
-                      <a href={step.linkHref} className="text-primary-600 hover:text-primary-700 whitespace-nowrap">
-                        {step.linkLabel} →
-                      </a>
-                    </p>
+            {/* Steps: one distilled line each; the rest opens on tap */}
+            <div className="space-y-3 mb-14">
+              {n.steps.map((step, i) => {
+                const open = openStep === i;
+                return (
+                  <div key={step.title} {...fade()}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenStep(open ? null : i)}
+                      className="w-full text-left bg-white border border-[#F1E5D6] rounded-2xl px-6 py-5 shadow-[0_1px_3px_rgba(42,24,16,0.05)] transition-shadow hover:shadow-[0_3px_10px_rgba(42,24,16,0.08)]"
+                    >
+                      <div className="flex items-start gap-4">
+                        <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full bg-[#F9F6F2] font-serif text-[14px] text-gray-700">
+                          {i + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-serif text-[18px] text-gray-900 leading-snug">{step.title}</p>
+                          {!open ? (
+                            <p className="text-sm text-gray-500 leading-relaxed mt-1">{firstLine(step.body)}</p>
+                          ) : (
+                            <div className="mt-1.5">
+                              <p className="text-sm text-gray-600 leading-relaxed">{step.body}</p>
+                              <a
+                                href={step.linkHref}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-block mt-3 text-sm font-medium text-primary-600 hover:text-primary-700"
+                              >
+                                {step.linkLabel} →
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        <svg
+                          className={`mt-1.5 h-4 w-4 flex-none text-gray-300 transition-transform ${open ? "rotate-180" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </button>
                   </div>
-                </li>
-              ))}
-            </ol>
-          </div>
+                );
+              })}
+            </div>
+          </>
         ) : null}
 
         {programs.length > 0 ? (
-          <div className="mb-6">
-            {programs.map((p, i) => (
-              <div key={p.name} className={`py-4 ${i < programs.length - 1 ? "border-b border-gray-100" : ""}`}>
-                <p className="text-[15px] font-semibold text-gray-900 leading-snug">
-                  {p.name}
-                  {p.savingsRange ? (
-                    <span className="ml-2 text-[13px] font-medium text-primary-600">{p.savingsRange}</span>
-                  ) : null}
-                </p>
-                <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
-                  {p.blurb}{" "}
-                  {p.briefUrl ? (
-                    <a href={p.briefUrl} className="text-primary-600 hover:text-primary-700 whitespace-nowrap">
-                      Could we qualify? →
-                    </a>
-                  ) : p.url ? (
-                    <a
-                      href={p.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary-600 hover:text-primary-700 whitespace-nowrap"
-                    >
-                      Learn more →
-                    </a>
-                  ) : null}
-                </p>
-              </div>
-            ))}
-          </div>
+          <>
+            <p {...fade("text-[12px] font-semibold uppercase tracking-[0.12em] text-[#a89a88] text-center mb-4")}>
+              {n ? "Programs on this path" : "Worth a look"}
+            </p>
+            <div className="space-y-3 mb-14">
+              {programs.map((p) => (
+                <div key={p.name} {...fade()}>
+                  <div className="bg-white border border-[#F1E5D6] rounded-2xl px-6 py-5 shadow-[0_1px_3px_rgba(42,24,16,0.05)]">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="text-[15px] font-semibold text-gray-900 leading-snug">{p.name}</p>
+                      {p.savingsRange ? (
+                        <p className="text-[13px] font-semibold text-primary-600 whitespace-nowrap">{p.savingsRange}</p>
+                      ) : null}
+                    </div>
+                    <p className="text-sm text-gray-500 leading-relaxed mt-1">
+                      {p.blurb}{" "}
+                      {p.briefUrl ? (
+                        <a href={p.briefUrl} className="text-primary-600 hover:text-primary-700 whitespace-nowrap font-medium">
+                          Could we qualify? →
+                        </a>
+                      ) : p.url ? (
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 whitespace-nowrap font-medium">
+                          Learn more →
+                        </a>
+                      ) : null}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : (
-          <p className="text-gray-500 mb-6 leading-relaxed">
-            We're still gathering programs for your area. The benefits finder has the full national picture in the
-            meantime.
+          <p {...fade("text-gray-500 text-center mb-14 leading-relaxed")}>
+            We're still gathering programs for your area. The benefits finder has the full national picture in the meantime.
           </p>
         )}
 
         {data.next ? (
-          <div className="border-t border-gray-100 pt-5">
-            <p className="text-sm text-gray-500 mb-1">One more and we can narrow this further.</p>
-            <p className="text-[15px] font-semibold text-gray-900 mb-3">{data.next.prompt}</p>
-            <div className="flex flex-wrap gap-2">
+          <div {...fade()}>
+            <h2 className="font-serif text-[24px] leading-snug text-gray-900 text-center mb-2">{data.next.prompt}</h2>
+            <p className="text-[13px] text-gray-400 text-center mb-6">One tap. It sharpens everything above.</p>
+            <div className="space-y-3">
               {data.next.chips.map((chip) => (
                 <button
                   key={chip.label}
                   type="button"
                   disabled={tapping}
                   onClick={() => submit(chip.tok, true)}
-                  className="inline-block px-4 py-2 rounded-full border border-primary-600 text-primary-600 text-sm font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
+                  className="w-full text-left bg-white border border-[#F1E5D6] rounded-2xl px-6 py-5 shadow-[0_1px_3px_rgba(42,24,16,0.05)] transition-shadow hover:shadow-[0_3px_10px_rgba(42,24,16,0.08)] disabled:opacity-50"
                 >
-                  {chip.label}
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="font-serif text-[18px] text-gray-900">{chip.label}</span>
+                    <span className="text-gray-300">→</span>
+                  </span>
                 </button>
               ))}
             </div>
             {chainError ? (
-              <p className="text-sm text-red-600 mt-3">That didn't go through. Give it another tap.</p>
+              <p className="text-sm text-red-600 mt-3 text-center">That didn't go through. Give it another tap.</p>
             ) : null}
           </div>
         ) : (
-          <div className="border-t border-gray-100 pt-5">
-            <p className="text-sm text-gray-500 mb-4">
-              That's everything we needed. Your full report includes what each program covers and the exact first step
-              to take.
+          <div {...fade("text-center")}>
+            <p className="text-gray-500 mb-6 leading-relaxed">
+              That's everything we needed. Your full report includes what each program covers and the exact first step to take.
             </p>
             <Link
               href="/benefits/finder"
-              className="block w-full px-6 py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-colors text-center"
+              className="inline-block px-8 py-4 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors"
             >
               See your full benefits report
             </Link>
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-6">
+        <p className="text-[12px] text-[#c4b8a8] text-center mt-14">
           Program details change; always confirm with the program directly.{" "}
-          <Link href="/benefits/finder" className="text-primary-600 hover:text-primary-700">
+          <Link href="/benefits/finder" className="text-primary-600/70 hover:text-primary-700">
             Full benefits finder
           </Link>
         </p>

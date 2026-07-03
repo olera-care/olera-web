@@ -9,6 +9,7 @@ import {
   pickQuizQuestion,
 } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
+import { recordGuidanceEvent, slackQuizAnswer } from "@/lib/family-comms/guidance-events.server";
 
 /**
  * POST /api/family-quiz  { tok }
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     const db = getServiceClient();
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, state, care_types, metadata")
+      .select("id, city, state, care_types, metadata")
       .eq("id", familyProfileId)
       .maybeSingle();
     if (!profile) return invalid();
@@ -83,13 +84,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "write_failed" }, { status: 500 });
     }
 
+    // Instrumentation: profile-stamped event (dashboard) + a PHI-free Slack
+    // line per tap. Awaited — Vercel kills pending promises after the response.
+    const factsForLabel = familyBenefitsFacts({ ...profile, metadata: meta });
+    const careLabelEarly = friendlyCareLabel(factsForLabel.careTypes[0]);
+    await recordGuidanceEvent(db, familyProfileId, { t: "quiz_answered", ref: question, answer });
+    await slackQuizAnswer({
+      question,
+      answer,
+      careLabel: careLabelEarly,
+      city: (profile as { city?: string | null }).city || null,
+      state: factsForLabel.state,
+    });
+
     // The payoff: recompute with the answer applied, plus the next question.
     // A path answer additionally returns its narrative (the orientation page).
     const facts = familyBenefitsFacts({ ...profile, metadata: meta });
     const programs = await getProgramsForFamily(db, facts, 4);
     const nextAsk = pickQuizQuestion(facts);
     const briefTok = generateBriefToken(familyProfileId, email);
-    const careLabel = friendlyCareLabel(facts.careTypes[0]);
+    const careLabel = careLabelEarly;
     const stateName = US_STATES.find((st) => st.value === (facts.state || ""))?.label || null;
     const narrative =
       question === "path" && facts.financialPath

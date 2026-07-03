@@ -1775,8 +1775,7 @@ export function payingForCareEmail(opts: {
   // serif prompt, white pill answers. Everything else is whitespace + hairlines.
   const quizSection = opts.quiz
     ? `
-    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:24px 24px 18px;margin:28px 0 10px;">
-      <p style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#a89a88;margin:0 0 10px;text-transform:uppercase;">One question · no forms</p>
+    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:26px 24px 18px;margin:28px 0 10px;">
       <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#1f2937;margin:0 0 16px;line-height:1.35;">
         ${escapeHtml(opts.quiz.prompt)}
       </p>

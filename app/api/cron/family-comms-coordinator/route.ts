@@ -4,7 +4,9 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl, generateIntroUrl } from "@/lib/claim-tokens";
+import { generateFamilyInboxUrl, generateIntroUrl, generateQuizAnswerUrl } from "@/lib/claim-tokens";
+import { familyBenefitsFacts, getProgramsForFamily, pickQuizQuestion } from "@/lib/family-comms/benefits-guidance.server";
+import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import {
   findAlternativeProviders,
@@ -15,6 +17,8 @@ import { normalizeCareLabel } from "@/lib/provider-highlights";
 import { familySelfReportedYes } from "@/lib/family-comms/outcome";
 import {
   connectionOutcomeCheckEmail,
+  payingForCareEmail,
+  payingForCareSubject,
   providerSilentEmail,
   familyNeverEngagedEmail,
   familyNeverEngagedSubject,
@@ -516,6 +520,74 @@ export async function GET(request: NextRequest) {
                 .eq("id", r1.id);
             },
           };
+        }
+
+        // ── Rung 1.5: paying-for-care guidance + in-email micro-quiz — inquiry 72-96h,
+        //    one-shot per FAMILY (profile stamp, not per-connection). The money half of
+        //    the search: leads with real state/federal programs from what we already
+        //    hold (no ask), then ONE benefits question as one-tap signed-GET chips.
+        //    Sits between the outcome check (48-72h) and alternatives (96-120h) so the
+        //    bands never collide. See Guidance Layer Direction (2026-07-03). ──
+        const rPay = fam.inquiries.find((c) => {
+          const a = ageMs(c);
+          return a >= 72 * HOUR && a < 96 * HOUR;
+        });
+        // Re-narrow fam.profile locally — the loop-top guard doesn't flow into
+        // this nested closure for TS.
+        const fpr = fam.profile;
+        if (rPay && fpr && !familyMeta.paying_for_care_sent_at) {
+          const facts = familyBenefitsFacts(fpr);
+          const programs = await getProgramsForFamily(db, facts, 3);
+          // No programs at all (both tables empty/unreachable) → nothing to lead with;
+          // don't stamp, the 24h band ages out on its own.
+          if (programs.length > 0) {
+            const payProvider = norm(rPay.to_profile);
+            const careLabel = normalizeCareLabel(
+              ((payProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0] || "")
+                .split("|")[0]
+                .trim(),
+            );
+            const stateName = US_STATES.find((s) => s.value === (fpr.state || ""))?.label || null;
+            const ask = pickQuizQuestion(facts);
+            return {
+              rung: "paying_for_care",
+              emailType: "paying_for_care",
+              subject: payingForCareSubject(stateName, careLabel || null),
+              metadata: { connection_id: rPay.id, program_count: programs.length, quiz_question: ask?.question || null },
+              buildHtml: (eid) =>
+                payingForCareEmail({
+                  familyName,
+                  careType: careLabel || null,
+                  city: fpr.city || null,
+                  stateName,
+                  programs: programs.map((p) => ({ name: p.name, savingsRange: p.savingsRange, blurb: p.blurb, url: p.url })),
+                  quiz: ask
+                    ? {
+                        prompt: ask.prompt,
+                        chips: ask.chips.map((ch) => ({
+                          label: ch.label,
+                          url: appendTrackingParams(
+                            generateQuizAnswerUrl(fam.familyId, ask.question, ch.answer, authEmailFinal, siteUrl),
+                            eid,
+                          ),
+                        })),
+                      }
+                    : null,
+                  fullPictureUrl: buildQuizUrl(eid),
+                  unsubscribeId: fam.familyId,
+                }),
+              stamp: async (sentAt) => {
+                // Mutate familyMeta too: the unified coordinator stamp right after this
+                // spreads familyMeta into its own metadata write — without the mutation
+                // it would clobber this flag with the stale copy.
+                familyMeta.paying_for_care_sent_at = sentAt;
+                await db
+                  .from("business_profiles")
+                  .update({ metadata: { ...familyMeta } })
+                  .eq("id", fam.familyId);
+              },
+            };
+          }
         }
 
         // ── Rung 2: provider silent → alternatives — inquiry 96-120h, family engaged,

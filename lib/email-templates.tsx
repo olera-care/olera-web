@@ -1684,6 +1684,133 @@ export function providerSilentEmail(opts: {
   `, `You're never limited to one. Here are others worth comparing.`);
 }
 
+/** One program row for the paying-for-care email. Plain data — the coordinator
+ *  maps lib/family-comms/benefits-guidance.server results into this shape. */
+export interface GuidanceProgramItem {
+  name: string;
+  savingsRange: string | null;
+  blurb: string;
+  url: string | null;
+}
+
+/** One tappable answer chip for the in-email micro-quiz. */
+export interface QuizChipItem {
+  label: string;
+  url: string;
+}
+
+/** Single source for the paying-for-care subject so send path, preview drawer,
+ *  and email_log can't drift (the R6 lesson). No names/PHI in subjects. */
+export function payingForCareSubject(stateName?: string | null, careLabel?: string | null): string {
+  if (stateName && careLabel) return `How ${stateName} families pay for ${careLabel.toLowerCase()}`;
+  if (stateName) return `How ${stateName} families pay for senior care`;
+  return "Most families don't pay the full cost of care";
+}
+
+/**
+ * Guidance rung: "paying for care" — the money half of the search, delivered
+ * as answers rather than homework. Leads with real programs for the family's
+ * state + care type (no ask), then the in-email micro-quiz: ONE benefits
+ * question as one-tap chips (signed GET links) so sharpening never requires
+ * visiting the quiz. When all quiz facts are already known there is no
+ * question; the email closes with the full-picture link instead.
+ */
+export function payingForCareEmail(opts: {
+  familyName: string;
+  /** Friendly care label for the bridge line, e.g. "memory care". */
+  careType?: string | null;
+  city?: string | null;
+  /** Friendly state name, e.g. "Texas" — used in the intro line. */
+  stateName?: string | null;
+  programs: GuidanceProgramItem[];
+  /** The one question worth asking, or null when we hold all the facts. */
+  quiz?: { prompt: string; chips: QuizChipItem[] } | null;
+  /** Benefits finder deep link (tracked). */
+  fullPictureUrl: string;
+  unsubscribeId?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const bridgeContext = [
+    opts.careType ? `about ${escapeHtml(opts.careType.toLowerCase())}` : "",
+    opts.city ? `in ${escapeHtml(opts.city)}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const opening = bridgeContext
+    ? `You reached out ${bridgeContext}. The other half of a care search, the one nobody hands you a guide for, is how to pay for it. So we looked into it for you.`
+    : `Finding the right care is only half the search. The other half, the one nobody hands you a guide for, is how to pay for it. So we looked into it for you.`;
+
+  const programsIntro = opts.stateName
+    ? `Most families don't pay the full sticker price. These programs help ${escapeHtml(opts.stateName)} families cover care:`
+    : `Most families don't pay the full sticker price. These programs help cover care:`;
+
+  const programRows = opts.programs
+    .map(
+      (p, i) => `
+    <div style="padding:14px 0;${i < opts.programs.length - 1 ? "border-bottom:1px solid #f3f4f6;" : ""}">
+      <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 2px;line-height:1.4;">
+        ${escapeHtml(p.name)}${p.savingsRange ? ` <span style="font-weight:500;color:${BRAND_COLOR};font-size:13px;">· ${escapeHtml(p.savingsRange)}</span>` : ""}
+      </p>
+      <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">
+        ${escapeHtml(p.blurb)}${p.url ? ` <a href="${p.url}" style="color:${BRAND_COLOR};text-decoration:none;white-space:nowrap;">Learn more →</a>` : ""}
+      </p>
+    </div>`,
+    )
+    .join("");
+
+  const chips = (opts.quiz?.chips || [])
+    .map(
+      (c) =>
+        `<a href="${c.url}" style="display:inline-block;border:1px solid ${BRAND_COLOR};color:${BRAND_COLOR};border-radius:999px;padding:9px 18px;margin:0 8px 8px 0;font-size:14px;font-weight:500;text-decoration:none;">${escapeHtml(c.label)}</a>`,
+    )
+    .join("");
+
+  const quizSection = opts.quiz
+    ? `
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 6px;line-height:1.5;">
+      We can narrow this to what you actually qualify for. One question, tap an answer, and we'll do the rest. No forms.
+    </p>
+    <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 12px;line-height:1.5;">
+      ${escapeHtml(opts.quiz.prompt)}
+    </p>
+    <div style="margin:0 0 8px;">${chips}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 24px;line-height:1.5;">
+      Prefer to see everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">Check your full benefits picture</a>.
+    </p>`
+    : `
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <div style="margin:8px 0 24px;text-align:center;">${browseLink("See your full benefits picture", opts.fullPictureUrl)}</div>`;
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      ${opening}
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.5;">
+      ${programsIntro}
+    </p>
+    <div style="margin:0 0 8px;">${programRows}</div>
+    ${quizSection}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      Questions, or want a hand making sense of it? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
+      Warmly,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
+      The Olera team
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `,
+    `Real programs that help cover the cost of care. One tap to narrow them to you.`,
+  );
+}
+
 /** Email #6: Email to family when provider is STILL silent after 7+ days - trust recovery with intervention */
 export function providerStillSilentEmail(opts: {
   familyName: string;

@@ -502,7 +502,7 @@ export async function GET(request: NextRequest) {
             state: family.state || undefined,
           });
 
-          await sendEmail({
+          const mrResult = await sendEmail({
             to: email,
             subject: mrSubject,
             html,
@@ -510,6 +510,12 @@ export async function GET(request: NextRequest) {
             recipientType: "family",
             emailLogId: logId ?? undefined,
           });
+          // A governance/suppression skip (success:true, skipped:true) sent nothing —
+          // don't advance the sequence state or the cadence resets without an email.
+          if (!mrResult.success || mrResult.skipped) {
+            counts.skipped++;
+            continue;
+          }
 
           // Update metadata with timestamp and increment count
           await updateFamilyMetadata(db, family.id, {
@@ -698,7 +704,7 @@ export async function GET(request: NextRequest) {
 
           // Step 5: Send email (if not dryRun)
           if (!dryRun) {
-            await sendEmail({
+            const pubResult = await sendEmail({
               to: email,
               subject,
               html,
@@ -706,6 +712,11 @@ export async function GET(request: NextRequest) {
               recipientType: "family",
               emailLogId: logId ?? undefined,
             });
+            // A governance/suppression skip sent nothing — don't advance the sequence.
+            if (!pubResult.success || pubResult.skipped) {
+              counts.skipped++;
+              continue;
+            }
 
             // Update sequence metadata
             const newSeq: NudgeSequence = {
@@ -760,7 +771,7 @@ export async function GET(request: NextRequest) {
         if (!dryRun) {
           const pcfSubject = `How was your experience with ${providerName}?`;
           const pcfLogId = await reserveEmailLogId({ to: email, subject: pcfSubject, emailType: "post_connection_followup", recipientType: "family" });
-          await sendEmail({
+          const pcfResult = await sendEmail({
             to: email,
             subject: pcfSubject,
             html: postConnectionFollowupEmail({
@@ -774,6 +785,11 @@ export async function GET(request: NextRequest) {
             recipientType: "family",
             emailLogId: pcfLogId ?? undefined,
           });
+          // A governance/suppression skip sent nothing — leave the one-shot flag unset.
+          if (!pcfResult.success || pcfResult.skipped) {
+            counts.skipped++;
+            continue;
+          }
           await updateFamilyMetadata(db, family.id, { ...meta, post_connection_followup_sent: true });
         }
         counts.postConnectionFollowup++;
@@ -882,7 +898,7 @@ export async function GET(request: NextRequest) {
           state: family.state || undefined,
         });
 
-        await sendEmail({
+        const reResult = await sendEmail({
           to: email,
           subject: reSubject,
           html,
@@ -890,6 +906,11 @@ export async function GET(request: NextRequest) {
           recipientType: "family",
           emailLogId: logId ?? undefined,
         });
+        // A governance/suppression skip sent nothing — don't burn a re-engagement attempt.
+        if (!reResult.success || reResult.skipped) {
+          counts.skipped++;
+          continue;
+        }
 
         // Update metadata
         await updateFamilyMetadata(db, family.id, {

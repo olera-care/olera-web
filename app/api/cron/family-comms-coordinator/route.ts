@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
       skipped: 0,
       dry_run: dryRun,
       byRung: {} as Record<string, number>,
-      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, completion_ghost: 0 },
+      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, send_skipped: 0, completion_ghost: 0 },
     };
     const bump = (rung: string) => {
       counts.byRung[rung] = (counts.byRung[rung] || 0) + 1;
@@ -945,7 +945,7 @@ export async function GET(request: NextRequest) {
         metadata: { ...plan.metadata, coordinator_rung: plan.rung },
       });
       const html = await plan.buildHtml(emailLogId, authEmailFinal);
-      const { success } = await sendEmail({
+      const { success, skipped } = await sendEmail({
         to: recipient,
         subject: plan.subject,
         html,
@@ -958,6 +958,15 @@ export async function GET(request: NextRequest) {
       if (!success) {
         counts.skipped++;
         counts.stops.send_failed++;
+        continue;
+      }
+      // sendEmail's governance/suppression skips return success:true + skipped:true. Nothing
+      // went out, so do NOT burn the one-shot rung stamp or the coordinator stamp (which would
+      // also stand down family-nudges for a send that never happened). The rung may retry
+      // tomorrow if the family is still in its band; otherwise the ladder moves on honestly.
+      if (skipped) {
+        counts.skipped++;
+        counts.stops.send_skipped++;
         continue;
       }
 

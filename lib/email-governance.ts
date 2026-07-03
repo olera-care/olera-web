@@ -64,6 +64,24 @@ export function isGovernedNudge(emailType: string | undefined | null): boolean {
 export const FAMILY_NUDGE_WEEKLY_CAP = 3;
 
 /**
+ * Max governed family nudges per family per UTC calendar day. The weekly cap alone lets all 3
+ * land on the same day (two engines run 1-3h apart: coordinator 17:00, family-nudges 18:00,
+ * plus the dual-audience crons' family branches). One governed email per day is the cadence
+ * floor; which engine wins the day is decided by run order (coordinator first).
+ */
+export const FAMILY_NUDGE_DAILY_CAP = 1;
+
+/**
+ * How far back (minutes) a 'pending' email_log reservation still counts toward the family caps.
+ * Same-minute crons race the caps: both read the 'sent' count before either send completes, so
+ * counting only 'sent' rows lets two concurrent invocations each pass the gate. Recent pending
+ * reservations close that window; older pendings are treated as zombies from crashed invocations
+ * and ignored so they can never suppress mail forever. The in-flight send's OWN reservation is
+ * excluded by id at the check site.
+ */
+export const PENDING_COUNT_WINDOW_MINUTES = 15;
+
+/**
  * email_type values that count as governed FAMILY nudges (proactive re-engagement). Transactional
  * / real-time family mail is intentionally excluded so it never gets capped:
  *   new_message, question_answered, question_confirmation, question_received, matches_live,

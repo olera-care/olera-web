@@ -265,8 +265,12 @@ export const CRON_REGISTRY: CronJob[] = [
     recipientCohort: "Care-seeker profiles 24h+ old that match one of the five lifecycle states above — one email per family per run.",
     audience: "Care seekers",
     fn: "nudge",
-    schedule: "0 15 * * *",
-    humanSchedule: "Daily, 15:00 UTC (~10–11 AM ET)",
+    // 18:00 = one hour AFTER the family-comms-coordinator (17:00) so this engine's
+    // "stand down if the coordinator emailed in the last 20h" guard actually sees
+    // today's coordinator send. At the old 15:00 slot the freshest stamp was ~22h
+    // old and the guard never fired — the two engines double-sent the same day.
+    schedule: "0 18 * * *",
+    humanSchedule: "Daily, 18:00 UTC (~1–2 PM ET)",
     path: "/api/cron/family-nudges",
     emailTypes: ["go_live_reminder", "family_profile_incomplete", "provider_recommendation", "dormant_reengagement", "post_connection_followup"],
     successSignal: "Family completes/lives their profile or initiates a connection.",

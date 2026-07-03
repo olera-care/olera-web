@@ -46,7 +46,7 @@ interface Summary {
     engaged: number; benefitsStarted: number; benefitsCompleted: number; published: number;
   };
   sensor: { sent: number; answered: number; yes: number; no: number; notYet: number; responseRate: number; yesRate: number };
-  conversions: { compareSaved: number; guideSaved: number; benefitsStarted: number; benefitsCompleted: number; published: number };
+  conversions: { compareSaved: number; guideSaved: number; benefitsStarted: number; benefitsCompleted: number; published: number; quizAnswers?: number };
   outcomes: { total: number; connected: number; active: number; guided: number; stalled: number; lookbackDays: number };
   cutover: { anchor: string; cutoverWeekIndex: number; weekStartsISO: string[]; sendsWeekly: number[]; goLivesWeekly: number[] };
 }
@@ -526,9 +526,10 @@ export default function FamilyCommsAnalyticsPage() {
 
           {/* Conversions strip */}
           <CollapsibleSection title="Downstream conversions" storageKey="fc.conv" defaultCollapsed={false}>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <Stat label="Compare saved" value={num(conv?.compareSaved ?? 0)} />
               <Stat label="Guide saved" value={num(conv?.guideSaved ?? 0)} />
+              <Stat label="Quiz answers" value={num(conv?.quizAnswers ?? 0)} sub="one-tap chips" />
               <Stat label="Benefits started" value={num(conv?.benefitsStarted ?? 0)} sub="quiz opens (under-tracked)" />
               <Stat label="Benefits completed" value={num(conv?.benefitsCompleted ?? 0)} sub={conv && conv.benefitsStarted >= conv.benefitsCompleted && conv.benefitsStarted > 0 ? pct(conv.benefitsCompleted / conv.benefitsStarted) + " of started" : "results saved"} />
               <Stat label="Went live" value={num(conv?.published ?? 0)} accent />

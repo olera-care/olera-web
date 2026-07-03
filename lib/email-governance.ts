@@ -93,6 +93,7 @@ export const PENDING_COUNT_WINDOW_MINUTES = 15;
 export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   // Help-cascade rungs (connection-triggered)
   "family_outcome_check",
+  "paying_for_care",
   "family_provider_silent",
   "family_never_engaged",
   "day_10_awaiting",

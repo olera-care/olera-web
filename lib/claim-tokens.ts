@@ -379,3 +379,75 @@ export function generateIntroUrl(
   url.searchParams.set("tok", token);
   return url.toString();
 }
+
+/**
+ * ── In-email micro-quiz tokens ───────────────────────────────────────────────
+ *
+ * Authorizes a single quiz-answer write from an email link (a GET write): one
+ * benefits-intake fact (Medicaid status / veteran status / age band) stamped
+ * onto the family's profile. The whole payload is signed — family, question,
+ * answer, email — so a chip URL can't be tampered into writing a different
+ * answer or a different family. Same HMAC-SHA256 + base64url + 72h-expiry
+ * scheme as the claim/intro tokens, distinct "quiz:" signature domain.
+ */
+
+export type QuizQuestion = "medicaid" | "veteran" | "age";
+
+interface QuizTokenPayload {
+  familyProfileId: string;
+  question: QuizQuestion;
+  answer: string;
+  email: string;
+  expiresAt: number;
+}
+
+interface QuizTokenData extends QuizTokenPayload {
+  signature: string;
+}
+
+function generateQuizSignature(p: QuizTokenPayload): string {
+  const data = `quiz:${p.familyProfileId}:${p.question}:${p.answer}:${p.email}:${p.expiresAt}`;
+  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+}
+
+export function generateQuizToken(
+  familyProfileId: string,
+  question: QuizQuestion,
+  answer: string,
+  email: string,
+): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: QuizTokenPayload = { familyProfileId, question, answer, email, expiresAt };
+  const tokenData: QuizTokenData = { ...payload, signature: generateQuizSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateQuizToken(
+  token: string,
+):
+  | { valid: true; familyProfileId: string; question: QuizQuestion; answer: string; email: string }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData: QuizTokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8"));
+    const { familyProfileId, question, answer, email, expiresAt, signature } = tokenData;
+    if (!familyProfileId || !question || !answer || !email || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    const expected = generateQuizSignature({ familyProfileId, question, answer, email, expiresAt });
+    if (signature !== expected) return { valid: false, error: "Invalid token signature" };
+    return { valid: true, familyProfileId, question, answer, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+// NOTE: there is deliberately no URL builder pointing chips at /api/family-quiz.
+// Chips link to /family/quiz-answer (through claim-family), and the PAGE posts
+// the token — a GET that writes would let email link-scanners, which follow
+// every href, overwrite the family's real answer with the last chip scanned.

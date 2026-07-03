@@ -14,6 +14,8 @@
 import {
   // family · compare cascade (coordinator)
   connectionOutcomeCheckEmail,
+  payingForCareEmail,
+  payingForCareSubject,
   providerSilentEmail,
   familyNeverEngagedEmail,
   familyNeverEngagedSubject,
@@ -123,6 +125,31 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       yesUrl: "https://olera.care/connection-outcome?v=yes",
       notYetUrl: "https://olera.care/connection-outcome?v=not_yet",
       noUrl: "https://olera.care/connection-outcome?v=no",
+    }),
+  },
+  {
+    id: "paying_for_care", audience: "family", group: "Family · Compare cascade",
+    label: "R1.5 · Paying for care + micro-quiz", subject: payingForCareSubject("Texas", "memory care"),
+    emailType: "paying_for_care", cron: "family-comms-coordinator",
+    who: "Any family with an inquiry 72–96h old, once ever (profile stamp). Fires between the outcome check and the alternatives rung.",
+    why: "The money half of the search, delivered as answers not homework: real state programs for their state + care type up front, then ONE benefits question as one-tap chips (signed GET). The quiz comes to the email because a linked quiz is a 90%+ completion cliff.",
+    render: () => payingForCareEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName, careType: "memory care", city: "Killeen", stateName: "Texas",
+      programs: [
+        { name: "STAR+PLUS Waiver (HCBS)", savingsRange: "$1,500–$3,200/mo", blurb: "Texas Medicaid program that pays for long-term care services at home or in assisted living.", url: "https://olera.care/benefits/texas" },
+        { name: "Community Care for Aged/Disabled", savingsRange: "$600–$1,200/mo", blurb: "State-funded in-home attendant services for Texans who don't qualify for Medicaid.", url: "https://olera.care/benefits/texas" },
+        { name: "VA Aid & Attendance", savingsRange: "up to $2,300/mo", blurb: "A monthly pension add-on for wartime veterans and surviving spouses who need help with daily activities.", url: "https://olera.care/benefits" },
+      ],
+      quiz: {
+        prompt: "Does the person needing care have Medicaid?",
+        chips: [
+          { label: "Yes, already have it", url: "https://olera.care/api/family-quiz?tok=sample" },
+          { label: "Applying / not sure", url: "https://olera.care/api/family-quiz?tok=sample" },
+          { label: "No", url: "https://olera.care/api/family-quiz?tok=sample" },
+        ],
+      },
+      fullPictureUrl: F.quizUrl,
     }),
   },
   {

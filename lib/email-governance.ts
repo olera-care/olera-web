@@ -124,3 +124,18 @@ export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
 export function isGovernedFamilyNudge(emailType: string | undefined | null): boolean {
   return !!emailType && FAMILY_NUDGE_EMAIL_TYPES.has(emailType);
 }
+
+/**
+ * sendEmail skip reasons that are TRANSIENT — the recipient is fine, only this attempt was
+ * blocked (frequency caps), so a caller should NOT advance its sequence state and may retry
+ * on a later run. Every other skip reason (do_not_contact, suppressed, preference_disabled)
+ * is terminal for the recipient: the send will never succeed, so callers should advance
+ * their state exactly as if the email were handled — otherwise they retry daily forever,
+ * writing one failed email_log row per recipient per day.
+ */
+export const TRANSIENT_SKIP_REASONS = new Set<string>(["family_nudge_cap", "family_daily_cap", "nudge_cap"]);
+
+/** True when a sendEmail skip should be retried later instead of advancing sequence state. */
+export function isTransientSkip(skipReason: string | undefined | null): boolean {
+  return !!skipReason && TRANSIENT_SKIP_REASONS.has(skipReason);
+}

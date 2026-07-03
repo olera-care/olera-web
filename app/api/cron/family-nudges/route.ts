@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { isTransientSkip } from "@/lib/email-governance";
 import {
   // Legacy templates (kept for post-connection followup)
   postConnectionFollowupEmail,
@@ -510,9 +511,10 @@ export async function GET(request: NextRequest) {
             recipientType: "family",
             emailLogId: logId ?? undefined,
           });
-          // A governance/suppression skip (success:true, skipped:true) sent nothing —
-          // don't advance the sequence state or the cadence resets without an email.
-          if (!mrResult.success || mrResult.skipped) {
+          // A transient (frequency-cap) skip sent nothing — don't advance the sequence,
+          // retry a later run. Terminal skips (do-not-contact/bounce/prefs) will never
+          // send, so fall through and advance state as before or they retry daily forever.
+          if (!mrResult.success || (mrResult.skipped && isTransientSkip(mrResult.skipReason))) {
             counts.skipped++;
             continue;
           }
@@ -712,8 +714,9 @@ export async function GET(request: NextRequest) {
               recipientType: "family",
               emailLogId: logId ?? undefined,
             });
-            // A governance/suppression skip sent nothing — don't advance the sequence.
-            if (!pubResult.success || pubResult.skipped) {
+            // Transient (cap) skip: don't advance the sequence, retry a later run.
+            // Terminal skips fall through — they'd otherwise retry daily forever.
+            if (!pubResult.success || (pubResult.skipped && isTransientSkip(pubResult.skipReason))) {
               counts.skipped++;
               continue;
             }
@@ -785,8 +788,9 @@ export async function GET(request: NextRequest) {
             recipientType: "family",
             emailLogId: pcfLogId ?? undefined,
           });
-          // A governance/suppression skip sent nothing — leave the one-shot flag unset.
-          if (!pcfResult.success || pcfResult.skipped) {
+          // Transient (cap) skip: leave the one-shot flag unset, retry a later run.
+          // Terminal skips fall through — they'd otherwise retry daily forever.
+          if (!pcfResult.success || (pcfResult.skipped && isTransientSkip(pcfResult.skipReason))) {
             counts.skipped++;
             continue;
           }
@@ -906,8 +910,9 @@ export async function GET(request: NextRequest) {
           recipientType: "family",
           emailLogId: logId ?? undefined,
         });
-        // A governance/suppression skip sent nothing — don't burn a re-engagement attempt.
-        if (!reResult.success || reResult.skipped) {
+        // Transient (cap) skip: don't burn a re-engagement attempt, retry a later run.
+        // Terminal skips fall through — they'd otherwise retry daily forever.
+        if (!reResult.success || (reResult.skipped && isTransientSkip(reResult.skipReason))) {
           counts.skipped++;
           continue;
         }

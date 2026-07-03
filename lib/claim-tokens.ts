@@ -447,17 +447,7 @@ export function validateQuizToken(
   }
 }
 
-/** Build a one-tap quiz-answer URL for an email chip. Clicking it records the
- *  answer on the family's profile and lands on the sharpened-results page. */
-export function generateQuizAnswerUrl(
-  familyProfileId: string,
-  question: QuizQuestion,
-  answer: string,
-  email: string,
-  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care",
-): string {
-  const token = generateQuizToken(familyProfileId, question, answer, email);
-  const url = new URL(`${baseUrl}/api/family-quiz`);
-  url.searchParams.set("tok", token);
-  return url.toString();
-}
+// NOTE: there is deliberately no URL builder pointing chips at /api/family-quiz.
+// Chips link to /family/quiz-answer (through claim-family), and the PAGE posts
+// the token — a GET that writes would let email link-scanners, which follow
+// every href, overwrite the family's real answer with the last chip scanned.

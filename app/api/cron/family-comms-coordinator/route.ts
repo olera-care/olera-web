@@ -4,7 +4,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl, generateIntroUrl, generateQuizAnswerUrl } from "@/lib/claim-tokens";
+import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken } from "@/lib/claim-tokens";
 import { familyBenefitsFacts, getProgramsForFamily, pickQuizQuestion } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
@@ -564,11 +564,19 @@ export async function GET(request: NextRequest) {
                   quiz: ask
                     ? {
                         prompt: ask.prompt,
+                        // Chips link to the PAGE (via claim-family sign-in); the page
+                        // records the answer with a client-side POST on mount — the
+                        // /connection-outcome pattern — so link-scanners (SafeLinks etc.)
+                        // that follow every href in an email never write anything.
                         chips: ask.chips.map((ch) => ({
                           label: ch.label,
-                          url: appendTrackingParams(
-                            generateQuizAnswerUrl(fam.familyId, ask.question, ch.answer, authEmailFinal, siteUrl),
-                            eid,
+                          url: generateFamilyInboxUrl(
+                            authEmailFinal,
+                            appendTrackingParams(
+                              `/family/quiz-answer?tok=${generateQuizToken(fam.familyId, ask.question, ch.answer, authEmailFinal)}`,
+                              eid,
+                            ),
+                            siteUrl,
                           ),
                         })),
                       }

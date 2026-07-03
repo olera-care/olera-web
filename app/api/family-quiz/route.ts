@@ -1,22 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { validateQuizToken, generateFamilyInboxUrl, type QuizQuestion } from "@/lib/claim-tokens";
-import { getSiteUrl } from "@/lib/site-url";
+import { validateQuizToken, generateQuizToken, type QuizQuestion } from "@/lib/claim-tokens";
+import {
+  familyBenefitsFacts,
+  getProgramsForFamily,
+  pickQuizQuestion,
+} from "@/lib/family-comms/benefits-guidance.server";
 
 /**
- * GET /api/family-quiz?tok=<quiz-token>
+ * POST /api/family-quiz  { tok }
  *
- * The in-email micro-quiz write path (Guidance Layer, 2026-07-03). A family
- * taps a one-tap answer chip in the paying-for-care email (or on the
- * quiz-answer page, which chains the next question); this records ONE
- * benefits-intake fact on their profile, signs them in, and lands them on
- * /family/quiz-answer showing the sharpened program list.
+ * The in-email micro-quiz write path (Guidance Layer, 2026-07-03). Email chips
+ * link to /family/quiz-answer (through claim-family sign-in); that page calls
+ * this endpoint on mount with the signed token. The write deliberately does
+ * NOT happen on a GET: corporate link-scanners (Outlook SafeLinks etc.) follow
+ * every href in an email, and with three mutually exclusive answer chips a
+ * scanner would silently overwrite the family's real answer with whichever
+ * chip it fetched last. Same defense as /connection-outcome (client-side POST
+ * on mount — scanners don't execute JS).
  *
- * Safe as a GET write because the signed token (family + question + answer +
- * email, HMAC, 72h, distinct "quiz:" domain) makes every part untamperable,
- * and the write is idempotent — replaying a chip sets the same fact to the
- * same value. Answers are validated against the per-question allowlist anyway
- * (defense in depth).
+ * Records ONE benefits-intake fact on the family profile, then returns the
+ * payoff: the program list sharpened by the answer plus the NEXT question
+ * (chips carry fresh signed tokens), so the page can chain the whole intake
+ * without a form. The signed token (family + question + answer + email, HMAC,
+ * 72h, distinct "quiz:" domain) makes every part untamperable; answers are
+ * validated against the per-question allowlist anyway. Replays are idempotent.
  */
 
 const ALLOWED_ANSWERS: Record<QuizQuestion, Set<string>> = {
@@ -25,61 +33,90 @@ const ALLOWED_ANSWERS: Record<QuizQuestion, Set<string>> = {
   age: new Set(["60", "70", "80", "87"]),
 };
 
-export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const token = url.searchParams.get("tok");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || url.origin;
-
-  // Anything off → land on the benefits finder, never a hard error page.
-  const bail = () => NextResponse.redirect(`${siteUrl}/benefits/finder`, { status: 303 });
-
-  if (!token) return bail();
-  const v = validateQuizToken(token);
-  if (!v.valid) {
-    console.error("[family-quiz] token invalid:", v.error);
-    return bail();
+export async function POST(request: NextRequest) {
+  let token = "";
+  try {
+    const body = await request.json();
+    token = typeof body?.tok === "string" ? body.tok : "";
+  } catch {
+    /* fall through to the invalid response */
   }
+  const invalid = () => NextResponse.json({ ok: false, error: "expired" }, { status: 400 });
+
+  if (!token) return invalid();
+  const v = validateQuizToken(token);
+  if (!v.valid) return invalid();
   const { familyProfileId, question, answer, email } = v;
   if (!ALLOWED_ANSWERS[question]?.has(answer)) {
     console.error(`[family-quiz] answer not allowed: ${question}=${answer}`);
-    return bail();
+    return invalid();
   }
 
   try {
     const db = getServiceClient();
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, metadata")
+      .select("id, state, care_types, metadata")
       .eq("id", familyProfileId)
       .maybeSingle();
-    if (!profile) return bail();
+    if (!profile) return invalid();
 
     const meta = (profile.metadata as Record<string, unknown>) || {};
     if (question === "medicaid") meta.medicaid_status = answer;
     else if (question === "veteran") meta.veteran_status = answer;
     else if (question === "age") meta.age = parseInt(answer, 10);
     const quizAnswers = (meta.quiz_answers as Record<string, unknown>) || {};
-    quizAnswers[question] = { answer, at: new Date().toISOString(), via: "email_chip" };
+    quizAnswers[question] = { answer, at: new Date().toISOString(), via: "one_tap" };
     meta.quiz_answers = quizAnswers;
 
-    const { error: updErr } = await db.from("business_profiles").update({ metadata: meta }).eq("id", familyProfileId);
+    const { error: updErr } = await db
+      .from("business_profiles")
+      .update({ metadata: meta })
+      .eq("id", familyProfileId);
     if (updErr) {
       console.error("[family-quiz] profile update failed:", updErr.message);
-      return bail();
+      return NextResponse.json({ ok: false, error: "write_failed" }, { status: 500 });
     }
+
+    // The payoff: recompute with the answer applied, plus the next question.
+    const facts = familyBenefitsFacts({ ...profile, metadata: meta });
+    const programs = await getProgramsForFamily(db, facts, 4);
+    const nextAsk = pickQuizQuestion(facts);
+    return NextResponse.json({
+      ok: true,
+      question,
+      answer,
+      programs: programs.map((p) => ({
+        name: p.name,
+        savingsRange: p.savingsRange,
+        blurb: p.blurb,
+        url: p.url,
+      })),
+      next: nextAsk
+        ? {
+            prompt: nextAsk.prompt,
+            chips: nextAsk.chips.map((ch) => ({
+              label: ch.label,
+              tok: generateQuizToken(familyProfileId, nextAsk.question, ch.answer, email),
+            })),
+          }
+        : null,
+    });
   } catch (e) {
     console.error("[family-quiz] error:", e instanceof Error ? e.message : e);
-    return bail();
+    return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
   }
+}
 
-  // Sign them in on landing (claim-family flow) and show the sharpened list.
-  // The page re-validates the same token to know whose picture to render.
+/** Defensive GET: any stale link lands on the page (which owns the POST). */
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || url.origin;
+  const token = url.searchParams.get("tok");
   return NextResponse.redirect(
-    generateFamilyInboxUrl(
-      email.trim().toLowerCase(),
-      `/family/quiz-answer?tok=${encodeURIComponent(token)}`,
-      getSiteUrl(),
-    ),
+    token
+      ? `${siteUrl}/family/quiz-answer?tok=${encodeURIComponent(token)}`
+      : `${siteUrl}/benefits/finder`,
     { status: 303 },
   );
 }

@@ -184,11 +184,19 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
               {n.steps.map((step, i) => {
                 const open = openStep === i;
                 return (
-                  <div key={step.title} {...fade()}>
+                  <div
+                    key={step.title}
+                    {...fade(
+                      "bg-white border border-[#F1E5D6] rounded-2xl px-6 py-5 shadow-[0_1px_3px_rgba(42,24,16,0.05)] transition-shadow hover:shadow-[0_3px_10px_rgba(42,24,16,0.08)]",
+                    )}
+                  >
+                    {/* The toggle is the header row only — the expanded link must NOT
+                        live inside a button (invalid nesting, flaky clicks). */}
                     <button
                       type="button"
                       onClick={() => setOpenStep(open ? null : i)}
-                      className="w-full text-left bg-white border border-[#F1E5D6] rounded-2xl px-6 py-5 shadow-[0_1px_3px_rgba(42,24,16,0.05)] transition-shadow hover:shadow-[0_3px_10px_rgba(42,24,16,0.08)]"
+                      aria-expanded={open}
+                      className="w-full text-left"
                     >
                       <div className="flex items-start gap-4">
                         <span className="mt-0.5 flex h-7 w-7 flex-none items-center justify-center rounded-full bg-[#F9F6F2] font-serif text-[14px] text-gray-700">
@@ -199,16 +207,7 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
                           {!open ? (
                             <p className="text-sm text-gray-500 leading-relaxed mt-1">{firstLine(step.body)}</p>
                           ) : (
-                            <div className="mt-1.5">
-                              <p className="text-sm text-gray-600 leading-relaxed">{step.body}</p>
-                              <a
-                                href={step.linkHref}
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-block mt-3 text-sm font-medium text-primary-600 hover:text-primary-700"
-                              >
-                                {step.linkLabel} →
-                              </a>
-                            </div>
+                            <p className="text-sm text-gray-600 leading-relaxed mt-1.5">{step.body}</p>
                           )}
                         </div>
                         <svg
@@ -221,6 +220,14 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
                         </svg>
                       </div>
                     </button>
+                    {open ? (
+                      <a
+                        href={step.linkHref}
+                        className="inline-block mt-2 ml-11 text-sm font-medium text-primary-600 hover:text-primary-700"
+                      >
+                        {step.linkLabel} →
+                      </a>
+                    ) : null}
                   </div>
                 );
               })}

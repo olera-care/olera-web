@@ -4,8 +4,8 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken } from "@/lib/claim-tokens";
-import { familyBenefitsFacts, getProgramsForFamily, pickQuizQuestion } from "@/lib/family-comms/benefits-guidance.server";
+import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken, generateBriefToken } from "@/lib/claim-tokens";
+import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import {
@@ -542,10 +542,8 @@ export async function GET(request: NextRequest) {
           // don't stamp, the 24h band ages out on its own.
           if (programs.length > 0) {
             const payProvider = norm(rPay.to_profile);
-            const careLabel = normalizeCareLabel(
-              ((payProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0] || "")
-                .split("|")[0]
-                .trim(),
+            const careLabel = friendlyCareLabel(
+              (payProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0],
             );
             const stateName = US_STATES.find((s) => s.value === (fpr.state || ""))?.label || null;
             const ask = pickQuizQuestion(facts);
@@ -554,13 +552,27 @@ export async function GET(request: NextRequest) {
               emailType: "paying_for_care",
               subject: payingForCareSubject(stateName, careLabel || null),
               metadata: { connection_id: rPay.id, program_count: programs.length, quiz_question: ask?.question || null },
-              buildHtml: (eid) =>
-                payingForCareEmail({
+              buildHtml: (eid) => {
+                // "Learn more" goes to the program BRIEF (guided, decision-sized,
+                // personalized) — never straight to a dense article or an official
+                // site. Signed brief token carries family context; claim-family
+                // wrapper signs them in on the way.
+                const briefTok = generateBriefToken(fam.familyId, authEmailFinal);
+                return payingForCareEmail({
                   familyName,
                   careType: careLabel || null,
                   city: fpr.city || null,
                   stateName,
-                  programs: programs.map((p) => ({ name: p.name, savingsRange: p.savingsRange, blurb: p.blurb, url: p.url })),
+                  programs: programs.map((p) => ({
+                    name: p.name,
+                    savingsRange: p.savingsRange,
+                    blurb: p.blurb,
+                    url: generateFamilyInboxUrl(
+                      authEmailFinal,
+                      appendTrackingParams(`/family/program/${p.id}?tok=${briefTok}`, eid),
+                      siteUrl,
+                    ),
+                  })),
                   quiz: ask
                     ? {
                         prompt: ask.prompt,
@@ -583,7 +595,8 @@ export async function GET(request: NextRequest) {
                     : null,
                   fullPictureUrl: buildQuizUrl(eid),
                   unsubscribeId: fam.familyId,
-                }),
+                });
+              },
               stamp: async (sentAt) => {
                 // Mutate familyMeta too: the unified coordinator stamp right after this
                 // spreads familyMeta into its own metadata write — without the mutation

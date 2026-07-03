@@ -391,7 +391,7 @@ export function generateIntroUrl(
  * scheme as the claim/intro tokens, distinct "quiz:" signature domain.
  */
 
-export type QuizQuestion = "medicaid" | "veteran" | "age";
+export type QuizQuestion = "path" | "medicaid" | "veteran" | "age";
 
 interface QuizTokenPayload {
   familyProfileId: string;
@@ -451,3 +451,49 @@ export function validateQuizToken(
 // Chips link to /family/quiz-answer (through claim-family), and the PAGE posts
 // the token — a GET that writes would let email link-scanners, which follow
 // every href, overwrite the family's real answer with the last chip scanned.
+
+/**
+ * ── Program-brief tokens ─────────────────────────────────────────────────────
+ *
+ * Carries family context (id + email) to /family/program/[pid] so the brief can
+ * personalize its eligibility checklist and mint quiz chips. READ-ONLY grant:
+ * the brief page writes nothing with it; writes still go through quiz tokens.
+ * Same HMAC scheme, distinct "brief:" domain.
+ */
+interface BriefTokenPayload {
+  familyProfileId: string;
+  email: string;
+  expiresAt: number;
+}
+
+function generateBriefSignature(p: BriefTokenPayload): string {
+  const data = `brief:${p.familyProfileId}:${p.email}:${p.expiresAt}`;
+  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+}
+
+export function generateBriefToken(familyProfileId: string, email: string): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: BriefTokenPayload = { familyProfileId, email, expiresAt };
+  const tokenData = { ...payload, signature: generateBriefSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateBriefToken(
+  token: string,
+): { valid: true; familyProfileId: string; email: string } | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as BriefTokenPayload & { signature: string };
+    const { familyProfileId, email, expiresAt, signature } = tokenData;
+    if (!familyProfileId || !email || !expiresAt || !signature) return { valid: false, error: "Invalid token format" };
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    if (signature !== generateBriefSignature({ familyProfileId, email, expiresAt })) return { valid: false, error: "Invalid token signature" };
+    return { valid: true, familyProfileId, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}

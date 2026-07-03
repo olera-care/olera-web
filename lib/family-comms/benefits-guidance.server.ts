@@ -21,6 +21,8 @@ import type { BenefitProgram } from "@/lib/types/benefits";
 import type { QuizQuestion } from "@/lib/claim-tokens";
 
 export interface GuidanceProgram {
+  /** Program row id — used to build the program-brief link. */
+  id: string;
   name: string;
   /** e.g. "$1,200–$2,800/mo" — nullable free text from the program row. */
   savingsRange: string | null;
@@ -33,9 +35,23 @@ export interface GuidanceProgram {
   isState: boolean;
 }
 
+/**
+ * The three financial paths (Orientation revision, 2026-07-03). The playbook
+ * differs by path, so this ONE self-identified fact filters everything
+ * downstream: which programs the email shows, which briefs render, what the
+ * path page narrates. Never derived from a dollar amount — the family
+ * self-sorts with one tap; we never ask for a budget (P3 stays dropped).
+ *   a = private pay works (higher resources)
+ *   b = the middle (some savings, not endless — the modal family)
+ *   c = Medicaid now (very limited resources)
+ */
+export type FinancialPath = "a" | "b" | "c";
+
 export interface FamilyBenefitsFacts {
   state: string | null; // 2-letter state code
   careTypes: string[];
+  /** Self-sorted path from metadata.financial_path (the orientation fact). */
+  financialPath: FinancialPath | null;
   /** From metadata.medicaid_status or inferred from payment_methods. */
   medicaidStatus: "alreadyHas" | "applying" | "notSure" | "doesNotHave" | null;
   /** From metadata.veteran_status or inferred from payment_methods. */
@@ -69,9 +85,18 @@ export function familyBenefitsFacts(profile: { state?: string | null; care_types
 
   const age = typeof meta.age === "number" && meta.age > 0 ? meta.age : null;
 
+  // Medicaid already on board implies path C even if the self-sort never ran.
+  let financialPath: FinancialPath | null = null;
+  if (meta.financial_path === "a" || meta.financial_path === "b" || meta.financial_path === "c") {
+    financialPath = meta.financial_path;
+  } else if (medicaidStatus === "alreadyHas") {
+    financialPath = "c";
+  }
+
   return {
     state: profile.state || null,
     careTypes: Array.isArray(profile.care_types) ? profile.care_types : [],
+    financialPath,
     medicaidStatus,
     veteranStatus,
     age,
@@ -95,8 +120,22 @@ const CARE_COST_KEYWORDS = [
 ];
 
 function paysForCare(p: BenefitProgram): boolean {
+  // Ombudsman programs are advocacy, not payers — they match "long-term care"
+  // but shouldn't ride the care-cost boost into the top slots.
+  if (/ombudsman/i.test(p.name)) return false;
   const text = `${p.name} ${p.description || ""}`.toLowerCase();
   return CARE_COST_KEYWORDS.some((kw) => text.includes(kw));
+}
+
+/**
+ * Medicaid-gated by column OR by name. The seed data under-sets
+ * requires_medicaid (Texas STAR+PLUS Waiver carries requires_medicaid=false),
+ * so path filtering can't trust the column alone. NAME only, never the
+ * description — non-Medicaid programs routinely mention Medicaid in prose
+ * ("for Texans who don't qualify for Medicaid").
+ */
+function isMedicaidGated(p: BenefitProgram): boolean {
+  return p.requires_medicaid || /\bmedicaid\b|\bwaiver\b/i.test(p.name);
 }
 
 function careSettingAffinity(careTypes: string[]): "home" | "facility" | null {
@@ -158,6 +197,13 @@ export async function getProgramsForFamily(
     // Don't LEAD with veteran-only programs when veteran status is unknown —
     // the quiz asks; a wrong guess here reads as "they don't know us at all".
     if (p.requires_veteran === true && facts.veteranStatus !== "yes") continue;
+    // Path-aware exclusions (the orientation fix for "the same email is three
+    // different lies"): a private-pay family (path A) never sees Medicaid-gated
+    // waivers or hard-income-gated programs — those are false hope, not help.
+    // The middle (path B) skips Medicaid-gated programs too UNLESS Medicaid is
+    // already on board; the bridge programs and VA are their real levers.
+    if (facts.financialPath === "a" && (isMedicaidGated(p) || p.max_income_single != null)) continue;
+    if (facts.financialPath === "b" && isMedicaidGated(p) && facts.medicaidStatus !== "alreadyHas") continue;
 
     let score = p.priority_score + (isState ? 10 : 0);
     if (paysForCare(p)) score += 25;
@@ -166,12 +212,14 @@ export async function getProgramsForFamily(
       if (setting === affinity) score += 8;
       else if (setting !== "any") score -= 8;
     }
-    if (p.requires_medicaid && facts.medicaidStatus === "alreadyHas") score += 6;
+    if (isMedicaidGated(p) && facts.medicaidStatus === "alreadyHas") score += 6;
+    if (facts.financialPath === "c" && isMedicaidGated(p)) score += 8;
     scored.push({ program: p, isState, score });
   }
 
   scored.sort((a, b) => b.score - a.score);
   return scored.slice(0, limit).map(({ program, isState }) => ({
+    id: program.id,
     name: program.name,
     savingsRange: program.savings_range || null,
     blurb: firstSentence(program.description),
@@ -195,12 +243,28 @@ export interface QuizAsk {
 
 /**
  * The ONE question worth asking this family next, or null when we already hold
- * all three facts (the email then closes with the full-picture link instead).
- * Priority = information value for program matching: Medicaid gates the most
- * programs, veteran status unlocks VA Aid & Attendance, age band fine-tunes.
+ * everything useful (the email then closes with the full-picture link instead).
+ *
+ * The self-sort comes FIRST (Orientation revision): "which sounds most like
+ * your situation" orients the family onto a financial path before any
+ * paperwork question, and the path filters every program they see afterward.
+ * Then, by information value within the path: Medicaid gates the most programs
+ * (skipped for path A, where it gates nothing they'll see), veteran status
+ * unlocks VA Aid & Attendance for every path, age band fine-tunes.
  */
 export function pickQuizQuestion(facts: FamilyBenefitsFacts): QuizAsk | null {
-  if (!facts.medicaidStatus) {
+  if (!facts.financialPath) {
+    return {
+      question: "path",
+      prompt: "Which sounds most like your situation?",
+      chips: [
+        { label: "We can cover it comfortably", answer: "a" },
+        { label: "Some savings, but not endless", answer: "b" },
+        { label: "Resources are very limited", answer: "c" },
+      ],
+    };
+  }
+  if (!facts.medicaidStatus && facts.financialPath !== "a") {
     return {
       question: "medicaid",
       prompt: "Does the person needing care have Medicaid?",
@@ -234,4 +298,112 @@ export function pickQuizQuestion(facts: FamilyBenefitsFacts): QuizAsk | null {
     };
   }
   return null;
+}
+
+// ── Path narratives (the orientation payoff) ────────────────────────────────
+
+export interface PathStep {
+  title: string;
+  body: string;
+  linkLabel: string;
+  linkHref: string;
+}
+
+export interface PathNarrative {
+  path: FinancialPath;
+  /** e.g. "Paying privately, wisely" */
+  title: string;
+  /** One-sentence orientation: how families in this situation make it work. */
+  intro: string;
+  steps: PathStep[];
+}
+
+/**
+ * The three playbooks, written once, personalized programmatically. Every step
+ * links an asset that already exists — orientation is sequencing, not
+ * authoring. Educational, never prescriptive: the estate-planning territory
+ * says "here's the landscape and when a specialist matters," not "do this."
+ */
+export function getPathNarrative(path: FinancialPath, careLabel?: string | null, stateName?: string | null): PathNarrative {
+  const care = careLabel || "care";
+  const region = stateName || "your state";
+  if (path === "a") {
+    return {
+      path,
+      title: "Paying privately, on your terms",
+      intro: `When the resources are there, the job shifts from finding money to spending it well. Here's how families in your situation usually approach ${care}.`,
+      steps: [
+        {
+          title: "Compare before you commit",
+          body: `Prices for ${care} vary widely between providers in the same area, and the most expensive option is often not the best fit. Comparing two or three seriously is the single highest-leverage hour you can spend.`,
+          linkLabel: "Compare providers near you",
+          linkHref: "/browse",
+        },
+        {
+          title: "Claim what you're owed anyway",
+          body: "Two things families with means routinely leave on the table: VA Aid and Attendance is not as income-restricted as people assume for wartime veterans and surviving spouses, and a large share of care costs can qualify as a medical-expense tax deduction.",
+          linkLabel: "Check what applies to you",
+          linkHref: "/benefits/finder",
+        },
+        {
+          title: "Plan for the long run",
+          body: "Care needs tend to grow. If the timeline could stretch to years, an hour with an elder-law or financial planner about long-term-care insurance claims and asset planning is worth it early, not late.",
+          linkLabel: "Browse planning guides",
+          linkHref: "/caregiver-support",
+        },
+      ],
+    };
+  }
+  if (path === "b") {
+    return {
+      path,
+      title: "The bridge plan",
+      intro: `Most families are exactly here: too many resources to qualify for help today, not enough to pay forever. There's a well-worn path through it. Here's how families in your situation usually make ${care} work.`,
+      steps: [
+        {
+          title: "Protect what you can, early",
+          body: "Medicaid looks back five years at financial transfers, so the planning you do now decides your options later. Understanding the look-back rule (and when a Miller trust or an elder-law attorney matters) is step one, and it costs nothing to learn.",
+          linkLabel: "The 5-year look-back, explained",
+          linkHref: "/caregiver-support/medicaid-5-year-look-back-rule",
+        },
+        {
+          title: "Bridge the cost now",
+          body: `While you're not Medicaid-eligible, other help exists: state programs in ${region} that don't require Medicaid, VA Aid and Attendance for veteran families, and the spend-down math that tells you where you actually stand.`,
+          linkLabel: "Run the spend-down calculator",
+          linkHref: "/benefits/spend-down-calculator",
+        },
+        {
+          title: "Line up Medicaid for later",
+          body: `If care lasts years, Medicaid is how most middle-resource families eventually sustain it. Knowing ${region}'s waiver programs now means no scramble later.`,
+          linkLabel: "See your state's programs",
+          linkHref: "/benefits/finder",
+        },
+      ],
+    };
+  }
+  return {
+    path: "c",
+    title: "Help exists, and you likely qualify",
+    intro: `Programs for ${care} are strongest for families in exactly your situation. Here's the short version of how to put them to work.`,
+    steps: [
+      {
+        title: "See what you qualify for",
+        body: `Medicaid waivers and state programs in ${region} can cover most or all of the cost of ${care}. The matching takes about two minutes with what you've already told us.`,
+        linkLabel: "See your programs",
+        linkHref: "/benefits/finder",
+      },
+      {
+        title: "Make one phone call",
+        body: "Your local Area Agency on Aging is the free front door to nearly every program: one call, and a real person helps you apply. We'll give you the number and what to say.",
+        linkLabel: "Find your agency",
+        linkHref: "/benefits/finder",
+      },
+      {
+        title: "Keep the care search moving",
+        body: "Waitlists are real for some programs, so it pays to line up providers in parallel rather than after. Reaching out costs nothing and holds your place.",
+        linkLabel: "Compare providers near you",
+        linkHref: "/browse",
+      },
+    ],
+  };
 }

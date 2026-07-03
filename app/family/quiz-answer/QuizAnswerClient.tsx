@@ -16,18 +16,32 @@ interface ProgramItem {
   savingsRange: string | null;
   blurb: string;
   url: string | null;
+  briefUrl?: string | null;
+}
+
+interface PathStepItem {
+  title: string;
+  body: string;
+  linkLabel: string;
+  linkHref: string;
 }
 
 interface QuizPayload {
   ok: boolean;
   question?: string;
   answer?: string;
+  pathNarrative?: { title: string; intro: string; steps: PathStepItem[] } | null;
   programs?: ProgramItem[];
   next?: { prompt: string; chips: { label: string; tok: string }[] } | null;
   error?: string;
 }
 
 function acknowledgment(question?: string, answer?: string): string {
+  if (question === "path") {
+    if (answer === "a") return "That changes what's useful to you. Skip the aid programs; here's what actually matters:";
+    if (answer === "b") return "You're where most families are. There's a well-worn path through this:";
+    return "Good news: the strongest programs exist for exactly your situation.";
+  }
   if (question === "medicaid") {
     if (answer === "alreadyHas") return "Medicaid opens the most doors. These are strong fits for your situation:";
     if (answer === "doesNotHave") return "Good to know. None of these require Medicaid:";
@@ -135,6 +149,31 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
         <h1 className="text-xl font-semibold text-gray-900 mb-1">Got it</h1>
         <p className="text-gray-500 mb-6 leading-relaxed">{acknowledgment(data.question, data.answer)}</p>
 
+        {data.pathNarrative ? (
+          <div className="mb-7 rounded-2xl border border-[#F1E5D6] bg-[#F9F6F2] p-6">
+            <h2 className="font-serif text-[19px] text-gray-900 leading-snug mb-1.5">{data.pathNarrative.title}</h2>
+            <p className="text-sm text-gray-600 leading-relaxed mb-5">{data.pathNarrative.intro}</p>
+            <ol className="space-y-4">
+              {data.pathNarrative.steps.map((step, i) => (
+                <li key={step.title} className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-white border border-[#F1E5D6] text-[12px] font-medium text-gray-700">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-[14px] font-semibold text-gray-900 leading-snug">{step.title}</p>
+                    <p className="text-sm text-gray-600 leading-relaxed mt-0.5">
+                      {step.body}{" "}
+                      <a href={step.linkHref} className="text-primary-600 hover:text-primary-700 whitespace-nowrap">
+                        {step.linkLabel} →
+                      </a>
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
+
         {programs.length > 0 ? (
           <div className="mb-6">
             {programs.map((p, i) => (
@@ -147,7 +186,11 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
                 </p>
                 <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
                   {p.blurb}{" "}
-                  {p.url ? (
+                  {p.briefUrl ? (
+                    <a href={p.briefUrl} className="text-primary-600 hover:text-primary-700 whitespace-nowrap">
+                      Could we qualify? →
+                    </a>
+                  ) : p.url ? (
                     <a
                       href={p.url}
                       target="_blank"

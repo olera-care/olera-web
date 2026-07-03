@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { validateQuizToken, generateQuizToken, type QuizQuestion } from "@/lib/claim-tokens";
+import { validateQuizToken, generateQuizToken, generateBriefToken, type QuizQuestion } from "@/lib/claim-tokens";
 import {
   familyBenefitsFacts,
   getProgramsForFamily,
+  getPathNarrative,
   pickQuizQuestion,
 } from "@/lib/family-comms/benefits-guidance.server";
+import { normalizeCareLabel } from "@/lib/provider-highlights";
+import { US_STATES } from "@/lib/us-states";
 
 /**
  * POST /api/family-quiz  { tok }
@@ -28,6 +31,7 @@ import {
  */
 
 const ALLOWED_ANSWERS: Record<QuizQuestion, Set<string>> = {
+  path: new Set(["a", "b", "c"]),
   medicaid: new Set(["alreadyHas", "applying", "notSure", "doesNotHave"]),
   veteran: new Set(["yes", "no"]),
   age: new Set(["60", "70", "80", "87"]),
@@ -62,7 +66,8 @@ export async function POST(request: NextRequest) {
     if (!profile) return invalid();
 
     const meta = (profile.metadata as Record<string, unknown>) || {};
-    if (question === "medicaid") meta.medicaid_status = answer;
+    if (question === "path") meta.financial_path = answer;
+    else if (question === "medicaid") meta.medicaid_status = answer;
     else if (question === "veteran") meta.veteran_status = answer;
     else if (question === "age") meta.age = parseInt(answer, 10);
     const quizAnswers = (meta.quiz_answers as Record<string, unknown>) || {};
@@ -79,18 +84,30 @@ export async function POST(request: NextRequest) {
     }
 
     // The payoff: recompute with the answer applied, plus the next question.
+    // A path answer additionally returns its narrative (the orientation page).
     const facts = familyBenefitsFacts({ ...profile, metadata: meta });
     const programs = await getProgramsForFamily(db, facts, 4);
     const nextAsk = pickQuizQuestion(facts);
+    const briefTok = generateBriefToken(familyProfileId, email);
+    const careLabel = normalizeCareLabel((facts.careTypes[0] || "").split("|")[0].trim()) || null;
+    const stateName = US_STATES.find((st) => st.value === (facts.state || ""))?.label || null;
+    const narrative =
+      question === "path" && facts.financialPath
+        ? getPathNarrative(facts.financialPath, careLabel, stateName)
+        : null;
     return NextResponse.json({
       ok: true,
       question,
       answer,
+      pathNarrative: narrative
+        ? { title: narrative.title, intro: narrative.intro, steps: narrative.steps }
+        : null,
       programs: programs.map((p) => ({
         name: p.name,
         savingsRange: p.savingsRange,
         blurb: p.blurb,
         url: p.url,
+        briefUrl: `/family/program/${p.id}?tok=${encodeURIComponent(briefTok)}`,
       })),
       next: nextAsk
         ? {

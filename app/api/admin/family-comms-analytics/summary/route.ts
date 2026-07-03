@@ -47,6 +47,7 @@ const CONVERSION_EVENTS = [
 // Human labels for the family email types (fallback = the raw type).
 const TYPE_LABELS: Record<string, string> = {
   family_outcome_check: "Outcome check (sensor)",
+  paying_for_care: "Paying for care + micro-quiz",
   family_provider_silent: "Provider silent → compare",
   family_never_engaged: "Never engaged → compare",
   family_provider_silent_guidance: "Provider silent → guidance (thin market)",
@@ -316,12 +317,35 @@ export async function GET(request: NextRequest) {
   sensor.yesRate = rate(sensor.yes, sensor.answered);
 
   const count = (ev: string) => winActs.filter((r) => r.event_type === ev).length;
+
+  // One-tap quiz answers (Guidance layer). Stored on the family profile
+  // (metadata.quiz_answers = { medicaid: {answer, at}, … }) rather than
+  // seeker_activity — a new event_type needs a CHECK migration, and the
+  // profile stamp is the source of truth the matcher reads anyway. Few rows;
+  // window-filter in JS on each answer's `at` stamp.
+  let quizAnswers = 0;
+  {
+    const { data: quizRows } = await db
+      .from("business_profiles")
+      .select("quiz_answers:metadata->quiz_answers")
+      .eq("type", "family")
+      .not("metadata->quiz_answers", "is", null)
+      .limit(2000);
+    for (const r of (quizRows as { quiz_answers: Record<string, { at?: string }> | null }[] | null) || []) {
+      for (const entry of Object.values(r.quiz_answers || {})) {
+        const ts = entry?.at ? new Date(entry.at).getTime() : NaN;
+        if (!isNaN(ts) && ts >= fromMs && ts <= toMs) quizAnswers += 1;
+      }
+    }
+  }
+
   const conversions = {
     compareSaved: count("compare_cta_converted"),
     guideSaved: count("guide_cta_converted"),
     benefitsStarted: count("benefits_started"),
     benefitsCompleted: count("benefits_completed"),
     published: count("profile_published"),
+    quizAnswers,
   };
 
   // ── Flywheel funnel (family-level, window) ──────────────────────────────

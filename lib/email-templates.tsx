@@ -1736,73 +1736,74 @@ export function payingForCareEmail(opts: {
   ]
     .filter(Boolean)
     .join(" ");
+  // Boutique pass (2026-07-03, /design-improvements): one serif hero, dollar
+  // amounts as the visual anchor, ONE warm-vanilla surface for the single
+  // question (the only box in the email), and half the copy deleted. The
+  // overwhelmed reader should get the whole story from three glances:
+  // "don't pay full price" → the $ amounts → one tappable question.
   const opening = bridgeContext
-    ? `You reached out ${bridgeContext}. The other half of a care search, the one nobody hands you a guide for, is how to pay for it. So we looked into it for you.`
-    : `Finding the right care is only half the search. The other half, the one nobody hands you a guide for, is how to pay for it. So we looked into it for you.`;
+    ? `You reached out ${bridgeContext}, so we looked into the part of the search nobody hands you a guide for: how to pay for it.`
+    : `We looked into the part of a care search nobody hands you a guide for: how to pay for it.`;
 
-  const programsIntro = opts.stateName
-    ? `Most families don't pay the full sticker price. These programs help ${escapeHtml(opts.stateName)} families cover care:`
-    : `Most families don't pay the full sticker price. These programs help cover care:`;
-
+  // Savings-forward rows: name left, dollars right (the Perena move — the
+  // number is the hero). Email-safe two-cell table per row, hairlines between.
   const programRows = opts.programs
     .map(
       (p, i) => `
-    <div style="padding:14px 0;${i < opts.programs.length - 1 ? "border-bottom:1px solid #f3f4f6;" : ""}">
-      <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 2px;line-height:1.4;">
-        ${escapeHtml(p.name)}${p.savingsRange ? ` <span style="font-weight:500;color:${BRAND_COLOR};font-size:13px;">· ${escapeHtml(p.savingsRange)}</span>` : ""}
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.5;">
-        ${escapeHtml(p.blurb)}${p.url ? ` <a href="${p.url}" style="color:${BRAND_COLOR};text-decoration:none;white-space:nowrap;">Learn more →</a>` : ""}
-      </p>
-    </div>`,
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;${i < opts.programs.length - 1 ? "border-bottom:1px solid #f3f4f6;" : ""}">
+      <tr>
+        <td style="padding:16px 12px 16px 0;vertical-align:top;">
+          <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 3px;line-height:1.4;">${escapeHtml(p.name)}</p>
+          <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.5;">
+            ${escapeHtml(p.blurb)}${p.url ? ` <a href="${p.url}" style="color:${BRAND_COLOR};text-decoration:none;white-space:nowrap;">Learn more →</a>` : ""}
+          </p>
+        </td>
+        ${p.savingsRange ? `<td style="padding:16px 0;vertical-align:top;text-align:right;white-space:nowrap;"><span style="font-size:14px;font-weight:600;color:${BRAND_COLOR};">${escapeHtml(p.savingsRange)}</span></td>` : ""}
+      </tr>
+    </table>`,
     )
     .join("");
 
   const chips = (opts.quiz?.chips || [])
     .map(
       (c) =>
-        `<a href="${c.url}" style="display:inline-block;border:1px solid ${BRAND_COLOR};color:${BRAND_COLOR};border-radius:999px;padding:9px 18px;margin:0 8px 8px 0;font-size:14px;font-weight:500;text-decoration:none;">${escapeHtml(c.label)}</a>`,
+        `<a href="${c.url}" style="display:inline-block;background:#ffffff;border:1px solid ${BRAND_COLOR};color:${BRAND_COLOR};border-radius:999px;padding:11px 20px;margin:0 8px 8px 0;font-size:14px;font-weight:500;text-decoration:none;">${escapeHtml(c.label)}</a>`,
     )
     .join("");
 
+  // The Wispr moment: one question on the email's ONLY surface — warm vanilla,
+  // serif prompt, white pill answers. Everything else is whitespace + hairlines.
   const quizSection = opts.quiz
     ? `
-    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
-    <p style="font-size:15px;color:#374151;margin:0 0 6px;line-height:1.5;">
-      We can narrow this to what you actually qualify for. One question, tap an answer, and we'll do the rest. No forms.
-    </p>
-    <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 12px;line-height:1.5;">
-      ${escapeHtml(opts.quiz.prompt)}
-    </p>
-    <div style="margin:0 0 8px;">${chips}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0 0 24px;line-height:1.5;">
-      Prefer to see everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">Check your full benefits picture</a>.
+    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:24px 24px 18px;margin:28px 0 10px;">
+      <p style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#a89a88;margin:0 0 10px;text-transform:uppercase;">One question · no forms</p>
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#1f2937;margin:0 0 16px;line-height:1.35;">
+        ${escapeHtml(opts.quiz.prompt)}
+      </p>
+      <div>${chips}</div>
+    </div>
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 28px;line-height:1.5;text-align:center;">
+      Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.
     </p>`
     : `
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
-    <div style="margin:8px 0 24px;text-align:center;">${browseLink("See your full benefits picture", opts.fullPictureUrl)}</div>`;
+    <div style="margin:8px 0 28px;text-align:center;">${browseLink("See your full benefits picture", opts.fullPictureUrl)}</div>`;
 
   return layout(
     `
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.5;">
       Hi ${escapeHtml(familyFirstName)},
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+    <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:27px;color:#111827;margin:0 0 12px;line-height:1.25;">
+      Most families don't pay full price for care.
+    </h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 10px;line-height:1.6;">
       ${opening}
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.5;">
-      ${programsIntro}
-    </p>
-    <div style="margin:0 0 8px;">${programRows}</div>
+    <div style="margin:0 0 4px;">${programRows}</div>
     ${quizSection}
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
-      Questions, or want a hand making sense of it? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 4px;line-height:1.5;">
-      Warmly,
-    </p>
-    <p style="font-size:15px;color:#374151;margin:0;line-height:1.5;">
-      The Olera team
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
+      Want a hand making sense of it? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     ${careUnsubscribeFooter(opts.unsubscribeId)}

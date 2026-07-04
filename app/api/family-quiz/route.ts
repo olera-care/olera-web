@@ -40,9 +40,14 @@ const ALLOWED_ANSWERS: Record<QuizQuestion, Set<string>> = {
 
 export async function POST(request: NextRequest) {
   let token = "";
+  let eid = "";
   try {
     const body = await request.json();
     token = typeof body?.tok === "string" ? body.tok : "";
+    // Source attribution: the email-log id the chip URL carried (?eid=).
+    // Used ONLY for a read-only lookup of which email produced the tap —
+    // a forged/garbage eid degrades to "no source", never a wrong fact.
+    eid = typeof body?.eid === "string" ? body.eid.slice(0, 64) : "";
   } catch {
     /* fall through to the invalid response */
   }
@@ -66,13 +71,21 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     if (!profile) return invalid();
 
+    // Resolve which email produced this tap (campaign vs rung vs cascade).
+    // Read-only, fail-open: unknown/garbage eid → src stays null.
+    let src: string | null = null;
+    if (eid) {
+      const { data: logRow } = await db.from("email_log").select("email_type").eq("id", eid).maybeSingle();
+      src = logRow?.email_type || null;
+    }
+
     const meta = (profile.metadata as Record<string, unknown>) || {};
     if (question === "path") meta.financial_path = answer;
     else if (question === "medicaid") meta.medicaid_status = answer;
     else if (question === "veteran") meta.veteran_status = answer;
     else if (question === "age") meta.age = parseInt(answer, 10);
     const quizAnswers = (meta.quiz_answers as Record<string, unknown>) || {};
-    quizAnswers[question] = { answer, at: new Date().toISOString(), via: "one_tap" };
+    quizAnswers[question] = { answer, at: new Date().toISOString(), via: "one_tap", ...(src ? { src } : {}) };
     meta.quiz_answers = quizAnswers;
 
     const { error: updErr } = await db
@@ -88,13 +101,14 @@ export async function POST(request: NextRequest) {
     // line per tap. Awaited — Vercel kills pending promises after the response.
     const factsForLabel = familyBenefitsFacts({ ...profile, metadata: meta });
     const careLabelEarly = friendlyCareLabel(factsForLabel.careTypes[0]);
-    await recordGuidanceEvent(db, familyProfileId, { t: "quiz_answered", ref: question, answer });
+    await recordGuidanceEvent(db, familyProfileId, { t: "quiz_answered", ref: question, answer, src: src || undefined });
     await slackQuizAnswer({
       question,
       answer,
       careLabel: careLabelEarly,
       city: (profile as { city?: string | null }).city || null,
       state: factsForLabel.state,
+      source: src,
     });
 
     // The payoff: recompute with the answer applied, plus the next question.

@@ -35,7 +35,6 @@ import {
   publishNudge3Email,
   publishNudge4Email,
   publishNudgeSubject,
-  goLiveReminderEmail,
   matchesNudgeEmail,
   staleConversationFamilyEmail,
   postConnectionFollowupEmail,
@@ -364,17 +363,6 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Soft, no-pressure last word before the sequence goes quiet.",
     render: () => publishNudge4Email({
       unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl, city: "Killeen",
-    }),
-  },
-  {
-    id: "go_live_reminder", audience: "family", group: "Family · Profile sequences",
-    label: "Go-live reminder", subject: "Providers in Killeen are looking for families like yours",
-    emailType: "go_live_reminder", cron: "lead-family-nudge",
-    who: "Profile complete enough to publish; reminded to flip it live.",
-    why: "Convert a complete-but-private profile into a published one so providers can reach out.",
-    render: () => goLiveReminderEmail({
-      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl,
-      city: "Killeen", providerCount: 24, topProviders: FAM_CARDS,
     }),
   },
   {

@@ -168,8 +168,8 @@ function InlineEmailInput({
   onEmailAdded: () => void;
   autoSearch?: boolean;
 }) {
-  // Don't pre-fill a dead address — the operator needs to replace it.
-  const [email, setEmail] = useState(emailIsDead ? "" : existingEmail || "");
+  // Pre-fill with existing email (even if dead) so operator can see what failed and edit it
+  const [email, setEmail] = useState(existingEmail || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -381,7 +381,7 @@ function InlineEmailInput({
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
         </svg>
-        {hasExistingEmail ? "Question forwarded" : "Saved — question forwarded"}
+        {emailIsDead ? "Updated — question forwarded" : hasExistingEmail ? "Question forwarded" : "Saved — question forwarded"}
       </div>
     );
   }
@@ -425,7 +425,7 @@ function InlineEmailInput({
           disabled={saving || findingEmail || !email.trim()}
           className="shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 transition"
         >
-          {saving ? "..." : hasExistingEmail ? "Send" : "Add & send"}
+          {saving ? "..." : existingEmail ? (emailIsDead ? "Update & send" : "Send") : "Add & send"}
         </button>
       </div>
 

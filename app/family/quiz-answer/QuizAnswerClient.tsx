@@ -194,7 +194,17 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
                         live inside a button (invalid nesting, flaky clicks). */}
                     <button
                       type="button"
-                      onClick={() => setOpenStep(open ? null : i)}
+                      onClick={() => {
+                        setOpenStep(open ? null : i);
+                        if (!open) {
+                          // Engagement beacon — fire-and-forget; the page never waits on it.
+                          fetch("/api/guidance-event", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ tok, type: "step_expanded", ref: step.title }),
+                          }).catch(() => {});
+                        }
+                      }}
                       aria-expanded={open}
                       className="w-full text-left"
                     >

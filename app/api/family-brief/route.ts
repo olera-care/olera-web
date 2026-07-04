@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { validateBriefToken, generateQuizToken, type QuizQuestion } from "@/lib/claim-tokens";
 import { familyBenefitsFacts, type FamilyBenefitsFacts } from "@/lib/family-comms/benefits-guidance.server";
+import { recordGuidanceEvent } from "@/lib/family-comms/guidance-events.server";
 import type { BenefitProgram, AreaAgency } from "@/lib/types/benefits";
 
 /**
@@ -152,6 +153,10 @@ export async function GET(request: NextRequest) {
       const aaa = (agencies as Pick<AreaAgency, "name" | "phone" | "what_to_say">[] | null)?.[0];
       if (aaa) firstStep = { source: `${aaa.name} (your local Area Agency on Aging)`, phone: aaa.phone || null, script: aaa.what_to_say || null };
     }
+
+    // Instrumentation: a brief view (this endpoint is only fetched by the page's
+    // JS, so scanners never count). Awaited — serverless kills pending promises.
+    await recordGuidanceEvent(db, familyProfileId, { t: "brief_viewed", ref: pid });
 
     return NextResponse.json({
       ok: true,

@@ -326,23 +326,48 @@ export async function GET(request: NextRequest) {
 
   const count = (ev: string) => winActs.filter((r) => r.event_type === ev).length;
 
-  // One-tap quiz answers (Guidance layer). Stored on the family profile
-  // (metadata.quiz_answers = { medicaid: {answer, at}, … }) rather than
-  // seeker_activity — a new event_type needs a CHECK migration, and the
-  // profile stamp is the source of truth the matcher reads anyway. Few rows;
-  // window-filter in JS on each answer's `at` stamp.
+  // Guidance-journey instrumentation (orientation layer). All from profile
+  // stamps (metadata.quiz_answers / guidance_events / financial_path) rather
+  // than seeker_activity — a new event_type there needs a CHECK migration, and
+  // the profile stamp is the source of truth the matcher reads anyway. Few
+  // rows; window-filter in JS on each stamp's timestamp.
   let quizAnswers = 0;
+  const quizByQuestion: Record<string, number> = {};
+  let briefViews = 0;
+  let stepsExpanded = 0;
+  const pathDistribution: Record<string, number> = { a: 0, b: 0, c: 0 };
   {
-    const { data: quizRows } = await db
+    const { data: gRows } = await db
       .from("business_profiles")
-      .select("quiz_answers:metadata->quiz_answers")
+      .select("quiz_answers:metadata->quiz_answers, guidance_events:metadata->guidance_events, financial_path:metadata->>financial_path")
       .eq("type", "family")
-      .not("metadata->quiz_answers", "is", null)
-      .limit(2000);
-    for (const r of (quizRows as { quiz_answers: Record<string, { at?: string }> | null }[] | null) || []) {
-      for (const entry of Object.values(r.quiz_answers || {})) {
-        const ts = entry?.at ? new Date(entry.at).getTime() : NaN;
-        if (!isNaN(ts) && ts >= fromMs && ts <= toMs) quizAnswers += 1;
+      .or("metadata->quiz_answers.not.is.null,metadata->guidance_events.not.is.null,metadata->>financial_path.not.is.null")
+      .limit(4000);
+    type GRow = {
+      quiz_answers: Record<string, { at?: string }> | null;
+      guidance_events: { t?: string; at?: string }[] | null;
+      financial_path: string | null;
+    };
+    const inWindow = (at?: string) => {
+      const ts = at ? new Date(at).getTime() : NaN;
+      return !isNaN(ts) && ts >= fromMs && ts <= toMs;
+    };
+    for (const r of (gRows as GRow[] | null) || []) {
+      for (const [q, entry] of Object.entries(r.quiz_answers || {})) {
+        if (inWindow(entry?.at)) {
+          quizAnswers += 1;
+          quizByQuestion[q] = (quizByQuestion[q] || 0) + 1;
+        }
+      }
+      for (const ev of r.guidance_events || []) {
+        if (!inWindow(ev?.at)) continue;
+        if (ev.t === "brief_viewed") briefViews += 1;
+        else if (ev.t === "step_expanded") stepsExpanded += 1;
+      }
+      // Path distribution is a CURRENT-STATE snapshot (how the sorted
+      // population splits), not a windowed count — that's the strategy signal.
+      if (r.financial_path === "a" || r.financial_path === "b" || r.financial_path === "c") {
+        pathDistribution[r.financial_path] += 1;
       }
     }
   }
@@ -354,6 +379,14 @@ export async function GET(request: NextRequest) {
     benefitsCompleted: count("benefits_completed"),
     published: count("profile_published"),
     quizAnswers,
+  };
+
+  const guidance = {
+    quizAnswers,
+    quizByQuestion,
+    briefViews,
+    stepsExpanded,
+    pathDistribution,
   };
 
   // ── Flywheel funnel (family-level, window) ──────────────────────────────
@@ -468,6 +501,7 @@ export async function GET(request: NextRequest) {
     funnel,
     sensor,
     conversions,
+    guidance,
     outcomes,
     cutover: {
       anchor: CUTOVER_ANCHOR_ISO,

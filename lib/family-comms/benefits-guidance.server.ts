@@ -219,6 +219,14 @@ export async function getProgramsForFamily(
     // already on board; the bridge programs and VA are their real levers.
     if (facts.financialPath === "a" && (isMedicaidGated(p) || p.max_income_single != null)) continue;
     if (facts.financialPath === "b" && isMedicaidGated(p) && facts.medicaidStatus !== "alreadyHas") continue;
+    // UNSORTED families (no financial_path yet) get only universal programs.
+    // Unknown ≠ path C: leading an unsorted family with a Medicaid-gated waiver
+    // is the exact false-hope/noise failure the self-sort exists to prevent —
+    // the email's job pre-sort is the sort itself; the payoff page shows the
+    // sharpened list the moment they answer. Held Medicaid keeps gated programs
+    // in (that's a fact, not a guess). Verified against prod: every state keeps
+    // ≥3 universal survivors, so this can never empty the list.
+    if (!facts.financialPath && facts.medicaidStatus !== "alreadyHas" && (isMedicaidGated(p) || p.max_income_single != null)) continue;
 
     let score = p.priority_score + (isState ? 10 : 0);
     if (paysForCare(p)) score += 25;

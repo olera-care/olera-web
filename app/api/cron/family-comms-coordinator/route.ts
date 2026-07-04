@@ -576,6 +576,9 @@ export async function GET(request: NextRequest) {
                   quiz: ask
                     ? {
                         prompt: ask.prompt,
+                        // The self-sort LEADS the email (orientation before
+                        // programs); narrowing questions close it as before.
+                        leads: ask.question === "path",
                         // Chips link to the PAGE (via claim-family sign-in); the page
                         // records the answer with a client-side POST on mount — the
                         // /connection-outcome pattern — so link-scanners (SafeLinks etc.)

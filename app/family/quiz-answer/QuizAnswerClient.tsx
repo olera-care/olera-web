@@ -68,7 +68,7 @@ const fadeStyles = `
 @media (prefers-reduced-motion: reduce) { .qa-fade { animation: none; opacity: 1; } }
 `;
 
-export default function QuizAnswerClient({ tok }: { tok: string }) {
+export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?: string }) {
   const [state, setState] = useState<"loading" | "error" | "ready">("loading");
   const [data, setData] = useState<QuizPayload | null>(null);
   const [tapping, setTapping] = useState(false);
@@ -85,7 +85,9 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
       const res = await fetch("/api/family-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tok: token }),
+        // eid rides every answer in the chain — the whole session originated
+        // from the same email, so chained answers inherit its source.
+        body: JSON.stringify({ tok: token, eid: eid || undefined }),
       });
       const json: QuizPayload = await res.json().catch(() => ({ ok: false }));
       if (!res.ok || !json.ok) {
@@ -103,7 +105,7 @@ export default function QuizAnswerClient({ tok }: { tok: string }) {
     } finally {
       if (isChain) setTapping(false);
     }
-  }, []);
+  }, [eid]);
 
   useEffect(() => {
     if (submitted.current) return; // strict-mode double-mount guard (write is idempotent anyway)

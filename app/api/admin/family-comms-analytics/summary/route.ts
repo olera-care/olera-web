@@ -337,6 +337,9 @@ export async function GET(request: NextRequest) {
   let briefViews = 0;
   let stepsExpanded = 0;
   const pathDistribution: Record<string, number> = { a: 0, b: 0, c: 0 };
+  // Self-sorts by SOURCE email (windowed, from guidance_events src stamps):
+  // which door produced the tap — the campaign, the day-3 rung, the cascade.
+  const sortsBySource: Record<string, { a: number; b: number; c: number }> = {};
   {
     const { data: gRows } = await db
       .from("business_profiles")
@@ -346,7 +349,7 @@ export async function GET(request: NextRequest) {
       .limit(4000);
     type GRow = {
       quiz_answers: Record<string, { at?: string }> | null;
-      guidance_events: { t?: string; at?: string }[] | null;
+      guidance_events: { t?: string; at?: string; ref?: string; answer?: string; src?: string }[] | null;
       financial_path: string | null;
     };
     const inWindow = (at?: string) => {
@@ -364,6 +367,11 @@ export async function GET(request: NextRequest) {
         if (!inWindow(ev?.at)) continue;
         if (ev.t === "brief_viewed") briefViews += 1;
         else if (ev.t === "step_expanded") stepsExpanded += 1;
+        else if (ev.t === "quiz_answered" && ev.ref === "path" && (ev.answer === "a" || ev.answer === "b" || ev.answer === "c")) {
+          const key = ev.src || "on_site";
+          const bucket = (sortsBySource[key] = sortsBySource[key] || { a: 0, b: 0, c: 0 });
+          bucket[ev.answer] += 1;
+        }
       }
       // Path distribution is a CURRENT-STATE snapshot (how the sorted
       // population splits), not a windowed count — that's the strategy signal.
@@ -388,6 +396,7 @@ export async function GET(request: NextRequest) {
     briefViews,
     stepsExpanded,
     pathDistribution,
+    sortsBySource,
   };
 
   // ── Flywheel funnel (family-level, window) ──────────────────────────────

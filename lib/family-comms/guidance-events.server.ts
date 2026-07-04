@@ -26,6 +26,10 @@ export interface GuidanceEvent {
   /** question for quiz_answered, program id for brief_viewed, step index for step_expanded. */
   ref?: string;
   answer?: string;
+  /** Source email_type that produced the tap (quiz_answered only) — e.g.
+   *  orientation_intro / paying_for_care / family_never_engaged. Absent when
+   *  the answer came from a non-email surface (program brief checklist). */
+  src?: string;
 }
 
 /** Append one event to the profile's capped ring. Best-effort: read-modify-write
@@ -64,6 +68,15 @@ const MEDICAID_LABELS: Record<string, string> = {
   doesNotHave: "No",
 };
 
+/** Human labels for the email that produced a tap (Slack + dashboard). */
+export const QUIZ_SOURCE_LABELS: Record<string, string> = {
+  orientation_intro: "the orientation campaign",
+  paying_for_care: "the day-3 paying-for-care email",
+  family_never_engaged: "the never-engaged email",
+  family_provider_silent: "the provider-silent email",
+  day_10_awaiting: "the day-10 email",
+};
+
 /** One PHI-free Slack line per one-tap answer. Never names the family. */
 export async function slackQuizAnswer(opts: {
   question: string;
@@ -71,10 +84,13 @@ export async function slackQuizAnswer(opts: {
   careLabel: string | null;
   city: string | null;
   state: string | null;
+  /** Source email_type (see QUIZ_SOURCE_LABELS); null = non-email surface. */
+  source?: string | null;
 }): Promise<void> {
   if (process.env.GUIDANCE_SLACK_DISABLED === "1") return;
   const where = [opts.city, opts.state].filter(Boolean).join(", ");
   const who = `A family${opts.careLabel ? ` looking for ${opts.careLabel}` : ""}${where ? ` in ${where}` : ""}`;
+  const via = opts.source ? ` · via ${QUIZ_SOURCE_LABELS[opts.source] || opts.source}` : "";
   let line: string;
   if (opts.question === "path") {
     line = `🧭 ${who} self-sorted: *${PATH_LABELS[opts.answer] || opts.answer}*`;
@@ -87,5 +103,5 @@ export async function slackQuizAnswer(opts: {
   } else {
     line = `🧭 ${who} answered ${opts.question}: *${opts.answer}*`;
   }
-  await sendSlackAlert(line);
+  await sendSlackAlert(line + via);
 }

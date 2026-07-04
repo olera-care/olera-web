@@ -5,7 +5,7 @@ import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken, generateBriefToken } from "@/lib/claim-tokens";
-import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion } from "@/lib/family-comms/benefits-guidance.server";
+import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import {
@@ -614,6 +614,37 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // ── Shared guidance ask for the compare/awaiting rungs (R2/R3/R4) ──
+        // Every guidance email carries the ONE question worth asking as one-tap
+        // chips (the retired quiz-link closer was a completion cliff), or the
+        // path tell-back once the family's picture is full. Minted per-eid
+        // inside buildHtml; same scanner-safe page-POST chain as rung 1.5.
+        const guidanceAskFor = (eid: string | null) => {
+          if (!fpr) return {};
+          const facts = familyBenefitsFacts(fpr);
+          const ask = pickQuizQuestion(facts);
+          if (ask) {
+            return {
+              quiz: {
+                prompt: ask.prompt,
+                chips: ask.chips.map((ch) => ({
+                  label: ch.label,
+                  url: generateFamilyInboxUrl(
+                    authEmailFinal,
+                    appendTrackingParams(
+                      `/family/quiz-answer?tok=${generateQuizToken(fam.familyId, ask.question, ch.answer, authEmailFinal)}`,
+                      eid,
+                    ),
+                    siteUrl,
+                  ),
+                })),
+              },
+              fullPictureUrl: buildQuizUrl(eid),
+            };
+          }
+          return { pathTellBack: pathTellBackLine(facts.financialPath), fullPictureUrl: buildQuizUrl(eid) };
+        };
+
         // ── Rung 2: provider silent → alternatives — inquiry 96-120h, family engaged,
         //    provider silent everywhere, ≥3 responsive alternatives ──
         const alreadyAlt = fam.inquiries.some((c) => metaOf(c).family_alternatives_sent_at);
@@ -659,7 +690,7 @@ export async function GET(request: NextRequest) {
                   careType: normalizeCareLabel(
                     ((provider?.care_types as string[] | undefined)?.[0] || "").split("|")[0].trim(),
                   ),
-                  benefitsQuizUrl: buildQuizUrl(eid),
+                  ...guidanceAskFor(eid),
                 });
               },
               stamp: async (sentAt) => {
@@ -703,7 +734,7 @@ export async function GET(request: NextRequest) {
                 inboxUrl,
                 recommendedProviders: undefined,
                 browseUrl: null,
-                benefitsQuizUrl: buildQuizUrl(eid),
+                ...guidanceAskFor(eid),
               });
             },
             stamp: async (sentAt) => {
@@ -761,7 +792,7 @@ export async function GET(request: NextRequest) {
                 inboxUrl,
                 recommendedProviders,
                 browseUrl: hasAlts3 ? buildBrowseUrl(provider, eid) : null,
-                benefitsQuizUrl: buildQuizUrl(eid),
+                ...guidanceAskFor(eid),
               });
             },
             stamp: async (sentAt) => {
@@ -824,7 +855,7 @@ export async function GET(request: NextRequest) {
                 supportUrl,
                 alternativesUrl,
                 recommendedProviders,
-                benefitsQuizUrl: buildQuizUrl(eid),
+                ...guidanceAskFor(eid),
               });
             },
             stamp: async (sentAt) => {

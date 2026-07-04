@@ -94,6 +94,9 @@ export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   // Help-cascade rungs (connection-triggered)
   "family_outcome_check",
   "paying_for_care",
+  // One-time orientation campaign to the existing base (admin-triggered,
+  // /api/admin/orientation-campaign) — governed so every cap applies
+  "orientation_intro",
   "family_provider_silent",
   "family_never_engaged",
   "day_10_awaiting",

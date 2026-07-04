@@ -384,6 +384,11 @@ export interface FamilyMetadata {
   // Benefits intake fields
   income_range?: string;
   medicaid_status?: string;
+  veteran_status?: string;
+  /** Orientation self-sort (a: private pay / b: the middle / c: Medicaid-now).
+   *  Written by the one-tap quiz, or derived fill-only from finder intake —
+   *  an explicit self-sort tap always wins over a derived value. */
+  financial_path?: "a" | "b" | "c";
   whatsapp_opted_in?: boolean;
   whatsapp_opted_in_at?: string;
   notification_prefs?: NotificationPrefs;

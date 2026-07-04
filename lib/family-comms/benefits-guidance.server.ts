@@ -252,6 +252,19 @@ export async function getProgramsForFamily(
   }));
 }
 
+/** Tell-back lines for families who already sorted — the payoff for answering:
+ *  every later cost mention starts from THEIR situation instead of re-asking.
+ *  Educational framing only, never prescriptive financial advice. */
+const PATH_TELLBACK: Record<string, string> = {
+  a: "Since you mentioned you can cover care comfortably, we keep your cost guidance focused on getting full value: how to evaluate communities, tax deductions, and benefits many families miss.",
+  b: "Since you mentioned you have some savings but not endless, we keep your cost guidance focused on bridge programs and planning ahead, so the money lasts as long as it needs to.",
+  c: "Since you mentioned resources are tight right now, we keep your cost guidance focused on Medicaid-track programs and free local help.",
+};
+
+export function pathTellBackLine(path: string | null): string | null {
+  return path ? PATH_TELLBACK[path] || null : null;
+}
+
 export interface QuizChip {
   label: string;
   answer: string;

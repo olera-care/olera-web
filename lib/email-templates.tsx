@@ -2735,39 +2735,6 @@ function providerCardsBlock(providers: EmailProviderCard[], showSnippets = false
   return `<div style="margin:0 0 24px;">${providers.map((p) => providerCardRow(p, showSnippets)).join("")}</div>`;
 }
 
-/** Go-live reminder — shows nearby provider count + top providers */
-export function goLiveReminderEmail(opts: {
-  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
-  unsubscribeId?: string;
-  familyName: string;
-  matchesUrl: string;
-  city?: string;
-  providerCount?: number;
-  topProviders?: EmailProviderCard[];
-}): string {
-  const cityText = opts.city || "your area";
-  const countText = opts.providerCount ? `${opts.providerCount} care` : "Care";
-  const providersHtml = opts.topProviders?.length ? providerCardsBlock(opts.topProviders) : "";
-  const preheader = `${countText} providers in ${cityText} are ready to help. Let them reach out to you.`;
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${countText} providers in ${escapeHtml(cityText)} are looking for families like yours</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, your care profile is looking great. Activate Matches and let providers in your area reach out to you directly.
-    </p>
-    ${providersHtml}
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      You're always in control. You decide which providers to respond to.
-    </p>
-    <div>${button("Let Providers Reach Out", opts.matchesUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us anytime</a>, we're here to help.
-    </p>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
-    </p>
-  `, preheader);
-}
 
 /** Post-connection follow-up — asks about experience, builds review system */
 export function postConnectionFollowupEmail(opts: {

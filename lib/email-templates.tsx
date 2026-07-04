@@ -1492,15 +1492,65 @@ export function connectionOutcomeCheckEmail(opts: {
  * matches. Renders nothing when no url is supplied (older/transactional callers).
  * Intentionally a text link, not a button — it rides alongside compare, never leads.
  */
-function benefitsQuizModule(url?: string | null): string {
-  if (!url) return "";
+/** The in-email micro-quiz surface (shared across every guidance email so the
+ *  card can't drift): warm vanilla, serif prompt, white pill chips. Chips link
+ *  to /family/quiz-answer pages that record the answer via client POST — never
+ *  a GET that writes (link-scanners follow every href). */
+export interface MicroQuizItem {
+  prompt: string;
+  chips: QuizChipItem[];
+}
+
+function microQuizCardBlock(quiz: MicroQuizItem, margin = "24px 0 10px"): string {
+  const chips = quiz.chips
+    .map(
+      (c) =>
+        `<a href="${c.url}" style="display:inline-block;background:#ffffff;border:1px solid ${BRAND_COLOR};color:${BRAND_COLOR};border-radius:999px;padding:11px 20px;margin:0 8px 8px 0;font-size:14px;font-weight:500;text-decoration:none;">${escapeHtml(c.label)}</a>`,
+    )
+    .join("");
   return `
+    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:26px 24px 18px;margin:${margin};">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#1f2937;margin:0 0 16px;line-height:1.35;">
+        ${escapeHtml(quiz.prompt)}
+      </p>
+      <div>${chips}</div>
+    </div>`;
+}
+
+/**
+ * The cost-guidance closer for compare/awaiting emails. Replaces the retired
+ * benefitsQuizModule ("take our 2-minute quiz" link — a completion cliff) with
+ * one tappable question, or a tell-back line once the family's picture is full.
+ */
+function guidanceAskSection(opts: {
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when we already hold the family's financial picture. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link (the "everything at once" escape hatch). */
+  fullPictureUrl?: string | null;
+}): string {
+  const fullPicture = opts.fullPictureUrl
+    ? `<p style="font-size:13px;color:#9ca3af;margin:0 0 22px;line-height:1.5;text-align:center;">
+        Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.
+      </p>`
+    : "";
+  if (opts.quiz) {
+    return `
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:14px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
-      It also helps to know what you can afford.
-      <a href="${url}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">See programs you may qualify for</a>. It takes about 2 minutes and can show what may help lower the cost of care.
+      It also helps to know how you'll pay for it. One tap and we point you at real programs:
     </p>
-  `;
+    ${microQuizCardBlock(opts.quiz, "14px 0 12px")}
+    ${fullPicture}`;
+  }
+  if (opts.pathTellBack) {
+    return `
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
+      ${escapeHtml(opts.pathTellBack)}${opts.fullPictureUrl ? ` <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.` : ""}
+    </p>`;
+  }
+  return "";
 }
 
 /** A compare-card row: facility photo + name + a scannable trust line (rating · distance) + price. */
@@ -1592,8 +1642,12 @@ export function providerSilentEmail(opts: {
   /** Care type the family inquired about (friendly label, e.g. "memory care"),
    *  used for the entry-bridge opening sentence. Optional — degrades cleanly. */
   careType?: string | null;
-  /** Benefits quiz deep-link (the closer). Omitted by transactional callers. */
-  benefitsQuizUrl?: string | null;
+  /** One tappable cost question (the closer). Omitted by transactional callers. */
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when the family's financial picture is already full. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link for the "everything at once" line. */
+  fullPictureUrl?: string | null;
   /** Family profile id for the unsubscribe footer. */
   unsubscribeId?: string;
 }): string {
@@ -1669,7 +1723,7 @@ export function providerSilentEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
       ${closingLine}
     </p>
-    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    ${guidanceAskSection({ quiz: opts.quiz, pathTellBack: opts.pathTellBack, fullPictureUrl: opts.fullPictureUrl })}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
     </p>
@@ -1771,24 +1825,9 @@ export function payingForCareEmail(opts: {
     )
     .join("");
 
-  const chips = (opts.quiz?.chips || [])
-    .map(
-      (c) =>
-        `<a href="${c.url}" style="display:inline-block;background:#ffffff;border:1px solid ${BRAND_COLOR};color:${BRAND_COLOR};border-radius:999px;padding:11px 20px;margin:0 8px 8px 0;font-size:14px;font-weight:500;text-decoration:none;">${escapeHtml(c.label)}</a>`,
-    )
-    .join("");
-
-  // The Wispr moment: one question on the email's ONLY surface — warm vanilla,
-  // serif prompt, white pill answers. Everything else is whitespace + hairlines.
-  const quizCard = opts.quiz
-    ? `
-    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:26px 24px 18px;margin:${quizLeads ? "22px 0 6px" : "28px 0 10px"};">
-      <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#1f2937;margin:0 0 16px;line-height:1.35;">
-        ${escapeHtml(opts.quiz.prompt)}
-      </p>
-      <div>${chips}</div>
-    </div>`
-    : "";
+  // The Wispr moment: one question on the email's ONLY surface — the shared
+  // micro-quiz card. Everything else is whitespace + hairlines.
+  const quizCard = opts.quiz ? microQuizCardBlock(opts.quiz, quizLeads ? "22px 0 6px" : "28px 0 10px") : "";
   const fullPictureLine = `
     <p style="font-size:13px;color:#9ca3af;margin:0 0 28px;line-height:1.5;text-align:center;">
       Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.
@@ -1917,8 +1956,12 @@ export function familyNeverEngagedEmail(opts: {
   recommendedProviders?: CompareCardItem[];
   /** Pre-filtered browse "see more" link (paired with recommendedProviders). */
   browseUrl?: string | null;
-  /** Benefits quiz deep-link (the closer). */
-  benefitsQuizUrl?: string | null;
+  /** One tappable cost question (the closer; the HERO in the guide fallback). */
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when the family's financial picture is already full. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link for the "everything at once" line. */
+  fullPictureUrl?: string | null;
   /** Family profile id for the unsubscribe footer. */
   unsubscribeId?: string;
 }): string {
@@ -1939,7 +1982,7 @@ export function familyNeverEngagedEmail(opts: {
     </p>
     ${providersSection}
     ${opts.browseUrl ? `<div style="margin:24px 0 0;text-align:center;">${browseLink("Compare more providers near you", opts.browseUrl)}</div>` : ""}
-    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    ${guidanceAskSection({ quiz: opts.quiz, pathTellBack: opts.pathTellBack, fullPictureUrl: opts.fullPictureUrl })}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
       And <strong>${escapeHtml(opts.providerName)}</strong> is still there whenever you&rsquo;re ready. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for. New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> walks through what to look for.
@@ -1955,26 +1998,33 @@ export function familyNeverEngagedEmail(opts: {
   // Fallback (no alternatives to show — the thinnest hand). Lead with RECOGNITION,
   // not presumption: care searches stall for everyone, usually on two questions —
   // who's good, and how to pay. We make the second one (the real paralyzer, and our
-  // strongest free asset) the hero; the guide drops to a soft inline link; the human
-  // offer routes to /contact, never "reply" (From is noreply@). One reassurance line.
-  const hasQuiz = !!opts.benefitsQuizUrl;
-  const heroCta = hasQuiz
-    ? button("See what could help with the cost", opts.benefitsQuizUrl!)
-    : button("Get the free guide", opts.guideUrl);
+  // strongest free asset) the hero — as ONE tappable question when we have one to
+  // ask (the quiz-link button was a completion cliff), else the tell-back + full
+  // picture, else the guide. Human offer routes to /contact, never "reply".
+  const hasTellBack = !opts.quiz && !!opts.pathTellBack && !!opts.fullPictureUrl;
+  const secondParagraph = opts.quiz
+    ? "When you&rsquo;re ready, the heaviest part is usually the cost, and that&rsquo;s the one we can help lift first. One tap below and we point you at real programs. Most families are surprised by what they qualify for."
+    : hasTellBack
+      ? escapeHtml(opts.pathTellBack!)
+      : "When you&rsquo;re ready, here&rsquo;s a free guide that walks through what to look for, what to ask, and how families actually pay for care.";
+  const heroBlock = opts.quiz
+    ? `${microQuizCardBlock(opts.quiz, "0 0 10px")}
+       ${opts.fullPictureUrl ? `<p style="font-size:13px;color:#9ca3af;margin:0 0 24px;line-height:1.5;text-align:center;">Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.</p>` : ""}`
+    : hasTellBack
+      ? `<div style="margin:0 0 24px;">${button("See your full benefits picture", opts.fullPictureUrl!)}</div>`
+      : `<div style="margin:0 0 24px;">${button("Get the free guide", opts.guideUrl)}</div>`;
   return layout(`
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.3;">Choosing care for someone you love is a lot to carry</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
       Hi ${escapeHtml(familyFirstName)}, you&rsquo;re weighing options, cost, trust, and timing all at once, trying to make a call you won&rsquo;t second-guess. It&rsquo;s completely normal for a search like that to stall for a while. So take it at your pace.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">
-      ${hasQuiz
-        ? "When you&rsquo;re ready, the heaviest part is usually the cost, and that&rsquo;s the one we can help lift first. A quick look shows which programs and benefits could help cover it. Most families are surprised by what they qualify for."
-        : "When you&rsquo;re ready, here&rsquo;s a free guide that walks through what to look for, what to ask, and how families actually pay for care."}
+      ${secondParagraph}
     </p>
-    <div style="margin:0 0 24px;">${heroCta}</div>
+    ${heroBlock}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
-      And whenever you&rsquo;re ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for.${hasQuiz ? ` New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> covers what to look for and what to ask.` : ""}
+      And whenever you&rsquo;re ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for.${opts.quiz || hasTellBack ? ` New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> covers what to look for and what to ask.` : ""}
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 0;line-height:1.6;">
       No rush. The conversation will be here when you&rsquo;re ready. And if you&rsquo;d rather talk it through with a real person, you can <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
@@ -5802,8 +5852,12 @@ export function day10AwaitingEmail(opts: {
   alternativesUrl: string;
   /** A couple of others to compare against the one who responded. */
   recommendedProviders?: CompareCardItem[];
-  /** Benefits quiz deep-link (the closer). */
-  benefitsQuizUrl?: string | null;
+  /** One tappable cost question (the closer). */
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when the family's financial picture is already full. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link for the "everything at once" line. */
+  fullPictureUrl?: string | null;
   /** Family profile id for the unsubscribe footer. */
   unsubscribeId?: string;
 }): string {
@@ -5827,7 +5881,7 @@ export function day10AwaitingEmail(opts: {
     <div style="margin:0 0 24px;">${providersSection}</div>
     <div style="margin:0 0 24px;${hasRecs ? "text-align:center;" : ""}">${hasRecs ? browseLink("Compare your options", opts.alternativesUrl) : button("Compare your options", opts.alternativesUrl)}</div>
     ` : ""}
-    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    ${guidanceAskSection({ quiz: opts.quiz, pathTellBack: opts.pathTellBack, fullPictureUrl: opts.fullPictureUrl })}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Ready to keep going? <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Pick up right where you left off</a> with ${safeProviderName}. And if you'd rather not weigh it alone, a real person on our team is glad to help you think it through. <a href="${opts.supportUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Just reach out</a>.

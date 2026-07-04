@@ -95,6 +95,21 @@ const F = {
   matchesUrl: "https://olera.care/portal/matches",
 };
 
+// The one-tap micro-quiz fixture (pre-sort state: the self-sort is the pending
+// question for any family without a financial_path). Chips point at the
+// quiz-answer PAGE — the page records via client POST, never a GET that writes.
+const F_SORT_QUIZ = {
+  prompt: "Which sounds most like your situation?",
+  chips: [
+    { label: "We can cover it comfortably", url: "https://olera.care/family/quiz-answer?tok=sample" },
+    { label: "Some savings, but not endless", url: "https://olera.care/family/quiz-answer?tok=sample" },
+    { label: "Resources are very limited", url: "https://olera.care/family/quiz-answer?tok=sample" },
+  ],
+};
+// The sorted state (path B): the tell-back line replaces the question.
+const F_PATH_TELLBACK =
+  "Since you mentioned you have some savings but not endless, we keep your cost guidance focused on bridge programs and planning ahead, so the money lasts as long as it needs to.";
+
 // EmailProviderCard fixtures — the richer card shape used by the completion/publish
 // sequences and go-live reminder (distinct from the compare-cascade CompareCardItem).
 const FAM_CARDS: EmailProviderCard[] = [
@@ -162,7 +177,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => providerSilentEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, providerPassed: false,
-      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", careType: "memory care", benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", careType: "memory care", quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -175,7 +190,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, providerPassed: true,
       declineMessage: "We're at capacity for new clients this month, so sorry.",
-      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -187,7 +202,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => familyNeverEngagedEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
-      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -199,7 +214,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => familyNeverEngagedEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
-      benefitsQuizUrl: F.quizUrl,
+      quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -212,7 +227,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, inboxUrl: F.inboxUrl,
       supportUrl: "mailto:support@olera.care?subject=Help%20with%20next%20steps", alternativesUrl: F.browseUrl,
-      recommendedProviders: FAM_RECS.slice(0, 2), benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS.slice(0, 2), pathTellBack: F_PATH_TELLBACK, fullPictureUrl: F.quizUrl,
     }),
   },
   {

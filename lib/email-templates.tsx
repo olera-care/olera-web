@@ -1761,6 +1761,14 @@ export function payingForCareSubject(stateName?: string | null, careLabel?: stri
   return "Most families don't pay the full cost of care";
 }
 
+/** Subject for the one-time orientation campaign to the existing base —
+ *  distinct from the rung subject so replies/threads don't collide. */
+export function orientationIntroSubject(careLabel?: string | null): string {
+  return careLabel
+    ? `The money side of finding ${careLabel.toLowerCase()}, made simpler`
+    : "The money side of finding care, made simpler";
+}
+
 /**
  * Guidance rung: "paying for care" — the money half of the search, delivered
  * as answers rather than homework. Leads with real programs for the family's
@@ -1785,6 +1793,9 @@ export function payingForCareEmail(opts: {
   /** Benefits finder deep link (tracked). */
   fullPictureUrl: string;
   unsubscribeId?: string;
+  /** Override the opening line — the orientation campaign reuses this creative
+   *  with past-tense framing ("A while back you reached out…"). */
+  opening?: string;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
   const bridgeContext = [
@@ -1799,9 +1810,11 @@ export function payingForCareEmail(opts: {
   // overwhelmed reader should get the whole story from three glances:
   // "don't pay full price" → the $ amounts → one tappable question.
   const quizLeads = Boolean(opts.quiz?.leads);
-  const opening = bridgeContext
-    ? `You reached out ${bridgeContext}, so we looked into the part of the search nobody hands you a guide for: how to pay for it.`
-    : `We looked into the part of a care search nobody hands you a guide for: how to pay for it.`;
+  const opening =
+    opts.opening ||
+    (bridgeContext
+      ? `You reached out ${bridgeContext}, so we looked into the part of the search nobody hands you a guide for: how to pay for it.`
+      : `We looked into the part of a care search nobody hands you a guide for: how to pay for it.`);
   // Sort-lead variant: the right programs depend on the family's situation, so
   // the honest opener sets up the one-tap sort instead of promising specifics.
   const openingLead = `${opening} The best path depends on your situation, and one tap tells us which fits.`;

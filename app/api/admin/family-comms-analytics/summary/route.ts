@@ -48,6 +48,7 @@ const CONVERSION_EVENTS = [
 const TYPE_LABELS: Record<string, string> = {
   family_outcome_check: "Outcome check (sensor)",
   paying_for_care: "Paying for care + micro-quiz",
+  orientation_intro: "Orientation intro (campaign)",
   family_provider_silent: "Provider silent → compare",
   family_never_engaged: "Never engaged → compare",
   family_provider_silent_guidance: "Provider silent → guidance (thin market)",

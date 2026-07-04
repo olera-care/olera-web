@@ -51,6 +51,7 @@ interface Summary {
     quizAnswers: number; quizByQuestion: Record<string, number>;
     briefViews: number; stepsExpanded: number;
     pathDistribution: Record<string, number>;
+    sortsBySource?: Record<string, { a: number; b: number; c: number }>;
   };
   outcomes: { total: number; connected: number; active: number; guided: number; stalled: number; lookbackDays: number };
   cutover: { anchor: string; cutoverWeekIndex: number; weekStartsISO: string[]; sendsWeekly: number[]; goLivesWeekly: number[] };
@@ -577,7 +578,35 @@ export default function FamilyCommsAnalyticsPage() {
                 </div>
               );
             })()}
-            <p className="mt-4 text-[11px] text-gray-400">Quiz answers, brief views, and step expansions are window totals from profile stamps. The path split is a current-state snapshot of every sorted family. Slack gets a live line per answer (mute: GUIDANCE_SLACK_DISABLED=1).</p>
+            {(() => {
+              const SOURCE_LABELS: Record<string, string> = {
+                orientation_intro: "Orientation campaign",
+                paying_for_care: "Day-3 paying-for-care",
+                family_never_engaged: "Never-engaged email",
+                family_provider_silent: "Provider-silent email",
+                day_10_awaiting: "Day-10 email",
+                on_site: "On-site (brief / page)",
+              };
+              const entries = Object.entries(g?.sortsBySource || {}).map(([k, v]) => ({
+                key: k, label: SOURCE_LABELS[k] || k, ...v, total: (v.a || 0) + (v.b || 0) + (v.c || 0),
+              })).sort((x, y) => y.total - x.total);
+              if (!entries.length) return null;
+              return (
+                <div className="mt-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Where sorts come from (this window)</p>
+                  <div className="space-y-1.5">
+                    {entries.map((e) => (
+                      <div key={e.key} className="flex items-center gap-3 text-[13px]">
+                        <span className="w-56 flex-none text-gray-600">{e.label}</span>
+                        <span className="w-10 flex-none text-right font-medium text-gray-800">{num(e.total)}</span>
+                        <span className="text-gray-400">A {e.a} · B {e.b} · C {e.c}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+            <p className="mt-4 text-[11px] text-gray-400">Quiz answers, brief views, and step expansions are window totals from profile stamps. The path split is a current-state snapshot of every sorted family; the by-source rows are windowed taps attributed to the email that produced them. Slack gets a live line per answer (mute: GUIDANCE_SLACK_DISABLED=1).</p>
           </CollapsibleSection>
 
           {/* Secondary: cutover lens */}

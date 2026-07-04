@@ -16,5 +16,10 @@ export default async function QuizAnswerPage({
 }) {
   const sp = await searchParams;
   const tok = typeof sp.tok === "string" ? sp.tok : "";
-  return <QuizAnswerClient tok={tok} />;
+  // Source attribution: chips arrive with the email-log id (?eid=) that
+  // appendTrackingParams stamped. Threading it through the POST lets the
+  // answer record which EMAIL produced the tap (campaign vs day-3 rung vs
+  // compare cascade). Read-only downstream — it can never alter facts.
+  const eid = typeof sp.eid === "string" ? sp.eid.slice(0, 64) : "";
+  return <QuizAnswerClient tok={tok} eid={eid} />;
 }

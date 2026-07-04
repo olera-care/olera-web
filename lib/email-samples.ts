@@ -132,17 +132,18 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "R1.5 · Paying for care + micro-quiz", subject: payingForCareSubject("Texas", "memory care"),
     emailType: "paying_for_care", cron: "family-comms-coordinator",
     who: "Any family with an inquiry 72–96h old, once ever (profile stamp). Fires between the outcome check and the alternatives rung.",
-    why: "The money half of the search, delivered as answers not homework: real state programs for their state + care type up front, then ONE question as one-tap chips. The first question is the orientation self-sort — it stores financial_path, which filters every program the family sees afterward. Learn-more links go to the guided program brief, never a dense article.",
+    why: "The money half of the search, delivered as answers not homework. Pre-sort (no financial_path yet), the self-sort question LEADS and the programs below are the universal set — Medicaid-gated waivers never show before the family sorts (unknown ≠ path C). Once sorted, later sends flip to programs-first with a narrowing question. Learn-more links go to the guided program brief, never a dense article.",
     render: () => payingForCareEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, careType: "memory care", city: "Killeen", stateName: "Texas",
       programs: [
-        { name: "STAR+PLUS Waiver (HCBS)", savingsRange: "$20,000 – $50,000/year", blurb: "Texas Medicaid program that pays for long-term care services at home or in assisted living.", url: "https://olera.care/family/program/sample" },
         { name: "Texas PACE Programs", savingsRange: "$15,000 – $35,000/year", blurb: "All-in-one medical care and daily support for seniors who want to stay at home.", url: "https://olera.care/family/program/sample" },
-        { name: "VA Aid & Attendance", savingsRange: "up to $2,300/mo", blurb: "A monthly pension add-on for wartime veterans and surviving spouses who need help with daily activities.", url: "https://olera.care/family/program/sample" },
+        { name: "Texas Respite Care Services", savingsRange: "up to $500/mo", blurb: "Short-term relief care that gives family caregivers a real break.", url: "https://olera.care/family/program/sample" },
+        { name: "Meals on Wheels Texas", savingsRange: "$250 – $400/mo", blurb: "Home-delivered meals for seniors who have trouble shopping or cooking.", url: "https://olera.care/family/program/sample" },
       ],
       quiz: {
         prompt: "Which sounds most like your situation?",
+        leads: true,
         chips: [
           { label: "We can cover it comfortably", url: "https://olera.care/family/quiz-answer?tok=sample" },
           { label: "Some savings, but not endless", url: "https://olera.care/family/quiz-answer?tok=sample" },

@@ -1723,8 +1723,11 @@ export function payingForCareEmail(opts: {
   /** Friendly state name, e.g. "Texas" — used in the intro line. */
   stateName?: string | null;
   programs: GuidanceProgramItem[];
-  /** The one question worth asking, or null when we hold all the facts. */
-  quiz?: { prompt: string; chips: QuizChipItem[] } | null;
+  /** The one question worth asking, or null when we hold all the facts.
+   *  `leads: true` (the self-sort) puts the question card ABOVE the programs:
+   *  orientation is the email's job pre-sort, and the programs shown are the
+   *  universal starting-point set until the family answers. */
+  quiz?: { prompt: string; chips: QuizChipItem[]; leads?: boolean } | null;
   /** Benefits finder deep link (tracked). */
   fullPictureUrl: string;
   unsubscribeId?: string;
@@ -1741,9 +1744,13 @@ export function payingForCareEmail(opts: {
   // question (the only box in the email), and half the copy deleted. The
   // overwhelmed reader should get the whole story from three glances:
   // "don't pay full price" → the $ amounts → one tappable question.
+  const quizLeads = Boolean(opts.quiz?.leads);
   const opening = bridgeContext
     ? `You reached out ${bridgeContext}, so we looked into the part of the search nobody hands you a guide for: how to pay for it.`
     : `We looked into the part of a care search nobody hands you a guide for: how to pay for it.`;
+  // Sort-lead variant: the right programs depend on the family's situation, so
+  // the honest opener sets up the one-tap sort instead of promising specifics.
+  const openingLead = `${opening} The best path depends on your situation, and one tap tells us which fits.`;
 
   // Savings-forward rows: name left, dollars right (the Perena move — the
   // number is the hero). Email-safe two-cell table per row, hairlines between.
@@ -1773,20 +1780,50 @@ export function payingForCareEmail(opts: {
 
   // The Wispr moment: one question on the email's ONLY surface — warm vanilla,
   // serif prompt, white pill answers. Everything else is whitespace + hairlines.
-  const quizSection = opts.quiz
+  const quizCard = opts.quiz
     ? `
-    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:26px 24px 18px;margin:28px 0 10px;">
+    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:26px 24px 18px;margin:${quizLeads ? "22px 0 6px" : "28px 0 10px"};">
       <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#1f2937;margin:0 0 16px;line-height:1.35;">
         ${escapeHtml(opts.quiz.prompt)}
       </p>
       <div>${chips}</div>
-    </div>
+    </div>`
+    : "";
+  const fullPictureLine = `
     <p style="font-size:13px;color:#9ca3af;margin:0 0 28px;line-height:1.5;text-align:center;">
       Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.
-    </p>`
+    </p>`;
+
+  // Two shapes, one honesty rule. Sort-lead (pre-sort family): question card
+  // first, then the universal programs labeled as the starting point. Default
+  // (sorted family, narrowing question): programs first, question closes.
+  const body = quizLeads
+    ? `
+    <p style="font-size:15px;color:#374151;margin:0 0 10px;line-height:1.6;">
+      ${openingLead}
+    </p>
+    ${quizCard}
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 24px;line-height:1.5;text-align:center;">
+      One tap, no forms. Your answer sharpens everything below.
+    </p>
+    <p style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9ca3af;margin:0 0 2px;">
+      A starting point, whatever your situation
+    </p>
+    <div style="margin:0 0 4px;">${programRows}</div>
+    <div style="height:1px;background:#e5e7eb;margin:20px 0;"></div>
+    ${fullPictureLine}`
     : `
+    <p style="font-size:15px;color:#374151;margin:0 0 10px;line-height:1.6;">
+      ${opening}
+    </p>
+    <div style="margin:0 0 4px;">${programRows}</div>
+    ${
+      opts.quiz
+        ? `${quizCard}${fullPictureLine}`
+        : `
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
-    <div style="margin:8px 0 28px;text-align:center;">${browseLink("See your full benefits picture", opts.fullPictureUrl)}</div>`;
+    <div style="margin:8px 0 28px;text-align:center;">${browseLink("See your full benefits picture", opts.fullPictureUrl)}</div>`
+    }`;
 
   return layout(
     `
@@ -1796,18 +1833,16 @@ export function payingForCareEmail(opts: {
     <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:27px;color:#111827;margin:0 0 12px;line-height:1.25;">
       Most families don't pay full price for care.
     </h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 10px;line-height:1.6;">
-      ${opening}
-    </p>
-    <div style="margin:0 0 4px;">${programRows}</div>
-    ${quizSection}
+    ${body}
     <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
       Want a hand making sense of it? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
     </p>
     ${authorBylineBlock({ topBorder: true })}
     ${careUnsubscribeFooter(opts.unsubscribeId)}
   `,
-    `Real programs that help cover the cost of care. One tap to narrow them to you.`,
+    quizLeads
+      ? `One tap points us at the right cost help for your situation, plus programs that fit almost everyone.`
+      : `Real programs that help cover the cost of care. One tap to narrow them to you.`,
   );
 }
 

@@ -46,7 +46,12 @@ interface Summary {
     engaged: number; benefitsStarted: number; benefitsCompleted: number; published: number;
   };
   sensor: { sent: number; answered: number; yes: number; no: number; notYet: number; responseRate: number; yesRate: number };
-  conversions: { compareSaved: number; guideSaved: number; benefitsStarted: number; benefitsCompleted: number; published: number };
+  conversions: { compareSaved: number; guideSaved: number; benefitsStarted: number; benefitsCompleted: number; published: number; quizAnswers?: number };
+  guidance?: {
+    quizAnswers: number; quizByQuestion: Record<string, number>;
+    briefViews: number; stepsExpanded: number;
+    pathDistribution: Record<string, number>;
+  };
   outcomes: { total: number; connected: number; active: number; guided: number; stalled: number; lookbackDays: number };
   cutover: { anchor: string; cutoverWeekIndex: number; weekStartsISO: string[]; sendsWeekly: number[]; goLivesWeekly: number[] };
 }
@@ -372,6 +377,7 @@ export default function FamilyCommsAnalyticsPage() {
   const f = data?.funnel;
   const sensor = data?.sensor;
   const conv = data?.conversions;
+  const g = data?.guidance;
   const oc = data?.outcomes;
 
   const sensorBreakdown = useMemo(() => {
@@ -526,13 +532,52 @@ export default function FamilyCommsAnalyticsPage() {
 
           {/* Conversions strip */}
           <CollapsibleSection title="Downstream conversions" storageKey="fc.conv" defaultCollapsed={false}>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <Stat label="Compare saved" value={num(conv?.compareSaved ?? 0)} />
               <Stat label="Guide saved" value={num(conv?.guideSaved ?? 0)} />
+              <Stat label="Quiz answers" value={num(conv?.quizAnswers ?? 0)} sub="one-tap chips" />
               <Stat label="Benefits started" value={num(conv?.benefitsStarted ?? 0)} sub="quiz opens (under-tracked)" />
               <Stat label="Benefits completed" value={num(conv?.benefitsCompleted ?? 0)} sub={conv && conv.benefitsStarted >= conv.benefitsCompleted && conv.benefitsStarted > 0 ? pct(conv.benefitsCompleted / conv.benefitsStarted) + " of started" : "results saved"} />
               <Stat label="Went live" value={num(conv?.published ?? 0)} accent />
             </div>
+          </CollapsibleSection>
+
+          {/* Guidance journey (orientation layer) */}
+          <CollapsibleSection title="Guidance journey — orientation & one-tap quiz" storageKey="fc.guidance" defaultCollapsed={false}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <Stat label="Quiz answers" value={num(g?.quizAnswers ?? 0)} sub="one-tap chips" />
+              <Stat label="Self-sorts" value={num(g?.quizByQuestion?.path ?? 0)} sub="situation question" />
+              <Stat label="Brief views" value={num(g?.briefViews ?? 0)} sub="program briefs opened" />
+              <Stat label="Steps opened" value={num(g?.stepsExpanded ?? 0)} sub="playbook expansions" />
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Where families sort themselves (all sorted families)</p>
+            {(() => {
+              const d = g?.pathDistribution || { a: 0, b: 0, c: 0 };
+              const total = (d.a || 0) + (d.b || 0) + (d.c || 0);
+              const rows = [
+                { key: "b", label: "Some savings, but not endless", color: "bg-teal-500" },
+                { key: "a", label: "We can cover it comfortably", color: "bg-teal-300" },
+                { key: "c", label: "Resources are very limited", color: "bg-teal-700" },
+              ];
+              return (
+                <div className="space-y-2">
+                  {rows.map((r) => {
+                    const v = d[r.key] || 0;
+                    return (
+                      <div key={r.key} className="flex items-center gap-3">
+                        <span className="w-56 flex-none text-[13px] text-gray-600">{r.label}</span>
+                        <div className="flex-1 h-3 rounded-full bg-gray-100 overflow-hidden">
+                          <div className={`h-3 ${r.color}`} style={{ width: total ? `${Math.max((v / total) * 100, v > 0 ? 2 : 0)}%` : 0 }} />
+                        </div>
+                        <span className="w-16 flex-none text-right text-[13px] text-gray-700">{num(v)}{total ? ` · ${pct(v / total)}` : ""}</span>
+                      </div>
+                    );
+                  })}
+                  {total === 0 ? <p className="text-[12px] text-gray-400">No families sorted yet — counts populate once the self-sort email goes out.</p> : null}
+                </div>
+              );
+            })()}
+            <p className="mt-4 text-[11px] text-gray-400">Quiz answers, brief views, and step expansions are window totals from profile stamps. The path split is a current-state snapshot of every sorted family. Slack gets a live line per answer (mute: GUIDANCE_SLACK_DISABLED=1).</p>
           </CollapsibleSection>
 
           {/* Secondary: cutover lens */}

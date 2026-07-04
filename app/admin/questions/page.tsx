@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
+import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
+import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 
 interface Question {
   id: string;
@@ -11,6 +13,7 @@ interface Question {
   provider_name: string | null;
   provider_editor_id: string | null;
   provider_email: string | null;
+  provider_phone: string | null;
   asker_name: string;
   asker_email: string | null;
   question: string;
@@ -20,15 +23,18 @@ interface Question {
   created_at: string;
   updated_at: string;
   metadata?: Record<string, unknown> | null;
+  is_account_claimed?: boolean;
+  verification_state?: string | null;
 }
 
-type TabValue = "unanswered" | "needs_email" | "answered" | "removed" | "archived" | "";
+type TabValue = "unanswered" | "needs_email" | "delivery_issues" | "not_interested" | "answered" | "archived" | "";
 
 const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
   { label: "Needs Email", value: "needs_email", showCount: true },
+  { label: "Delivery Issues", value: "delivery_issues", showCount: true },
   { label: "Unanswered", value: "unanswered", showCount: true },
   { label: "Answered", value: "answered" },
-  { label: "Removed", value: "removed" },
+  { label: "Not Interested", value: "not_interested", showCount: true },
   { label: "Archived", value: "archived", showCount: true },
   { label: "All", value: "" },
 ];
@@ -37,7 +43,6 @@ const STATUS_LABELS: Record<string, string> = {
   pending: "Live",
   approved: "Live",
   answered: "Answered",
-  rejected: "Removed",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -47,16 +52,89 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-gray-50 text-gray-400",
 };
 
+function ProviderStatusBadge({ question }: { question: Question }) {
+  const providerName = question.provider_name || question.provider_id;
+  const verificationLink = `/admin/verification?search=${encodeURIComponent(providerName)}`;
+
+  // Verified or not_required claimed providers: show checkmark linking to verification page
+  if (question.is_account_claimed && (question.verification_state === "verified" || question.verification_state === "not_required")) {
+    return (
+      <Link
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="text-emerald-600 hover:text-emerald-700 transition-colors"
+        title="Verified & Claimed — click to view"
+      >
+        <svg className="w-3.5 h-3.5 inline" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        </svg>
+      </Link>
+    );
+  }
+
+  // Claimed but pending verification
+  if (question.is_account_claimed && question.verification_state === "pending") {
+    return (
+      <Link
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+        title="Click to review verification"
+      >
+        Pending
+      </Link>
+    );
+  }
+
+  // Claimed but rejected verification
+  if (question.is_account_claimed && question.verification_state === "rejected") {
+    return (
+      <Link
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+        title="Verification was rejected"
+      >
+        Rejected
+      </Link>
+    );
+  }
+
+  // Not claimed
+  if (!question.is_account_claimed) {
+    return (
+      <span
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-500 rounded"
+        title="Provider has not claimed their account"
+      >
+        Unclaimed
+      </span>
+    );
+  }
+
+  // Claimed but unverified (catch-all for any claimed provider not matching above states)
+  return (
+    <span
+      className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 rounded"
+      title="Account claimed but not yet verified"
+    >
+      Claimed
+    </span>
+  );
+}
+
 function InlineEmailInput({
   providerSlug,
   existingEmail,
   emailIsDead,
   onEmailAdded,
+  autoSearch = false,
 }: {
   providerSlug: string;
   existingEmail?: string | null;
   emailIsDead?: boolean;
   onEmailAdded: () => void;
+  autoSearch?: boolean;
 }) {
   // Don't pre-fill a dead address — the operator needs to replace it.
   const [email, setEmail] = useState(emailIsDead ? "" : existingEmail || "");
@@ -67,6 +145,163 @@ function InlineEmailInput({
   // 'undeliverable', or a catch-all 'risky'. null = no override affordance.
   const [forceKind, setForceKind] = useState<"undeliverable" | "risky" | null>(null);
   const hasExistingEmail = !!existingEmail && !emailIsDead;
+
+  // Email finding state
+  const [findingEmail, setFindingEmail] = useState(false);
+  const [emailSource, setEmailSource] = useState<"scrape" | "perplexity" | null>(null);
+  const [foundUrl, setFoundUrl] = useState<string | null>(null);
+  const [findError, setFindError] = useState<string | null>(null);
+  const [autoSearchAttempted, setAutoSearchAttempted] = useState(false);
+
+  // Email verification and trust score state
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("idle");
+  const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
+  const [trustScoreReason, setTrustScoreReason] = useState("");
+  const verifyDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blurRequestIdRef = useRef(0);
+
+  // Verify email address
+  const verifyEmail = useCallback(async (emailToVerify: string): Promise<VerificationStatus> => {
+    if (!emailToVerify || !emailToVerify.includes("@")) return "idle";
+
+    try {
+      const res = await fetch("/api/admin/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToVerify }),
+      });
+
+      if (!res.ok) return "unknown";
+
+      const data = await res.json();
+      const result = data.results?.[0];
+      if (!result) return "unknown";
+
+      return result.status as VerificationStatus;
+    } catch {
+      return "unknown";
+    }
+  }, []);
+
+  // Fetch trust score for email
+  const fetchTrustScore = useCallback(async (emailToCheck: string): Promise<{ level: TrustScoreStatus; reason: string }> => {
+    if (!emailToCheck || !emailToCheck.includes("@") || !providerSlug) {
+      return { level: "idle", reason: "" };
+    }
+
+    try {
+      const res = await fetch("/api/admin/connections/preview-trust-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToCheck, providerId: providerSlug }),
+      });
+
+      if (!res.ok) return { level: "idle", reason: "" };
+
+      const data = await res.json();
+      return { level: data.level as TrustScoreStatus, reason: data.reason || "" };
+    } catch {
+      return { level: "idle", reason: "" };
+    }
+  }, [providerSlug]);
+
+  // Run verification and trust scoring in parallel
+  const verifyAndScore = useCallback(async (emailToCheck: string) => {
+    if (!emailToCheck || !emailToCheck.includes("@")) {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      return;
+    }
+
+    const requestId = ++blurRequestIdRef.current;
+
+    setVerificationStatus("verifying");
+    setTrustScoreStatus("scoring");
+
+    const [verifyStatus, trustResult] = await Promise.all([
+      verifyEmail(emailToCheck),
+      fetchTrustScore(emailToCheck),
+    ]);
+
+    // Only update if this is still the latest request
+    if (blurRequestIdRef.current === requestId) {
+      setVerificationStatus(verifyStatus);
+      setTrustScoreStatus(trustResult.level);
+      setTrustScoreReason(trustResult.reason);
+    }
+  }, [verifyEmail, fetchTrustScore]);
+
+  // Debounced verification on blur
+  const handleEmailBlur = useCallback(() => {
+    if (verifyDebounceRef.current) {
+      clearTimeout(verifyDebounceRef.current);
+    }
+    verifyDebounceRef.current = setTimeout(() => {
+      verifyAndScore(email);
+    }, 300);
+  }, [email, verifyAndScore]);
+
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (verifyDebounceRef.current) {
+        clearTimeout(verifyDebounceRef.current);
+      }
+    };
+  }, []);
+
+  async function handleFindEmail() {
+    // Clear any pending onBlur verification to prevent race condition
+    if (verifyDebounceRef.current) {
+      clearTimeout(verifyDebounceRef.current);
+      verifyDebounceRef.current = null;
+    }
+
+    setFindingEmail(true);
+    setFindError(null);
+    setEmailSource(null);
+    setFoundUrl(null);
+    // Reset verification state when searching
+    setVerificationStatus("idle");
+    setTrustScoreStatus("idle");
+    setTrustScoreReason("");
+
+    try {
+      const res = await fetch("/api/admin/connections/find-provider-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId: providerSlug }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.email) {
+          setEmail(data.email);
+          setEmailSource(data.source || null);
+          setFoundUrl(data.foundUrl || null);
+          // Verify the found email
+          verifyAndScore(data.email);
+        } else {
+          setFindError("No email found");
+        }
+      } else {
+        setFindError("Search failed");
+      }
+    } catch {
+      setFindError("Network error");
+    } finally {
+      setFindingEmail(false);
+    }
+  }
+
+  // Auto-search on mount if enabled and no email exists
+  useEffect(() => {
+    if (autoSearch && !hasExistingEmail && !autoSearchAttempted) {
+      setAutoSearchAttempted(true);
+      handleFindEmail();
+    }
+  }, [autoSearch, hasExistingEmail, autoSearchAttempted]);
 
   async function submit(force: boolean) {
     if (!email.trim() || !providerSlug) return;
@@ -124,32 +359,78 @@ function InlineEmailInput({
       <div className="flex items-center gap-2">
         <input
           type="email"
-          placeholder="provider@email.com"
+          placeholder={findingEmail ? "Searching..." : "provider@email.com"}
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-64 px-3.5 py-2 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5 placeholder:text-gray-300 transition"
-          disabled={saving}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            // Clear find results and verification when manually editing
+            if (emailSource || findError) {
+              setEmailSource(null);
+              setFoundUrl(null);
+              setFindError(null);
+            }
+            // Reset verification when typing
+            setVerificationStatus("idle");
+            setTrustScoreStatus("idle");
+            setTrustScoreReason("");
+          }}
+          onBlur={handleEmailBlur}
+          className="flex-1 px-3 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-900/5 placeholder:text-gray-300 transition"
+          disabled={saving || findingEmail}
           required
           autoComplete="off"
         />
         <button
-          type="submit"
-          disabled={saving || !email.trim()}
-          className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100"
+          type="button"
+          onClick={handleFindEmail}
+          disabled={saving || findingEmail}
+          className="shrink-0 px-3 py-1.5 text-xs font-medium text-teal-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition"
         >
-          {saving ? (
-            "Checking…"
-          ) : (
+          {findingEmail ? "..." : "✦ Find"}
+        </button>
+        <button
+          type="submit"
+          disabled={saving || findingEmail || !email.trim()}
+          className="shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 transition"
+        >
+          {saving ? "..." : hasExistingEmail ? "Send" : "Add & send"}
+        </button>
+      </div>
+
+      {/* Source info */}
+      {emailSource && (
+        <p className="text-xs text-gray-500">
+          Found via {emailSource === "scrape" ? "web scraping" : "AI analysis"}
+          {foundUrl && (
             <>
-              {hasExistingEmail ? "Send" : "Add & send"}
-              <span aria-hidden className="text-white/50">→</span>
+              {" · "}
+              <a
+                href={foundUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                View source
+              </a>
             </>
           )}
-        </button>
-        {hasExistingEmail && !error && !saving && email === existingEmail && (
-          <span className="text-xs text-gray-400">on file</span>
-        )}
-      </div>
+        </p>
+      )}
+
+      {/* Verification and trust score badges */}
+      {(verificationStatus !== "idle" || trustScoreStatus !== "idle") && (
+        <div className="flex items-center gap-3">
+          <EmailVerificationBadge status={verificationStatus} showHelperText />
+          <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+        </div>
+      )}
+
+      {/* Find error */}
+      {findError && (
+        <p className="text-xs text-amber-600">{findError}</p>
+      )}
+
+      {/* Submit error */}
       {error && (
         <p className="text-xs text-gray-500">
           {error}
@@ -177,6 +458,19 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+// Group questions by provider_id, preserving order of first appearance
+function groupQuestionsByProvider(questions: Question[]): Map<string, Question[]> {
+  const groups = new Map<string, Question[]>();
+  for (const q of questions) {
+    const key = q.provider_id;
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key)!.push(q);
+  }
+  return groups;
+}
+
 const PAGE_SIZE = 50;
 
 export default function AdminQuestionsPage() {
@@ -186,19 +480,24 @@ export default function AdminQuestionsPage() {
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
-  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
+  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; not_interested: number; archived: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, not_interested: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
   const [archiveReason, setArchiveReason] = useState("");
   const [archiveProviderTarget, setArchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
   const [archiveProviderReason, setArchiveProviderReason] = useState("");
+  const [notInterestedTarget, setNotInterestedTarget] = useState<{ providerId: string; providerName: string; isMarked: boolean } | null>(null);
+  const [notInterestedReason, setNotInterestedReason] = useState("");
+  const [notInterestedNotes, setNotInterestedNotes] = useState("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
+  const [editingEmailProviders, setEditingEmailProviders] = useState<Set<string>>(new Set());
 
   function showToast(message: string, type: "success" | "error" = "success") {
     if (toastRef.current) clearTimeout(toastRef.current);
@@ -212,9 +511,10 @@ export default function AdminQuestionsPage() {
       const params = new URLSearchParams();
       // Map tab value for export
       if (activeTab === "needs_email") params.set("tab", "needs_email");
+      else if (activeTab === "delivery_issues") params.set("tab", "delivery_issues");
+      else if (activeTab === "not_interested") params.set("tab", "not_interested");
       else if (activeTab === "unanswered") params.set("tab", "unanswered");
       else if (activeTab === "answered") params.set("tab", "answered");
-      else if (activeTab === "removed") params.set("tab", "removed");
       else if (activeTab === "archived") params.set("tab", "archived");
       else params.set("tab", "all");
 
@@ -257,15 +557,18 @@ export default function AdminQuestionsPage() {
       });
       if (activeTab === "needs_email") {
         params.set("needs_email", "true");
+      } else if (activeTab === "delivery_issues") {
+        params.set("delivery_issues", "true");
+      } else if (activeTab === "not_interested") {
+        params.set("not_interested", "true");
       } else if (activeTab === "unanswered") {
-        params.set("status", "pending");
-      } else if (activeTab === "removed") {
-        params.set("status", "rejected");
+        params.set("unanswered", "true");
       } else if (activeTab === "archived") {
         params.set("status", "archived");
-      } else if (activeTab) {
-        params.set("status", activeTab);
+      } else if (activeTab === "answered") {
+        params.set("status", "answered");
       }
+      // "all" tab: no filter
       const { from, to } = resolveRange(range);
       if (from) params.set("date_from", from);
       if (to) params.set("date_to", to);
@@ -284,10 +587,23 @@ export default function AdminQuestionsPage() {
     }
   }, [activeTab, page, range, debouncedSearch]);
 
-  // Reset page when tab, date, or search changes
+  // Reset page and expanded state when tab, date, or search changes
   useEffect(() => {
     setPage(0);
+    setExpandedProviders(new Set());
   }, [activeTab, range, debouncedSearch]);
+
+  const toggleProvider = (providerId: string) => {
+    setExpandedProviders((prev) => {
+      const next = new Set(prev);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  };
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -376,6 +692,30 @@ export default function AdminQuestionsPage() {
     }
   };
 
+  // Mark provider as not interested (soft reject) - questions stay visible but
+  // no emails are sent. Reversible.
+  const handleMarkNotInterested = async (providerId: string, reason: string, notes: string, unmark: boolean) => {
+    setActionLoading(`notinterested:${providerId}`);
+    try {
+      const res = await fetch("/api/admin/questions/mark-not-interested", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, reason: reason || null, notes: notes || null, unmark }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setNotInterestedTarget(null);
+      setNotInterestedReason("");
+      setNotInterestedNotes("");
+      showToast(data.message || (unmark ? "Provider unmarked" : "Provider marked as not interested"));
+      await fetchQuestions();
+    } catch {
+      showToast(unmark ? "Failed to unmark provider" : "Failed to mark provider", "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <div>
       <PulseHeader
@@ -450,6 +790,8 @@ export default function AdminQuestionsPage() {
         {TABS.map((tab) => {
           const tabCount = tab.value === "unanswered" ? tabCounts.pending
             : tab.value === "needs_email" ? tabCounts.needs_email
+            : tab.value === "delivery_issues" ? tabCounts.delivery_issues
+            : tab.value === "not_interested" ? tabCounts.not_interested
             : tab.value === "archived" ? tabCounts.archived
             : null;
 
@@ -490,160 +832,332 @@ export default function AdminQuestionsPage() {
               </div>
               <p className="text-sm text-gray-400">All questions have provider emails</p>
             </div>
+          ) : activeTab === "delivery_issues" ? (
+            <div className="space-y-3">
+              <div className="w-10 h-10 mx-auto rounded-full bg-gray-50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-400">No delivery issues</p>
+            </div>
+          ) : activeTab === "not_interested" ? (
+            <div className="space-y-3">
+              <div className="w-10 h-10 mx-auto rounded-full bg-gray-50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-400">No providers marked as not interested</p>
+            </div>
           ) : (
             <p className="text-sm text-gray-400">
-              No {activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab || ""} questions
+              No {activeTab === "unanswered" ? "unanswered" : activeTab || ""} questions
             </p>
           )}
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
-          {questions.map((q) => {
-            const needsEmail = q.metadata?.needs_provider_email === true;
-            const emailIsDead = q.metadata?.email_dead === true;
-            const providerLabel = q.provider_name || q.provider_id;
-            const isRemoved = q.status === "rejected";
-            const isArchived = q.status === "archived";
-            const isLive = q.status === "pending" || q.status === "approved";
-            const showEmailInput = needsEmail && !isRemoved && !isArchived;
+        <div className="space-y-2">
+          {Array.from(groupQuestionsByProvider(questions)).map(([providerId, providerQuestions]) => {
+            const firstQ = providerQuestions[0];
+            const providerLabel = firstQ.provider_name || providerId;
+            const isExpanded = expandedProviders.has(providerId);
+            const questionCount = providerQuestions.length;
+
+            // Check provider email status based on actual data, not stale metadata flags
+            const activeQuestions = providerQuestions.filter(
+              (q) => q.status !== "rejected" && q.status !== "archived"
+            );
+            // Provider currently has no email on file
+            const hasNoEmail = !firstQ.provider_email;
+            // Email was on file but delivery failed
+            const emailIsDead = activeQuestions.some((q) => q.metadata?.email_dead === true);
+            // Show "needs email" state if no email OR if email is dead (needs replacement)
+            const groupNeedsEmail = hasNoEmail || emailIsDead;
+            const isProviderNotInterested = providerQuestions.some((q) => q.metadata?.provider_not_interested === true);
 
             return (
-              <div
-                key={q.id}
-                className={`group px-5 py-4 transition-colors ${
-                  isRemoved || isArchived ? "opacity-40" : "hover:bg-gray-50/60"
-                }`}
-              >
-                {/* Main row */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <a
-                      href={`/provider/${q.provider_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`text-[15px] font-medium leading-snug transition-colors ${
-                        isRemoved
-                          ? "text-gray-400 line-through"
-                          : "text-gray-900 hover:text-primary-600"
-                      }`}
+              <div key={providerId} className="border border-gray-100 rounded-xl overflow-hidden">
+                {/* Provider header - clickable to expand/collapse */}
+                <button
+                  onClick={() => toggleProvider(providerId)}
+                  className="w-full px-5 py-4 flex items-center justify-between gap-4 hover:bg-gray-50/60 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* Chevron */}
+                    <svg
+                      className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${isExpanded ? "rotate-90" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      {q.question}
-                    </a>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
 
-                    <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
-                      <span>{q.asker_name}</span>
-                      {q.provider_editor_id ? (
-                        <Link
-                          href={`/admin/directory/${q.provider_editor_id}`}
-                          className="hover:text-primary-600 transition-colors"
-                        >
-                          {providerLabel}
-                        </Link>
-                      ) : (
-                        <a
-                          href={`/provider/${q.provider_id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:text-primary-600 transition-colors"
-                        >
-                          {providerLabel}
-                        </a>
-                      )}
-                      {needsEmail && !isRemoved && (
-                        <span className="inline-flex items-center gap-1.5 font-medium text-gray-600">
-                          <span className={`w-1.5 h-1.5 rounded-full ${emailIsDead ? "bg-amber-500" : "bg-gray-300"}`} />
-                          {emailIsDead ? "Email bounced" : "Needs email"}
+                    {/* Provider name */}
+                    <span className="font-medium text-gray-900 truncate">{providerLabel}</span>
+
+                    {/* Status badge */}
+                    <ProviderStatusBadge question={firstQ} />
+
+                    {/* Question count */}
+                    <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded flex-shrink-0">
+                      {questionCount} {questionCount === 1 ? "question" : "questions"}
+                    </span>
+
+                    {/* Email status badge - matches Connections page styling */}
+                    {groupNeedsEmail && (
+                      emailIsDead ? (
+                        <span className="px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded flex-shrink-0">
+                          Failed
                         </span>
-                      )}
-                      <span>{formatDate(q.created_at)}</span>
-                    </div>
-                  </div>
+                      ) : (
+                        <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-50 text-amber-600 rounded flex-shrink-0">
+                          No email
+                        </span>
+                      )
+                    )}
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {isLive && (
-                      <>
-                        <button
-                          onClick={() => { setArchiveTarget(q.id); setArchiveReason(""); }}
-                          disabled={actionLoading === q.id}
-                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-amber-600 transition-all duration-200 disabled:opacity-40"
-                        >
-                          Archive
-                        </button>
-                        <button
-                          onClick={() => { setArchiveProviderTarget({ providerId: q.provider_id, providerName: providerLabel }); setArchiveProviderReason(""); }}
-                          disabled={actionLoading === `provider:${q.provider_id}`}
-                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-amber-700 transition-all duration-200 disabled:opacity-40"
-                        >
-                          Archive provider
-                        </button>
-                        <button
-                          onClick={() => handleRemove(q.id)}
-                          disabled={actionLoading === q.id}
-                          className="opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 text-xs text-gray-400 hover:text-red-500 transition-all duration-200 disabled:opacity-40"
-                        >
-                          Remove
-                        </button>
-                      </>
-                    )}
-                    {isArchived && (
-                      <button
-                        onClick={() => handleRestore(q.id)}
-                        disabled={actionLoading === q.id}
-                        className="text-xs text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40"
-                      >
-                        Unarchive
-                      </button>
-                    )}
-                    {isRemoved && (
-                      <button
-                        onClick={() => handleRestore(q.id)}
-                        disabled={actionLoading === q.id}
-                        className="text-xs text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40"
-                      >
-                        Restore
-                      </button>
-                    )}
-                    {!isLive && !isRemoved && !isArchived && (
-                      <span className={`px-2 py-0.5 text-[11px] font-medium rounded ${STATUS_COLORS[q.status] || "bg-gray-50 text-gray-400"}`}>
-                        {STATUS_LABELS[q.status] || q.status}
+                    {/* Not Interested badge */}
+                    {isProviderNotInterested && (
+                      <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 text-orange-600 rounded flex-shrink-0">
+                        Not Interested
                       </span>
                     )}
                   </div>
-                </div>
 
-                {q.answer && (
-                  <div className="mt-2.5 pl-4 border-l-2 border-gray-100">
-                    <p className="text-sm text-gray-500">{q.answer}</p>
-                  </div>
-                )}
+                  {/* Latest question date */}
+                  <span className="text-xs text-gray-400 flex-shrink-0">
+                    {formatDate(
+                      providerQuestions.reduce((latest, q) =>
+                        q.created_at > latest ? q.created_at : latest,
+                        providerQuestions[0].created_at
+                      )
+                    )}
+                  </span>
+                </button>
 
-                {showEmailInput && (
-                  <div className="mt-3.5">
-                    <p className="mb-2 text-[13px] text-gray-500 leading-relaxed">
-                      {emailIsDead ? (
-                        <>
-                          The address on file can&apos;t receive mail
-                          {q.provider_email ? <span className="text-gray-400"> ({q.provider_email})</span> : null}
-                          {" — add a working one to forward this question."}
-                        </>
-                      ) : (
-                        <>No email on file — add one to forward this question.</>
-                      )}
-                      <a
-                        href={`https://www.google.com/search?q=${encodeURIComponent(`${providerLabel} contact email`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-1.5 whitespace-nowrap text-gray-400 underline underline-offset-2 hover:text-gray-700 transition-colors"
+                {/* Expanded content */}
+                {isExpanded && (
+                  <div className="border-t border-gray-100 bg-stone-50/40 px-5 py-4">
+                    {/* Provider Info Card - matches Connections page layout */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-3 max-w-md mb-4">
+                      {/* Header row: PROVIDER label + View link */}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Provider</span>
+                        {firstQ.provider_editor_id ? (
+                          <Link
+                            href={`/admin/directory/${firstQ.provider_editor_id}`}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            View
+                          </Link>
+                        ) : (
+                          <a
+                            href={`/provider/${providerId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            View
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Provider name */}
+                      <p className="font-medium text-gray-900 text-sm">{providerLabel}</p>
+
+                      {/* Contact info */}
+                      <div className="mt-1.5 space-y-1 text-sm">
+                        {/* Email handling:
+                            1. Has email, not dead → show email link
+                            2. Has email, dead (delivery issues) → show failed email + Edit button, form on edit
+                            3. No email (needs email) → show form with auto-search
+                        */}
+                        {firstQ.provider_email && !emailIsDead ? (
+                          // Case 1: Has working email
+                          <a href={`mailto:${firstQ.provider_email}`} className="block text-blue-600 hover:underline truncate">
+                            {firstQ.provider_email}
+                          </a>
+                        ) : emailIsDead && firstQ.provider_email ? (
+                          // Case 2: Delivery issues - has email but it failed
+                          editingEmailProviders.has(providerId) ? (
+                            // Editing mode - show form WITHOUT auto-search
+                            <div className="pt-1">
+                              <p className="text-xs text-red-500 mb-1.5">
+                                {firstQ.provider_email} — delivery failed
+                              </p>
+                              <InlineEmailInput
+                                providerSlug={providerId}
+                                existingEmail={firstQ.provider_email}
+                                emailIsDead={emailIsDead}
+                                onEmailAdded={() => {
+                                  setEditingEmailProviders((prev) => {
+                                    const next = new Set(prev);
+                                    next.delete(providerId);
+                                    return next;
+                                  });
+                                  fetchQuestions();
+                                }}
+                                autoSearch={false}
+                              />
+                              <button
+                                onClick={() => setEditingEmailProviders((prev) => {
+                                  const next = new Set(prev);
+                                  next.delete(providerId);
+                                  return next;
+                                })}
+                                className="mt-2 text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            // Not editing - show failed email + Edit button
+                            <div className="pt-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-red-500 line-through">{firstQ.provider_email}</span>
+                                <span className="text-xs text-red-500">— delivery failed</span>
+                              </div>
+                              <button
+                                onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
+                                className="mt-1.5 text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                              >
+                                Edit email
+                              </button>
+                            </div>
+                          )
+                        ) : groupNeedsEmail ? (
+                          // Case 3: No email - show form with auto-search
+                          <div className="pt-1">
+                            <InlineEmailInput
+                              providerSlug={providerId}
+                              existingEmail={firstQ.provider_email}
+                              emailIsDead={emailIsDead}
+                              onEmailAdded={fetchQuestions}
+                              autoSearch
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">No email on file</span>
+                        )}
+                        {/* Phone */}
+                        {firstQ.provider_phone && (
+                          <a href={`tel:${firstQ.provider_phone}`} className="block text-blue-600 hover:underline">
+                            {firstQ.provider_phone}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                      <button
+                        onClick={() => {
+                          setArchiveProviderTarget({ providerId, providerName: providerLabel });
+                          setArchiveProviderReason("");
+                        }}
+                        disabled={actionLoading === `provider:${providerId}`}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-amber-700 border border-gray-200 rounded-lg hover:bg-white transition disabled:opacity-50"
                       >
-                        find one →
-                      </a>
-                    </p>
-                    <InlineEmailInput
-                      providerSlug={q.provider_id}
-                      existingEmail={q.provider_email}
-                      emailIsDead={emailIsDead}
-                      onEmailAdded={fetchQuestions}
-                    />
+                        Archive Provider
+                      </button>
+                      <button
+                        onClick={() => {
+                          setNotInterestedTarget({ providerId, providerName: providerLabel, isMarked: isProviderNotInterested });
+                          setNotInterestedReason("");
+                          setNotInterestedNotes("");
+                        }}
+                        disabled={actionLoading === `notinterested:${providerId}`}
+                        className={`px-3 py-1.5 text-xs font-medium border rounded-lg transition disabled:opacity-50 ${
+                          isProviderNotInterested
+                            ? "text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50"
+                            : "text-gray-600 hover:text-orange-700 border-gray-200 hover:bg-white"
+                        }`}
+                      >
+                        {isProviderNotInterested ? "Unmark Not Interested" : "Mark Not Interested"}
+                      </button>
+                    </div>
+
+                    {/* Individual questions */}
+                    <div className="divide-y divide-gray-100 -mx-5">
+                      {providerQuestions.map((q) => {
+                        const isRemoved = q.status === "rejected";
+                        const isArchived = q.status === "archived";
+                        const isLive = q.status === "pending" || q.status === "approved";
+
+                        return (
+                          <div
+                            key={q.id}
+                            className={`group px-5 py-3 transition-colors ${
+                              isRemoved || isArchived ? "opacity-40" : "hover:bg-gray-50/60"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm leading-snug ${isRemoved ? "text-gray-400 line-through" : "text-gray-700"}`}>
+                                  {q.question}
+                                </p>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                                  <span>{q.asker_name}</span>
+                                  <span>{formatDate(q.created_at)}</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                {isLive && (
+                                  <>
+                                    <button
+                                      onClick={() => { setArchiveTarget(q.id); setArchiveReason(""); }}
+                                      disabled={actionLoading === q.id}
+                                      className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-amber-600 transition-all disabled:opacity-40"
+                                    >
+                                      Archive
+                                    </button>
+                                    <button
+                                      onClick={() => handleRemove(q.id)}
+                                      disabled={actionLoading === q.id}
+                                      className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
+                                    >
+                                      Remove
+                                    </button>
+                                  </>
+                                )}
+                                {isArchived && (
+                                  <button
+                                    onClick={() => handleRestore(q.id)}
+                                    disabled={actionLoading === q.id}
+                                    className="text-xs text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40"
+                                  >
+                                    Unarchive
+                                  </button>
+                                )}
+                                {isRemoved && (
+                                  <button
+                                    onClick={() => handleRestore(q.id)}
+                                    disabled={actionLoading === q.id}
+                                    className="text-xs text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40"
+                                  >
+                                    Restore
+                                  </button>
+                                )}
+                                {!isLive && !isRemoved && !isArchived && (
+                                  <span className={`px-2 py-0.5 text-[11px] font-medium rounded ${STATUS_COLORS[q.status] || "bg-gray-50 text-gray-400"}`}>
+                                    {STATUS_LABELS[q.status] || q.status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {q.answer && (
+                              <div className="mt-2 pl-4 border-l-2 border-gray-100">
+                                <p className="text-sm text-gray-500">{q.answer}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -655,10 +1169,14 @@ export default function AdminQuestionsPage() {
       {!loading && questions.length > 0 && (
         <div className="flex items-center justify-between mt-6 px-2">
           <p className="text-sm text-gray-500">
-            {count <= PAGE_SIZE
-              ? `${count} ${activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab === "archived" ? "archived" : "total"}`
-              : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, count)} of ${count}`
-            }
+            {(() => {
+              const providerCount = groupQuestionsByProvider(questions).size;
+              const label = activeTab === "needs_email" ? "needing email" : activeTab === "delivery_issues" ? "with delivery issues" : activeTab === "not_interested" ? "not interested" : activeTab === "unanswered" ? "unanswered" : activeTab === "archived" ? "archived" : "total";
+              if (count <= PAGE_SIZE) {
+                return `${providerCount} ${providerCount === 1 ? "provider" : "providers"}, ${count} questions ${label}`;
+              }
+              return `${providerCount} providers on this page · ${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, count)} of ${count} questions`;
+            })()}
           </p>
           {count > PAGE_SIZE && (
             <div className="flex gap-2">
@@ -752,6 +1270,87 @@ export default function AdminQuestionsPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
               >
                 {actionLoading === `provider:${archiveProviderTarget.providerId}` ? "Archiving..." : "Archive provider"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark Not Interested dialog */}
+      {notInterestedTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {notInterestedTarget.isMarked ? "Unmark Not Interested" : "Mark Not Interested"}
+            </h3>
+            {notInterestedTarget.isMarked ? (
+              <p className="mt-2 text-sm text-gray-600">
+                Unmark <span className="font-medium text-gray-900">{notInterestedTarget.providerName}</span> as
+                not interested. Their questions will return to the normal queue and emails will resume.
+              </p>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-gray-600">
+                  Mark <span className="font-medium text-gray-900">{notInterestedTarget.providerName}</span> as
+                  not interested. Questions will move to the Not Interested tab and no emails will be sent.
+                  This is reversible — you can unmark them later.
+                </p>
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Why is provider not interested?</label>
+                  <select
+                    value={notInterestedReason}
+                    onChange={(e) => setNotInterestedReason(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                  >
+                    <option value="">Select a reason...</option>
+                    <option value="Provider declined via phone">Provider declined via phone</option>
+                    <option value="Provider requested no questions">Provider requested no questions</option>
+                    <option value="Not accepting new clients">Not accepting new clients</option>
+                    <option value="Not a good fit">Not a good fit</option>
+                    <option value="Duplicate/spam questions">Duplicate/spam questions</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                {notInterestedReason === "Other" && (
+                  <textarea
+                    value={notInterestedNotes}
+                    onChange={(e) => setNotInterestedNotes(e.target.value)}
+                    placeholder="Please provide details..."
+                    className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
+                    rows={3}
+                  />
+                )}
+              </>
+            )}
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => { setNotInterestedTarget(null); setNotInterestedReason(""); setNotInterestedNotes(""); }}
+                disabled={actionLoading === `notinterested:${notInterestedTarget.providerId}`}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleMarkNotInterested(
+                  notInterestedTarget.providerId,
+                  notInterestedReason,
+                  notInterestedNotes,
+                  notInterestedTarget.isMarked
+                )}
+                disabled={
+                  actionLoading === `notinterested:${notInterestedTarget.providerId}` ||
+                  (!notInterestedTarget.isMarked && !notInterestedReason) ||
+                  (!notInterestedTarget.isMarked && notInterestedReason === "Other" && !notInterestedNotes.trim())
+                }
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                  notInterestedTarget.isMarked
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-orange-600 hover:bg-orange-700"
+                }`}
+              >
+                {actionLoading === `notinterested:${notInterestedTarget.providerId}`
+                  ? (notInterestedTarget.isMarked ? "Unmarking..." : "Marking...")
+                  : (notInterestedTarget.isMarked ? "Unmark" : "Mark Not Interested")}
               </button>
             </div>
           </div>

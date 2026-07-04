@@ -45,32 +45,37 @@ const CONVERSION_EVENTS = [
 ] as const;
 
 // Human labels for the family email types (fallback = the raw type).
+// Display names read as the family's journey, not internal codenames — the
+// day prefix makes the cascade's order self-evident once the table groups by
+// journey (2026-07-04 UX pass: group by journey / explain zeros / row polish).
 const TYPE_LABELS: Record<string, string> = {
-  family_outcome_check: "Outcome check (sensor)",
-  family_provider_silent: "Provider silent → compare",
-  family_never_engaged: "Never engaged → compare",
-  family_provider_silent_guidance: "Provider silent → guidance (thin market)",
-  day_10_awaiting: "Awaiting match → how-to-choose",
-  family_reach_out_nudge: "Pending reach-out",
-  family_nudge: "Stuck → completion value-exchange",
-  go_live_reminder: "Go-live reminder",
-  post_connection_followup: "Post-connection follow-up",
-  stale_conversation: "Stale conversation",
-  matches_nudge: "Matches nudge",
-  provider_still_silent: "Provider STILL silent (trust recovery)",
-  dormant_reengagement: "Dormant re-engagement",
-  completion_nudge_1: "Completion nudge 1",
-  completion_nudge_2: "Completion nudge 2",
-  completion_nudge_3: "Completion nudge 3",
-  completion_nudge_4: "Completion nudge 4",
-  completion_maintenance: "Completion maintenance",
-  publish_nudge_1: "Publish nudge 1",
-  publish_nudge_2: "Publish nudge 2",
-  publish_nudge_3: "Publish nudge 3",
-  publish_nudge_4: "Publish nudge 4",
-  publish_maintenance: "Publish maintenance",
-  monthly_recommendations: "Monthly recommendations",
-  inactivity_reengagement: "Inactivity re-engagement",
+  family_outcome_check: "Day 2 · Did the provider get back to you?",
+  paying_for_care: "Day 3 · Paying for care + self-sort",
+  family_provider_silent: "Day 4 · Provider quiet → other options",
+  family_provider_silent_guidance: "Day 4 · Provider quiet → cost help (thin market)",
+  family_never_engaged: "Day 5 · No reply yet → options + cost help",
+  provider_still_silent: "Day 7 · Provider still silent → trust recovery",
+  day_10_awaiting: "Day 10 · Provider replied, family stalled",
+  orientation_intro: "Orientation intro — one-time campaign",
+  family_reach_out_nudge: "A provider reached out — reply reminder",
+  stale_conversation: "Conversation went quiet — both sides",
+  matches_nudge: "Matches sitting inactive",
+  post_connection_followup: "30 days after connecting — how did it go?",
+  family_nudge: "Complete your profile → sharper matches",
+  completion_nudge_1: "Profile completion 1 · day 0",
+  completion_nudge_2: "Profile completion 2 · day 2",
+  completion_nudge_3: "Profile completion 3 · day 6",
+  completion_nudge_4: "Profile completion 4 · day 13",
+  completion_maintenance: "Profile completion · monthly check-in",
+  publish_nudge_1: "Publish your profile 1 · day 0",
+  publish_nudge_2: "Publish your profile 2 · day 2",
+  publish_nudge_3: "Publish your profile 3 · day 6",
+  publish_nudge_4: "Publish your profile 4 · day 13",
+  publish_maintenance: "Publish · monthly check-in",
+  monthly_recommendations: "Monthly provider picks",
+  inactivity_reengagement: "Quiet for 30 days — re-engagement",
+  go_live_reminder: "Go-live reminder (retired Jul 4)",
+  dormant_reengagement: "Dormant re-engagement (legacy)",
 };
 
 // The compare-bearing rungs — the ones whose body carries alternative-provider
@@ -226,6 +231,10 @@ export async function GET(request: NextRequest) {
     bounced: number;
     complained: number;
     weeklySends: number[];
+    /** Opens per send-week cohort — the client renders open-RATE trend
+     *  (weeklyOpens[i] / weeklySends[i]), which shows an email decaying
+     *  before the window aggregate moves. */
+    weeklyOpens: number[];
     compareBearing: boolean;
   };
   const perfByType = new Map<string, Perf>();
@@ -242,12 +251,18 @@ export async function GET(request: NextRequest) {
         bounced: 0,
         complained: 0,
         weeklySends: new Array(TREND_WEEKS).fill(0),
+        weeklyOpens: new Array(TREND_WEEKS).fill(0),
         compareBearing: COMPARE_BEARING.has(t),
       };
       perfByType.set(t, p);
     }
     return p;
   };
+
+  // Seed a row for every governed family type up front — otherwise a rung that
+  // hasn't fired yet (e.g. paying_for_care right after deploy) is invisible on
+  // this dashboard until its first real send, which reads as "not integrated".
+  for (const t of familyTypes) ensure(t);
 
   const totals = { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
   let compareSends = 0;
@@ -260,13 +275,21 @@ export async function GET(request: NextRequest) {
     const effType = effectiveEmailType(r);
     const p = ensure(effType);
 
+    // Only REAL sends count anywhere. failed rows never went out, and
+    // pending/reserved rows are cap-skip reservations awaiting a retry —
+    // counting them inflated SENT and, worse, diluted the open-rate trend
+    // denominator (failed/pending rows can never open). The campaign's
+    // transient-skip batches would have grown this class on Monday.
+    if (r.status === "failed" || r.status === "pending" || r.status === "reserved" || r.status === "skipped") continue;
+
     // weekly send trend (independent of the window)
     const wb = weekBucket(ts, trendEnd);
-    if (wb >= 0) p.weeklySends[wb] += 1;
+    if (wb >= 0) {
+      p.weeklySends[wb] += 1;
+      if (r.first_opened_at) p.weeklyOpens[wb] += 1;
+    }
 
     if (!inWindow) continue;
-    const failed = r.status === "failed";
-    if (failed) continue; // only count real sends
 
     p.sent += 1;
     totals.sent += 1;
@@ -291,7 +314,10 @@ export async function GET(request: NextRequest) {
       clickRate: rate(p.clicked, p.opened || p.sent),
       bounceRate: rate(p.bounced, p.sent),
     }))
-    .filter((p) => p.sent > 0 || p.weeklySends.some((n) => n > 0))
+    // Governed types always render (a rung that hasn't fired yet — e.g. a
+    // freshly deployed one — must be visible at 0, not hidden). Pseudo-rows
+    // like the rung-split guidance row only render once they have data.
+    .filter((p) => FAMILY_NUDGE_EMAIL_TYPES.has(p.type) || p.sent > 0 || p.weeklySends.some((n) => n > 0))
     .sort((a, b) => b.sent - a.sent);
 
   // ── Conversions (window) from seeker_activity ───────────────────────────
@@ -316,12 +342,77 @@ export async function GET(request: NextRequest) {
   sensor.yesRate = rate(sensor.yes, sensor.answered);
 
   const count = (ev: string) => winActs.filter((r) => r.event_type === ev).length;
+
+  // Guidance-journey instrumentation (orientation layer). All from profile
+  // stamps (metadata.quiz_answers / guidance_events / financial_path) rather
+  // than seeker_activity — a new event_type there needs a CHECK migration, and
+  // the profile stamp is the source of truth the matcher reads anyway. Few
+  // rows; window-filter in JS on each stamp's timestamp.
+  let quizAnswers = 0;
+  const quizByQuestion: Record<string, number> = {};
+  let briefViews = 0;
+  let stepsExpanded = 0;
+  const pathDistribution: Record<string, number> = { a: 0, b: 0, c: 0 };
+  // Self-sorts by SOURCE email (windowed, from guidance_events src stamps):
+  // which door produced the tap — the campaign, the day-3 rung, the cascade.
+  const sortsBySource: Record<string, { a: number; b: number; c: number }> = {};
+  {
+    const { data: gRows } = await db
+      .from("business_profiles")
+      .select("quiz_answers:metadata->quiz_answers, guidance_events:metadata->guidance_events, financial_path:metadata->>financial_path")
+      .eq("type", "family")
+      .or("metadata->quiz_answers.not.is.null,metadata->guidance_events.not.is.null,metadata->>financial_path.not.is.null")
+      .limit(4000);
+    type GRow = {
+      quiz_answers: Record<string, { at?: string }> | null;
+      guidance_events: { t?: string; at?: string; ref?: string; answer?: string; src?: string }[] | null;
+      financial_path: string | null;
+    };
+    const inWindow = (at?: string) => {
+      const ts = at ? new Date(at).getTime() : NaN;
+      return !isNaN(ts) && ts >= fromMs && ts <= toMs;
+    };
+    for (const r of (gRows as GRow[] | null) || []) {
+      for (const [q, entry] of Object.entries(r.quiz_answers || {})) {
+        if (inWindow(entry?.at)) {
+          quizAnswers += 1;
+          quizByQuestion[q] = (quizByQuestion[q] || 0) + 1;
+        }
+      }
+      for (const ev of r.guidance_events || []) {
+        if (!inWindow(ev?.at)) continue;
+        if (ev.t === "brief_viewed") briefViews += 1;
+        else if (ev.t === "step_expanded") stepsExpanded += 1;
+        else if (ev.t === "quiz_answered" && ev.ref === "path" && (ev.answer === "a" || ev.answer === "b" || ev.answer === "c")) {
+          const key = ev.src || "on_site";
+          const bucket = (sortsBySource[key] = sortsBySource[key] || { a: 0, b: 0, c: 0 });
+          bucket[ev.answer] += 1;
+        }
+      }
+      // Path distribution is a CURRENT-STATE snapshot (how the sorted
+      // population splits), not a windowed count — that's the strategy signal.
+      if (r.financial_path === "a" || r.financial_path === "b" || r.financial_path === "c") {
+        pathDistribution[r.financial_path] += 1;
+      }
+    }
+  }
+
   const conversions = {
     compareSaved: count("compare_cta_converted"),
     guideSaved: count("guide_cta_converted"),
     benefitsStarted: count("benefits_started"),
     benefitsCompleted: count("benefits_completed"),
     published: count("profile_published"),
+    quizAnswers,
+  };
+
+  const guidance = {
+    quizAnswers,
+    quizByQuestion,
+    briefViews,
+    stepsExpanded,
+    pathDistribution,
+    sortsBySource,
   };
 
   // ── Flywheel funnel (family-level, window) ──────────────────────────────
@@ -343,7 +434,7 @@ export async function GET(request: NextRequest) {
   // ── Secondary: cutover lens (weekly sends + weekly go-lives, 8 wk) ───────
   const sendsWeekly = new Array(TREND_WEEKS).fill(0);
   for (const r of emails) {
-    if (r.status === "failed") continue;
+    if (r.status === "failed" || r.status === "pending" || r.status === "reserved" || r.status === "skipped") continue;
     const wb = weekBucket(Date.parse(r.created_at), trendEnd);
     if (wb >= 0) sendsWeekly[wb] += 1;
   }
@@ -436,6 +527,7 @@ export async function GET(request: NextRequest) {
     funnel,
     sensor,
     conversions,
+    guidance,
     outcomes,
     cutover: {
       anchor: CUTOVER_ANCHOR_ISO,

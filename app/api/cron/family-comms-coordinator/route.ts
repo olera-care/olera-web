@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl, generateIntroUrl } from "@/lib/claim-tokens";
+import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken, generateBriefToken } from "@/lib/claim-tokens";
+import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
+import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import {
   findAlternativeProviders,
@@ -14,6 +17,8 @@ import { normalizeCareLabel } from "@/lib/provider-highlights";
 import { familySelfReportedYes } from "@/lib/family-comms/outcome";
 import {
   connectionOutcomeCheckEmail,
+  payingForCareEmail,
+  payingForCareSubject,
   providerSilentEmail,
   familyNeverEngagedEmail,
   familyNeverEngagedSubject,
@@ -206,7 +211,7 @@ export async function GET(request: NextRequest) {
       skipped: 0,
       dry_run: dryRun,
       byRung: {} as Record<string, number>,
-      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, completion_ghost: 0 },
+      stops: { unsubscribed: 0, self_reported_yes: 0, active_thread: 0, no_email: 0, no_rung: 0, send_failed: 0, send_skipped: 0, send_suppressed: 0, completion_ghost: 0 },
     };
     const bump = (rung: string) => {
       counts.byRung[rung] = (counts.byRung[rung] || 0) + 1;
@@ -517,6 +522,129 @@ export async function GET(request: NextRequest) {
           };
         }
 
+        // ── Rung 1.5: paying-for-care guidance + in-email micro-quiz — inquiry 72-96h,
+        //    one-shot per FAMILY (profile stamp, not per-connection). The money half of
+        //    the search: leads with real state/federal programs from what we already
+        //    hold (no ask), then ONE benefits question as one-tap signed-GET chips.
+        //    Sits between the outcome check (48-72h) and alternatives (96-120h) so the
+        //    bands never collide. See Guidance Layer Direction (2026-07-03). ──
+        const rPay = fam.inquiries.find((c) => {
+          const a = ageMs(c);
+          return a >= 72 * HOUR && a < 96 * HOUR;
+        });
+        // Re-narrow fam.profile locally — the loop-top guard doesn't flow into
+        // this nested closure for TS.
+        const fpr = fam.profile;
+        if (rPay && fpr && !familyMeta.paying_for_care_sent_at) {
+          const facts = familyBenefitsFacts(fpr);
+          const programs = await getProgramsForFamily(db, facts, 3);
+          // No programs at all (both tables empty/unreachable) → nothing to lead with;
+          // don't stamp, the 24h band ages out on its own.
+          if (programs.length > 0) {
+            const payProvider = norm(rPay.to_profile);
+            const careLabel = friendlyCareLabel(
+              (payProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0],
+            );
+            const stateName = US_STATES.find((s) => s.value === (fpr.state || ""))?.label || null;
+            const ask = pickQuizQuestion(facts);
+            return {
+              rung: "paying_for_care",
+              emailType: "paying_for_care",
+              subject: payingForCareSubject(stateName, careLabel || null),
+              metadata: { connection_id: rPay.id, program_count: programs.length, quiz_question: ask?.question || null },
+              buildHtml: (eid) => {
+                // "Learn more" goes to the program BRIEF (guided, decision-sized,
+                // personalized) — never straight to a dense article or an official
+                // site. Signed brief token carries family context; claim-family
+                // wrapper signs them in on the way.
+                const briefTok = generateBriefToken(fam.familyId, authEmailFinal);
+                return payingForCareEmail({
+                  familyName,
+                  careType: careLabel || null,
+                  city: fpr.city || null,
+                  stateName,
+                  programs: programs.map((p) => ({
+                    name: p.name,
+                    savingsRange: p.savingsRange,
+                    blurb: p.blurb,
+                    url: generateFamilyInboxUrl(
+                      authEmailFinal,
+                      appendTrackingParams(`/family/program/${p.id}?tok=${briefTok}`, eid),
+                      siteUrl,
+                    ),
+                  })),
+                  quiz: ask
+                    ? {
+                        prompt: ask.prompt,
+                        // The self-sort LEADS the email (orientation before
+                        // programs); narrowing questions close it as before.
+                        leads: ask.question === "path",
+                        // Chips link to the PAGE (via claim-family sign-in); the page
+                        // records the answer with a client-side POST on mount — the
+                        // /connection-outcome pattern — so link-scanners (SafeLinks etc.)
+                        // that follow every href in an email never write anything.
+                        chips: ask.chips.map((ch) => ({
+                          label: ch.label,
+                          url: generateFamilyInboxUrl(
+                            authEmailFinal,
+                            appendTrackingParams(
+                              `/family/quiz-answer?tok=${generateQuizToken(fam.familyId, ask.question, ch.answer, authEmailFinal)}`,
+                              eid,
+                            ),
+                            siteUrl,
+                          ),
+                        })),
+                      }
+                    : null,
+                  fullPictureUrl: buildQuizUrl(eid),
+                  unsubscribeId: fam.familyId,
+                });
+              },
+              stamp: async (sentAt) => {
+                // Mutate familyMeta too: the unified coordinator stamp right after this
+                // spreads familyMeta into its own metadata write — without the mutation
+                // it would clobber this flag with the stale copy.
+                familyMeta.paying_for_care_sent_at = sentAt;
+                await db
+                  .from("business_profiles")
+                  .update({ metadata: { ...familyMeta } })
+                  .eq("id", fam.familyId);
+              },
+            };
+          }
+        }
+
+        // ── Shared guidance ask for the compare/awaiting rungs (R2/R3/R4) ──
+        // Every guidance email carries the ONE question worth asking as one-tap
+        // chips (the retired quiz-link closer was a completion cliff), or the
+        // path tell-back once the family's picture is full. Minted per-eid
+        // inside buildHtml; same scanner-safe page-POST chain as rung 1.5.
+        const guidanceAskFor = (eid: string | null) => {
+          if (!fpr) return {};
+          const facts = familyBenefitsFacts(fpr);
+          const ask = pickQuizQuestion(facts);
+          if (ask) {
+            return {
+              quiz: {
+                prompt: ask.prompt,
+                chips: ask.chips.map((ch) => ({
+                  label: ch.label,
+                  url: generateFamilyInboxUrl(
+                    authEmailFinal,
+                    appendTrackingParams(
+                      `/family/quiz-answer?tok=${generateQuizToken(fam.familyId, ask.question, ch.answer, authEmailFinal)}`,
+                      eid,
+                    ),
+                    siteUrl,
+                  ),
+                })),
+              },
+              fullPictureUrl: buildQuizUrl(eid),
+            };
+          }
+          return { pathTellBack: pathTellBackLine(facts.financialPath), fullPictureUrl: buildQuizUrl(eid) };
+        };
+
         // ── Rung 2: provider silent → alternatives — inquiry 96-120h, family engaged,
         //    provider silent everywhere, ≥3 responsive alternatives ──
         const alreadyAlt = fam.inquiries.some((c) => metaOf(c).family_alternatives_sent_at);
@@ -562,7 +690,7 @@ export async function GET(request: NextRequest) {
                   careType: normalizeCareLabel(
                     ((provider?.care_types as string[] | undefined)?.[0] || "").split("|")[0].trim(),
                   ),
-                  benefitsQuizUrl: buildQuizUrl(eid),
+                  ...guidanceAskFor(eid),
                 });
               },
               stamp: async (sentAt) => {
@@ -606,7 +734,7 @@ export async function GET(request: NextRequest) {
                 inboxUrl,
                 recommendedProviders: undefined,
                 browseUrl: null,
-                benefitsQuizUrl: buildQuizUrl(eid),
+                ...guidanceAskFor(eid),
               });
             },
             stamp: async (sentAt) => {
@@ -664,7 +792,7 @@ export async function GET(request: NextRequest) {
                 inboxUrl,
                 recommendedProviders,
                 browseUrl: hasAlts3 ? buildBrowseUrl(provider, eid) : null,
-                benefitsQuizUrl: buildQuizUrl(eid),
+                ...guidanceAskFor(eid),
               });
             },
             stamp: async (sentAt) => {
@@ -727,7 +855,7 @@ export async function GET(request: NextRequest) {
                 supportUrl,
                 alternativesUrl,
                 recommendedProviders,
-                benefitsQuizUrl: buildQuizUrl(eid),
+                ...guidanceAskFor(eid),
               });
             },
             stamp: async (sentAt) => {
@@ -945,7 +1073,7 @@ export async function GET(request: NextRequest) {
         metadata: { ...plan.metadata, coordinator_rung: plan.rung },
       });
       const html = await plan.buildHtml(emailLogId, authEmailFinal);
-      const { success } = await sendEmail({
+      const { success, skipped, skipReason } = await sendEmail({
         to: recipient,
         subject: plan.subject,
         html,
@@ -958,6 +1086,29 @@ export async function GET(request: NextRequest) {
       if (!success) {
         counts.skipped++;
         counts.stops.send_failed++;
+        continue;
+      }
+      // sendEmail's skips return success:true + skipped:true — nothing went out.
+      // Transient skips (frequency caps) must NOT burn the one-shot rung stamp or the
+      // coordinator stamp: the rung may retry tomorrow if the family is still in its band.
+      // Terminal skips (do-not-contact / bounce suppression / prefs) will NEVER send for
+      // this recipient, so advance the stamps as if handled — the completion ghost gate
+      // counts only status='sent' rows, so without this the rung retries daily forever,
+      // writing one failed email_log row per suppressed family per day.
+      if (skipped && isTransientSkip(skipReason)) {
+        counts.skipped++;
+        counts.stops.send_skipped++;
+        continue;
+      }
+      if (skipped) {
+        counts.skipped++;
+        counts.stops.send_suppressed++;
+        const skippedAt = new Date().toISOString();
+        await plan.stamp(skippedAt);
+        await db
+          .from("business_profiles")
+          .update({ metadata: { ...familyMeta, last_coordinator_email_at: skippedAt, last_coordinator_rung: plan.rung } })
+          .eq("id", fam.familyId);
         continue;
       }
 

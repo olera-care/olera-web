@@ -1492,15 +1492,65 @@ export function connectionOutcomeCheckEmail(opts: {
  * matches. Renders nothing when no url is supplied (older/transactional callers).
  * Intentionally a text link, not a button — it rides alongside compare, never leads.
  */
-function benefitsQuizModule(url?: string | null): string {
-  if (!url) return "";
+/** The in-email micro-quiz surface (shared across every guidance email so the
+ *  card can't drift): warm vanilla, serif prompt, white pill chips. Chips link
+ *  to /family/quiz-answer pages that record the answer via client POST — never
+ *  a GET that writes (link-scanners follow every href). */
+export interface MicroQuizItem {
+  prompt: string;
+  chips: QuizChipItem[];
+}
+
+function microQuizCardBlock(quiz: MicroQuizItem, margin = "24px 0 10px"): string {
+  const chips = quiz.chips
+    .map(
+      (c) =>
+        `<a href="${c.url}" style="display:inline-block;background:#ffffff;border:1px solid ${BRAND_COLOR};color:${BRAND_COLOR};border-radius:999px;padding:11px 20px;margin:0 8px 8px 0;font-size:14px;font-weight:500;text-decoration:none;">${escapeHtml(c.label)}</a>`,
+    )
+    .join("");
   return `
+    <div style="background:#F9F6F2;border:1px solid #F1E5D6;border-radius:16px;padding:26px 24px 18px;margin:${margin};">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#1f2937;margin:0 0 16px;line-height:1.35;">
+        ${escapeHtml(quiz.prompt)}
+      </p>
+      <div>${chips}</div>
+    </div>`;
+}
+
+/**
+ * The cost-guidance closer for compare/awaiting emails. Replaces the retired
+ * benefitsQuizModule ("take our 2-minute quiz" link — a completion cliff) with
+ * one tappable question, or a tell-back line once the family's picture is full.
+ */
+function guidanceAskSection(opts: {
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when we already hold the family's financial picture. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link (the "everything at once" escape hatch). */
+  fullPictureUrl?: string | null;
+}): string {
+  const fullPicture = opts.fullPictureUrl
+    ? `<p style="font-size:13px;color:#9ca3af;margin:0 0 22px;line-height:1.5;text-align:center;">
+        Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.
+      </p>`
+    : "";
+  if (opts.quiz) {
+    return `
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:14px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
-      It also helps to know what you can afford.
-      <a href="${url}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">See programs you may qualify for</a>. It takes about 2 minutes and can show what may help lower the cost of care.
+      It also helps to know how you'll pay for it. One tap and we point you at real programs:
     </p>
-  `;
+    ${microQuizCardBlock(opts.quiz, "14px 0 12px")}
+    ${fullPicture}`;
+  }
+  if (opts.pathTellBack) {
+    return `
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
+      ${escapeHtml(opts.pathTellBack)}${opts.fullPictureUrl ? ` <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.` : ""}
+    </p>`;
+  }
+  return "";
 }
 
 /** A compare-card row: facility photo + name + a scannable trust line (rating · distance) + price. */
@@ -1592,8 +1642,12 @@ export function providerSilentEmail(opts: {
   /** Care type the family inquired about (friendly label, e.g. "memory care"),
    *  used for the entry-bridge opening sentence. Optional — degrades cleanly. */
   careType?: string | null;
-  /** Benefits quiz deep-link (the closer). Omitted by transactional callers. */
-  benefitsQuizUrl?: string | null;
+  /** One tappable cost question (the closer). Omitted by transactional callers. */
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when the family's financial picture is already full. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link for the "everything at once" line. */
+  fullPictureUrl?: string | null;
   /** Family profile id for the unsubscribe footer. */
   unsubscribeId?: string;
 }): string {
@@ -1669,7 +1723,7 @@ export function providerSilentEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
       ${closingLine}
     </p>
-    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    ${guidanceAskSection({ quiz: opts.quiz, pathTellBack: opts.pathTellBack, fullPictureUrl: opts.fullPictureUrl })}
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
       Questions, or want a hand choosing? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
     </p>
@@ -1682,6 +1736,166 @@ export function providerSilentEmail(opts: {
     ${authorBylineBlock({ topBorder: true })}
     ${careUnsubscribeFooter(opts.unsubscribeId)}
   `, `You're never limited to one. Here are others worth comparing.`);
+}
+
+/** One program row for the paying-for-care email. Plain data — the coordinator
+ *  maps lib/family-comms/benefits-guidance.server results into this shape. */
+export interface GuidanceProgramItem {
+  name: string;
+  savingsRange: string | null;
+  blurb: string;
+  url: string | null;
+}
+
+/** One tappable answer chip for the in-email micro-quiz. */
+export interface QuizChipItem {
+  label: string;
+  url: string;
+}
+
+/** Single source for the paying-for-care subject so send path, preview drawer,
+ *  and email_log can't drift (the R6 lesson). No names/PHI in subjects. */
+export function payingForCareSubject(stateName?: string | null, careLabel?: string | null): string {
+  if (stateName && careLabel) return `How ${stateName} families pay for ${careLabel.toLowerCase()}`;
+  if (stateName) return `How ${stateName} families pay for senior care`;
+  return "Most families don't pay the full cost of care";
+}
+
+/** Subject for the one-time orientation campaign to the existing base —
+ *  distinct from the rung subject so replies/threads don't collide. */
+export function orientationIntroSubject(careLabel?: string | null): string {
+  return careLabel
+    ? `The money side of finding ${careLabel.toLowerCase()}, made simpler`
+    : "The money side of finding care, made simpler";
+}
+
+/**
+ * Guidance rung: "paying for care" — the money half of the search, delivered
+ * as answers rather than homework. Leads with real programs for the family's
+ * state + care type (no ask), then the in-email micro-quiz: ONE benefits
+ * question as one-tap chips (signed GET links) so sharpening never requires
+ * visiting the quiz. When all quiz facts are already known there is no
+ * question; the email closes with the full-picture link instead.
+ */
+export function payingForCareEmail(opts: {
+  familyName: string;
+  /** Friendly care label for the bridge line, e.g. "memory care". */
+  careType?: string | null;
+  city?: string | null;
+  /** Friendly state name, e.g. "Texas" — used in the intro line. */
+  stateName?: string | null;
+  programs: GuidanceProgramItem[];
+  /** The one question worth asking, or null when we hold all the facts.
+   *  `leads: true` (the self-sort) puts the question card ABOVE the programs:
+   *  orientation is the email's job pre-sort, and the programs shown are the
+   *  universal starting-point set until the family answers. */
+  quiz?: { prompt: string; chips: QuizChipItem[]; leads?: boolean } | null;
+  /** Benefits finder deep link (tracked). */
+  fullPictureUrl: string;
+  unsubscribeId?: string;
+  /** Override the opening line — the orientation campaign reuses this creative
+   *  with past-tense framing ("A while back you reached out…"). */
+  opening?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const bridgeContext = [
+    opts.careType ? `about ${escapeHtml(opts.careType.toLowerCase())}` : "",
+    opts.city ? `in ${escapeHtml(opts.city)}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  // Boutique pass (2026-07-03, /design-improvements): one serif hero, dollar
+  // amounts as the visual anchor, ONE warm-vanilla surface for the single
+  // question (the only box in the email), and half the copy deleted. The
+  // overwhelmed reader should get the whole story from three glances:
+  // "don't pay full price" → the $ amounts → one tappable question.
+  const quizLeads = Boolean(opts.quiz?.leads);
+  const opening =
+    opts.opening ||
+    (bridgeContext
+      ? `You reached out ${bridgeContext}, so we looked into the part of the search nobody hands you a guide for: how to pay for it.`
+      : `We looked into the part of a care search nobody hands you a guide for: how to pay for it.`);
+  // Sort-lead variant: the right programs depend on the family's situation, so
+  // the honest opener sets up the one-tap sort instead of promising specifics.
+  const openingLead = `${opening} The best path depends on your situation, and one tap tells us which fits.`;
+
+  // Savings-forward rows: name left, dollars right (the Perena move — the
+  // number is the hero). Email-safe two-cell table per row, hairlines between.
+  const programRows = opts.programs
+    .map(
+      (p, i) => `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;${i < opts.programs.length - 1 ? "border-bottom:1px solid #f3f4f6;" : ""}">
+      <tr>
+        <td style="padding:16px 12px 16px 0;vertical-align:top;">
+          <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 3px;line-height:1.4;">${escapeHtml(p.name)}</p>
+          <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.5;">
+            ${escapeHtml(p.blurb)}${p.url ? ` <a href="${p.url}" style="color:${BRAND_COLOR};text-decoration:none;white-space:nowrap;">Learn more →</a>` : ""}
+          </p>
+        </td>
+        ${p.savingsRange ? `<td style="padding:16px 0;vertical-align:top;text-align:right;white-space:nowrap;"><span style="font-size:14px;font-weight:600;color:${BRAND_COLOR};">${escapeHtml(p.savingsRange)}</span></td>` : ""}
+      </tr>
+    </table>`,
+    )
+    .join("");
+
+  // The Wispr moment: one question on the email's ONLY surface — the shared
+  // micro-quiz card. Everything else is whitespace + hairlines.
+  const quizCard = opts.quiz ? microQuizCardBlock(opts.quiz, quizLeads ? "22px 0 6px" : "28px 0 10px") : "";
+  const fullPictureLine = `
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 28px;line-height:1.5;text-align:center;">
+      Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.
+    </p>`;
+
+  // Two shapes, one honesty rule. Sort-lead (pre-sort family): question card
+  // first, then the universal programs labeled as the starting point. Default
+  // (sorted family, narrowing question): programs first, question closes.
+  const body = quizLeads
+    ? `
+    <p style="font-size:15px;color:#374151;margin:0 0 10px;line-height:1.6;">
+      ${openingLead}
+    </p>
+    ${quizCard}
+    <p style="font-size:13px;color:#9ca3af;margin:0 0 24px;line-height:1.5;text-align:center;">
+      One tap, no forms. Your answer sharpens everything below.
+    </p>
+    <p style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9ca3af;margin:0 0 2px;">
+      A starting point, whatever your situation
+    </p>
+    <div style="margin:0 0 4px;">${programRows}</div>
+    <div style="height:1px;background:#e5e7eb;margin:20px 0;"></div>
+    ${fullPictureLine}`
+    : `
+    <p style="font-size:15px;color:#374151;margin:0 0 10px;line-height:1.6;">
+      ${opening}
+    </p>
+    <div style="margin:0 0 4px;">${programRows}</div>
+    ${
+      opts.quiz
+        ? `${quizCard}${fullPictureLine}`
+        : `
+    <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
+    <div style="margin:8px 0 28px;text-align:center;">${browseLink("See your full benefits picture", opts.fullPictureUrl)}</div>`
+    }`;
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:27px;color:#111827;margin:0 0 12px;line-height:1.25;">
+      Most families don't pay full price for care.
+    </h1>
+    ${body}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
+      Want a hand making sense of it? A real person is here. <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:none;">Contact us anytime</a>.
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `,
+    quizLeads
+      ? `One tap points us at the right cost help for your situation, plus programs that fit almost everyone.`
+      : `Real programs that help cover the cost of care. One tap to narrow them to you.`,
+  );
 }
 
 /** Email #6: Email to family when provider is STILL silent after 7+ days - trust recovery with intervention */
@@ -1755,8 +1969,12 @@ export function familyNeverEngagedEmail(opts: {
   recommendedProviders?: CompareCardItem[];
   /** Pre-filtered browse "see more" link (paired with recommendedProviders). */
   browseUrl?: string | null;
-  /** Benefits quiz deep-link (the closer). */
-  benefitsQuizUrl?: string | null;
+  /** One tappable cost question (the closer; the HERO in the guide fallback). */
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when the family's financial picture is already full. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link for the "everything at once" line. */
+  fullPictureUrl?: string | null;
   /** Family profile id for the unsubscribe footer. */
   unsubscribeId?: string;
 }): string {
@@ -1777,7 +1995,7 @@ export function familyNeverEngagedEmail(opts: {
     </p>
     ${providersSection}
     ${opts.browseUrl ? `<div style="margin:24px 0 0;text-align:center;">${browseLink("Compare more providers near you", opts.browseUrl)}</div>` : ""}
-    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    ${guidanceAskSection({ quiz: opts.quiz, pathTellBack: opts.pathTellBack, fullPictureUrl: opts.fullPictureUrl })}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
       And <strong>${escapeHtml(opts.providerName)}</strong> is still there whenever you&rsquo;re ready. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for. New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> walks through what to look for.
@@ -1793,26 +2011,33 @@ export function familyNeverEngagedEmail(opts: {
   // Fallback (no alternatives to show — the thinnest hand). Lead with RECOGNITION,
   // not presumption: care searches stall for everyone, usually on two questions —
   // who's good, and how to pay. We make the second one (the real paralyzer, and our
-  // strongest free asset) the hero; the guide drops to a soft inline link; the human
-  // offer routes to /contact, never "reply" (From is noreply@). One reassurance line.
-  const hasQuiz = !!opts.benefitsQuizUrl;
-  const heroCta = hasQuiz
-    ? button("See what could help with the cost", opts.benefitsQuizUrl!)
-    : button("Get the free guide", opts.guideUrl);
+  // strongest free asset) the hero — as ONE tappable question when we have one to
+  // ask (the quiz-link button was a completion cliff), else the tell-back + full
+  // picture, else the guide. Human offer routes to /contact, never "reply".
+  const hasTellBack = !opts.quiz && !!opts.pathTellBack && !!opts.fullPictureUrl;
+  const secondParagraph = opts.quiz
+    ? "When you&rsquo;re ready, the heaviest part is usually the cost, and that&rsquo;s the one we can help lift first. One tap below and we point you at real programs. Most families are surprised by what they qualify for."
+    : hasTellBack
+      ? escapeHtml(opts.pathTellBack!)
+      : "When you&rsquo;re ready, here&rsquo;s a free guide that walks through what to look for, what to ask, and how families actually pay for care.";
+  const heroBlock = opts.quiz
+    ? `${microQuizCardBlock(opts.quiz, "0 0 10px")}
+       ${opts.fullPictureUrl ? `<p style="font-size:13px;color:#9ca3af;margin:0 0 24px;line-height:1.5;text-align:center;">Prefer everything at once? <a href="${opts.fullPictureUrl}" style="color:${BRAND_COLOR};text-decoration:none;">See your full benefits picture</a>.</p>` : ""}`
+    : hasTellBack
+      ? `<div style="margin:0 0 24px;">${button("See your full benefits picture", opts.fullPictureUrl!)}</div>`
+      : `<div style="margin:0 0 24px;">${button("Get the free guide", opts.guideUrl)}</div>`;
   return layout(`
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 10px;line-height:1.3;">Choosing care for someone you love is a lot to carry</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
       Hi ${escapeHtml(familyFirstName)}, you&rsquo;re weighing options, cost, trust, and timing all at once, trying to make a call you won&rsquo;t second-guess. It&rsquo;s completely normal for a search like that to stall for a while. So take it at your pace.
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">
-      ${hasQuiz
-        ? "When you&rsquo;re ready, the heaviest part is usually the cost, and that&rsquo;s the one we can help lift first. A quick look shows which programs and benefits could help cover it. Most families are surprised by what they qualify for."
-        : "When you&rsquo;re ready, here&rsquo;s a free guide that walks through what to look for, what to ask, and how families actually pay for care."}
+      ${secondParagraph}
     </p>
-    <div style="margin:0 0 24px;">${heroCta}</div>
+    ${heroBlock}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.6;">
-      And whenever you&rsquo;re ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for.${hasQuiz ? ` New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> covers what to look for and what to ask.` : ""}
+      And whenever you&rsquo;re ready, <strong>${escapeHtml(opts.providerName)}</strong> is still there. Message them anytime from <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;">your inbox</a>, with no forms and no calls you didn&rsquo;t ask for.${opts.quiz || hasTellBack ? ` New to all this? Our <a href="${opts.guideUrl}" style="color:${BRAND_COLOR};text-decoration:none;">free guide</a> covers what to look for and what to ask.` : ""}
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 0;line-height:1.6;">
       No rush. The conversation will be here when you&rsquo;re ready. And if you&rsquo;d rather talk it through with a real person, you can <a href="${BASE_URL}/contact" style="color:${BRAND_COLOR};text-decoration:underline;">contact us anytime</a>.
@@ -2510,39 +2735,6 @@ function providerCardsBlock(providers: EmailProviderCard[], showSnippets = false
   return `<div style="margin:0 0 24px;">${providers.map((p) => providerCardRow(p, showSnippets)).join("")}</div>`;
 }
 
-/** Go-live reminder — shows nearby provider count + top providers */
-export function goLiveReminderEmail(opts: {
-  /** Family profile id (business_profiles.id) for the no-login unsubscribe link. */
-  unsubscribeId?: string;
-  familyName: string;
-  matchesUrl: string;
-  city?: string;
-  providerCount?: number;
-  topProviders?: EmailProviderCard[];
-}): string {
-  const cityText = opts.city || "your area";
-  const countText = opts.providerCount ? `${opts.providerCount} care` : "Care";
-  const providersHtml = opts.topProviders?.length ? providerCardsBlock(opts.topProviders) : "";
-  const preheader = `${countText} providers in ${cityText} are ready to help. Let them reach out to you.`;
-
-  return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${countText} providers in ${escapeHtml(cityText)} are looking for families like yours</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${firstName(opts.familyName, "there")}, your care profile is looking great. Activate Matches and let providers in your area reach out to you directly.
-    </p>
-    ${providersHtml}
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      You're always in control. You decide which providers to respond to.
-    </p>
-    <div>${button("Let Providers Reach Out", opts.matchesUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Have questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us anytime</a>, we're here to help.
-    </p>
-    <p style="font-size:12px;color:#d1d5db;margin:12px 0 0;line-height:1.5;text-align:center;">
-      <a href="${careUnsubscribeUrl(opts.unsubscribeId)}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe from care search updates</a>
-    </p>
-  `, preheader);
-}
 
 /** Post-connection follow-up — asks about experience, builds review system */
 export function postConnectionFollowupEmail(opts: {
@@ -5640,8 +5832,12 @@ export function day10AwaitingEmail(opts: {
   alternativesUrl: string;
   /** A couple of others to compare against the one who responded. */
   recommendedProviders?: CompareCardItem[];
-  /** Benefits quiz deep-link (the closer). */
-  benefitsQuizUrl?: string | null;
+  /** One tappable cost question (the closer). */
+  quiz?: MicroQuizItem | null;
+  /** Tell-back sentence when the family's financial picture is already full. */
+  pathTellBack?: string | null;
+  /** Benefits finder deep link for the "everything at once" line. */
+  fullPictureUrl?: string | null;
   /** Family profile id for the unsubscribe footer. */
   unsubscribeId?: string;
 }): string {
@@ -5665,7 +5861,7 @@ export function day10AwaitingEmail(opts: {
     <div style="margin:0 0 24px;">${providersSection}</div>
     <div style="margin:0 0 24px;${hasRecs ? "text-align:center;" : ""}">${hasRecs ? browseLink("Compare your options", opts.alternativesUrl) : button("Compare your options", opts.alternativesUrl)}</div>
     ` : ""}
-    ${benefitsQuizModule(opts.benefitsQuizUrl)}
+    ${guidanceAskSection({ quiz: opts.quiz, pathTellBack: opts.pathTellBack, fullPictureUrl: opts.fullPictureUrl })}
     <div style="height:1px;background:#e5e7eb;margin:24px 0;"></div>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Ready to keep going? <a href="${opts.inboxUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Pick up right where you left off</a> with ${safeProviderName}. And if you'd rather not weigh it alone, a real person on our team is glad to help you think it through. <a href="${opts.supportUrl}" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600;">Just reach out</a>.

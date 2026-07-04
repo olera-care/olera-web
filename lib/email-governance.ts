@@ -64,6 +64,24 @@ export function isGovernedNudge(emailType: string | undefined | null): boolean {
 export const FAMILY_NUDGE_WEEKLY_CAP = 3;
 
 /**
+ * Max governed family nudges per family per UTC calendar day. The weekly cap alone lets all 3
+ * land on the same day (two engines run 1-3h apart: coordinator 17:00, family-nudges 18:00,
+ * plus the dual-audience crons' family branches). One governed email per day is the cadence
+ * floor; which engine wins the day is decided by run order (coordinator first).
+ */
+export const FAMILY_NUDGE_DAILY_CAP = 1;
+
+/**
+ * How far back (minutes) a 'pending' email_log reservation still counts toward the family caps.
+ * Same-minute crons race the caps: both read the 'sent' count before either send completes, so
+ * counting only 'sent' rows lets two concurrent invocations each pass the gate. Recent pending
+ * reservations close that window; older pendings are treated as zombies from crashed invocations
+ * and ignored so they can never suppress mail forever. The in-flight send's OWN reservation is
+ * excluded by id at the check site.
+ */
+export const PENDING_COUNT_WINDOW_MINUTES = 15;
+
+/**
  * email_type values that count as governed FAMILY nudges (proactive re-engagement). Transactional
  * / real-time family mail is intentionally excluded so it never gets capped:
  *   new_message, question_answered, question_confirmation, question_received, matches_live,
@@ -75,12 +93,17 @@ export const FAMILY_NUDGE_WEEKLY_CAP = 3;
 export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   // Help-cascade rungs (connection-triggered)
   "family_outcome_check",
+  "paying_for_care",
+  // One-time orientation campaign to the existing base (admin-triggered,
+  // /api/admin/orientation-campaign) — governed so every cap applies
+  "orientation_intro",
   "family_provider_silent",
   "family_never_engaged",
   "day_10_awaiting",
   "family_reach_out_nudge",
   "family_nudge",
-  "go_live_reminder",
+  // go_live_reminder RETIRED 2026-07-04 (publish-funnel kill, TJ) — historical
+  // email_log rows keep the type string; nothing sends it anymore.
   "post_connection_followup",
   // Dual-audience crons' family branch
   "stale_conversation",
@@ -105,4 +128,19 @@ export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
 /** True when this email_type is a governed FAMILY nudge (subject to the per-family weekly cap). */
 export function isGovernedFamilyNudge(emailType: string | undefined | null): boolean {
   return !!emailType && FAMILY_NUDGE_EMAIL_TYPES.has(emailType);
+}
+
+/**
+ * sendEmail skip reasons that are TRANSIENT — the recipient is fine, only this attempt was
+ * blocked (frequency caps), so a caller should NOT advance its sequence state and may retry
+ * on a later run. Every other skip reason (do_not_contact, suppressed, preference_disabled)
+ * is terminal for the recipient: the send will never succeed, so callers should advance
+ * their state exactly as if the email were handled — otherwise they retry daily forever,
+ * writing one failed email_log row per recipient per day.
+ */
+export const TRANSIENT_SKIP_REASONS = new Set<string>(["family_nudge_cap", "family_daily_cap", "nudge_cap"]);
+
+/** True when a sendEmail skip should be retried later instead of advancing sequence state. */
+export function isTransientSkip(skipReason: string | undefined | null): boolean {
+  return !!skipReason && TRANSIENT_SKIP_REASONS.has(skipReason);
 }

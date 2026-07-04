@@ -211,36 +211,6 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/connections",
   },
   {
-    id: "lead-family-nudge",
-    name: "Lead family nudge",
-    description:
-      "Twice-weekly nudge to families with active leads who need to complete or publish their profile. One email per family per run.",
-    recipientCohort: "Families with leads 2+ days old whose profile is incomplete (<60%) or not published.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 16 * * 2,5",
-    humanSchedule: "Tuesdays & Fridays, 16:00 UTC (~11 AM ET)",
-    path: "/api/cron/lead-family-nudge",
-    emailTypes: ["family_nudge", "go_live_reminder"],
-    successSignal: "Family completes or publishes their profile.",
-    relatedAdminPath: "/admin/analytics",
-  },
-  {
-    id: "matches-family-nudge",
-    name: "Matches family response nudge",
-    description:
-      "Daily nudge to families who haven't responded to provider reach-outs via Matches. Targets pending connections 3+ days old where family hasn't accepted or replied.",
-    recipientCohort: "Families with pending provider reach-outs 3+ days old, not nudged in last 7 days.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 15 * * *",
-    humanSchedule: "Daily, 15:00 UTC (~10 AM ET)",
-    path: "/api/cron/matches-family-nudge",
-    emailTypes: ["family_reach_out_nudge"],
-    successSignal: "Family accepts or responds to the provider reach-out.",
-    relatedAdminPath: "/admin/matches",
-  },
-  {
     id: "conversation-stale",
     name: "Stale conversation nudge",
     description:
@@ -261,14 +231,31 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "family-nudges",
     name: "Family lifecycle nudges",
     description:
-      "Five-email priority waterfall for care-seeker profiles: Go-Live reminder (complete but not live, 24h+), Profile-incomplete (missing care types/location, 3d+), Provider-recommendation (complete, zero connections, 5d+), Dormant re-engagement (zero connections, 14d+), Post-connection follow-up. One email per family per run.",
-    recipientCohort: "Care-seeker profiles 24h+ old that match one of the five lifecycle states above — one email per family per run.",
+      "Publish/lifecycle waterfall for care-seeker profiles: publish nudges 1-4 (day 0/2/6/13) then monthly publish maintenance for publish-ready families, monthly provider recommendations for published families, inactivity re-engagement (30d+ idle, max 2), and post-connection follow-up. One email per family per run; stands down for any family the coordinator emailed in the last 20h. The completion track moved to family-comms-coordinator (Track 2).",
+    recipientCohort: "Care-seeker profiles 24h+ old matching a lifecycle state above — one email per family per run.",
     audience: "Care seekers",
     fn: "nudge",
-    schedule: "0 15 * * *",
-    humanSchedule: "Daily, 15:00 UTC (~10–11 AM ET)",
+    // 18:00 = one hour AFTER the family-comms-coordinator (17:00) so this engine's
+    // "stand down if the coordinator emailed in the last 20h" guard actually sees
+    // today's coordinator send. At the old 15:00 slot the freshest stamp was ~22h
+    // old and the guard never fired — the two engines double-sent the same day.
+    schedule: "0 18 * * *",
+    humanSchedule: "Daily, 18:00 UTC (~1–2 PM ET)",
     path: "/api/cron/family-nudges",
-    emailTypes: ["go_live_reminder", "family_profile_incomplete", "provider_recommendation", "dormant_reengagement", "post_connection_followup"],
+    // Match what the route ACTUALLY sends — the automations monitor groups email_log
+    // by this list. The old list attributed provider-dormant's dormant_reengagement
+    // (provider mail) and paused lead-family-nudge's go_live_reminder to this cron,
+    // while missing every type it really emits.
+    emailTypes: [
+      "publish_nudge_1",
+      "publish_nudge_2",
+      "publish_nudge_3",
+      "publish_nudge_4",
+      "publish_maintenance",
+      "monthly_recommendations",
+      "inactivity_reengagement",
+      "post_connection_followup",
+    ],
     successSignal: "Family completes/lives their profile or initiates a connection.",
     relatedAdminPath: "/admin/care-seekers",
   },
@@ -327,51 +314,6 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: ["unread_reminder"],
     successSignal: "Recipient replies in the thread.",
     relatedAdminPath: "/admin/connections",
-  },
-  {
-    id: "family-provider-silent",
-    name: "Provider silent — alternative providers",
-    description: "Daily: sends Email #4 when provider has been silent for ~4 days. Recommends responsive alternative providers nearby. Stops if family connects elsewhere.",
-    recipientCohort: "Families with 4-day-old connections where provider hasn't responded and family hasn't connected elsewhere.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 15 * * *",
-    humanSchedule: "Daily, 15:00 UTC (~10 AM ET)",
-    path: "/api/cron/family-provider-silent",
-    emailTypes: ["family_provider_silent"],
-    successSignal: "Family reaches out to one of the recommended providers.",
-    relatedAdminPath: "/admin/connections",
-  },
-  {
-    id: "family-never-engaged",
-    name: "Family never engaged — gentle re-engagement",
-    description: "Daily: sends Email #5 when family never sent a message after 5+ days. Guide-first value offer with zero pressure. Family-level intelligence — ONE email per family even with multiple connections.",
-    recipientCohort: "Families with 5-day-old connections who have NEVER sent a message in ANY connection.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 16 * * *",
-    humanSchedule: "Daily, 16:00 UTC (~11 AM ET)",
-    path: "/api/cron/family-never-engaged",
-    emailTypes: ["family_never_engaged"],
-    successSignal: "Family downloads the guide or returns to their inbox.",
-    relatedAdminPath: "/admin/connections",
-  },
-  {
-    id: "family-outcome-check",
-    name: "Family outcome check — did the provider respond?",
-    description:
-      "48–72h after a family inquiry, asks the family via one-click email whether the provider got back to them (the dating-app 'did you meet?' pattern). The answer is our ground-truth connection signal; a 'no'/'not yet' routes them to the alternative-provider + benefits mini-cascade. Fires before family-provider-silent / family-never-engaged; a 'yes' suppresses those.",
-    recipientCohort:
-      "Families with an inquiry aged 48–72h where the provider hasn't visibly responded and no outcome is recorded yet. One per family per run.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 16 * * *",
-    humanSchedule: "Daily, 16:00 UTC (~11 AM ET)",
-    path: "/api/cron/family-outcome-check",
-    emailTypes: ["family_outcome_check"],
-    successSignal:
-      "Family clicks Yes/No/Not-yet → connections.metadata.outcome + seeker_activity.connection_outcome_reported.",
-    relatedAdminPath: "/admin/care-seekers",
   },
   {
     id: "family-comms-coordinator",

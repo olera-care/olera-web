@@ -14,6 +14,9 @@
 import {
   // family · compare cascade (coordinator)
   connectionOutcomeCheckEmail,
+  payingForCareEmail,
+  payingForCareSubject,
+  orientationIntroSubject,
   providerSilentEmail,
   familyNeverEngagedEmail,
   familyNeverEngagedSubject,
@@ -32,7 +35,6 @@ import {
   publishNudge3Email,
   publishNudge4Email,
   publishNudgeSubject,
-  goLiveReminderEmail,
   matchesNudgeEmail,
   staleConversationFamilyEmail,
   postConnectionFollowupEmail,
@@ -93,6 +95,21 @@ const F = {
   matchesUrl: "https://olera.care/portal/matches",
 };
 
+// The one-tap micro-quiz fixture (pre-sort state: the self-sort is the pending
+// question for any family without a financial_path). Chips point at the
+// quiz-answer PAGE — the page records via client POST, never a GET that writes.
+const F_SORT_QUIZ = {
+  prompt: "Which sounds most like your situation?",
+  chips: [
+    { label: "We can cover it comfortably", url: "https://olera.care/family/quiz-answer?tok=sample" },
+    { label: "Some savings, but not endless", url: "https://olera.care/family/quiz-answer?tok=sample" },
+    { label: "Resources are very limited", url: "https://olera.care/family/quiz-answer?tok=sample" },
+  ],
+};
+// The sorted state (path B): the tell-back line replaces the question.
+const F_PATH_TELLBACK =
+  "Since you mentioned you have some savings but not endless, we keep your cost guidance focused on bridge programs and planning ahead, so the money lasts as long as it needs to.";
+
 // EmailProviderCard fixtures — the richer card shape used by the completion/publish
 // sequences and go-live reminder (distinct from the compare-cascade CompareCardItem).
 const FAM_CARDS: EmailProviderCard[] = [
@@ -126,6 +143,51 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     }),
   },
   {
+    id: "paying_for_care", audience: "family", group: "Family · Compare cascade",
+    label: "R1.5 · Paying for care + micro-quiz", subject: payingForCareSubject("Texas", "memory care"),
+    emailType: "paying_for_care", cron: "family-comms-coordinator",
+    who: "Any family with an inquiry 72–96h old, once ever (profile stamp). Fires between the outcome check and the alternatives rung.",
+    why: "The money half of the search, delivered as answers not homework. Pre-sort (no financial_path yet), the self-sort question LEADS and the programs below are the universal set — Medicaid-gated waivers never show before the family sorts (unknown ≠ path C). Once sorted, later sends flip to programs-first with a narrowing question. Learn-more links go to the guided program brief, never a dense article.",
+    render: () => payingForCareEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName, careType: "memory care", city: "Killeen", stateName: "Texas",
+      programs: [
+        { name: "Texas PACE Programs", savingsRange: "$15,000 – $35,000/year", blurb: "All-in-one medical care and daily support for seniors who want to stay at home.", url: "https://olera.care/family/program/sample" },
+        { name: "Texas Respite Care Services", savingsRange: "up to $500/mo", blurb: "Short-term relief care that gives family caregivers a real break.", url: "https://olera.care/family/program/sample" },
+        { name: "Meals on Wheels Texas", savingsRange: "$250 – $400/mo", blurb: "Home-delivered meals for seniors who have trouble shopping or cooking.", url: "https://olera.care/family/program/sample" },
+      ],
+      quiz: {
+        prompt: "Which sounds most like your situation?",
+        leads: true,
+        chips: [
+          { label: "We can cover it comfortably", url: "https://olera.care/family/quiz-answer?tok=sample" },
+          { label: "Some savings, but not endless", url: "https://olera.care/family/quiz-answer?tok=sample" },
+          { label: "Resources are very limited", url: "https://olera.care/family/quiz-answer?tok=sample" },
+        ],
+      },
+      fullPictureUrl: F.quizUrl,
+    }),
+  },
+  {
+    id: "orientation_intro", audience: "family", group: "Family · Compare cascade",
+    label: "Campaign · Orientation intro (one-time, existing base)", subject: orientationIntroSubject("memory care"),
+    emailType: "orientation_intro", cron: undefined,
+    who: "One-time admin-triggered campaign (/api/admin/orientation-campaign): families with an inquiry in the last 90 days, no financial_path, not self-reported connected, not unsubscribed. One-shot stamp; every send governed by the caps + kill switch.",
+    why: "The paying_for_care rung only reaches NEW inquiries aging through 72-96h — the existing base would never be asked the self-sort. Same creative as rung 1.5 (sort card leads, universal programs as the starting point) with past-tense framing.",
+    render: () => payingForCareEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName, careType: "memory care", city: "Killeen", stateName: "Texas",
+      opening: "A while back you reached out about memory care in Killeen. However that search is going, there's a part of it nobody hands you a guide for: how to pay for it.",
+      programs: [
+        { name: "Texas PACE Programs", savingsRange: "$15,000 – $35,000/year", blurb: "All-in-one medical care and daily support for seniors who want to stay at home.", url: "https://olera.care/family/program/sample" },
+        { name: "Texas Respite Care Services", savingsRange: "up to $500/mo", blurb: "Short-term relief care that gives family caregivers a real break.", url: "https://olera.care/family/program/sample" },
+        { name: "Meals on Wheels Texas", savingsRange: "$250 – $400/mo", blurb: "Home-delivered meals for seniors who have trouble shopping or cooking.", url: "https://olera.care/family/program/sample" },
+      ],
+      quiz: { ...F_SORT_QUIZ, leads: true },
+      fullPictureUrl: F.quizUrl,
+    }),
+  },
+  {
     id: "family_provider_silent", audience: "family", group: "Family · Compare cascade",
     label: "R2 · Provider silent → compare", subject: "A few other providers near you",
     emailType: "family_provider_silent", cron: "family-comms-coordinator",
@@ -134,7 +196,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => providerSilentEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, providerPassed: false,
-      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", careType: "memory care", benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", careType: "memory care", quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -147,7 +209,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, providerPassed: true,
       declineMessage: "We're at capacity for new clients this month, so sorry.",
-      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, city: "Killeen", quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -159,7 +221,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => familyNeverEngagedEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
-      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS, browseUrl: F.browseUrl, quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -171,7 +233,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => familyNeverEngagedEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
-      benefitsQuizUrl: F.quizUrl,
+      quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -184,7 +246,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, inboxUrl: F.inboxUrl,
       supportUrl: "mailto:support@olera.care?subject=Help%20with%20next%20steps", alternativesUrl: F.browseUrl,
-      recommendedProviders: FAM_RECS.slice(0, 2), benefitsQuizUrl: F.quizUrl,
+      recommendedProviders: FAM_RECS.slice(0, 2), pathTellBack: F_PATH_TELLBACK, fullPictureUrl: F.quizUrl,
     }),
   },
   {
@@ -301,17 +363,6 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     why: "Soft, no-pressure last word before the sequence goes quiet.",
     render: () => publishNudge4Email({
       unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl, city: "Killeen",
-    }),
-  },
-  {
-    id: "go_live_reminder", audience: "family", group: "Family · Profile sequences",
-    label: "Go-live reminder", subject: "Providers in Killeen are looking for families like yours",
-    emailType: "go_live_reminder", cron: "lead-family-nudge",
-    who: "Profile complete enough to publish; reminded to flip it live.",
-    why: "Convert a complete-but-private profile into a published one so providers can reach out.",
-    render: () => goLiveReminderEmail({
-      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl,
-      city: "Killeen", providerCount: 24, topProviders: FAM_CARDS,
     }),
   },
   {

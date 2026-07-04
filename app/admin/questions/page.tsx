@@ -25,6 +25,12 @@ interface Question {
   metadata?: Record<string, unknown> | null;
   is_account_claimed?: boolean;
   verification_state?: string | null;
+  provider_archive_info?: {
+    reason: string | null;
+    notes: string | null;
+    archived_by: string | null;
+    archived_at: string | null;
+  } | null;
 }
 
 type TabValue = "unanswered" | "needs_email" | "delivery_issues" | "not_interested" | "answered" | "archived" | "";
@@ -51,6 +57,32 @@ const STATUS_COLORS: Record<string, string> = {
   answered: "bg-gray-50 text-gray-500",
   rejected: "bg-gray-50 text-gray-400",
 };
+
+// Map archive reason codes to human-readable labels
+const ARCHIVE_REASON_LABELS: Record<string, string> = {
+  provider_requested_no_emails: "Provider requested no emails",
+  inactive: "Inactive / No response",
+  duplicate: "Duplicate provider",
+  out_of_business: "Out of business",
+  invalid_provider: "Invalid provider",
+  wrong_contact_info: "Wrong contact info",
+  relocated: "Relocated",
+  compliance_issue: "Compliance issue",
+  merged: "Merged with another provider",
+  other: "Other",
+  // Legacy free-text reasons will just be displayed as-is
+};
+
+function formatArchiveReason(reason: string | null | undefined): string {
+  if (!reason) return "No reason provided";
+  return ARCHIVE_REASON_LABELS[reason] || reason;
+}
+
+function formatDateTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 function ProviderStatusBadge({ question }: { question: Question }) {
   const providerName = question.provider_name || question.provider_id;
@@ -487,6 +519,7 @@ export default function AdminQuestionsPage() {
   const [archiveReason, setArchiveReason] = useState("");
   const [archiveProviderTarget, setArchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
   const [archiveProviderReason, setArchiveProviderReason] = useState("");
+  const [archiveProviderNotes, setArchiveProviderNotes] = useState("");
   const [notInterestedTarget, setNotInterestedTarget] = useState<{ providerId: string; providerName: string; isMarked: boolean } | null>(null);
   const [notInterestedReason, setNotInterestedReason] = useState("");
   const [notInterestedNotes, setNotInterestedNotes] = useState("");
@@ -668,25 +701,27 @@ export default function AdminQuestionsPage() {
     }
   };
 
-  // Archive the whole PROVIDER: clears their existing questions from the queue
-  // and auto-archives any future ones (ends the QA treadmill). Q&A-scoped — does
-  // not touch the provider's other emails / lead routing.
-  const handleArchiveProvider = async (providerId: string, reason: string) => {
+  // Archive the whole PROVIDER: sets admin_archived on business_profiles (stops ALL
+  // emails) and clears their existing questions from the queue. This is a full
+  // provider archive that syncs with the Connections page.
+  const handleArchiveProvider = async (providerId: string, reason: string, notes: string) => {
     setActionLoading(`provider:${providerId}`);
     try {
       const res = await fetch("/api/admin/questions/archive-provider", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId, reason: reason || null }),
+        body: JSON.stringify({ providerId, reason, notes: notes || null }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed");
       setArchiveProviderTarget(null);
       setArchiveProviderReason("");
+      setArchiveProviderNotes("");
       showToast(data.message || "Provider archived");
       await fetchQuestions();
-    } catch {
-      showToast("Failed to archive provider", "error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to archive provider";
+      showToast(message, "error");
     } finally {
       setActionLoading(null);
     }
@@ -1050,33 +1085,92 @@ export default function AdminQuestionsPage() {
                       </div>
                     </div>
 
-                    {/* Action buttons */}
+                    {/* Archive info banner - shown for archived providers */}
+                    {activeTab === "archived" && firstQ.provider_archive_info && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                        <div className="flex items-start gap-2">
+                          <svg className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                          </svg>
+                          <div className="text-sm">
+                            <p className="font-medium text-amber-800">
+                              Archived: {formatArchiveReason(firstQ.provider_archive_info.reason)}
+                            </p>
+                            {firstQ.provider_archive_info.notes && (
+                              <p className="text-amber-700 mt-0.5">{firstQ.provider_archive_info.notes}</p>
+                            )}
+                            <p className="text-amber-600 text-xs mt-1">
+                              by {firstQ.provider_archive_info.archived_by || "Unknown"} on {formatDateTime(firstQ.provider_archive_info.archived_at)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Not Interested info banner - shown for not interested providers */}
+                    {isProviderNotInterested && (() => {
+                      const notInterestedQ = providerQuestions.find(q => q.metadata?.provider_not_interested);
+                      const meta = notInterestedQ?.metadata;
+                      return meta ? (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                          <div className="flex items-start gap-2">
+                            <svg className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                            <div className="text-sm">
+                              <p className="font-medium text-orange-800">
+                                Not Interested: {meta.not_interested_reason as string || "No reason provided"}
+                              </p>
+                              {meta.not_interested_notes && (
+                                <p className="text-orange-700 mt-0.5">{meta.not_interested_notes as string}</p>
+                              )}
+                              <p className="text-orange-600 text-xs mt-1">
+                                by {meta.not_interested_by as string || "Unknown"} on {formatDateTime(meta.not_interested_at as string)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* Action buttons - different for archived vs non-archived tabs */}
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
-                      <button
-                        onClick={() => {
-                          setArchiveProviderTarget({ providerId, providerName: providerLabel });
-                          setArchiveProviderReason("");
-                        }}
-                        disabled={actionLoading === `provider:${providerId}`}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-amber-700 border border-gray-200 rounded-lg hover:bg-white transition disabled:opacity-50"
-                      >
-                        Archive Provider
-                      </button>
-                      <button
-                        onClick={() => {
-                          setNotInterestedTarget({ providerId, providerName: providerLabel, isMarked: isProviderNotInterested });
-                          setNotInterestedReason("");
-                          setNotInterestedNotes("");
-                        }}
-                        disabled={actionLoading === `notinterested:${providerId}`}
-                        className={`px-3 py-1.5 text-xs font-medium border rounded-lg transition disabled:opacity-50 ${
-                          isProviderNotInterested
-                            ? "text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50"
-                            : "text-gray-600 hover:text-orange-700 border-gray-200 hover:bg-white"
-                        }`}
-                      >
-                        {isProviderNotInterested ? "Unmark Not Interested" : "Mark Not Interested"}
-                      </button>
+                      {activeTab === "archived" ? (
+                        // Archived tab: show Unarchive button (unarchive requires going to Connections page for now)
+                        <span className="text-xs text-gray-500 italic">
+                          To unarchive this provider, use the Connections page
+                        </span>
+                      ) : (
+                        // Non-archived tabs: show Archive and Not Interested buttons
+                        <>
+                          <button
+                            onClick={() => {
+                              setArchiveProviderTarget({ providerId, providerName: providerLabel });
+                              setArchiveProviderReason("");
+                              setArchiveProviderNotes("");
+                            }}
+                            disabled={actionLoading === `provider:${providerId}`}
+                            className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-amber-700 border border-gray-200 rounded-lg hover:bg-white transition disabled:opacity-50"
+                          >
+                            Archive Provider
+                          </button>
+                          <button
+                            onClick={() => {
+                              setNotInterestedTarget({ providerId, providerName: providerLabel, isMarked: isProviderNotInterested });
+                              setNotInterestedReason("");
+                              setNotInterestedNotes("");
+                            }}
+                            disabled={actionLoading === `notinterested:${providerId}`}
+                            className={`px-3 py-1.5 text-xs font-medium border rounded-lg transition disabled:opacity-50 ${
+                              isProviderNotInterested
+                                ? "text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50"
+                                : "text-gray-600 hover:text-orange-700 border-gray-200 hover:bg-white"
+                            }`}
+                          >
+                            {isProviderNotInterested ? "Unmark Not Interested" : "Mark Not Interested"}
+                          </button>
+                        </>
+                      )}
                     </div>
 
                     {/* Individual questions */}
@@ -1243,30 +1337,55 @@ export default function AdminQuestionsPage() {
               Archive provider
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              Archive <span className="font-medium text-gray-900">{archiveProviderTarget.providerName}</span> from
-              the Questions queue. This clears their current questions and
-              auto-archives any future ones — so they stop showing up here. Their
-              other emails and lead routing are unaffected. Reversible.
+              Archive <span className="font-medium text-gray-900">{archiveProviderTarget.providerName}</span>.
+              This stops <strong>ALL</strong> emails to this provider (Q&A, connection followups, nudges, digests).
+              Provider will appear in the Archived tab on both Questions and Connections pages. Reversible.
             </p>
-            <textarea
-              value={archiveProviderReason}
-              onChange={(e) => setArchiveProviderReason(e.target.value)}
-              placeholder="Reason (optional, e.g. out of business / unreachable)..."
-              className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
-              rows={3}
-              autoFocus
-            />
+            <div className="mt-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Why are you archiving this provider?</label>
+              <select
+                value={archiveProviderReason}
+                onChange={(e) => setArchiveProviderReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
+                autoFocus
+              >
+                <option value="">Select a reason...</option>
+                <option value="out_of_business">Out of business</option>
+                <option value="invalid_provider">Invalid provider</option>
+                <option value="wrong_contact_info">Wrong contact info</option>
+                <option value="provider_requested_no_emails">Provider requested no emails</option>
+                <option value="inactive">Inactive / No response</option>
+                <option value="duplicate">Duplicate provider</option>
+                <option value="relocated">Relocated</option>
+                <option value="compliance_issue">Compliance issue</option>
+                <option value="merged">Merged with another provider</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            {archiveProviderReason === "other" && (
+              <textarea
+                value={archiveProviderNotes}
+                onChange={(e) => setArchiveProviderNotes(e.target.value)}
+                placeholder="Please provide details..."
+                className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+                rows={3}
+              />
+            )}
             <div className="mt-4 flex justify-end gap-3">
               <button
-                onClick={() => { setArchiveProviderTarget(null); setArchiveProviderReason(""); }}
+                onClick={() => { setArchiveProviderTarget(null); setArchiveProviderReason(""); setArchiveProviderNotes(""); }}
                 disabled={actionLoading === `provider:${archiveProviderTarget.providerId}`}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleArchiveProvider(archiveProviderTarget.providerId, archiveProviderReason.trim())}
-                disabled={actionLoading === `provider:${archiveProviderTarget.providerId}`}
+                onClick={() => handleArchiveProvider(archiveProviderTarget.providerId, archiveProviderReason, archiveProviderNotes.trim())}
+                disabled={
+                  actionLoading === `provider:${archiveProviderTarget.providerId}` ||
+                  !archiveProviderReason ||
+                  (archiveProviderReason === "other" && !archiveProviderNotes.trim())
+                }
                 className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
               >
                 {actionLoading === `provider:${archiveProviderTarget.providerId}` ? "Archiving..." : "Archive provider"}

@@ -971,7 +971,7 @@ export default function AdminQuestionsPage() {
                     {/* Email status badge - matches Connections page styling */}
                     {groupNeedsEmail && (
                       emailIsDead ? (
-                        <span className="px-1.5 py-0.5 text-xs font-medium bg-red-50 text-red-600 rounded flex-shrink-0">
+                        <span className="px-1.5 py-0.5 text-xs font-medium bg-amber-50 text-amber-600 rounded flex-shrink-0">
                           Failed
                         </span>
                       ) : (
@@ -1047,9 +1047,15 @@ export default function AdminQuestionsPage() {
                           editingEmailProviders.has(providerId) ? (
                             // Editing mode - show form WITHOUT auto-search
                             <div className="pt-1">
-                              <p className="text-xs text-red-500 mb-1.5">
-                                {firstQ.provider_email} — delivery failed
-                              </p>
+                              <div className="flex items-center gap-1.5 text-amber-700 mb-2">
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <span className="text-sm">
+                                  <span className="line-through text-gray-500">{firstQ.provider_email}</span>
+                                  <span className="ml-1">— delivery failed</span>
+                                </span>
+                              </div>
                               <InlineEmailInput
                                 providerSlug={providerId}
                                 existingEmail={firstQ.provider_email}
@@ -1078,16 +1084,21 @@ export default function AdminQuestionsPage() {
                           ) : (
                             // Not editing - show failed email + Edit button
                             <div className="pt-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-red-500 line-through">{firstQ.provider_email}</span>
-                                <span className="text-xs text-red-500">— delivery failed</span>
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-1.5 text-amber-700">
+                                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                  <span className="text-sm">Delivery failed — needs replacement</span>
+                                </div>
+                                <button
+                                  onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
+                                  className="px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
+                                >
+                                  Edit
+                                </button>
                               </div>
-                              <button
-                                onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
-                                className="mt-1.5 text-xs text-blue-600 hover:text-blue-700 hover:underline"
-                              >
-                                Edit email
-                              </button>
+                              <p className="text-xs text-gray-500 mt-1 line-through">{firstQ.provider_email}</p>
                             </div>
                           )
                         ) : groupNeedsEmail ? (

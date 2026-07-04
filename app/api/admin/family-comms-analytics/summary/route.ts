@@ -275,6 +275,13 @@ export async function GET(request: NextRequest) {
     const effType = effectiveEmailType(r);
     const p = ensure(effType);
 
+    // Only REAL sends count anywhere. failed rows never went out, and
+    // pending/reserved rows are cap-skip reservations awaiting a retry —
+    // counting them inflated SENT and, worse, diluted the open-rate trend
+    // denominator (failed/pending rows can never open). The campaign's
+    // transient-skip batches would have grown this class on Monday.
+    if (r.status === "failed" || r.status === "pending" || r.status === "reserved" || r.status === "skipped") continue;
+
     // weekly send trend (independent of the window)
     const wb = weekBucket(ts, trendEnd);
     if (wb >= 0) {
@@ -283,8 +290,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!inWindow) continue;
-    const failed = r.status === "failed";
-    if (failed) continue; // only count real sends
 
     p.sent += 1;
     totals.sent += 1;
@@ -429,7 +434,7 @@ export async function GET(request: NextRequest) {
   // ── Secondary: cutover lens (weekly sends + weekly go-lives, 8 wk) ───────
   const sendsWeekly = new Array(TREND_WEEKS).fill(0);
   for (const r of emails) {
-    if (r.status === "failed") continue;
+    if (r.status === "failed" || r.status === "pending" || r.status === "reserved" || r.status === "skipped") continue;
     const wb = weekBucket(Date.parse(r.created_at), trendEnd);
     if (wb >= 0) sendsWeekly[wb] += 1;
   }

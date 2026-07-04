@@ -9,10 +9,6 @@
       "schedule": "0 */6 * * *"
     },
     {
-      "path": "/api/cron/family-provider-silent",
-      "schedule": "0 15 * * *"
-    },
-    {
       "path": "/api/cron/cleanup",
       "schedule": "0 4 * * *"
     },
@@ -93,28 +89,12 @@
       "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/cron/lead-family-nudge",
-      "schedule": "0 16 * * 2,5"
-    },
-    {
-      "path": "/api/cron/matches-family-nudge",
-      "schedule": "0 15 * * *"
-    },
-    {
       "path": "/api/cron/conversation-stale",
-      "schedule": "0 16 * * *"
-    },
-    {
-      "path": "/api/cron/family-never-engaged",
       "schedule": "0 16 * * *"
     },
     {
       "path": "/api/cron/provider-still-silent",
       "schedule": "0 17 * * *"
-    },
-    {
-      "path": "/api/cron/family-outcome-check",
-      "schedule": "0 16 * * *"
     },
     {
       "path": "/api/cron/family-comms-coordinator",

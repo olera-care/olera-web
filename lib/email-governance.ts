@@ -102,7 +102,8 @@ export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   "day_10_awaiting",
   "family_reach_out_nudge",
   "family_nudge",
-  "go_live_reminder",
+  // go_live_reminder RETIRED 2026-07-04 (publish-funnel kill, TJ) — historical
+  // email_log rows keep the type string; nothing sends it anymore.
   "post_connection_followup",
   // Dual-audience crons' family branch
   "stale_conversation",

@@ -246,10 +246,19 @@ export async function GET(request: NextRequest) {
       // (do-not-contact / bounce suppression) stamp as handled, same as the
       // coordinator, so the segment drains instead of retrying forever.
       if (skipped && isTransientSkip(skipReason)) { results.skipped_transient++; continue; }
+      // Refetch metadata before stamping: the segment snapshot is minutes old
+      // by late in a batch, and a stale spread would clobber anything written
+      // meanwhile (a chip tap's financial_path, the 17:00 coordinator stamp).
       const stampAt = new Date().toISOString();
+      const { data: freshProfile } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", p.id)
+        .maybeSingle();
+      const freshMeta = (freshProfile?.metadata as Record<string, unknown>) || meta;
       await db
         .from("business_profiles")
-        .update({ metadata: { ...meta, orientation_intro_sent_at: stampAt } })
+        .update({ metadata: { ...freshMeta, orientation_intro_sent_at: stampAt } })
         .eq("id", p.id);
       if (skipped) { results.suppressed++; continue; }
       results.sent++;

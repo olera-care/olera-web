@@ -28,6 +28,7 @@ interface PerfRow {
   bounced: number;
   complained: number;
   weeklySends: number[];
+  weeklyOpens: number[];
   compareBearing: boolean;
   deliveryRate: number;
   openRate: number;
@@ -60,19 +61,89 @@ interface Summary {
 const pct = (n: number) => `${(n * 100).toFixed(n >= 0.0995 ? 0 : 1)}%`;
 const num = (n: number) => n.toLocaleString();
 
-function Sparkline({ points, color = "#0d9488" }: { points: number[]; color?: string }) {
+function Sparkline({ points, color = "#0d9488" }: { points: (number | null)[]; color?: string }) {
   const w = 72, h = 18;
-  if (!points.length) return <svg width={w} height={h} />;
-  const max = Math.max(1, ...points);
+  const real = points.filter((p): p is number => p !== null);
+  if (!real.length) return <svg width={w} height={h} />;
+  const max = Math.max(1, ...real);
   const step = points.length > 1 ? w / (points.length - 1) : w;
-  const d = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)},${(h - (p / max) * (h - 2) - 1).toFixed(1)}`)
-    .join(" ");
+  // Null weeks (no sends) break the line — a gap is honest, a zero is a lie.
+  let d = "";
+  let pen = false;
+  points.forEach((p, i) => {
+    if (p === null) { pen = false; return; }
+    d += `${pen ? "L" : "M"}${(i * step).toFixed(1)},${(h - (p / max) * (h - 2) - 1).toFixed(1)} `;
+    pen = true;
+  });
+  // An isolated week draws no path segment — give it a visible dot.
+  const dots = points
+    .map((p, i) => ({ p, i }))
+    .filter(({ p, i }) => p !== null && points[i - 1] == null && points[i + 1] == null);
   return (
     <svg width={w} height={h} className="overflow-visible">
-      <path d={d} fill="none" stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={d.trim()} fill="none" stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" />
+      {dots.map(({ p, i }) => (
+        <circle key={i} cx={(i * step).toFixed(1)} cy={(h - ((p as number) / max) * (h - 2) - 1).toFixed(1)} r={1.5} fill={color} />
+      ))}
     </svg>
   );
+}
+
+// ── By-type table: journey grouping + zero-state semantics (2026-07-04) ─────
+// The table's fix was hierarchy, not controls: rows group into the system's
+// real journeys in the order a family experiences them, quiet rows collapse,
+// and a zero explains itself (new vs quiet vs retired) instead of reading as
+// "broken?".
+const PERF_GROUP_ORDER = [
+  "Guidance cascade — after an inquiry",
+  "Conversations & matches",
+  "Profile lifecycle",
+  "Campaigns",
+  "Other",
+] as const;
+
+const PERF_GROUPS: Record<string, { group: (typeof PERF_GROUP_ORDER)[number]; order: number }> = {
+  family_outcome_check: { group: "Guidance cascade — after an inquiry", order: 1 },
+  paying_for_care: { group: "Guidance cascade — after an inquiry", order: 2 },
+  family_provider_silent: { group: "Guidance cascade — after an inquiry", order: 3 },
+  family_provider_silent_guidance: { group: "Guidance cascade — after an inquiry", order: 4 },
+  family_never_engaged: { group: "Guidance cascade — after an inquiry", order: 5 },
+  provider_still_silent: { group: "Guidance cascade — after an inquiry", order: 6 },
+  day_10_awaiting: { group: "Guidance cascade — after an inquiry", order: 7 },
+  family_reach_out_nudge: { group: "Conversations & matches", order: 1 },
+  stale_conversation: { group: "Conversations & matches", order: 2 },
+  matches_nudge: { group: "Conversations & matches", order: 3 },
+  post_connection_followup: { group: "Conversations & matches", order: 4 },
+  family_nudge: { group: "Profile lifecycle", order: 1 },
+  completion_nudge_1: { group: "Profile lifecycle", order: 2 },
+  completion_nudge_2: { group: "Profile lifecycle", order: 3 },
+  completion_nudge_3: { group: "Profile lifecycle", order: 4 },
+  completion_nudge_4: { group: "Profile lifecycle", order: 5 },
+  completion_maintenance: { group: "Profile lifecycle", order: 6 },
+  publish_nudge_1: { group: "Profile lifecycle", order: 7 },
+  publish_nudge_2: { group: "Profile lifecycle", order: 8 },
+  publish_nudge_3: { group: "Profile lifecycle", order: 9 },
+  publish_nudge_4: { group: "Profile lifecycle", order: 10 },
+  publish_maintenance: { group: "Profile lifecycle", order: 11 },
+  monthly_recommendations: { group: "Profile lifecycle", order: 12 },
+  inactivity_reengagement: { group: "Profile lifecycle", order: 13 },
+  go_live_reminder: { group: "Profile lifecycle", order: 14 },
+  dormant_reengagement: { group: "Profile lifecycle", order: 15 },
+  orientation_intro: { group: "Campaigns", order: 1 },
+};
+
+/** Types that no sender emits anymore — history only, folded into the quiet line. */
+const PERF_RETIRED = new Set(["go_live_reminder", "dormant_reengagement"]);
+
+/** Zero-send rows that are NEW (not broken): show a badge, not dead dashes. */
+const PERF_NEW_NOTES: Record<string, string> = {
+  paying_for_care: "new rung · live since Jul 4",
+  orientation_intro: "one-time campaign · not sent yet",
+};
+
+/** Open-rate trend per send-week cohort; weeks with no sends are honest gaps. */
+function openRateTrend(p: PerfRow): (number | null)[] {
+  return p.weeklySends.map((s, i) => (s > 0 ? ((p.weeklyOpens?.[i] ?? 0) / s) * 100 : null));
 }
 
 function Stat({ label, value, sub, accent, info }: { label: string; value: string; sub?: string; accent?: boolean; info?: string }) {
@@ -351,6 +422,7 @@ export default function FamilyCommsAnalyticsPage() {
   const [openRow, setOpenRow] = useState<PerfRow | null>(null);
   const [variants, setVariants] = useState<VariantMeta[] | null>(null);
   const [variantsLoading, setVariantsLoading] = useState(true);
+  const [quietOpen, setQuietOpen] = useState<Record<string, boolean>>({});
 
   // Variant metadata (who/why + render ids) — fetched once for the drawer.
   useEffect(() => {
@@ -389,6 +461,34 @@ export default function FamilyCommsAnalyticsPage() {
       { k: "No", v: sensor.no, c: "bg-rose-400" },
     ];
   }, [sensor]);
+
+  // Journey-grouped by-type rows: active (sent this window), new (zero but
+  // expected — badge), quiet (zero, folded into one expandable line; retired
+  // types live there with a chip).
+  const perfGroups = useMemo(() => {
+    const rows = data?.emailPerformance || [];
+    const byGroup = new Map<string, { active: PerfRow[]; fresh: PerfRow[]; quiet: PerfRow[] }>();
+    for (const p of rows) {
+      const g = PERF_GROUPS[p.type]?.group || "Other";
+      const bucket = byGroup.get(g) || { active: [], fresh: [], quiet: [] };
+      if (p.sent > 0) bucket.active.push(p);
+      else if (PERF_NEW_NOTES[p.type]) bucket.fresh.push(p);
+      else bucket.quiet.push(p);
+      byGroup.set(g, bucket);
+    }
+    const orderOf = (p: PerfRow) => PERF_GROUPS[p.type]?.order ?? 99;
+    const journey = (a: PerfRow, b: PerfRow) => orderOf(a) - orderOf(b) || b.sent - a.sent;
+    const out: { title: string; active: PerfRow[]; fresh: PerfRow[]; quiet: PerfRow[] }[] = [];
+    for (const title of PERF_GROUP_ORDER) {
+      const b = byGroup.get(title);
+      if (!b || (!b.active.length && !b.fresh.length && !b.quiet.length)) continue;
+      b.active.sort(journey);
+      b.fresh.sort(journey);
+      b.quiet.sort(journey);
+      out.push({ title, ...b });
+    }
+    return out;
+  }, [data?.emailPerformance]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -468,23 +568,28 @@ export default function FamilyCommsAnalyticsPage() {
                     <th className="py-2 px-2 font-medium text-right">Open</th>
                     <th className="py-2 px-2 font-medium text-right">Click</th>
                     <th className="py-2 px-2 font-medium text-right">Bounce</th>
-                    <th className="py-2 pl-3 font-medium text-right">8-wk sends</th>
+                    <th className="py-2 pl-3 font-medium text-right">8-wk open trend</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {data.emailPerformance.map((p) => (
-                    <tr key={p.type} className="cursor-pointer hover:bg-gray-50/60" onClick={() => setOpenRow(p)}>
+                {perfGroups.map((grp) => {
+                  const quietRows = grp.quiet;
+                  const showQuiet = !!quietOpen[grp.title];
+                  const renderRow = (p: PerfRow, muted = false) => (
+                    <tr
+                      key={p.type}
+                      className={`group cursor-pointer transition-colors hover:bg-teal-50/40 ${muted ? "text-gray-400" : ""}`}
+                      onClick={() => setOpenRow(p)}
+                    >
                       <td className="py-2 pr-3">
-                        <button
-                          type="button"
-                          className="group inline-flex items-center gap-1 text-left text-gray-800 hover:text-teal-700"
-                          onClick={(e) => { e.stopPropagation(); setOpenRow(p); }}
-                        >
-                          {p.label}
-                          <svg className="opacity-0 transition group-hover:opacity-60" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
-                        </button>
+                        <span className={`${muted ? "text-gray-400" : "text-gray-800"} group-hover:text-teal-700 transition-colors`}>{p.label}</span>
                         {p.compareBearing && (
                           <span className="ml-2 rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700">compare</span>
+                        )}
+                        {PERF_RETIRED.has(p.type) && (
+                          <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">retired</span>
+                        )}
+                        {p.sent === 0 && PERF_NEW_NOTES[p.type] && (
+                          <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">{PERF_NEW_NOTES[p.type]}</span>
                         )}
                       </td>
                       <td className="py-2 px-2 text-right tabular-nums text-gray-900">{num(p.sent)}</td>
@@ -492,18 +597,49 @@ export default function FamilyCommsAnalyticsPage() {
                       <td className="py-2 px-2 text-right tabular-nums text-gray-700">{p.sent ? pct(p.openRate) : "—"}</td>
                       <td className="py-2 px-2 text-right tabular-nums text-gray-700">{p.sent ? pct(p.clickRate) : "—"}</td>
                       <td className={`py-2 px-2 text-right tabular-nums ${p.bounceRate > 0.02 ? "text-rose-600" : "text-gray-400"}`}>{p.sent ? pct(p.bounceRate) : "—"}</td>
-                      <td className="py-2 pl-3 text-right"><div className="inline-block"><Sparkline points={p.weeklySends} /></div></td>
+                      <td className="py-2 pl-3 text-right">
+                        <div className="relative inline-block">
+                          <Sparkline points={openRateTrend(p)} />
+                          <svg className="absolute -right-4 top-1/2 -translate-y-1/2 opacity-0 transition group-hover:opacity-50" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
+                        </div>
+                      </td>
                     </tr>
-                  ))}
-                  {data.emailPerformance.length === 0 && (
-                    <tr><td colSpan={7} className="py-6 text-center text-sm text-gray-400">No family emails sent in this window.</td></tr>
-                  )}
-                </tbody>
+                  );
+                  return (
+                    <tbody key={grp.title} className="divide-y divide-gray-100">
+                      <tr>
+                        <td colSpan={7} className="pt-5 pb-1.5">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{grp.title}</span>
+                        </td>
+                      </tr>
+                      {grp.active.map((p) => renderRow(p))}
+                      {grp.fresh.map((p) => renderRow(p))}
+                      {quietRows.length > 0 && (
+                        <tr>
+                          <td colSpan={7} className="py-1.5">
+                            <button
+                              type="button"
+                              className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors"
+                              onClick={() => setQuietOpen((q) => ({ ...q, [grp.title]: !q[grp.title] }))}
+                            >
+                              {showQuiet ? "Hide" : "Show"} {quietRows.length} quiet {quietRows.length === 1 ? "type" : "types"} (no sends this window) {showQuiet ? "▴" : "›"}
+                            </button>
+                          </td>
+                        </tr>
+                      )}
+                      {showQuiet && quietRows.map((p) => renderRow(p, true))}
+                    </tbody>
+                  );
+                })}
+                {perfGroups.length === 0 && (
+                  <tbody><tr><td colSpan={7} className="py-6 text-center text-sm text-gray-400">No family emails sent in this window.</td></tr></tbody>
+                )}
               </table>
             </div>
             <p className="mt-3 text-[11px] text-gray-400">
-              Click any row to preview the email and see who it goes to and why. Open rate = opened / delivered · Click
-              rate = clicked / opened · all from Resend webhook events. The
+              Groups follow the family&rsquo;s journey, rows in the order they&rsquo;re experienced. Click any row to preview
+              the email and see who it goes to and why. Open rate = opened / delivered · Click rate = clicked / opened ·
+              all from Resend webhook events. The trend is each week&rsquo;s open rate (gaps = weeks with no sends). The
               <span className="font-medium text-teal-700"> compare</span> tag marks rungs whose body carries alternative-provider cards.
             </p>
           </CollapsibleSection>

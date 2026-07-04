@@ -1362,15 +1362,13 @@ export default function AdminQuestionsPage() {
                 <option value="other">Other</option>
               </select>
             </div>
-            {archiveProviderReason === "other" && (
-              <textarea
-                value={archiveProviderNotes}
-                onChange={(e) => setArchiveProviderNotes(e.target.value)}
-                placeholder="Please provide details..."
-                className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
-                rows={3}
-              />
-            )}
+            <textarea
+              value={archiveProviderNotes}
+              onChange={(e) => setArchiveProviderNotes(e.target.value)}
+              placeholder={archiveProviderReason === "other" ? "Please provide details (required)..." : "Additional notes (optional)..."}
+              className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+              rows={2}
+            />
             <div className="mt-4 flex justify-end gap-3">
               <button
                 onClick={() => { setArchiveProviderTarget(null); setArchiveProviderReason(""); setArchiveProviderNotes(""); }}
@@ -1430,15 +1428,13 @@ export default function AdminQuestionsPage() {
                     <option value="Other">Other</option>
                   </select>
                 </div>
-                {notInterestedReason === "Other" && (
-                  <textarea
-                    value={notInterestedNotes}
-                    onChange={(e) => setNotInterestedNotes(e.target.value)}
-                    placeholder="Please provide details..."
-                    className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
-                    rows={3}
-                  />
-                )}
+                <textarea
+                  value={notInterestedNotes}
+                  onChange={(e) => setNotInterestedNotes(e.target.value)}
+                  placeholder={notInterestedReason === "Other" ? "Please provide details (required)..." : "Additional notes (optional)..."}
+                  className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
+                  rows={2}
+                />
               </>
             )}
             <div className="mt-4 flex justify-end gap-3">

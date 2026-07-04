@@ -45,34 +45,37 @@ const CONVERSION_EVENTS = [
 ] as const;
 
 // Human labels for the family email types (fallback = the raw type).
+// Display names read as the family's journey, not internal codenames — the
+// day prefix makes the cascade's order self-evident once the table groups by
+// journey (2026-07-04 UX pass: group by journey / explain zeros / row polish).
 const TYPE_LABELS: Record<string, string> = {
-  family_outcome_check: "Outcome check (sensor)",
-  paying_for_care: "Paying for care + micro-quiz",
-  orientation_intro: "Orientation intro (campaign)",
-  family_provider_silent: "Provider silent → compare",
-  family_never_engaged: "Never engaged → compare",
-  family_provider_silent_guidance: "Provider silent → guidance (thin market)",
-  day_10_awaiting: "Awaiting match → how-to-choose",
-  family_reach_out_nudge: "Pending reach-out",
-  family_nudge: "Stuck → completion value-exchange",
-  go_live_reminder: "Go-live reminder",
-  post_connection_followup: "Post-connection follow-up",
-  stale_conversation: "Stale conversation",
-  matches_nudge: "Matches nudge",
-  provider_still_silent: "Provider STILL silent (trust recovery)",
-  dormant_reengagement: "Dormant re-engagement",
-  completion_nudge_1: "Completion nudge 1",
-  completion_nudge_2: "Completion nudge 2",
-  completion_nudge_3: "Completion nudge 3",
-  completion_nudge_4: "Completion nudge 4",
-  completion_maintenance: "Completion maintenance",
-  publish_nudge_1: "Publish nudge 1",
-  publish_nudge_2: "Publish nudge 2",
-  publish_nudge_3: "Publish nudge 3",
-  publish_nudge_4: "Publish nudge 4",
-  publish_maintenance: "Publish maintenance",
-  monthly_recommendations: "Monthly recommendations",
-  inactivity_reengagement: "Inactivity re-engagement",
+  family_outcome_check: "Day 2 · Did the provider get back to you?",
+  paying_for_care: "Day 3 · Paying for care + self-sort",
+  family_provider_silent: "Day 4 · Provider quiet → other options",
+  family_provider_silent_guidance: "Day 4 · Provider quiet → cost help (thin market)",
+  family_never_engaged: "Day 5 · No reply yet → options + cost help",
+  provider_still_silent: "Day 7 · Provider still silent → trust recovery",
+  day_10_awaiting: "Day 10 · Provider replied, family stalled",
+  orientation_intro: "Orientation intro — one-time campaign",
+  family_reach_out_nudge: "A provider reached out — reply reminder",
+  stale_conversation: "Conversation went quiet — both sides",
+  matches_nudge: "Matches sitting inactive",
+  post_connection_followup: "30 days after connecting — how did it go?",
+  family_nudge: "Complete your profile → sharper matches",
+  completion_nudge_1: "Profile completion 1 · day 0",
+  completion_nudge_2: "Profile completion 2 · day 2",
+  completion_nudge_3: "Profile completion 3 · day 6",
+  completion_nudge_4: "Profile completion 4 · day 13",
+  completion_maintenance: "Profile completion · monthly check-in",
+  publish_nudge_1: "Publish your profile 1 · day 0",
+  publish_nudge_2: "Publish your profile 2 · day 2",
+  publish_nudge_3: "Publish your profile 3 · day 6",
+  publish_nudge_4: "Publish your profile 4 · day 13",
+  publish_maintenance: "Publish · monthly check-in",
+  monthly_recommendations: "Monthly provider picks",
+  inactivity_reengagement: "Quiet for 30 days — re-engagement",
+  go_live_reminder: "Go-live reminder (retired Jul 4)",
+  dormant_reengagement: "Dormant re-engagement (legacy)",
 };
 
 // The compare-bearing rungs — the ones whose body carries alternative-provider
@@ -228,6 +231,10 @@ export async function GET(request: NextRequest) {
     bounced: number;
     complained: number;
     weeklySends: number[];
+    /** Opens per send-week cohort — the client renders open-RATE trend
+     *  (weeklyOpens[i] / weeklySends[i]), which shows an email decaying
+     *  before the window aggregate moves. */
+    weeklyOpens: number[];
     compareBearing: boolean;
   };
   const perfByType = new Map<string, Perf>();
@@ -244,6 +251,7 @@ export async function GET(request: NextRequest) {
         bounced: 0,
         complained: 0,
         weeklySends: new Array(TREND_WEEKS).fill(0),
+        weeklyOpens: new Array(TREND_WEEKS).fill(0),
         compareBearing: COMPARE_BEARING.has(t),
       };
       perfByType.set(t, p);
@@ -269,7 +277,10 @@ export async function GET(request: NextRequest) {
 
     // weekly send trend (independent of the window)
     const wb = weekBucket(ts, trendEnd);
-    if (wb >= 0) p.weeklySends[wb] += 1;
+    if (wb >= 0) {
+      p.weeklySends[wb] += 1;
+      if (r.first_opened_at) p.weeklyOpens[wb] += 1;
+    }
 
     if (!inWindow) continue;
     const failed = r.status === "failed";

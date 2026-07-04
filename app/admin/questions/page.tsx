@@ -381,7 +381,7 @@ function InlineEmailInput({
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
         </svg>
-        {emailIsDead ? "Updated — question forwarded" : hasExistingEmail ? "Question forwarded" : "Saved — question forwarded"}
+        {hasExistingEmail ? "Question forwarded" : "Saved — question forwarded"}
       </div>
     );
   }
@@ -425,7 +425,7 @@ function InlineEmailInput({
           disabled={saving || findingEmail || !email.trim()}
           className="shrink-0 px-4 py-1.5 text-sm font-medium rounded-lg text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 transition"
         >
-          {saving ? "..." : existingEmail ? (emailIsDead ? "Update & send" : "Send") : "Add & send"}
+          {saving ? "..." : existingEmail ? (emailIsDead ? "Save & send" : "Send") : "Add & send"}
         </button>
       </div>
 
@@ -1136,10 +1136,18 @@ export default function AdminQuestionsPage() {
                     {/* Action buttons - different for archived vs non-archived tabs */}
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
                       {activeTab === "archived" ? (
-                        // Archived tab: show Unarchive button (unarchive requires going to Connections page for now)
-                        <span className="text-xs text-gray-500 italic">
-                          To unarchive this provider, use the Connections page
-                        </span>
+                        // Archived tab: link to Connections page to unarchive
+                        <a
+                          href={`/admin/connections?filter=archived&search=${encodeURIComponent(providerLabel)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                        >
+                          Unarchive on Connections page
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
                       ) : (
                         // Non-archived tabs: show Archive and Not Interested buttons
                         <>

@@ -265,6 +265,33 @@ export async function POST(
         );
       }
 
+      // Also remove from archived_question_providers to sync with Questions page
+      // Get provider slug and source_provider_id for variant lookup
+      const { data: providerFull } = await db
+        .from("business_profiles")
+        .select("slug, source_provider_id")
+        .eq("id", providerId)
+        .maybeSingle();
+
+      if (providerFull) {
+        const variantSet = new Set<string>([providerId]);
+        if (providerFull.slug) variantSet.add(providerFull.slug);
+        if (providerFull.source_provider_id) variantSet.add(providerFull.source_provider_id);
+        const variants = Array.from(variantSet);
+
+        const { error: deleteError } = await db
+          .from("archived_question_providers")
+          .delete()
+          .in("provider_id", variants);
+
+        if (deleteError) {
+          console.error("[archive-provider] Failed to remove from archived_question_providers:", deleteError);
+          // Non-fatal - provider is unarchived, Q&A sync can be fixed manually
+        } else {
+          console.log(`[archive-provider] Removed ${variants.join(", ")} from archived_question_providers`);
+        }
+      }
+
       // Clear the followup_stopped_reason for connections that were stopped due to archiving
       // This allows sequences to potentially resume
       const { data: connections, error: connectionsError } = await db

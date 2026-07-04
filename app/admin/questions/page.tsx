@@ -520,6 +520,9 @@ export default function AdminQuestionsPage() {
   const [archiveProviderTarget, setArchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
   const [archiveProviderReason, setArchiveProviderReason] = useState("");
   const [archiveProviderNotes, setArchiveProviderNotes] = useState("");
+  const [unarchiveProviderTarget, setUnarchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
+  const [unarchiveProviderReason, setUnarchiveProviderReason] = useState("");
+  const [unarchiveProviderNotes, setUnarchiveProviderNotes] = useState("");
   const [notInterestedTarget, setNotInterestedTarget] = useState<{ providerId: string; providerName: string; isMarked: boolean } | null>(null);
   const [notInterestedReason, setNotInterestedReason] = useState("");
   const [notInterestedNotes, setNotInterestedNotes] = useState("");
@@ -721,6 +724,31 @@ export default function AdminQuestionsPage() {
       await fetchQuestions();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to archive provider";
+      showToast(message, "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Unarchive a provider: clears admin_archived and removes from archived_question_providers.
+  // Provider becomes active again and emails will resume.
+  const handleUnarchiveProvider = async (providerId: string, reason: string, notes: string) => {
+    setActionLoading(`unarchive:${providerId}`);
+    try {
+      const res = await fetch("/api/admin/questions/archive-provider", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, reason, notes: notes || null, unarchive: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setUnarchiveProviderTarget(null);
+      setUnarchiveProviderReason("");
+      setUnarchiveProviderNotes("");
+      showToast(data.message || "Provider unarchived");
+      await fetchQuestions();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to unarchive provider";
       showToast(message, "error");
     } finally {
       setActionLoading(null);
@@ -1136,18 +1164,18 @@ export default function AdminQuestionsPage() {
                     {/* Action buttons - different for archived vs non-archived tabs */}
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
                       {activeTab === "archived" ? (
-                        // Archived tab: link to Connections page to unarchive
-                        <a
-                          href={`/admin/connections?filter=archived&search=${encodeURIComponent(providerLabel)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                        // Archived tab: show Unarchive button
+                        <button
+                          onClick={() => {
+                            setUnarchiveProviderTarget({ providerId, providerName: providerLabel });
+                            setUnarchiveProviderReason("");
+                            setUnarchiveProviderNotes("");
+                          }}
+                          disabled={actionLoading === `unarchive:${providerId}`}
+                          className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition disabled:opacity-50"
                         >
-                          Unarchive on Connections page
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
+                          Unarchive Provider
+                        </button>
                       ) : (
                         // Non-archived tabs: show Archive and Not Interested buttons
                         <>
@@ -1395,6 +1423,65 @@ export default function AdminQuestionsPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
               >
                 {actionLoading === `provider:${archiveProviderTarget.providerId}` ? "Archiving..." : "Archive provider"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unarchive provider dialog */}
+      {unarchiveProviderTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Unarchive provider
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Unarchive <span className="font-medium text-gray-900">{unarchiveProviderTarget.providerName}</span>.
+              This will resume emails to this provider and their questions will return to the normal queue.
+            </p>
+            <div className="mt-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Why are you unarchiving this provider?</label>
+              <select
+                value={unarchiveProviderReason}
+                onChange={(e) => setUnarchiveProviderReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                autoFocus
+              >
+                <option value="">Select a reason...</option>
+                <option value="provider_reactivated">Provider reactivated</option>
+                <option value="contact_info_updated">Contact info updated</option>
+                <option value="archived_in_error">Archived in error</option>
+                <option value="provider_requested">Provider requested</option>
+                <option value="compliance_resolved">Compliance issue resolved</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <textarea
+              value={unarchiveProviderNotes}
+              onChange={(e) => setUnarchiveProviderNotes(e.target.value)}
+              placeholder={unarchiveProviderReason === "other" ? "Please provide details (required)..." : "Additional notes (optional)..."}
+              className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+              rows={2}
+            />
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => { setUnarchiveProviderTarget(null); setUnarchiveProviderReason(""); setUnarchiveProviderNotes(""); }}
+                disabled={actionLoading === `unarchive:${unarchiveProviderTarget.providerId}`}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleUnarchiveProvider(unarchiveProviderTarget.providerId, unarchiveProviderReason, unarchiveProviderNotes.trim())}
+                disabled={
+                  actionLoading === `unarchive:${unarchiveProviderTarget.providerId}` ||
+                  !unarchiveProviderReason ||
+                  (unarchiveProviderReason === "other" && !unarchiveProviderNotes.trim())
+                }
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {actionLoading === `unarchive:${unarchiveProviderTarget.providerId}` ? "Unarchiving..." : "Unarchive provider"}
               </button>
             </div>
           </div>

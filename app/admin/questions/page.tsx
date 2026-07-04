@@ -1121,9 +1121,9 @@ export default function AdminQuestionsPage() {
                               <p className="font-medium text-orange-800">
                                 Not Interested: {meta.not_interested_reason as string || "No reason provided"}
                               </p>
-                              {meta.not_interested_notes && (
-                                <p className="text-orange-700 mt-0.5">{meta.not_interested_notes as string}</p>
-                              )}
+                              {meta.not_interested_notes ? (
+                                <p className="text-orange-700 mt-0.5">{String(meta.not_interested_notes)}</p>
+                              ) : null}
                               <p className="text-orange-600 text-xs mt-1">
                                 by {meta.not_interested_by as string || "Unknown"} on {formatDateTime(meta.not_interested_at as string)}
                               </p>

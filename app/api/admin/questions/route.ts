@@ -862,6 +862,25 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // For archived tab, also fetch provider-level archive info from archived_question_providers
+    let providerArchiveInfo: Record<string, { reason: string | null; notes: string | null; archived_by: string | null; archived_at: string | null }> = {};
+    if (status === "archived" && slugs.length > 0) {
+      const { data: archiveRecords } = await db
+        .from("archived_question_providers")
+        .select("provider_id, reason, notes, archived_by, archived_at")
+        .in("provider_id", slugs);
+      for (const rec of archiveRecords ?? []) {
+        if (rec.provider_id) {
+          providerArchiveInfo[rec.provider_id] = {
+            reason: rec.reason,
+            notes: rec.notes,
+            archived_by: rec.archived_by,
+            archived_at: rec.archived_at,
+          };
+        }
+      }
+    }
+
     const enriched = (questions ?? []).map((q) => ({
       ...q,
       provider_name: providerNames[q.provider_id] || null,
@@ -870,6 +889,7 @@ export async function GET(request: NextRequest) {
       provider_phone: providerPhones[q.provider_id] || null,
       is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
       verification_state: providerVerificationState[q.provider_id] || null,
+      provider_archive_info: providerArchiveInfo[q.provider_id] || null,
     }));
 
     // Fetch tab counts. The "pending" count needs special handling to exclude

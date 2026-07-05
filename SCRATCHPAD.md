@@ -7,6 +7,19 @@
 
 ## Current Focus
 
+### 2026-07-05 (PM) — Ad Boost providers #3 + #4 scheduled: Miracle-Lightstar (Cleveland) + Impact Home Care (Houston); Chrome MCP wired for browser-driven setup
+
+Concierge prep done for the two "Requested" queue rows (both setup week Jul 6), all ops/DB — no repo code. Per the Notion SOP ("SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup"):
+
+- **Both `ad_campaign_requests` rows flipped to `scheduled` in prod** with `channel=google` + tags: **Miracle-Lightstar LLC** (`63651051…`, tag `miracle-lightstar-cleveland-jul26`, $50 intended) and **Impact Home Care and Staffing** (`98a25f84…`, tag `impact-houston-jul26`, **$150/mo intended — highest in queue; still run $50 intro, the $150 is the step-up conversation**). Both requested "both" channels → Google-only at $50 per playbook.
+- **Pre-flight:** Miracle verified + 5 photos ✅. Impact `verification_state=not_required` — confirmed code treats it same as verified everywhere (profile-card.ts:106, resolve.server.ts), leads will deliver. ⚠️ Impact has NO uploaded photos (`metadata.images` empty; WAF blocks scripted page check) — eyeball page before launch, ask Pat Starling for 1-2 photos.
+- **Hygiene:** geocoded Miracle's null lat/lng (41.4188, -81.6843 — organic Find Families matching now works); ZeroBounce: both contact emails **valid** (`zd@miracle-lightstar.co` Zardy Dweh, `impactcare2@gmail.com` Pat Starling). `email_validity` stays `unverified` by design — CHECK constraint only allows delivery outcomes (unverified/delivered/bounced/complained), NOT ZeroBounce results.
+- **New since Abode:** flipping status→live **via the admin UI** auto-sends the "campaign is live" email (route.ts:280, once-guarded via `launched_email_sent_at`). Flip through UI, not DB, or the email never fires. SOP Step 8 (hand-written email) is superseded.
+- **Full campaign packets prepared** (names, tagged Final URLs, keywords, 13 headlines + 4 descriptions each, negatives, $50 total Jul 6→Aug 3 flight): in session transcript. Impact geo = ZIP 77092 + 20mi (NW Houston, not downtown); Impact name contains "Staffing" so job-seeker negatives matter extra; 5-star headline substantiated (5.0★/24 reviews).
+- **Chrome control wired:** `chrome-devtools` MCP added at user scope (`claude mcp add -s user chrome-devtools -- npx -y chrome-devtools-mcp@latest`). Loads on next session start. Note: can't attach to TJ's existing Chrome profile (Chrome ≥136 blocks debugging on default profile) — opens a Claude-managed persistent-profile window, TJ signs into Olera Google account ONCE there.
+
+**Next up:** (1) restart session (`claude --continue`), verify `/mcp` shows chrome-devtools, then drive Google Ads: build Miracle-Lightstar campaign first, TJ approves Publish click, repeat for Impact; (2) after each publish: verify AI Max OFF, add negatives, flip status→live in `/admin/ad-boost` (auto-email); (3) Impact photos ask; (4) orientation campaign send gate still open (600 candidates await TJ, see 07-04 entry).
+
 ### 2026-07-04 — Guidance layer SHIPPED TO PRODUCTION (#1297 merged, staging→main via #1298)
 
 Closed out the care-seeker guidance sprint. **PR #1297** (instrumentation: Slack line per one-tap answer, `guidance_events` capped ring on the family profile, `/admin/family-comms` "Guidance journey" section with A/B/C path distribution) QA'd and squash-merged to staging, then **promoted staging→main via PR #1298** (`b36278ab`) — takes #1293 volume fixes, #1294 micro-quiz, #1295 orientation layer, #1296 Questions v2, #1297 live together. Production Vercel deploy green; critical-file indicators all intact.

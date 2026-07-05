@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-07-05 (late PM) — BOTH Ad Boost campaigns PUBLISHED in Google Ads via Chrome MCP (first fully browser-driven setup)
+
+Claude drove ads.google.com end-to-end through the chrome-devtools MCP (Claude-managed Chrome window, TJ signed in once as tj@olera.care, account 419-933-1442). Both campaigns published with TJ approving each Publish click:
+
+- **Miracle-Lightstar – Cleveland – Jul 2026** — campaign ID `23998344651`, status Pending review. 12 phrase keywords (13 planned; Google's pre-publish policy check flagged `"home health care cleveland"` under **"Health in personalized advertising"** — removed it rather than request exception; `"home health aide cleveland"` passed fine). 13 headlines + 4 descriptions, path `olera.care/Home-Care/Cleveland`, 20mi radius Cleveland OH presence-only, EN+ES, Max clicks $2.50 cap, $50 total Jul 6→Aug 3.
+- **Impact Home Care – Houston – Jul 2026** — campaign ID `23998367469`, status Pending review. 12 keywords (packet had no "home health care" phrasing → zero policy flags), 13 headlines incl. substantiated "5-Star Rated Home Care", path `olera.care/Home-Care/Houston`, **ZIP 77092 + 20mi** presence-only, same bid/budget/flight.
+- **Post-publish done on both:** AI Max verified OFF (aria-checked=false), 11 job-seeker negatives added at campaign level (jobs/careers/hiring/salary/employment/training/certification/classes/courses/volunteer/free). Skipped Google-tag interstitials (attribution = UTM/provider-page cookie per PR #1239).
+- **Per TJ mid-session: policy audit every asset before finishing** (past denial = URLs/phones/weird stuff in ad text). Scripted check across all headlines+descriptions on both campaigns: no URLs, no phone numbers, no odd symbols/caps, within char limits. Google prefills the ad with an **"Olera.care" headline** (a URL — the exact old denial pattern) and wrong-city descriptions ("Humble TX" for Impact) — always replace all prefills.
+- **Gotchas for next time:** budget step triggers Google "Confirm it's you" re-auth (type CAMPAIGN_TOTAL_BUDGET_INCREASE) — TJ must complete it in the window, then everything saves; Bidding sidebar warning triangle = standard bid-cap advisory, not a blocker; sidebar "Changes failed to save" clears after re-auth.
+
+**Still gated on TJ:** (1) flip both `ad_campaign_requests` rows → live via `/admin/ad-boost` UI once serving starts Jul 6 (auto-sends "campaign is live" email, once-guarded — do NOT flip via DB); (2) ask Pat Starling for 1-2 Impact photos (page has none); (3) orientation campaign send gate (600 candidates, 07-04 entry).
+
 ### 2026-07-05 (PM) — Ad Boost providers #3 + #4 scheduled: Miracle-Lightstar (Cleveland) + Impact Home Care (Houston); Chrome MCP wired for browser-driven setup
 
 Concierge prep done for the two "Requested" queue rows (both setup week Jul 6), all ops/DB — no repo code. Per the Notion SOP ("SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup"):

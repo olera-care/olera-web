@@ -39,7 +39,6 @@ export default function AdminOverviewPage() {
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<number | null>(null);
   const [totalReviews, setTotalReviews] = useState<number | null>(null);
   const [liveProviders, setLiveProviders] = useState<number | null>(null);
-  const [publicProfiles, setPublicProfiles] = useState<number | null>(null);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAllStats, setShowAllStats] = useState(false);
@@ -81,10 +80,6 @@ export default function AdminOverviewPage() {
       .then(setLiveProviders)
       .catch(() => { setLiveProviders(0); setError("Some data failed to load."); });
 
-    fetchCount("/api/admin/demand", "total_public")
-      .then(setPublicProfiles)
-      .catch(() => { setPublicProfiles(0); setError("Some data failed to load."); });
-
     // Audit log
     fetch("/api/admin/audit?limit=10")
       .then((r) => r.ok ? r.json() : { entries: [] })
@@ -104,7 +99,6 @@ export default function AdminOverviewPage() {
     { label: "Needs Email", value: needsEmail, subtitle: "Connections needing email", href: "/admin/connections?filter=needs_email", isWarning: true },
     { label: "Questions", value: totalQuestions, subtitle: "Total asked", href: "/admin/questions" },
     { label: "Q&A Needs Email", value: questionsNeedEmail, subtitle: "Questions blocked", href: "/admin/questions", isWarning: true },
-    { label: "Public Profiles", value: publicProfiles, subtitle: "Care seekers live", href: "/admin/demand" },
     { label: "Provider Directory", value: liveProviders, subtitle: "Live listings", href: "/admin/directory" },
   ];
 

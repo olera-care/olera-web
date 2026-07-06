@@ -73,14 +73,6 @@
       "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/cron/staffing-sequence-check",
-      "schedule": "30 * * * *"
-    },
-    {
-      "path": "/api/cron/staffing-send-email2",
-      "schedule": "0 * * * *"
-    },
-    {
       "path": "/api/cron/student-outreach-send",
       "schedule": "*/15 * * * *"
     },

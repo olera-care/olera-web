@@ -128,10 +128,10 @@ export function ResearchTabContent({
           Add a provider partner near a school to start student outreach.
         </p>
         <a
-          href="/admin/staffing-outreach"
+          href="/admin/medjobs/sites"
           className="mt-4 inline-block rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
-          Open Staffing Outreach →
+          Open MedJobs Sites →
         </a>
       </div>
     );

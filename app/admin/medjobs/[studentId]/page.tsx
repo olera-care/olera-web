@@ -101,7 +101,7 @@ export default function AdminMedJobsDetailPage() {
     try {
       const res = await fetch(`/api/admin/medjobs/${studentId}`);
       if (!res.ok) {
-        router.push("/admin/medjobs");
+        router.push("/admin/medjobs/candidates");
         return;
       }
       const data = await res.json();
@@ -238,7 +238,7 @@ export default function AdminMedJobsDetailPage() {
     try {
       const res = await fetch(`/api/admin/medjobs/${studentId}`, { method: "DELETE" });
       if (res.ok) {
-        router.push("/admin/medjobs");
+        router.push("/admin/medjobs/candidates");
       } else {
         setSaveMessage({ type: "error", text: "Failed to delete." });
       }
@@ -312,7 +312,7 @@ export default function AdminMedJobsDetailPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
         <Link
-          href="/admin/medjobs"
+          href="/admin/medjobs/candidates"
           className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

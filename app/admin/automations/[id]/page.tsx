@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
+import { useToast } from "@/components/admin/Toast";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
 interface Rollup {
@@ -357,6 +358,7 @@ export default function AutomationDetailPage() {
   const [showAllRuns, setShowAllRuns] = useState(false);
   const [windowDays, setWindowDays] = useState(30);
   const reqSeq = useRef(0);
+  const toast = useToast();
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -421,7 +423,7 @@ export default function AutomationDetailPage() {
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
         await load();
       } catch (e) {
-        alert(`Failed: ${e instanceof Error ? e.message : e}`);
+        toast(`Failed: ${e instanceof Error ? e.message : e}`, { variant: "error" });
       } finally { setBusy(false); }
     } else {
       const reason = prompt(`Pause "${job.name}"? It stops running but still logs a skipped entry each cycle; auto-resumes in 30 days.\n\nReason (optional):`);
@@ -432,7 +434,7 @@ export default function AutomationDetailPage() {
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
         await load();
       } catch (e) {
-        alert(`Failed: ${e instanceof Error ? e.message : e}`);
+        toast(`Failed: ${e instanceof Error ? e.message : e}`, { variant: "error" });
       } finally { setBusy(false); }
     }
   }
@@ -699,7 +701,7 @@ export default function AutomationDetailPage() {
                         <svg viewBox="0 0 12 12" className="h-3 w-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 2.5l4 3.5-4 3.5" /></svg>
                         Weekly breakdown
                       </summary>
-                      <div className="mt-2 overflow-hidden rounded-xl border border-gray-200">
+                      <div className="mt-2 overflow-x-auto rounded-xl border border-gray-200">
                         <table className="w-full text-sm">
                           <thead className="border-b border-gray-200 bg-gray-50 text-xs text-gray-400">
                             <tr><th className="px-4 py-2 text-left font-medium">Week of</th><th className="px-4 py-2 text-right font-medium">Sent</th><th className="px-4 py-2 text-right font-medium">Delivered</th><th className="px-4 py-2 text-right font-medium">Open</th><th className="px-4 py-2 text-right font-medium">Click</th></tr>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import PulseHeader from "@/components/admin/PulseHeader";
+import { useUrlFilterState } from "@/hooks/useUrlFilterState";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
 
@@ -513,11 +513,6 @@ function OutboundConnectionRow({ connection, onDelete }: { connection: OutboundC
 }
 
 export default function ConnectionsTrackerPage() {
-  const searchParams = useSearchParams();
-
-  // Read initial direction from URL (supports /admin/outreach redirect)
-  const initialDirection = searchParams.get("direction") === "outbound" ? "outbound" : "inbound";
-
   const [range, setRange] = useState<DateRangeValue>({
     preset: "all",
     customFrom: "",
@@ -525,11 +520,16 @@ export default function ConnectionsTrackerPage() {
   });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [direction, setDirection] = useState<Direction>(initialDirection);
+  // Direction + status tab live in the URL (?direction= / ?filter=) so
+  // refresh/back-nav/deep-links work (supports the /admin/outreach redirect
+  // and the Overview card's ?filter=needs_email link).
+  const [directionParam, setDirection] = useUrlFilterState<Direction>("direction", "inbound");
+  const direction: Direction = directionParam === "outbound" ? "outbound" : "inbound";
   const [perspective, setPerspective] = useState<Perspective>("provider");
   // Default filter: "awaiting" for inbound, "all" for outbound
-  const [activeFilter, setActiveFilter] = useState<FilterKey | OutboundFilterKey>(
-    initialDirection === "outbound" ? "all" : "awaiting"
+  const [activeFilter, setActiveFilter] = useUrlFilterState<FilterKey | OutboundFilterKey>(
+    "filter",
+    direction === "outbound" ? "all" : "awaiting"
   );
   const [page, setPage] = useState(0);
 
@@ -637,21 +637,32 @@ export default function ConnectionsTrackerPage() {
     setPage(0);
   }, [activeFilter, range]);
 
+  // Skip the reset effects below on first render so they don't clobber a
+  // deep-linked ?filter= value (they only exist to reset the tab on toggle).
+  const filterResetsMounted = useRef(false);
+
   // Reset filter when perspective changes (since filter keys differ between perspectives)
   useEffect(() => {
+    if (!filterResetsMounted.current) return;
     // Family perspective starts with "new", provider with "awaiting"
     setActiveFilter(perspective === "family" ? "new" : "awaiting");
     setPage(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [perspective]);
 
   // Reset filter and perspective when direction changes
   useEffect(() => {
+    if (!filterResetsMounted.current) {
+      filterResetsMounted.current = true;
+      return;
+    }
     if (direction === "outbound") {
       setActiveFilter("all"); // Outbound default tab
     } else {
       setActiveFilter("awaiting"); // Inbound default tab
     }
     setPage(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [direction]);
 
   const [list, setList] = useState<ListResponse | null>(null);

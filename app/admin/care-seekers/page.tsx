@@ -652,7 +652,13 @@ export default function AdminCareSeekersPage() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Care Seekers</h1>
-          <p className="text-sm text-gray-500 mt-1">Families and individuals looking for care</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Families and individuals looking for care
+            {" · "}
+            <a href="/admin/demand" className="text-primary-600 hover:text-primary-700">
+              By city →
+            </a>
+          </p>
         </div>
         <DateRangePopover value={dateRange} onChange={setDateRange} />
       </div>
@@ -798,7 +804,7 @@ export default function AdminCareSeekersPage() {
                       Weekly breakdown
                     </button>
                     {weeklyExpanded && (
-                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                      <div className="mt-2 overflow-x-auto rounded-lg border border-gray-200">
                         <table className="w-full text-sm">
                           <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
@@ -1070,7 +1076,7 @@ export default function AdminCareSeekersPage() {
                         By CTA variant
                       </button>
                       {enrichmentByVariantExpanded && (
-                        <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                        <div className="mt-2 overflow-x-auto rounded-lg border border-gray-200">
                           <table className="w-full text-sm">
                             <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                               <tr>
@@ -1121,7 +1127,7 @@ export default function AdminCareSeekersPage() {
                       Weekly trend
                     </button>
                     {enrichmentWeeklyExpanded && (
-                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                      <div className="mt-2 overflow-x-auto rounded-lg border border-gray-200">
                         <table className="w-full text-sm">
                           <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>

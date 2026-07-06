@@ -25,10 +25,10 @@ import {
   BUDGET_STOPS,
   BUDGET_HONEST_LINE,
   BUDGET_ESTIMATE_CAVEAT,
+  BUDGET_TRUST_STRIP,
   DEFAULT_BUDGET,
   budgetStop,
   budgetLabel,
-  estimateSummary,
   type BudgetStop,
 } from "@/lib/ad-boost/estimate";
 
@@ -449,7 +449,7 @@ function CampaignFacts({ request }: { request: BoostRequest }) {
     { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
-  if (budget) facts.push({ label: "Budget", value: budget });
+  if (budget) facts.push({ label: "Plan", value: budget });
 
   // Flex + flex-1 (not a fixed grid) so 1, 2, or 3 facts always fill the width
   // evenly — older requests with no channel/budget never leave empty cells.
@@ -747,11 +747,16 @@ function ApplyExperience({
   managedAdsVariant: "direct_reach" | "local_plan";
   onSubmit: () => void;
 }) {
-  const [step, setStep] = useState(0); // 0 Timing · 1 Budget · 2 Confirm
+  const [step, setStep] = useState(0); // 0 Timing · 1 Plan · 2 Confirm
   const mobileNavVariant = useMobileNavVariant();
   const weekLabel = weekOptions.find((w) => w.value === selectedWeek)?.label ?? null;
   const channelLabel = CHANNELS.find((c) => c.value === channel)?.label ?? "Google + Meta";
   const stop = budgetStop(selectedBudget);
+  // The provider's market, for the per-tier outcome math ("in Cleveland").
+  const place =
+    demand.scope === "city" && provider.city
+      ? provider.city
+      : provider.state || null;
 
   const canAdvance = step === 0 ? !!selectedWeek : step === 1 ? !!stop : true;
 
@@ -785,7 +790,7 @@ function ApplyExperience({
             </h1>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-lg">
               We'll run ads to bring families to your page.{" "}
-              <span className="font-semibold text-primary-600">First $50 on us.</span>
+              <span className="font-semibold text-primary-600">Your first campaign is on us.</span>
             </p>
             <p className="mt-2 text-sm text-gray-400">
               {(() => {
@@ -873,74 +878,58 @@ function ApplyExperience({
           </div>
         )}
 
-        {/* ── Step 1: Budget ── */}
+        {/* ── Step 1: Plan ── */}
         {step === 1 && (
           <div>
             <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
-              Choose your monthly budget
+              Choose how to start
             </h2>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-lg">
-              What we'll spend each month finding you families. No card today — nothing goes live until we confirm with you.
+              {BUDGET_HONEST_LINE}
             </p>
 
             <fieldset className="mt-8">
-              <legend className="sr-only">Monthly budget</legend>
-              {/* Desktop: horizontal row, Mobile: vertical stack */}
-              <div className="hidden sm:grid sm:grid-cols-4 gap-3">
+              <legend className="sr-only">Plan</legend>
+              {/* One stacked radio-card list (all breakpoints) — name · price,
+                  one honest sentence, quiet outlined chip. No pricing table. */}
+              <div className="flex flex-col gap-3">
                 {BUDGET_STOPS.map((b) => {
                   const active = selectedBudget === b.value;
+                  const isIntro = b.sublabel === "on us";
                   return (
                     <button
                       key={b.value}
                       type="button"
                       aria-pressed={active}
                       onClick={() => setSelectedBudget(b.value)}
-                      className={`relative flex min-h-[5.25rem] flex-col items-center justify-center rounded-2xl border px-3 py-4 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
+                      className={`w-full rounded-2xl border px-5 py-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                         active
                           ? "border-primary-500 bg-primary-50/70"
                           : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
-                      {b.recommended && (
-                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary-600 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white shadow-sm">
-                          Recommended
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className={`min-w-0 truncate text-base font-semibold ${active ? "text-primary-700" : "text-gray-900"}`}>
+                          {b.name}
+                          <span className="font-normal text-gray-300"> · </span>
+                          <span className="tabular-nums">{isIntro ? "On us" : `${b.amount}/mo`}</span>
                         </span>
-                      )}
-                      <span className={`text-2xl font-bold tracking-tight tabular-nums leading-none ${active ? "text-primary-700" : "text-gray-900"}`}>
-                        {b.amount}
+                        {b.chip && (
+                          <span
+                            className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                              active ? "border-primary-400 text-primary-700" : "border-gray-300 text-gray-500"
+                            }`}
+                          >
+                            {b.chip}
+                          </span>
+                        )}
                       </span>
-                      <span className={`mt-1.5 text-xs ${active ? "text-primary-600/80" : "text-gray-400"}`}>
-                        {b.sublabel}
+                      <span className={`mt-1 block text-sm leading-relaxed ${active ? "text-primary-600/80" : "text-gray-500"}`}>
+                        {b.blurb}
                       </span>
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Mobile: vertical stack */}
-              <div className="flex flex-col gap-3 sm:hidden">
-                {BUDGET_STOPS.map((b) => {
-                  const active = selectedBudget === b.value;
-                  return (
-                    <button
-                      key={b.value}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setSelectedBudget(b.value)}
-                      className={`relative flex items-center gap-3 rounded-2xl border px-5 py-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
-                        active
-                          ? "border-primary-500 bg-primary-50/70"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
-                      }`}
-                    >
-                      <span className={`text-2xl font-bold tracking-tight tabular-nums leading-none ${active ? "text-primary-700" : "text-gray-900"}`}>
-                        {b.amount}
-                      </span>
-                      <span className={`text-sm ${active ? "text-primary-600/80" : "text-gray-400"}`}>
-                        {b.sublabel}
-                      </span>
-                      {b.recommended && (
-                        <span className="ml-auto rounded-full bg-primary-600 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                          Recommended
+                      {isIntro && !eligible && (
+                        <span className="mt-1 block text-xs text-gray-400">
+                          Queued until your page is ready to convert the families we send.
                         </span>
                       )}
                     </button>
@@ -949,15 +938,34 @@ function ApplyExperience({
               </div>
             </fieldset>
 
-            {/* Dynamic outcome text based on budget selection */}
+            {/* Dynamic outcome math — the tier translated into families, per market */}
             {stop && (
               <div key={stop.value} className="mt-8 animate-[fadeIn_180ms_ease-out]">
                 <h3 className="font-display font-bold text-2xl text-gray-900">
-                  {stop.kind === "leads" ? `${stop.headline} ${stop.unit}` : stop.headline}
+                  {stop.kind === "leads"
+                    ? `≈ ${stop.headline} ${stop.unit}${place ? ` in ${place}` : ""}`
+                    : stop.headline}
                 </h3>
-                <p className="mt-1.5 text-gray-500">{stop.estimate}</p>
+                <p className="mt-1.5 text-gray-500">
+                  {stop.kind === "reach" && place
+                    ? `Local families in ${place} start seeing your page.`
+                    : stop.estimate}
+                </p>
+                <p className="mt-3 max-w-md text-xs leading-relaxed text-gray-400">
+                  {BUDGET_ESTIMATE_CAVEAT}
+                </p>
               </div>
             )}
+
+            {/* De-risk stat strip — the guarantee + the exits, as ledger facts */}
+            <dl className="mt-8 flex flex-col divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200/80 sm:flex-row sm:divide-x sm:divide-y-0">
+              {BUDGET_TRUST_STRIP.map((c) => (
+                <div key={c.label} className="flex-1 px-4 py-3.5 text-center">
+                  <dd className="text-lg font-display font-bold text-gray-900">{c.value}</dd>
+                  <dt className="mt-0.5 text-[11px] uppercase tracking-wide text-gray-400">{c.label}</dt>
+                </div>
+              ))}
+            </dl>
 
             {/* Back link - desktop only */}
             <button
@@ -981,14 +989,14 @@ function ApplyExperience({
             </h2>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-md">
               {eligible
-                ? "We'll review this, confirm the budget with you, and send the plan before anything goes live."
+                ? "We'll review this, confirm your plan with you, and send the details before anything goes live."
                 : "We'll queue this now, help you get the page ready, and send the plan before anything goes live."}
             </p>
 
             <dl className="mt-7 overflow-hidden rounded-2xl border border-gray-200/80 divide-y divide-gray-100">
               <ReviewRow label="Launch" value={weekLabel ?? "—"} />
               <ReviewRow label="Advertising on" value={channelLabel} />
-              <ReviewRow label="Starting budget" value={stop?.label ?? "—"} />
+              <ReviewRow label="Plan" value={stop?.label ?? "—"} />
             </dl>
 
             <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
@@ -1058,8 +1066,8 @@ function ApplyExperience({
         {step === 1 ? (
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Monthly budget</p>
-              <p className="text-xl font-bold text-gray-900">{stop?.amount ?? "—"}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Plan</p>
+              <p className="text-xl font-bold text-gray-900">{stop ? (stop.sublabel === "on us" ? "On us" : stop.amount) : "—"}</p>
             </div>
             <button
               type="button"
@@ -1167,7 +1175,7 @@ function CampaignSummary({
           <dd className="text-sm font-medium text-gray-900 text-right">{channelLabel}</dd>
         </div>
         <div className="flex items-baseline justify-between gap-4">
-          <dt className="text-sm text-gray-500">{step >= 1 ? "Monthly budget" : "Budget"}</dt>
+          <dt className="text-sm text-gray-500">Plan</dt>
           <dd className={`text-sm font-medium text-right ${step >= 1 && stop ? "text-gray-900" : "text-gray-300"}`}>
             {step >= 1 && stop ? stop.label : "Next step"}
           </dd>

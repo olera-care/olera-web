@@ -1482,7 +1482,7 @@ function ProviderCommsFunnelCard({
         {f.top_bouncers.length === 0 ? (
           <p className="text-sm text-gray-400">No engagement bounces in window.</p>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-gray-100">
+          <div className="overflow-x-auto rounded-lg border border-gray-100">
             <table className="w-full text-sm">
               <thead className="border-b border-gray-100 bg-gray-50/60 text-[10px] uppercase tracking-wider text-gray-400">
                 <tr>

@@ -7,7 +7,8 @@ import DateRangePopover, {
   rangeLabel,
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
-import CollapsibleSection from "@/components/admin/CollapsibleSection";
+import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
+import ReorderableSections from "@/components/admin/ReorderableSections";
 
 /**
  * /admin/family-comms — the family-engagement + email-observability surface.
@@ -525,6 +526,13 @@ export default function FamilyCommsAnalyticsPage() {
             <Stat label="Went live" value={num(conv?.published ?? 0)} sub="profiles published" accent info="Family care-seeker profiles that were published (went live) in this window — the North-Star proxy. Counts the action across all families, not attributed to a single email." />
           </div>
 
+          <BulkCollapseToolbar />
+
+          {/* Sections are drag-reorderable via the grip that appears on hover —
+              identity comes from each section's storageKey, order persists per
+              operator in localStorage. */}
+          <ReorderableSections storageKey="family-comms">
+
           {/* Where families land — the outcome distribution (Phase 0).
               The north star made legible: we count outcomes, not just sends. */}
           {oc && (
@@ -756,6 +764,8 @@ export default function FamilyCommsAnalyticsPage() {
               <WeeklyBars title="Profiles went live / week" series={data.cutover.goLivesWeekly} starts={data.cutover.weekStartsISO} cutoverIdx={data.cutover.cutoverWeekIndex} color="bg-emerald-500" />
             </div>
           </CollapsibleSection>
+
+          </ReorderableSections>
 
           <p className="mt-2 text-[11px] text-gray-400">
             Generated {new Date(data.generatedAt).toLocaleString()} · all signals from existing data (email_log + Resend webhooks + seeker_activity).

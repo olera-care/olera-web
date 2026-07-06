@@ -136,3 +136,30 @@ export function bulkCollapse(collapsed: boolean) {
     new CustomEvent(BULK_EVENT, { detail: { collapsed } }),
   );
 }
+
+/**
+ * Expand-all / Collapse-all toolbar — two text buttons aligned right,
+ * minimal chrome. Sits above the first CollapsibleSection so it reads as
+ * section-level control rather than page-level chrome. Shared by every
+ * admin page built on CollapsibleSection (/admin/analytics, /admin/family-comms).
+ */
+export function BulkCollapseToolbar() {
+  return (
+    <div className="flex justify-end gap-3 mb-3 -mt-1">
+      <button
+        type="button"
+        onClick={() => bulkCollapse(false)}
+        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
+      >
+        Expand all
+      </button>
+      <button
+        type="button"
+        onClick={() => bulkCollapse(true)}
+        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
+      >
+        Collapse all
+      </button>
+    </div>
+  );
+}

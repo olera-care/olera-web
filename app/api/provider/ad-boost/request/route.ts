@@ -141,10 +141,13 @@ export async function GET() {
   // calendar: the intro delivered its 3rd inquiry, or the concierge marked the
   // promo complete (promo_complete_email_sent_at). Only for campaigns that ran
   // and have no plan yet — the only payment ask in the system.
+  // Never re-arm for an active plan OR a past_due one — past_due means Stripe
+  // is dunning the existing subscription; showing the ask again would let the
+  // provider create a second subscription on top of it.
   const wrapupReady = !!(
     latest &&
     (latest.status === "live" || latest.status === "ended") &&
-    latest.plan_status !== "active" &&
+    (latest.plan_status == null || latest.plan_status === "canceled") &&
     (latest.promo_complete_email_sent_at != null ||
       (campaignStats?.leads ?? 0) >= WRAPUP_LEADS_THRESHOLD)
   );

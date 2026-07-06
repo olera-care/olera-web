@@ -108,7 +108,10 @@ export async function POST(request: NextRequest) {
               plan_status: "active",
               plan_value: Number(session.metadata.plan_value) || null,
               stripe_subscription_id: subscriptionId,
-              stripe_customer_id: (session.customer as string) ?? null,
+              stripe_customer_id:
+                typeof session.customer === "string"
+                  ? session.customer
+                  : (session.customer?.id ?? null),
               subscribed_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })

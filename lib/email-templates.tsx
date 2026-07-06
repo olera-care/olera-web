@@ -484,9 +484,14 @@ export function adBoostPromoCompleteEmail(opts: {
     opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
       ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
       : "—";
-  const budgetLine = opts.intendedMonthlyBudget
-    ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
-    : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
+  // Zero-lead intros never get a money pitch (matches the boost page's honest
+  // no-ask wrap-up): the email offers another window on us instead of a plan.
+  const gotLeads = opts.leads > 0;
+  const budgetLine = !gotLeads
+    ? "Your market was quiet this window. That&rsquo;s on us to improve, not on you to pay for: we&rsquo;ll tune your page, adjust the ads, and run another window on us."
+    : opts.intendedMonthlyBudget
+      ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
+      : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
 
   return layout(
     `
@@ -524,8 +529,12 @@ export function adBoostPromoCompleteEmail(opts: {
       </tr>
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${budgetLine}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">You can pick a plan right from your results page, no call needed. A month with zero family inquiries is free. Or reply to this email and we&rsquo;ll review the numbers together first.</p>
-    <div>${button("See your results and choose", opts.ctaUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
+      gotLeads
+        ? "You can pick a plan right from your results page, no call needed. A month with zero family inquiries is free. Or reply to this email and we&rsquo;ll review the numbers together first."
+        : "Reply to this email if you&rsquo;d like to review what happened together, or just watch for the next window."
+    }</p>
+    <div>${button(gotLeads ? "See your results and choose" : "See your results", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>

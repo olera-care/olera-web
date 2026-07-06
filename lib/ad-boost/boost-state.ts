@@ -17,6 +17,14 @@ import type { AdBoostEligibility } from "./eligibility";
  * page always re-fetches in the background to reconcile + run promotion.
  */
 
+/** Channel options shown to providers (label lookup shared by the boost page
+ *  and the extracted campaign views). */
+export const BOOST_CHANNELS = [
+  { value: "both", label: "Google + Meta" },
+  { value: "google", label: "Google only" },
+  { value: "meta", label: "Meta only" },
+] as const;
+
 export interface BoostRequest {
   id: string;
   status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled";

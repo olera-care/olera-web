@@ -71,9 +71,11 @@ export async function POST(request: NextRequest) {
       { status: 404 },
     );
   }
-  if (campaign.plan_status === "active") {
+  // active = already paying; past_due = Stripe is dunning the existing
+  // subscription — a new checkout would stack a second subscription on top.
+  if (campaign.plan_status === "active" || campaign.plan_status === "past_due") {
     return NextResponse.json(
-      { error: "This campaign already has an active plan" },
+      { error: "This campaign already has a plan" },
       { status: 409 },
     );
   }

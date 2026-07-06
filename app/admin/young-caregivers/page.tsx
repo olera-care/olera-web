@@ -130,31 +130,33 @@ export default function YoungCaregiversAdmin() {
               <div className="px-6 py-4 border-b border-gray-100">
                 <h2 className="text-sm font-semibold text-gray-700">Daily Breakdown</h2>
               </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-6 py-3 font-medium text-gray-500">Date</th>
-                    <th className="text-right px-6 py-3 font-medium text-gray-500">Views</th>
-                    <th className="text-right px-6 py-3 font-medium text-gray-500">Clicks</th>
-                    <th className="text-right px-6 py-3 font-medium text-gray-500">Rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedDays.map((date) => {
-                    const views = stats.daily.views[date] || 0;
-                    const clicks = stats.daily.clicks[date] || 0;
-                    const rate = views > 0 ? `${Math.round((clicks / views) * 100)}%` : "—";
-                    return (
-                      <tr key={date} className="border-b border-gray-50">
-                        <td className="px-6 py-2.5 text-gray-700">{date}</td>
-                        <td className="px-6 py-2.5 text-right">{views}</td>
-                        <td className="px-6 py-2.5 text-right font-medium">{clicks}</td>
-                        <td className="px-6 py-2.5 text-right text-gray-500">{rate}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-gray-50">
+                      <th className="text-left px-6 py-3 font-medium text-gray-500">Date</th>
+                      <th className="text-right px-6 py-3 font-medium text-gray-500">Views</th>
+                      <th className="text-right px-6 py-3 font-medium text-gray-500">Clicks</th>
+                      <th className="text-right px-6 py-3 font-medium text-gray-500">Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedDays.map((date) => {
+                      const views = stats.daily.views[date] || 0;
+                      const clicks = stats.daily.clicks[date] || 0;
+                      const rate = views > 0 ? `${Math.round((clicks / views) * 100)}%` : "—";
+                      return (
+                        <tr key={date} className="border-b border-gray-50">
+                          <td className="px-6 py-2.5 text-gray-700">{date}</td>
+                          <td className="px-6 py-2.5 text-right">{views}</td>
+                          <td className="px-6 py-2.5 text-right font-medium">{clicks}</td>
+                          <td className="px-6 py-2.5 text-right text-gray-500">{rate}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

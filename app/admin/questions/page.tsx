@@ -787,6 +787,7 @@ export default function AdminQuestionsPage() {
         statsPath="/api/admin/questions/stats"
         range={range}
         onRangeChange={setRange}
+        deltaDirection="up-bad"
       />
 
       {/* Search bar + Export button */}

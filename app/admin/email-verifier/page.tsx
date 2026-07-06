@@ -129,7 +129,7 @@ export default function EmailVerifierPage() {
       </div>
 
       {results.length > 0 && (
-        <div className="mt-6 border border-gray-100 rounded-xl overflow-hidden">
+        <div className="mt-6 border border-gray-100 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-400 text-xs">
               <tr>

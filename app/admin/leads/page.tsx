@@ -504,6 +504,7 @@ export default function AdminLeadsPage() {
         statsPath="/api/admin/leads/stats"
         range={range}
         onRangeChange={setRange}
+        deltaDirection="up-bad"
       />
 
       {/* Search bar */}

@@ -8,6 +8,7 @@ import DateRangePopover, {
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
 import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
+import ReorderableSections from "@/components/admin/ReorderableSections";
 
 /**
  * /admin/family-comms — the family-engagement + email-observability surface.
@@ -527,6 +528,11 @@ export default function FamilyCommsAnalyticsPage() {
 
           <BulkCollapseToolbar />
 
+          {/* Sections are drag-reorderable via the grip that appears on hover —
+              identity comes from each section's storageKey, order persists per
+              operator in localStorage. */}
+          <ReorderableSections storageKey="family-comms">
+
           {/* Where families land — the outcome distribution (Phase 0).
               The north star made legible: we count outcomes, not just sends. */}
           {oc && (
@@ -758,6 +764,8 @@ export default function FamilyCommsAnalyticsPage() {
               <WeeklyBars title="Profiles went live / week" series={data.cutover.goLivesWeekly} starts={data.cutover.weekStartsISO} cutoverIdx={data.cutover.cutoverWeekIndex} color="bg-emerald-500" />
             </div>
           </CollapsibleSection>
+
+          </ReorderableSections>
 
           <p className="mt-2 text-[11px] text-gray-400">
             Generated {new Date(data.generatedAt).toLocaleString()} · all signals from existing data (email_log + Resend webhooks + seeker_activity).

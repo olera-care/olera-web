@@ -29,7 +29,6 @@ const navSections: NavSection[] = [
     defaultOpen: true,
     items: [
       { label: "Activity Center", href: "/admin/activity" },
-      { label: "Demand", href: "/admin/demand" },
       { label: "Market Outreach", href: "/admin/market-outreach" },
       { label: "Connections", href: "/admin/connections" },
       { label: "Leads", href: "/admin/leads" },

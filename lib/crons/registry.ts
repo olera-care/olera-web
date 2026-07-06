@@ -271,7 +271,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/matches-nudge",
     emailTypes: ["matches_nudge", "provider_incomplete_profile"],
     successSignal: "Family activates Matches / provider completes their profile.",
-    relatedAdminPath: "/admin/matches",
+    relatedAdminPath: "/admin/activity?actor=families",
   },
   {
     id: "sms-queue-flush",
@@ -299,7 +299,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/matches-unread",
     emailTypes: ["unread_reminder"],
     successSignal: "Recipient opens the thread and replies.",
-    relatedAdminPath: "/admin/matches",
+    relatedAdminPath: "/admin/activity?actor=families",
   },
   {
     id: "unread-reminders",

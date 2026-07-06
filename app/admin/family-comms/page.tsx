@@ -7,7 +7,7 @@ import DateRangePopover, {
   rangeLabel,
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
-import CollapsibleSection from "@/components/admin/CollapsibleSection";
+import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
 
 /**
  * /admin/family-comms — the family-engagement + email-observability surface.
@@ -524,6 +524,8 @@ export default function FamilyCommsAnalyticsPage() {
             <Stat label="Provider got back" value={pct(sensor?.yesRate ?? 0)} sub="of those who answered" info="Of families who answered the outcome-check, the share who said YES, a provider did get back to them. A 'no / not yet' routes them into the help cascade." />
             <Stat label="Went live" value={num(conv?.published ?? 0)} sub="profiles published" accent info="Family care-seeker profiles that were published (went live) in this window — the North-Star proxy. Counts the action across all families, not attributed to a single email." />
           </div>
+
+          <BulkCollapseToolbar />
 
           {/* Where families land — the outcome distribution (Phase 0).
               The north star made legible: we count outcomes, not just sends. */}

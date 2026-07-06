@@ -11,7 +11,7 @@ import DateRangePopover, {
 } from "@/components/admin/DateRangePopover";
 import { useAnimatedCount } from "@/hooks/use-animated-count";
 import VariantSessionsList from "@/components/admin/VariantSessionsList";
-import CollapsibleSection, { bulkCollapse } from "@/components/admin/CollapsibleSection";
+import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
 import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
 import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
@@ -512,33 +512,6 @@ export default function AdminAnalyticsPage() {
       </CollapsibleSection>
 
       <FootNote summary={summary} />
-    </div>
-  );
-}
-
-// ── Bulk collapse toolbar ────────────────────────────────────────────────
-//
-// Two text buttons aligned right, minimal chrome. Sits above the first
-// CollapsibleSection so it reads as section-level control rather than
-// page-level chrome.
-
-function BulkCollapseToolbar() {
-  return (
-    <div className="flex justify-end gap-3 mb-3 -mt-1">
-      <button
-        type="button"
-        onClick={() => bulkCollapse(false)}
-        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
-      >
-        Expand all
-      </button>
-      <button
-        type="button"
-        onClick={() => bulkCollapse(true)}
-        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
-      >
-        Collapse all
-      </button>
     </div>
   );
 }

@@ -165,6 +165,34 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal: "Provider feels appreciated and engaged.",
     relatedAdminPath: "/admin/analytics",
   },
+  {
+    id: "staffing-send-email2",
+    name: "Staffing outreach — follow-up email",
+    description: "Sends Email 2 (follow-up) to providers in the staffing-outreach sequence whose Email 1 went out 3+ days ago.",
+    recipientCohort: "Providers in the staffing-outreach sequence with email1_sent_at > 3 days ago and no email2 yet.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "0 * * * *",
+    humanSchedule: "Hourly, on the hour",
+    path: "/api/cron/staffing-send-email2",
+    // sent via the staffing-outreach helper — email_type set there. Refine if the rollup reads short.
+    emailTypes: [],
+    successSignal: "Provider replies / books a call.",
+    relatedAdminPath: "/admin/staffing-outreach",
+  },
+  {
+    id: "staffing-sequence-check",
+    name: "Staffing outreach — sequence advance",
+    description: "Auto-transitions providers from 'sequencing' to 'needs_call' once their email sequence is complete, so non-responders move to the manual-calling queue.",
+    recipientCohort: "(No recipients — a state-transition job.)",
+    audience: "Providers",
+    fn: "maintenance",
+    schedule: "30 * * * *",
+    humanSchedule: "Hourly, at :30",
+    path: "/api/cron/staffing-sequence-check",
+    emailTypes: [],
+    relatedAdminPath: "/admin/staffing-outreach",
+  },
   // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
   // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
   {
@@ -356,7 +384,7 @@ export const CRON_REGISTRY: CronJob[] = [
     // email_type set in the outreach-send helper. Refine if the rollup reads short.
     emailTypes: [],
     successSignal: "Stakeholder replies / a campus partnership advances.",
-    relatedAdminPath: "/admin/medjobs/sites",
+    relatedAdminPath: "/admin/student-outreach/campuses",
   },
 
   // ── Internal ───────────────────────────────────────────────────────

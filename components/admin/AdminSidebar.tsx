@@ -70,6 +70,12 @@ const navSections: NavSection[] = [
       { label: "Family Comms", href: "/admin/family-comms" },
       { label: "Benefits", href: "/admin/benefits" },
       { label: "Content", href: "/admin/content" },
+      // v9.0 Phase 7 Commit K: Staffing Outreach retired — its
+      // operational concerns are fully covered by the MedJobs
+      // section below (sites, prospects, partners, etc.). Hidden
+      // here to avoid redundancy + conceptual overlap; the legacy
+      // /admin/staffing-outreach route still resolves for any
+      // bookmarks during transition.
       { label: "Team", href: "/admin/team" },
     ],
   },

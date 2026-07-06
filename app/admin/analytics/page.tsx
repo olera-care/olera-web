@@ -12,6 +12,7 @@ import DateRangePopover, {
 import { useAnimatedCount } from "@/hooks/use-animated-count";
 import VariantSessionsList from "@/components/admin/VariantSessionsList";
 import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
+import ReorderableSections from "@/components/admin/ReorderableSections";
 import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
 import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
@@ -396,10 +397,15 @@ export default function AdminAnalyticsPage() {
 
       <BulkCollapseToolbar />
 
-      {/* Section order is curation: Family Intake and Provider Comms Funnel
-          carry the highest-leverage operator decisions, so they sit up top.
-          The windowed KPI roll-up and the legacy Q&A funnel are reference
-          tables — useful but not where the eye should land first. */}
+      {/* Default section order is curation: Family Intake and Provider Comms
+          Funnel carry the highest-leverage operator decisions, so they sit up
+          top. The windowed KPI roll-up and the legacy Q&A funnel are reference
+          tables — useful but not where the eye should land first. Sections are
+          drag-reorderable via the grip that appears on hover — identity comes
+          from each section's storageKey, order persists per operator in
+          localStorage. */}
+      <ReorderableSections storageKey="analytics">
+
       <CollapsibleSection
         title="Family Intake"
         storageKey="benefitsFunnel"
@@ -510,6 +516,8 @@ export default function AdminAnalyticsPage() {
       >
         <LatestEventsCard summary={summary} loading={loading} />
       </CollapsibleSection>
+
+      </ReorderableSections>
 
       <FootNote summary={summary} />
     </div>

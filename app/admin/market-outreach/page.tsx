@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useToast } from "@/components/admin/Toast";
 
 type OutreachStatus = "to_contact" | "contacted" | "responded" | "referring" | "dismissed";
 type QueueStage = "all" | "not_started" | "started" | "momentum" | "stale";
@@ -129,6 +130,7 @@ export default function AdminMarketOutreachPage() {
   const [stage, setStage] = useState<QueueStage>("all");
   const [search, setSearch] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const toast = useToast();
 
   const handleDelete = async (provider: QueueProvider) => {
     const profileId = provider.profile_id ?? provider.key;
@@ -166,7 +168,7 @@ export default function AdminMarketOutreachPage() {
         };
       });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
+      toast(err instanceof Error ? err.message : "Failed to delete", { variant: "error" });
     } finally {
       setDeleting(null);
     }

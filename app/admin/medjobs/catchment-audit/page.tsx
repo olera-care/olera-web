@@ -127,7 +127,7 @@ export default function CatchmentAuditPage() {
       ) : error ? (
         <p className="py-12 text-center text-sm text-red-600">{error}</p>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
               <tr>

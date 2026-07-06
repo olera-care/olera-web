@@ -11,6 +11,7 @@
  * Usage:
  *   const toast = useToast();
  *   toast("Row moved to Replies");
+ *   toast("Failed to save", { variant: "error" });
  *
  * Provider wraps the admin layout; useToast() falls back to a no-op
  * (logged to console) when called outside the provider, so optional
@@ -26,12 +27,15 @@ import {
   type ReactNode,
 } from "react";
 
+type ToastVariant = "success" | "error";
+
 interface ToastMessage {
   id: number;
   text: string;
+  variant: ToastVariant;
 }
 
-type ToastFn = (text: string) => void;
+type ToastFn = (text: string, options?: { variant?: ToastVariant }) => void;
 
 const ToastContext = createContext<ToastFn | null>(null);
 
@@ -47,10 +51,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const nextIdRef = useRef(1);
 
-  const showToast = useCallback<ToastFn>((text) => {
+  const showToast = useCallback<ToastFn>((text, options) => {
     if (!text) return;
     const id = nextIdRef.current++;
-    setToasts((prev) => [...prev, { id, text }]);
+    setToasts((prev) => [...prev, { id, text, variant: options?.variant ?? "success" }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, AUTO_DISMISS_MS);
@@ -67,7 +71,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg ring-1 ring-emerald-700/20"
+            className={`pointer-events-auto rounded-md px-4 py-2 text-sm font-medium text-white shadow-lg ring-1 ${
+              t.variant === "error"
+                ? "bg-rose-600 ring-rose-700/20"
+                : "bg-emerald-600 ring-emerald-700/20"
+            }`}
           >
             {t.text}
           </div>

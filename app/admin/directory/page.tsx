@@ -29,7 +29,9 @@ export default function AdminDirectoryPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
   const [stateFilter, setStateFilter] = useState("");
-  const [tab, setTab] = useState<TabFilter>("all");
+  // Default to "published" — the "all" view sorts alphabetically and surfaces
+  // junk-named and deleted rows first. "All" stays selectable via the tabs.
+  const [tab, setTab] = useState<TabFilter>("published");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Add Provider modal state

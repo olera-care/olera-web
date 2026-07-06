@@ -798,7 +798,7 @@ export default function AdminCareSeekersPage() {
                       Weekly breakdown
                     </button>
                     {weeklyExpanded && (
-                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                      <div className="mt-2 overflow-x-auto rounded-lg border border-gray-200">
                         <table className="w-full text-sm">
                           <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>
@@ -1070,7 +1070,7 @@ export default function AdminCareSeekersPage() {
                         By CTA variant
                       </button>
                       {enrichmentByVariantExpanded && (
-                        <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                        <div className="mt-2 overflow-x-auto rounded-lg border border-gray-200">
                           <table className="w-full text-sm">
                             <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                               <tr>
@@ -1121,7 +1121,7 @@ export default function AdminCareSeekersPage() {
                       Weekly trend
                     </button>
                     {enrichmentWeeklyExpanded && (
-                      <div className="mt-2 overflow-hidden rounded-lg border border-gray-200">
+                      <div className="mt-2 overflow-x-auto rounded-lg border border-gray-200">
                         <table className="w-full text-sm">
                           <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                             <tr>

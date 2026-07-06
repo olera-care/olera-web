@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useToast } from "@/components/admin/Toast";
 import {
   RESEND_COMPLAINT_LIMIT,
   RESEND_COMPLAINT_WARN,
@@ -159,6 +160,7 @@ export default function AutomationsPage() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  const toast = useToast();
 
   useEffect(() => {
     try {
@@ -196,7 +198,7 @@ export default function AutomationsPage() {
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
       await load();
     } catch (e) {
-      alert(`Failed: ${e instanceof Error ? e.message : e}`);
+      toast(`Failed: ${e instanceof Error ? e.message : e}`, { variant: "error" });
     } finally {
       setBusy(null);
     }

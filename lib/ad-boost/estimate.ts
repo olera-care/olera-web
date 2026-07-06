@@ -16,32 +16,46 @@
  *    floored conservatively because micro-budgets run at the worse end with lumpy
  *    volume. Click->lead happens on the Olera page, so completeness = conversion.
  *
+ * Monetization model (2026-07-06 plan of record — Notion "Ad Boost Monetization
+ * + Budget-Step UX — Handoff"):
+ *  - The $50 stop is a FREE one-time intro campaign Olera covers ("First
+ *    campaign"), gated on the existing eligibility (verified + 70% complete).
+ *  - Paid tiers are named by outcome (Starter / Growth / Scale) and priced flat
+ *    and ALL-IN: ad spend + setup + management bundled. Never itemize a service
+ *    fee, never per-lead pricing.
+ *  - The risk-reversal is the zero-inquiry-month guarantee (see
+ *    /managed-ads-terms), surfaced here via BUDGET_TRUST_STRIP.
+ *
  * The honesty model: as the budget rises, the estimate shifts from REACH framing
  * ($50 = "You're live", NO number) to a LEAD range. The provider feels "more
- * spend -> real leads" without a lecture. The whole "you must spend for real
- * leads" message is the recommended-tier marker + BUDGET_HONEST_LINE +
- * BUDGET_ESTIMATE_CAVEAT — which bridges to the live `delivered` counter (the
- * truthful payoff that justifies not promising leads upfront).
+ * spend -> real leads" without a lecture. Scale's blurb carries the "steady flow
+ * honestly starts here" anchor; BUDGET_ESTIMATE_CAVEAT bridges to the live
+ * `delivered` counter (the truthful payoff that justifies not promising leads
+ * upfront).
  */
 
 export type BudgetStop = {
-  /** Whole dollars per month. The $50 stop is the intro Olera covers. */
+  /** Whole dollars per month. The $50 stop is the free intro Olera covers. */
   value: number;
-  /** Full label for the summary / review rows, e.g. "$150/mo". */
+  /** Tier name — the outcome ladder (First campaign / Starter / Growth / Scale). */
+  name: string;
+  /** Full label for the summary / review / facts rows, e.g. "Starter · $150/mo". */
   label: string;
-  /** Big amount on the card, line 1 (e.g. "$150") — kept short so it never clips. */
+  /** Big amount on the card (e.g. "$150") — kept short so it never clips. */
   amount: string;
-  /** Small descriptor centered under the amount (e.g. "/mo", "on us"). */
+  /** Small descriptor beside the amount (e.g. "/mo", "on us"). */
   sublabel: string;
-  /** The single quiet marker — the steady-leads anchor (renders a pill). */
-  recommended?: boolean;
+  /** Optional one-or-two-word quiet chip (outlined, never a filled banner). */
+  chip?: string;
   /** "reach" promises visibility (no lead count); "leads" gives a range. */
   kind: "reach" | "leads";
   /** The BIG focal line. Leads -> a range ("2–4"); reach -> a short phrase. */
   headline: string;
   /** Unit shown beside a leads range (omitted for reach). */
   unit?: string;
-  /** Supporting one-liner under the headline. */
+  /** One honest sentence on the picker card — who this tier is for. */
+  blurb: string;
+  /** Supporting one-liner under the outcome headline. */
   estimate: string;
 };
 
@@ -54,56 +68,72 @@ export const DEFAULT_BUDGET = 150;
 export const BUDGET_STOPS: BudgetStop[] = [
   {
     value: 50,
-    label: "$50 (on us)",
+    name: "First campaign",
+    label: "First campaign (on us)",
     amount: "$50",
     sublabel: "on us",
     kind: "reach",
     headline: "You're live",
+    blurb: "One time, on us. We run about $50 of ads to your page so you can see what families do.",
     estimate: "Local families start seeing your page.",
   },
   {
     value: 150,
-    label: "$150/mo",
+    name: "Starter",
+    label: "Starter · $150/mo",
     amount: "$150",
     sublabel: "/mo",
+    chip: "Most chosen",
     kind: "leads",
     headline: "1–2",
     unit: "inquiries / mo",
+    blurb: "Keep the ads running and learn what families respond to.",
     estimate: "Enough to learn what families respond to.",
   },
   {
     value: 300,
-    label: "$300/mo",
+    name: "Growth",
+    label: "Growth · $300/mo",
     amount: "$300",
     sublabel: "/mo",
     kind: "leads",
     headline: "2–4",
     unit: "inquiries / mo",
+    blurb: "More hours in front of families who are searching right now.",
     estimate: "A steady read on what your market sends.",
   },
   {
     value: STEADY_LEADS_THRESHOLD,
-    label: "$600+/mo",
+    name: "Scale",
+    label: "Scale · $600+/mo",
     amount: "$600+",
     sublabel: "/mo",
-    recommended: true,
     kind: "leads",
     headline: "4–8",
     unit: "inquiries / mo",
-    estimate: "Consistent flow — the level most agencies run for.",
+    blurb: "Where steady weekly inquiries begin. Most agencies run at this level.",
+    estimate: "Consistent flow, month over month.",
   },
 ];
 
 /** The exact dollar values a request may carry (POST validation allowlist). */
 export const BUDGET_VALUES: number[] = BUDGET_STOPS.map((s) => s.value);
 
-/** The one honest line: factual + social-proofed, NOT a warning. */
+/** The one honest line about how the money works (plans are all-in, no card). */
 export const BUDGET_HONEST_LINE =
-  "Your first $50 is on us to get you live. Steady inquiries really begin around $600/mo — that's where most agencies run for consistent leads.";
+  "Your first campaign is on us. Paid plans are all-in: ad spend, setup, and management together, with no contract.";
 
 /** Shown once near the estimate. Verbatim bridge to the live `delivered` counter. */
 export const BUDGET_ESTIMATE_CAVEAT =
-  "Estimate — actual results vary with your market, budget, and how fast you respond. We'll show you exactly what your campaign delivered.";
+  "Estimates, not promises. Results vary with your market and how fast you respond. We show you exactly what your campaign delivers.";
+
+/** The de-risk stat strip beside the picker (Robinhood-style: value big, label tiny).
+ *  "Free zero-inquiry months" is the guarantee — defined on /managed-ads-terms. */
+export const BUDGET_TRUST_STRIP: { value: string; label: string }[] = [
+  { value: "$0", label: "due today" },
+  { value: "Anytime", label: "cancel or pause" },
+  { value: "Free", label: "zero-inquiry months" },
+];
 
 /** Look up a stop by its dollar value (null-safe). */
 export function budgetStop(value: number | null | undefined): BudgetStop | null {

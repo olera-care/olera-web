@@ -4,13 +4,13 @@ import LegalPageLayout from "@/components/legal/LegalPageLayout";
 export const metadata: Metadata = {
   title: "Managed Ads — Terms | Olera",
   description:
-    "How Olera Managed Ads works: what we do, budget and payment, no guaranteed results, your leads, and how to cancel.",
+    "How Olera Managed Ads works: your free first campaign, all-in monthly plans, the zero-inquiry month guarantee, your leads, and how to cancel.",
   alternates: { canonical: "/managed-ads-terms" },
   robots: { index: false, follow: false },
   openGraph: {
     title: "Managed Ads — Terms | Olera",
     description:
-      "How Olera Managed Ads works: what we do, budget and payment, no guaranteed results, your leads, and how to cancel.",
+      "How Olera Managed Ads works: your free first campaign, all-in monthly plans, the zero-inquiry month guarantee, your leads, and how to cancel.",
     url: "/managed-ads-terms",
     siteName: "Olera",
     type: "website",
@@ -19,13 +19,13 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Managed Ads — Terms | Olera",
     description:
-      "How Olera Managed Ads works: what we do, budget and payment, no guaranteed results, your leads, and how to cancel.",
+      "How Olera Managed Ads works: your free first campaign, all-in monthly plans, the zero-inquiry month guarantee, your leads, and how to cancel.",
   },
 };
 
 export default function ManagedAdsTermsPage() {
   return (
-    <LegalPageLayout title="Managed Ads — How It Works" lastUpdated="June 16, 2026">
+    <LegalPageLayout title="Managed Ads — How It Works" lastUpdated="July 6, 2026">
       <p>
         These terms describe Olera Managed Ads (the &ldquo;Service&rdquo;), an
         optional paid advertising service offered by Olera, Inc.
@@ -52,9 +52,13 @@ export default function ManagedAdsTermsPage() {
       <h2>Eligibility</h2>
       <p>
         Managed Ads is available only to providers who have claimed and verified
-        their Olera page and have requested the Service. We run paid advertising
-        only at a provider&apos;s request and only to that provider&apos;s own
-        claimed page. We do not run paid advertising to unclaimed listings.
+        their Olera page and have requested the Service. Because families decide
+        based on what your page shows, we also ask that your page meet our
+        completeness threshold before a campaign launches; if it does not yet, we
+        queue your request and help you finish, and the campaign launches once
+        your page is ready. We run paid advertising only at a provider&apos;s
+        request and only to that provider&apos;s own claimed page. We do not run
+        paid advertising to unclaimed listings.
       </p>
 
       {/* 3. HOW CAMPAIGNS ARE RUN */}
@@ -68,18 +72,39 @@ export default function ManagedAdsTermsPage() {
         for you.
       </p>
 
-      {/* 4. BUDGET AND PAYMENT */}
-      <h2>Budget and Payment</h2>
+      {/* 4. PLANS AND PAYMENT */}
+      <h2>Plans and Payment</h2>
       <p>
-        To get you started, Olera covers the first $50 of advertising spend at no
-        cost to you. After that introductory amount, you choose a monthly
-        advertising budget and fund it, and Olera builds, runs, and optimizes the
-        campaign using that budget. We will confirm your budget with you before
-        any spend beyond the introductory $50. Budgets and payment are arranged
-        directly with you; you only ever fund the budget you have approved.
+        Your first campaign is on us: Olera covers approximately the first $50 of
+        advertising spend at no cost to you, one time per provider, so you can
+        see the Service in action before paying anything. No payment method is
+        required to request it.
+      </p>
+      <p>
+        If you continue after the introductory campaign, you choose a flat
+        monthly plan. Plan prices are all-in: they include your advertising
+        budget and Olera&apos;s campaign setup, management, and optimization
+        together. There are no separate service fees, no per-lead charges, and no
+        long-term contract; plans run month to month. We will confirm your plan
+        with you before anything is billed, and you are only ever charged for a
+        plan you have approved.
       </p>
 
-      {/* 5. NO GUARANTEED RESULTS */}
+      {/* 5. ZERO-INQUIRY MONTH GUARANTEE */}
+      <h2>Zero-Inquiry Month Guarantee</h2>
+      <p>
+        If a fully paid month on a monthly plan ends with zero family inquiries
+        received through your Olera page while your campaign was running, that
+        month is free: we will credit or refund that month&apos;s plan fee in
+        full. For this purpose, an inquiry means a family contacting you through
+        your Olera page while your campaign is active, as shown on your Olera
+        dashboard. Months in which your campaign was paused or stopped at your
+        request are not covered. This guarantee is a billing promise, not a
+        results promise; it does not apply to the introductory campaign, which is
+        already free.
+      </p>
+
+      {/* 6. NO GUARANTEED RESULTS */}
       <h2>No Guaranteed Results</h2>
       <p>
         Advertising increases how often local families see you, but Olera does
@@ -87,11 +112,13 @@ export default function ManagedAdsTermsPage() {
         new clients, or any particular return on your spend. Results depend on
         factors outside our control, including local demand, competition, your
         chosen budget, the completeness of your page, and how quickly you respond
-        to families who reach out. The introductory $50 is intended to let you see
-        the Service in action and is not a promise of any particular outcome.
+        to families who reach out. The introductory campaign is intended to let
+        you see the Service in action and is not a promise of any particular
+        outcome. The Zero-Inquiry Month Guarantee above is a billing promise
+        about what you pay, not a promise of results.
       </p>
 
-      {/* 6. YOUR LEADS AND RELATIONSHIPS */}
+      {/* 7. YOUR LEADS AND RELATIONSHIPS */}
       <h2>Your Leads and Relationships</h2>
       <p>
         Families who contact you through your Olera page are yours. Olera does not
@@ -101,7 +128,7 @@ export default function ManagedAdsTermsPage() {
         complying with all laws that apply to your business.
       </p>
 
-      {/* 7. CANCELLATION */}
+      {/* 8. CANCELLATION */}
       <h2>Cancellation</h2>
       <p>
         There is no long-term contract. You may pause or stop your campaign at any
@@ -110,7 +137,7 @@ export default function ManagedAdsTermsPage() {
         has been spent or committed at the time you cancel.
       </p>
 
-      {/* 8. YOUR REPRESENTATIONS */}
+      {/* 9. YOUR REPRESENTATIONS */}
       <h2>Your Representations</h2>
       <p>
         By requesting the Service, you represent and warrant that: (1) you own or
@@ -122,7 +149,7 @@ export default function ManagedAdsTermsPage() {
         advertise.
       </p>
 
-      {/* 9. ADVERTISING PLATFORM POLICIES */}
+      {/* 10. ADVERTISING PLATFORM POLICIES */}
       <h2>Advertising Platform Policies</h2>
       <p>
         Campaigns are subject to the policies and approval processes of the
@@ -133,7 +160,7 @@ export default function ManagedAdsTermsPage() {
         or downtime.
       </p>
 
-      {/* 10. REPORTING */}
+      {/* 11. REPORTING */}
       <h2>Reporting</h2>
       <p>
         We will share information about what your campaign delivered so you can see
@@ -142,7 +169,7 @@ export default function ManagedAdsTermsPage() {
         subject to the platforms&apos; own measurement limitations.
       </p>
 
-      {/* 11. DISCLAIMERS AND LIABILITY */}
+      {/* 12. DISCLAIMERS AND LIABILITY */}
       <h2>Disclaimers and Limitation of Liability</h2>
       <p>
         The Service is provided on an &ldquo;as is&rdquo; and &ldquo;as
@@ -154,7 +181,7 @@ export default function ManagedAdsTermsPage() {
         Service.
       </p>
 
-      {/* 12. CHANGES TO THESE TERMS */}
+      {/* 13. CHANGES TO THESE TERMS */}
       <h2>Changes to These Terms</h2>
       <p>
         We may update these terms from time to time. When we do, we will revise
@@ -162,7 +189,7 @@ export default function ManagedAdsTermsPage() {
         after a change means you accept the updated terms.
       </p>
 
-      {/* 13. GOVERNING LAW */}
+      {/* 14. GOVERNING LAW */}
       <h2>Governing Law</h2>
       <p>
         These terms are governed by the laws of the State of Texas, without regard
@@ -170,7 +197,7 @@ export default function ManagedAdsTermsPage() {
         our <a href="/terms">Terms of Use</a> apply to the Service.
       </p>
 
-      {/* 14. CONTACT */}
+      {/* 15. CONTACT */}
       <h2>Contact Us</h2>
       <p>
         Questions about Managed Ads? Reach us at:

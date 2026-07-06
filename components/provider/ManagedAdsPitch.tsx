@@ -105,7 +105,7 @@ export default function ManagedAdsPitch({
           <p className="flex items-center gap-2 text-sm text-gray-600 mb-4">
             <span className="text-primary-600">✦</span>
             <span>
-              First campaign on us — <span className="text-primary-600 font-medium">$50, free</span>
+              Your first campaign is on us: <span className="text-primary-600 font-medium">$50 of ads, free</span>
             </span>
           </p>
           <Link
@@ -134,7 +134,7 @@ export default function ManagedAdsPitch({
           <p className="flex items-center gap-2 text-sm text-gray-600 mb-3">
             <span className="text-primary-600">✦</span>
             <span>
-              First campaign on us — <span className="text-primary-600 font-medium">$50, free</span>
+              Your first campaign is on us: <span className="text-primary-600 font-medium">$50 of ads, free</span>
             </span>
           </p>
           <Link

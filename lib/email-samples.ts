@@ -23,6 +23,7 @@ import {
   day10AwaitingEmail,
   familyPendingReachOutNudgeEmail,
   familyNudgeEmail,
+  providerStillSilentEmail,
   type CompareCardItem,
   // family · profile sequences (family-nudges / conversation-stale / lead-family-nudge / matches-nudge)
   completionNudge1Email,
@@ -30,14 +31,18 @@ import {
   completionNudge3Email,
   completionNudge4Email,
   completionNudgeSubject,
+  completionMaintenanceEmail,
   publishNudge1Email,
   publishNudge2Email,
   publishNudge3Email,
   publishNudge4Email,
   publishNudgeSubject,
+  publishMaintenanceEmail,
   matchesNudgeEmail,
   staleConversationFamilyEmail,
   postConnectionFollowupEmail,
+  monthlyProviderRecommendationsEmail,
+  inactivityReengagementEmail,
   type EmailProviderCard,
   // provider
   providerWeeklyDigestEmail,
@@ -213,6 +218,22 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     }),
   },
   {
+    // Registered under the SYNTHETIC performance type (the wire email_type is
+    // family_never_engaged — governed, no new type); the family-comms dashboard
+    // splits this rung into its own row via metadata.coordinator_rung, so the
+    // drawer looks up variants by that synthetic type.
+    id: "family_provider_silent_guidance", audience: "family", group: "Family · Compare cascade",
+    label: "R2 · Provider silent → guidance (thin market)", subject: familyNeverEngagedSubject(false),
+    emailType: "family_provider_silent_guidance", cron: "family-comms-coordinator",
+    who: "Engaged family (sent ≥1 message), 96–120h in, no provider has responded anywhere — and fewer than 3 responsive alternatives exist nearby (thin market).",
+    why: "The switch flips Matchmaking → Guidance: with no honest shortlist to show, going silent here is the designed-away dead end. Lead with the cost/benefits unlock (the real paralyzer) plus the guide, and keep the original provider reachable.",
+    render: () => familyNeverEngagedEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
+      quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
+    }),
+  },
+  {
     id: "family_never_engaged_compare", audience: "family", group: "Family · Compare cascade",
     label: "R3 · Never-engaged → compare", subject: familyNeverEngagedSubject(true),
     emailType: "family_never_engaged", cron: "family-comms-coordinator",
@@ -234,6 +255,22 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       unsubscribeId: "sample-id",
       familyName: F.familyName, providerName: F.providerName, guideUrl: F.guideUrl, inboxUrl: F.inboxUrl,
       quiz: F_SORT_QUIZ, fullPictureUrl: F.quizUrl,
+    }),
+  },
+  {
+    id: "provider_still_silent", audience: "family", group: "Family · Compare cascade",
+    label: "Day 7 · Provider still silent → trust recovery", subject: "Let's find you someone who's ready to help",
+    emailType: "provider_still_silent", cron: "provider-still-silent",
+    who: "Family's inquiry is ~7 days old, the provider still hasn't responded anywhere, and responsive alternatives exist nearby.",
+    why: "Trust recovery — name the silence plainly (\"that's on them, not you\") and hand the family providers who are ready to help right now, before the platform loses them.",
+    render: () => providerStillSilentEmail({
+      familyName: F.familyName, providerName: F.providerName,
+      recommendedProviders: [
+        { name: "Golden Years Home Care", slug: "golden-years", priceRange: "$25–30/hr", viewUrl: "https://olera.care/provider/golden-years" },
+        { name: "Comfort First Caregivers", slug: "comfort-first", priceRange: null, viewUrl: "https://olera.care/provider/comfort-first" },
+        { name: "Hill Country Home Aides", slug: "hill-country", priceRange: "from $24/hr", viewUrl: "https://olera.care/provider/hill-country" },
+      ],
+      browseUrl: F.browseUrl,
     }),
   },
   {
@@ -325,6 +362,18 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     }).html,
   },
   {
+    id: "completion_maintenance", audience: "family", group: "Family · Profile sequences",
+    label: "Completion · monthly check-in", subject: "Top providers in Killeen you might have missed",
+    emailType: "completion_maintenance", cron: "family-comms-coordinator",
+    who: "Profile still under 60% complete after the day 0/2/6/13 sequence — monthly tail, capped at 6 touches, skipped for proven non-openers (ghost gate).",
+    why: "Keep the door open with fresh provider value (new joiners or top-rated near them) rather than repeating the completion ask cold.",
+    render: () => completionMaintenanceEmail({
+      unsubscribeId: "sample-id", familyName: F.familyName, welcomeUrl: F.welcomeUrl,
+      providers: FAM_CARDS, newProviderCount: 0,
+      missingFields: ["Timeline", "Payment Methods"], completionPercent: 55, city: "Killeen", state: "TX",
+    }),
+  },
+  {
     id: "publish_nudge_1", audience: "family", group: "Family · Profile sequences",
     label: "Publish · day 0", subject: publishNudgeSubject(1),
     emailType: "publish_nudge_1", cron: "family-nudges",
@@ -366,6 +415,17 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     }),
   },
   {
+    id: "publish_maintenance", audience: "family", group: "Family · Profile sequences",
+    label: "Publish · monthly check-in", subject: "3 new providers joined in Killeen",
+    emailType: "publish_maintenance", cron: "family-nudges",
+    who: "Profile ≥60% complete but still unpublished after the day 0/2/6/13 sequence — monthly tail, capped at 6 touches.",
+    why: "Fresh providers as the hook — show the market kept moving while they sat unpublished, and re-pitch the inbound flow of going live.",
+    render: () => publishMaintenanceEmail({
+      unsubscribeId: "sample-id", familyName: F.familyName, matchesUrl: F.matchesUrl,
+      providerCount: 24, newProviderCount: 3, providers: FAM_CARDS, city: "Killeen", state: "TX",
+    }),
+  },
+  {
     id: "stale_conversation_family", audience: "family", group: "Family · Profile sequences",
     label: "Stale conversation (family side)", subject: `Still looking? ${F.providerName} is here when you're ready`,
     emailType: "stale_conversation", cron: "conversation-stale",
@@ -395,6 +455,28 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     render: () => postConnectionFollowupEmail({
       unsubscribeId: "sample-id", familyName: F.familyName, providerName: F.providerName,
       providerSlug: "evergreen-senior-care", reviewUrl: "https://olera.care/provider/evergreen-senior-care?review=1",
+    }),
+  },
+  {
+    id: "monthly_recommendations", audience: "family", group: "Family · Profile sequences",
+    label: "Monthly provider picks", subject: "2 providers in Killeen match your search",
+    emailType: "monthly_recommendations", cron: "family-nudges",
+    who: "Published family, still searching — every 30 days, up to 12 touches (one year), only when there are providers to recommend.",
+    why: "Passive long-tail value — keep a slow search alive with a fresh shortlist instead of letting the published profile go quiet.",
+    render: () => monthlyProviderRecommendationsEmail({
+      unsubscribeId: "sample-id", familyName: F.familyName, profileUrl: F.profileUrl, inboxUrl: F.inboxUrl,
+      providers: FAM_CARDS, newProviderCount: 2, isPublished: true, city: "Killeen", state: "TX",
+    }),
+  },
+  {
+    id: "inactivity_reengagement", audience: "family", group: "Family · Profile sequences",
+    label: "Quiet for 30 days — re-engagement", subject: "Still searching for care in Killeen?",
+    emailType: "inactivity_reengagement", cron: "family-nudges",
+    who: "Family inactive for 30+ days with providers available near them — a limited number of re-engagement attempts.",
+    why: "One honest check-in: are you still searching? CTA adapts to their state — inbox if published, publish if complete, finish profile otherwise.",
+    render: () => inactivityReengagementEmail({
+      unsubscribeId: "sample-id", familyName: F.familyName, profileUrl: F.profileUrl, inboxUrl: F.inboxUrl,
+      providers: FAM_CARDS, completionPercent: 70, isPublished: false, city: "Killeen", state: "TX",
     }),
   },
 

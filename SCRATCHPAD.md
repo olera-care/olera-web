@@ -7,6 +7,28 @@
 
 ## Current Focus
 
+### 2026-07-06 — Family-comms admin UX session: drawer previews + collapse-all + drag-reorder (PR #1321 → staging, awaiting TJ QA)
+
+Three improvements to `/admin/family-comms` in one PR, driven by TJ reviewing the page live:
+
+**1. Preview gap (see next entry for full root-cause).** Six live email types had no drawer preview — registered gallery samples for all six.
+
+**2. Expand/Collapse-all toolbar.** Sections were already individually collapsible; the bulk mechanism (window event) already existed in `CollapsibleSection` for /admin/analytics. Promoted `BulkCollapseToolbar` from analytics-local into the shared component (`components/admin/CollapsibleSection.tsx`), rendered on family-comms.
+
+**3. Drag-and-reorder sections (both admin pages).** TJ: by-type table is his workhorse but sat third; "this might change" → drag, not hardcode. New `components/admin/ReorderableSections.tsx`: wraps a CollapsibleSection stack; hover grip top-right of each header; native HTML5 DnD, NO library. Key design: section identity = the child's existing collapse `storageKey` (read via Children props), so wrapped page JSX is untouched and conditional sections stay stable. Order persists per operator in localStorage (`olera.adminSections.order.<page>`); new sections merge in at natural position. Drag only arms from the grip (header clicks/text selection unaffected); midpoint rule prevents tall-section oscillation. Applied to family-comms AND /admin/analytics (independent storage keys; analytics' hardcoded curation stays the default). Desktop-only (HTML5 DnD ≠ touch) — fine for admin. TJ verified reorder "works perfectly" on preview.
+
+**Next up:** TJ QA the rest of #1321 (previews + collapse-all + analytics regression) → merge to staging. Then the still-open gates: Ad Boost go-live flips (07-05 entry), orientation campaign send, family-nudges withCronRun fix.
+
+### 2026-07-06 (earlier) — Family-comms drawer: preview gap fixed for 6 email types (details)
+
+TJ flagged that some rows in the Email performance by type drawer showed "No template preview / no rationale registered" (e.g. Day 4 thin-market). Root cause: the drawer previews via the Email Gallery registry (`lib/email-samples.ts`), matched on `emailType` — and six live types had no registered sample. The worst was **`family_provider_silent_guidance`, a SYNTHETIC analytics type**: the wire email_type is `family_never_engaged` (reused per governance, no new type), split into its own dashboard row via `metadata.coordinator_rung` — the split exists only in analytics, so no gallery entry could ever match.
+
+**Shipped (PR #1321, one file):** registered samples with who/why rationale for all six — the guidance rung (keyed on the synthetic type deliberately), `provider_still_silent` (Day 7), `completion_maintenance`, `publish_maintenance`, `monthly_recommendations`, `inactivity_reengagement`. Each renders the exact template + params its cron sends (read every send site; subjects cross-checked against real subject logic). Side effect: all six now also appear in the Email Gallery + per-cron automations preview. `go_live_reminder` (retired, template deleted) + `dormant_reengagement` (legacy) intentionally stay preview-less.
+
+**Validation:** tsc 0; all 6 rendered offline via sucrase hook with content spot-checks; no duplicate variant ids (43 total); `resolveFromAddress` fails open on the synthetic type (a throw would have 500'd the whole gallery list); automations preview cron-guard verified against registry ids; check:crons green. Pre-test review found no bugs.
+
+**Known quirk (pre-existing, disclosed):** the synthetic row's "View sent log" link filters email_log by a type never written there (real rows = `family_never_engaged`) → empty log. Fixing means teaching the emails admin about rung metadata; deferred.
+
 ### 2026-07-05 (late PM) — BOTH Ad Boost campaigns PUBLISHED in Google Ads via Chrome MCP (first fully browser-driven setup)
 
 Claude drove ads.google.com end-to-end through the chrome-devtools MCP (Claude-managed Chrome window, TJ signed in once as tj@olera.care, account 419-933-1442). Both campaigns published with TJ approving each Publish click:

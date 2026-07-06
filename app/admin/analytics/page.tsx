@@ -11,7 +11,8 @@ import DateRangePopover, {
 } from "@/components/admin/DateRangePopover";
 import { useAnimatedCount } from "@/hooks/use-animated-count";
 import VariantSessionsList from "@/components/admin/VariantSessionsList";
-import CollapsibleSection, { bulkCollapse } from "@/components/admin/CollapsibleSection";
+import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
+import ReorderableSections from "@/components/admin/ReorderableSections";
 import { INTAKE_VARIANTS, type IntakeVariant } from "@/lib/analytics/variant";
 import { variantSurfaceLabel, variantSubLabel } from "@/lib/analytics/variant-copy";
 import { CTA_VARIANTS, type CTAVariant } from "@/lib/analytics/cta-variant";
@@ -396,10 +397,15 @@ export default function AdminAnalyticsPage() {
 
       <BulkCollapseToolbar />
 
-      {/* Section order is curation: Family Intake and Provider Comms Funnel
-          carry the highest-leverage operator decisions, so they sit up top.
-          The windowed KPI roll-up and the legacy Q&A funnel are reference
-          tables — useful but not where the eye should land first. */}
+      {/* Default section order is curation: Family Intake and Provider Comms
+          Funnel carry the highest-leverage operator decisions, so they sit up
+          top. The windowed KPI roll-up and the legacy Q&A funnel are reference
+          tables — useful but not where the eye should land first. Sections are
+          drag-reorderable via the grip that appears on hover — identity comes
+          from each section's storageKey, order persists per operator in
+          localStorage. */}
+      <ReorderableSections storageKey="analytics">
+
       <CollapsibleSection
         title="Family Intake"
         storageKey="benefitsFunnel"
@@ -511,34 +517,9 @@ export default function AdminAnalyticsPage() {
         <LatestEventsCard summary={summary} loading={loading} />
       </CollapsibleSection>
 
+      </ReorderableSections>
+
       <FootNote summary={summary} />
-    </div>
-  );
-}
-
-// ── Bulk collapse toolbar ────────────────────────────────────────────────
-//
-// Two text buttons aligned right, minimal chrome. Sits above the first
-// CollapsibleSection so it reads as section-level control rather than
-// page-level chrome.
-
-function BulkCollapseToolbar() {
-  return (
-    <div className="flex justify-end gap-3 mb-3 -mt-1">
-      <button
-        type="button"
-        onClick={() => bulkCollapse(false)}
-        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
-      >
-        Expand all
-      </button>
-      <button
-        type="button"
-        onClick={() => bulkCollapse(true)}
-        className="text-[11px] text-gray-500 hover:text-gray-900 underline underline-offset-2"
-      >
-        Collapse all
-      </button>
     </div>
   );
 }

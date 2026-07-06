@@ -652,7 +652,13 @@ export default function AdminCareSeekersPage() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Care Seekers</h1>
-          <p className="text-sm text-gray-500 mt-1">Families and individuals looking for care</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Families and individuals looking for care
+            {" · "}
+            <a href="/admin/demand" className="text-primary-600 hover:text-primary-700">
+              By city →
+            </a>
+          </p>
         </div>
         <DateRangePopover value={dateRange} onChange={setDateRange} />
       </div>

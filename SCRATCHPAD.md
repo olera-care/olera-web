@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-07-06 — Family-comms drawer: preview gap fixed for 6 email types (PR #1321 → staging, awaiting TJ QA)
+
+TJ flagged that some rows in the Email performance by type drawer showed "No template preview / no rationale registered" (e.g. Day 4 thin-market). Root cause: the drawer previews via the Email Gallery registry (`lib/email-samples.ts`), matched on `emailType` — and six live types had no registered sample. The worst was **`family_provider_silent_guidance`, a SYNTHETIC analytics type**: the wire email_type is `family_never_engaged` (reused per governance, no new type), split into its own dashboard row via `metadata.coordinator_rung` — the split exists only in analytics, so no gallery entry could ever match.
+
+**Shipped (PR #1321, one file):** registered samples with who/why rationale for all six — the guidance rung (keyed on the synthetic type deliberately), `provider_still_silent` (Day 7), `completion_maintenance`, `publish_maintenance`, `monthly_recommendations`, `inactivity_reengagement`. Each renders the exact template + params its cron sends (read every send site; subjects cross-checked against real subject logic). Side effect: all six now also appear in the Email Gallery + per-cron automations preview. `go_live_reminder` (retired, template deleted) + `dormant_reengagement` (legacy) intentionally stay preview-less.
+
+**Validation:** tsc 0; all 6 rendered offline via sucrase hook with content spot-checks; no duplicate variant ids (43 total); `resolveFromAddress` fails open on the synthetic type (a throw would have 500'd the whole gallery list); automations preview cron-guard verified against registry ids; check:crons green. Pre-test review found no bugs.
+
+**Known quirk (pre-existing, disclosed):** the synthetic row's "View sent log" link filters email_log by a type never written there (real rows = `family_never_engaged`) → empty log. Fixing means teaching the emails admin about rung metadata; deferred.
+
+**Next up:** (1) TJ QA #1321 on preview → merge to staging; (2) Ad Boost launch-day gates still open (see 07-05 entry: flip both rows live via /admin/ad-boost once Google serves, Pat photos, Legacy Haven); (3) orientation campaign send gate (600 candidates); (4) family-nudges cron_runs withCronRun observability fix.
+
 ### 2026-07-05 (late PM) — BOTH Ad Boost campaigns PUBLISHED in Google Ads via Chrome MCP (first fully browser-driven setup)
 
 Claude drove ads.google.com end-to-end through the chrome-devtools MCP (Claude-managed Chrome window, TJ signed in once as tj@olera.care, account 419-933-1442). Both campaigns published with TJ approving each Publish click:

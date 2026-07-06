@@ -310,7 +310,7 @@ export function adBoostRequestedEmail(opts: {
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is ready for setup</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your managed-ads request came through, and your Olera page has enough detail for us to start setting up the campaign.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s how it works: we run a local ${channel} campaign for families searching for care, send them straight to your Olera page, and any who reach out land directly in your dashboard.</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">To get started, the first $50 of ad spend is on us. That is enough to get the campaign live and let you see the flow end to end. After that, you choose the monthly budget and we run the campaign.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">To get started, the first $50 of ad spend is on us. That is enough to get the campaign live and let you see the flow end to end. After that, you can choose a flat monthly plan and we keep running everything for you.</p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
     </div>
@@ -341,7 +341,7 @@ export function adBoostReadyEmail(opts: {
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
     </div>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. Once it is complete, we can review the results together and talk through the right monthly budget.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. Once it is complete, we can review the results together and talk through the right monthly plan.</p>
     <div>${button("View Ad Boost", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
@@ -399,7 +399,7 @@ export function adBoostCampaignLaunchedEmail(opts: {
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your campaign is live</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your Find Families campaign for ${escapeHtml(opts.providerName)} is now running.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;re sending local families from ${channel} to your Olera page. When someone reaches out, they&rsquo;ll appear in your dashboard and we&rsquo;ll email you.</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. We&rsquo;ll keep watching the early signal and summarize what happened before you choose any monthly budget.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. We&rsquo;ll keep watching the early signal and summarize what happened before you choose any monthly plan.</p>
     <div>${button("View campaign", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
@@ -460,7 +460,7 @@ export function adBoostTractionEmail(opts: {
         </td>
       </tr>
     </table>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly budget after the promotional test.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.</p>
     <div>${button("View performance", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
@@ -485,8 +485,8 @@ export function adBoostPromoCompleteEmail(opts: {
       ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
       : "—";
   const budgetLine = opts.intendedMonthlyBudget
-    ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo budget as a starting point and adjust from the results.`
-    : "When you&rsquo;re ready, we can talk through the monthly budget that makes sense from the results.";
+    ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
+    : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
 
   return layout(
     `

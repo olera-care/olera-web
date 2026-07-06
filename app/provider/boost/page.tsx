@@ -29,7 +29,6 @@ import {
   DEFAULT_BUDGET,
   budgetStop,
   budgetLabel,
-  estimateSummary,
   type BudgetStop,
 } from "@/lib/ad-boost/estimate";
 
@@ -450,7 +449,7 @@ function CampaignFacts({ request }: { request: BoostRequest }) {
     { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
-  if (budget) facts.push({ label: "Budget", value: budget });
+  if (budget) facts.push({ label: "Plan", value: budget });
 
   // Flex + flex-1 (not a fixed grid) so 1, 2, or 3 facts always fill the width
   // evenly — older requests with no channel/budget never leave empty cells.
@@ -990,7 +989,7 @@ function ApplyExperience({
             </h2>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-md">
               {eligible
-                ? "We'll review this, confirm the budget with you, and send the plan before anything goes live."
+                ? "We'll review this, confirm your plan with you, and send the details before anything goes live."
                 : "We'll queue this now, help you get the page ready, and send the plan before anything goes live."}
             </p>
 

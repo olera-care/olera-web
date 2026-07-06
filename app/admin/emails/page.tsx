@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 type StatusFilter = "all" | "sent" | "failed";
 
@@ -249,15 +250,11 @@ export default function AdminEmailsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Emails</h1>
-            <p className="text-lg text-gray-600 mt-1">
-              Complete log of every email sent through the platform.
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
+      <AdminPageHeader
+        title="Emails"
+        description="Complete log of every email sent through the platform."
+        actions={
+          <>
             <span className="text-sm text-gray-500">{total} total</span>
             <Link
               href="/admin/emails/gallery"
@@ -271,9 +268,9 @@ export default function AdminEmailsPage() {
             >
               Export CSV
             </button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Search bar */}
       <div className="mb-4">

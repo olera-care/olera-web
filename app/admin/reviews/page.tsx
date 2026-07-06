@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 import CollapsibleSection from "@/components/admin/CollapsibleSection";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 // ── Types ──
 
@@ -211,24 +212,22 @@ export default function AdminReviewsPage() {
   return (
     <div>
       {/* Header with search and date range */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
-          <p className="text-lg text-gray-600 mt-1">
-            Manage reviews across all sources.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search reviews..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <DateRangePopover value={dateRange} onChange={setDateRange} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Reviews"
+        description="Manage reviews across all sources."
+        actions={
+          <>
+            <input
+              type="text"
+              placeholder="Search reviews..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-64 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <DateRangePopover value={dateRange} onChange={setDateRange} />
+          </>
+        }
+      />
 
       {/* Stats row */}
       {statsError ? (

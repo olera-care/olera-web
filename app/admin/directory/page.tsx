@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import Pagination from "@/components/ui/Pagination";
 import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
@@ -258,33 +259,31 @@ export default function AdminDirectoryPage() {
         </div>
       )}
 
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Provider Directory</h1>
-          <p className="text-lg text-gray-600 mt-1">
-            {total.toLocaleString()} providers in directory
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExport}
-            disabled={exporting || loading}
-            className="px-4 py-2.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            {exporting ? "Exporting..." : "Export CSV"}
-          </button>
-          <button
-            onClick={() => {
-              setNewName("");
-              setNewCategory("");
-              setShowAddModal(true);
-            }}
-            className="px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            + Add Provider
-          </button>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Provider Directory"
+        description={`${total.toLocaleString()} providers in directory`}
+        actions={
+          <>
+            <button
+              onClick={handleExport}
+              disabled={exporting || loading}
+              className="px-4 py-2.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              {exporting ? "Exporting..." : "Export CSV"}
+            </button>
+            <button
+              onClick={() => {
+                setNewName("");
+                setNewCategory("");
+                setShowAddModal(true);
+              }}
+              className="px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              + Add Provider
+            </button>
+          </>
+        }
+      />
 
       {/* Add Provider Modal */}
       {showAddModal && (

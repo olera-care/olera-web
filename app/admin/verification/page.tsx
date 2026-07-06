@@ -3,7 +3,9 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Modal from "@/components/ui/Modal";
-import Badge from "@/components/ui/Badge";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import StatusBadge from "@/components/admin/StatusBadge";
+import { useUrlFilterState } from "@/hooks/useUrlFilterState";
 import type { OrganizationMetadata } from "@/lib/types";
 import { US_STATES } from "@/lib/us-states";
 import { useClickOutside } from "@/hooks/use-click-outside";
@@ -148,6 +150,8 @@ const METHOD_LABELS: Record<string, { label: string; icon: string }> = {
 };
 
 type StatusFilter = "unverified_claims" | "in_progress" | "pending" | "approved" | "rejected";
+
+const VALID_TAB_FILTERS: StatusFilter[] = ["unverified_claims", "in_progress", "pending", "approved", "rejected"];
 
 const PAGE_SIZE = 50;
 
@@ -503,7 +507,9 @@ export default function AdminVerificationPage() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
 
-  const [filter, setFilter] = useState<StatusFilter>("unverified_claims");
+  // Active tab lives in the URL (?tab=) so refresh/back-nav/deep-links work.
+  const [tabParam, setFilter] = useUrlFilterState<StatusFilter>("tab", "unverified_claims");
+  const filter: StatusFilter = VALID_TAB_FILTERS.includes(tabParam) ? tabParam : "unverified_claims";
   const [providers, setProviders] = useState<Provider[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -780,12 +786,10 @@ export default function AdminVerificationPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Provider Verification</h1>
-        <p className="text-lg text-gray-600 mt-1">
-          Manage provider claims and verification status. Review submissions, approve badges, and monitor verified providers.
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Provider Verification"
+        description="Manage provider claims and verification status. Review submissions, approve badges, and monitor verified providers."
+      />
 
       {/* Tabs - prominent, own row */}
       <div className="flex gap-2 mb-4">
@@ -1087,7 +1091,7 @@ export default function AdminVerificationPage() {
                             // - Self-Verified: All self-verification methods (email, LinkedIn, website, document, auto)
                             // - Legacy: No verification method recorded
                             <div className="flex items-center gap-2">
-                              <Badge variant="verified">Verified</Badge>
+                              <StatusBadge status="verified" />
                               <div className="flex flex-col">
                                 {provider.verification_state === "not_required" || provider.claim_trust_level === "high" ? (
                                   <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium whitespace-nowrap">
@@ -1116,7 +1120,7 @@ export default function AdminVerificationPage() {
                               </div>
                             </div>
                           ) : (
-                            <Badge variant="rejected">Badge Rejected</Badge>
+                            <StatusBadge status="rejected" label="Badge rejected" />
                           )}
                         </td>
                       )}
@@ -2631,9 +2635,7 @@ function VerificationAttemptsSection({ provider, formatDate }: VerificationAttem
                       <span className="text-lg">✉️</span>
                       <span className="text-sm font-semibold text-gray-900">Email OTP</span>
                       {otp.otp_verified && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                          OTP Verified
-                        </span>
+                        <StatusBadge status="verified" label="OTP verified" />
                       )}
                     </div>
                     <span className="text-xs text-gray-400">

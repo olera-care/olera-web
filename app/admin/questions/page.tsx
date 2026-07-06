@@ -6,6 +6,7 @@ import PulseHeader from "@/components/admin/PulseHeader";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
+import { useUrlFilterState } from "@/hooks/useUrlFilterState";
 
 interface Question {
   id: string;
@@ -508,7 +509,9 @@ const PAGE_SIZE = 50;
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
+  // Active tab lives in the URL (?tab=) so refresh/back-nav/deep-links work.
+  const [tabParam, setActiveTab] = useUrlFilterState<TabValue>("tab", "needs_email");
+  const activeTab: TabValue = TABS.some((t) => t.value === tabParam) ? tabParam : "needs_email";
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });

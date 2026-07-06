@@ -524,8 +524,8 @@ export function adBoostPromoCompleteEmail(opts: {
       </tr>
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${budgetLine}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Reply to this email and we&rsquo;ll review the numbers together before anything else runs.</p>
-    <div>${button("Review results", opts.ctaUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">You can pick a plan right from your results page, no call needed. A month with zero family inquiries is free. Or reply to this email and we&rsquo;ll review the numbers together first.</p>
+    <div>${button("See your results and choose", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>

@@ -24,6 +24,13 @@ export interface CampaignRequest {
   /** Manual ad-platform metrics, entered by the operator on the detail page. */
   ad_spend_cents: number | null;
   ad_clicks: number | null;
+  /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
+  plan_status?: "active" | "past_due" | "canceled" | null;
+  /** Subscribed monthly plan in whole USD (150/300/600). */
+  plan_value?: number | null;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  subscribed_at?: string | null;
   /** Families delivered so far (benefits_completed events tagged to this campaign). */
   delivered?: number;
 }

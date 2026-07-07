@@ -11,6 +11,7 @@ import {
   DEFAULT_BUDGET,
   budgetStop,
   budgetLabel,
+  estimateSummary,
 } from "@/lib/ad-boost/estimate";
 
 /**
@@ -256,21 +257,24 @@ export function WrapUpMoment({
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
                 }`}
               >
-                <span className="flex items-baseline justify-between gap-3">
-                  <span className={`min-w-0 truncate text-base font-semibold ${active ? "text-primary-700" : "text-gray-900"}`}>
+                <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <span className={`min-w-0 text-base font-semibold ${active ? "text-primary-700" : "text-gray-900"}`}>
                     {b.name}
                     <span className="font-normal text-gray-300"> · </span>
                     <span className="tabular-nums">{b.amount}/mo</span>
+                    {b.chip && (
+                      <span
+                        className={`ml-2 inline-flex translate-y-[-1px] rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                          active ? "border-primary-400 text-primary-700" : "border-gray-300 text-gray-500"
+                        }`}
+                      >
+                        {b.chip}
+                      </span>
+                    )}
                   </span>
-                  {b.chip && (
-                    <span
-                      className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                        active ? "border-primary-400 text-primary-700" : "border-gray-300 text-gray-500"
-                      }`}
-                    >
-                      {b.chip}
-                    </span>
-                  )}
+                  <span className={`shrink-0 text-sm tabular-nums ${active ? "text-primary-600/80" : "text-gray-400"}`}>
+                    {estimateSummary(b)}
+                  </span>
                 </span>
                 <span className={`mt-1 block text-sm leading-relaxed ${active ? "text-primary-600/80" : "text-gray-500"}`}>
                   {b.blurb}

@@ -193,8 +193,9 @@ function RequestRow({
           </p>
         </div>
 
-        {/* Status */}
-        <div className="flex items-center gap-1.5">
+        {/* Status — badges wrap inside the fixed column instead of bleeding
+            into Setup week when a plan badge is present. */}
+        <div className="flex flex-wrap items-center gap-1.5">
           <StatusBadge status={request.status} />
           <PlanBadge request={request} />
           {isArchived && (

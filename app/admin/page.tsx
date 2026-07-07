@@ -106,9 +106,9 @@ export default function AdminOverviewPage() {
 
   const primaryCards: StatCard[] = [
     {
-      label: "Ad Boost MRR",
+      label: "Ad Boost MRR ($/mo)",
       value: adBoostMrr,
-      subtitle: adBoostPaying > 0 ? `$/mo from ${adBoostPaying} paying provider${adBoostPaying === 1 ? "" : "s"}` : "No paying plans yet",
+      subtitle: adBoostPaying > 0 ? `${adBoostPaying} paying provider${adBoostPaying === 1 ? "" : "s"}` : "No paying plans yet",
       href: "/admin/ad-boost",
     },
     { label: "Unverified Claims", value: unverifiedClaims, subtitle: "Claimed, not yet verified", href: "/admin/verification" },

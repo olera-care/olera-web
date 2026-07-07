@@ -1261,8 +1261,8 @@ export default function AdminQuestionsPage() {
 
                     {/* Action buttons - different for archived vs non-archived tabs */}
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
-                      {activeTab === "archived" ? (
-                        // Archived tab: show Unarchive button
+                      {activeTab === "archived" && firstQ.provider_archive_info ? (
+                        // Archived tab with provider-level archive: show Unarchive button
                         <button
                           onClick={() => {
                             setUnarchiveProviderTarget({ providerId, providerName: providerLabel });
@@ -1274,6 +1274,11 @@ export default function AdminQuestionsPage() {
                         >
                           Unarchive Provider
                         </button>
+                      ) : activeTab === "archived" ? (
+                        // Archived tab but individually archived: explain no bulk action
+                        <span className="text-xs text-gray-400 italic">
+                          Questions archived individually — use per-question Unarchive below
+                        </span>
                       ) : (
                         // Non-archived tabs: show Archive and Not Interested buttons
                         <>

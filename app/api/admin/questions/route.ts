@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
       const [pendingQuestions, needsEmailCount, deliveryIssuesCount, notInterestedCount, archivedCount, answeredCount, allCount] = await Promise.all([
         db.from("provider_questions").select("id, metadata").eq("status", "pending"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').neq("status", "archived").neq("status", "rejected"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { email_dead: true }).neq("status", "archived").neq("status", "rejected").neq("status", "answered"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { email_dead: true }).neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "answered"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).in("status", ["answered", "approved"]),
         db.from("provider_questions").select("*", { count: "exact", head: true }),
       ]);
       const trueUnansweredCount = (pendingQuestions.data ?? []).filter((q) => {
@@ -975,7 +975,12 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (status) query = query.eq("status", status);
+    // "answered" tab includes both "answered" and "approved" statuses
+    if (status === "answered") {
+      query = query.in("status", ["answered", "approved"]);
+    } else if (status) {
+      query = query.eq("status", status);
+    }
     if (providerId) query = query.eq("provider_id", providerId);
     if (searchSlugs) {
       if (searchSlugs.length === 0) return NextResponse.json({ questions: [], count: 0 });

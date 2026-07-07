@@ -21,15 +21,21 @@
 //   SUPABASE_SERVICE_ROLE_KEY
 //
 // Environment variables (set manually via `supabase secrets set`):
-//   STRIPE_SECRET_KEY       — sk_live_... (used only if future event types
-//                             need to call Stripe API; current handlers don't)
-//   STRIPE_WEBHOOK_SECRET   — whsec_... from Stripe Dashboard → webhook endpoint
+//   STRIPE_SECRET_KEY            — sk_live_... (used only if future event types
+//                                  need to call Stripe API; current handlers don't)
+//   STRIPE_WEBHOOK_SECRET        — whsec_... from Stripe Dashboard → webhook endpoint
+//   STRIPE_WEBHOOK_SECRET_TEST   — optional whsec_... for a TEST-MODE endpoint
+//                                  pointing at this same function, so staging can
+//                                  run test-mode checkouts while prod stays live.
+//                                  Verification tries live first, then test.
 
 import Stripe from "npm:stripe@20.3.0";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
+// Optional second signing secret for a test-mode endpoint (staging checkouts).
+const webhookSecretTest = Deno.env.get("STRIPE_WEBHOOK_SECRET_TEST") ?? "";
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -68,7 +74,9 @@ Deno.serve(async (req) => {
   }
 
   // Verify signature. Deno requires the async variant because crypto is
-  // async in Web Crypto API.
+  // async in Web Crypto API. Live secret first; if a test-mode secret is
+  // configured (staging checkouts), fall back to it — an event only ever
+  // verifies against the secret of the endpoint that delivered it.
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(
@@ -76,13 +84,33 @@ Deno.serve(async (req) => {
       signature,
       webhookSecret,
     );
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    console.error("[stripe-webhook] Signature verification failed:", msg);
-    return new Response(
-      JSON.stringify({ error: "Invalid signature", detail: msg }),
-      { status: 400, headers: { "content-type": "application/json" } },
-    );
+  } catch (liveErr) {
+    if (!webhookSecretTest) {
+      const msg = liveErr instanceof Error ? liveErr.message : "Unknown error";
+      console.error("[stripe-webhook] Signature verification failed:", msg);
+      return new Response(
+        JSON.stringify({ error: "Invalid signature", detail: msg }),
+        { status: 400, headers: { "content-type": "application/json" } },
+      );
+    }
+    try {
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature,
+        webhookSecretTest,
+      );
+      console.log("[stripe-webhook] Verified with TEST-mode secret");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      console.error(
+        "[stripe-webhook] Signature verification failed (live + test):",
+        msg,
+      );
+      return new Response(
+        JSON.stringify({ error: "Invalid signature", detail: msg }),
+        { status: 400, headers: { "content-type": "application/json" } },
+      );
+    }
   }
 
   console.log(`[stripe-webhook] Received event ${event.id} type=${event.type}`);

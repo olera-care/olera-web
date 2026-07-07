@@ -311,6 +311,26 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // UUID fallback: Some questions store provider_id as business_profiles.id (UUID)
+        const missingFromSlugLookup = slugs.filter((s) => !providerNames[s]);
+        if (missingFromSlugLookup.length > 0) {
+          const { data: bpByUuid } = await db
+            .from("business_profiles")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .in("id", missingFromSlugLookup);
+          for (const p of bpByUuid ?? []) {
+            if (p.id) {
+              providerNames[p.id] = p.display_name;
+              if (p.source_provider_id) providerEditorIds[p.id] = p.source_provider_id;
+              if (p.email) providerEmails[p.id] = p.email;
+              if (p.phone) providerPhones[p.id] = p.phone;
+              providerClaimStatus[p.id] = !!p.account_id;
+              const meta = p.metadata as Record<string, unknown> | null;
+              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+            }
+          }
+        }
+
         // Collect source_provider_ids for email fallback (where business_profiles has no email)
         const sourceIdsForEmailFallback = (bpProviders ?? [])
           .filter((p) => p.slug && !p.email && p.source_provider_id)
@@ -362,6 +382,40 @@ export async function GET(request: NextRequest) {
             if (p.slug && p.provider_id && !providerEditorIds[p.slug]) providerEditorIds[p.slug] = p.provider_id;
             if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
             if (p.slug && p.phone && !providerPhones[p.slug]) providerPhones[p.slug] = p.phone;
+          }
+
+          // Lookup linked business_profiles via source_provider_id for claim status
+          const iosProviderIds = (iosProviders ?? []).map((p) => p.provider_id).filter((id): id is string => !!id);
+          if (iosProviderIds.length > 0) {
+            const { data: linkedBpProfiles } = await db
+              .from("business_profiles")
+              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .in("source_provider_id", iosProviderIds);
+            const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
+            for (const bp of linkedBpProfiles ?? []) {
+              if (bp.source_provider_id) bpBySourceId.set(bp.source_provider_id, bp);
+            }
+            for (const ios of iosProviders ?? []) {
+              if (ios.provider_id) {
+                const linkedBp = bpBySourceId.get(ios.provider_id);
+                if (linkedBp) {
+                  // Populate using ios.slug (if exists)
+                  if (ios.slug) {
+                    providerClaimStatus[ios.slug] = !!linkedBp.account_id;
+                    if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
+                    if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
+                    const meta = linkedBp.metadata as Record<string, unknown> | null;
+                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                  }
+                  // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
+                  providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
+                  if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
+                  if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
+                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
+                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                }
+              }
+            }
           }
         }
       }
@@ -440,6 +494,26 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // UUID fallback: Some questions store provider_id as business_profiles.id (UUID)
+        const missingFromSlugLookup = slugs.filter((s) => !providerNames[s]);
+        if (missingFromSlugLookup.length > 0) {
+          const { data: bpByUuid } = await db
+            .from("business_profiles")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .in("id", missingFromSlugLookup);
+          for (const p of bpByUuid ?? []) {
+            if (p.id) {
+              providerNames[p.id] = p.display_name;
+              if (p.source_provider_id) providerEditorIds[p.id] = p.source_provider_id;
+              if (p.email) providerEmails[p.id] = p.email;
+              if (p.phone) providerPhones[p.id] = p.phone;
+              providerClaimStatus[p.id] = !!p.account_id;
+              const meta = p.metadata as Record<string, unknown> | null;
+              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+            }
+          }
+        }
+
         // Collect source_provider_ids for email fallback (where business_profiles has no email)
         const sourceIdsForFallback = (bpProviders ?? [])
           .filter((p) => p.slug && !p.email && p.source_provider_id)
@@ -483,6 +557,40 @@ export async function GET(request: NextRequest) {
             if (p.slug && p.provider_id && !providerEditorIds[p.slug]) providerEditorIds[p.slug] = p.provider_id;
             if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
             if (p.slug && p.phone && !providerPhones[p.slug]) providerPhones[p.slug] = p.phone;
+          }
+
+          // Lookup linked business_profiles via source_provider_id for claim status
+          const iosProviderIds = (iosProviders ?? []).map((p) => p.provider_id).filter((id): id is string => !!id);
+          if (iosProviderIds.length > 0) {
+            const { data: linkedBpProfiles } = await db
+              .from("business_profiles")
+              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .in("source_provider_id", iosProviderIds);
+            const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
+            for (const bp of linkedBpProfiles ?? []) {
+              if (bp.source_provider_id) bpBySourceId.set(bp.source_provider_id, bp);
+            }
+            for (const ios of iosProviders ?? []) {
+              if (ios.provider_id) {
+                const linkedBp = bpBySourceId.get(ios.provider_id);
+                if (linkedBp) {
+                  // Populate using ios.slug (if exists)
+                  if (ios.slug) {
+                    providerClaimStatus[ios.slug] = !!linkedBp.account_id;
+                    if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
+                    if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
+                    const meta = linkedBp.metadata as Record<string, unknown> | null;
+                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                  }
+                  // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
+                  providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
+                  if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
+                  if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
+                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
+                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                }
+              }
+            }
           }
         }
       }
@@ -559,6 +667,26 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // UUID fallback: Some questions store provider_id as business_profiles.id (UUID)
+        const missingFromSlugLookup = slugs.filter((s) => !providerNames[s]);
+        if (missingFromSlugLookup.length > 0) {
+          const { data: bpByUuid } = await db
+            .from("business_profiles")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .in("id", missingFromSlugLookup);
+          for (const p of bpByUuid ?? []) {
+            if (p.id) {
+              providerNames[p.id] = p.display_name;
+              if (p.source_provider_id) providerEditorIds[p.id] = p.source_provider_id;
+              if (p.email) providerEmails[p.id] = p.email;
+              if (p.phone) providerPhones[p.id] = p.phone;
+              providerClaimStatus[p.id] = !!p.account_id;
+              const meta = p.metadata as Record<string, unknown> | null;
+              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+            }
+          }
+        }
+
         // Collect source_provider_ids for email fallback (where business_profiles has no email)
         const sourceIdsForFallback = (bpProviders ?? [])
           .filter((p) => p.slug && !p.email && p.source_provider_id)
@@ -602,6 +730,40 @@ export async function GET(request: NextRequest) {
             if (p.slug && p.provider_id && !providerEditorIds[p.slug]) providerEditorIds[p.slug] = p.provider_id;
             if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
             if (p.slug && p.phone && !providerPhones[p.slug]) providerPhones[p.slug] = p.phone;
+          }
+
+          // Lookup linked business_profiles via source_provider_id for claim status
+          const iosProviderIds = (iosProviders ?? []).map((p) => p.provider_id).filter((id): id is string => !!id);
+          if (iosProviderIds.length > 0) {
+            const { data: linkedBpProfiles } = await db
+              .from("business_profiles")
+              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .in("source_provider_id", iosProviderIds);
+            const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
+            for (const bp of linkedBpProfiles ?? []) {
+              if (bp.source_provider_id) bpBySourceId.set(bp.source_provider_id, bp);
+            }
+            for (const ios of iosProviders ?? []) {
+              if (ios.provider_id) {
+                const linkedBp = bpBySourceId.get(ios.provider_id);
+                if (linkedBp) {
+                  // Populate using ios.slug (if exists)
+                  if (ios.slug) {
+                    providerClaimStatus[ios.slug] = !!linkedBp.account_id;
+                    if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
+                    if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
+                    const meta = linkedBp.metadata as Record<string, unknown> | null;
+                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                  }
+                  // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
+                  providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
+                  if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
+                  if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
+                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
+                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                }
+              }
+            }
           }
         }
       }
@@ -692,6 +854,26 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // UUID fallback: Some questions store provider_id as business_profiles.id (UUID)
+        const missingFromSlugLookup = slugs.filter((s) => !providerNames[s]);
+        if (missingFromSlugLookup.length > 0) {
+          const { data: bpByUuid } = await db
+            .from("business_profiles")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .in("id", missingFromSlugLookup);
+          for (const p of bpByUuid ?? []) {
+            if (p.id) {
+              providerNames[p.id] = p.display_name;
+              if (p.source_provider_id) providerEditorIds[p.id] = p.source_provider_id;
+              if (p.email) providerEmails[p.id] = p.email;
+              if (p.phone) providerPhones[p.id] = p.phone;
+              providerClaimStatus[p.id] = !!p.account_id;
+              const meta = p.metadata as Record<string, unknown> | null;
+              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+            }
+          }
+        }
+
         // Collect source_provider_ids for email fallback (where business_profiles has no email)
         const sourceIdsForFallback = (bpProviders ?? [])
           .filter((p) => p.slug && !p.email && p.source_provider_id)
@@ -735,6 +917,40 @@ export async function GET(request: NextRequest) {
             if (p.slug && p.provider_id && !providerEditorIds[p.slug]) providerEditorIds[p.slug] = p.provider_id;
             if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
             if (p.slug && p.phone && !providerPhones[p.slug]) providerPhones[p.slug] = p.phone;
+          }
+
+          // Lookup linked business_profiles via source_provider_id for claim status
+          const iosProviderIds = (iosProviders ?? []).map((p) => p.provider_id).filter((id): id is string => !!id);
+          if (iosProviderIds.length > 0) {
+            const { data: linkedBpProfiles } = await db
+              .from("business_profiles")
+              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .in("source_provider_id", iosProviderIds);
+            const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
+            for (const bp of linkedBpProfiles ?? []) {
+              if (bp.source_provider_id) bpBySourceId.set(bp.source_provider_id, bp);
+            }
+            for (const ios of iosProviders ?? []) {
+              if (ios.provider_id) {
+                const linkedBp = bpBySourceId.get(ios.provider_id);
+                if (linkedBp) {
+                  // Populate using ios.slug (if exists)
+                  if (ios.slug) {
+                    providerClaimStatus[ios.slug] = !!linkedBp.account_id;
+                    if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
+                    if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
+                    const meta = linkedBp.metadata as Record<string, unknown> | null;
+                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                  }
+                  // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
+                  providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
+                  if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
+                  if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
+                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
+                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                }
+              }
+            }
           }
         }
       }
@@ -809,6 +1025,28 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // UUID fallback: Some questions store provider_id as business_profiles.id (UUID)
+      // Try to find providers not matched by slug using UUID lookup
+      const missingFromSlugLookup = slugs.filter((s) => !providerNames[s]);
+      if (missingFromSlugLookup.length > 0) {
+        const { data: bpByUuid } = await db
+          .from("business_profiles")
+          .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+          .in("id", missingFromSlugLookup);
+        for (const p of bpByUuid ?? []) {
+          if (p.id) {
+            // Index by the UUID (which is the provider_id in the question)
+            providerNames[p.id] = p.display_name;
+            if (p.source_provider_id) providerEditorIds[p.id] = p.source_provider_id;
+            if (p.email) providerEmails[p.id] = p.email;
+            if (p.phone) providerPhones[p.id] = p.phone;
+            providerClaimStatus[p.id] = !!p.account_id;
+            const meta = p.metadata as Record<string, unknown> | null;
+            providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+          }
+        }
+      }
+
       // Collect source_provider_ids for email fallback (where business_profiles has no email)
       const sourceIdsForFallback = (bpProviders ?? [])
         .filter((p) => p.slug && !p.email && p.source_provider_id)
@@ -857,6 +1095,46 @@ export async function GET(request: NextRequest) {
           if (p.slug && p.phone && !providerPhones[p.slug]) providerPhones[p.slug] = p.phone;
           // Also handle legacy provider_id as slug
           if (p.provider_id && p.provider_name && !providerNames[p.provider_id]) providerNames[p.provider_id] = p.provider_name;
+        }
+
+        // Lookup linked business_profiles via source_provider_id for claim status
+        // This handles cases where question.provider_id = olera-providers.slug but the
+        // claimed business_profiles has a different slug (linked via source_provider_id)
+        const iosProviderIds = (iosProviders ?? [])
+          .map((p) => p.provider_id)
+          .filter((id): id is string => !!id);
+        if (iosProviderIds.length > 0) {
+          const { data: linkedBpProfiles } = await db
+            .from("business_profiles")
+            .select("slug, source_provider_id, email, phone, account_id, metadata")
+            .in("source_provider_id", iosProviderIds);
+          // Build lookup from ios provider_id to bp data
+          const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
+          for (const bp of linkedBpProfiles ?? []) {
+            if (bp.source_provider_id) bpBySourceId.set(bp.source_provider_id, bp);
+          }
+          // For each ios provider, populate claim status from linked bp
+          for (const ios of iosProviders ?? []) {
+            if (ios.provider_id) {
+              const linkedBp = bpBySourceId.get(ios.provider_id);
+              if (linkedBp) {
+                // Populate using ios.slug (if exists)
+                if (ios.slug) {
+                  providerClaimStatus[ios.slug] = !!linkedBp.account_id;
+                  if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
+                  if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
+                  const meta = linkedBp.metadata as Record<string, unknown> | null;
+                  providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                }
+                // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
+                providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
+                if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
+                if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
+                const metaById = linkedBp.metadata as Record<string, unknown> | null;
+                providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+              }
+            }
+          }
         }
 
         // Strategy 4: reverse-match auto-generated slugs for providers with slug=null

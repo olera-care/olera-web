@@ -43,10 +43,19 @@ async function syncAdBoostPlanStatus(
           ? "canceled"
           : null;
   if (!planStatus) return;
-  await supabase
+  const { data: rows } = await supabase
     .from("ad_campaign_requests")
     .update({ plan_status: planStatus, updated_at: new Date().toISOString() })
-    .eq("stripe_subscription_id", subscriptionId);
+    .eq("stripe_subscription_id", subscriptionId)
+    .select("id, display_name, provider_slug");
+  const row = rows?.[0];
+  if (row && (planStatus === "canceled" || planStatus === "past_due")) {
+    const icon = planStatus === "canceled" ? ":octagonal_sign:" : ":warning:";
+    const verb = planStatus === "canceled" ? "canceled their plan" : "payment past due";
+    await sendSlackAlert(
+      `${icon} Ad Boost: *${row.display_name ?? row.provider_slug ?? row.id}* ${verb}`,
+    );
+  }
 }
 
 // Use the service role key for webhook processing (bypasses RLS)

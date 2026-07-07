@@ -307,10 +307,11 @@ async function syncAdBoostPlanStatus(
     return;
   }
 
-  const { error } = await supabase
+  const { data: rows, error } = await supabase
     .from("ad_campaign_requests")
     .update({ plan_status: planStatus, updated_at: new Date().toISOString() })
-    .eq("stripe_subscription_id", subscriptionId);
+    .eq("stripe_subscription_id", subscriptionId)
+    .select("id, display_name, provider_slug");
 
   if (error) {
     throw new Error(
@@ -320,6 +321,28 @@ async function syncAdBoostPlanStatus(
   console.log(
     `[stripe-webhook] Ad Boost sub ${subscriptionId} -> plan_status=${planStatus}`,
   );
+
+  // Cancellations and failed payments are ops events too — ping Slack
+  // (best-effort, same optional secret as the conversion ping).
+  const row = rows?.[0];
+  if (row && (planStatus === "canceled" || planStatus === "past_due")) {
+    const slackUrl = Deno.env.get("SLACK_WEBHOOK_URL");
+    if (slackUrl) {
+      const icon = planStatus === "canceled" ? ":octagonal_sign:" : ":warning:";
+      const verb = planStatus === "canceled" ? "canceled their plan" : "payment past due";
+      try {
+        await fetch(slackUrl, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            text: `${icon} Ad Boost: *${row.display_name ?? row.provider_slug ?? row.id}* ${verb}`,
+          }),
+        });
+      } catch (slackErr) {
+        console.error("[stripe-webhook] Slack ping failed:", slackErr);
+      }
+    }
+  }
 }
 
 /** Set medjobs_subscription_active=true on business_profiles.metadata. */

@@ -55,6 +55,8 @@ import { normalizeQuestion } from "@/lib/qa-utils";
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
+import ServiceAreaSection from "@/components/providers/ServiceAreaSection";
+import ShareButton from "@/components/providers/ShareButton";
 import { getServiceClient } from "@/lib/admin";
 import { ViewTracker } from "@/components/analytics/ViewTracker";
 
@@ -592,21 +594,36 @@ export default async function ProviderPage({
   const hasBenefitsData = !!(benefitsData && benefitsData.programs.length > 0);
 
   // ============================================================
+  // Custom provider content — slug-based overrides
+  // ============================================================
+  const isHomeCareShowcase = profile.slug === "home-instead-tx-marble-falls";
+
+  // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
   const sectionItems: SectionItem[] = [];
-  sectionItems.push({ id: "highlights", label: "Highlights" });
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
-  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
-  sectionItems.push({ id: "services", label: "Services" });
-  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
-  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
-  sectionItems.push({ id: "about", label: "About" });
-  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
-  if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
+
+  if (isHomeCareShowcase) {
+    // Home care category nav
+    sectionItems.push({ id: "services-offered", label: "Care Services" });
+    sectionItems.push({ id: "caregivers", label: "Caregivers" });
+    sectionItems.push({ id: "pricing-payment", label: "Pricing & Payment" });
+    sectionItems.push({ id: "how-to-start", label: "How to Start" });
+    sectionItems.push({ id: "service-area", label: "Service Area" });
+  } else {
+    sectionItems.push({ id: "highlights", label: "Highlights" });
+    if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+    sectionItems.push({ id: "qa", label: "Q&A" });
+    if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
+    sectionItems.push({ id: "services", label: "Services" });
+    if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+    if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
+    if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
+    sectionItems.push({ id: "about", label: "About" });
+    if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
+    if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
+  }
 
   // ============================================================
   // Render
@@ -777,19 +794,66 @@ export default async function ProviderPage({
 
       {/* ===== Hero Zone — White on mobile, Vanilla on desktop ===== */}
       <div className="bg-white md:bg-vanilla-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-4 md:pb-8">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-4 ${isHomeCareShowcase ? "md:pb-2" : "md:pb-8"}`}>
 
-          {/* Breadcrumbs */}
-          <Breadcrumbs
-            category={profile.category}
-            city={profile.city}
-            state={profile.state}
-            providerName={profile.display_name}
-          />
+          {/* Breadcrumbs + Save/Share */}
+          {isHomeCareShowcase ? (
+            <div className="hidden md:flex items-center justify-between mb-1">
+              <Breadcrumbs
+                category={profile.category}
+                city={profile.city}
+                state={profile.state}
+                providerName={profile.display_name}
+              />
+              <div className="flex items-center gap-4">
+                <SaveButton
+                  provider={{
+                    providerId: profile.slug,
+                    slug: profile.slug,
+                    name: profile.display_name,
+                    location: locationStr,
+                    careTypes: profile.care_types || [],
+                    image: images[0] || null,
+                    rating: rating || undefined,
+                  }}
+                  variant="text"
+                />
+                <ShareButton name={profile.display_name} variant="text" />
+              </div>
+            </div>
+          ) : (
+            <Breadcrumbs
+              category={profile.category}
+              city={profile.city}
+              state={profile.state}
+              providerName={profile.display_name}
+            />
+          )}
 
           {/* ── Hero (full width, above the grid) ── */}
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Gallery */}
+            {/* Gallery — 4Ever Young: image on right like Day Spring */}
+            {isHomeCareShowcase ? (
+              <div className="flex-shrink-0 relative md:order-last md:w-[400px] w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] -mx-4 sm:-mx-6 md:mx-0">
+                <ProviderHeroGallery
+                  images={images}
+                  providerName={profile.display_name}
+                  category={profile.category}
+                  fallbackImage={heroFallbackImage}
+                />
+                <MobileGalleryActionBar
+                  provider={{
+                    providerId: profile.slug,
+                    slug: profile.slug,
+                    name: profile.display_name,
+                    location: locationStr,
+                    careTypes: profile.care_types || [],
+                    image: images[0] || null,
+                    rating: rating || undefined,
+                  }}
+                />
+              </div>
+            ) : (
             <div className="flex-shrink-0 relative w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] md:w-[448px] -mx-4 sm:-mx-6 md:mx-0">
               <ProviderHeroGallery
                 images={images}
@@ -817,6 +881,7 @@ export default async function ProviderPage({
                 />
               </div>
             </div>
+            )}
 
             {/* Identity */}
             <div className="flex-1 min-w-0 flex flex-col">
@@ -828,23 +893,44 @@ export default async function ProviderPage({
               )}
               {/* Name + Save */}
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
-                  {profile.display_name}
-                </h1>
-                <div className="hidden md:block">
-                  <SaveButton
-                    provider={{
-                      providerId: profile.slug,
-                      slug: profile.slug,
-                      name: profile.display_name,
-                      location: locationStr,
-                      careTypes: profile.care_types || [],
-                      image: images[0] || null,
-                      rating: rating || undefined,
-                    }}
-                    variant="pill"
-                  />
+                <div>
+                  <div className={isHomeCareShowcase ? "flex items-center gap-4" : ""}>
+                    <h1 className={`text-2xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left ${isHomeCareShowcase ? "md:text-4xl" : "md:text-3xl w-full md:w-auto"}`}>
+                      {profile.display_name}
+                    </h1>
+                    {isHomeCareShowcase && (
+                      <div className="hidden md:block shrink-0">
+                        <ManagePageCTA
+                          providerSlug={profile.slug}
+                          providerName={profile.display_name}
+                          providerId={profile.id}
+                          sourceProviderId={profile.source_provider_id}
+                          providerEmail={profile.email}
+                          providerCity={profile.city}
+                          providerState={profile.state}
+                          isClaimed={actualClaimState === "claimed"}
+                          claimAccountId={claimAccountId}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {!isHomeCareShowcase && (
+                  <div className="hidden md:block">
+                    <SaveButton
+                      provider={{
+                        providerId: profile.slug,
+                        slug: profile.slug,
+                        name: profile.display_name,
+                        location: locationStr,
+                        careTypes: profile.care_types || [],
+                        image: images[0] || null,
+                        rating: rating || undefined,
+                      }}
+                      variant="pill"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* ── Mobile identity layout ── */}
@@ -854,8 +940,20 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
                 )}
 
-                {/* Row 2: Highlights only (category is now eyebrow above name) */}
-                {(() => {
+                {/* Row 2: Signals for custom pages, highlights for others */}
+                {isHomeCareShowcase ? (
+                  <>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      Licensed · Bonded & Insured · Flexible Scheduling
+                    </p>
+                    {/* Mobile price range */}
+                    <div className="flex items-baseline gap-1.5 mt-1.5">
+                      <span className="text-base font-semibold text-gray-900">{priceRange || "$25-$35/hr"}</span>
+                      <span className="text-sm text-gray-400">est.</span>
+                      <MobilePricingTooltip content="Estimated hourly rate based on care level, schedule, and hours per week. Contact for a personalized quote." />
+                    </div>
+                  </>
+                ) : (() => {
                   const categoryLower = categoryLabel?.toLowerCase() || "";
                   const filteredHighlights = highlights
                     .filter((h) => h.label.toLowerCase() !== categoryLower)
@@ -1012,8 +1110,61 @@ export default async function ProviderPage({
                 </div>
               </div>
 
-              {/* ── Desktop identity layout (unchanged) ── */}
+              {/* ── Desktop identity layout ── */}
               <div className="hidden md:block">
+                {isHomeCareShowcase ? (
+                  <>
+                    {/* Metadata row: pipe-separated */}
+                    <div className="flex items-center gap-3 mt-1 text-lg text-gray-500">
+                      {categoryLabel && <span>{categoryLabel}</span>}
+                      {locationStr && (
+                        <>
+                          <span className="text-gray-300">|</span>
+                          <span>{locationStr}</span>
+                        </>
+                      )}
+                      {hasRating && rating != null && (
+                        <>
+                          <span className="text-gray-300">|</span>
+                          <span className="flex items-center gap-1">
+                            <StarIcon className="w-4 h-4 text-amber-400" />
+                            <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
+                            <span>Google</span>
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Price range — prominent, above badges */}
+                    <div className="mt-3 flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-gray-900">{priceRange || "$25-$35/hr"}</span>
+                      <span className="text-base text-gray-400">est.</span>
+                      <MobilePricingTooltip content="Estimated hourly rate based on care level, schedule, and hours per week. Contact for a personalized quote." />
+                    </div>
+
+                    {/* Fact row */}
+                    <div className="flex items-center gap-8 mt-3">
+                      <span className="flex items-center gap-2 text-lg text-gray-900">
+                        <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                        Licensed & Insured
+                      </span>
+                      <span className="flex items-center gap-2 text-lg text-gray-900">
+                        <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                        Personalized care
+                      </span>
+                      <span className="flex items-center gap-2 text-lg text-gray-900">
+                        <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Flexible scheduling
+                      </span>
+                    </div>
+
+                    {/* About blurb */}
+                    <div className="mt-3 max-w-lg">
+                      <p className="text-sm text-gray-400 leading-relaxed">Home Instead of Marble Falls provides personalized, non-medical home care to seniors across the Texas Hill Country. Part of the world&apos;s leading home care franchise, locally owned and operated with deep roots in the community.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
                 <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
                   {categoryLabel && (
                     <>
@@ -1035,36 +1186,42 @@ export default async function ProviderPage({
                     </span>
                   )}
                 </div>
+                  </>
+                )}
 
-                {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
-                  <div className="mt-1">
-                    <PricingEducationBadge
-                      category={profile.category!}
-                      providerName={profile.display_name}
-                      city={profile.city ?? undefined}
-                      state={profile.state ?? undefined}
-                    />
-                  </div>
-                ) : hasPriceRange ? (
-                  <PriceEstimate
-                    priceRange={priceRange!}
-                    category={profile.category ?? undefined}
-                    providerName={profile.display_name}
-                    city={profile.city ?? undefined}
-                    state={profile.state ?? undefined}
-                  />
-                ) : (
-                  <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-                ))}
+                {!isHomeCareShowcase && (
+                  <>
+                    {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
+                      <div className="mt-1">
+                        <PricingEducationBadge
+                          category={profile.category!}
+                          providerName={profile.display_name}
+                          city={profile.city ?? undefined}
+                          state={profile.state ?? undefined}
+                        />
+                      </div>
+                    ) : hasPriceRange ? (
+                      <PriceEstimate
+                        priceRange={priceRange!}
+                        category={profile.category ?? undefined}
+                        providerName={profile.display_name}
+                        city={profile.city ?? undefined}
+                        state={profile.state ?? undefined}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
+                    ))}
 
-                {profile.address && (
-                  <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
+                    {profile.address && (
+                      <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
+                    )}
+                  </>
                 )}
               </div>
 
               {/* Highlight badges — data-driven, variable count (1-4 items) */}
               {/* Hidden on mobile for cleaner hero, shown on desktop */}
-              {highlights.length > 0 && (
+              {!isHomeCareShowcase && highlights.length > 0 && (
                 <div id="highlights" className="scroll-mt-20 hidden md:block">
                   {/* Desktop: flex-wrap chips */}
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -1079,7 +1236,7 @@ export default async function ProviderPage({
               )}
 
               {/* ── "Manage this page" CTA — only for unclaimed/claimed, not verified ── */}
-              {displayClaimState !== "verified" && (
+              {!isHomeCareShowcase && displayClaimState !== "verified" && (
                 <div className="hidden md:block">
                 <ManagePageCTA
                   providerSlug={profile.slug}
@@ -1124,7 +1281,7 @@ export default async function ProviderPage({
 
       {/* ===== Content Zone — White Background ===== */}
       <div className="bg-white" data-spotlight-zone>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 md:py-10">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 ${isHomeCareShowcase ? "md:pt-4 md:pb-10" : "md:py-10"}`}>
 
         {/* -- Two-Column Grid (content + sticky sidebar) -- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -1287,12 +1444,29 @@ export default async function ProviderPage({
               </div>
               )}
 
+              {/* Inline section nav — after Q&A for custom provider pages */}
+              {isHomeCareShowcase && sectionItems.length > 0 && (
+                <div className="overflow-x-auto scrollbar-hide border-t border-gray-200">
+                  <div className="flex items-center gap-8 bg-gray-50 rounded-xl px-6 py-4">
+                    {sectionItems.map((section) => (
+                      <a
+                        key={section.id}
+                        href={`#${section.id}`}
+                        className="whitespace-nowrap text-sm font-medium text-gray-800 hover:text-gray-900 transition-colors"
+                      >
+                        {section.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
                   40% of visitors in the outreach or multi_provider arms of the
                   5-way intake A/B. The 60% in the 3 benefits arms see the existing
                   module unchanged (with its internal mod-3 copy A/B). */}
-              {!isStudentContext && hasBenefitsData && benefitsData && (
+              {!isHomeCareShowcase && !isStudentContext && hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                     <BenefitsDiscoveryModule
@@ -1317,14 +1491,16 @@ export default async function ProviderPage({
                 </BenefitsArmGate>
               )}
 
-              {/* ── Care Services ── */}
+              {/* ── Care Services (hidden for custom pages — replaced by custom sections) ── */}
+              {!isHomeCareShowcase && (
               <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={6} />
               </div>
+              )}
 
               {/* ── Staff Screening — hidden when no real data ── */}
-              {hasStaffScreening && (
+              {!isHomeCareShowcase && hasStaffScreening && (
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1342,9 +1518,8 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── What families are saying (below Q&A when no reviews — empty state;
-                    hidden in student context, the "be first to review" prompt is family-facing) ── */}
-              {!isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
+              {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
+              {!isHomeCareShowcase && !isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
                 <div id="reviews" className="scroll-mt-20">
                   <ReviewsSection
                     providerId={profile.slug}
@@ -1358,28 +1533,241 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── CMS Quality & Safety — only show 4/5 and 5/5 publicly (lower scores used for ranking only) ── */}
-              {cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
+              {/* ── CMS Quality & Safety ── */}
+              {!isHomeCareShowcase && cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
                 <div className="py-8 border-t border-gray-200">
                   <CMSQualitySection cmsData={cmsData} />
                 </div>
               )}
 
               {/* ── AI Verified Credentials ── */}
-              {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+              {!isHomeCareShowcase && aiTrustSignals && aiTrustSignals.summary_score > 0 && (
                 <div className="py-8 border-t border-gray-200">
                   <AiTrustSignalsSection signals={aiTrustSignals} />
                 </div>
               )}
 
-              {/* ── About ── */}
-              <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
+              {/* ── About (hidden for custom pages, info is in hero) ── */}
+              <div id="about" className={`py-8 scroll-mt-20 border-t border-gray-200 ${isHomeCareShowcase ? "hidden" : ""}`}>
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
                 <ExpandableText
                   text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
                   maxLength={300}
                 />
               </div>
+
+              {/* ══════════════════════════════════════════════════════
+                  4Ever Young Living — Custom Home Care Sections
+                 ══════════════════════════════════════════════════════ */}
+
+              {/* ── Care Services (Home Care) ── */}
+              {isHomeCareShowcase && (
+              <div id="services-offered" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <div className="flex items-center gap-3 mb-1">
+                  <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                  <h2 className="text-3xl font-bold text-gray-900 font-display">Care Services</h2>
+                </div>
+                <p className="text-base text-gray-600 leading-relaxed mb-6">Care Pros assist with everyday needs so clients can stay safe and comfortable at home. Care tasks may include:</p>
+
+                {/* Service items with icons and descriptions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
+                  {[
+                    {
+                      title: "Personal care",
+                      desc: "Bathing, dressing, and grooming",
+                      icon: <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
+                    },
+                    {
+                      title: "Meal preparation and nutrition",
+                      desc: "Cooking and dietary support",
+                      icon: <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265z" /></svg>,
+                    },
+                    {
+                      title: "Light housekeeping",
+                      desc: "Keeping a clean, safe home",
+                      icon: <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>,
+                    },
+                    {
+                      title: "Medication reminders",
+                      desc: "Staying on schedule",
+                      icon: <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>,
+                    },
+                    {
+                      title: "Transportation and errands",
+                      desc: "Appointments and outings",
+                      icon: <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>,
+                    },
+                    {
+                      title: "Mobility support",
+                      desc: "Moving safely at home",
+                      icon: <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
+                    },
+                    {
+                      title: "Companionship and engagement",
+                      desc: "Conversation and connection",
+                      icon: <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>,
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="flex items-start gap-4">
+                      {item.icon}
+                      <div>
+                        <p className="text-base font-semibold text-gray-900">{item.title}</p>
+                        <p className="text-sm text-gray-500 mt-0.5">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              )}
+
+              {/* ── Caregivers (Home Care) ── */}
+              {isHomeCareShowcase && (
+              <div id="caregivers" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                  <h2 className="text-3xl font-bold text-gray-900 font-display">Caregiver requirements</h2>
+                </div>
+                <p className="text-base text-gray-600 mb-5">Every caregiver meets these standards before providing care in your home.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
+                  {[
+                    "Background checked and verified",
+                    "Licensed, bonded, and insured",
+                    "CPR and First Aid certified",
+                    "Ongoing training and supervision",
+                    "Drug screening",
+                    "Reference and employment verification",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-3 py-1">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span className="text-base text-gray-700">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              )}
+
+              {/* ── Pricing & Payment (Home Care) ── */}
+              {isHomeCareShowcase && (
+                <div id="pricing-payment" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" /></svg>
+                    <h2 className="text-3xl font-bold text-gray-900 font-display">Pricing & Payment</h2>
+                  </div>
+                  <p className="text-base text-gray-600 mb-5">Home care is typically paid privately, with costs based on the level of care and number of hours. Home Instead works with families to find a care arrangement that fits their budget and needs.</p>
+
+                  {/* Payment options */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="rounded-xl border border-gray-200 px-5 py-4">
+                      <div className="flex items-center gap-2.5 mb-3">
+                        <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <h3 className="text-base font-bold text-gray-900">Hourly care</h3>
+                      </div>
+                      <ul className="space-y-2">
+                        {["Minimum hours may apply per visit", "Rates vary by care level and schedule", "Weekday, evening, and weekend options", "Contact for a personalized quote"].map((item) => (
+                          <li key={item} className="flex items-center gap-3">
+                            <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                            <span className="text-base text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="rounded-xl border border-gray-200 px-5 py-4">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+                        <h3 className="text-base font-bold text-gray-900">Payment options</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: "Private Pay", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" /></svg> },
+                          { label: "Long-Term Care Insurance", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg> },
+                          { label: "Veterans Benefits", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg> },
+                          { label: "Workers' Comp", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg> },
+                        ].map((item) => (
+                          <div key={item.label} className="flex items-center gap-2.5">
+                            {item.icon}
+                            <span className="text-base text-gray-900">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── How to Get Started (Home Care) ── */}
+              {isHomeCareShowcase && (
+                <div id="how-to-start" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                    <h2 className="text-3xl font-bold text-gray-900 font-display">How to Get Started</h2>
+                  </div>
+                  <p className="text-base text-gray-600 mb-5">Starting home care is simpler than it feels. Here&apos;s how it works.</p>
+
+                  <div className="space-y-3">
+                    {[
+                      { step: "1", text: "Tell us your needs. Share a few details about the care you're looking for." },
+                      { step: "2", text: "Talk with a consultant. Someone reaches out within 24 hours to discuss your options." },
+                      { step: "3", text: "Book a free consultation. If it's a good fit, we schedule a no-obligation visit in the home." },
+                      { step: "4", text: "Get your care plan. A personalized plan built around your needs, with 24/7 team support from day one." },
+                    ].map((item) => (
+                      <div key={item.step} className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-bold text-teal-800">{item.step}</span>
+                        </div>
+                        <span className="text-base text-gray-700">{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-5 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                    Contact for details
+                  </ScrollToConnectionCard>
+                </div>
+              )}
+
+              {/* ── Service Area (Home Care — Southern California) ── */}
+              {isHomeCareShowcase && (() => {
+                const serviceAreas = [
+                  { name: "Marble Falls", lat: 30.5783, lng: -98.2750 },
+                  { name: "Horseshoe Bay", lat: 30.5344, lng: -98.3717 },
+                  { name: "Burnet", lat: 30.7588, lng: -98.2284 },
+                  { name: "Kingsland", lat: 30.6585, lng: -98.4412 },
+                  { name: "Llano", lat: 30.7496, lng: -98.6823 },
+                  { name: "Lago Vista", lat: 30.4602, lng: -97.9889 },
+                  { name: "Bertram", lat: 30.7413, lng: -98.0553 },
+                  { name: "Johnson City", lat: 30.2766, lng: -98.4120 },
+                  { name: "Spicewood", lat: 30.4738, lng: -98.1539 },
+                  { name: "Bee Cave", lat: 30.3085, lng: -97.9467 },
+                  { name: "Lakeway", lat: 30.3638, lng: -97.9795 },
+                  { name: "Dripping Springs", lat: 30.1902, lng: -98.0867 },
+                ];
+
+                return (
+                  <div id="service-area" className="py-8 scroll-mt-20 border-t border-gray-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                      <h2 className="text-3xl font-bold text-gray-900 font-display">Service Area</h2>
+                    </div>
+                    <p className="text-base text-gray-600 mb-5">Home Instead of Marble Falls serves families throughout the Texas Hill Country, from Burnet and Llano to Bee Cave and Dripping Springs. Their caregivers travel to you.</p>
+
+                    <ServiceAreaSection
+                      center={{ lat: profile.lat ?? 30.5783, lng: profile.lng ?? -98.2750 }}
+                      areas={serviceAreas}
+                      providerName={profile.display_name}
+                      regionLabel="communities across the Texas Hill Country"
+                    />
+                  </div>
+                );
+              })()}
+
+              {/* ── Verified Credentials (4Ever Young — at the bottom) ── */}
+              {isHomeCareShowcase && aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+                <div className="py-8 border-t border-gray-200">
+                  <AiTrustSignalsSection signals={aiTrustSignals} />
+                </div>
+              )}
 
               {/* ── Detailed Pricing ── */}
               {pricingDetails.length > 0 && (

@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     // This ensures we have a proper foreign key reference for direct lookups
     let businessProfileId: string | null = null;
     try {
-      // Strategy 1: Direct slug match
+      // Strategy 1: Direct slug match on business_profiles
       const { data: bpBySlug } = await db
         .from("business_profiles")
         .select("id")
@@ -161,18 +161,58 @@ export async function POST(request: NextRequest) {
       if (bpBySlug?.id) {
         businessProfileId = bpBySlug.id;
       } else {
-        // Strategy 2: Via olera-providers linkage
-        const { data: iosProvider } = await db
+        // Strategy 2a: Via olera-providers.slug linkage (safe parameterized query)
+        let iosProviderId: string | null = null;
+        const { data: iosBySlug } = await db
           .from("olera-providers")
           .select("provider_id")
-          .or(`slug.eq."${provider_id}",provider_id.eq."${provider_id}"`)
+          .eq("slug", provider_id)
           .not("deleted", "is", true)
           .maybeSingle();
-        if (iosProvider?.provider_id) {
+        if (iosBySlug?.provider_id) {
+          iosProviderId = iosBySlug.provider_id;
+        } else {
+          // Strategy 2b: Via olera-providers.provider_id (legacy alphanumeric IDs)
+          const { data: iosByProviderId } = await db
+            .from("olera-providers")
+            .select("provider_id")
+            .eq("provider_id", provider_id)
+            .not("deleted", "is", true)
+            .maybeSingle();
+          if (iosByProviderId?.provider_id) {
+            iosProviderId = iosByProviderId.provider_id;
+          }
+        }
+
+        // Strategy 3: Reverse-match auto-generated slugs
+        // For iOS providers with slug=NULL, the page generates a slug on-the-fly
+        // via generateProviderSlug(name, state). We need to find those matches.
+        if (!iosProviderId) {
+          const slugParts = provider_id.split("-");
+          const namePrefix = slugParts.slice(0, 3).join("-");
+          const { data: candidates } = await db
+            .from("olera-providers")
+            .select("provider_id, provider_name, state")
+            .not("deleted", "is", true)
+            .is("slug", null)
+            .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+            .limit(20);
+          if (candidates) {
+            for (const c of candidates) {
+              if (generateProviderSlug(c.provider_name, c.state) === provider_id) {
+                iosProviderId = c.provider_id;
+                break;
+              }
+            }
+          }
+        }
+
+        // Look up linked business_profile via source_provider_id
+        if (iosProviderId) {
           const { data: linkedBp } = await db
             .from("business_profiles")
             .select("id")
-            .eq("source_provider_id", iosProvider.provider_id)
+            .eq("source_provider_id", iosProviderId)
             .maybeSingle();
           if (linkedBp?.id) {
             businessProfileId = linkedBp.id;

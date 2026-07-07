@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-07-06→07 — Full admin audit → 3 PRs SHIPPED TO PROD (#1324/#1325/#1326 via promote #1328); sidebar UX PR #1330 open
+
+Audited every admin screen on prod (browser walk via chrome-devtools MCP + 2 parallel code agents + design-taste brief from TJ's inspirations folder). Verdict: no overhaul — make the newest design generation win; DNC's intro copy is the gold standard. Full per-screen notes in the 07-06 session scratchpad (`audit/visual-notes.md`); plan in memory `project-admin-audit-2026-07`.
+
+- **Infra unlock (durable):** Vercel checkpoint hard-rejects automated browsers (Code 21). Fixed with firewall rule `tj-home-bypass` (TJ's IP → Bypass) at the TOP of Custom Rules in **olera-web** project (Olera Pro team — repo docs saying "olera2-web" are stale). Must sit above "Block Restricted Regions" (TJ's VPN IP geolocates SEA → that Challenge rule fires first otherwise). New global skill `/open-dia` encodes browser-driving + recovery recipes; `/qb-hours` also depends on the same MCP.
+- **#1324 retire sweep (−1,873):** deleted matches/outreach/review-requests stubs, broken images page, deletions, market-diagnostic + orphaned APIs; Overview vanity card; registry path fixes. **Demand KEPT per TJ** (de-navved; "By city →" link on Care Seekers). **MedJobs + staffing-outreach fully restored per TJ — Logan's area, standing hands-off rule.** Pre-test caught a real back-nav 404 pre-merge.
+- **#1325 QoL fixes:** overflow-x-auto on 9 table wrappers (removal-requests Approve button was a 4px sliver), Directory defaults to Published, PulseHeader `deltaDirection="up-bad"` + >500% deltas render neutral (Questions showed "up 9329%" green on a backlog), Toast error variant replacing alert()s, Benefits silent-POST fix.
+- **#1326 primitives pilot:** serif AdminPageHeader (Benefits style; 5 pages), StatusBadge canonical tone map (2 pages), useUrlFilterState (Connections/Verification/Questions; Overview's `?filter=needs_email` deep link was dead, now works). **Merge = serif direction APPROVED → next: AdminTable (39 tables/22 files) + ~35-page rollout, MedJobs excluded.**
+- **Promote #1328 → main `88a46814`, deploy green.** Gotcha: first staging deploy of the 3-merge burst failed with an *environmental* Vercel error — local build on the identical SHA passed; empty-commit redeploy went green. Don't treat red Vercel as code failure until reproduced locally. Rode along: #1327 Ad Boost Phase 1 (not ours). Critical-file indicators all intact. Notion: 3 handoff pages + promotion record in Branch Handoff Reports.
+- **#1330 (OPEN, staging):** sidebar naming pass — Manage→**Trust & Safety**, Activity Center→Activity, Market Outreach→**Referrals**, Content→**Articles**, Removal Blocklist→Blocklist (page h1s + mobile label synced) + **Collapse/Expand all** control (per-section localStorage persistence already existed; active section never hides).
+- **Test-account reset for TJ:** deleted the lone `ad_campaign_requests` row on Ad Boost Queued Test (`c42767b1`, guarded by id+slug) so the new Phase-1 pitch flow shows fresh; email markers were columns on that row. Old Aggie campaign seed was already gone.
+
+**Next up:** (1) TJ merges #1330 after preview check; (2) **AdminTable + wide primitives rollout** (greenlit, say go); (3) **HELD for TJ's explicit yes — prod test-data cleanup:** logan+stg-* rows in market-outreach queue, "Ad Boost Queued Test" verification row, "Sunrise Care Demo" review provider; (4) Ad Boost gate: Miracle-Lightstar + Impact flips to live in `/admin/ad-boost` once Google serves; (5) browser MCP crashed late-session (over-aggressive process cleanup) — next session restart restores it; (6) orientation campaign send gate still open (600 candidates, 07-04 entry).
+
 ### 2026-07-06 — Family-comms admin UX session: drawer previews + collapse-all + drag-reorder (PR #1321 → staging, awaiting TJ QA)
 
 Three improvements to `/admin/family-comms` in one PR, driven by TJ reviewing the page live:

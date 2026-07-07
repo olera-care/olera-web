@@ -1392,6 +1392,10 @@ export default async function ProviderPage({
       <div className="bg-white" data-spotlight-zone>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 md:py-10">
 
+        {/* ── Outer grid: About + content (left) with sticky CTA (right) for redesigned ── */}
+        <div className={isRedesignedProvider ? "grid grid-cols-1 lg:grid-cols-[1fr_340px] lg:gap-8 items-start" : ""}>
+        <div>
+
         {/* ── About + CTA side-by-side (desktop only) ── */}
         <div className="hidden md:flex md:gap-10 md:items-start mb-10">
           {/* Left: About + badges + standout */}
@@ -1524,7 +1528,7 @@ export default async function ProviderPage({
         <SectionNav sections={sectionItems} />
 
         {/* -- Content Column -- */}
-        <div className={`grid gap-8 items-start ${isRedesignedProvider ? "grid-cols-1 lg:grid-cols-[1fr_340px]" : "grid-cols-1"}`}>
+        <div className="grid gap-8 items-start grid-cols-1">
 
           {/* ========== Main Content ========== */}
           <div>
@@ -2565,8 +2569,11 @@ export default async function ProviderPage({
             </div>
           </div>
 
-          {/* ========== Right Column — Sticky Sidebar ========== */}
-          <div className={`${isRedesignedProvider ? "hidden lg:block" : "hidden"} self-stretch`}>
+        </div>
+
+        </div>{/* close left column of outer grid */}
+        {isRedesignedProvider && (
+          <div className="hidden lg:block self-stretch">
             <div id="connection-card" className="sticky top-24">
               {isStudentContext ? (
                 <StudentProviderCTA
@@ -2616,7 +2623,8 @@ export default async function ProviderPage({
               )}
             </div>
           </div>
-        </div>
+        )}
+        </div>{/* close outer grid */}
 
         {/* ===== Nearby Communities / Compare Providers (hidden in student context) ===== */}
         {!isStudentContext && similarProviders.providers.length > 0 && (

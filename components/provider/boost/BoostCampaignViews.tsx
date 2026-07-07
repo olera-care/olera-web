@@ -231,16 +231,29 @@ export function WrapUpMoment({
       <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
         {leads === 1 ? "A family reached out." : `${leads} families reached out.`}
       </h2>
+      {/* The value math — connect the results to what they'd cost anywhere
+          else, BEFORE any price appears. Market comparison only (our spend
+          stays private by design). */}
       <p className="text-gray-500 mt-3 leading-relaxed max-w-lg">
-        That&apos;s what your intro campaign delivered. Keep the ads running
-        with a flat monthly plan: ad spend, setup, and management together, no
-        contract.
+        Your intro campaign was on us, and this is what it delivered. For
+        comparison: referral sites charge $50 to $150 for a single lead, and
+        they sell that same lead to several agencies at once. These families
+        came straight to you, and only to you.
       </p>
 
       {campaignStats && <CampaignPerformance stats={campaignStats} />}
 
+      {/* The choice gets its own narrative beat — proof above, decision here. */}
+      <p className="mt-10 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+        Keep it going
+      </p>
+      <p className="mt-2 text-gray-500 leading-relaxed max-w-lg">
+        A monthly plan keeps the same ads running. One flat price covers
+        everything: ad spend, setup, and management together.
+      </p>
+
       {/* The plan choice — same stacked radio-card grammar as the apply flow. */}
-      <fieldset className="mt-8">
+      <fieldset className="mt-5">
         <legend className="sr-only">Plan</legend>
         <div className="flex flex-col gap-3">
           {paidStops.map((b) => {
@@ -285,13 +298,19 @@ export function WrapUpMoment({
         </div>
       </fieldset>
 
-      <p className="mt-4 text-sm text-gray-500">
-        A month with zero family inquiries is free.{" "}
-        <Link href="/managed-ads-terms" target="_blank" className="text-primary-600 font-medium hover:underline">
-          How the guarantee works
-        </Link>
-        .
-      </p>
+      {/* The de-risking, promoted from fine print to first-class promises —
+          this is the page where money is asked, so this is where the safety
+          net must be loudest (Duolingo lists anti-trap terms as benefits). */}
+      <ul className="mt-5 space-y-2.5">
+        <PromiseRow>
+          A month with zero family inquiries is free.{" "}
+          <Link href="/managed-ads-terms" target="_blank" className="text-primary-600 font-medium hover:underline">
+            How the guarantee works
+          </Link>
+        </PromiseRow>
+        <PromiseRow>Month to month. Cancel or pause anytime.</PromiseRow>
+        <PromiseRow>One flat price. No per-lead fees, no extras, ever.</PromiseRow>
+      </ul>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
@@ -299,7 +318,7 @@ export function WrapUpMoment({
         type="button"
         disabled={submitting}
         onClick={() => onCheckout(plan)}
-        className="inline-flex items-center gap-2.5 mt-5 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
+        className="inline-flex items-center gap-2.5 mt-6 px-8 py-3.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[16px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
       >
         {submitting ? "One moment…" : `Continue with ${selected?.name ?? "your plan"}`}
         {!submitting && (
@@ -308,20 +327,43 @@ export function WrapUpMoment({
           </svg>
         )}
       </button>
-      <p className="mt-3 text-xs text-gray-400 leading-relaxed max-w-md">
-        You&apos;ll confirm payment on the next screen. Month to month, cancel
-        anytime.
+      <p className="mt-3 text-sm text-gray-500 leading-relaxed max-w-md">
+        You&apos;ll confirm payment on the next screen. Nothing is charged
+        until you do.
       </p>
 
-      <div className="mt-8">
+      <div className="mt-9">
         <Link
           href="/provider"
           className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
         >
           Not now, back to dashboard
         </Link>
+        <p className="mt-1.5 text-xs text-gray-400 leading-relaxed max-w-md">
+          Your Olera page stays live either way. Only the ads stop.
+        </p>
       </div>
     </div>
+  );
+}
+
+/** One first-class promise with a quiet teal check — the de-risk facts
+ *  rendered as benefits, not fine print. */
+function PromiseRow({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+      <svg
+        className="mt-0.5 w-4 h-4 shrink-0 text-primary-600"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2.5}
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+      </svg>
+      <span>{children}</span>
+    </li>
   );
 }
 

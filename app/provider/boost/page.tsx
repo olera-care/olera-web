@@ -451,6 +451,15 @@ function CampaignInMotion({
           launch — is THE focal point (replaces the old benefits-only counter). */}
       {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
 
+      {/* Set up the wrap-up moment BEFORE it arrives: the no-silent-rollover
+          promise, planted while the intro is still running. */}
+      {isLive && !request.plan_status && (
+        <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
+          When your intro wraps, your results will be right here and you choose
+          whether to keep going. Nothing switches to a paid plan on its own.
+        </p>
+      )}
+
       <Link
         href="/provider"
         className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"
@@ -1003,7 +1012,9 @@ function ApplyExperience({
 
             <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
               This starts a concierge review. Advertising can drive more local
-              families to your page; it doesn&apos;t guarantee a set number of leads.{" "}
+              families to your page; it doesn&apos;t guarantee a set number of
+              leads. After your first campaign, you see the results and decide
+              what happens next. Nothing switches to a paid plan on its own.{" "}
               <Link
                 href="/managed-ads-terms"
                 target="_blank"

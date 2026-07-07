@@ -222,7 +222,7 @@ export default function AdminMarketOutreachPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Market Outreach Queue</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Referrals</h1>
         <p className="mt-1 text-sm text-gray-500">
           Providers who saw Growth, worked referral targets, or need an operator nudge.
         </p>

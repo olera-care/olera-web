@@ -28,8 +28,10 @@ const navSections: NavSection[] = [
     key: "inbox",
     defaultOpen: true,
     items: [
-      { label: "Activity Center", href: "/admin/activity" },
-      { label: "Market Outreach", href: "/admin/market-outreach" },
+      { label: "Activity", href: "/admin/activity" },
+      // "Referrals" = the market-outreach ambassador/nudge queue; renamed
+      // to say the job, not the department (2026-07 sidebar naming pass)
+      { label: "Referrals", href: "/admin/market-outreach" },
       { label: "Connections", href: "/admin/connections" },
       { label: "Leads", href: "/admin/leads" },
       // Outreach merged into Connections (direction=outbound toggle)
@@ -49,13 +51,15 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: "Manage",
+    // Renamed from "Manage" — every admin section "manages"; this one is
+    // specifically moderation + protection, so name the job.
+    label: "Trust & Safety",
     key: "manage",
     items: [
       { label: "Verification", href: "/admin/verification" },
       { label: "Disputes", href: "/admin/disputes" },
       { label: "Removals", href: "/admin/removal-requests" },
-      { label: "Removal Blocklist", href: "/admin/removal-blocklist" },
+      { label: "Blocklist", href: "/admin/removal-blocklist" },
       { label: "Do Not Contact", href: "/admin/do-not-contact" },
     ],
   },
@@ -69,7 +73,8 @@ const navSections: NavSection[] = [
       { label: "Automations", href: "/admin/automations" },
       { label: "Family Comms", href: "/admin/family-comms" },
       { label: "Benefits", href: "/admin/benefits" },
-      { label: "Content", href: "/admin/content" },
+      // "Articles" — next to Benefits (also content), "Content" was ambiguous
+      { label: "Articles", href: "/admin/content" },
       // v9.0 Phase 7 Commit K: Staffing Outreach retired — its
       // operational concerns are fully covered by the MedJobs
       // section below (sites, prospects, partners, etc.). Hidden
@@ -172,7 +177,7 @@ const mobileNavItems: (NavItem & { icon: React.ReactNode })[] = [
     ),
   },
   {
-    label: "Content",
+    label: "Articles",
     href: "/admin/content",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,6 +291,21 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
     });
   }
 
+  // Collapse/expand all sections at once (incl. MedJobs). Judged from raw
+  // collapsed state, not effective-open — the active section stays visually
+  // open via the auto-expand override even after "Collapse all", so the
+  // current page never disappears from the nav.
+  const allSectionKeys = [...navSections.map((s) => s.key), "medjobs"];
+  const allCollapsed = allSectionKeys.every((k) => collapsed[k]);
+  function setAll(collapse: boolean) {
+    setCollapsed((prev) => {
+      const next = { ...prev };
+      for (const k of allSectionKeys) next[k] = collapse;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
@@ -306,18 +326,27 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-52 bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
         <nav className="flex-1 px-3 pt-3 pb-3">
-          {/* Overview — standalone top link */}
-          <Link
-            href="/admin"
-            className={[
-              "block px-2.5 py-1.5 rounded-md text-sm transition-colors duration-100 mb-3",
-              isActive("/admin")
-                ? "text-gray-900 font-semibold bg-gray-100"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-            ].join(" ")}
-          >
-            Overview
-          </Link>
+          {/* Overview — standalone top link, with collapse/expand-all beside it */}
+          <div className="flex items-center justify-between mb-3">
+            <Link
+              href="/admin"
+              className={[
+                "flex-1 block px-2.5 py-1.5 rounded-md text-sm transition-colors duration-100",
+                isActive("/admin")
+                  ? "text-gray-900 font-semibold bg-gray-100"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+              ].join(" ")}
+            >
+              Overview
+            </Link>
+            <button
+              onClick={() => setAll(!allCollapsed)}
+              title={allCollapsed ? "Expand all sections" : "Collapse all sections"}
+              className="ml-1 px-1.5 py-1 rounded text-[11px] text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors duration-100 whitespace-nowrap"
+            >
+              {allCollapsed ? "Expand all" : "Collapse all"}
+            </button>
+          </div>
 
           {/* Collapsible sections */}
           {navSections.map((section) => {

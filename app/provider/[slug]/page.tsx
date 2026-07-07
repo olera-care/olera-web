@@ -950,7 +950,9 @@ export default async function ProviderPage({
                     <div className="flex items-baseline gap-1.5 mt-1.5">
                       <span className="text-base font-semibold text-gray-900">{priceRange || "$25-$35/hr"}</span>
                       <span className="text-sm text-gray-400">est.</span>
-                      <MobilePricingTooltip content="Estimated hourly rate based on care level, schedule, and hours per week. Contact for a personalized quote." />
+                      <span className="text-xs text-gray-400 cursor-help" title="Estimated hourly rate based on care level, schedule, and hours per week. Contact for a personalized quote.">
+                        <svg className="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </span>
                     </div>
                   </>
                 ) : (() => {
@@ -1139,7 +1141,9 @@ export default async function ProviderPage({
                     <div className="mt-3 flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-gray-900">{priceRange || "$25-$35/hr"}</span>
                       <span className="text-base text-gray-400">est.</span>
-                      <MobilePricingTooltip content="Estimated hourly rate based on care level, schedule, and hours per week. Contact for a personalized quote." />
+                      <span className="text-xs text-gray-400 cursor-help" title="Estimated hourly rate based on care level, schedule, and hours per week. Contact for a personalized quote.">
+                        <svg className="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </span>
                     </div>
 
                     {/* Fact row */}

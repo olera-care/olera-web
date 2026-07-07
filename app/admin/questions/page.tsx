@@ -7,6 +7,7 @@ import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangeP
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 import { useUrlFilterState } from "@/hooks/useUrlFilterState";
+import { formatAge } from "@/lib/connection-temperature";
 
 interface Question {
   id: string;
@@ -506,8 +507,8 @@ function InlineEmailInput({
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const stalenessMs = Date.now() - new Date(dateStr).getTime();
+  return `${formatAge(stalenessMs)} ago`;
 }
 
 // Group questions by provider_id, preserving order of first appearance

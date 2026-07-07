@@ -162,12 +162,14 @@ function InlineEmailInput({
   emailIsDead,
   onEmailAdded,
   autoSearch = false,
+  isAccountClaimed = false,
 }: {
   providerSlug: string;
   existingEmail?: string | null;
   emailIsDead?: boolean;
   onEmailAdded: () => void;
   autoSearch?: boolean;
+  isAccountClaimed?: boolean;
 }) {
   // Pre-fill with existing email (even if dead) so operator can see what failed and edit it
   const [email, setEmail] = useState(existingEmail || "");
@@ -341,12 +343,29 @@ function InlineEmailInput({
 
     setSaving(true);
     setError(null);
+
+    // For claimed providers with delivery issues submitting the SAME email:
+    // Use email-override instead of add-email. This trusts the email without
+    // attempting to "change" it (which add-email blocks for claimed accounts).
+    const isSameEmail = existingEmail && email.trim().toLowerCase() === existingEmail.toLowerCase();
+    const shouldTrustInstead = isAccountClaimed && emailIsDead && isSameEmail;
+
     try {
-      const res = await fetch("/api/admin/questions/add-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerSlug, email: email.trim(), force }),
-      });
+      const res = shouldTrustInstead
+        ? await fetch("/api/admin/email-override", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              providerSlug,
+              reason: "claimed_account",
+              note: "Trusted via Questions tab - admin confirmed email works",
+            }),
+          })
+        : await fetch("/api/admin/questions/add-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ providerSlug, email: email.trim(), force }),
+          });
 
       if (res.ok) {
         setSuccess(true);
@@ -537,6 +556,8 @@ export default function AdminQuestionsPage() {
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
   const [editingEmailProviders, setEditingEmailProviders] = useState<Set<string>>(new Set());
+  const [trustingEmailProviders, setTrustingEmailProviders] = useState<Set<string>>(new Set());
+  const [trustedEmailProviders, setTrustedEmailProviders] = useState<Set<string>>(new Set());
 
   function showToast(message: string, type: "success" | "error" = "success") {
     if (toastRef.current) clearTimeout(toastRef.current);
@@ -760,6 +781,39 @@ export default function AdminQuestionsPage() {
 
   // Mark provider as not interested (soft reject) - questions stay visible but
   // no emails are sent. Reversible.
+  // Trust email for claimed providers with delivery issues
+  // This adds the email to email_overrides, allowing emails to be sent without changing the email
+  const handleTrustEmail = async (providerId: string) => {
+    setTrustingEmailProviders((prev) => new Set(prev).add(providerId));
+    try {
+      const res = await fetch("/api/admin/email-override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSlug: providerId,
+          reason: "claimed_account",
+          note: "Trusted via Questions Delivery Issues tab - claimed provider with failing email",
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setTrustedEmailProviders((prev) => new Set(prev).add(providerId));
+        showToast(data.message || "Email trusted — questions will be sent");
+        await fetchQuestions();
+      } else {
+        showToast(data.message || data.error || "Failed to trust email", "error");
+      }
+    } catch {
+      showToast("Network error", "error");
+    } finally {
+      setTrustingEmailProviders((prev) => {
+        const next = new Set(prev);
+        next.delete(providerId);
+        return next;
+      });
+    }
+  };
+
   const handleMarkNotInterested = async (providerId: string, reason: string, notes: string, unmark: boolean) => {
     setActionLoading(`notinterested:${providerId}`);
     try {
@@ -1064,6 +1118,7 @@ export default function AdminQuestionsPage() {
                                 providerSlug={providerId}
                                 existingEmail={firstQ.provider_email}
                                 emailIsDead={emailIsDead}
+                                isAccountClaimed={firstQ.is_account_claimed}
                                 onEmailAdded={() => {
                                   setEditingEmailProviders((prev) => {
                                     const next = new Set(prev);
@@ -1085,24 +1140,56 @@ export default function AdminQuestionsPage() {
                                 Cancel
                               </button>
                             </div>
+                          ) : trustedEmailProviders.has(providerId) ? (
+                            // Email was just trusted - show success state
+                            <div className="pt-1">
+                              <div className="flex items-center gap-1.5 text-emerald-700">
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span className="text-sm font-medium">Email trusted — questions will be sent</span>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">{firstQ.provider_email}</p>
+                            </div>
                           ) : (
-                            // Not editing - show failed email + Edit button
+                            // Not editing - show failed email + action buttons
                             <div className="pt-1">
                               <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-1.5 text-amber-700">
                                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                   </svg>
-                                  <span className="text-sm">Delivery failed — needs replacement</span>
+                                  <span className="text-sm">Delivery failed{firstQ.is_account_claimed ? "" : " — needs replacement"}</span>
                                 </div>
-                                <button
-                                  onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
-                                  className="px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
-                                >
-                                  Edit
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  {firstQ.is_account_claimed ? (
+                                    // For claimed providers: only show Trust Email button
+                                    // (they own their email - admin can't change it, only trust it)
+                                    <button
+                                      onClick={() => handleTrustEmail(providerId)}
+                                      disabled={trustingEmailProviders.has(providerId)}
+                                      className="px-2.5 py-1 text-xs font-medium text-teal-700 bg-teal-100 hover:bg-teal-200 rounded transition-colors flex-shrink-0 disabled:opacity-50"
+                                      title="Mark this email as trusted — bypasses delivery checks and sends pending questions"
+                                    >
+                                      {trustingEmailProviders.has(providerId) ? "Trusting..." : "Trust Email"}
+                                    </button>
+                                  ) : (
+                                    // For unclaimed providers: show Edit button to replace email
+                                    <button
+                                      onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
+                                      className="px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                               <p className="text-xs text-gray-500 mt-1 line-through">{firstQ.provider_email}</p>
+                              {firstQ.is_account_claimed && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Claimed account — if email is correct, click Trust to bypass delivery checks
+                                </p>
+                              )}
                             </div>
                           )
                         ) : groupNeedsEmail ? (
@@ -1112,6 +1199,7 @@ export default function AdminQuestionsPage() {
                               providerSlug={providerId}
                               existingEmail={firstQ.provider_email}
                               emailIsDead={emailIsDead}
+                              isAccountClaimed={firstQ.is_account_claimed}
                               onEmailAdded={fetchQuestions}
                               autoSearch
                             />

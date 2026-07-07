@@ -795,7 +795,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "You can only edit your own questions" }, { status: 403 });
     }
 
-    if (existing.status === "answered" || existing.answer) {
+    if (existing.status === "answered" || existing.status === "approved" || existing.answer) {
       return NextResponse.json({ error: "Cannot edit a question that has been answered" }, { status: 400 });
     }
 

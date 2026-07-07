@@ -443,6 +443,7 @@ export async function GET(request: NextRequest) {
         .neq("status", "archived")
         .neq("status", "rejected")
         .neq("status", "answered")
+        .neq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(10000);
 

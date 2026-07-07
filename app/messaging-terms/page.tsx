@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import LegalPageLayout from "@/components/legal/LegalPageLayout";
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function MessagingTermsPage() {
   return (
-    <LegalPageLayout title="SMS / Text Messaging Terms" lastUpdated="July 2, 2026">
+    <LegalPageLayout title="SMS / Text Messaging Terms" lastUpdated="July 7, 2026">
       {/* ── Overview ── */}
       <h2>Overview</h2>
       <p>
@@ -64,10 +65,23 @@ export default function MessagingTermsPage() {
       <p>
         Text messages are never sent unless you ask for them. You opt in by
         entering your mobile phone number into a form on{" "}
-        <a href="https://olera.care">olera.care</a>, for example when you send a
-        care inquiry to a provider, request your care-benefit results, or verify
-        your account. The phone field is always optional; if you leave it blank,
-        you will not receive any texts.
+        <a href="https://olera.care">olera.care</a>:
+      </p>
+      <ul>
+        <li>
+          <strong>Families:</strong> when you send a care inquiry to a provider
+          (from any provider page, via the &ldquo;Request details&rdquo; form),
+          when you request your care-benefit results, or when you add a phone
+          number to your account profile.
+        </li>
+        <li>
+          <strong>Care providers:</strong> when you add a phone number to your
+          Olera business profile or verify a claim of your provider listing.
+        </li>
+      </ul>
+      <p>
+        The phone field is always optional; if you leave it blank, you will not
+        receive any texts.
       </p>
       <p>
         At the point where you enter your number, we display the following consent
@@ -77,14 +91,40 @@ export default function MessagingTermsPage() {
         If you add your phone, you agree to receive text messages from Olera about
         your care search (such as provider replies and updates). Msg &amp; data
         rates may apply. Message frequency varies. Reply STOP to opt out, HELP for
-        help. See our <a href="/terms">Terms</a> and{" "}
-        <a href="/privacy">Privacy Policy</a>.
+        help. See our <a href="/messaging-terms">SMS Terms</a>,{" "}
+        <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
       </blockquote>
       <p>
         Submitting the form with a phone number entered is your consent to receive
         the messages described above. Consent to receive texts is not a condition
         of using Olera or of any purchase.
       </p>
+
+      {/* ── What Opt-In Looks Like ── */}
+      <h2>What Opt-In Looks Like</h2>
+      <p>
+        For reference (and for carrier verification), this is the exact consent
+        experience on our care-inquiry flow. Step 1: a family requests details
+        from a provider by entering an email address:
+      </p>
+      <Image
+        src="/images/sms-optin/optin-step-1-email.png"
+        alt="Step 1 — the Request details form on an Olera provider page, where a family enters an email address"
+        width={672}
+        height={596}
+        className="rounded-xl border border-gray-200 my-4 w-full max-w-md h-auto"
+      />
+      <p>
+        Step 2: the follow-up form offers an optional phone field with the consent
+        language displayed directly beneath it:
+      </p>
+      <Image
+        src="/images/sms-optin/optin-step-2-phone-consent.png"
+        alt="Step 2 — the optional phone number field with SMS consent language displayed directly beneath it"
+        width={672}
+        height={922}
+        className="rounded-xl border border-gray-200 my-4 w-full max-w-md h-auto"
+      />
 
       {/* ── Message Frequency and Cost ── */}
       <h2>Message Frequency and Cost</h2>

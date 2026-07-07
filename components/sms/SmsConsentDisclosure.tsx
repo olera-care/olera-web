@@ -11,13 +11,24 @@
  * phone…") so it reads correctly where the phone field is optional.
  */
 
-export function SmsConsentDisclosure({ className = "" }: { className?: string }) {
+export function SmsConsentDisclosure({
+  className = "",
+  audience = "family",
+}: {
+  className?: string;
+  /** "family" = care-search updates; "provider" = inquiry alerts + account notices */
+  audience?: "family" | "provider";
+}) {
+  const about =
+    audience === "provider"
+      ? "your business on Olera (such as new family inquiries and account notices)"
+      : "your care search (such as provider replies and updates)";
   return (
     <p className={`text-[12px] leading-relaxed text-gray-400 ${className}`}>
-      If you add your phone, you agree to receive text messages from Olera about
-      your care search (such as provider replies and updates). Msg &amp; data
-      rates may apply. Message frequency varies. Reply STOP to opt out, HELP for
-      help. See our{" "}
+      If you add your phone, you agree to receive text messages from Olera about{" "}
+      {about}. Msg &amp; data rates may apply. Message frequency varies. Reply
+      STOP to opt out, HELP for help. See our{" "}
+      <a href="/messaging-terms" className="underline hover:text-gray-600">SMS Terms</a>,{" "}
       <a href="/terms" className="underline hover:text-gray-600">Terms</a> and{" "}
       <a href="/privacy" className="underline hover:text-gray-600">Privacy Policy</a>.
     </p>

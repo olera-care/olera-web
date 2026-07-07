@@ -11,6 +11,7 @@ import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useClickOutside } from "@/hooks/use-click-outside";
+import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 
 const CATEGORY_OPTIONS: { value: ProfileCategory; label: string }[] = [
   { value: "home_care_agency", label: "Home Care Agency" },
@@ -248,6 +249,7 @@ export default function EditOverviewModal({
             placeholder="contact@example.com"
           />
         </div>
+        <SmsConsentDisclosure audience="provider" className="-mt-2" />
 
         <Input
           label="Website"

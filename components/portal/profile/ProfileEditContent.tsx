@@ -7,6 +7,7 @@ import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import Pill from "@/components/providers/connection-card/Pill";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 
 const STEPS = [
   "Basic Info",
@@ -335,7 +336,10 @@ export default function ProfileEditContent({
         {step === 1 && (
           <div className="space-y-5">
             <Input label="Email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
-            <Input label="Phone number" type="tel" placeholder="(555) 123-4567" value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
+            <div>
+              <Input label="Phone number" type="tel" placeholder="(555) 123-4567" value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
+              <SmsConsentDisclosure className="mt-2" />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2.5">How would you like providers to contact you?</label>
               <div className="flex flex-wrap gap-2">

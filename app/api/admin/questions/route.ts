@@ -35,12 +35,14 @@ export async function GET(request: NextRequest) {
 
     // Helper to fetch tab counts - called by each response path
     async function getTabCounts() {
-      const [pendingQuestions, needsEmailCount, deliveryIssuesCount, notInterestedCount, archivedCount] = await Promise.all([
+      const [pendingQuestions, needsEmailCount, deliveryIssuesCount, notInterestedCount, archivedCount, answeredCount, allCount] = await Promise.all([
         db.from("provider_questions").select("id, metadata").eq("status", "pending"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').neq("status", "archived").neq("status", "rejected"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { email_dead: true }).neq("status", "archived").neq("status", "rejected").neq("status", "answered"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
         db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "answered"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }),
       ]);
       const trueUnansweredCount = (pendingQuestions.data ?? []).filter((q) => {
         const meta = q.metadata as Record<string, unknown> | null;
@@ -55,6 +57,8 @@ export async function GET(request: NextRequest) {
         delivery_issues: deliveryIssuesCount.count ?? 0,
         not_interested: notInterestedCount.count ?? 0,
         archived: archivedCount.count ?? 0,
+        answered: answeredCount.count ?? 0,
+        all: allCount.count ?? 0,
       };
     }
 

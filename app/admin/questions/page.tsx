@@ -41,10 +41,10 @@ const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
   { label: "Needs Email", value: "needs_email", showCount: true },
   { label: "Delivery Issues", value: "delivery_issues", showCount: true },
   { label: "Unanswered", value: "unanswered", showCount: true },
-  { label: "Answered", value: "answered" },
+  { label: "Answered", value: "answered", showCount: true },
   { label: "Not Interested", value: "not_interested", showCount: true },
   { label: "Archived", value: "archived", showCount: true },
-  { label: "All", value: "" },
+  { label: "All", value: "", showCount: true },
 ];
 
 const STATUS_LABELS: Record<string, string> = {
@@ -535,7 +535,7 @@ export default function AdminQuestionsPage() {
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
-  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; not_interested: number; archived: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, not_interested: 0, archived: 0 });
+  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; not_interested: number; archived: number; answered: number; all: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, not_interested: 0, archived: 0, answered: 0, all: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
@@ -917,6 +917,8 @@ export default function AdminQuestionsPage() {
             : tab.value === "delivery_issues" ? tabCounts.delivery_issues
             : tab.value === "not_interested" ? tabCounts.not_interested
             : tab.value === "archived" ? tabCounts.archived
+            : tab.value === "answered" ? tabCounts.answered
+            : tab.value === "" ? tabCounts.all
             : null;
 
           return (

@@ -39,6 +39,8 @@ export default function AdminOverviewPage() {
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<number | null>(null);
   const [totalReviews, setTotalReviews] = useState<number | null>(null);
   const [liveProviders, setLiveProviders] = useState<number | null>(null);
+  const [adBoostMrr, setAdBoostMrr] = useState<number | null>(null);
+  const [adBoostPaying, setAdBoostPaying] = useState<number>(0);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAllStats, setShowAllStats] = useState(false);
@@ -80,6 +82,15 @@ export default function AdminOverviewPage() {
       .then(setLiveProviders)
       .catch(() => { setLiveProviders(0); setError("Some data failed to load."); });
 
+    // Ad Boost revenue — paying plans + MRR (webhook-written, always current).
+    fetch("/api/admin/ad-boost?revenue_only=true")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("ad-boost revenue failed"))))
+      .then((d) => {
+        setAdBoostMrr(d?.mrr ?? 0);
+        setAdBoostPaying(d?.paying ?? 0);
+      })
+      .catch(() => { setAdBoostMrr(0); setError("Some data failed to load."); });
+
     // Audit log
     fetch("/api/admin/audit?limit=10")
       .then((r) => r.ok ? r.json() : { entries: [] })
@@ -94,6 +105,12 @@ export default function AdminOverviewPage() {
   }, []);
 
   const primaryCards: StatCard[] = [
+    {
+      label: "Ad Boost MRR ($/mo)",
+      value: adBoostMrr,
+      subtitle: adBoostPaying > 0 ? `${adBoostPaying} paying provider${adBoostPaying === 1 ? "" : "s"}` : "No paying plans yet",
+      href: "/admin/ad-boost",
+    },
     { label: "Unverified Claims", value: unverifiedClaims, subtitle: "Claimed, not yet verified", href: "/admin/verification" },
     { label: "Total Inquiries", value: totalInquiries, subtitle: "All connections", href: "/admin/connections" },
     { label: "Needs Email", value: needsEmail, subtitle: "Connections needing email", href: "/admin/connections?filter=needs_email", isWarning: true },

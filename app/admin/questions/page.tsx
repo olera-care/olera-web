@@ -97,6 +97,21 @@ function formatDateTime(dateStr: string | null | undefined): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+// Format timestamp like "7 Jul, 16:26" for email history
+function formatEmailTimestamp(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return ""; // Invalid date
+    const day = d.getDate();
+    const month = d.toLocaleDateString("en-US", { month: "short" });
+    const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+    return `${day} ${month}, ${time}`;
+  } catch {
+    return "";
+  }
+}
+
 function ProviderStatusBadge({ question }: { question: Question }) {
   const providerName = question.provider_name || question.provider_id;
   const verificationLink = `/admin/verification?search=${encodeURIComponent(providerName)}`;
@@ -165,6 +180,134 @@ function ProviderStatusBadge({ question }: { question: Question }) {
     >
       Claimed
     </span>
+  );
+}
+
+// Email history section with collapsible toggle and expandable rows
+function EmailHistorySection({ emails }: { emails: EmailLogEntry[] }) {
+  const [showEmails, setShowEmails] = useState(false);
+  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
+
+  if (!emails || emails.length === 0) return null;
+
+  // Get email status from lifecycle timestamps
+  function getEmailStatus(email: EmailLogEntry): { label: string; color: string; dotColor: string } {
+    if (email.bounced_at) return { label: "bounced", color: "text-red-600", dotColor: "bg-red-500" };
+    if (email.complained_at) return { label: "spam", color: "text-red-600", dotColor: "bg-red-500" };
+    if (email.first_opened_at) return { label: "opened", color: "text-emerald-600", dotColor: "bg-emerald-500" };
+    if (email.delivered_at) return { label: "delivered", color: "text-gray-500", dotColor: "bg-gray-400" };
+    return { label: "sent", color: "text-gray-400", dotColor: "bg-gray-300" };
+  }
+
+  return (
+    <div className="mt-4">
+      {/* Collapsible toggle */}
+      <button
+        type="button"
+        onClick={() => setShowEmails(!showEmails)}
+        className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        <svg
+          className={`w-3 h-3 transition-transform ${showEmails ? "rotate-90" : ""}`}
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+        </svg>
+        Show {emails.length} email{emails.length !== 1 ? "s" : ""} sent
+      </button>
+
+      {/* Email list */}
+      {showEmails && (
+        <div className="mt-2 bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+          {emails.map((email) => {
+            const status = getEmailStatus(email);
+            const isExpanded = expandedEmailId === email.id;
+
+            return (
+              <div key={email.id}>
+                {/* Email row header */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedEmailId(isExpanded ? null : email.id)}
+                  className="w-full px-3 py-2.5 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {/* Expand chevron */}
+                    <svg
+                      className={`w-3 h-3 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                    </svg>
+
+                    {/* Email type label */}
+                    <span className="text-sm font-medium text-gray-700">Question</span>
+
+                    {/* Recipient badge */}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 flex-shrink-0">
+                      To Provider
+                    </span>
+
+                    {/* Timestamp */}
+                    <span className="text-xs text-gray-400 flex-shrink-0">
+                      · {formatEmailTimestamp(email.created_at)}
+                    </span>
+                  </div>
+
+                  {/* Status with dot */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className={`w-1.5 h-1.5 rounded-full ${status.dotColor}`} />
+                    <span className={`text-xs ${status.color}`}>{status.label}</span>
+                  </div>
+                </button>
+
+                {/* Expanded preview */}
+                {isExpanded && (
+                  <div className="px-3 pb-3 pl-8">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Subject</p>
+                      <p className="text-sm text-gray-700">{email.subject}</p>
+
+                      {/* Lifecycle timestamps - only show if at least one timestamp exists */}
+                      {(email.delivered_at || email.first_opened_at || email.bounced_at || email.complained_at) && (
+                        <div className="mt-3 pt-2 border-t border-gray-200 grid grid-cols-2 gap-2 text-xs">
+                          {email.delivered_at && (
+                            <div>
+                              <span className="text-gray-400">Delivered:</span>{" "}
+                              <span className="text-gray-600">{formatEmailTimestamp(email.delivered_at)}</span>
+                            </div>
+                          )}
+                          {email.first_opened_at && (
+                            <div>
+                              <span className="text-gray-400">Opened:</span>{" "}
+                              <span className="text-emerald-600">{formatEmailTimestamp(email.first_opened_at)}</span>
+                            </div>
+                          )}
+                          {email.bounced_at && (
+                            <div>
+                              <span className="text-gray-400">Bounced:</span>{" "}
+                              <span className="text-red-600">{formatEmailTimestamp(email.bounced_at)}</span>
+                            </div>
+                          )}
+                          {email.complained_at && (
+                            <div>
+                              <span className="text-gray-400">Marked spam:</span>{" "}
+                              <span className="text-red-600">{formatEmailTimestamp(email.complained_at)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1367,56 +1510,9 @@ export default function AdminQuestionsPage() {
                       )}
                     </div>
 
-                    {/* Email History */}
+                    {/* Email History - collapsible section */}
                     {firstQ.provider_email_history && firstQ.provider_email_history.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                          Email History ({firstQ.provider_email_history.length})
-                        </h4>
-                        <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                          {firstQ.provider_email_history.slice(0, 5).map((email) => {
-                            const status = email.bounced_at
-                              ? "bounced"
-                              : email.complained_at
-                                ? "complained"
-                                : email.first_opened_at
-                                  ? "opened"
-                                  : email.delivered_at
-                                    ? "delivered"
-                                    : "sent";
-                            const statusColors: Record<string, string> = {
-                              bounced: "text-red-600 bg-red-50",
-                              complained: "text-red-600 bg-red-50",
-                              opened: "text-emerald-600 bg-emerald-50",
-                              delivered: "text-blue-600 bg-blue-50",
-                              sent: "text-gray-500 bg-gray-50",
-                            };
-                            const statusLabels: Record<string, string> = {
-                              bounced: "Bounced",
-                              complained: "Spam",
-                              opened: "Opened",
-                              delivered: "Delivered",
-                              sent: "Sent",
-                            };
-                            return (
-                              <div key={email.id} className="px-3 py-2 flex items-center justify-between gap-3">
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-sm text-gray-700 truncate">{email.subject}</p>
-                                  <p className="text-xs text-gray-400">{formatDate(email.created_at)}</p>
-                                </div>
-                                <span className={`px-2 py-0.5 text-xs font-medium rounded flex-shrink-0 ${statusColors[status]}`}>
-                                  {statusLabels[status]}
-                                </span>
-                              </div>
-                            );
-                          })}
-                          {firstQ.provider_email_history.length > 5 && (
-                            <div className="px-3 py-2 text-xs text-gray-400 text-center">
-                              +{firstQ.provider_email_history.length - 5} more emails
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <EmailHistorySection emails={firstQ.provider_email_history} />
                     )}
 
                     {/* Individual questions */}

@@ -122,7 +122,7 @@ function ProviderStatusBadge({ question }: { question: Question }) {
       <Link
         href={verificationLink}
         onClick={(e) => e.stopPropagation()}
-        className="text-emerald-600 hover:text-emerald-700 transition-colors"
+        className="text-emerald-700 hover:text-emerald-800 transition-colors"
         title="Verified & Claimed — click to view"
       >
         <svg className="w-3.5 h-3.5 inline" fill="currentColor" viewBox="0 0 20 20">

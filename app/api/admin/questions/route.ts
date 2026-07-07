@@ -994,37 +994,77 @@ export async function GET(request: NextRequest) {
     // Enrich with provider display names
     const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
 
-    // DEBUG: Log all provider_ids we're looking up
-    const octiSlugs = slugs.filter(s => s.toLowerCase().includes('octihealth'));
-    if (octiSlugs.length > 0) {
-      console.log(`[questions-enrichment] OCTIHEALTH DEBUG: Found ${octiSlugs.length} octihealth slugs to lookup:`, octiSlugs);
-    }
     let providerNames: Record<string, string> = {};
     let providerEditorIds: Record<string, string> = {};
     let providerEmails: Record<string, string> = {};
     let providerPhones: Record<string, string> = {};
     let providerClaimStatus: Record<string, boolean> = {};
     let providerVerificationState: Record<string, string> = {};
-    if (slugs.length > 0) {
-      // Try business_profiles first
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PHASE 1: Direct lookup via business_profile_id (proper FK - most reliable)
+    // Questions with business_profile_id set get accurate data directly
+    // ═══════════════════════════════════════════════════════════════════════════
+    const questionsWithBpId = (questions ?? []).filter((q: Record<string, unknown>) => q.business_profile_id);
+    const bpIds = [...new Set(questionsWithBpId.map((q: Record<string, unknown>) => q.business_profile_id as string))];
+
+    if (bpIds.length > 0) {
+      const { data: bpDirect } = await db
+        .from("business_profiles")
+        .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+        .in("id", bpIds);
+
+      // Map by business_profile_id so we can look up by question's business_profile_id
+      const bpById = new Map<string, typeof bpDirect extends (infer T)[] | null ? T : never>();
+      for (const bp of bpDirect ?? []) {
+        if (bp.id) bpById.set(bp.id, bp);
+      }
+
+      // Populate data for each question with business_profile_id
+      for (const q of questionsWithBpId) {
+        const qTyped = q as Record<string, unknown>;
+        const bp = bpById.get(qTyped.business_profile_id as string);
+        if (bp && qTyped.provider_id) {
+          const slug = qTyped.provider_id as string;
+          if (bp.display_name && !providerNames[slug]) providerNames[slug] = bp.display_name;
+          if (bp.source_provider_id && !providerEditorIds[slug]) providerEditorIds[slug] = bp.source_provider_id;
+          if (bp.email && !providerEmails[slug]) providerEmails[slug] = bp.email;
+          if (bp.phone && !providerPhones[slug]) providerPhones[slug] = bp.phone;
+          providerClaimStatus[slug] = !!bp.account_id;
+          const meta = bp.metadata as Record<string, unknown> | null;
+          providerVerificationState[slug] = (meta?.verification_state as string) || "unverified";
+        }
+      }
+
+      console.log(`[questions-enrichment] PHASE 1: Populated ${bpIds.length} providers via business_profile_id FK`);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PHASE 2: Slug-based lookups for questions without business_profile_id
+    // This handles legacy questions that don't have the FK populated yet
+    // Only process slugs that weren't already populated by Phase 1
+    // ═══════════════════════════════════════════════════════════════════════════
+    const slugsStillMissing = slugs.filter(s => providerClaimStatus[s] === undefined);
+    console.log(`[questions-enrichment] PHASE 2: ${slugsStillMissing.length} slugs need slug-based lookup (of ${slugs.length} total)`);
+
+    if (slugsStillMissing.length > 0) {
+      // Try business_profiles first (only for slugs not already populated)
       const { data: bpProviders } = await db
         .from("business_profiles")
         .select("slug, display_name, source_provider_id, email, phone, account_id, metadata")
-        .in("slug", slugs);
-      providerNames = Object.fromEntries(
-        (bpProviders ?? []).map((p) => [p.slug, p.display_name])
-      );
-      providerEditorIds = Object.fromEntries(
-        (bpProviders ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
-      );
+        .in("slug", slugsStillMissing);
+
+      // ADD to existing maps (don't overwrite Phase 1 data)
       for (const p of bpProviders ?? []) {
-        if (p.slug && p.email) providerEmails[p.slug] = p.email;
-        if (p.slug && p.phone) providerPhones[p.slug] = p.phone;
+        if (p.slug && p.display_name && !providerNames[p.slug]) providerNames[p.slug] = p.display_name;
+        if (p.slug && p.source_provider_id && !providerEditorIds[p.slug]) providerEditorIds[p.slug] = p.source_provider_id;
+        if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
+        if (p.slug && p.phone && !providerPhones[p.slug]) providerPhones[p.slug] = p.phone;
       }
 
-      // Build claim/verification status maps
+      // Build claim/verification status maps (only for slugs not already set)
       for (const p of bpProviders ?? []) {
-        if (p.slug) {
+        if (p.slug && providerClaimStatus[p.slug] === undefined) {
           providerClaimStatus[p.slug] = !!p.account_id;
           const meta = p.metadata as Record<string, unknown> | null;
           providerVerificationState[p.slug] = (meta?.verification_state as string) || "unverified";
@@ -1220,6 +1260,61 @@ export async function GET(request: NextRequest) {
             archived_by: rec.archived_by,
             archived_at: rec.archived_at,
           };
+        }
+      }
+    }
+
+    // FINAL FALLBACK: For any slugs still missing claim status, do a direct lookup
+    // This catches any providers that slipped through the earlier lookups
+    const stillMissingClaimStatus = slugs.filter(s => providerClaimStatus[s] === undefined);
+    if (stillMissingClaimStatus.length > 0) {
+      console.log(`[questions-enrichment] FINAL FALLBACK: ${stillMissingClaimStatus.length} slugs still missing claim status:`, stillMissingClaimStatus);
+
+      // Query olera-providers for these slugs
+      const { data: fallbackIos } = await db
+        .from("olera-providers")
+        .select("slug, provider_id, email, phone")
+        .in("slug", stillMissingClaimStatus)
+        .not("deleted", "is", true);
+
+      console.log(`[questions-enrichment] FINAL FALLBACK: Found ${fallbackIos?.length ?? 0} in olera-providers`);
+
+      if (fallbackIos && fallbackIos.length > 0) {
+        // Get the provider_ids to lookup linked business_profiles
+        const fallbackProviderIds = fallbackIos.map(p => p.provider_id).filter(Boolean) as string[];
+
+        if (fallbackProviderIds.length > 0) {
+          const { data: fallbackBps } = await db
+            .from("business_profiles")
+            .select("source_provider_id, email, phone, account_id, metadata")
+            .in("source_provider_id", fallbackProviderIds);
+
+          console.log(`[questions-enrichment] FINAL FALLBACK: Found ${fallbackBps?.length ?? 0} linked business_profiles`);
+
+          // Build lookup map
+          const fallbackBpBySourceId = new Map<string, typeof fallbackBps extends (infer T)[] | null ? T : never>();
+          for (const bp of fallbackBps ?? []) {
+            if (bp.source_provider_id) fallbackBpBySourceId.set(bp.source_provider_id, bp);
+          }
+
+          // Populate claim status and email
+          for (const ios of fallbackIos) {
+            if (ios.slug && ios.provider_id) {
+              const linkedBp = fallbackBpBySourceId.get(ios.provider_id);
+              if (linkedBp) {
+                console.log(`[questions-enrichment] FINAL FALLBACK: Setting claim status for ${ios.slug} = ${!!linkedBp.account_id}`);
+                providerClaimStatus[ios.slug] = !!linkedBp.account_id;
+                if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
+                if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
+                const meta = linkedBp.metadata as Record<string, unknown> | null;
+                providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+              } else {
+                // No linked BP - use iOS data
+                if (ios.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = ios.email;
+                if (ios.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = ios.phone;
+              }
+            }
+          }
         }
       }
     }

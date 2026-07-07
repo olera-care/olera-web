@@ -148,10 +148,46 @@ export async function POST(request: NextRequest) {
       providerNotInterested = (existingMarked?.length ?? 0) > 0;
     }
 
+    // Resolve business_profile_id BEFORE inserting the question
+    // This ensures we have a proper foreign key reference for direct lookups
+    let businessProfileId: string | null = null;
+    try {
+      // Strategy 1: Direct slug match
+      const { data: bpBySlug } = await db
+        .from("business_profiles")
+        .select("id")
+        .eq("slug", provider_id)
+        .maybeSingle();
+      if (bpBySlug?.id) {
+        businessProfileId = bpBySlug.id;
+      } else {
+        // Strategy 2: Via olera-providers linkage
+        const { data: iosProvider } = await db
+          .from("olera-providers")
+          .select("provider_id")
+          .or(`slug.eq."${provider_id}",provider_id.eq."${provider_id}"`)
+          .not("deleted", "is", true)
+          .maybeSingle();
+        if (iosProvider?.provider_id) {
+          const { data: linkedBp } = await db
+            .from("business_profiles")
+            .select("id")
+            .eq("source_provider_id", iosProvider.provider_id)
+            .maybeSingle();
+          if (linkedBp?.id) {
+            businessProfileId = linkedBp.id;
+          }
+        }
+      }
+    } catch (bpLookupErr) {
+      console.error("business_profile_id lookup failed (non-fatal):", bpLookupErr);
+    }
+
     const { data: newQuestion, error } = await db
       .from("provider_questions")
       .insert({
         provider_id,
+        business_profile_id: businessProfileId,
         question: question.trim(),
         asker_name: askerName,
         asker_email: askerEmail,

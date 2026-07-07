@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { questionAnsweredEmail } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
@@ -1342,6 +1342,72 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     console.error("Admin questions error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/questions
+ *
+ * Permanently delete a question from the database.
+ * Query param: ?id=<question_id>
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const admin = await getAdminUser(user.id);
+    if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Question id required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Fetch the question first for audit logging
+    const { data: question, error: fetchError } = await db
+      .from("provider_questions")
+      .select("id, provider_id, question, asker_name, asker_email, status")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !question) {
+      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+
+    // Delete the question
+    const { error: deleteError } = await db
+      .from("provider_questions")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("Failed to delete question:", deleteError);
+      return NextResponse.json({ error: "Failed to delete question" }, { status: 500 });
+    }
+
+    // Proper admin audit logging
+    await logAuditAction({
+      adminUserId: admin.id,
+      action: "delete_question",
+      targetType: "question",
+      targetId: id,
+      details: {
+        provider_id: question.provider_id,
+        question_preview: question.question?.substring(0, 100),
+        asker_name: question.asker_name,
+        asker_email: question.asker_email,
+        status_at_deletion: question.status,
+      },
+    });
+
+    return NextResponse.json({ success: true, deleted: id });
+  } catch (err) {
+    console.error("Admin questions DELETE error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

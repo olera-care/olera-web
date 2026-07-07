@@ -23,7 +23,7 @@ interface Question {
   question: string;
   asker_name: string;
   created_at: string;
-  status: "pending" | "answered";
+  status: "pending" | "answered" | "approved";
   answer?: string;
   answered_at?: string;
   is_public?: boolean;

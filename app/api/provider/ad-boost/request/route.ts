@@ -28,6 +28,8 @@ const OPEN_STATUSES = ["requested", "scheduled", "live"];
 const ACTIVE_OR_PENDING = ["pending_profile", "requested", "scheduled", "live"];
 const VALID_CHANNELS = ["google", "meta", "both"];
 const DEMAND_WINDOW_DAYS = 7;
+// The intro's value event: the wrap-up ask arms at this many delivered leads.
+const WRAPUP_LEADS_THRESHOLD = 3;
 
 export async function GET() {
   const elig = await loadAdBoostEligibility();
@@ -44,7 +46,7 @@ export async function GET() {
 
   let { data: latest } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
     .eq("provider_id", elig.profileId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -66,7 +68,7 @@ export async function GET() {
       })
       .eq("id", latest.id)
       .eq("status", "pending_profile") // guard against a double-promote race
-      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
+      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
       .maybeSingle();
 
     if (promoted) {
@@ -120,7 +122,8 @@ export async function GET() {
   let campaignStats:
     | { visitors: number; leads: number; questions: { received: number; unanswered: number }; since: string }
     | null = null;
-  if (latest && latest.status === "live") {
+  // Ended campaigns keep their stats too — the wrap-up moment leads with them.
+  if (latest && (latest.status === "live" || latest.status === "ended")) {
     const since = new Date(
       latest.requested_setup_week || latest.created_at,
     ).toISOString();
@@ -133,6 +136,21 @@ export async function GET() {
     ]);
     campaignStats = { ...stats, questions, since };
   }
+
+  // The wrap-up payment moment (Phase 2) arms on a VALUE EVENT, never a
+  // calendar: the intro delivered its 3rd inquiry, or the concierge marked the
+  // promo complete (promo_complete_email_sent_at). Only for campaigns that ran
+  // and have no plan yet — the only payment ask in the system.
+  // Never re-arm for an active plan OR a past_due one — past_due means Stripe
+  // is dunning the existing subscription; showing the ask again would let the
+  // provider create a second subscription on top of it.
+  const wrapupReady = !!(
+    latest &&
+    (latest.status === "live" || latest.status === "ended") &&
+    (latest.plan_status == null || latest.plan_status === "canceled") &&
+    (latest.promo_complete_email_sent_at != null ||
+      (campaignStats?.leads ?? 0) >= WRAPUP_LEADS_THRESHOLD)
+  );
 
   return NextResponse.json({
     eligibility: elig.eligibility,
@@ -148,6 +166,7 @@ export async function GET() {
     request: latest ?? null,
     delivered,
     campaignStats,
+    wrapupReady,
   });
 }
 
@@ -221,7 +240,7 @@ export async function POST(request: NextRequest) {
   // ── Block a duplicate campaign (active OR already queued under-profile) ──
   const { data: existing } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
     .eq("provider_id", elig.profileId)
     .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
@@ -248,7 +267,7 @@ export async function POST(request: NextRequest) {
       intended_monthly_budget: intendedMonthlyBudget,
       status: queued ? "pending_profile" : "requested",
     })
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
     .single();
 
   if (insertError || !inserted) {

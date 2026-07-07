@@ -16,6 +16,7 @@ import type {
   AdBoostMissingSection,
 } from "@/lib/ad-boost/eligibility";
 import {
+  BOOST_CHANNELS,
   cacheBoostState,
   getCachedBoostState,
   type BoostRequest,
@@ -28,9 +29,15 @@ import {
   BUDGET_TRUST_STRIP,
   DEFAULT_BUDGET,
   budgetStop,
-  budgetLabel,
+  estimateSummary,
   type BudgetStop,
 } from "@/lib/ad-boost/estimate";
+import {
+  CampaignFacts,
+  CampaignPerformance,
+  PlanActive,
+  WrapUpMoment,
+} from "@/components/provider/boost/BoostCampaignViews";
 
 /**
  * Provider Ad Boost — Managed Lead-Gen (concierge v1).
@@ -51,11 +58,7 @@ import {
  * boost-state.ts.
  */
 
-const CHANNELS = [
-  { value: "both", label: "Google + Meta" },
-  { value: "google", label: "Google only" },
-  { value: "meta", label: "Meta only" },
-] as const;
+const CHANNELS = BOOST_CHANNELS;
 
 const OPEN_STATUSES = ["requested", "scheduled", "live"];
 
@@ -76,6 +79,16 @@ export default function ProviderBoostPage() {
   const [selectedBudget, setSelectedBudget] = useState<number | null>(DEFAULT_BUDGET);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // True when returning from a completed Stripe Checkout (?subscribed=true).
+  // Forces the celebration view even before the webhook lands, so the provider
+  // never sees the payment ask again right after paying.
+  const [justSubscribed] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("subscribed") === "true",
+  );
+  const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const assignedVariant = useManagedAdsVariant(state?.provider.slug ?? null);
   const mobileNavVariant = useMobileNavVariant();
 
@@ -206,6 +219,31 @@ export default function ProviderBoostPage() {
     }
   };
 
+  // The wrap-up payment moment: POST the chosen plan, redirect to Stripe
+  // Checkout. The only payment ask in the system (plan of record 2026-07-06).
+  const startCheckout = async (planValue: number) => {
+    setCheckoutSubmitting(true);
+    setCheckoutError(null);
+    try {
+      const res = await fetch("/api/provider/ad-boost/checkout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planValue }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.url) {
+        setCheckoutError(json.error || "Something went wrong. Please try again.");
+        return;
+      }
+      window.location.assign(json.url);
+    } catch {
+      setCheckoutError("Network error. Please try again.");
+    } finally {
+      setCheckoutSubmitting(false);
+    }
+  };
+
   // Inline section editing — finish a profile section without leaving the boost
   // flow. On save, refresh the profile + re-fetch boost state (recomputes
   // eligibility + auto-promotes the queued campaign if they just crossed 70%).
@@ -266,6 +304,49 @@ export default function ProviderBoostPage() {
       : null;
   const pendingRequest =
     state.request?.status === "pending_profile" ? state.request : null;
+  // A finished intro with an active plan keeps the in-motion treatment (the
+  // concierge keeps the campaign running); without one it may show the wrap-up.
+  const endedRequest = state.request?.status === "ended" ? state.request : null;
+  // past_due counts as running: Stripe dunning owns payment recovery, and the
+  // wrap-up ask must never show over an existing subscription.
+  const planStatus = (openRequest ?? endedRequest)?.plan_status;
+  const planActive =
+    planStatus === "active" || planStatus === "past_due" || justSubscribed;
+  const wrapupRequest =
+    state.wrapupReady && !planActive ? (openRequest ?? endedRequest) : null;
+
+  // Post-checkout celebration — commitment earns theater. Also the steady state
+  // for an active plan (justSubscribed covers the webhook-lag window).
+  if (planActive && (openRequest || endedRequest)) {
+    return (
+      <Shell>
+        <div className="mt-2">
+          <PlanActive
+            request={(openRequest ?? endedRequest)!}
+            campaignStats={state.campaignStats}
+            celebrate={justSubscribed}
+          />
+        </div>
+      </Shell>
+    );
+  }
+
+  // The wrap-up moment — the intro finished its job; ask (or honestly don't).
+  if (wrapupRequest) {
+    return (
+      <Shell>
+        <div className="mt-2">
+          <WrapUpMoment
+            request={wrapupRequest}
+            campaignStats={state.campaignStats}
+            onCheckout={startCheckout}
+            submitting={checkoutSubmitting}
+            error={checkoutError}
+          />
+        </div>
+      </Shell>
+    );
+  }
 
   // Committed states (queued / live) keep the focused single-column treatment.
   // The apply state is the redesign's two-column flow — action spine on the
@@ -370,6 +451,15 @@ function CampaignInMotion({
           launch — is THE focal point (replaces the old benefits-only counter). */}
       {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
 
+      {/* Set up the wrap-up moment BEFORE it arrives: the no-silent-rollover
+          promise, planted while the intro is still running. */}
+      {isLive && !request.plan_status && (
+        <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
+          When your intro wraps, your results will be right here and you choose
+          whether to keep going. Nothing switches to a paid plan on its own.
+        </p>
+      )}
+
       <Link
         href="/provider"
         className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"
@@ -380,88 +470,6 @@ function CampaignInMotion({
         </svg>
       </Link>
     </div>
-  );
-}
-
-/** Live campaign performance — the real story: who visited, who converted.
- *  Visitors + leads on the provider's page since launch (see getCampaignStats),
- *  conversion = leads/visitors. "—" until there's traffic, so day-one shows an
- *  honest empty state rather than a fake 0%. */
-function CampaignPerformance({
-  stats,
-}: {
-  stats: { visitors: number; leads: number; since: string };
-}) {
-  // Cap at 100% — a lead can exist without a matching deduped page_view session
-  // (bot-filtered load, tracker race, cross-session convert), which would
-  // otherwise render a trust-eroding ">100%" to the provider.
-  const conversion =
-    stats.visitors > 0
-      ? Math.min(100, Math.round((stats.leads / stats.visitors) * 100))
-      : null;
-  const cells: { label: string; value: string }[] = [
-    { label: "Visitors", value: stats.visitors.toLocaleString() },
-    { label: "Leads", value: stats.leads.toLocaleString() },
-    { label: "Conversion", value: conversion === null ? "—" : `${conversion}%` },
-  ];
-  return (
-    <div className="mt-8">
-      <dl className="flex flex-col divide-y divide-gray-100 overflow-hidden rounded-2xl border border-primary-100/70 bg-primary-50/40 sm:flex-row sm:divide-x sm:divide-y-0 sm:divide-gray-100">
-        {cells.map((c) => (
-          <div key={c.label} className="flex-1 px-5 py-5">
-            <dd className="text-4xl font-display font-bold text-gray-900 tabular-nums leading-none">
-              {c.value}
-            </dd>
-            <dt className="mt-2 text-xs uppercase tracking-wide text-gray-500">
-              {c.label}
-            </dt>
-          </div>
-        ))}
-      </dl>
-      <p className="text-sm text-gray-500 mt-3">
-        Since your campaign launched.{" "}
-        {stats.leads > 0 ? (
-          <>
-            Find your leads on your{" "}
-            <Link
-              href="/provider/connections"
-              className="text-primary-600 font-medium hover:underline"
-            >
-              leads page
-            </Link>
-            .
-          </>
-        ) : (
-          <>Visitors and leads will appear here as families arrive.</>
-        )}
-      </p>
-    </div>
-  );
-}
-
-/** The campaign the provider committed to — week · channel · budget — as a clean
- *  hairline 3-up (Robinhood/Wise stat-row feel). Shared by the queued + in-motion
- *  states so the choices they just made are always visible. */
-function CampaignFacts({ request }: { request: BoostRequest }) {
-  const channelLabel = CHANNELS.find((c) => c.value === request.channel)?.label ?? null;
-  const budget = budgetLabel(request.intended_monthly_budget);
-  const facts: { label: string; value: string }[] = [
-    { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
-  ];
-  if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
-  if (budget) facts.push({ label: "Plan", value: budget });
-
-  // Flex + flex-1 (not a fixed grid) so 1, 2, or 3 facts always fill the width
-  // evenly — older requests with no channel/budget never leave empty cells.
-  return (
-    <dl className="mt-7 flex flex-col divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200/80 sm:flex-row sm:divide-x sm:divide-y-0">
-      {facts.map((f) => (
-        <div key={f.label} className="flex-1 px-4 py-3.5">
-          <dt className="text-xs text-gray-400">{f.label}</dt>
-          <dd className="mt-0.5 text-sm font-medium text-gray-900">{f.value}</dd>
-        </div>
-      ))}
-    </dl>
   );
 }
 
@@ -908,21 +916,24 @@ function ApplyExperience({
                           : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/70"
                       }`}
                     >
-                      <span className="flex items-baseline justify-between gap-3">
-                        <span className={`min-w-0 truncate text-base font-semibold ${active ? "text-primary-700" : "text-gray-900"}`}>
+                      <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                        <span className={`min-w-0 text-base font-semibold ${active ? "text-primary-700" : "text-gray-900"}`}>
                           {b.name}
                           <span className="font-normal text-gray-300"> · </span>
                           <span className="tabular-nums">{isIntro ? "On us" : `${b.amount}/mo`}</span>
+                          {b.chip && (
+                            <span
+                              className={`ml-2 inline-flex translate-y-[-1px] rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                                active ? "border-primary-400 text-primary-700" : "border-gray-300 text-gray-500"
+                              }`}
+                            >
+                              {b.chip}
+                            </span>
+                          )}
                         </span>
-                        {b.chip && (
-                          <span
-                            className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                              active ? "border-primary-400 text-primary-700" : "border-gray-300 text-gray-500"
-                            }`}
-                          >
-                            {b.chip}
-                          </span>
-                        )}
+                        <span className={`shrink-0 text-sm tabular-nums ${active ? "text-primary-600/80" : "text-gray-400"}`}>
+                          {estimateSummary(b)}
+                        </span>
                       </span>
                       <span className={`mt-1 block text-sm leading-relaxed ${active ? "text-primary-600/80" : "text-gray-500"}`}>
                         {b.blurb}
@@ -1001,7 +1012,9 @@ function ApplyExperience({
 
             <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
               This starts a concierge review. Advertising can drive more local
-              families to your page; it doesn&apos;t guarantee a set number of leads.{" "}
+              families to your page; it doesn&apos;t guarantee a set number of
+              leads. After your first campaign, you see the results and decide
+              what happens next. Nothing switches to a paid plan on its own.{" "}
               <Link
                 href="/managed-ads-terms"
                 target="_blank"
@@ -1290,9 +1303,3 @@ function shortDate(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-/** Render a stored YYYY-MM-DD week back to "Mon D" without TZ drift. */
-function formatWeek(isoDateStr: string): string {
-  const [y, m, d] = isoDateStr.split("-").map(Number);
-  if (!y || !m || !d) return isoDateStr;
-  return shortDate(new Date(y, m - 1, d));
-}

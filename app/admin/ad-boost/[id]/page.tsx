@@ -371,6 +371,50 @@ function Detail({
         </div>
       </section>
 
+      {/* Paid plan (Phase 2) — read-only Stripe state. Activation/status come
+          from the webhook; the operator manages billing itself (credits, the
+          zero-inquiry guarantee, cancellation) in the Stripe dashboard. */}
+      <section className="rounded-xl border border-gray-200 p-5 mb-5">
+        <h2 className="text-sm font-semibold text-gray-900 mb-1">Paid plan</h2>
+        {request.plan_status ? (
+          <>
+            <p className="text-sm text-gray-700">
+              <span
+                className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium mr-2 ${
+                  request.plan_status === "active"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : request.plan_status === "past_due"
+                      ? "bg-amber-50 text-amber-700"
+                      : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {request.plan_status}
+              </span>
+              {request.plan_value != null && <>${request.plan_value}/mo, all-in</>}
+              {request.subscribed_at && (
+                <span className="text-gray-400"> · since {fmtTimestamp(request.subscribed_at)}</span>
+              )}
+            </p>
+            {request.stripe_subscription_id && (
+              <a
+                href={`https://dashboard.stripe.com/subscriptions/${request.stripe_subscription_id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-sm font-medium text-primary-600 hover:underline"
+              >
+                Manage in Stripe (credits, guarantee, cancel) ↗
+              </a>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-gray-400">
+            No plan yet. The wrap-up ask shows on the provider&apos;s boost page after
+            their 3rd lead, or once the promo-complete email is sent. Payment runs
+            through Stripe Checkout; this panel fills in via webhook.
+          </p>
+        )}
+      </section>
+
       {/* What the provider sees — exact parity with their /provider/boost live
           view. Same visitors/leads/conversion numbers Hilda sees signed in, so
           the admin queue mirrors the provider's experience. */}

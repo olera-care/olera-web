@@ -310,7 +310,7 @@ export function adBoostRequestedEmail(opts: {
     <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is ready for setup</h1>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your managed-ads request came through, and your Olera page has enough detail for us to start setting up the campaign.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s how it works: we run a local ${channel} campaign for families searching for care, send them straight to your Olera page, and any who reach out land directly in your dashboard.</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">To get started, the first $50 of ad spend is on us. That is enough to get the campaign live and let you see the flow end to end. After that, you can choose a flat monthly plan and we keep running everything for you.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">To get started, the first $50 of ad spend is on us. That is enough to get the campaign live and let you see the flow end to end. After that, you can choose a flat monthly plan and we keep running everything for you. Nothing switches to a paid plan on its own: you see the results first, then decide.</p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
     </div>
@@ -484,9 +484,14 @@ export function adBoostPromoCompleteEmail(opts: {
     opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
       ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
       : "—";
-  const budgetLine = opts.intendedMonthlyBudget
-    ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
-    : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
+  // Zero-lead intros never get a money pitch (matches the boost page's honest
+  // no-ask wrap-up): the email offers another window on us instead of a plan.
+  const gotLeads = opts.leads > 0;
+  const budgetLine = !gotLeads
+    ? "Your market was quiet this window. That&rsquo;s on us to improve, not on you to pay for: we&rsquo;ll tune your page, adjust the ads, and run another window on us."
+    : opts.intendedMonthlyBudget
+      ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
+      : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
 
   return layout(
     `
@@ -524,8 +529,12 @@ export function adBoostPromoCompleteEmail(opts: {
       </tr>
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${budgetLine}</p>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Reply to this email and we&rsquo;ll review the numbers together before anything else runs.</p>
-    <div>${button("Review results", opts.ctaUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
+      gotLeads
+        ? "You can pick a plan right from your results page, no call needed. A month with zero family inquiries is free. Or reply to this email and we&rsquo;ll review the numbers together first."
+        : "Reply to this email if you&rsquo;d like to review what happened together, or just watch for the next window."
+    }</p>
+    <div>${button(gotLeads ? "See your results and choose" : "See your results", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>

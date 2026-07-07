@@ -47,7 +47,15 @@ export default function AdminAdBoostPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-5">
-        <h1 className="text-2xl font-semibold text-gray-900">Ad Boost — concierge queue</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold text-gray-900">Ad Boost — concierge queue</h1>
+          <Link
+            href="/admin/ad-boost/preview"
+            className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Preview wrap-up moment ↗
+          </Link>
+        </div>
         <p className="text-gray-500 mt-1 text-sm">
           Managed-ad campaign requests from providers. Open one to set it up, advance
           its status, and copy the UTM landing URL into the ad platform.

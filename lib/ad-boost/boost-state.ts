@@ -17,6 +17,14 @@ import type { AdBoostEligibility } from "./eligibility";
  * page always re-fetches in the background to reconcile + run promotion.
  */
 
+/** Channel options shown to providers (label lookup shared by the boost page
+ *  and the extracted campaign views). */
+export const BOOST_CHANNELS = [
+  { value: "both", label: "Google + Meta" },
+  { value: "google", label: "Google only" },
+  { value: "meta", label: "Meta only" },
+] as const;
+
 export interface BoostRequest {
   id: string;
   status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled";
@@ -26,6 +34,13 @@ export interface BoostRequest {
   intended_monthly_budget: number | null;
   campaign_tag: string | null;
   created_at: string;
+  /** Paid plan lifecycle from Stripe. NULL = never subscribed (intro-only). */
+  plan_status: "active" | "past_due" | "canceled" | null;
+  /** Subscribed monthly plan in whole USD (150/300/600). NULL until checkout. */
+  plan_value: number | null;
+  /** Idempotency marker for the promo-complete email; doubles as the concierge
+   *  "intro is wrapped" signal that arms the wrap-up ask. */
+  promo_complete_email_sent_at: string | null;
 }
 
 export interface BoostStateResponse {
@@ -60,6 +75,10 @@ export interface BoostStateResponse {
     questions: { received: number; unanswered: number };
     since: string;
   } | null;
+  /** True when the post-intro wrap-up (the only payment ask) should show:
+   *  campaign ran (live/ended), no active plan, and the value event fired
+   *  (3rd lead or concierge marked the promo complete). Server-computed. */
+  wrapupReady: boolean;
 }
 
 const TTL_MS = 60_000;

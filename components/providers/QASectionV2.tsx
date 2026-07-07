@@ -596,153 +596,12 @@ export default function QASectionV2({
       {/* ── Header ── */}
       <div className="mb-6">
         <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
-          {hasQuestions ? "Families are asking" : "Got questions?"}
+          Got questions?
         </h2>
-        {hasQuestions && (
-          <p className="text-[14px] text-gray-400 mt-1.5">
-            {questions.length} question{questions.length !== 1 ? "s" : ""}
-            {answeredCount > 0 && <> &middot; {answeredCount} answered</>}
-          </p>
-        )}
-        {!hasQuestions && (
-          <p className="text-[14px] text-gray-400 mt-1.5">
-            Tap a question to ask {providerName} directly
-          </p>
-        )}
+        <p className="text-[14px] text-gray-400 mt-1.5">
+          Tap a question to ask {providerName} directly
+        </p>
       </div>
-
-      {/* ── Existing Q&A threads (social proof — shown ABOVE suggestions) ── */}
-      {hasQuestions && (
-        <div className="mb-6">
-          {visibleQuestions.map((qa, index) => {
-            const isAnswered = qa.status === "answered" || !!qa.answer;
-            const isPending = !isAnswered;
-            const isOwner = user?.id && qa.asker_user_id === user.id;
-            const canEdit = isOwner && isPending;
-
-            return (
-              <div
-                key={qa.id || index}
-                className={`group/question py-4 ${index > 0 ? "border-t border-gray-100" : ""}`}
-              >
-                <div className="flex items-start gap-3">
-                  {/* Asker avatar */}
-                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient(qa.asker_name || "Anonymous")} shrink-0 shadow-sm`} />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-[13px] font-medium text-gray-500">
-                          {qa.asker_name || "Anonymous"}
-                        </p>
-                        {qa.created_at && (
-                          <span className="text-[12px] text-gray-400">&middot; {timeAgo(qa.created_at)}</span>
-                        )}
-                      </div>
-                      {canEdit && qa.id && (
-                        <div className="relative" ref={openMenuId === qa.id ? menuRef : null}>
-                          <button
-                            type="button"
-                            onClick={() => setOpenMenuId(openMenuId === qa.id ? null : qa.id!)}
-                            className="w-8 h-8 -mr-2 flex items-center justify-center rounded-full text-gray-400 lg:opacity-0 lg:group-hover/question:opacity-100 hover:text-gray-600 hover:bg-gray-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all"
-                            aria-label="More options"
-                          >
-                            <MoreIcon className="w-5 h-5" />
-                          </button>
-                          {openMenuId === qa.id && (
-                            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-10 min-w-[120px]">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingQuestion(qa);
-                                  setEditValue(qa.question);
-                                  setOpenMenuId(null);
-                                }}
-                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
-                              >
-                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                </svg>
-                                Edit question
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <p className="text-[15px] text-gray-800 leading-relaxed">
-                      {qa.question}
-                    </p>
-
-                    {isAnswered && (suggestionStats[normalizeQuestion(qa.question)] ?? 0) >= 2 && (
-                      <p className="text-[12px] text-gray-400 mt-1">
-                        {suggestionStats[normalizeQuestion(qa.question)]} people asked this
-                      </p>
-                    )}
-
-                    {isAnswered && qa.answer ? (
-                      <div className="mt-4">
-                        <div className="flex items-start gap-3">
-                          {providerImage ? (
-                            <img
-                              src={providerImage}
-                              alt={providerName}
-                              className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 ring-2 ring-white">
-                              <span className="text-xs font-bold text-primary-700">
-                                {providerName.charAt(0)}
-                              </span>
-                            </div>
-                          )}
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-gray-900">{providerName}</span>
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-primary-700 bg-primary-50 uppercase tracking-wide">
-                                Provider
-                              </span>
-                            </div>
-
-                            <div className="mt-2 bg-gray-50 rounded-xl px-4 py-3 border-l-2 border-primary-300">
-                              <p className="text-sm text-gray-600 leading-relaxed">
-                                {qa.answer}
-                              </p>
-                            </div>
-
-                            {qa.answered_at && (
-                              <p className="text-xs text-gray-400 mt-2">
-                                Answered {timeAgo(qa.answered_at)}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ) : isPending && isOwner ? (
-                      <div className="mt-3 flex items-center gap-2 text-[13px] text-gray-400">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                        <span>Awaiting response</span>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {hasMore && (
-            <button
-              type="button"
-              onClick={() => setShowAllModal(true)}
-              className="text-sm font-semibold text-primary-600 hover:text-primary-700 focus:outline-none focus:underline transition-colors mt-1"
-            >
-              See all {questions.length} questions
-            </button>
-          )}
-        </div>
-      )}
 
       {/* ── Suggestion Cards OR Post-Submit State ── */}
       {isPostSubmit ? (
@@ -1149,6 +1008,90 @@ export default function QASectionV2({
             <p className="text-[13px] text-red-500 mt-2">Something went wrong. Try again.</p>
           )}
         </>
+      )}
+
+      {/* ── Existing Q&A threads (shown below suggestions) ── */}
+      {hasQuestions && (
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-500 mb-4">{questions.length} question{questions.length !== 1 ? "s" : ""} asked{answeredCount > 0 ? ` · ${answeredCount} answered` : ""}</h3>
+          {visibleQuestions.map((qa, index) => {
+            const isAnswered = qa.status === "answered" || !!qa.answer;
+            const isPending = !isAnswered;
+            const isOwner = user?.id && qa.asker_user_id === user.id;
+            const canEdit = isOwner && isPending;
+
+            return (
+              <div
+                key={qa.id || index}
+                className={`group/question py-4 ${index > 0 ? "border-t border-gray-100" : ""}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient(qa.asker_name || "Anonymous")} shrink-0 shadow-sm`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[13px] font-medium text-gray-500">{qa.asker_name || "Anonymous"}</p>
+                        {qa.created_at && <span className="text-[12px] text-gray-400">&middot; {timeAgo(qa.created_at)}</span>}
+                      </div>
+                      {canEdit && qa.id && (
+                        <div className="relative" ref={openMenuId === qa.id ? menuRef : null}>
+                          <button type="button" onClick={() => setOpenMenuId(openMenuId === qa.id ? null : qa.id!)} className="w-8 h-8 -mr-2 flex items-center justify-center rounded-full text-gray-400 lg:opacity-0 lg:group-hover/question:opacity-100 hover:text-gray-600 hover:bg-gray-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all" aria-label="More options">
+                            <MoreIcon className="w-5 h-5" />
+                          </button>
+                          {openMenuId === qa.id && (
+                            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-10 min-w-[120px]">
+                              <button type="button" onClick={() => { setEditingQuestion(qa); setEditValue(qa.question); setOpenMenuId(null); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors">
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                                Edit question
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[15px] text-gray-800 leading-relaxed">{qa.question}</p>
+                    {isAnswered && (suggestionStats[normalizeQuestion(qa.question)] ?? 0) >= 2 && (
+                      <p className="text-[12px] text-gray-400 mt-1">{suggestionStats[normalizeQuestion(qa.question)]} people asked this</p>
+                    )}
+                    {isAnswered && qa.answer ? (
+                      <div className="mt-4">
+                        <div className="flex items-start gap-3">
+                          {providerImage ? (
+                            <img src={providerImage} alt={providerName} className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 ring-2 ring-white">
+                              <span className="text-xs font-bold text-primary-700">{providerName.charAt(0)}</span>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-gray-900">{providerName}</span>
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-primary-700 bg-primary-50 uppercase tracking-wide">Provider</span>
+                            </div>
+                            <div className="mt-2 bg-gray-50 rounded-xl px-4 py-3 border-l-2 border-primary-300">
+                              <p className="text-sm text-gray-600 leading-relaxed">{qa.answer}</p>
+                            </div>
+                            {qa.answered_at && <p className="text-xs text-gray-400 mt-2">Answered {timeAgo(qa.answered_at)}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    ) : isPending && isOwner ? (
+                      <div className="mt-3 flex items-center gap-2 text-[13px] text-gray-400">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        <span>Awaiting response</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {hasMore && (
+            <button type="button" onClick={() => setShowAllModal(true)} className="text-sm font-semibold text-primary-600 hover:text-primary-700 focus:outline-none focus:underline transition-colors mt-1">
+              See all {questions.length} questions
+            </button>
+          )}
+        </div>
       )}
 
       {/* ── Edit Question Modal ── */}

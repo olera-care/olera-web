@@ -993,6 +993,12 @@ export async function GET(request: NextRequest) {
 
     // Enrich with provider display names
     const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
+
+    // DEBUG: Log all provider_ids we're looking up
+    const octiSlugs = slugs.filter(s => s.toLowerCase().includes('octihealth'));
+    if (octiSlugs.length > 0) {
+      console.log(`[questions-enrichment] OCTIHEALTH DEBUG: Found ${octiSlugs.length} octihealth slugs to lookup:`, octiSlugs);
+    }
     let providerNames: Record<string, string> = {};
     let providerEditorIds: Record<string, string> = {};
     let providerEmails: Record<string, string> = {};
@@ -1024,6 +1030,10 @@ export async function GET(request: NextRequest) {
           providerVerificationState[p.slug] = (meta?.verification_state as string) || "unverified";
         }
       }
+
+      // DEBUG: Check if octihealth was found in initial BP lookup
+      const octiInBp = (bpProviders ?? []).filter(p => p.slug?.toLowerCase().includes('octihealth'));
+      console.log(`[questions-enrichment] OCTIHEALTH DEBUG: Found ${octiInBp.length} in business_profiles query`);
 
       // UUID fallback: Some questions store provider_id as business_profiles.id (UUID)
       // Try to find providers not matched by slug using UUID lookup
@@ -1086,6 +1096,14 @@ export async function GET(request: NextRequest) {
         if (deletedCount > 0) {
           console.log(`[questions-enrichment] WARNING: ${deletedCount} provider(s) excluded due to deleted=true`);
         }
+
+        // DEBUG: Check if octihealth was found in olera-providers
+        const octiInIos = activeIosProviders.filter(p =>
+          p.slug?.toLowerCase().includes('octihealth') ||
+          p.provider_name?.toLowerCase().includes('octihealth')
+        );
+        console.log(`[questions-enrichment] OCTIHEALTH DEBUG: Found ${octiInIos.length} in olera-providers:`,
+          octiInIos.map(p => ({ slug: p.slug, provider_id: p.provider_id, email: p.email })));
 
         // Build lookup by provider_id for email fallback
         const iosEmailById = new Map<string, string>();

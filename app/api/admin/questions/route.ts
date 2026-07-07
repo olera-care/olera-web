@@ -1068,16 +1068,29 @@ export async function GET(request: NextRequest) {
       }
 
       if (iosOrConditions.length > 0) {
-        const { data: iosProviders } = await db
+        // DEBUG: Log the query conditions
+        console.log(`[questions-enrichment] Querying olera-providers with conditions: ${iosOrConditions.join(' OR ')}`);
+
+        const { data: iosProviders, error: iosError } = await db
           .from("olera-providers")
-          .select("slug, provider_id, provider_name, email, phone")
-          .or(iosOrConditions.join(','))
-          .not("deleted", "is", true);
+          .select("slug, provider_id, provider_name, email, phone, deleted")
+          .or(iosOrConditions.join(','));
+
+        // DEBUG: Log what we found (including deleted ones)
+        console.log(`[questions-enrichment] Found ${iosProviders?.length ?? 0} iOS providers:`,
+          iosProviders?.map(p => ({ slug: p.slug, provider_id: p.provider_id, deleted: p.deleted })));
+
+        // Filter out deleted providers (but log if any were excluded)
+        const activeIosProviders = (iosProviders ?? []).filter(p => p.deleted !== true);
+        const deletedCount = (iosProviders?.length ?? 0) - activeIosProviders.length;
+        if (deletedCount > 0) {
+          console.log(`[questions-enrichment] WARNING: ${deletedCount} provider(s) excluded due to deleted=true`);
+        }
 
         // Build lookup by provider_id for email fallback
         const iosEmailById = new Map<string, string>();
         const iosPhoneById = new Map<string, string>();
-        for (const p of iosProviders ?? []) {
+        for (const p of activeIosProviders) {
           if (p.provider_id && p.email) iosEmailById.set(p.provider_id, p.email);
           if (p.provider_id && p.phone) iosPhoneById.set(p.provider_id, p.phone);
         }
@@ -1088,7 +1101,7 @@ export async function GET(request: NextRequest) {
           if (!providerPhones[slug] && iosPhoneById.has(sourceId)) providerPhones[slug] = iosPhoneById.get(sourceId)!;
         }
 
-        for (const p of iosProviders ?? []) {
+        for (const p of activeIosProviders) {
           if (p.slug && p.provider_name && !providerNames[p.slug]) providerNames[p.slug] = p.provider_name;
           if (p.slug && p.provider_id && !providerEditorIds[p.slug]) providerEditorIds[p.slug] = p.provider_id;
           if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
@@ -1100,7 +1113,7 @@ export async function GET(request: NextRequest) {
         // Lookup linked business_profiles via source_provider_id for claim status
         // This handles cases where question.provider_id = olera-providers.slug but the
         // claimed business_profiles has a different slug (linked via source_provider_id)
-        const iosProviderIds = (iosProviders ?? [])
+        const iosProviderIds = activeIosProviders
           .map((p) => p.provider_id)
           .filter((id): id is string => !!id);
         if (iosProviderIds.length > 0) {
@@ -1113,11 +1126,16 @@ export async function GET(request: NextRequest) {
           for (const bp of linkedBpProfiles ?? []) {
             if (bp.source_provider_id) bpBySourceId.set(bp.source_provider_id, bp);
           }
+          // DEBUG: Log linked BP lookup results
+          console.log(`[questions-enrichment] Found ${linkedBpProfiles?.length ?? 0} linked business_profiles via source_provider_id`);
+
           // For each ios provider, populate claim status from linked bp
-          for (const ios of iosProviders ?? []) {
+          for (const ios of activeIosProviders) {
             if (ios.provider_id) {
               const linkedBp = bpBySourceId.get(ios.provider_id);
               if (linkedBp) {
+                // DEBUG: Log claim status population
+                console.log(`[questions-enrichment] Populating claim status for slug=${ios.slug}, claimed=${!!linkedBp.account_id}`);
                 // Populate using ios.slug (if exists)
                 if (ios.slug) {
                   providerClaimStatus[ios.slug] = !!linkedBp.account_id;
@@ -1186,6 +1204,19 @@ export async function GET(request: NextRequest) {
           };
         }
       }
+    }
+
+    // DEBUG: Log enrichment data for specific providers of interest
+    const debugSlugs = slugs.filter(s => s.includes('octihealth') || s.includes('hawthorne'));
+    if (debugSlugs.length > 0) {
+      console.log(`[questions-enrichment] DEBUG data for ${debugSlugs.join(', ')}:`,
+        debugSlugs.map(s => ({
+          slug: s,
+          name: providerNames[s],
+          email: providerEmails[s],
+          claimed: providerClaimStatus[s],
+          verification: providerVerificationState[s],
+        })));
     }
 
     const enriched = (questions ?? []).map((q) => ({

@@ -193,6 +193,16 @@ async function recordEmailEvent(payload: ResendEventPayload, svixId: string): Pr
     }
   }
 
+  // 3b. Flag provider_questions with email_dead when a question email bounces
+  // or receives a complaint (spam report).
+  // This ensures bounced/complained question emails show up in the Delivery
+  // Issues tab, not hidden in Unanswered. Critical for claimed providers whose
+  // email may become invalid after account creation. Complaints are treated
+  // the same as bounces - the email is unusable and we must not retry.
+  if ((eventType === "bounced" || eventType === "complained") && emailLogId) {
+    await flagQuestionsOnBounce(emailLogId);
+  }
+
   // 4. v9 Phase 8 — student_outreach touchpoint emission + downstream
   // operational side effects.
   //
@@ -384,6 +394,62 @@ async function emitOutreachTouchpoint(
   }
   // 'failed' is informational — admin sees the touchpoint and decides
   // whether to retry. No automatic state mutation.
+}
+
+/**
+ * Flag pending provider_questions with email_dead when a question email bounces.
+ *
+ * Lookup: use the email_log row to check if it's a question_received email.
+ * If so, find the provider_id and flag all their pending questions so they
+ * appear in the Delivery Issues tab instead of Unanswered.
+ */
+async function flagQuestionsOnBounce(emailLogId: string): Promise<void> {
+  // Get the email_log details to check if it's a question email
+  const { data: emailLog } = await supabase
+    .from("email_log")
+    .select("email_type, recipient_type, provider_id")
+    .eq("id", emailLogId)
+    .single();
+
+  if (!emailLog) return;
+
+  // Only process question_received emails to providers
+  if (emailLog.email_type !== "question_received" || emailLog.recipient_type !== "provider") {
+    return;
+  }
+
+  const providerId = emailLog.provider_id;
+  if (!providerId) return;
+
+  // Fetch pending questions for this provider to preserve their existing metadata
+  const { data: questions } = await supabase
+    .from("provider_questions")
+    .select("id, metadata")
+    .eq("provider_id", providerId)
+    .eq("status", "pending");
+
+  if (!questions || questions.length === 0) return;
+
+  // Update each question to add email_dead flag while preserving existing metadata
+  let flaggedCount = 0;
+  for (const q of questions) {
+    const currentMeta = (q.metadata as Record<string, unknown>) || {};
+    // Skip if already flagged
+    if (currentMeta.email_dead === true) continue;
+
+    const { error } = await supabase
+      .from("provider_questions")
+      .update({
+        metadata: { ...currentMeta, email_dead: true },
+      })
+      .eq("id", q.id);
+
+    if (!error) flaggedCount++;
+  }
+
+  if (flaggedCount > 0) {
+    console.log(`[resend-webhook] Flagged ${flaggedCount} questions for provider ${providerId} with email_dead`);
+  }
 }
 
 Deno.serve(async (req) => {

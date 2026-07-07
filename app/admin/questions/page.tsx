@@ -559,7 +559,7 @@ export default function AdminQuestionsPage() {
   const [editingEmailProviders, setEditingEmailProviders] = useState<Set<string>>(new Set());
   const [trustingEmailProviders, setTrustingEmailProviders] = useState<Set<string>>(new Set());
   const [trustedEmailProviders, setTrustedEmailProviders] = useState<Set<string>>(new Set());
-  const [pendingDelete, setPendingDelete] = useState<Question | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ providerId: string; providerName: string; questionCount: number } | null>(null);
 
   function showToast(message: string, type: "success" | "error" = "success") {
     if (toastRef.current) clearTimeout(toastRef.current);
@@ -840,21 +840,22 @@ export default function AdminQuestionsPage() {
     }
   };
 
-  const handleDelete = async (question: Question) => {
-    setActionLoading(`delete:${question.id}`);
+  const handleDeleteProvider = async (providerId: string, providerName: string) => {
+    setActionLoading(`delete:${providerId}`);
     try {
-      const res = await fetch(`/api/admin/questions?id=${question.id}`, {
+      const res = await fetch(`/api/admin/questions?provider_id=${encodeURIComponent(providerId)}`, {
         method: "DELETE",
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Failed to delete");
       }
+      const data = await res.json();
       setPendingDelete(null);
-      showToast("Question permanently deleted");
+      showToast(`Deleted ${data.deleted_count} questions for ${providerName}`);
       await fetchQuestions();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete question";
+      const message = err instanceof Error ? err.message : "Failed to delete questions";
       showToast(message, "error");
     } finally {
       setActionLoading(null);
@@ -1074,15 +1075,36 @@ export default function AdminQuestionsPage() {
                     )}
                   </div>
 
-                  {/* Latest question date */}
-                  <span className="text-xs text-gray-400 flex-shrink-0">
-                    {formatDate(
-                      providerQuestions.reduce((latest, q) =>
-                        q.created_at > latest ? q.created_at : latest,
-                        providerQuestions[0].created_at
-                      )
-                    )}
-                  </span>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {/* Latest question date */}
+                    <span className="text-xs text-gray-400">
+                      {formatDate(
+                        providerQuestions.reduce((latest, q) =>
+                          q.created_at > latest ? q.created_at : latest,
+                          providerQuestions[0].created_at
+                        )
+                      )}
+                    </span>
+
+                    {/* Delete provider (trash icon) */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDelete({
+                          providerId,
+                          providerName: providerLabel,
+                          questionCount,
+                        });
+                      }}
+                      disabled={actionLoading === `delete:${providerId}`}
+                      className="p-1 text-gray-300 hover:text-red-500 transition-colors disabled:opacity-40"
+                      title="Delete all questions for this provider"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </button>
 
                 {/* Expanded content */}
@@ -1401,17 +1423,6 @@ export default function AdminQuestionsPage() {
                                     {STATUS_LABELS[q.status] || q.status}
                                   </span>
                                 )}
-                                {/* Delete (trash) icon - appears on hover */}
-                                <button
-                                  onClick={() => setPendingDelete(q)}
-                                  disabled={actionLoading === `delete:${q.id}`}
-                                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all disabled:opacity-40"
-                                  title="Delete permanently"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
                               </div>
                             </div>
 
@@ -1703,49 +1714,39 @@ export default function AdminQuestionsPage() {
         </div>
       )}
 
-      {/* Delete confirmation dialog */}
+      {/* Delete provider confirmation dialog */}
       {pendingDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900">Delete question</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Delete provider questions</h3>
             <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to permanently delete this question? This action cannot be undone.
+              Are you sure you want to permanently delete <strong>all questions</strong> for this provider? This action cannot be undone.
             </p>
-            {/* Warning for answered/public questions */}
-            {(pendingDelete.status === "answered" || pendingDelete.status === "approved") && pendingDelete.is_public && (
-              <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-xs text-amber-800">
-                  <strong>Warning:</strong> This question has been answered and is publicly visible on the provider&apos;s page.
-                </p>
-              </div>
-            )}
+            <div className="mt-3 p-2.5 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs text-red-800">
+                <strong>Warning:</strong> This will delete ALL questions for this provider across all tabs, including answered questions that are publicly visible.
+              </p>
+            </div>
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-              {/* Provider name */}
-              <p className="text-xs font-medium text-gray-500 mb-1">
-                {pendingDelete.provider_name || pendingDelete.provider_id}
-              </p>
-              {/* Question text - truncated safely */}
-              <p className="text-sm text-gray-700 overflow-hidden" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
-                {pendingDelete.question}
-              </p>
-              <p className="mt-1.5 text-xs text-gray-500">
-                Asked by {pendingDelete.asker_name} · {formatDate(pendingDelete.created_at)}
+              <p className="text-sm font-medium text-gray-900">{pendingDelete.providerName}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {pendingDelete.questionCount} {pendingDelete.questionCount === 1 ? "question" : "questions"} shown in current tab (may have more in other tabs)
               </p>
             </div>
             <div className="mt-4 flex justify-end gap-3">
               <button
                 onClick={() => setPendingDelete(null)}
-                disabled={actionLoading === `delete:${pendingDelete.id}`}
+                disabled={actionLoading === `delete:${pendingDelete.providerId}`}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleDelete(pendingDelete)}
-                disabled={actionLoading === `delete:${pendingDelete.id}`}
+                onClick={() => handleDeleteProvider(pendingDelete.providerId, pendingDelete.providerName)}
+                disabled={actionLoading === `delete:${pendingDelete.providerId}`}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
-                {actionLoading === `delete:${pendingDelete.id}` ? "Deleting..." : "Delete"}
+                {actionLoading === `delete:${pendingDelete.providerId}` ? "Deleting..." : "Delete All"}
               </button>
             </div>
           </div>

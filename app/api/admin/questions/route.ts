@@ -1349,8 +1349,8 @@ export async function GET(request: NextRequest) {
 /**
  * DELETE /api/admin/questions
  *
- * Permanently delete a question from the database.
- * Query param: ?id=<question_id>
+ * Permanently delete all questions for a provider from the database.
+ * Query param: ?provider_id=<provider_slug_or_id>
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -1360,52 +1360,54 @@ export async function DELETE(request: NextRequest) {
     if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const providerId = searchParams.get("provider_id");
 
-    if (!id) {
-      return NextResponse.json({ error: "Question id required" }, { status: 400 });
+    if (!providerId) {
+      return NextResponse.json({ error: "provider_id required" }, { status: 400 });
     }
 
     const db = getServiceClient();
 
-    // Fetch the question first for audit logging
-    const { data: question, error: fetchError } = await db
+    // Fetch all questions for this provider for audit logging
+    const { data: questions, error: fetchError } = await db
       .from("provider_questions")
-      .select("id, provider_id, question, asker_name, asker_email, status")
-      .eq("id", id)
-      .single();
+      .select("id, provider_id, question, asker_name, status")
+      .eq("provider_id", providerId);
 
-    if (fetchError || !question) {
-      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    if (fetchError) {
+      console.error("Failed to fetch questions for deletion:", fetchError);
+      return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
 
-    // Delete the question
+    if (!questions || questions.length === 0) {
+      return NextResponse.json({ error: "No questions found for this provider" }, { status: 404 });
+    }
+
+    // Delete all questions for this provider
     const { error: deleteError } = await db
       .from("provider_questions")
       .delete()
-      .eq("id", id);
+      .eq("provider_id", providerId);
 
     if (deleteError) {
-      console.error("Failed to delete question:", deleteError);
-      return NextResponse.json({ error: "Failed to delete question" }, { status: 500 });
+      console.error("Failed to delete questions:", deleteError);
+      return NextResponse.json({ error: "Failed to delete questions" }, { status: 500 });
     }
 
     // Proper admin audit logging
     await logAuditAction({
       adminUserId: admin.id,
-      action: "delete_question",
-      targetType: "question",
-      targetId: id,
+      action: "delete_provider_questions",
+      targetType: "provider_questions",
+      targetId: providerId,
       details: {
-        provider_id: question.provider_id,
-        question_preview: question.question?.substring(0, 100),
-        asker_name: question.asker_name,
-        asker_email: question.asker_email,
-        status_at_deletion: question.status,
+        question_count: questions.length,
+        question_ids: questions.map((q) => q.id),
+        statuses: [...new Set(questions.map((q) => q.status))],
       },
     });
 
-    return NextResponse.json({ success: true, deleted: id });
+    return NextResponse.json({ success: true, deleted_count: questions.length, provider_id: providerId });
   } catch (err) {
     console.error("Admin questions DELETE error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

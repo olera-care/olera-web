@@ -289,7 +289,7 @@ export async function GET(request: NextRequest) {
         // Try business_profiles first
         const { data: bpProviders } = await db
           .from("business_profiles")
-          .select("slug, display_name, source_provider_id, email, phone, account_id, metadata")
+          .select("slug, display_name, source_provider_id, email, phone, account_id, verification_state, metadata")
           .in("slug", slugs);
         providerNames = Object.fromEntries(
           (bpProviders ?? []).map((p) => [p.slug, p.display_name])
@@ -306,8 +306,7 @@ export async function GET(request: NextRequest) {
         for (const p of bpProviders ?? []) {
           if (p.slug) {
             providerClaimStatus[p.slug] = !!p.account_id;
-            const meta = p.metadata as Record<string, unknown> | null;
-            providerVerificationState[p.slug] = (meta?.verification_state as string) || "unverified";
+            providerVerificationState[p.slug] = (p.verification_state as string) || "unverified";
           }
         }
 
@@ -316,7 +315,7 @@ export async function GET(request: NextRequest) {
         if (missingFromSlugLookup.length > 0) {
           const { data: bpByUuid } = await db
             .from("business_profiles")
-            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, verification_state")
             .in("id", missingFromSlugLookup);
           for (const p of bpByUuid ?? []) {
             if (p.id) {
@@ -325,8 +324,7 @@ export async function GET(request: NextRequest) {
               if (p.email) providerEmails[p.id] = p.email;
               if (p.phone) providerPhones[p.id] = p.phone;
               providerClaimStatus[p.id] = !!p.account_id;
-              const meta = p.metadata as Record<string, unknown> | null;
-              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+              providerVerificationState[p.id] = (p.verification_state as string) || "unverified";
             }
           }
         }
@@ -389,7 +387,7 @@ export async function GET(request: NextRequest) {
           if (iosProviderIds.length > 0) {
             const { data: linkedBpProfiles } = await db
               .from("business_profiles")
-              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .select("slug, source_provider_id, email, phone, account_id, verification_state")
               .in("source_provider_id", iosProviderIds);
             const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
             for (const bp of linkedBpProfiles ?? []) {
@@ -404,15 +402,13 @@ export async function GET(request: NextRequest) {
                     providerClaimStatus[ios.slug] = !!linkedBp.account_id;
                     if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
                     if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
-                    const meta = linkedBp.metadata as Record<string, unknown> | null;
-                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                    providerVerificationState[ios.slug] = (linkedBp.verification_state as string) || "unverified";
                   }
                   // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
                   providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
                   if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
                   if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
-                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
-                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                  providerVerificationState[ios.provider_id] = (linkedBp.verification_state as string) || "unverified";
                 }
               }
             }
@@ -475,7 +471,7 @@ export async function GET(request: NextRequest) {
       if (slugs.length > 0) {
         const { data: bpProviders } = await db
           .from("business_profiles")
-          .select("slug, display_name, source_provider_id, email, phone, account_id, metadata")
+          .select("slug, display_name, source_provider_id, email, phone, account_id, verification_state, metadata")
           .in("slug", slugs);
         providerNames = Object.fromEntries(
           (bpProviders ?? []).map((p) => [p.slug, p.display_name])
@@ -490,8 +486,7 @@ export async function GET(request: NextRequest) {
         for (const p of bpProviders ?? []) {
           if (p.slug) {
             providerClaimStatus[p.slug] = !!p.account_id;
-            const meta = p.metadata as Record<string, unknown> | null;
-            providerVerificationState[p.slug] = (meta?.verification_state as string) || "unverified";
+            providerVerificationState[p.slug] = (p.verification_state as string) || "unverified";
           }
         }
 
@@ -500,7 +495,7 @@ export async function GET(request: NextRequest) {
         if (missingFromSlugLookup.length > 0) {
           const { data: bpByUuid } = await db
             .from("business_profiles")
-            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, verification_state")
             .in("id", missingFromSlugLookup);
           for (const p of bpByUuid ?? []) {
             if (p.id) {
@@ -509,8 +504,7 @@ export async function GET(request: NextRequest) {
               if (p.email) providerEmails[p.id] = p.email;
               if (p.phone) providerPhones[p.id] = p.phone;
               providerClaimStatus[p.id] = !!p.account_id;
-              const meta = p.metadata as Record<string, unknown> | null;
-              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+              providerVerificationState[p.id] = (p.verification_state as string) || "unverified";
             }
           }
         }
@@ -565,7 +559,7 @@ export async function GET(request: NextRequest) {
           if (iosProviderIds.length > 0) {
             const { data: linkedBpProfiles } = await db
               .from("business_profiles")
-              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .select("slug, source_provider_id, email, phone, account_id, verification_state")
               .in("source_provider_id", iosProviderIds);
             const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
             for (const bp of linkedBpProfiles ?? []) {
@@ -580,15 +574,13 @@ export async function GET(request: NextRequest) {
                     providerClaimStatus[ios.slug] = !!linkedBp.account_id;
                     if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
                     if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
-                    const meta = linkedBp.metadata as Record<string, unknown> | null;
-                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                    providerVerificationState[ios.slug] = (linkedBp.verification_state as string) || "unverified";
                   }
                   // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
                   providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
                   if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
                   if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
-                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
-                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                  providerVerificationState[ios.provider_id] = (linkedBp.verification_state as string) || "unverified";
                 }
               }
             }
@@ -648,7 +640,7 @@ export async function GET(request: NextRequest) {
       if (slugs.length > 0) {
         const { data: bpProviders } = await db
           .from("business_profiles")
-          .select("slug, display_name, source_provider_id, email, phone, account_id, metadata")
+          .select("slug, display_name, source_provider_id, email, phone, account_id, verification_state, metadata")
           .in("slug", slugs);
         providerNames = Object.fromEntries(
           (bpProviders ?? []).map((p) => [p.slug, p.display_name])
@@ -663,8 +655,7 @@ export async function GET(request: NextRequest) {
         for (const p of bpProviders ?? []) {
           if (p.slug) {
             providerClaimStatus[p.slug] = !!p.account_id;
-            const meta = p.metadata as Record<string, unknown> | null;
-            providerVerificationState[p.slug] = (meta?.verification_state as string) || "unverified";
+            providerVerificationState[p.slug] = (p.verification_state as string) || "unverified";
           }
         }
 
@@ -673,7 +664,7 @@ export async function GET(request: NextRequest) {
         if (missingFromSlugLookup.length > 0) {
           const { data: bpByUuid } = await db
             .from("business_profiles")
-            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, verification_state")
             .in("id", missingFromSlugLookup);
           for (const p of bpByUuid ?? []) {
             if (p.id) {
@@ -682,8 +673,7 @@ export async function GET(request: NextRequest) {
               if (p.email) providerEmails[p.id] = p.email;
               if (p.phone) providerPhones[p.id] = p.phone;
               providerClaimStatus[p.id] = !!p.account_id;
-              const meta = p.metadata as Record<string, unknown> | null;
-              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+              providerVerificationState[p.id] = (p.verification_state as string) || "unverified";
             }
           }
         }
@@ -738,7 +728,7 @@ export async function GET(request: NextRequest) {
           if (iosProviderIds.length > 0) {
             const { data: linkedBpProfiles } = await db
               .from("business_profiles")
-              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .select("slug, source_provider_id, email, phone, account_id, verification_state")
               .in("source_provider_id", iosProviderIds);
             const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
             for (const bp of linkedBpProfiles ?? []) {
@@ -753,15 +743,13 @@ export async function GET(request: NextRequest) {
                     providerClaimStatus[ios.slug] = !!linkedBp.account_id;
                     if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
                     if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
-                    const meta = linkedBp.metadata as Record<string, unknown> | null;
-                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                    providerVerificationState[ios.slug] = (linkedBp.verification_state as string) || "unverified";
                   }
                   // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
                   providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
                   if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
                   if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
-                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
-                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                  providerVerificationState[ios.provider_id] = (linkedBp.verification_state as string) || "unverified";
                 }
               }
             }
@@ -835,7 +823,7 @@ export async function GET(request: NextRequest) {
       if (slugs.length > 0) {
         const { data: bpProviders } = await db
           .from("business_profiles")
-          .select("slug, display_name, source_provider_id, email, phone, account_id, metadata")
+          .select("slug, display_name, source_provider_id, email, phone, account_id, verification_state, metadata")
           .in("slug", slugs);
         providerNames = Object.fromEntries(
           (bpProviders ?? []).map((p) => [p.slug, p.display_name])
@@ -850,8 +838,7 @@ export async function GET(request: NextRequest) {
         for (const p of bpProviders ?? []) {
           if (p.slug) {
             providerClaimStatus[p.slug] = !!p.account_id;
-            const meta = p.metadata as Record<string, unknown> | null;
-            providerVerificationState[p.slug] = (meta?.verification_state as string) || "unverified";
+            providerVerificationState[p.slug] = (p.verification_state as string) || "unverified";
           }
         }
 
@@ -860,7 +847,7 @@ export async function GET(request: NextRequest) {
         if (missingFromSlugLookup.length > 0) {
           const { data: bpByUuid } = await db
             .from("business_profiles")
-            .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+            .select("id, slug, display_name, source_provider_id, email, phone, account_id, verification_state")
             .in("id", missingFromSlugLookup);
           for (const p of bpByUuid ?? []) {
             if (p.id) {
@@ -869,8 +856,7 @@ export async function GET(request: NextRequest) {
               if (p.email) providerEmails[p.id] = p.email;
               if (p.phone) providerPhones[p.id] = p.phone;
               providerClaimStatus[p.id] = !!p.account_id;
-              const meta = p.metadata as Record<string, unknown> | null;
-              providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+              providerVerificationState[p.id] = (p.verification_state as string) || "unverified";
             }
           }
         }
@@ -925,7 +911,7 @@ export async function GET(request: NextRequest) {
           if (iosProviderIds.length > 0) {
             const { data: linkedBpProfiles } = await db
               .from("business_profiles")
-              .select("slug, source_provider_id, email, phone, account_id, metadata")
+              .select("slug, source_provider_id, email, phone, account_id, verification_state")
               .in("source_provider_id", iosProviderIds);
             const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
             for (const bp of linkedBpProfiles ?? []) {
@@ -940,15 +926,13 @@ export async function GET(request: NextRequest) {
                     providerClaimStatus[ios.slug] = !!linkedBp.account_id;
                     if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
                     if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
-                    const meta = linkedBp.metadata as Record<string, unknown> | null;
-                    providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                    providerVerificationState[ios.slug] = (linkedBp.verification_state as string) || "unverified";
                   }
                   // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
                   providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
                   if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
                   if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
-                  const metaById = linkedBp.metadata as Record<string, unknown> | null;
-                  providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                  providerVerificationState[ios.provider_id] = (linkedBp.verification_state as string) || "unverified";
                 }
               }
             }
@@ -1017,7 +1001,7 @@ export async function GET(request: NextRequest) {
     if (bpIds.length > 0) {
       const { data: bpDirect } = await db
         .from("business_profiles")
-        .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+        .select("id, slug, display_name, source_provider_id, email, phone, account_id, verification_state")
         .in("id", bpIds);
 
       // Map by business_profile_id so we can look up by question's business_profile_id
@@ -1037,8 +1021,7 @@ export async function GET(request: NextRequest) {
           if (bp.email && !providerEmails[slug]) providerEmails[slug] = bp.email;
           if (bp.phone && !providerPhones[slug]) providerPhones[slug] = bp.phone;
           providerClaimStatus[slug] = !!bp.account_id;
-          const meta = bp.metadata as Record<string, unknown> | null;
-          providerVerificationState[slug] = (meta?.verification_state as string) || "unverified";
+          providerVerificationState[slug] = (bp.verification_state as string) || "unverified";
         }
       }
 
@@ -1055,7 +1038,7 @@ export async function GET(request: NextRequest) {
       // Try business_profiles first (only for slugs not already populated)
       const { data: bpProviders } = await db
         .from("business_profiles")
-        .select("slug, display_name, source_provider_id, email, phone, account_id, metadata")
+        .select("slug, display_name, source_provider_id, email, phone, account_id, verification_state, metadata")
         .in("slug", slugsStillMissing);
 
       // ADD to existing maps (don't overwrite Phase 1 data)
@@ -1070,8 +1053,7 @@ export async function GET(request: NextRequest) {
       for (const p of bpProviders ?? []) {
         if (p.slug && providerClaimStatus[p.slug] === undefined) {
           providerClaimStatus[p.slug] = !!p.account_id;
-          const meta = p.metadata as Record<string, unknown> | null;
-          providerVerificationState[p.slug] = (meta?.verification_state as string) || "unverified";
+          providerVerificationState[p.slug] = (p.verification_state as string) || "unverified";
         }
       }
 
@@ -1082,7 +1064,7 @@ export async function GET(request: NextRequest) {
       if (missingFromSlugLookup.length > 0) {
         const { data: bpByUuid } = await db
           .from("business_profiles")
-          .select("id, slug, display_name, source_provider_id, email, phone, account_id, metadata")
+          .select("id, slug, display_name, source_provider_id, email, phone, account_id, verification_state")
           .in("id", missingFromSlugLookup);
         for (const p of bpByUuid ?? []) {
           if (p.id) {
@@ -1092,8 +1074,7 @@ export async function GET(request: NextRequest) {
             if (p.email) providerEmails[p.id] = p.email;
             if (p.phone) providerPhones[p.id] = p.phone;
             providerClaimStatus[p.id] = !!p.account_id;
-            const meta = p.metadata as Record<string, unknown> | null;
-            providerVerificationState[p.id] = (meta?.verification_state as string) || "unverified";
+            providerVerificationState[p.id] = (p.verification_state as string) || "unverified";
           }
         }
       }
@@ -1159,7 +1140,7 @@ export async function GET(request: NextRequest) {
         if (iosProviderIds.length > 0) {
           const { data: linkedBpProfiles } = await db
             .from("business_profiles")
-            .select("slug, source_provider_id, email, phone, account_id, metadata")
+            .select("slug, source_provider_id, email, phone, account_id, verification_state")
             .in("source_provider_id", iosProviderIds);
           // Build lookup from ios provider_id to bp data
           const bpBySourceId = new Map<string, typeof linkedBpProfiles extends (infer T)[] | null ? T : never>();
@@ -1177,15 +1158,13 @@ export async function GET(request: NextRequest) {
                   providerClaimStatus[ios.slug] = !!linkedBp.account_id;
                   if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
                   if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
-                  const meta = linkedBp.metadata as Record<string, unknown> | null;
-                  providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                  providerVerificationState[ios.slug] = (linkedBp.verification_state as string) || "unverified";
                 }
                 // Also populate using ios.provider_id (for legacy lookups where question.provider_id = alphanumeric ID)
                 providerClaimStatus[ios.provider_id] = !!linkedBp.account_id;
                 if (linkedBp.email && !providerEmails[ios.provider_id]) providerEmails[ios.provider_id] = linkedBp.email;
                 if (linkedBp.phone && !providerPhones[ios.provider_id]) providerPhones[ios.provider_id] = linkedBp.phone;
-                const metaById = linkedBp.metadata as Record<string, unknown> | null;
-                providerVerificationState[ios.provider_id] = (metaById?.verification_state as string) || "unverified";
+                providerVerificationState[ios.provider_id] = (linkedBp.verification_state as string) || "unverified";
               }
             }
           }
@@ -1230,7 +1209,7 @@ export async function GET(request: NextRequest) {
             const providerIdsToLookup = strategy4MatchedProviderIds.map(m => m.providerId);
             const { data: linkedBpForStrategy4 } = await db
               .from("business_profiles")
-              .select("source_provider_id, email, phone, account_id, metadata")
+              .select("source_provider_id, email, phone, account_id, verification_state")
               .in("source_provider_id", providerIdsToLookup);
 
             const bpBySourceIdStrategy4 = new Map<string, typeof linkedBpForStrategy4 extends (infer T)[] | null ? T : never>();
@@ -1245,8 +1224,7 @@ export async function GET(request: NextRequest) {
                 providerClaimStatus[slug] = !!linkedBp.account_id;
                 if (linkedBp.email && !providerEmails[slug]) providerEmails[slug] = linkedBp.email;
                 if (linkedBp.phone && !providerPhones[slug]) providerPhones[slug] = linkedBp.phone;
-                const meta = linkedBp.metadata as Record<string, unknown> | null;
-                providerVerificationState[slug] = (meta?.verification_state as string) || "unverified";
+                providerVerificationState[slug] = (linkedBp.verification_state as string) || "unverified";
               } else {
                 // No linked BP means unclaimed
                 providerClaimStatus[slug] = false;
@@ -1294,7 +1272,7 @@ export async function GET(request: NextRequest) {
         if (fallbackProviderIds.length > 0) {
           const { data: fallbackBps } = await db
             .from("business_profiles")
-            .select("source_provider_id, email, phone, account_id, metadata")
+            .select("source_provider_id, email, phone, account_id, verification_state")
             .in("source_provider_id", fallbackProviderIds);
 
           // Build lookup map
@@ -1311,8 +1289,7 @@ export async function GET(request: NextRequest) {
                 providerClaimStatus[ios.slug] = !!linkedBp.account_id;
                 if (linkedBp.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = linkedBp.email;
                 if (linkedBp.phone && !providerPhones[ios.slug]) providerPhones[ios.slug] = linkedBp.phone;
-                const meta = linkedBp.metadata as Record<string, unknown> | null;
-                providerVerificationState[ios.slug] = (meta?.verification_state as string) || "unverified";
+                providerVerificationState[ios.slug] = (linkedBp.verification_state as string) || "unverified";
               } else {
                 // No linked BP - use iOS data
                 if (ios.email && !providerEmails[ios.slug]) providerEmails[ios.slug] = ios.email;

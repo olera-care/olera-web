@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { RECIPIENT_OPTIONS } from "./constants";
+import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 import type { CareRecipient } from "./types";
 import {
   trackEnrichmentStarted,
@@ -790,6 +791,7 @@ export default function EnrichmentState({
                 autoComplete="tel"
                 className="w-full px-4 py-3 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-gray-900/10 outline-none transition-all text-gray-900 placeholder:text-gray-400"
               />
+              <SmsConsentDisclosure className="mt-2" />
             </div>
 
             {/* Location is pre-filled silently from provider's city/state */}

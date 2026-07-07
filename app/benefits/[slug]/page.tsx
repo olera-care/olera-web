@@ -183,7 +183,7 @@ export default async function BenefitsSlugPage({ params }: Props) {
     const { data } = await supabase
       .from("provider_questions")
       .select("question, answer, answered_at, answered_by, provider_id")
-      .eq("status", "answered")
+      .in("status", ["answered", "approved"])
       .eq("is_public", true)
       .eq("answer_status", "published")  // Only show published answers
       .not("answer", "is", null)

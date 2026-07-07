@@ -231,6 +231,37 @@ async function handle(params: {
       }
     }
 
+    // 4. Restore questions that were archived via provider archive back to pending
+    // This brings the provider's questions back into the queue
+    const { data: archivedQuestions } = await db
+      .from("provider_questions")
+      .select("id, metadata")
+      .in("provider_id", variants)
+      .eq("status", "archived")
+      .contains("metadata", { archived_via: "provider_archive" });
+
+    let questionsRestored = 0;
+    if (archivedQuestions && archivedQuestions.length > 0) {
+      for (const q of archivedQuestions) {
+        const meta = (q.metadata as Record<string, unknown>) ?? {};
+        // Clear archive-related metadata
+        delete meta.archive_reason;
+        delete meta.archived_at;
+        delete meta.archived_via;
+        // Add unarchive tracking
+        meta.unarchived_at = nowIso;
+        meta.unarchived_by = adminEmail;
+        meta.unarchived_reason = reason;
+
+        const { error: restoreErr } = await db
+          .from("provider_questions")
+          .update({ status: "pending", is_public: true, metadata: meta, updated_at: nowIso })
+          .eq("id", q.id);
+
+        if (!restoreErr) questionsRestored++;
+      }
+    }
+
     await logAuditAction({
       adminUserId,
       action: "questions_unarchive_provider",
@@ -241,6 +272,7 @@ async function handle(params: {
         provider_name: providerName,
         variants,
         rows_removed: deleted?.length ?? 0,
+        questions_restored: questionsRestored,
         reason,
         notes,
         business_profile_id: businessProfileId,
@@ -253,7 +285,8 @@ async function handle(params: {
       providerName,
       variants,
       suppressionRowsRemoved: deleted?.length ?? 0,
-      message: `Unarchived ${providerName || providerId}. Provider is now active again — Q&A intake resumed and emails will be sent.`,
+      questionsRestored,
+      message: `Unarchived ${providerName || providerId}. ${questionsRestored} question(s) restored to queue. Provider is now active again.`,
     });
   }
 

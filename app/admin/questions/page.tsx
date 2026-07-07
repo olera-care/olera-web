@@ -7,6 +7,17 @@ import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangeP
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 import { useUrlFilterState } from "@/hooks/useUrlFilterState";
+import { formatAge } from "@/lib/connection-temperature";
+
+interface EmailLogEntry {
+  id: string;
+  created_at: string;
+  subject: string;
+  delivered_at: string | null;
+  first_opened_at: string | null;
+  bounced_at: string | null;
+  complained_at: string | null;
+}
 
 interface Question {
   id: string;
@@ -32,6 +43,7 @@ interface Question {
     archived_by: string | null;
     archived_at: string | null;
   } | null;
+  provider_email_history?: EmailLogEntry[];
 }
 
 type TabValue = "unanswered" | "needs_email" | "delivery_issues" | "not_interested" | "answered" | "archived" | "";
@@ -40,10 +52,10 @@ const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
   { label: "Needs Email", value: "needs_email", showCount: true },
   { label: "Delivery Issues", value: "delivery_issues", showCount: true },
   { label: "Unanswered", value: "unanswered", showCount: true },
-  { label: "Answered", value: "answered" },
+  { label: "Answered", value: "answered", showCount: true },
   { label: "Not Interested", value: "not_interested", showCount: true },
   { label: "Archived", value: "archived", showCount: true },
-  { label: "All", value: "" },
+  { label: "All", value: "", showCount: true },
 ];
 
 const STATUS_LABELS: Record<string, string> = {
@@ -85,6 +97,21 @@ function formatDateTime(dateStr: string | null | undefined): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+// Format timestamp like "7 Jul, 16:26" for email history
+function formatEmailTimestamp(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return ""; // Invalid date
+    const day = d.getDate();
+    const month = d.toLocaleDateString("en-US", { month: "short" });
+    const time = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+    return `${day} ${month}, ${time}`;
+  } catch {
+    return "";
+  }
+}
+
 function ProviderStatusBadge({ question }: { question: Question }) {
   const providerName = question.provider_name || question.provider_id;
   const verificationLink = `/admin/verification?search=${encodeURIComponent(providerName)}`;
@@ -95,7 +122,7 @@ function ProviderStatusBadge({ question }: { question: Question }) {
       <Link
         href={verificationLink}
         onClick={(e) => e.stopPropagation()}
-        className="text-emerald-600 hover:text-emerald-700 transition-colors"
+        className="text-emerald-700 hover:text-emerald-800 transition-colors"
         title="Verified & Claimed — click to view"
       >
         <svg className="w-3.5 h-3.5 inline" fill="currentColor" viewBox="0 0 20 20">
@@ -105,16 +132,16 @@ function ProviderStatusBadge({ question }: { question: Question }) {
     );
   }
 
-  // Claimed but pending verification
+  // Claimed but pending verification - matches Connections page style
   if (question.is_account_claimed && question.verification_state === "pending") {
     return (
       <Link
         href={verificationLink}
         onClick={(e) => e.stopPropagation()}
-        className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded hover:bg-amber-100 transition-colors"
         title="Click to review verification"
       >
-        Pending
+        Pending Verification
       </Link>
     );
   }
@@ -126,7 +153,7 @@ function ProviderStatusBadge({ question }: { question: Question }) {
         href={verificationLink}
         onClick={(e) => e.stopPropagation()}
         className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-        title="Verification was rejected"
+        title="Verification was rejected — click to review"
       >
         Rejected
       </Link>
@@ -145,14 +172,144 @@ function ProviderStatusBadge({ question }: { question: Question }) {
     );
   }
 
-  // Claimed but unverified (catch-all for any claimed provider not matching above states)
+  // Claimed but unverified - matches Connections page "Unverified" style (orange/amber)
   return (
-    <span
-      className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 rounded"
-      title="Account claimed but not yet verified"
+    <Link
+      href={verificationLink}
+      onClick={(e) => e.stopPropagation()}
+      className="px-1.5 py-0.5 text-[10px] font-medium bg-orange-50 text-orange-700 border border-orange-200 rounded hover:bg-orange-100 transition-colors"
+      title="Account claimed but not verified — click to view"
     >
-      Claimed
-    </span>
+      Unverified
+    </Link>
+  );
+}
+
+// Email history section with collapsible toggle and expandable rows
+function EmailHistorySection({ emails }: { emails: EmailLogEntry[] }) {
+  const [showEmails, setShowEmails] = useState(false);
+  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
+
+  if (!emails || emails.length === 0) return null;
+
+  // Get email status from lifecycle timestamps
+  function getEmailStatus(email: EmailLogEntry): { label: string; color: string; dotColor: string } {
+    if (email.bounced_at) return { label: "bounced", color: "text-red-600", dotColor: "bg-red-500" };
+    if (email.complained_at) return { label: "spam", color: "text-red-600", dotColor: "bg-red-500" };
+    if (email.first_opened_at) return { label: "opened", color: "text-emerald-600", dotColor: "bg-emerald-500" };
+    if (email.delivered_at) return { label: "delivered", color: "text-gray-500", dotColor: "bg-gray-400" };
+    return { label: "sent", color: "text-gray-400", dotColor: "bg-gray-300" };
+  }
+
+  return (
+    <div className="mt-4">
+      {/* Collapsible toggle */}
+      <button
+        type="button"
+        onClick={() => setShowEmails(!showEmails)}
+        className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        <svg
+          className={`w-3 h-3 transition-transform ${showEmails ? "rotate-90" : ""}`}
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+        </svg>
+        Show {emails.length} email{emails.length !== 1 ? "s" : ""} sent
+      </button>
+
+      {/* Email list */}
+      {showEmails && (
+        <div className="mt-2 bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+          {emails.map((email) => {
+            const status = getEmailStatus(email);
+            const isExpanded = expandedEmailId === email.id;
+
+            return (
+              <div key={email.id}>
+                {/* Email row header */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedEmailId(isExpanded ? null : email.id)}
+                  className="w-full px-3 py-2.5 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {/* Expand chevron */}
+                    <svg
+                      className={`w-3 h-3 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+                    </svg>
+
+                    {/* Email type label */}
+                    <span className="text-sm font-medium text-gray-700">Question</span>
+
+                    {/* Recipient badge */}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 flex-shrink-0">
+                      To Provider
+                    </span>
+
+                    {/* Timestamp */}
+                    <span className="text-xs text-gray-400 flex-shrink-0">
+                      · {formatEmailTimestamp(email.created_at)}
+                    </span>
+                  </div>
+
+                  {/* Status with dot */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className={`w-1.5 h-1.5 rounded-full ${status.dotColor}`} />
+                    <span className={`text-xs ${status.color}`}>{status.label}</span>
+                  </div>
+                </button>
+
+                {/* Expanded preview */}
+                {isExpanded && (
+                  <div className="px-3 pb-3 pl-8">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Subject</p>
+                      <p className="text-sm text-gray-700">{email.subject}</p>
+
+                      {/* Lifecycle timestamps - only show if at least one timestamp exists */}
+                      {(email.delivered_at || email.first_opened_at || email.bounced_at || email.complained_at) && (
+                        <div className="mt-3 pt-2 border-t border-gray-200 grid grid-cols-2 gap-2 text-xs">
+                          {email.delivered_at && (
+                            <div>
+                              <span className="text-gray-400">Delivered:</span>{" "}
+                              <span className="text-gray-600">{formatEmailTimestamp(email.delivered_at)}</span>
+                            </div>
+                          )}
+                          {email.first_opened_at && (
+                            <div>
+                              <span className="text-gray-400">Opened:</span>{" "}
+                              <span className="text-emerald-600">{formatEmailTimestamp(email.first_opened_at)}</span>
+                            </div>
+                          )}
+                          {email.bounced_at && (
+                            <div>
+                              <span className="text-gray-400">Bounced:</span>{" "}
+                              <span className="text-red-600">{formatEmailTimestamp(email.bounced_at)}</span>
+                            </div>
+                          )}
+                          {email.complained_at && (
+                            <div>
+                              <span className="text-gray-400">Marked spam:</span>{" "}
+                              <span className="text-red-600">{formatEmailTimestamp(email.complained_at)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -162,12 +319,14 @@ function InlineEmailInput({
   emailIsDead,
   onEmailAdded,
   autoSearch = false,
+  isAccountClaimed = false,
 }: {
   providerSlug: string;
   existingEmail?: string | null;
   emailIsDead?: boolean;
   onEmailAdded: () => void;
   autoSearch?: boolean;
+  isAccountClaimed?: boolean;
 }) {
   // Pre-fill with existing email (even if dead) so operator can see what failed and edit it
   const [email, setEmail] = useState(existingEmail || "");
@@ -341,12 +500,29 @@ function InlineEmailInput({
 
     setSaving(true);
     setError(null);
+
+    // For claimed providers with delivery issues submitting the SAME email:
+    // Use email-override instead of add-email. This trusts the email without
+    // attempting to "change" it (which add-email blocks for claimed accounts).
+    const isSameEmail = existingEmail && email.trim().toLowerCase() === existingEmail.toLowerCase();
+    const shouldTrustInstead = isAccountClaimed && emailIsDead && isSameEmail;
+
     try {
-      const res = await fetch("/api/admin/questions/add-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerSlug, email: email.trim(), force }),
-      });
+      const res = shouldTrustInstead
+        ? await fetch("/api/admin/email-override", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              providerSlug,
+              reason: "claimed_account",
+              note: "Trusted via Questions tab - admin confirmed email works",
+            }),
+          })
+        : await fetch("/api/admin/questions/add-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ providerSlug, email: email.trim(), force }),
+          });
 
       if (res.ok) {
         setSuccess(true);
@@ -487,8 +663,8 @@ function InlineEmailInput({
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const stalenessMs = Date.now() - new Date(dateStr).getTime();
+  return `${formatAge(stalenessMs)} ago`;
 }
 
 // Group questions by provider_id, preserving order of first appearance
@@ -515,7 +691,7 @@ export default function AdminQuestionsPage() {
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
-  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; not_interested: number; archived: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, not_interested: 0, archived: 0 });
+  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; not_interested: number; archived: number; answered: number; all: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, not_interested: 0, archived: 0, answered: 0, all: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
@@ -537,6 +713,9 @@ export default function AdminQuestionsPage() {
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
   const [editingEmailProviders, setEditingEmailProviders] = useState<Set<string>>(new Set());
+  const [trustingEmailProviders, setTrustingEmailProviders] = useState<Set<string>>(new Set());
+  const [trustedEmailProviders, setTrustedEmailProviders] = useState<Set<string>>(new Set());
+  const [pendingDelete, setPendingDelete] = useState<{ providerId: string; providerName: string; questionCount: number } | null>(null);
 
   function showToast(message: string, type: "success" | "error" = "success") {
     if (toastRef.current) clearTimeout(toastRef.current);
@@ -760,6 +939,41 @@ export default function AdminQuestionsPage() {
 
   // Mark provider as not interested (soft reject) - questions stay visible but
   // no emails are sent. Reversible.
+  // Trust email for providers with delivery issues
+  // This adds the email to email_overrides, allowing emails to be sent without changing the email
+  const handleTrustEmail = async (providerId: string, isClaimed: boolean) => {
+    setTrustingEmailProviders((prev) => new Set(prev).add(providerId));
+    try {
+      const res = await fetch("/api/admin/email-override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerSlug: providerId,
+          reason: isClaimed ? "claimed_account" : "admin",
+          note: isClaimed
+            ? "Trusted via Questions tab - claimed provider with failing email"
+            : "Trusted via Questions tab - admin confirmed email works",
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setTrustedEmailProviders((prev) => new Set(prev).add(providerId));
+        showToast(data.message || "Email trusted — questions will be sent");
+        await fetchQuestions();
+      } else {
+        showToast(data.message || data.error || "Failed to trust email", "error");
+      }
+    } catch {
+      showToast("Network error", "error");
+    } finally {
+      setTrustingEmailProviders((prev) => {
+        const next = new Set(prev);
+        next.delete(providerId);
+        return next;
+      });
+    }
+  };
+
   const handleMarkNotInterested = async (providerId: string, reason: string, notes: string, unmark: boolean) => {
     setActionLoading(`notinterested:${providerId}`);
     try {
@@ -777,6 +991,28 @@ export default function AdminQuestionsPage() {
       await fetchQuestions();
     } catch {
       showToast(unmark ? "Failed to unmark provider" : "Failed to mark provider", "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteProvider = async (providerId: string, providerName: string) => {
+    setActionLoading(`delete:${providerId}`);
+    try {
+      const res = await fetch(`/api/admin/questions?provider_id=${encodeURIComponent(providerId)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete");
+      }
+      const data = await res.json();
+      setPendingDelete(null);
+      showToast(`Deleted ${data.deleted_count} questions for ${providerName}`);
+      await fetchQuestions();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete questions";
+      showToast(message, "error");
     } finally {
       setActionLoading(null);
     }
@@ -860,6 +1096,8 @@ export default function AdminQuestionsPage() {
             : tab.value === "delivery_issues" ? tabCounts.delivery_issues
             : tab.value === "not_interested" ? tabCounts.not_interested
             : tab.value === "archived" ? tabCounts.archived
+            : tab.value === "answered" ? tabCounts.answered
+            : tab.value === "" ? tabCounts.all
             : null;
 
           return (
@@ -993,15 +1231,36 @@ export default function AdminQuestionsPage() {
                     )}
                   </div>
 
-                  {/* Latest question date */}
-                  <span className="text-xs text-gray-400 flex-shrink-0">
-                    {formatDate(
-                      providerQuestions.reduce((latest, q) =>
-                        q.created_at > latest ? q.created_at : latest,
-                        providerQuestions[0].created_at
-                      )
-                    )}
-                  </span>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {/* Latest question date */}
+                    <span className="text-xs text-gray-400">
+                      {formatDate(
+                        providerQuestions.reduce((latest, q) =>
+                          q.created_at > latest ? q.created_at : latest,
+                          providerQuestions[0].created_at
+                        )
+                      )}
+                    </span>
+
+                    {/* Delete provider (trash icon) */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDelete({
+                          providerId,
+                          providerName: providerLabel,
+                          questionCount,
+                        });
+                      }}
+                      disabled={actionLoading === `delete:${providerId}`}
+                      className="p-1 text-gray-300 hover:text-red-500 transition-colors disabled:opacity-40"
+                      title="Delete all questions for this provider"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </button>
 
                 {/* Expanded content */}
@@ -1051,19 +1310,17 @@ export default function AdminQuestionsPage() {
                           editingEmailProviders.has(providerId) ? (
                             // Editing mode - show form WITHOUT auto-search
                             <div className="pt-1">
-                              <div className="flex items-center gap-1.5 text-amber-700 mb-2">
+                              <div className="flex items-center gap-1.5 text-red-600 mb-2">
                                 <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
-                                <span className="text-sm">
-                                  <span className="line-through text-gray-500">{firstQ.provider_email}</span>
-                                  <span className="ml-1">— delivery failed</span>
-                                </span>
+                                <span className="text-sm">Delivery failed</span>
                               </div>
                               <InlineEmailInput
                                 providerSlug={providerId}
                                 existingEmail={firstQ.provider_email}
                                 emailIsDead={emailIsDead}
+                                isAccountClaimed={firstQ.is_account_claimed}
                                 onEmailAdded={() => {
                                   setEditingEmailProviders((prev) => {
                                     const next = new Set(prev);
@@ -1085,24 +1342,49 @@ export default function AdminQuestionsPage() {
                                 Cancel
                               </button>
                             </div>
+                          ) : trustedEmailProviders.has(providerId) ? (
+                            // Email was just trusted - show success state
+                            <div className="pt-1">
+                              <div className="flex items-center gap-1.5 text-emerald-700">
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span className="text-sm font-medium">Email trusted — questions will be sent</span>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">{firstQ.provider_email}</p>
+                            </div>
                           ) : (
-                            // Not editing - show failed email + Edit button
+                            // Not editing - show failed email + action buttons
                             <div className="pt-1">
                               <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-1.5 text-amber-700">
+                                <div className="flex items-center gap-1.5 text-red-600">
                                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                   </svg>
-                                  <span className="text-sm">Delivery failed — needs replacement</span>
+                                  <span className="text-sm">Delivery failed</span>
                                 </div>
-                                <button
-                                  onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
-                                  className="px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
-                                >
-                                  Edit
-                                </button>
+                                <div className="flex items-center gap-2">
+                                  {/* Trust Email button - for when admin confirms the email is correct */}
+                                  <button
+                                    onClick={() => handleTrustEmail(providerId, !!firstQ.is_account_claimed)}
+                                    disabled={trustingEmailProviders.has(providerId)}
+                                    className="px-2.5 py-1 text-xs font-medium text-teal-700 bg-teal-100 hover:bg-teal-200 rounded transition-colors flex-shrink-0 disabled:opacity-50"
+                                    title="Mark this email as trusted — bypasses delivery checks and sends pending questions"
+                                  >
+                                    {trustingEmailProviders.has(providerId) ? "Trusting..." : "Trust"}
+                                  </button>
+                                  {/* Edit button - for replacing with a different email (unclaimed only) */}
+                                  {!firstQ.is_account_claimed && (
+                                    <button
+                                      onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
+                                      className="px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
+                                    >
+                                      Replace
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                              <p className="text-xs text-gray-500 mt-1 line-through">{firstQ.provider_email}</p>
+                              <p className="text-xs text-gray-500 mt-1">{firstQ.provider_email}</p>
                             </div>
                           )
                         ) : groupNeedsEmail ? (
@@ -1112,6 +1394,7 @@ export default function AdminQuestionsPage() {
                               providerSlug={providerId}
                               existingEmail={firstQ.provider_email}
                               emailIsDead={emailIsDead}
+                              isAccountClaimed={firstQ.is_account_claimed}
                               onEmailAdded={fetchQuestions}
                               autoSearch
                             />
@@ -1178,8 +1461,8 @@ export default function AdminQuestionsPage() {
 
                     {/* Action buttons - different for archived vs non-archived tabs */}
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
-                      {activeTab === "archived" ? (
-                        // Archived tab: show Unarchive button
+                      {activeTab === "archived" && firstQ.provider_archive_info ? (
+                        // Archived tab with provider-level archive: show Unarchive button
                         <button
                           onClick={() => {
                             setUnarchiveProviderTarget({ providerId, providerName: providerLabel });
@@ -1191,6 +1474,11 @@ export default function AdminQuestionsPage() {
                         >
                           Unarchive Provider
                         </button>
+                      ) : activeTab === "archived" ? (
+                        // Archived tab but individually archived: explain no bulk action
+                        <span className="text-xs text-gray-400 italic">
+                          Questions archived individually — use per-question Unarchive below
+                        </span>
                       ) : (
                         // Non-archived tabs: show Archive and Not Interested buttons
                         <>
@@ -1223,6 +1511,11 @@ export default function AdminQuestionsPage() {
                         </>
                       )}
                     </div>
+
+                    {/* Email History - collapsible section */}
+                    {firstQ.provider_email_history && firstQ.provider_email_history.length > 0 && (
+                      <EmailHistorySection emails={firstQ.provider_email_history} />
+                    )}
 
                     {/* Individual questions */}
                     <div className="divide-y divide-gray-100 -mx-5">
@@ -1576,6 +1869,45 @@ export default function AdminQuestionsPage() {
                 {actionLoading === `notinterested:${notInterestedTarget.providerId}`
                   ? (notInterestedTarget.isMarked ? "Unmarking..." : "Marking...")
                   : (notInterestedTarget.isMarked ? "Unmark" : "Mark Not Interested")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete provider confirmation dialog */}
+      {pendingDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Delete provider questions</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Are you sure you want to permanently delete <strong>all questions</strong> for this provider? This action cannot be undone.
+            </p>
+            <div className="mt-3 p-2.5 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs text-red-800">
+                <strong>Warning:</strong> This will delete ALL questions for this provider across all tabs, including answered questions that are publicly visible.
+              </p>
+            </div>
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-900">{pendingDelete.providerName}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {pendingDelete.questionCount} {pendingDelete.questionCount === 1 ? "question" : "questions"} shown in current tab (may have more in other tabs)
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setPendingDelete(null)}
+                disabled={actionLoading === `delete:${pendingDelete.providerId}`}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteProvider(pendingDelete.providerId, pendingDelete.providerName)}
+                disabled={actionLoading === `delete:${pendingDelete.providerId}`}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {actionLoading === `delete:${pendingDelete.providerId}` ? "Deleting..." : "Delete All"}
               </button>
             </div>
           </div>

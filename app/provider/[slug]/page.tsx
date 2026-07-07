@@ -55,6 +55,14 @@ import { normalizeQuestion } from "@/lib/qa-utils";
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
+import { resolveProviderCategoryTags, type ResolvedProviderTags, type CategoryTag } from "@/lib/provider-category-tags";
+import { groupPhotos, pickHeroImages, type GroupedPhoto } from "@/lib/photo-categories";
+import PhotoTourWrapper from "@/components/providers/PhotoTourWrapper";
+import ShareButton from "@/components/providers/ShareButton";
+import AmenitiesSection from "@/components/providers/AmenitiesSection";
+import NeighborhoodMap from "@/components/providers/NeighborhoodMap";
+import type { NearbyCategory } from "@/components/providers/NeighborhoodMap";
+import ServiceAreaSection from "@/components/providers/ServiceAreaSection";
 import { getServiceClient } from "@/lib/admin";
 import { ViewTracker } from "@/components/analytics/ViewTracker";
 
@@ -573,21 +581,71 @@ export default async function ProviderPage({
   const hasBenefitsData = !!(benefitsData && benefitsData.programs.length > 0);
 
   // ============================================================
+  // Custom provider content — slug-based overrides
+  // ============================================================
+  const isDaySpring = profile.slug === "day-spring-home-health-care";
+
+  // Nearby places — will come from DB (batch Overpass lookup per address).
+  // Hardcoded per provider for now.
+  const nearbyPlacesMap: Record<string, NearbyCategory[]> = {
+    "day-spring-home-health-care": [
+      { label: "Hospital", icon: "hospital", places: [
+        { name: "Texas Health Harris Methodist", distance: "4.1 mi", lat: 32.7254, lng: -97.3208 },
+        { name: "JPS Health Network", distance: "5.6 mi", lat: 32.7465, lng: -97.3308 },
+      ]},
+      { label: "Pharmacy", icon: "pharmacy", places: [
+        { name: "CVS Pharmacy", distance: "1.2 mi", lat: 32.7120, lng: -97.3450 },
+        { name: "Walgreens", distance: "1.8 mi", lat: 32.7180, lng: -97.3380 },
+      ]},
+    ],
+  };
+  const nearbyPlaces: NearbyCategory[] = nearbyPlacesMap[profile.slug] ?? [];
+
+  // Grouped photo tour — per-provider photo data mapped to category slots.
+  const groupedPhotos: GroupedPhoto[] = isDaySpring
+    ? [
+        // Team
+        { src: "/providers/day-spring/team/staff-1.webp", categoryId: "team" },
+        { src: "/providers/day-spring/team/staff-2.webp", categoryId: "team" },
+        // Patient Care
+        { src: "/providers/day-spring/care/patient-care-1.webp", categoryId: "patient-care" },
+        { src: "/providers/day-spring/care/patient-care-2.webp", categoryId: "patient-care" },
+        // Office
+        { src: "/providers/day-spring/office/office-1.webp", categoryId: "office" },
+      ]
+    : [];
+
+  const photoGroups = groupedPhotos.length > 0
+    ? groupPhotos(profile.category ?? "", groupedPhotos)
+    : [];
+
+  // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
   const sectionItems: SectionItem[] = [];
-  sectionItems.push({ id: "highlights", label: "Highlights" });
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
-  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
-  sectionItems.push({ id: "services", label: "Services" });
-  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
-  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
-  sectionItems.push({ id: "about", label: "About" });
-  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
-  if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
+
+  if (isDaySpring) {
+    // Home health category nav (Reviews, FAQs & About are above, not in nav)
+    sectionItems.push({ id: "services-offered", label: "Care Services" });
+    sectionItems.push({ id: "care-team", label: "Staff" });
+    sectionItems.push({ id: "insurance", label: "Insurance & Payment" });
+    sectionItems.push({ id: "how-to-start", label: "How to Start" });
+    sectionItems.push({ id: "service-area", label: "Service Areas" });
+  } else {
+    // Default nav for other categories
+    sectionItems.push({ id: "highlights", label: "Highlights" });
+    if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+    sectionItems.push({ id: "qa", label: "Q&A" });
+    if (hasBenefitsData) sectionItems.push({ id: "benefits", label: "Benefits" });
+    sectionItems.push({ id: "services", label: "Services" });
+    if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+    if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
+    if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
+    sectionItems.push({ id: "about", label: "About" });
+    if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
+    if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
+  }
 
   // ============================================================
   // Render
@@ -757,19 +815,69 @@ export default async function ProviderPage({
 
       {/* ===== Hero Zone — White on mobile, Vanilla on desktop ===== */}
       <div className="bg-white md:bg-vanilla-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-4 md:pb-8">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-4 ${isDaySpring ? "md:pb-8" : "md:pb-8"}`}>
 
-          {/* Breadcrumbs */}
-          <Breadcrumbs
-            category={profile.category}
-            city={profile.city}
-            state={profile.state}
-            providerName={profile.display_name}
-          />
+          {/* Breadcrumbs + Save/Share */}
+          {isDaySpring ? (
+            <div className="hidden md:flex items-center justify-between mb-1">
+              <Breadcrumbs
+                category={profile.category}
+                city={profile.city}
+                state={profile.state}
+                providerName={profile.display_name}
+              />
+              <div className="flex items-center gap-4">
+                <SaveButton
+                  provider={{
+                    providerId: profile.slug,
+                    slug: profile.slug,
+                    name: profile.display_name,
+                    location: locationStr,
+                    careTypes: profile.care_types || [],
+                    image: images[0] || null,
+                    rating: rating || undefined,
+                  }}
+                  variant="text"
+                />
+                <ShareButton name={profile.display_name} variant="text" />
+              </div>
+            </div>
+          ) : (
+            <Breadcrumbs
+              category={profile.category}
+              city={profile.city}
+              state={profile.state}
+              providerName={profile.display_name}
+            />
+          )}
 
           {/* ── Hero (full width, above the grid) ── */}
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Gallery */}
+            {/* Gallery — Day Spring: single modest photo, warmth cue not facility evidence */}
+            {isDaySpring ? (
+              <div className="flex-shrink-0 relative md:order-last md:w-[400px] w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] -mx-4 sm:-mx-6 md:mx-0">
+                <div className="relative aspect-[16/9] md:rounded-xl overflow-hidden">
+                  <Image
+                    src="/providers/day-spring/hero.png"
+                    alt={`${profile.display_name} care team`}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+                <MobileGalleryActionBar
+                  provider={{
+                    providerId: profile.slug,
+                    slug: profile.slug,
+                    name: profile.display_name,
+                    location: locationStr,
+                    careTypes: profile.care_types || [],
+                    image: images[0] || null,
+                    rating: rating || undefined,
+                  }}
+                />
+              </div>
+            ) : (
             <div className="flex-shrink-0 relative w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] md:w-[448px] -mx-4 sm:-mx-6 md:mx-0">
               <ProviderHeroGallery
                 images={images}
@@ -798,6 +906,7 @@ export default async function ProviderPage({
                 </div>
               )}
             </div>
+            )}
 
             {/* Identity */}
             <div className="flex-1 min-w-0 flex flex-col">
@@ -807,25 +916,47 @@ export default async function ProviderPage({
                   {categoryLabel}
                 </p>
               )}
-              {/* Name + Save */}
+              {/* Name + Save + Share */}
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left w-full md:w-auto">
-                  {profile.display_name}
-                </h1>
-                <div className="hidden md:block">
-                  <SaveButton
-                    provider={{
-                      providerId: profile.slug,
-                      slug: profile.slug,
-                      name: profile.display_name,
-                      location: locationStr,
-                      careTypes: profile.care_types || [],
-                      image: images[0] || null,
-                      rating: rating || undefined,
-                    }}
-                    variant="pill"
-                  />
+                <div>
+                  <div className={isDaySpring ? "flex items-center gap-4" : ""}>
+                    <h1 className={`text-2xl font-bold text-gray-900 tracking-tight leading-tight font-display text-left ${isDaySpring ? "md:text-4xl" : "md:text-3xl"}`}>
+                      {profile.display_name}
+                    </h1>
+                    {isDaySpring && (
+                      <div className="hidden md:block shrink-0">
+                        <ManagePageCTA
+                          providerSlug={profile.slug}
+                          providerName={profile.display_name}
+                          providerId={profile.id}
+                          sourceProviderId={profile.source_provider_id}
+                          providerEmail={profile.email}
+                          providerCity={profile.city}
+                          providerState={profile.state}
+                          isClaimed={actualClaimState === "claimed"}
+                          claimAccountId={claimAccountId}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {!isDaySpring && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <SaveButton
+                      provider={{
+                        providerId: profile.slug,
+                        slug: profile.slug,
+                        name: profile.display_name,
+                        location: locationStr,
+                        careTypes: profile.care_types || [],
+                        image: images[0] || null,
+                        rating: rating || undefined,
+                      }}
+                      variant="pill"
+                    />
+                    <ShareButton name={profile.display_name} />
+                  </div>
+                )}
               </div>
 
               {/* ── Mobile identity layout ── */}
@@ -835,8 +966,12 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
                 )}
 
-                {/* Row 2: Highlights only (category is now eyebrow above name) */}
-                {(() => {
+                {/* Row 2: Clinical signals for Day Spring, highlights for others */}
+                {isDaySpring ? (
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Medicare Certified · Skilled Nursing · 24/7
+                  </p>
+                ) : (() => {
                   const categoryLower = categoryLabel?.toLowerCase() || "";
                   const filteredHighlights = highlights
                     .filter((h) => h.label.toLowerCase() !== categoryLower)
@@ -848,6 +983,16 @@ export default async function ProviderPage({
                     </p>
                   ) : null;
                 })()}
+
+                {/* Row 2.5: Medicare coverage indicator on mobile for Day Spring */}
+                {isDaySpring && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 rounded-full px-2.5 py-0.5">
+                      <svg className="w-3 h-3 text-blue-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                      <span className="text-xs font-medium text-blue-700">Medicare-covered</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Row 3: Rating & Reviews box (centered, subtle border) - only shown if reviews exist */}
                 {(() => {
@@ -964,8 +1109,54 @@ export default async function ProviderPage({
                 </div>
               </div>
 
-              {/* ── Desktop identity layout (unchanged) ── */}
+              {/* ── Desktop identity layout ── */}
               <div className="hidden md:block">
+                {isDaySpring ? (
+                  <>
+                    {/* Metadata row: pipe-separated */}
+                    <div className="flex items-center gap-3 mt-1 text-lg text-gray-500">
+                      {categoryLabel && <span>{categoryLabel}</span>}
+                      {locationStr && (
+                        <>
+                          <span className="text-gray-300">|</span>
+                          <span>{locationStr}</span>
+                        </>
+                      )}
+                      {hasRating && rating != null && (
+                        <>
+                          <span className="text-gray-300">|</span>
+                          <span className="flex items-center gap-1">
+                            <StarIcon className="w-4 h-4 text-amber-400" />
+                            <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
+                            <span>Google</span>
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Fact row */}
+                    <div className="flex items-center gap-8 mt-3">
+                      <span className="flex items-center gap-2 text-lg text-gray-900">
+                        <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                        Medicare-covered
+                      </span>
+                      <span className="flex items-center gap-2 text-lg text-gray-900">
+                        <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                        Skilled nursing
+                      </span>
+                      <span className="flex items-center gap-2 text-lg text-gray-900">
+                        <svg className="w-6 h-6 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        24/7 care
+                      </span>
+                    </div>
+
+                    {/* About blurb */}
+                    <div className="mt-3 max-w-lg">
+                      <p className="text-sm text-gray-400 leading-relaxed">Day Spring Home Health brings over 20 years of clinical experience to patient-centered care in the home. It also offers a dedicated, specialized ALS care team, a service few home health agencies provide.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
                 <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
                   {categoryLabel && (
                     <>
@@ -987,39 +1178,45 @@ export default async function ProviderPage({
                     </span>
                   )}
                 </div>
+                  </>
+                )}
 
-                {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
-                  <div className="mt-1">
-                    <PricingEducationBadge
-                      category={profile.category!}
-                      providerName={profile.display_name}
-                      city={profile.city ?? undefined}
-                      state={profile.state ?? undefined}
-                    />
-                  </div>
-                ) : hasPriceRange ? (
-                  <PriceEstimate
-                    priceRange={priceRange!}
-                    category={profile.category ?? undefined}
-                    providerName={profile.display_name}
-                    city={profile.city ?? undefined}
-                    state={profile.state ?? undefined}
-                  />
-                ) : (
-                  <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-                ))}
+                {!isDaySpring && (
+                  <>
+                    {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
+                      <div className="mt-1">
+                        <PricingEducationBadge
+                          category={profile.category!}
+                          providerName={profile.display_name}
+                          city={profile.city ?? undefined}
+                          state={profile.state ?? undefined}
+                        />
+                      </div>
+                    ) : hasPriceRange ? (
+                      <PriceEstimate
+                        priceRange={priceRange!}
+                        category={profile.category ?? undefined}
+                        providerName={profile.display_name}
+                        city={profile.city ?? undefined}
+                        state={profile.state ?? undefined}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
+                    ))}
 
-                {profile.address && (
-                  <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
+                    {profile.address && (
+                      <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
+                    )}
+                  </>
                 )}
               </div>
 
               {/* Highlight badges — data-driven, variable count (1-4 items) */}
               {/* Hidden on mobile for cleaner hero, shown on desktop */}
-              {highlights.length > 0 && (
+              {isDaySpring ? null : highlights.length > 0 && (
                 <div id="highlights" className="scroll-mt-20 hidden md:block">
                   {/* Desktop: flex-wrap chips */}
-                  <div className="flex flex-wrap gap-2 mt-4">
+                  <div className="flex flex-wrap items-center gap-2 mt-4">
                     {highlights.map((h) => (
                       <div key={h.label} className="bg-white border border-gray-200 rounded-lg py-2.5 px-3 flex items-center gap-2">
                         <HighlightIcon icon={h.icon} className="w-4 h-4 text-primary-500 flex-shrink-0" />
@@ -1030,20 +1227,22 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── "Manage this page" CTA — hidden on mobile for cleaner hero ── */}
-              <div className="hidden md:block">
-              <ManagePageCTA
-                providerSlug={profile.slug}
-                providerName={profile.display_name}
-                providerId={profile.id}
-                sourceProviderId={profile.source_provider_id}
-                providerEmail={profile.email}
-                providerCity={profile.city}
-                providerState={profile.state}
-                isClaimed={actualClaimState === "claimed"}
-                claimAccountId={claimAccountId}
-              />
-              </div>
+              {/* ── "Manage this page" CTA — hidden on mobile, hidden for Day Spring (shown beside title) ── */}
+              {!isDaySpring && (
+                <div className="hidden md:block">
+                <ManagePageCTA
+                  providerSlug={profile.slug}
+                  providerName={profile.display_name}
+                  providerId={profile.id}
+                  sourceProviderId={profile.source_provider_id}
+                  providerEmail={profile.email}
+                  providerCity={profile.city}
+                  providerState={profile.state}
+                  isClaimed={actualClaimState === "claimed"}
+                  claimAccountId={claimAccountId}
+                />
+                </div>
+              )}
 
               {/* Managed by — only show when staff data exists, hidden on mobile */}
               {hasStaff && (
@@ -1071,12 +1270,13 @@ export default async function ProviderPage({
             </div>
           </div>
 
+
         </div>
       </div>
 
       {/* ===== Content Zone — White Background ===== */}
       <div className="bg-white" data-spotlight-zone>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 md:py-10">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 ${isDaySpring ? "md:pt-4 md:pb-10" : "md:py-10"}`}>
 
         {/* -- Two-Column Grid (content + sticky sidebar) -- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -1239,12 +1439,25 @@ export default async function ProviderPage({
               </div>
               )}
 
+              {/* Inline section nav — after Q&A for Day Spring */}
+              {isDaySpring && sectionItems.length > 0 && (
+                <div className="overflow-x-auto scrollbar-hide border-t border-gray-200">
+                  <div className="flex items-center gap-8 bg-gray-50 rounded-xl px-6 py-4">
+                    {sectionItems.map((section) => (
+                      <a
+                        key={section.id}
+                        href={`#${section.id}`}
+                        className="whitespace-nowrap text-sm font-medium text-gray-800 hover:text-gray-900 transition-colors"
+                      >
+                        {section.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* ── Benefits Discovery ── */}
-              {/* Wrapped in BenefitsArmGate so the section disappears for the
-                  40% of visitors in the outreach or multi_provider arms of the
-                  5-way intake A/B. The 60% in the 3 benefits arms see the existing
-                  module unchanged (with its internal mod-3 copy A/B). */}
-              {!isStudentContext && hasBenefitsData && benefitsData && (
+              {!isDaySpring && !isStudentContext && hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                     <BenefitsDiscoveryModule
@@ -1269,14 +1482,16 @@ export default async function ProviderPage({
                 </BenefitsArmGate>
               )}
 
-              {/* ── Care Services ── */}
+              {/* ── Care Services (hidden for Day Spring — replaced by custom sections) ── */}
+              {!isDaySpring && (
               <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={6} />
               </div>
+              )}
 
-              {/* ── Staff Screening — hidden when no real data ── */}
-              {hasStaffScreening && (
+              {/* ── Staff Screening — hidden when no real data, hidden for Day Spring ── */}
+              {!isDaySpring && hasStaffScreening && (
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1294,9 +1509,8 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── What families are saying (below Q&A when no reviews — empty state;
-                    hidden in student context, the "be first to review" prompt is family-facing) ── */}
-              {!isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
+              {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
+              {!isDaySpring && !isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
                 <div id="reviews" className="scroll-mt-20">
                   <ReviewsSection
                     providerId={profile.slug}
@@ -1310,28 +1524,328 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── CMS Quality & Safety — only show 4/5 and 5/5 publicly (lower scores used for ranking only) ── */}
-              {cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
+              {/* ── CMS Quality & Safety ── */}
+              {!isDaySpring && cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
                 <div className="py-8 border-t border-gray-200">
                   <CMSQualitySection cmsData={cmsData} />
                 </div>
               )}
 
-              {/* ── AI Verified Credentials ── */}
-              {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+              {/* ── AI Verified Credentials (non-Day Spring — shown inline here) ── */}
+              {!isDaySpring && aiTrustSignals && aiTrustSignals.summary_score > 0 && (
                 <div className="py-8 border-t border-gray-200">
                   <AiTrustSignalsSection signals={aiTrustSignals} />
                 </div>
               )}
 
-              {/* ── About ── */}
-              <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
+              {/* ── About (hidden for Day Spring, info is in hero) ── */}
+              <div id="about" className={`py-8 scroll-mt-20 border-t border-gray-200 ${isDaySpring ? "hidden" : ""}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display">About {isDaySpring ? profile.display_name : ""}</h2>
+                  {isDaySpring && (
+                    <div className="flex items-center gap-2">
+                      <a href="https://www.dayspringhomehealth.com" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors" aria-label="Website">
+                        <svg className="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A9 9 0 013 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                      </a>
+                    </div>
+                  )}
+                </div>
                 <ExpandableText
-                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
-                  maxLength={300}
+                  text={isDaySpring
+                    ? "Day Spring Home Health stands as one of the few 5-star rated home health agencies in the region, trusted by families for unwavering commitment to excellence, compassion, and patient-centered care. With over 20 years of experience, our leadership brings deep clinical insight and a true understanding of what quality home health should look like. We are also the only home health agency with a dedicated, specialized ALS care team."
+                    : (profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : ""))}
+                  maxLength={isDaySpring ? 500 : 300}
                 />
+
+                {/* What makes this provider special — Day Spring */}
+                {isDaySpring && (
+                  <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+                      <h3 className="text-base font-semibold text-teal-900">What makes this provider special</h3>
+                    </div>
+                    <ul className="space-y-2">
+                      {[
+                        "One of the few 5-star rated home health agencies in the region, with over 20 years of leadership experience in the care industry",
+                        "The only home health agency with a dedicated, specialized ALS care team trained for every stage of the journey",
+                        "Every plan of care is personalized to support safety, independence, and comfort right at home",
+                      ].map((point) => (
+                        <li key={point} className="flex items-start gap-2.5">
+                          <svg className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <span className="text-sm text-teal-800 leading-relaxed">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
               </div>
+
+              {/* ── Care Services (Home Health) ── */}
+              {isDaySpring && (
+              <div id="services-offered" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <div className="flex items-center gap-3 mb-1">
+                  <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                  <h2 className="text-3xl font-bold text-gray-900 font-display">Care Services</h2>
+                </div>
+                <p className="text-base text-gray-600 leading-relaxed mb-4">Day Spring provides physician-ordered skilled nursing, therapy, and personal care delivered in your home. Their clinical team is trained to handle complex conditions that many home health agencies are not equipped for.</p>
+
+                {/* Service category cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  {[
+                    {
+                      icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
+                      title: "Personal Care",
+                      desc: "Assistance with essential daily activities while maintaining dignity and comfort.",
+                      items: ["Bathing, grooming, and hygiene", "Dressing and mobility assistance", "Toileting and incontinence care", "Feeding support and meal assistance", "Medication reminders"],
+                    },
+                    {
+                      icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>,
+                      title: "Companion Care & Supervision",
+                      desc: "Meaningful companionship so your loved one is never alone or unsupported.",
+                      items: ["Conversation and engagement", "Meal preparation and light housekeeping", "Safety supervision", "Accompaniment to appointments and outings"],
+                    },
+                    {
+                      icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>,
+                      title: "Mobility & Transfer Support",
+                      desc: "Specialized assistance for clients with limited mobility or physical challenges.",
+                      items: ["Bed-to-chair transfers", "Walking and movement support", "Fall prevention", "Positioning and repositioning"],
+                    },
+                    {
+                      icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+                      title: "Bedbound & Palliative Care",
+                      desc: "Dedicated support for individuals who require continuous assistance.",
+                      items: ["Repositioning to prevent pressure sores", "Hygiene and full personal care", "Comfort-focused care and monitoring"],
+                    },
+                  ].map((card) => (
+                    <div key={card.title} className="rounded-xl border border-gray-200 px-5 py-4">
+                      <div className="flex items-center gap-2.5 mb-3">
+                        {card.icon}
+                        <h3 className="text-base font-bold text-gray-900">{card.title}</h3>
+                      </div>
+                      <p className="text-sm text-gray-500 mb-3">{card.desc}</p>
+                      <ul className="space-y-2.5">
+                        {card.items.slice(0, 3).map((item) => (
+                          <li key={item} className="flex items-center gap-2.5">
+                            <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span className="text-sm text-gray-900">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {card.items.length > 3 && (
+                        <details className="mt-2">
+                          <summary className="text-sm text-teal-600 font-medium cursor-pointer hover:text-teal-700 list-none">
+                            + {card.items.length - 3} more
+                          </summary>
+                          <ul className="space-y-2.5 mt-2">
+                            {card.items.slice(3).map((item) => (
+                              <li key={item} className="flex items-center gap-2.5">
+                                <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span className="text-sm text-gray-900">{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Specialized Care subsection */}
+                <div id="specialized-care" className="mt-8 bg-gray-50 rounded-xl px-6 py-6 scroll-mt-20">
+                  <div className="flex items-center gap-3 mb-2">
+                    <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
+                    <h2 className="text-2xl font-bold text-gray-900 font-display">Specialized care</h2>
+                    <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-3 py-0.5 text-xs font-semibold uppercase tracking-wide text-teal-700">Where Day Spring stands apart</span>
+                  </div>
+                  <p className="text-base text-gray-600 leading-relaxed mb-5">Trusted by families who need a higher level of expertise for complex conditions.</p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
+                    {[
+                      { label: "ALS care", icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg> },
+                      { label: "Neurological conditions", icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" /></svg> },
+                      { label: "Stroke recovery", icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg> },
+                      { label: "Post-surgical care", icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg> },
+                      { label: "Palliative care", icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+                      { label: "Mobility & transfer support", icon: <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg> },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-3">
+                        {item.icon}
+                        <span className="text-base text-gray-900">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              )}
+
+
+              {/* ── Care Team & Staffing (Home Health) ── */}
+              {isDaySpring && (
+              <div id="care-team" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                  <h2 className="text-3xl font-bold text-gray-900 font-display">Care Team & Staffing</h2>
+                </div>
+                <p className="text-base text-gray-600 mb-3">Day Spring&apos;s clinical team includes registered nurses, licensed therapists, and certified home health aides who deliver care in your home under physician direction.</p>
+                <p className="text-sm text-gray-500 mb-5">Every caregiver is selected for experience, compassion, and trustworthiness. Each goes through background checks, interviews, and thorough training.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <svg className="w-5 h-5 text-gray-700 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                      <h3 className="text-base font-bold text-gray-900">Clinical Team</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {["Registered nurses (RNs)", "Licensed physical therapists", "Occupational therapists", "Speech-language pathologists"].map((item) => (
+                        <li key={item} className="flex items-center gap-3">
+                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                          <span className="text-sm text-gray-700">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <svg className="w-5 h-5 text-gray-700 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                      <h3 className="text-base font-bold text-gray-900">Support & Coordination</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {["Certified home health aides", "Medical social workers", "Care coordination with physicians", "Family communication and education"].map((item) => (
+                        <li key={item} className="flex items-center gap-3">
+                          <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                          <span className="text-sm text-gray-700">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              )}
+
+              {/* ── Insurance & Payment (Home Health) ── */}
+              {isDaySpring && (
+                <div id="insurance" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                    <h2 className="text-3xl font-bold text-gray-900 font-display">Insurance & Payment</h2>
+                  </div>
+                  <p className="text-base text-gray-600 mb-5">Home health is physician-ordered care, typically covered by Medicare with no out-of-pocket cost to the patient. Day Spring also accepts Medicaid, private insurance, and other programs.</p>
+
+                  {/* Coverage breakdown */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="rounded-xl border border-gray-200 px-5 py-4">
+                      <div className="flex items-center gap-2.5 mb-3">
+                        <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                        <h3 className="text-base font-bold text-gray-900">Medicare</h3>
+                      </div>
+                      <ul className="space-y-2">
+                        {["100% covered when physician-ordered", "No copay or deductible for home health", "Covers skilled nursing, therapy, aide services", "Must meet homebound criteria"].map((item) => (
+                          <li key={item} className="flex items-center gap-3">
+                            <svg className="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                            <span className="text-sm text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="rounded-xl border border-gray-200 px-5 py-4">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <svg className="w-5 h-5 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+                        <h3 className="text-base font-bold text-gray-900">Other payments</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: "Medicaid", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg> },
+                          { label: "Private Insurance", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg> },
+                          { label: "Workers' Comp", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.1-5.1m0 0L3 12.75m3.32-2.68L9 15.17m2.42 0l5.1-5.1m0 0L19.84 12.75m-3.32-2.68L13.84 15.17M12 3v1.5M18.36 5.64l-1.06 1.06M21 12h-1.5M18.36 18.36l-1.06-1.06M12 19.5V21M7.64 18.36l-1.06-1.06M4.5 12H3m4.64-6.36L6.58 6.64" /></svg> },
+                          { label: "Long-Term Care Insurance", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+                          { label: "Veterans Benefits", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg> },
+                          { label: "Private Pay", icon: <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" /></svg> },
+                        ].map((item) => (
+                          <div key={item.label} className="flex items-center gap-2.5">
+                            {item.icon}
+                            <span className="text-sm text-gray-900">{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── How to Get Started (Home Health) ── */}
+              {isDaySpring && (
+                <div id="how-to-start" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                    <h2 className="text-3xl font-bold text-gray-900 font-display">How to Get Started</h2>
+                  </div>
+                  <p className="text-base text-gray-600 mb-5">Getting started with home health care is simple. Most patients are referred by a physician or hospital, and care can begin within days.</p>
+
+                  <div className="space-y-3">
+                    {[
+                      { step: "1", text: "Get a referral from your physician, hospital, or request one yourself" },
+                      { step: "2", text: "We verify your insurance coverage at no cost to you" },
+                      { step: "3", text: "An in-home assessment is scheduled, often within 24 to 48 hours" },
+                      { step: "4", text: "Your personalized care plan is developed and care begins" },
+                    ].map((item) => (
+                      <div key={item.step} className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-bold text-teal-800">{item.step}</span>
+                        </div>
+                        <span className="text-sm text-gray-700">{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <ScrollToConnectionCard entryPoint="custom_quote" className="w-full md:w-auto mt-5 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                    Contact for details
+                  </ScrollToConnectionCard>
+                </div>
+              )}
+
+              {/* ── Service Area (Home Health) — coverage area, at the end ── */}
+              {isDaySpring && (() => {
+                const serviceAreas = [
+                  { name: "Fort Worth", lat: 32.7555, lng: -97.3308 },
+                  { name: "Arlington", lat: 32.7357, lng: -97.1081 },
+                  { name: "Mansfield", lat: 32.5632, lng: -97.1417 },
+                  { name: "Burleson", lat: 32.5421, lng: -97.3208 },
+                  { name: "Crowley", lat: 32.5790, lng: -97.3625 },
+                  { name: "Kennedale", lat: 32.6468, lng: -97.2259 },
+                  { name: "Forest Hill", lat: 32.6621, lng: -97.2692 },
+                  { name: "Everman", lat: 32.6310, lng: -97.2892 },
+                  { name: "Benbrook", lat: 32.6732, lng: -97.4606 },
+                  { name: "White Settlement", lat: 32.7596, lng: -97.4584 },
+                  { name: "River Oaks", lat: 32.7774, lng: -97.3936 },
+                  { name: "Haltom City", lat: 32.7996, lng: -97.2692 },
+                ];
+
+                return (
+                  <div id="service-area" className="py-8 scroll-mt-20 border-t border-gray-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <svg className="w-7 h-7 text-gray-900 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                      <h2 className="text-3xl font-bold text-gray-900 font-display">Service Area</h2>
+                    </div>
+                    <p className="text-base text-gray-600 mb-5">Day Spring Home Health Care provides in-home services throughout the greater Fort Worth area and surrounding communities. Our caregivers travel to you.</p>
+
+                    <ServiceAreaSection
+                      center={{ lat: profile.lat ?? 32.7555, lng: profile.lng ?? -97.3308 }}
+                      areas={serviceAreas}
+                      providerName={profile.display_name}
+                    />
+                  </div>
+                );
+              })()}
+
+              {/* ── Verified Credentials (Day Spring — at the very bottom) ── */}
+              {isDaySpring && aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+                <div className="py-8 border-t border-gray-200">
+                  <AiTrustSignalsSection signals={aiTrustSignals} />
+                </div>
+              )}
 
               {/* ── Detailed Pricing ── */}
               {pricingDetails.length > 0 && (

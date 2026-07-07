@@ -87,10 +87,9 @@ export function CampaignPerformance({
         ))}
       </dl>
       <p className="text-sm text-gray-500 mt-3">
-        Since your campaign launched.{" "}
         {stats.leads > 0 ? (
           <>
-            Find your leads on your{" "}
+            Since launch. Find them on your{" "}
             <Link
               href="/provider/connections"
               className="text-primary-600 font-medium hover:underline"
@@ -100,7 +99,7 @@ export function CampaignPerformance({
             .
           </>
         ) : (
-          <>Visitors and leads will appear here as families arrive.</>
+          <>Since launch. Families will appear here as they arrive.</>
         )}
       </p>
     </div>
@@ -202,10 +201,10 @@ export function WrapUpMoment({
         <h2 className="text-2xl font-display font-semibold text-gray-900">
           Your market was quiet this time.
         </h2>
-        <p className="text-gray-500 mt-3 leading-relaxed">
-          No families reached out during your intro window. That&apos;s on us to
-          improve, not on you to pay for: we&apos;ll tune your page, adjust the
-          ads, and run another window on us. Nothing to pay today.
+        <p className="text-gray-500 mt-3 leading-relaxed max-w-lg">
+          No families reached out this window. That&apos;s on us to fix:
+          we&apos;ll tune your page and run another window, on us. Nothing to
+          pay.
         </p>
         {campaignStats && campaignStats.visitors > 0 && (
           <CampaignPerformance stats={campaignStats} />
@@ -231,29 +230,22 @@ export function WrapUpMoment({
       <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
         {leads === 1 ? "A family reached out." : `${leads} families reached out.`}
       </h2>
-      {/* The value math — connect the results to what they'd cost anywhere
-          else, BEFORE any price appears. Market comparison only (our spend
-          stays private by design). */}
+      {/* One line of value math — the stat row below does the arguing. */}
       <p className="text-gray-500 mt-3 leading-relaxed max-w-lg">
-        Your intro campaign was on us, and this is what it delivered. For
-        comparison: referral sites charge $50 to $150 for a single lead, and
-        they sell that same lead to several agencies at once. These families
-        came straight to you, and only to you.
+        Referral sites charge $50 to $150 for one shared lead. Yours were
+        free, and only yours.
       </p>
 
       {campaignStats && <CampaignPerformance stats={campaignStats} />}
 
-      {/* The choice gets its own narrative beat — proof above, decision here. */}
-      <p className="mt-10 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+      {/* The decision — eyebrow only; the cards say what plans are. */}
+      <p className="mt-12 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
         Keep it going
       </p>
-      <p className="mt-2 text-gray-500 leading-relaxed max-w-lg">
-        A monthly plan keeps the same ads running. One flat price covers
-        everything: ad spend, setup, and management together.
-      </p>
 
-      {/* The plan choice — same stacked radio-card grammar as the apply flow. */}
-      <fieldset className="mt-5">
+      {/* Single-row plan cards: name · price · estimate. No blurbs here — the
+          results above are the pitch (the apply flow keeps its blurbs). */}
+      <fieldset className="mt-4">
         <legend className="sr-only">Plan</legend>
         <div className="flex flex-col gap-3">
           {paidStops.map((b) => {
@@ -289,9 +281,6 @@ export function WrapUpMoment({
                     {estimateSummary(b)}
                   </span>
                 </span>
-                <span className={`mt-1 block text-sm leading-relaxed ${active ? "text-primary-600/80" : "text-gray-500"}`}>
-                  {b.blurb}
-                </span>
               </button>
             );
           })}
@@ -301,15 +290,16 @@ export function WrapUpMoment({
       {/* The de-risking, promoted from fine print to first-class promises —
           this is the page where money is asked, so this is where the safety
           net must be loudest (Duolingo lists anti-trap terms as benefits). */}
-      <ul className="mt-5 space-y-2.5">
+      {/* De-risk promises at label scale — scannable, not sentences. */}
+      <ul className="mt-6 space-y-2.5">
         <PromiseRow>
-          A month with zero family inquiries is free.{" "}
+          Zero-inquiry months are free.{" "}
           <Link href="/managed-ads-terms" target="_blank" className="text-primary-600 font-medium hover:underline">
-            How the guarantee works
+            The guarantee
           </Link>
         </PromiseRow>
-        <PromiseRow>Month to month. Cancel or pause anytime.</PromiseRow>
-        <PromiseRow>One flat price. No per-lead fees, no extras, ever.</PromiseRow>
+        <PromiseRow>Cancel or pause anytime.</PromiseRow>
+        <PromiseRow>No per-lead fees, ever.</PromiseRow>
       </ul>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
@@ -327,21 +317,17 @@ export function WrapUpMoment({
           </svg>
         )}
       </button>
-      <p className="mt-3 text-sm text-gray-500 leading-relaxed max-w-md">
-        You&apos;ll confirm payment on the next screen. Nothing is charged
-        until you do.
+      <p className="mt-3 text-sm text-gray-500">
+        Nothing is charged until you confirm on the next screen.
       </p>
 
-      <div className="mt-9">
+      <div className="mt-10">
         <Link
           href="/provider"
           className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
         >
           Not now, back to dashboard
         </Link>
-        <p className="mt-1.5 text-xs text-gray-400 leading-relaxed max-w-md">
-          Your Olera page stays live either way. Only the ads stop.
-        </p>
       </div>
     </div>
   );

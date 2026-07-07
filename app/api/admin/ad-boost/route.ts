@@ -33,6 +33,24 @@ export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams;
   const db = getServiceClient();
 
+  // Revenue summary (?revenue_only=true) for the admin Overview MRR card:
+  // paying campaigns (active + past_due — past_due still bills, Stripe is
+  // dunning it) and their combined monthly value.
+  if (params.get("revenue_only") === "true") {
+    const { data: rows, error: revErr } = await db
+      .from("ad_campaign_requests")
+      .select("plan_status, plan_value")
+      .in("plan_status", ["active", "past_due"])
+      .is("deleted_at", null);
+    if (revErr) {
+      console.error("[admin/ad-boost] revenue summary failed:", revErr);
+      return NextResponse.json({ error: revErr.message }, { status: 500 });
+    }
+    const paying = rows?.length ?? 0;
+    const mrr = (rows ?? []).reduce((sum, r) => sum + (r.plan_value ?? 0), 0);
+    return NextResponse.json({ paying, mrr });
+  }
+
   // Single-record fetch (?id=) for the detail page. Returns the one request with
   // its delivered count, regardless of archived state.
   const id = params.get("id");

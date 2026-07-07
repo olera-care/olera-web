@@ -48,7 +48,10 @@ export default function AdminAdBoostPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">Ad Boost — concierge queue</h1>
+          <div className="flex flex-wrap items-center gap-3 min-w-0">
+            <h1 className="text-2xl font-semibold text-gray-900">Ad Boost — concierge queue</h1>
+            <RevenueChip requests={requests} />
+          </div>
           <Link
             href="/admin/ad-boost/preview"
             className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -190,9 +193,11 @@ function RequestRow({
           </p>
         </div>
 
-        {/* Status */}
-        <div className="flex items-center gap-1.5">
+        {/* Status — badges wrap inside the fixed column instead of bleeding
+            into Setup week when a plan badge is present. */}
+        <div className="flex flex-wrap items-center gap-1.5">
           <StatusBadge status={request.status} />
+          <PlanBadge request={request} />
           {isArchived && (
             <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-500">
               archived
@@ -238,5 +243,43 @@ function RequestRow({
 
       {error && <p className="px-4 pb-3 -mt-1 text-sm text-red-600">{error}</p>}
     </div>
+  );
+}
+
+/** Paying-plan badge on a queue row — the at-a-glance revenue state.
+ *  Nothing renders for never-subscribed campaigns (the common case). */
+function PlanBadge({ request }: { request: CampaignRequest }) {
+  if (!request.plan_status) return null;
+  const style =
+    request.plan_status === "active"
+      ? "bg-emerald-50 text-emerald-700"
+      : request.plan_status === "past_due"
+        ? "bg-amber-50 text-amber-700"
+        : "bg-gray-100 text-gray-500";
+  const label =
+    request.plan_status === "active"
+      ? `💰 $${request.plan_value ?? "?"}/mo`
+      : request.plan_status === "past_due"
+        ? `⚠️ past due · $${request.plan_value ?? "?"}/mo`
+        : "plan canceled";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${style}`}>
+      {label}
+    </span>
+  );
+}
+
+/** Header tally: paying campaigns + MRR, computed from the loaded rows.
+ *  Hidden until there's at least one paying plan (no zero-state noise). */
+function RevenueChip({ requests }: { requests: CampaignRequest[] | null }) {
+  const paying = (requests ?? []).filter(
+    (r) => !r.deleted_at && (r.plan_status === "active" || r.plan_status === "past_due"),
+  );
+  if (paying.length === 0) return null;
+  const mrr = paying.reduce((sum, r) => sum + (r.plan_value ?? 0), 0);
+  return (
+    <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 whitespace-nowrap">
+      💰 {paying.length} paying · ${mrr.toLocaleString()}/mo
+    </span>
   );
 }

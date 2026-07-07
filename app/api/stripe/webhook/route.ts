@@ -43,10 +43,19 @@ async function syncAdBoostPlanStatus(
           ? "canceled"
           : null;
   if (!planStatus) return;
-  await supabase
+  const { data: rows } = await supabase
     .from("ad_campaign_requests")
     .update({ plan_status: planStatus, updated_at: new Date().toISOString() })
-    .eq("stripe_subscription_id", subscriptionId);
+    .eq("stripe_subscription_id", subscriptionId)
+    .select("id, display_name, provider_slug");
+  const row = rows?.[0];
+  if (row && (planStatus === "canceled" || planStatus === "past_due")) {
+    const icon = planStatus === "canceled" ? ":octagonal_sign:" : ":warning:";
+    const verb = planStatus === "canceled" ? "canceled their plan" : "payment past due";
+    await sendSlackAlert(
+      `${icon} Ad Boost: *${row.display_name ?? row.provider_slug ?? row.id}* ${verb}`,
+    );
+  }
 }
 
 // Use the service role key for webhook processing (bypasses RLS)
@@ -79,13 +88,24 @@ export async function POST(request: NextRequest) {
   try {
     const stripe = getStripe();
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err: unknown) {
-    const msg =
-      err && typeof err === "object" && "message" in err
-        ? (err as { message: string }).message
-        : "Unknown error";
-    console.error("Webhook signature verification failed:", msg);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  } catch (liveErr: unknown) {
+    // Optional test-mode secret fallback (mirrors the Supabase Edge Function).
+    const testSecret = process.env.STRIPE_WEBHOOK_SECRET_TEST;
+    if (!testSecret) {
+      const msg =
+        liveErr && typeof liveErr === "object" && "message" in liveErr
+          ? (liveErr as { message: string }).message
+          : "Unknown error";
+      console.error("Webhook signature verification failed:", msg);
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    }
+    try {
+      const stripe = getStripe();
+      event = stripe.webhooks.constructEvent(body, signature, testSecret);
+    } catch {
+      console.error("Webhook signature verification failed (live + test)");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    }
   }
 
   const supabase = getAdminClient();

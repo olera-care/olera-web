@@ -781,9 +781,9 @@ export default function AdminQuestionsPage() {
 
   // Mark provider as not interested (soft reject) - questions stay visible but
   // no emails are sent. Reversible.
-  // Trust email for claimed providers with delivery issues
+  // Trust email for providers with delivery issues
   // This adds the email to email_overrides, allowing emails to be sent without changing the email
-  const handleTrustEmail = async (providerId: string) => {
+  const handleTrustEmail = async (providerId: string, isClaimed: boolean) => {
     setTrustingEmailProviders((prev) => new Set(prev).add(providerId));
     try {
       const res = await fetch("/api/admin/email-override", {
@@ -791,8 +791,10 @@ export default function AdminQuestionsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           providerSlug: providerId,
-          reason: "claimed_account",
-          note: "Trusted via Questions Delivery Issues tab - claimed provider with failing email",
+          reason: isClaimed ? "claimed_account" : "admin",
+          note: isClaimed
+            ? "Trusted via Questions tab - claimed provider with failing email"
+            : "Trusted via Questions tab - admin confirmed email works",
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -1159,37 +1161,30 @@ export default function AdminQuestionsPage() {
                                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                   </svg>
-                                  <span className="text-sm">Delivery failed{firstQ.is_account_claimed ? "" : " — needs replacement"}</span>
+                                  <span className="text-sm">Delivery failed</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {firstQ.is_account_claimed ? (
-                                    // For claimed providers: only show Trust Email button
-                                    // (they own their email - admin can't change it, only trust it)
-                                    <button
-                                      onClick={() => handleTrustEmail(providerId)}
-                                      disabled={trustingEmailProviders.has(providerId)}
-                                      className="px-2.5 py-1 text-xs font-medium text-teal-700 bg-teal-100 hover:bg-teal-200 rounded transition-colors flex-shrink-0 disabled:opacity-50"
-                                      title="Mark this email as trusted — bypasses delivery checks and sends pending questions"
-                                    >
-                                      {trustingEmailProviders.has(providerId) ? "Trusting..." : "Trust Email"}
-                                    </button>
-                                  ) : (
-                                    // For unclaimed providers: show Edit button to replace email
+                                  {/* Trust Email button - for when admin confirms the email is correct */}
+                                  <button
+                                    onClick={() => handleTrustEmail(providerId, !!firstQ.is_account_claimed)}
+                                    disabled={trustingEmailProviders.has(providerId)}
+                                    className="px-2.5 py-1 text-xs font-medium text-teal-700 bg-teal-100 hover:bg-teal-200 rounded transition-colors flex-shrink-0 disabled:opacity-50"
+                                    title="Mark this email as trusted — bypasses delivery checks and sends pending questions"
+                                  >
+                                    {trustingEmailProviders.has(providerId) ? "Trusting..." : "Trust"}
+                                  </button>
+                                  {/* Edit button - for replacing with a different email (unclaimed only) */}
+                                  {!firstQ.is_account_claimed && (
                                     <button
                                       onClick={() => setEditingEmailProviders((prev) => new Set(prev).add(providerId))}
                                       className="px-2.5 py-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded transition-colors flex-shrink-0"
                                     >
-                                      Edit
+                                      Replace
                                     </button>
                                   )}
                                 </div>
                               </div>
                               <p className="text-xs text-gray-500 mt-1 line-through">{firstQ.provider_email}</p>
-                              {firstQ.is_account_claimed && (
-                                <p className="text-xs text-gray-400 mt-1">
-                                  Claimed account — if email is correct, click Trust to bypass delivery checks
-                                </p>
-                              )}
                             </div>
                           )
                         ) : groupNeedsEmail ? (

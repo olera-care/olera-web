@@ -132,16 +132,16 @@ function ProviderStatusBadge({ question }: { question: Question }) {
     );
   }
 
-  // Claimed but pending verification
+  // Claimed but pending verification - matches Connections page style
   if (question.is_account_claimed && question.verification_state === "pending") {
     return (
       <Link
         href={verificationLink}
         onClick={(e) => e.stopPropagation()}
-        className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded hover:bg-amber-100 transition-colors"
         title="Click to review verification"
       >
-        Pending
+        Pending Verification
       </Link>
     );
   }
@@ -153,7 +153,7 @@ function ProviderStatusBadge({ question }: { question: Question }) {
         href={verificationLink}
         onClick={(e) => e.stopPropagation()}
         className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-        title="Verification was rejected"
+        title="Verification was rejected — click to review"
       >
         Rejected
       </Link>
@@ -172,14 +172,16 @@ function ProviderStatusBadge({ question }: { question: Question }) {
     );
   }
 
-  // Claimed but unverified (catch-all for any claimed provider not matching above states)
+  // Claimed but unverified - matches Connections page "Unverified" style (orange/amber)
   return (
-    <span
-      className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 rounded"
-      title="Account claimed but not yet verified"
+    <Link
+      href={verificationLink}
+      onClick={(e) => e.stopPropagation()}
+      className="px-1.5 py-0.5 text-[10px] font-medium bg-orange-50 text-orange-700 border border-orange-200 rounded hover:bg-orange-100 transition-colors"
+      title="Account claimed but not verified — click to view"
     >
-      Claimed
-    </span>
+      Unverified
+    </Link>
   );
 }
 

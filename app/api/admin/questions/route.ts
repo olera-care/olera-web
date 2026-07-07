@@ -1324,6 +1324,45 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Fetch email history for question notifications sent to these providers
+    const providerEmailHistory: Record<string, Array<{
+      id: string;
+      created_at: string;
+      subject: string;
+      delivered_at: string | null;
+      first_opened_at: string | null;
+      bounced_at: string | null;
+      complained_at: string | null;
+    }>> = {};
+
+    const uniqueProviderIds = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
+    if (uniqueProviderIds.length > 0) {
+      const { data: emailLogs } = await db
+        .from("email_log")
+        .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+        .in("provider_id", uniqueProviderIds)
+        .eq("email_type", "question_received")
+        .eq("recipient_type", "provider")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      for (const log of emailLogs ?? []) {
+        if (!log.provider_id) continue;
+        if (!providerEmailHistory[log.provider_id]) {
+          providerEmailHistory[log.provider_id] = [];
+        }
+        providerEmailHistory[log.provider_id].push({
+          id: log.id,
+          created_at: log.created_at,
+          subject: log.subject,
+          delivered_at: log.delivered_at,
+          first_opened_at: log.first_opened_at,
+          bounced_at: log.bounced_at,
+          complained_at: log.complained_at,
+        });
+      }
+    }
+
     const enriched = (questions ?? []).map((q) => ({
       ...q,
       provider_name: providerNames[q.provider_id] || null,
@@ -1333,6 +1372,7 @@ export async function GET(request: NextRequest) {
       is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
       verification_state: providerVerificationState[q.provider_id] || null,
       provider_archive_info: providerArchiveInfo[q.provider_id] || null,
+      provider_email_history: providerEmailHistory[q.provider_id] || [],
     }));
 
     return NextResponse.json({

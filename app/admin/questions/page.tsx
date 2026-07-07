@@ -9,6 +9,16 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { useUrlFilterState } from "@/hooks/useUrlFilterState";
 import { formatAge } from "@/lib/connection-temperature";
 
+interface EmailLogEntry {
+  id: string;
+  created_at: string;
+  subject: string;
+  delivered_at: string | null;
+  first_opened_at: string | null;
+  bounced_at: string | null;
+  complained_at: string | null;
+}
+
 interface Question {
   id: string;
   provider_id: string;
@@ -33,6 +43,7 @@ interface Question {
     archived_by: string | null;
     archived_at: string | null;
   } | null;
+  provider_email_history?: EmailLogEntry[];
 }
 
 type TabValue = "unanswered" | "needs_email" | "delivery_issues" | "not_interested" | "answered" | "archived" | "";
@@ -1355,6 +1366,58 @@ export default function AdminQuestionsPage() {
                         </>
                       )}
                     </div>
+
+                    {/* Email History */}
+                    {firstQ.provider_email_history && firstQ.provider_email_history.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                          Email History ({firstQ.provider_email_history.length})
+                        </h4>
+                        <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                          {firstQ.provider_email_history.slice(0, 5).map((email) => {
+                            const status = email.bounced_at
+                              ? "bounced"
+                              : email.complained_at
+                                ? "complained"
+                                : email.first_opened_at
+                                  ? "opened"
+                                  : email.delivered_at
+                                    ? "delivered"
+                                    : "sent";
+                            const statusColors: Record<string, string> = {
+                              bounced: "text-red-600 bg-red-50",
+                              complained: "text-red-600 bg-red-50",
+                              opened: "text-emerald-600 bg-emerald-50",
+                              delivered: "text-blue-600 bg-blue-50",
+                              sent: "text-gray-500 bg-gray-50",
+                            };
+                            const statusLabels: Record<string, string> = {
+                              bounced: "Bounced",
+                              complained: "Spam",
+                              opened: "Opened",
+                              delivered: "Delivered",
+                              sent: "Sent",
+                            };
+                            return (
+                              <div key={email.id} className="px-3 py-2 flex items-center justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm text-gray-700 truncate">{email.subject}</p>
+                                  <p className="text-xs text-gray-400">{formatDate(email.created_at)}</p>
+                                </div>
+                                <span className={`px-2 py-0.5 text-xs font-medium rounded flex-shrink-0 ${statusColors[status]}`}>
+                                  {statusLabels[status]}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {firstQ.provider_email_history.length > 5 && (
+                            <div className="px-3 py-2 text-xs text-gray-400 text-center">
+                              +{firstQ.provider_email_history.length - 5} more emails
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Individual questions */}
                     <div className="divide-y divide-gray-100 -mx-5">

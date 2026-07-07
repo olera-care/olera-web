@@ -33,6 +33,31 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
+    // Helper to fetch tab counts - called by each response path
+    async function getTabCounts() {
+      const [pendingQuestions, needsEmailCount, deliveryIssuesCount, notInterestedCount, archivedCount] = await Promise.all([
+        db.from("provider_questions").select("id, metadata").eq("status", "pending"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').neq("status", "archived").neq("status", "rejected"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { email_dead: true }).neq("status", "archived").neq("status", "rejected").neq("status", "answered"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
+        db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
+      ]);
+      const trueUnansweredCount = (pendingQuestions.data ?? []).filter((q) => {
+        const meta = q.metadata as Record<string, unknown> | null;
+        if (meta?.email_dead === true) return false;
+        if (meta?.provider_not_interested === true) return false;
+        if (meta?.needs_provider_email === true) return false;
+        return true;
+      }).length;
+      return {
+        pending: trueUnansweredCount,
+        needs_email: needsEmailCount.count ?? 0,
+        delivery_issues: deliveryIssuesCount.count ?? 0,
+        not_interested: notInterestedCount.count ?? 0,
+        archived: archivedCount.count ?? 0,
+      };
+    }
+
     // If searching, find matching provider slugs first
     let searchSlugs: string[] | null = null;
     if (search) {
@@ -347,7 +372,7 @@ export async function GET(request: NextRequest) {
         verification_state: providerVerificationState[q.provider_id] || null,
       }));
 
-      return NextResponse.json({ questions: enriched, count });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
     }
 
     // For delivery_issues, show questions where email was on file but delivery failed
@@ -468,7 +493,7 @@ export async function GET(request: NextRequest) {
         verification_state: providerVerificationState[q.provider_id] || null,
       }));
 
-      return NextResponse.json({ questions: enriched, count });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
     }
 
     // For not_interested, show questions where provider is marked as not interested
@@ -587,7 +612,7 @@ export async function GET(request: NextRequest) {
         verification_state: providerVerificationState[q.provider_id] || null,
       }));
 
-      return NextResponse.json({ questions: enriched, count });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
     }
 
     // For unanswered, show pending questions EXCLUDING those in other priority tabs
@@ -720,7 +745,7 @@ export async function GET(request: NextRequest) {
         verification_state: providerVerificationState[q.provider_id] || null,
       }));
 
-      return NextResponse.json({ questions: enriched, count });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
     }
 
     // Standard query path (for answered, archived, and "all" tabs)
@@ -892,36 +917,10 @@ export async function GET(request: NextRequest) {
       provider_archive_info: providerArchiveInfo[q.provider_id] || null,
     }));
 
-    // Fetch tab counts. The "pending" count needs special handling to exclude
-    // questions that belong in other priority tabs (delivery_issues, not_interested).
-    // Note: needs_email excludes email_dead (those go to delivery_issues)
-    const [pendingQuestions, needsEmailCount, deliveryIssuesCount, notInterestedCount, archivedCount] = await Promise.all([
-      db.from("provider_questions").select("id, metadata").eq("status", "pending"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').neq("status", "archived").neq("status", "rejected"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { email_dead: true }).neq("status", "archived").neq("status", "rejected").neq("status", "answered"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
-    ]);
-
-    // Calculate true "unanswered" count by excluding questions that belong in other tabs
-    const trueUnansweredCount = (pendingQuestions.data ?? []).filter((q) => {
-      const meta = q.metadata as Record<string, unknown> | null;
-      if (meta?.email_dead === true) return false;
-      if (meta?.provider_not_interested === true) return false;
-      if (meta?.needs_provider_email === true) return false;
-      return true;
-    }).length;
-
     return NextResponse.json({
       questions: enriched,
       count: count ?? 0,
-      tabCounts: {
-        pending: trueUnansweredCount,
-        needs_email: needsEmailCount.count ?? 0,
-        delivery_issues: deliveryIssuesCount.count ?? 0,
-        not_interested: notInterestedCount.count ?? 0,
-        archived: archivedCount.count ?? 0,
-      },
+      tabCounts: await getTabCounts(),
     });
   } catch (err) {
     console.error("Admin questions error:", err);

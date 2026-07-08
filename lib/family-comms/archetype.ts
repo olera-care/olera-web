@@ -13,12 +13,12 @@
  * Stored at business_profiles.metadata.archetype.
  */
 
-export type Archetype = "urgent" | "avoiding" | "researching";
+export type Archetype = "urgent" | "avoiding" | "overwhelmed";
 
 export const ARCHETYPE_ANSWERS: ReadonlySet<string> = new Set<Archetype>([
   "urgent",
   "avoiding",
-  "researching",
+  "overwhelmed",
 ]);
 
 export interface ArchetypeChip {
@@ -27,15 +27,19 @@ export interface ArchetypeChip {
 }
 
 /**
- * The one question. Order is highest-urgency first (what an anxious family scans
- * for), but no chip is styled as the "primary" action — they're equal weight.
+ * The one question — three SCENARIOS a family recognizes themselves in
+ * instantly (the mirror, not a taxonomy). Each names a feeling people have but
+ * rarely say out loud: overwhelm, the guilt of a facility, the crisis. No chip
+ * is styled as the "primary" action — they're equal weight (biasing one would
+ * corrupt the sort). Overwhelm leads: it's the most universal, and if salience
+ * skews anything it should skew toward the lowest-cost mis-route (orientation).
  */
 export const ARCHETYPE_ASK: { prompt: string; chips: ArchetypeChip[] } = {
   prompt: "Where are you in all this right now?",
   chips: [
-    { label: "I need help this week", answer: "urgent" },
+    { label: "I don't know where to start", answer: "overwhelmed" },
     { label: "I'd rather avoid senior living", answer: "avoiding" },
-    { label: "I'm just researching for now", answer: "researching" },
+    { label: "We need help right away", answer: "urgent" },
   ],
 };
 
@@ -85,7 +89,7 @@ function browseHref(city: string | null, typeSlug: string | null): string {
  * Archetype-specific payoff — the first taste of "archetype-specific comms".
  *   urgent      → move to real options now (matching providers nearby)
  *   avoiding    → the non-facility path (in-home care)
- *   researching → orient calmly, benefits/cost education (no pressure)
+ *   overwhelmed → orient calmly, one step at a time (the caregiver guides)
  * City + care type personalize the destination when we hold them.
  */
 export function archetypePayoff(
@@ -110,11 +114,12 @@ export function archetypePayoff(
       ctaHref: browseHref(city, "home-care"),
     };
   }
+  // overwhelmed: the most universal state — orient calmly, one step at a time.
   return {
-    headline: "Smart to look early.",
+    headline: "Let's make this simple.",
     subline:
-      "No pressure at all. Here's how families think through senior care, and what it actually costs, so you're ready when the time comes.",
-    ctaLabel: "See how care gets paid for",
-    ctaHref: "/benefits/finder",
+      "It's a lot to take in, and that's completely normal. Here's how families sort through senior care one step at a time, without the overwhelm.",
+    ctaLabel: "Start with the basics",
+    ctaHref: "/caregiver-support",
   };
 }

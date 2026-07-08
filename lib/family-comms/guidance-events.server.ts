@@ -104,9 +104,9 @@ export async function slackQuizAnswer(opts: {
     line = `🎂 ${who} shared an age band: *~${opts.answer}*`;
   } else if (opts.question === "archetype") {
     const ARCHETYPE_LABELS: Record<string, string> = {
-      urgent: "Needs help this week",
+      urgent: "Needs help right away",
       avoiding: "Would rather avoid senior living",
-      researching: "Just researching for now",
+      overwhelmed: "Doesn't know where to start",
     };
     line = `🧭 ${who} is here to say: *${ARCHETYPE_LABELS[opts.answer] || opts.answer}*`;
   } else {

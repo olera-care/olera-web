@@ -1533,10 +1533,12 @@ export function archetypeEmail(opts: {
       ? `You recently reached out ${bridge} through Olera. To point you in the right direction, tell us one thing:`
       : `You recently started a care search on Olera. To point you in the right direction, tell us one thing:`);
 
-  // Equal-weight full-width buttons — no archetype is "primary" (the same calm,
-  // decisive shape as the outcome-check email, which is the one families answer).
+  // Equal-weight full-width buttons — no archetype is "primary" (biasing one
+  // would corrupt the sort). Tactile treatment applied EQUALLY: brand-teal
+  // border + text + soft shadow (the proven micro-quiz chip look, full width),
+  // so the whole set invites a tap without picking a winner.
   const btn = (label: string, href: string) =>
-    `<a href="${href}" style="display:block;text-align:center;padding:14px 24px;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border:1px solid #d1d5db;border-radius:10px;">${escapeHtml(label)}</a>`;
+    `<a href="${href}" style="display:block;text-align:center;padding:16px 24px;background:#ffffff;color:${BRAND_COLOR};font-size:15px;font-weight:600;text-decoration:none;border:1.5px solid ${BRAND_COLOR};border-radius:12px;box-shadow:0 1px 2px rgba(42,24,16,0.05);">${escapeHtml(label)}</a>`;
   const buttons = opts.chips.map((c) => `<div style="margin:0 0 12px;">${btn(c.label, c.url)}</div>`).join("");
 
   return layout(

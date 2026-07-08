@@ -1,4 +1,5 @@
 import QuizAnswerClient from "./QuizAnswerClient";
+import { ARCHETYPE_ANSWERS, archetypePayoff, type Archetype } from "@/lib/family-comms/archetype";
 
 /**
  * Landing screen for a one-tap micro-quiz answer (Guidance Layer). Email chips
@@ -21,5 +22,13 @@ export default async function QuizAnswerPage({
   // answer record which EMAIL produced the tap (campaign vs day-3 rung vs
   // compare cascade). Read-only downstream — it can never alter facts.
   const eid = typeof sp.eid === "string" ? sp.eid.slice(0, 64) : "";
-  return <QuizAnswerClient tok={tok} eid={eid} />;
+  // QA preview: /family/quiz-answer?preview=urgent|avoiding|overwhelmed renders
+  // the archetype payoff directly — no token, no write, no sign-in. It shows
+  // only the public payoff copy a family sees, so it's safe to expose; used to
+  // sign off the tap→landing screens before a real send.
+  const preview = typeof sp.preview === "string" && ARCHETYPE_ANSWERS.has(sp.preview) ? sp.preview : "";
+  const previewPayoff = preview
+    ? archetypePayoff(preview as Archetype, { city: "Killeen", careType: "memory care" })
+    : null;
+  return <QuizAnswerClient tok={tok} eid={eid} previewPayoff={previewPayoff} />;
 }

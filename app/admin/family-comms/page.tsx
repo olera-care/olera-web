@@ -733,11 +733,11 @@ export default function FamilyCommsAnalyticsPage() {
           <CollapsibleSection title="Guidance journey — orientation & one-tap quiz" storageKey="fc.guidance" defaultCollapsed={false}>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               <Stat label="Quiz answers" value={num(g?.quizAnswers ?? 0)} sub="one-tap chips" />
-              <Stat label="Self-sorts" value={num(g?.quizByQuestion?.path ?? 0)} sub="situation question" />
+              <Stat label="Cost self-sorts" value={num(g?.quizByQuestion?.path ?? 0)} sub="financial path · demoted" />
               <Stat label="Brief views" value={num(g?.briefViews ?? 0)} sub="program briefs opened" />
               <Stat label="Steps opened" value={num(g?.stepsExpanded ?? 0)} sub="playbook expansions" />
             </div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Where families sort themselves (all sorted families)</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Where families land on cost — financial path <span className="normal-case font-normal text-gray-300">(demoted secondary sort; the first-touch archetype self-sort is the panel above)</span></p>
             {(() => {
               const d = g?.pathDistribution || { a: 0, b: 0, c: 0 };
               const total = (d.a || 0) + (d.b || 0) + (d.c || 0);
@@ -760,7 +760,7 @@ export default function FamilyCommsAnalyticsPage() {
                       </div>
                     );
                   })}
-                  {total === 0 ? <p className="text-[12px] text-gray-400">No families sorted yet — counts populate once the self-sort email goes out.</p> : null}
+                  {total === 0 ? <p className="text-[12px] text-gray-400">No cost sorts yet — the financial question now comes from the later compare/awaiting rungs, not the first touch.</p> : null}
                 </div>
               );
             })()}

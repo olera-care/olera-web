@@ -99,11 +99,16 @@ export function archetypePayoff(
   const city = opts.city || null;
   const near = city ? ` near ${city}` : " near you";
   if (archetype === "urgent") {
+    // City-only, NOT filtered by care type: the urgent family needs options
+    // NOW, and their exact type + a smaller city can be empty (e.g. memory care
+    // in Killeen = 0 providers). Since they reached out to a provider in this
+    // city, a city-wide browse is never empty — a dead end is the worst possible
+    // landing for the highest-intent segment.
     return {
       headline: "Let's move.",
-      subline: `Here are providers${near} that match what you need. You can reach out to a few at once, and we'll help you compare.`,
+      subline: `Here are providers${near} ready to help. You can reach out to a few at once, and we'll help you compare.`,
       ctaLabel: "See providers ready to help",
-      ctaHref: browseHref(city, careTypeToBrowseSlug(opts.careType)),
+      ctaHref: browseHref(city, null),
     };
   }
   if (archetype === "avoiding") {

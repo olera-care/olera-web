@@ -77,9 +77,20 @@ const fadeStyles = `
 @media (prefers-reduced-motion: reduce) { .qa-fade { animation: none; opacity: 1; } }
 `;
 
-export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?: string }) {
-  const [state, setState] = useState<"loading" | "error" | "ready">("loading");
-  const [data, setData] = useState<QuizPayload | null>(null);
+export default function QuizAnswerClient({
+  tok,
+  eid = "",
+  previewPayoff = null,
+}: {
+  tok: string;
+  eid?: string;
+  /** QA preview: render this archetype payoff directly, skip the write POST. */
+  previewPayoff?: ArchetypePayoffItem | null;
+}) {
+  const [state, setState] = useState<"loading" | "error" | "ready">(previewPayoff ? "ready" : "loading");
+  const [data, setData] = useState<QuizPayload | null>(
+    previewPayoff ? { ok: true, question: "archetype", archetypePayoff: previewPayoff } : null,
+  );
   const [tapping, setTapping] = useState(false);
   const [chainError, setChainError] = useState(false);
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -117,6 +128,7 @@ export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?:
   }, [eid]);
 
   useEffect(() => {
+    if (previewPayoff) return; // preview mode: render the payoff directly, no write
     if (submitted.current) return; // strict-mode double-mount guard (write is idempotent anyway)
     submitted.current = true;
     if (!tok) {
@@ -124,7 +136,7 @@ export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?:
       return;
     }
     submit(tok, false);
-  }, [tok, submit]);
+  }, [tok, submit, previewPayoff]);
 
   if (state === "error") {
     return (

@@ -50,7 +50,9 @@ const CONVERSION_EVENTS = [
 // journey (2026-07-04 UX pass: group by journey / explain zeros / row polish).
 const TYPE_LABELS: Record<string, string> = {
   family_outcome_check: "Day 2 · Did the provider get back to you?",
-  paying_for_care: "Day 3 · Paying for care + self-sort",
+  family_archetype: "Day 3 · Where are you in all this? (archetype)",
+  archetype_intro: "Archetype intro — one-time campaign",
+  paying_for_care: "Day 3 · Paying for care + self-sort (retired)",
   family_provider_silent: "Day 4 · Provider quiet → other options",
   family_provider_silent_guidance: "Day 4 · Provider quiet → cost help (thin market)",
   family_never_engaged: "Day 5 · No reply yet → options + cost help",

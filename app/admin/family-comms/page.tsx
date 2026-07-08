@@ -105,7 +105,8 @@ const PERF_GROUP_ORDER = [
 
 const PERF_GROUPS: Record<string, { group: (typeof PERF_GROUP_ORDER)[number]; order: number }> = {
   family_outcome_check: { group: "Guidance cascade — after an inquiry", order: 1 },
-  paying_for_care: { group: "Guidance cascade — after an inquiry", order: 2 },
+  family_archetype: { group: "Guidance cascade — after an inquiry", order: 2 },
+  paying_for_care: { group: "Guidance cascade — after an inquiry", order: 3 },
   family_provider_silent: { group: "Guidance cascade — after an inquiry", order: 3 },
   family_provider_silent_guidance: { group: "Guidance cascade — after an inquiry", order: 4 },
   family_never_engaged: { group: "Guidance cascade — after an inquiry", order: 5 },
@@ -130,16 +131,19 @@ const PERF_GROUPS: Record<string, { group: (typeof PERF_GROUP_ORDER)[number]; or
   inactivity_reengagement: { group: "Profile lifecycle", order: 13 },
   go_live_reminder: { group: "Profile lifecycle", order: 14 },
   dormant_reengagement: { group: "Profile lifecycle", order: 15 },
-  orientation_intro: { group: "Campaigns", order: 1 },
+  archetype_intro: { group: "Campaigns", order: 1 },
+  orientation_intro: { group: "Campaigns", order: 2 },
 };
 
-/** Types that no sender emits anymore — history only, folded into the quiet line. */
-const PERF_RETIRED = new Set(["go_live_reminder", "dormant_reengagement"]);
+/** Types that no sender emits anymore — history only, folded into the quiet line.
+ *  paying_for_care + orientation_intro retired 2026-07-08 when the archetype
+ *  first-touch replaced the financial self-sort as the opener. */
+const PERF_RETIRED = new Set(["go_live_reminder", "dormant_reengagement", "paying_for_care", "orientation_intro"]);
 
 /** Zero-send rows that are NEW (not broken): show a badge, not dead dashes. */
 const PERF_NEW_NOTES: Record<string, string> = {
-  paying_for_care: "new rung · live since Jul 4",
-  orientation_intro: "one-time campaign · not sent yet",
+  family_archetype: "new first-touch · not sent yet",
+  archetype_intro: "one-time campaign · not sent yet",
 };
 
 /** Open-rate trend per send-week cohort; weeks with no sends are honest gaps. */

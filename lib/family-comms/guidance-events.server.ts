@@ -71,6 +71,8 @@ const MEDICAID_LABELS: Record<string, string> = {
 /** Human labels for the email that produced a tap (Slack + dashboard). */
 export const QUIZ_SOURCE_LABELS: Record<string, string> = {
   orientation_intro: "the orientation campaign",
+  family_archetype: "the archetype email",
+  archetype_intro: "the archetype campaign",
   paying_for_care: "the day-3 paying-for-care email",
   family_never_engaged: "the never-engaged email",
   family_provider_silent: "the provider-silent email",
@@ -100,6 +102,13 @@ export async function slackQuizAnswer(opts: {
     line = `🎖️ ${who} answered veteran: *${opts.answer === "yes" ? "Yes" : "No"}*`;
   } else if (opts.question === "age") {
     line = `🎂 ${who} shared an age band: *~${opts.answer}*`;
+  } else if (opts.question === "archetype") {
+    const ARCHETYPE_LABELS: Record<string, string> = {
+      urgent: "Needs help this week",
+      avoiding: "Would rather avoid senior living",
+      researching: "Just researching for now",
+    };
+    line = `🧭 ${who} is here to say: *${ARCHETYPE_LABELS[opts.answer] || opts.answer}*`;
   } else {
     line = `🧭 ${who} answered ${opts.question}: *${opts.answer}*`;
   }

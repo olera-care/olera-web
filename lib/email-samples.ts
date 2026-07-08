@@ -14,6 +14,8 @@
 import {
   // family · compare cascade (coordinator)
   connectionOutcomeCheckEmail,
+  archetypeEmail,
+  archetypeSubject,
   payingForCareEmail,
   payingForCareSubject,
   orientationIntroSubject,
@@ -133,6 +135,22 @@ const SAMPLE_LINK = "https://olera.care/provider/evergreen-home-care/onboard";
 
 export const EMAIL_VARIANTS: EmailVariant[] = [
   // ─────────────── Family · Compare cascade (the coordinator) ───────────────
+  {
+    id: "family_archetype", audience: "family", group: "Family · Compare cascade",
+    label: "First touch · Archetype (intent self-sort)", subject: archetypeSubject(),
+    emailType: "family_archetype", cron: "family-comms-coordinator",
+    who: "Any family with a recent inquiry, once ever (profile stamp). The guidance journey's opener, before the paying-for-care rung.",
+    why: "The 'Have you heard back?' shape applied to intent — one question, three chips, nothing else. Captures urgency (need help now / avoid senior living / just researching) so tone, cadence, and which help we lead with are all tailored. Replaces the busy financial self-sort as the first question; financial is demoted to a later, engagement-gated touch.",
+    render: () => archetypeEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName, careType: "memory care", city: "Killeen",
+      chips: [
+        { label: "I need help this week", url: "https://olera.care/family/quiz-answer?tok=sample" },
+        { label: "I'd rather avoid senior living", url: "https://olera.care/family/quiz-answer?tok=sample" },
+        { label: "I'm just researching for now", url: "https://olera.care/family/quiz-answer?tok=sample" },
+      ],
+    }),
+  },
   {
     id: "family_outcome_check", audience: "family", group: "Family · Compare cascade",
     label: "R1 · Outcome check (sensor)", subject: `Did ${F.providerName} get back to you?`,

@@ -50,7 +50,9 @@ const CONVERSION_EVENTS = [
 // journey (2026-07-04 UX pass: group by journey / explain zeros / row polish).
 const TYPE_LABELS: Record<string, string> = {
   family_outcome_check: "Day 2 · Did the provider get back to you?",
-  paying_for_care: "Day 3 · Paying for care + self-sort",
+  family_archetype: "Day 3 · Where are you in all this? (archetype)",
+  archetype_intro: "Archetype intro — one-time campaign",
+  paying_for_care: "Day 3 · Paying for care + self-sort (retired)",
   family_provider_silent: "Day 4 · Provider quiet → other options",
   family_provider_silent_guidance: "Day 4 · Provider quiet → cost help (thin market)",
   family_never_engaged: "Day 5 · No reply yet → options + cost help",
@@ -356,6 +358,10 @@ export async function GET(request: NextRequest) {
   // Self-sorts by SOURCE email (windowed, from guidance_events src stamps):
   // which door produced the tap — the campaign, the day-3 rung, the cascade.
   const sortsBySource: Record<string, { a: number; b: number; c: number }> = {};
+  // Archetype self-sort (the first-touch signal) — windowed tap counts per
+  // scenario, the mirror of the outcome-check sensor. This distribution is what
+  // drives the cadence decision (crisis fast, overwhelmed calm).
+  const archetypeByAnswer: Record<string, number> = { overwhelmed: 0, avoiding: 0, urgent: 0 };
   {
     const { data: gRows } = await db
       .from("business_profiles")
@@ -387,6 +393,8 @@ export async function GET(request: NextRequest) {
           const key = ev.src || "on_site";
           const bucket = (sortsBySource[key] = sortsBySource[key] || { a: 0, b: 0, c: 0 });
           bucket[ev.answer] += 1;
+        } else if (ev.t === "quiz_answered" && ev.ref === "archetype" && ev.answer && ev.answer in archetypeByAnswer) {
+          archetypeByAnswer[ev.answer] += 1;
         }
       }
       // Path distribution is a CURRENT-STATE snapshot (how the sorted
@@ -396,6 +404,20 @@ export async function GET(request: NextRequest) {
       }
     }
   }
+
+  // Archetype sensor — sent from the two archetype email types, answered +
+  // distribution from the windowed taps above. Mirrors the outcome-check sensor.
+  const archetypeAnswered = archetypeByAnswer.overwhelmed + archetypeByAnswer.avoiding + archetypeByAnswer.urgent;
+  const archetypeSent =
+    (perfByType.get("family_archetype")?.sent ?? 0) + (perfByType.get("archetype_intro")?.sent ?? 0);
+  const archetypeSensor = {
+    sent: archetypeSent,
+    answered: archetypeAnswered,
+    overwhelmed: archetypeByAnswer.overwhelmed,
+    avoiding: archetypeByAnswer.avoiding,
+    urgent: archetypeByAnswer.urgent,
+    answerRate: rate(archetypeAnswered, archetypeSent),
+  };
 
   const conversions = {
     compareSaved: count("compare_cta_converted"),
@@ -526,6 +548,7 @@ export async function GET(request: NextRequest) {
     emailPerformance,
     funnel,
     sensor,
+    archetypeSensor,
     conversions,
     guidance,
     outcomes,

@@ -391,7 +391,7 @@ export function generateIntroUrl(
  * scheme as the claim/intro tokens, distinct "quiz:" signature domain.
  */
 
-export type QuizQuestion = "path" | "medicaid" | "veteran" | "age";
+export type QuizQuestion = "path" | "medicaid" | "veteran" | "age" | "archetype";
 
 interface QuizTokenPayload {
   familyProfileId: string;

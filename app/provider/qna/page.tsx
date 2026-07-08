@@ -23,7 +23,7 @@ interface Question {
   question: string;
   asker_name: string;
   created_at: string;
-  status: "pending" | "answered";
+  status: "pending" | "answered" | "approved";
   answer?: string;
   answered_at?: string;
   is_public?: boolean;
@@ -805,9 +805,11 @@ export default function ProviderQnAPage() {
   }, [fetchQuestions]);
 
   const filteredQuestions = useMemo(() => {
-    // Map "published" tab to "answered" status
-    const statusToMatch = activeFilter === "published" ? "answered" : "pending";
-    return questions.filter((q) => q.status === statusToMatch);
+    // Map "published" tab to "answered" or "approved" status
+    if (activeFilter === "published") {
+      return questions.filter((q) => q.status === "answered" || q.status === "approved");
+    }
+    return questions.filter((q) => q.status === "pending");
   }, [activeFilter, questions]);
 
   // Pagination
@@ -831,7 +833,7 @@ export default function ProviderQnAPage() {
 
   const counts = useMemo(() => ({
     pending: questions.filter((q) => q.status === "pending").length,
-    published: questions.filter((q) => q.status === "answered").length,
+    published: questions.filter((q) => q.status === "answered" || q.status === "approved").length,
   }), [questions]);
 
   // Handle marking a question as read

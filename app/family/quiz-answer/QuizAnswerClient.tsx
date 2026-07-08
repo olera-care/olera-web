@@ -28,6 +28,13 @@ interface PathStepItem {
   linkHref: string;
 }
 
+interface ArchetypePayoffItem {
+  headline: string;
+  subline: string;
+  ctaLabel: string;
+  ctaHref: string;
+}
+
 interface QuizPayload {
   ok: boolean;
   question?: string;
@@ -35,6 +42,8 @@ interface QuizPayload {
   pathNarrative?: { title: string; intro: string; steps: PathStepItem[] } | null;
   programs?: ProgramItem[];
   next?: { prompt: string; chips: { label: string; tok: string }[] } | null;
+  /** Present only for the archetype question — its own urgency-tailored screen. */
+  archetypePayoff?: ArchetypePayoffItem | null;
   error?: string;
 }
 
@@ -68,9 +77,20 @@ const fadeStyles = `
 @media (prefers-reduced-motion: reduce) { .qa-fade { animation: none; opacity: 1; } }
 `;
 
-export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?: string }) {
-  const [state, setState] = useState<"loading" | "error" | "ready">("loading");
-  const [data, setData] = useState<QuizPayload | null>(null);
+export default function QuizAnswerClient({
+  tok,
+  eid = "",
+  previewPayoff = null,
+}: {
+  tok: string;
+  eid?: string;
+  /** QA preview: render this archetype payoff directly, skip the write POST. */
+  previewPayoff?: ArchetypePayoffItem | null;
+}) {
+  const [state, setState] = useState<"loading" | "error" | "ready">(previewPayoff ? "ready" : "loading");
+  const [data, setData] = useState<QuizPayload | null>(
+    previewPayoff ? { ok: true, question: "archetype", archetypePayoff: previewPayoff } : null,
+  );
   const [tapping, setTapping] = useState(false);
   const [chainError, setChainError] = useState(false);
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -108,6 +128,7 @@ export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?:
   }, [eid]);
 
   useEffect(() => {
+    if (previewPayoff) return; // preview mode: render the payoff directly, no write
     if (submitted.current) return; // strict-mode double-mount guard (write is idempotent anyway)
     submitted.current = true;
     if (!tok) {
@@ -115,7 +136,7 @@ export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?:
       return;
     }
     submit(tok, false);
-  }, [tok, submit]);
+  }, [tok, submit, previewPayoff]);
 
   if (state === "error") {
     return (
@@ -145,6 +166,37 @@ export default function QuizAnswerClient({ tok, eid = "" }: { tok: string; eid?:
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-20 bg-white/70 border border-[#F1E5D6] rounded-2xl animate-pulse mb-3" />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Archetype payoff: a single calm screen (tailored headline + one CTA), the
+  // clean counterpart to the archetype email. No programs, no chained question —
+  // the financial self-sort comes later, once they've engaged.
+  if (data.archetypePayoff) {
+    const p = data.archetypePayoff;
+    return (
+      <div className="min-h-screen bg-[#F9F6F2] px-5 py-16 flex items-center justify-center">
+        {/* eslint-disable-next-line react/no-danger */}
+        <style dangerouslySetInnerHTML={{ __html: fadeStyles }} />
+        <div className="max-w-md w-full text-center">
+          <p className="qa-fade flex items-center justify-center gap-2 text-[13px] text-gray-500 mb-5">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-3 w-3 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            Got it
+          </p>
+          <h1 className="qa-fade font-serif text-[34px] leading-[1.15] text-gray-900 mb-4">{p.headline}</h1>
+          <p className="qa-fade text-gray-600 leading-relaxed mb-9">{p.subline}</p>
+          <Link
+            href={p.ctaHref}
+            className="qa-fade inline-block px-8 py-4 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors"
+          >
+            {p.ctaLabel}
+          </Link>
         </div>
       </div>
     );

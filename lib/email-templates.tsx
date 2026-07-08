@@ -1494,6 +1494,75 @@ export function connectionOutcomeCheckEmail(opts: {
   );
 }
 
+/** Subject for the archetype first-touch — one question, no PHI. */
+export function archetypeSubject(): string {
+  return "Quick question about where you are";
+}
+
+/**
+ * Archetype email — the guidance journey's FIRST touch, built in the
+ * "Have you heard back?" shape: one warm line of context, one question, three
+ * equal-weight chips, nothing else. No programs, no tell-back. It captures the
+ * family's intent/urgency (need help now / avoid senior living / just
+ * researching) so everything after it is tailored. Chips point at
+ * /family/quiz-answer pages that record the answer via a client-side POST (so
+ * mail scanners issuing GETs can't mis-file it); the caller builds the URLs via
+ * generateFamilyInboxUrl + generateQuizToken(..., "archetype", ...).
+ */
+export function archetypeEmail(opts: {
+  familyName: string;
+  /** Friendly care label for the context line, e.g. "memory care". */
+  careType?: string | null;
+  city?: string | null;
+  /** Exactly three chips (urgent / avoiding / researching). */
+  chips: QuizChipItem[];
+  unsubscribeId?: string;
+  /** Past-tense opener override for the one-time campaign to the existing base. */
+  opening?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const bridge = [
+    opts.careType ? `about ${escapeHtml(opts.careType.toLowerCase())}` : "",
+    opts.city ? `in ${escapeHtml(opts.city)}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const opening =
+    opts.opening ||
+    (bridge
+      ? `You recently reached out ${bridge} through Olera. To point you in the right direction, tell us one thing:`
+      : `You recently started a care search on Olera. To point you in the right direction, tell us one thing:`);
+
+  // Equal-weight full-width buttons — no archetype is "primary" (biasing one
+  // would corrupt the sort). Tactile treatment applied EQUALLY: brand-teal
+  // border + text + soft shadow (the proven micro-quiz chip look, full width),
+  // so the whole set invites a tap without picking a winner.
+  const btn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:16px 24px;background:#ffffff;color:${BRAND_COLOR};font-size:15px;font-weight:600;text-decoration:none;border:1.5px solid ${BRAND_COLOR};border-radius:12px;box-shadow:0 1px 2px rgba(42,24,16,0.05);">${escapeHtml(label)}</a>`;
+  const buttons = opts.chips.map((c) => `<div style="margin:0 0 12px;">${btn(c.label, c.url)}</div>`).join("");
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 22px;line-height:1.6;">
+      ${opening}
+    </p>
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#111827;margin:0 0 18px;line-height:1.3;">
+      Where are you in all this right now?
+    </p>
+    ${buttons}
+    <p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.6;">
+      No wrong answer, and it's one tap. It just tells us how to help, so we send what's useful and skip what isn't.
+    </p>
+    ${authorBylineBlock({ topBorder: true })}
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `,
+    `One tap tells us how to help. No forms.`,
+  );
+}
+
 /**
  * Light, secondary "see what you may qualify for" block — the benefits CLOSER in
  * the compare-led flywheel. Links the personalized benefits quiz (/benefits/finder),

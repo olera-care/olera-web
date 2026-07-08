@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 type Tab = "provider-page" | "admin-trigger" | "first-contact";
+
+// Fallback image - stock photo representing home care
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=1600&q=80";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "provider-page", label: "Provider Page" },
@@ -37,7 +41,7 @@ export default function ColdOutreachDemo() {
       </div>
 
       {/* Tab Content */}
-      <div className="max-w-7xl mx-auto">
+      <div>
         {activeTab === "provider-page" && <ProviderPageTab />}
         {activeTab === "admin-trigger" && <AdminTriggerTab />}
         {activeTab === "first-contact" && <FirstContactTab />}
@@ -52,12 +56,37 @@ export default function ColdOutreachDemo() {
 function ProviderPageTab() {
   return (
     <div>
-      {/* Hero Section - We'll iterate on this first */}
+      {/* Hero Section - OpenTable style: one big image */}
+      <section className="relative w-full">
+        {/* Full-width hero image */}
+        <div className="relative w-full h-[300px] sm:h-[400px] md:h-[480px]">
+          <Image
+            src={FALLBACK_IMAGE}
+            alt="Home care services"
+            fill
+            className="object-cover"
+            priority
+          />
+
+          {/* Save button - top right */}
+          <button className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2.5 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-sm font-medium text-gray-900">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            Save this provider
+          </button>
+
+          {/* See all photos - bottom center */}
+          <button className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/70 hover:bg-black/80 backdrop-blur-sm rounded-full text-sm font-medium text-white transition-colors">
+            See all photos
+          </button>
+        </div>
+      </section>
+
+      {/* Content below hero - placeholder */}
       <section className="bg-white">
-        <div className="px-4 py-12">
-          <p className="text-gray-500 text-center">
-            Provider Page Hero — ready to iterate
-          </p>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <p className="text-gray-500">Content sections will go here...</p>
         </div>
       </section>
     </div>

@@ -79,15 +79,17 @@ function ProviderPageTab() {
             priority
           />
 
-          {/* Overlay container - aligned with navbar (max-w-7xl) */}
-          <div className="absolute inset-0 max-w-7xl mx-auto px-4">
+          {/* Overlay container - aligned with navbar (max-w-7xl mx-auto px-5 sm:px-6 lg:px-8) */}
+          <div className="absolute inset-0 max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
             {/* Save this provider - top right, aligned with navbar menu icon */}
-            <button className="absolute top-4 right-0 flex items-center gap-2 px-4 py-2.5 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-sm font-medium text-gray-900">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-              Save this provider
-            </button>
+            <div className="absolute top-4 right-0">
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-sm font-medium text-gray-900">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                Save this provider
+              </button>
+            </div>
 
             {/* See all photos - bottom center of image */}
             <button className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/70 hover:bg-black/80 backdrop-blur-sm rounded-full text-sm font-medium text-white transition-colors">
@@ -99,7 +101,7 @@ function ProviderPageTab() {
 
       {/* Content Section - Two Column Layout */}
       <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
             {/* Left Column - Provider Info */}
@@ -148,13 +150,24 @@ function ProviderPageTab() {
                 {/* CTA Card - matches current Olera style */}
                 <div className="bg-gradient-to-b from-white to-primary-25/40 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
                   <div className="px-6 py-6">
-                    {/* Header */}
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Check availability
-                    </h3>
-                    <p className="text-sm text-gray-500 mb-5">
-                      Get pricing and schedule a consultation
+                    {/* Pricing Header */}
+                    <p className="text-sm text-gray-500 italic">
+                      {MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}
                     </p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {MOCK_PROVIDER.priceRange}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Area estimate — not this provider&apos;s actual price
+                    </p>
+
+                    {/* Divider */}
+                    <div className="border-t border-gray-200 my-5" />
+
+                    {/* Form Header */}
+                    <h3 className="text-base font-semibold text-gray-900 mb-4">
+                      Get actual pricing &amp; availability
+                    </h3>
 
                     {/* Email input */}
                     <div className="mb-4">
@@ -171,12 +184,17 @@ function ProviderPageTab() {
                     </button>
 
                     {/* Trust signals */}
-                    <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-gray-400">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center justify-center gap-1.5 mt-4 text-sm text-gray-500">
+                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
                       <span>No spam. No sales calls.</span>
                     </div>
+
+                    {/* Social proof */}
+                    <p className="text-center text-sm text-gray-400 mt-2">
+                      71 families checked this month
+                    </p>
                   </div>
                 </div>
 

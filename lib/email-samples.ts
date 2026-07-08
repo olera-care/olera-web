@@ -167,10 +167,10 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "paying_for_care", audience: "family", group: "Family · Compare cascade",
-    label: "R1.5 · Paying for care + micro-quiz", subject: payingForCareSubject("Texas", "memory care"),
+    label: "Paying for care + self-sort — retired", subject: payingForCareSubject("Texas", "memory care"),
     emailType: "paying_for_care", cron: "family-comms-coordinator",
-    who: "Any family with an inquiry 72–96h old, once ever (profile stamp). Fires between the outcome check and the alternatives rung.",
-    why: "The money half of the search, delivered as answers not homework. Pre-sort (no financial_path yet), the self-sort question LEADS and the programs below are the universal set — Medicaid-gated waivers never show before the family sorts (unknown ≠ path C). Once sorted, later sends flip to programs-first with a narrowing question. Learn-more links go to the guided program brief, never a dense article.",
+    who: "RETIRED 2026-07-08. Previously: any family with an inquiry 72–96h old, once ever. History only — the row keeps its past sends; nothing emits it now.",
+    why: "RETIRED — the archetype first-touch (\"Where are you in all this?\") replaced the financial self-sort as the guidance opener. The money/self-sort question now comes later, from the compare and awaiting rungs, once the family has engaged. Kept here so the historical sends still have a preview.",
     render: () => payingForCareEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, careType: "memory care", city: "Killeen", stateName: "Texas",
@@ -193,10 +193,10 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "orientation_intro", audience: "family", group: "Family · Compare cascade",
-    label: "Campaign · Orientation intro (one-time, existing base)", subject: orientationIntroSubject("memory care"),
+    label: "Campaign · Orientation intro — retired", subject: orientationIntroSubject("memory care"),
     emailType: "orientation_intro", cron: undefined,
-    who: "One-time admin-triggered campaign (/api/admin/orientation-campaign): families with an inquiry in the last 90 days, no financial_path, not self-reported connected, not unsubscribed. One-shot stamp; every send governed by the caps + kill switch.",
-    why: "The paying_for_care rung only reaches NEW inquiries aging through 72-96h — the existing base would never be asked the self-sort. Same creative as rung 1.5 (sort card leads, universal programs as the starting point) with past-tense framing.",
+    who: "RETIRED 2026-07-08. Replaced by the archetype campaign (archetype_intro). Previously: one-time send to families with a 90-day inquiry and no financial_path.",
+    why: "RETIRED — the one-time base send now asks the archetype scenario, not the financial self-sort. See the archetype intro campaign variant.",
     render: () => payingForCareEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName, careType: "memory care", city: "Killeen", stateName: "Texas",
@@ -208,6 +208,23 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       ],
       quiz: { ...F_SORT_QUIZ, leads: true },
       fullPictureUrl: F.quizUrl,
+    }),
+  },
+  {
+    id: "archetype_intro", audience: "family", group: "Family · Compare cascade",
+    label: "Campaign · Archetype intro (one-time, existing base)", subject: archetypeSubject(),
+    emailType: "archetype_intro", cron: undefined,
+    who: "One-time admin-triggered campaign (/api/admin/orientation-campaign): families with a 90-day inquiry, no archetype yet, not self-reported connected, not unsubscribed. One-shot stamp; governed by the caps + kill switch.",
+    why: "The archetype rung only reaches NEW inquiries aging through 72–96h; the existing base would never be asked. Same clean creative as the rung, with past-tense framing.",
+    render: () => archetypeEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName, careType: "memory care", city: "Killeen",
+      opening: "A while back you reached out about memory care in Killeen. Wherever your search stands now, one quick question so we can point you the right way:",
+      chips: [
+        { label: "I don't know where to start", url: "https://olera.care/family/quiz-answer?tok=sample" },
+        { label: "I'd rather avoid senior living", url: "https://olera.care/family/quiz-answer?tok=sample" },
+        { label: "We need help right away", url: "https://olera.care/family/quiz-answer?tok=sample" },
+      ],
     }),
   },
   {

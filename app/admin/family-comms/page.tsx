@@ -48,6 +48,7 @@ interface Summary {
     engaged: number; benefitsStarted: number; benefitsCompleted: number; published: number;
   };
   sensor: { sent: number; answered: number; yes: number; no: number; notYet: number; responseRate: number; yesRate: number };
+  archetypeSensor?: { sent: number; answered: number; overwhelmed: number; avoiding: number; urgent: number; answerRate: number };
   conversions: { compareSaved: number; guideSaved: number; benefitsStarted: number; benefitsCompleted: number; published: number; quizAnswers?: number };
   guidance?: {
     quizAnswers: number; quizByQuestion: Record<string, number>;
@@ -467,6 +468,16 @@ export default function FamilyCommsAnalyticsPage() {
     ];
   }, [sensor]);
 
+  const archetype = data?.archetypeSensor;
+  const archetypeBreakdown = useMemo(() => {
+    if (!archetype || archetype.answered === 0) return null;
+    return [
+      { k: "Don't know where to start", v: archetype.overwhelmed, c: "bg-sky-400" },
+      { k: "Rather avoid senior living", v: archetype.avoiding, c: "bg-violet-400" },
+      { k: "Need help right away", v: archetype.urgent, c: "bg-rose-400" },
+    ];
+  }, [archetype]);
+
   // Journey-grouped by-type rows: active (sent this window), new (zero but
   // expected — badge), quiet (zero, folded into one expandable line; retired
   // types live there with a chip).
@@ -676,6 +687,33 @@ export default function FamilyCommsAnalyticsPage() {
                   </div>
                 ))}
               </div>
+            )}
+          </CollapsibleSection>
+
+          {/* Archetype self-sort — the first-touch signal. Same shape as the
+              outcome-check sensor: sent/answered cards + a three-row bar chart of
+              which scenario families pick. The distribution is the cadence dial. */}
+          <CollapsibleSection title="Archetype self-sort (first-touch signal)" storageKey="fc.archetype" defaultCollapsed={false}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <Stat label="Sent" value={num(archetype?.sent ?? 0)} />
+              <Stat label="Answered" value={num(archetype?.answered ?? 0)} sub={pct(archetype?.answerRate ?? 0)} accent info={`Share of archetype emails ("Where are you in all this?") where the family tapped a scenario. ${num(archetype?.answered ?? 0)} of ${num(archetype?.sent ?? 0)} sent answered.`} />
+              <Stat label="Need help now" value={num(archetype?.urgent ?? 0)} sub="→ providers + intros" />
+              <Stat label="Just starting" value={num(archetype?.overwhelmed ?? 0)} sub="→ orientation" />
+            </div>
+            {archetypeBreakdown ? (
+              <div className="space-y-1.5">
+                {archetypeBreakdown.map((b) => (
+                  <div key={b.k} className="flex items-center gap-3">
+                    <div className="w-44 shrink-0 text-sm text-gray-700">{b.k}</div>
+                    <div className="flex-1 h-5 rounded bg-gray-100 overflow-hidden">
+                      <div className={`h-full ${b.c}`} style={{ width: `${archetype && archetype.answered ? (b.v / archetype.answered) * 100 : 0}%` }} />
+                    </div>
+                    <div className="w-12 text-right text-xs tabular-nums text-gray-600">{num(b.v)}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[12px] text-gray-400">No archetype answers yet — the bars fill once families start tapping the first-touch email.</p>
             )}
           </CollapsibleSection>
 

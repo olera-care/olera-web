@@ -10,6 +10,7 @@ import {
 } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { recordGuidanceEvent, slackQuizAnswer } from "@/lib/family-comms/guidance-events.server";
+import { ARCHETYPE_ANSWERS, archetypePayoff, type Archetype } from "@/lib/family-comms/archetype";
 
 /**
  * POST /api/family-quiz  { tok }
@@ -36,6 +37,9 @@ const ALLOWED_ANSWERS: Record<QuizQuestion, Set<string>> = {
   medicaid: new Set(["alreadyHas", "applying", "notSure", "doesNotHave"]),
   veteran: new Set(["yes", "no"]),
   age: new Set(["60", "70", "80", "87"]),
+  // Intent/urgency self-sort (the guidance journey's FIRST question). Not a
+  // benefits fact — it drives tone/cadence + which help we lead with.
+  archetype: new Set([...ARCHETYPE_ANSWERS]),
 };
 
 export async function POST(request: NextRequest) {
@@ -84,6 +88,7 @@ export async function POST(request: NextRequest) {
     else if (question === "medicaid") meta.medicaid_status = answer;
     else if (question === "veteran") meta.veteran_status = answer;
     else if (question === "age") meta.age = parseInt(answer, 10);
+    else if (question === "archetype") meta.archetype = answer;
     const quizAnswers = (meta.quiz_answers as Record<string, unknown>) || {};
     quizAnswers[question] = { answer, at: new Date().toISOString(), via: "one_tap", ...(src ? { src } : {}) };
     meta.quiz_answers = quizAnswers;
@@ -110,6 +115,18 @@ export async function POST(request: NextRequest) {
       state: factsForLabel.state,
       source: src,
     });
+
+    // Archetype short-circuits the benefits payoff: it's the intent self-sort,
+    // not a benefits fact, so it returns its own urgency-tailored screen (move
+    // to options / in-home path / calm orientation) instead of programs. The
+    // financial self-sort is asked later, once the family has engaged.
+    if (question === "archetype") {
+      const payoff = archetypePayoff(answer as Archetype, {
+        city: (profile as { city?: string | null }).city || null,
+        careType: careLabelEarly,
+      });
+      return NextResponse.json({ ok: true, question, answer, archetypePayoff: payoff, next: null });
+    }
 
     // The payoff: recompute with the answer applied, plus the next question.
     // A path answer additionally returns its narrative (the orientation page).

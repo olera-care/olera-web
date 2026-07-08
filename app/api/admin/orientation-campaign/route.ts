@@ -3,30 +3,25 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { isTransientSkip } from "@/lib/email-governance";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl, generateQuizToken, generateBriefToken } from "@/lib/claim-tokens";
-import {
-  familyBenefitsFacts,
-  friendlyCareLabel,
-  getProgramsForFamily,
-  pickQuizQuestion,
-} from "@/lib/family-comms/benefits-guidance.server";
+import { generateFamilyInboxUrl, generateQuizToken } from "@/lib/claim-tokens";
+import { friendlyCareLabel } from "@/lib/family-comms/benefits-guidance.server";
 import { familySelfReportedYes } from "@/lib/family-comms/outcome";
-import { US_STATES } from "@/lib/us-states";
-import { payingForCareEmail, orientationIntroSubject, careUnsubscribeUrl } from "@/lib/email-templates";
+import { ARCHETYPE_ASK } from "@/lib/family-comms/archetype";
+import { archetypeEmail, archetypeSubject, careUnsubscribeUrl } from "@/lib/email-templates";
 
 /**
- * GET /api/admin/orientation-campaign — the ONE-TIME orientation send to the
- * existing base (Orientation Everywhere plan, 2026-07-04). The paying_for_care
- * rung only reaches inquiries as they age through 72-96h; every family already
- * past the band would otherwise never be asked the self-sort. This delivers it
- * once, then the rung owns the forward flow.
+ * GET /api/admin/orientation-campaign — the ONE-TIME archetype send to the
+ * existing base (archetype first-touch, 2026-07-07). The archetype rung only
+ * reaches inquiries as they age through 72-96h; every family already past the
+ * band would otherwise never be asked. This delivers the clean "where are you in
+ * all this?" self-sort once, then the coordinator owns the forward flow.
  *
  * Admin-guarded GET, browser-triggerable (the WAF blocks curl). DRY BY
  * DEFAULT — nothing sends without mode=send, so loading the URL in a browser
  * is always safe. Batched via ?limit= so sends can be staged.
  *
  * Segment (?days=90): family profiles with an inquiry in the window that have
- * NO financial_path yet, minus: already-sent (one-shot stamp), self-reported
+ * NO archetype yet, minus: already-sent (one-shot stamp), self-reported
  * connected, nudge-unsubscribed, test seeds, no deliverable email. Every send
  * goes through sendEmail, so the daily/weekly caps, do-not-contact kill
  * switch, and bounce suppression all apply on top.
@@ -104,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     // 3. Segment filters, with per-stop counts for the dry-run report.
     const stops: Record<string, number> = {
-      already_sorted: 0,
+      already_archetyped: 0,
       already_sent: 0,
       self_reported_connected: 0,
       unsubscribed: 0,
@@ -115,8 +110,8 @@ export async function GET(request: NextRequest) {
     for (const p of profiles) {
       const meta = (p.metadata as Record<string, unknown>) || {};
       const inquiries = byFamily.get(p.id) || [];
-      if (meta.financial_path) { stops.already_sorted++; continue; }
-      if (meta.orientation_intro_sent_at) { stops.already_sent++; continue; }
+      if (meta.archetype) { stops.already_archetyped++; continue; }
+      if (meta.archetype_intro_sent_at) { stops.already_sent++; continue; }
       if (meta.nudges_unsubscribed) { stops.unsubscribed++; continue; }
       if (meta.test_seed === true) { stops.test_seed++; continue; }
       if (familySelfReportedYes(inquiries)) { stops.self_reported_connected++; continue; }
@@ -172,61 +167,33 @@ export async function GET(request: NextRequest) {
       if (!recipient) { results.no_email++; continue; }
       const authEmailFinal = authEmail || recipient;
 
-      const facts = familyBenefitsFacts(p);
-      const programs = await getProgramsForFamily(db, facts, 3);
-      if (programs.length === 0) { results.failed++; continue; }
-      const ask = pickQuizQuestion(facts);
-      const careLabel = friendlyCareLabel(facts.careTypes[0]);
-      const stateName = US_STATES.find((s) => s.value === (facts.state || ""))?.label || null;
-      const subject = orientationIntroSubject(careLabel);
+      const careLabel = friendlyCareLabel(p.care_types?.[0]);
+      const subject = archetypeSubject();
 
       const emailLogId = await reserveEmailLogId({
         to: recipient,
         subject,
-        emailType: "orientation_intro",
+        emailType: "archetype_intro",
         recipientType: "family",
-        metadata: { campaign: "orientation_intro_2026_07", quiz_question: ask?.question || null },
+        metadata: { campaign: "archetype_intro_2026_07" },
       });
 
-      const briefTok = generateBriefToken(p.id, authEmailFinal);
-      const html = payingForCareEmail({
+      const html = archetypeEmail({
         familyName: p.display_name || "there",
         careType: careLabel || null,
         city: p.city || null,
-        stateName,
-        opening: `A while back you reached out about ${careLabel || "care"}${p.city ? ` in ${p.city}` : ""}. However that search is going, there's a part of it nobody hands you a guide for: how to pay for it.`,
-        programs: programs.map((pr) => ({
-          name: pr.name,
-          savingsRange: pr.savingsRange,
-          blurb: pr.blurb,
+        opening: `A while back you reached out about ${careLabel || "care"}${p.city ? ` in ${p.city}` : ""}. Wherever your search stands now, one quick question so we can point you the right way:`,
+        chips: ARCHETYPE_ASK.chips.map((ch) => ({
+          label: ch.label,
           url: generateFamilyInboxUrl(
             authEmailFinal,
-            appendTrackingParams(`/family/program/${pr.id}?tok=${briefTok}`, emailLogId),
+            appendTrackingParams(
+              `/family/quiz-answer?tok=${generateQuizToken(p.id, "archetype", ch.answer, authEmailFinal)}`,
+              emailLogId,
+            ),
             siteUrl,
           ),
         })),
-        quiz: ask
-          ? {
-              prompt: ask.prompt,
-              leads: ask.question === "path",
-              chips: ask.chips.map((ch) => ({
-                label: ch.label,
-                url: generateFamilyInboxUrl(
-                  authEmailFinal,
-                  appendTrackingParams(
-                    `/family/quiz-answer?tok=${generateQuizToken(p.id, ask.question, ch.answer, authEmailFinal)}`,
-                    emailLogId,
-                  ),
-                  siteUrl,
-                ),
-              })),
-            }
-          : null,
-        fullPictureUrl: generateFamilyInboxUrl(
-          authEmailFinal,
-          appendTrackingParams("/benefits/finder", emailLogId),
-          siteUrl,
-        ),
         unsubscribeId: p.id,
       });
 
@@ -234,9 +201,9 @@ export async function GET(request: NextRequest) {
         to: recipient,
         subject,
         html,
-        emailType: "orientation_intro",
+        emailType: "archetype_intro",
         recipientType: "family",
-        metadata: { campaign: "orientation_intro_2026_07" },
+        metadata: { campaign: "archetype_intro_2026_07" },
         emailLogId: emailLogId ?? undefined,
         listUnsubscribeUrl: careUnsubscribeUrl(p.id),
       });
@@ -258,7 +225,7 @@ export async function GET(request: NextRequest) {
       const freshMeta = (freshProfile?.metadata as Record<string, unknown>) || meta;
       await db
         .from("business_profiles")
-        .update({ metadata: { ...freshMeta, orientation_intro_sent_at: stampAt } })
+        .update({ metadata: { ...freshMeta, archetype_intro_sent_at: stampAt } })
         .eq("id", p.id);
       if (skipped) { results.suppressed++; continue; }
       results.sent++;

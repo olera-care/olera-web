@@ -93,6 +93,11 @@ export const PENDING_COUNT_WINDOW_MINUTES = 15;
 export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   // Help-cascade rungs (connection-triggered)
   "family_outcome_check",
+  // Archetype first-touch (intent/urgency self-sort) — the guidance journey's
+  // clean opener; family_archetype = the rung, archetype_intro = the one-time
+  // campaign to the existing base. Both governed so every cap applies.
+  "family_archetype",
+  "archetype_intro",
   "paying_for_care",
   // One-time orientation campaign to the existing base (admin-triggered,
   // /api/admin/orientation-campaign) — governed so every cap applies

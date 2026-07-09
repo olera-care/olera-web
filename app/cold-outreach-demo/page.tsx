@@ -90,56 +90,16 @@ const MOCK_QA = [
   },
 ];
 
-const MOCK_ACCOMMODATIONS = [
-  { name: "Studio", price: "$4,020/mo", sqft: "566 Sq. Ft." },
-  { name: "1 Bedroom", price: "$3,880/mo", sqft: "588–759 Sq. Ft." },
-  { name: "2 Bedroom", price: "$5,800/mo", sqft: "1,013–1,138 Sq. Ft." },
-  { name: "3 Bedroom", price: "Contact us", sqft: "1,206 Sq. Ft." },
-];
-
-const MOCK_DINING_FEATURES = [
-  "Flexible Dining Hours",
-  "Sunday Brunch",
-  "24-Hour Chef's Pantry",
-  "Tableside Service",
-  "Meal Delivery for Daily Meals",
-  "Casual Buffet",
-  "Professional Chefs",
-  "Fresh, Healthy Ingredients",
-  "Share meals with friends and family anytime",
-];
-
 const MOCK_AMENITIES = [
-  {
-    heading: "Fitness & Wellness",
-    icon: "fitness",
-    items: ["Fitness Center", "Walking Paths", "Health & Wellness Programs", "Ageless Grace Brain Fitness Program", "Raised Garden Beds"],
-  },
-  {
-    heading: "Pet Friendly",
-    icon: "pet",
-    items: ["Dogs & Cats Welcome", "Landscaped Dog-Walking Grounds"],
-  },
-  {
-    heading: "Services & Convenience",
-    icon: "services",
-    items: ["Weekly Housekeeping", "On-Call Maintenance", "On-Site Salon & Spa", "Scheduled Transportation", "Bus Outings", "On-Site Bank Branch", "Pharmacy Delivery", "Gift Shop", "Grocery Shopping Service", "Guest Suite for Visiting Family", "Valet & Resident Parking"],
-  },
-  {
-    heading: "Safety & Support",
-    icon: "safety",
-    items: ["24/7 Concierge", "Emergency Alert Systems", "Live-In On-Site Management"],
-  },
-  {
-    heading: "Social & Recreation",
-    icon: "social",
-    items: ["Arts & Crafts Room", "Billiards & Game Room", "Library", "Computer Center", "Daily Social Activities", "Main Street Shops & Gathering Spaces", "Full-Size Movie Theater"],
-  },
-  {
-    heading: "Languages Spoken",
-    icon: "languages",
-    items: ["English", "Spanish"],
-  },
+  "Meal Services",
+  "Transportation",
+  "Housekeeping",
+  "24/7 Support",
+  "Emergency Response",
+  "Social Activities",
+  "Pet Friendly",
+  "Accessible Facilities",
+  "Outdoor Spaces",
 ];
 
 const MOCK_NEARBY = [
@@ -156,8 +116,6 @@ const SECTION_NAV_ITEMS = [
   { id: "qa", label: "Q&A" },
   { id: "about", label: "About" },
   { id: "care-services", label: "Care Services" },
-  { id: "accommodations", label: "Accommodations" },
-  { id: "dining", label: "Dining" },
   { id: "amenities", label: "Amenities" },
   { id: "neighborhood", label: "Neighborhood" },
 ];
@@ -272,7 +230,7 @@ function ProviderPageTab() {
               <span className="text-gray-300">·</span>
               <span className="font-medium">{MOCK_PROVIDER.priceRange}</span>
               <span className="text-gray-300">·</span>
-              <span className="text-green-600 font-medium">Accepting residents</span>
+              <span className="text-gray-600 font-medium">Contact for availability</span>
             </div>
 
             {/* Awards/Badges */}
@@ -461,73 +419,18 @@ function ProviderPageTab() {
               </div>
             </div>
 
-            {/* Accommodations Section */}
-            <div id="accommodations" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Accommodations</h2>
-              <p className="text-sm text-gray-600 mb-6">Our thoughtfully designed floor plans offer the perfect blend of comfort, style, and functionality.</p>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {MOCK_ACCOMMODATIONS.map((unit) => (
-                  <div key={unit.name} className="border border-gray-200 rounded-xl p-4 hover:border-primary-300 hover:shadow-sm transition-all">
-                    <h3 className="text-lg font-semibold text-gray-900">{unit.name}</h3>
-                    <p className="text-xl font-bold text-primary-600 mt-1">{unit.price}</p>
-                    <p className="text-sm text-gray-500 mt-1">{unit.sqft}</p>
-                    <button className="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700">
-                      View floor plans →
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {["Full Kitchen", "In-Unit Washer/Dryer", "Private Patio", "Wheelchair Accessible", "Paid Utilities", "Cable & Wi-Fi"].map((feature) => (
-                  <span key={feature} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-full text-sm text-gray-700">
-                    <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {feature}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Dining Section */}
-            <div id="dining" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Dining</h2>
-              <p className="text-sm text-gray-600 mb-6">Signature Freedom Dining offers chef-prepared meals served resort-style throughout the day, with flexible hours and multiple dining settings.</p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2.5">
-                {MOCK_DINING_FEATURES.map((item) => (
-                  <div key={item} className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-3 h-3 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-800">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Amenities Section */}
             <div id="amenities" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {MOCK_AMENITIES.map((category) => (
-                  <div key={category.heading}>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{category.heading}</h3>
-                    <ul className="space-y-2">
-                      {category.items.map((item) => (
-                        <li key={item} className="flex items-center gap-2.5 text-sm text-gray-700">
-                          <svg className="w-4 h-4 text-teal-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {MOCK_AMENITIES.map((amenity) => (
+                  <div key={amenity} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-700">{amenity}</span>
                   </div>
                 ))}
               </div>

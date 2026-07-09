@@ -276,7 +276,7 @@ function ProviderPageTab() {
 
             {/* Awards/Badges */}
             <div className="mt-6 border border-gray-200 rounded-xl px-5 py-4">
-              <div className="flex flex-wrap justify-evenly gap-y-4">
+              <div className="flex flex-wrap justify-center gap-x-16 gap-y-4">
                 <div className="flex items-center gap-3">
                   <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
                     <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#C5A44E" />
@@ -363,14 +363,9 @@ function ProviderPageTab() {
 
             {/* Reviews Section — first after hero (matches real provider pages) */}
             <div id="reviews" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <div className="flex items-center gap-3 mb-4 md:mb-6">
-                <svg className="w-7 h-7 text-gray-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-                <h2 className="text-3xl font-bold text-gray-900 font-display tracking-tight">
-                  What families are saying
-                </h2>
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight mb-4 md:mb-6">
+                What families are saying
+              </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
                 {MOCK_REVIEWS.map((review) => (
@@ -430,33 +425,17 @@ function ProviderPageTab() {
                   </button>
                 ))}
               </div>
-
-              {/* Answered Questions */}
-              {MOCK_QA.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <p className="text-sm font-medium text-gray-500 mb-4">{MOCK_QA.length} answered questions</p>
-                  <div className="space-y-4">
-                    {MOCK_QA.slice(0, 2).map((qa) => (
-                      <div key={qa.id} className="bg-gray-50 rounded-xl p-4">
-                        <p className="text-[15px] font-medium text-gray-900">{qa.question}</p>
-                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">{qa.answer}</p>
-                        <p className="text-xs text-gray-400 mt-2">Asked by {qa.asker} · {qa.date}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* About Section — now after Reviews and Q&A */}
             <div id="about" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
               <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
             </div>
 
             {/* Accommodations Section */}
             <div id="accommodations" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">Accommodations</h2>
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Accommodations</h2>
               <p className="text-sm text-gray-600 mb-6">Our thoughtfully designed floor plans offer the perfect blend of comfort, style, and functionality.</p>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -486,7 +465,7 @@ function ProviderPageTab() {
 
             {/* Dining Section */}
             <div id="dining" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">Dining</h2>
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">Dining</h2>
               <p className="text-sm text-gray-600 mb-6">Signature Freedom Dining offers chef-prepared meals served resort-style throughout the day, with flexible hours and multiple dining settings.</p>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2.5">
@@ -505,7 +484,7 @@ function ProviderPageTab() {
 
             {/* Amenities Section */}
             <div id="amenities" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {MOCK_AMENITIES.map((category) => (
@@ -529,7 +508,7 @@ function ProviderPageTab() {
             {/* Neighborhood Section */}
             <div id="neighborhood" className="scroll-mt-14 py-8 border-b border-gray-200">
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-3xl font-bold text-gray-900 font-display">What&apos;s nearby</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-display">What&apos;s nearby</h2>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-medium">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

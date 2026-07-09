@@ -241,34 +241,20 @@ function ProviderPageTab() {
               <span className="text-gray-600 font-medium">Contact for availability</span>
             </div>
 
-            {/* Awards/Badges */}
-            <div className="mt-6 border border-gray-200 rounded-xl px-5 py-4">
-              <div className="flex flex-wrap justify-center gap-x-16 gap-y-4">
-                <div className="flex items-center gap-3">
-                  <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
-                    <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#C5A44E" />
-                    <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
-                    <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
-                    <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#C5A44E" fontFamily="system-ui">AWARD</text>
-                  </svg>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Best of Senior Living</span>
-                    <span className="text-sm text-gray-500">2024 Award Winner</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
-                    <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#198087" />
-                    <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
-                    <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
-                    <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#198087" fontFamily="system-ui">5-STAR</text>
-                  </svg>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Five Star Quality</span>
-                    <span className="text-sm text-gray-500">Medicare Rating</span>
-                  </div>
-                </div>
-              </div>
+            {/* Awards/Badges — compact chips */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700">
+                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
+                </svg>
+                Best of Senior Living 2024
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700">
+                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                </svg>
+                Medicare 5-star
+              </span>
             </div>
 
             {/* Unclaimed section — like Airbnb's "Hosted by" */}
@@ -458,61 +444,6 @@ function ProviderPageTab() {
               </div>
             </div>
 
-            {/* Compare Section */}
-            <div className="border-t border-gray-200 pt-8">
-              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
-                Compare {MOCK_PROVIDER.name} to the best local options
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {MOCK_SIMILAR_PROVIDERS.map((provider) => (
-                  <div key={provider.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                    {/* Image */}
-                    <div className="relative aspect-[4/3] bg-gray-100">
-                      {provider.image ? (
-                        <Image src={provider.image} alt={provider.name} fill className="object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center">
-                          <span className="text-3xl font-bold text-primary-400">{provider.name.slice(0, 2).toUpperCase()}</span>
-                          <span className="text-sm text-primary-600 mt-1">{provider.category}</span>
-                        </div>
-                      )}
-                      {/* Save button */}
-                      <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                        </svg>
-                      </button>
-                    </div>
-                    {/* Details */}
-                    <div className="p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-gray-900 leading-tight">{provider.name}</h3>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                          <span className="text-sm font-medium">{provider.rating}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">{provider.category} · {provider.location}</p>
-                      {provider.highlight && (
-                        <div className="flex items-center gap-1.5 mt-2">
-                          <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="text-sm text-gray-600">{provider.highlight}</span>
-                        </div>
-                      )}
-                      <p className="text-sm text-gray-500 mt-2">
-                        <span className="text-xs text-gray-400 uppercase">Area avg.</span>{" "}
-                        <span className="font-semibold text-gray-900">{provider.priceRange}</span>
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             </div>{/* End Content Sections */}
           </div>{/* End Left Column */}
 
@@ -549,10 +480,80 @@ function ProviderPageTab() {
           </div>{/* End Right CTA */}
 
         </div>{/* End Two-Column Layout */}
+
+        {/* Compare Section — full width outside two-column layout */}
+        <div className="border-t border-gray-200 pt-8 mt-8">
+          <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
+            Compare {MOCK_PROVIDER.name} to the best local options
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {MOCK_SIMILAR_PROVIDERS.map((provider) => (
+              <div key={provider.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                {/* Image */}
+                <div className="relative aspect-[4/3] bg-gray-100">
+                  {provider.image ? (
+                    <Image src={provider.image} alt={provider.name} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold text-primary-400">{provider.name.slice(0, 2).toUpperCase()}</span>
+                      <span className="text-sm text-primary-600 mt-1">{provider.category}</span>
+                    </div>
+                  )}
+                  {/* Save button */}
+                  <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors">
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                  </button>
+                </div>
+                {/* Details */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-gray-900 leading-tight">{provider.name}</h3>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="text-sm font-medium">{provider.rating}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{provider.category} · {provider.location}</p>
+                  {provider.highlight && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-sm text-gray-600">{provider.highlight}</span>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 mt-2">
+                    <span className="text-xs text-gray-400 uppercase">Area avg.</span>{" "}
+                    <span className="font-semibold text-gray-900">{provider.priceRange}</span>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>{/* End max-w-7xl container */}
 
-      {/* Mobile Fixed CTA — positioned above floating tabs */}
-      <div className="fixed bottom-24 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
+      {/* Minimal Footer */}
+      <footer className="border-t border-gray-200 mt-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <p className="text-sm text-gray-500">© 2026 Olera. All rights reserved.</p>
+            <div className="flex items-center gap-6">
+              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Privacy</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Terms</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Support</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Mobile Fixed CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
         <button className="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
           Request details
         </button>

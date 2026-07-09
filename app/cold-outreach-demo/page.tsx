@@ -241,42 +241,20 @@ function ProviderPageTab() {
               <span className="text-gray-600 font-medium">Contact for availability</span>
             </div>
 
-            {/* Awards/Badges — compact chips */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700">
-                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
-                </svg>
-                Best of Senior Living 2024
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-full text-sm text-gray-700">
-                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                </svg>
-                Medicare 5-star
-              </span>
-            </div>
+            {/* Unclaimed notice — single line */}
+            <p className="text-sm text-gray-500 mt-4">
+              <span className="font-medium text-gray-700">Unclaimed listing</span>
+              <span className="mx-1.5">·</span>
+              Are you the owner?{" "}
+              <button className="text-primary-600 hover:text-primary-700 font-medium underline">
+                Manage this page
+              </button>
+            </p>
 
-            {/* Unclaimed section — like Airbnb's "Hosted by" */}
-            <div className="flex items-center gap-3 mt-6">
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Unclaimed listing</p>
-                <p className="text-sm text-gray-500">
-                  Are you the owner?{" "}
-                  <button className="text-primary-600 hover:text-primary-700 font-medium underline">
-                    Manage this page
-                  </button>
-                </p>
-              </div>
-            </div>
-
-            {/* What makes this place special — Airbnb-style highlights */}
-            <div className="mt-8 space-y-6">
+            {/* Unique Qualities Section */}
+            <div className="mt-10">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Unique Qualities</h2>
+              <div className="space-y-6">
               {/* Highlight 1 */}
               <div className="flex gap-4">
                 <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -309,13 +287,14 @@ function ProviderPageTab() {
                   <p className="text-gray-500 text-sm">Landscaped walking grounds and welcoming atmosphere for pets.</p>
                 </div>
               </div>
+              </div>
             </div>
 
             {/* Content Sections */}
             <div className="mt-6">
 
             {/* Reviews Section — first after hero (matches real provider pages) */}
-            <div id="reviews" className="scroll-mt-14 py-8 border-b border-gray-200">
+            <div id="reviews" className="scroll-mt-14 pt-10 pb-8">
               <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight mb-4 md:mb-6">
                 What families are saying
               </h2>
@@ -348,7 +327,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Q&A Section — "Got questions?" style (matches real provider pages) */}
-            <div id="qa" className="scroll-mt-14 py-8 border-b border-gray-200">
+            <div id="qa" className="scroll-mt-14 pt-10 pb-8">
               <div className="mb-6">
                 <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
                   Got questions?
@@ -380,14 +359,8 @@ function ProviderPageTab() {
               </div>
             </div>
 
-            {/* About Section — now after Reviews and Q&A */}
-            <div id="about" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
-              <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
-            </div>
-
             {/* Care Services Section */}
-            <div id="care-services" className="scroll-mt-14 py-8 border-b border-gray-200">
+            <div id="care-services" className="scroll-mt-14 pt-10 pb-8">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Care Services</h2>
               <div className="grid grid-cols-2 gap-y-5 gap-x-8">
                 {visibleServices.map((service) => (
@@ -408,7 +381,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Amenities Section */}
-            <div id="amenities" className="scroll-mt-14 py-8 border-b border-gray-200">
+            <div id="amenities" className="scroll-mt-14 pt-10 pb-8">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
               <div className="grid grid-cols-2 gap-y-5 gap-x-8">
                 {visibleAmenities.map((amenity) => (
@@ -430,14 +403,20 @@ function ProviderPageTab() {
               )}
             </div>
 
-            {/* Disclaimer */}
-            <div className="py-8">
+            {/* About Section */}
+            <div id="about" className="scroll-mt-14 pt-10 pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
+            </div>
+
+            {/* Disclaimer + Claim CTA — stacked together */}
+            <div className="pt-10 pb-8">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">Disclaimer</h2>
               <p className="text-sm text-gray-500 leading-relaxed">
                 We strive to keep this page accurate and current, but some details may not be up to date. Prices quoted are monthly rental charges and are provided by the community. Actual prices may differ due to one-time fees, timing, and care services required. To confirm whether {MOCK_PROVIDER.name} is the right fit for you or your loved one, please verify all information directly with the provider.
               </p>
-              <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
-                <p className="text-sm text-gray-500">Are you the owner of this business?</p>
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm font-medium text-gray-700">Are you the owner of this business?</p>
                 <button className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
                   Manage this page <span aria-hidden="true">→</span>
                 </button>
@@ -445,7 +424,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Compare Section — inside left column so sticky CTA works */}
-            <div className="border-t border-gray-200 pt-8 mt-4">
+            <div className="pt-10">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
                 Compare {MOCK_PROVIDER.name} to the best local options
               </h2>

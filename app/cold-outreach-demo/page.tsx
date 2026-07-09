@@ -227,10 +227,25 @@ function ProviderPageTab() {
         {/* One big hero image — compact like Airbnb */}
         <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[3.5/1]">
           <Image src={MOCK_IMAGES[0]} alt={MOCK_PROVIDER.name} fill sizes="100vw" priority className="object-cover" />
-          {/* Unclaimed badge overlay */}
-          <div className="absolute top-4 left-4 z-20">
-            <div className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
-              <span className="text-sm font-medium text-gray-600">Unclaimed</span>
+          {/* Unclaimed badge overlay — compact with tooltip on hover */}
+          <div className="absolute top-4 left-4 z-20 group">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm bg-white/90 text-gray-600 transition-colors">
+              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              Unclaimed
+            </button>
+            {/* Tooltip */}
+            <div className="absolute top-full left-0 mt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="bg-gray-900 text-white rounded-lg px-4 py-3 text-[13px] leading-relaxed shadow-lg">
+                <p className="mb-2">This listing hasn&apos;t been claimed by the owner yet.</p>
+                <button className="inline-flex items-center gap-1 text-primary-300 hover:text-primary-200 font-medium transition-colors">
+                  Are you the owner? Manage this page
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -252,33 +267,14 @@ function ProviderPageTab() {
                 </svg>
                 <span className="font-medium">{MOCK_PROVIDER.rating}</span>
               </span>
-              <span className="text-gray-300">·</span>
-              <span className="underline">{MOCK_PROVIDER.reviewCount} reviews</span>
+              <span className="font-medium underline">{MOCK_PROVIDER.reviewCount} reviews</span>
               <span className="text-gray-300">·</span>
               <span className="font-medium">{MOCK_PROVIDER.priceRange}</span>
               <span className="text-gray-300">·</span>
               <span className="text-green-600 font-medium">Accepting residents</span>
             </div>
 
-            {/* Unclaimed section — like Airbnb's "Hosted by" */}
-            <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200">
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">Unclaimed listing</p>
-                <p className="text-sm text-gray-500">
-                  Are you the owner?{" "}
-                  <button className="text-primary-600 hover:text-primary-700 font-medium underline">
-                    Manage this page
-                  </button>
-                </p>
-              </div>
-            </div>
-
-            {/* Awards/Badges — right after unclaimed section */}
+            {/* Awards/Badges */}
             <div className="mt-6 border border-gray-200 rounded-xl px-5 py-4">
               <div className="flex flex-wrap justify-evenly gap-y-4">
                 <div className="flex items-center gap-3">
@@ -305,6 +301,24 @@ function ProviderPageTab() {
                     <span className="text-sm text-gray-500">Medicare Rating</span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Unclaimed section — like Airbnb's "Hosted by" */}
+            <div className="flex items-center gap-3 mt-6">
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">Unclaimed listing</p>
+                <p className="text-sm text-gray-500">
+                  Are you the owner?{" "}
+                  <button className="text-primary-600 hover:text-primary-700 font-medium underline">
+                    Manage this page
+                  </button>
+                </p>
               </div>
             </div>
 
@@ -349,18 +363,13 @@ function ProviderPageTab() {
 
             {/* Reviews Section — first after hero (matches real provider pages) */}
             <div id="reviews" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight mb-2">
-                What families are saying
-              </h2>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className={`w-5 h-5 ${i < Math.floor(MOCK_PROVIDER.rating) ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <span className="text-sm text-gray-600">{MOCK_PROVIDER.rating} · {MOCK_PROVIDER.reviewCount} reviews</span>
+              <div className="flex items-center gap-3 mb-4 md:mb-6">
+                <svg className="w-7 h-7 text-gray-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                <h2 className="text-3xl font-bold text-gray-900 font-display tracking-tight">
+                  What families are saying
+                </h2>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -447,12 +456,7 @@ function ProviderPageTab() {
 
             {/* Accommodations Section */}
             <div id="accommodations" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3 flex items-center gap-2.5">
-                <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-                </svg>
-                Accommodations
-              </h2>
+              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">Accommodations</h2>
               <p className="text-sm text-gray-600 mb-6">Our thoughtfully designed floor plans offer the perfect blend of comfort, style, and functionality.</p>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -482,12 +486,7 @@ function ProviderPageTab() {
 
             {/* Dining Section */}
             <div id="dining" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3 flex items-center gap-2.5">
-                <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M16.5 8.25V6.75a3 3 0 10-6 0v1.5" />
-                </svg>
-                Dining
-              </h2>
+              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">Dining</h2>
               <p className="text-sm text-gray-600 mb-6">Signature Freedom Dining offers chef-prepared meals served resort-style throughout the day, with flexible hours and multiple dining settings.</p>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-2.5">
@@ -506,12 +505,7 @@ function ProviderPageTab() {
 
             {/* Amenities Section */}
             <div id="amenities" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-6 flex items-center gap-2.5">
-                <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                </svg>
-                Amenities
-              </h2>
+              <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {MOCK_AMENITIES.map((category) => (
@@ -535,13 +529,7 @@ function ProviderPageTab() {
             {/* Neighborhood Section */}
             <div id="neighborhood" className="scroll-mt-14 py-8 border-b border-gray-200">
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-3xl font-bold text-gray-900 font-display flex items-center gap-2.5">
-                  <svg className="w-7 h-7 text-gray-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                  </svg>
-                  What&apos;s nearby
-                </h2>
+                <h2 className="text-3xl font-bold text-gray-900 font-display">What&apos;s nearby</h2>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-medium">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

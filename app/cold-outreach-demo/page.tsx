@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 type Tab = "provider-page" | "admin-trigger" | "first-contact";
@@ -204,9 +204,34 @@ const SECTION_NAV_ITEMS = [
 // =============================================================================
 function ProviderPageTab() {
   const [activeSection, setActiveSection] = useState("about");
+  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+
+  // Intersection Observer to update activeSection on scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
+    );
+
+    // Observe all section elements
+    SECTION_NAV_ITEMS.forEach((item) => {
+      const el = document.getElementById(item.id);
+      if (el) {
+        sectionRefs.current.set(item.id, el);
+        observer.observe(el);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const scrollToSection = (id: string) => {
-    setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -251,177 +276,134 @@ function ProviderPageTab() {
           </div>
         </div>
 
-        {/* Details below photo — Airbnb style */}
-        <div className="mt-6">
-          {/* Category + Location (like "Private room in rental unit in Aburi, Ghana") */}
-          <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
-            {MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}
-          </h2>
+        {/* Two-column layout starts here — CTA aligns with headline */}
+        <div className="md:flex md:gap-10 md:items-start mt-6">
+          {/* Left column: Details + About + Content */}
+          <div className="flex-1 min-w-0">
+            {/* Category + Location (like "Private room in rental unit in Aburi, Ghana") */}
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+              {MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}
+            </h2>
 
-          {/* Stats line: Rating · Reviews · Price · Accepting */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-base text-gray-600">
-            <span className="flex items-center gap-1">
-              <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span className="font-medium">{MOCK_PROVIDER.rating}</span>
-            </span>
-            <span className="text-gray-300">·</span>
-            <span className="underline">{MOCK_PROVIDER.reviewCount} reviews</span>
-            <span className="text-gray-300">·</span>
-            <span className="font-medium">{MOCK_PROVIDER.priceRange}</span>
-            <span className="text-gray-300">·</span>
-            <span className="text-green-600 font-medium">Accepting residents</span>
-          </div>
-
-          {/* Unclaimed section — like Airbnb's "Hosted by" */}
-          <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200">
-            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-              </svg>
+            {/* Stats line: Rating · Reviews · Price · Accepting */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-base text-gray-600">
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="font-medium">{MOCK_PROVIDER.rating}</span>
+              </span>
+              <span className="text-gray-300">·</span>
+              <span className="underline">{MOCK_PROVIDER.reviewCount} reviews</span>
+              <span className="text-gray-300">·</span>
+              <span className="font-medium">{MOCK_PROVIDER.priceRange}</span>
+              <span className="text-gray-300">·</span>
+              <span className="text-green-600 font-medium">Accepting residents</span>
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Unclaimed listing</p>
-              <p className="text-sm text-gray-500">
-                Are you the owner?{" "}
-                <button className="text-primary-600 hover:text-primary-700 font-medium underline">
-                  Manage this page
-                </button>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ===== Content Zone — White Background ===== */}
-      <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 md:py-10">
-
-          {/* About + CTA side-by-side (desktop) */}
-          <div className="md:flex md:gap-10 md:items-start mb-10">
-            {/* Left: About + badges + standout */}
-            <div className="flex-1 min-w-0">
-              <div id="about" className="scroll-mt-20">
-                <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
-                <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
-
-                {/* Awards/Badges */}
-                <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
-                  <div className="flex flex-wrap gap-x-10 gap-y-4">
-                    <div className="flex items-center gap-3">
-                      <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
-                        <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#C5A44E" />
-                        <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
-                        <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
-                        <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#C5A44E" fontFamily="system-ui">AWARD</text>
-                      </svg>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Best of Senior Living</span>
-                        <span className="text-sm text-gray-500">2024 Award Winner</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
-                        <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#198087" />
-                        <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
-                        <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
-                        <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#198087" fontFamily="system-ui">5-STAR</text>
-                      </svg>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Five Star Quality</span>
-                        <span className="text-sm text-gray-500">Medicare Rating</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* What makes this place special */}
-                <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                    </svg>
-                    <h3 className="text-xl font-bold text-gray-900">What makes this place special</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {[
-                      "Resort-style Freedom Dining with chef-prepared meals served throughout the day",
-                      "Full-size movie theater and Main Street shops on-site",
-                      "Pet-friendly community with landscaped walking grounds",
-                      "Spacious apartments from studios to 3-bedrooms with full kitchens",
-                    ].map((point) => (
-                      <li key={point} className="flex items-start gap-2.5">
-                        <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                        <span className="text-sm text-gray-900 leading-relaxed">{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            {/* Unclaimed section — like Airbnb's "Hosted by" */}
+            <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200">
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
               </div>
-            </div>
-
-            {/* Right: CTA card (desktop only) */}
-            <div className="hidden md:block w-[380px] flex-shrink-0">
-              <div className="bg-gradient-to-b from-white to-primary-25/40 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden sticky top-24">
-                <div className="px-6 py-6">
-                  <p className="text-sm text-gray-500 italic">{MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{MOCK_PROVIDER.priceRange}</p>
-                  <p className="text-sm text-gray-500 mt-1">Pricing varies by apartment type</p>
-
-                  <div className="border-t border-gray-200 my-5" />
-
-                  <h3 className="text-base font-semibold text-gray-900 mb-4">Schedule a tour</h3>
-
-                  <div className="space-y-3 mb-4">
-                    <input type="text" placeholder="Your name" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                    <input type="email" placeholder="Your email address" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                    <input type="tel" placeholder="Phone number" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                  </div>
-
-                  <button className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
-                    Request a tour
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">Unclaimed listing</p>
+                <p className="text-sm text-gray-500">
+                  Are you the owner?{" "}
+                  <button className="text-primary-600 hover:text-primary-700 font-medium underline">
+                    Manage this page
                   </button>
-
-                  <div className="flex items-center justify-center gap-1.5 mt-4 text-sm text-gray-500">
-                    <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <span>No spam. No obligation.</span>
-                  </div>
-
-                  <p className="text-center text-sm text-gray-400 mt-2">42 families toured this month</p>
-                </div>
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Section Navigation — sticky tabs */}
-          <div className="sticky top-0 z-30 bg-white -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 border-b border-gray-200 overflow-x-auto">
-            <nav className="flex items-center gap-6 min-w-max">
-              {SECTION_NAV_ITEMS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className={`text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${
-                    activeSection === item.id
-                      ? "text-gray-900 border-gray-900"
-                      : "text-gray-500 border-transparent hover:text-gray-700"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-          </div>
+            {/* Section Navigation — sticky tabs (constrained to left column) */}
+            <div className="sticky top-0 z-30 bg-white py-3 border-b border-gray-200 overflow-x-auto mt-6">
+              <nav className="flex items-center gap-6 min-w-max">
+                {SECTION_NAV_ITEMS.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className={`text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${
+                      activeSection === item.id
+                        ? "text-gray-900 border-gray-900"
+                        : "text-gray-500 border-transparent hover:text-gray-700"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-          {/* Content Sections */}
-          <div className="mt-8">
+            {/* Content Sections */}
+            <div>
+
+            {/* About Section */}
+            <div id="about" className="scroll-mt-14 py-8 border-b border-gray-200">
+              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
+
+              {/* Awards/Badges */}
+              <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
+                <div className="flex flex-wrap gap-x-10 gap-y-4">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
+                      <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#C5A44E" />
+                      <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
+                      <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
+                      <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#C5A44E" fontFamily="system-ui">AWARD</text>
+                    </svg>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Best of Senior Living</span>
+                      <span className="text-sm text-gray-500">2024 Award Winner</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
+                      <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#198087" />
+                      <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
+                      <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
+                      <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#198087" fontFamily="system-ui">5-STAR</text>
+                    </svg>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Five Star Quality</span>
+                      <span className="text-sm text-gray-500">Medicare Rating</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* What makes this place special */}
+              <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                  </svg>
+                  <h3 className="text-xl font-bold text-gray-900">What makes this place special</h3>
+                </div>
+                <ul className="space-y-2">
+                  {[
+                    "Resort-style Freedom Dining with chef-prepared meals served throughout the day",
+                    "Full-size movie theater and Main Street shops on-site",
+                    "Pet-friendly community with landscaped walking grounds",
+                    "Spacious apartments from studios to 3-bedrooms with full kitchens",
+                  ].map((point) => (
+                    <li key={point} className="flex items-start gap-2.5">
+                      <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                      <span className="text-sm text-gray-900 leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
             {/* Reviews Section */}
-            <div id="reviews" className="scroll-mt-20 py-8 border-b border-gray-200">
+            <div id="reviews" className="scroll-mt-14 py-8 border-b border-gray-200">
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-3xl font-bold text-gray-900 font-display flex items-center gap-2.5">
                   <svg className="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
@@ -460,7 +442,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Q&A Section */}
-            <div id="qa" className="scroll-mt-20 py-8 border-b border-gray-200">
+            <div id="qa" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-3xl font-bold text-gray-900 font-display mb-6 flex items-center gap-2.5">
                 <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
@@ -492,7 +474,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Accommodations Section */}
-            <div id="accommodations" className="scroll-mt-20 py-8 border-b border-gray-200">
+            <div id="accommodations" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-3xl font-bold text-gray-900 font-display mb-3 flex items-center gap-2.5">
                 <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -527,7 +509,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Dining Section */}
-            <div id="dining" className="scroll-mt-20 py-8 border-b border-gray-200">
+            <div id="dining" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-3xl font-bold text-gray-900 font-display mb-3 flex items-center gap-2.5">
                 <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M16.5 8.25V6.75a3 3 0 10-6 0v1.5" />
@@ -551,7 +533,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Amenities Section */}
-            <div id="amenities" className="scroll-mt-20 py-8 border-b border-gray-200">
+            <div id="amenities" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-3xl font-bold text-gray-900 font-display mb-6 flex items-center gap-2.5">
                 <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
@@ -579,7 +561,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Neighborhood Section */}
-            <div id="neighborhood" className="scroll-mt-20 py-8 border-b border-gray-200">
+            <div id="neighborhood" className="scroll-mt-14 py-8 border-b border-gray-200">
               <div className="flex items-center gap-3 mb-4">
                 <h2 className="text-3xl font-bold text-gray-900 font-display flex items-center gap-2.5">
                   <svg className="w-7 h-7 text-gray-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -628,12 +610,50 @@ function ProviderPageTab() {
               </div>
             </div>
 
-          </div>
-        </div>
-      </div>
+            </div>{/* End Content Sections */}
+          </div>{/* End Left Column */}
 
-      {/* Mobile Fixed CTA */}
-      <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
+          {/* Right: CTA card (desktop only) — sticky */}
+          <div className="hidden md:block w-[380px] flex-shrink-0">
+            <div className="sticky top-24">
+              <div className="bg-gradient-to-b from-white to-primary-25/40 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+                <div className="px-6 py-6">
+                  <p className="text-sm text-gray-500 italic">{MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{MOCK_PROVIDER.priceRange}</p>
+                  <p className="text-sm text-gray-500 mt-1">Pricing varies by apartment type</p>
+
+                  <div className="border-t border-gray-200 my-5" />
+
+                  <h3 className="text-base font-semibold text-gray-900 mb-4">Schedule a tour</h3>
+
+                  <div className="space-y-3 mb-4">
+                    <input type="text" placeholder="Your name" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                    <input type="email" placeholder="Your email address" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                    <input type="tel" placeholder="Phone number" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                  </div>
+
+                  <button className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
+                    Request a tour
+                  </button>
+
+                  <div className="flex items-center justify-center gap-1.5 mt-4 text-sm text-gray-500">
+                    <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>No spam. No obligation.</span>
+                  </div>
+
+                  <p className="text-center text-sm text-gray-400 mt-2">42 families toured this month</p>
+                </div>
+              </div>
+            </div>
+          </div>{/* End Right CTA */}
+
+        </div>{/* End Two-Column Layout */}
+      </div>{/* End max-w-7xl container */}
+
+      {/* Mobile Fixed CTA — positioned above floating tabs */}
+      <div className="fixed bottom-24 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
         <button className="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
           Request a tour
         </button>

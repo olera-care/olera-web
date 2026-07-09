@@ -17,8 +17,8 @@ export default function ConditionalFooter() {
   const isProvider = activeProfile?.type === "organization";
 
   // Admin, inbox, onboarding, claim wizard, removal request, match detail, MedJobs
-  // forms, and unsubscribe confirmations — no footer. These are terminal/utility
-  // pages; the marketing footer + SEO city grid is noise (and cramped on mobile).
+  // forms, unsubscribe confirmations, and demo pages — no footer. These are
+  // terminal/utility pages; the marketing footer + SEO city grid is noise.
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/portal/inbox") ||
@@ -29,6 +29,7 @@ export default function ConditionalFooter() {
     pathname.startsWith("/medjobs/apply") ||
     pathname.startsWith("/medjobs/submit-video") ||
     pathname.startsWith("/unsubscribe") ||
+    pathname.startsWith("/cold-outreach-demo") ||
     pathname.match(/^\/portal\/matches\/[^/]+$/)
   ) {
     return null;

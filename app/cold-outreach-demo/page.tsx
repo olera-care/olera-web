@@ -152,9 +152,10 @@ const MOCK_NEARBY = [
 ];
 
 const SECTION_NAV_ITEMS = [
-  { id: "about", label: "About" },
   { id: "reviews", label: "Reviews" },
   { id: "qa", label: "Q&A" },
+  { id: "about", label: "About" },
+  { id: "care-services", label: "Care Services" },
   { id: "accommodations", label: "Accommodations" },
   { id: "dining", label: "Dining" },
   { id: "amenities", label: "Amenities" },
@@ -431,6 +432,33 @@ function ProviderPageTab() {
             <div id="about" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
               <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
+            </div>
+
+            {/* Care Services Section */}
+            <div id="care-services" className="scroll-mt-14 py-8 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Care Services</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  "Independent Living",
+                  "Wellness Programs",
+                  "Medication Management",
+                  "Health Monitoring",
+                  "Emergency Response",
+                  "Coordination of Care",
+                  "Scheduled Transportation",
+                  "Social Activities",
+                  "Meal Services",
+                ].map((service) => (
+                  <div key={service} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-700">{service}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Accommodations Section */}

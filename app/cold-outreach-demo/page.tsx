@@ -211,7 +211,7 @@ function ProviderPageTab() {
   };
 
   return (
-    <div className="min-h-screen bg-white md:bg-vanilla-100">
+    <div className="min-h-screen bg-white">
 
       {/* ===== Hero Zone — Cream Background ===== */}
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pt-6">

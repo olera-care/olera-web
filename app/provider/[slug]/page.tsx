@@ -1009,7 +1009,7 @@ export default async function ProviderPage({
             {images.length > 0 && (
               <div className="absolute top-4 left-4 z-20">
                 <ClaimBadge
-                  claimState={displayClaimState}
+                  displayState={displayClaimState}
                   providerName={profile.display_name}
                   claimUrl={`/provider/onboarding?org=${profile.slug}`}
                 />

@@ -246,9 +246,6 @@ function ProviderPageTab() {
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display">
             {MOCK_PROVIDER.name}
           </h1>
-          <button className="px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors">
-            Manage this page
-          </button>
           <div className="ml-auto flex items-center gap-4">
             <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,87 +316,68 @@ function ProviderPageTab() {
               </div>
             </div>
 
-            {/* Section Navigation — sticky tabs (constrained to left column) */}
-            <div className="sticky top-0 z-30 bg-white py-3 border-b border-gray-200 overflow-x-auto mt-6">
-              <nav className="flex items-center gap-6 min-w-max">
-                {SECTION_NAV_ITEMS.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => scrollToSection(item.id)}
-                    className={`text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${
-                      activeSection === item.id
-                        ? "text-gray-900 border-gray-900"
-                        : "text-gray-500 border-transparent hover:text-gray-700"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
+            {/* Awards/Badges — right after unclaimed section */}
+            <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
+              <div className="flex flex-wrap gap-x-10 gap-y-4">
+                <div className="flex items-center gap-3">
+                  <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
+                    <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#C5A44E" />
+                    <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
+                    <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
+                    <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#C5A44E" fontFamily="system-ui">AWARD</text>
+                  </svg>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Best of Senior Living</span>
+                    <span className="text-sm text-gray-500">2024 Award Winner</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
+                    <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#198087" />
+                    <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
+                    <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
+                    <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#198087" fontFamily="system-ui">5-STAR</text>
+                  </svg>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Five Star Quality</span>
+                    <span className="text-sm text-gray-500">Medicare Rating</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* What makes this place special — stacked with awards above */}
+            <div className="mt-4 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
+              <div className="flex items-center gap-2 mb-3">
+                <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+                <h3 className="text-xl font-bold text-gray-900">What makes this place special</h3>
+              </div>
+              <ul className="space-y-2">
+                {[
+                  "Resort-style Freedom Dining with chef-prepared meals served throughout the day",
+                  "Full-size movie theater and Main Street shops on-site",
+                  "Pet-friendly community with landscaped walking grounds",
+                  "Spacious apartments from studios to 3-bedrooms with full kitchens",
+                ].map((point) => (
+                  <li key={point} className="flex items-start gap-2.5">
+                    <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    <span className="text-sm text-gray-900 leading-relaxed">{point}</span>
+                  </li>
                 ))}
-              </nav>
+              </ul>
             </div>
 
             {/* Content Sections */}
-            <div>
+            <div className="mt-6">
 
             {/* About Section */}
             <div id="about" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
               <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
-
-              {/* Awards/Badges */}
-              <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
-                <div className="flex flex-wrap gap-x-10 gap-y-4">
-                  <div className="flex items-center gap-3">
-                    <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
-                      <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#C5A44E" />
-                      <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
-                      <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
-                      <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#C5A44E" fontFamily="system-ui">AWARD</text>
-                    </svg>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Best of Senior Living</span>
-                      <span className="text-sm text-gray-500">2024 Award Winner</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
-                      <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#198087" />
-                      <path d="M22 8l2.4 5h5.6l-4 3.5 1.5 5.5-5.5-3.5-5.5 3.5 1.5-5.5-4-3.5h5.6z" fill="white" />
-                      <rect x="8" y="28" width="28" height="8" rx="1" fill="white" opacity="0.9" />
-                      <text x="22" y="34.5" textAnchor="middle" fontSize="5" fontWeight="700" fill="#198087" fontFamily="system-ui">5-STAR</text>
-                    </svg>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold tracking-wide text-gray-900 uppercase">Five Star Quality</span>
-                      <span className="text-sm text-gray-500">Medicare Rating</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* What makes this place special */}
-              <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                  </svg>
-                  <h3 className="text-xl font-bold text-gray-900">What makes this place special</h3>
-                </div>
-                <ul className="space-y-2">
-                  {[
-                    "Resort-style Freedom Dining with chef-prepared meals served throughout the day",
-                    "Full-size movie theater and Main Street shops on-site",
-                    "Pet-friendly community with landscaped walking grounds",
-                    "Spacious apartments from studios to 3-bedrooms with full kitchens",
-                  ].map((point) => (
-                    <li key={point} className="flex items-start gap-2.5">
-                      <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                      <span className="text-sm text-gray-900 leading-relaxed">{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </div>
 
             {/* Reviews Section */}

@@ -144,6 +144,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Last resort: try by business_profiles UUID (some questions may store this as provider_id)
+    if (!provider && !iosProvider) {
+      provider = await db
+        .from("business_profiles")
+        .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
+        .eq("id", providerSlug)
+        .maybeSingle()
+        .then(r => r.data);
+    }
+
     if (!provider && !iosProvider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
@@ -200,6 +210,10 @@ export async function POST(request: NextRequest) {
     }
     if (provider?.slug && provider.slug !== providerSlug) {
       variantSet.add(provider.slug);
+    }
+    // Include the business_profile UUID - some questions may use this as provider_id
+    if (provider?.id && provider.id !== providerSlug) {
+      variantSet.add(provider.id);
     }
     const additionalSlugVariants = Array.from(variantSet);
 

@@ -97,6 +97,16 @@ async function handle(params: {
       }
     }
 
+    // Last resort: try by business_profiles UUID (some questions may store this as provider_id)
+    if (!provider && !iosProvider) {
+      provider = await db
+        .from("business_profiles")
+        .select("id, display_name, email, source_provider_id, slug")
+        .eq("id", providerSlug)
+        .maybeSingle()
+        .then((r) => r.data);
+    }
+
     if (!provider && !iosProvider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
@@ -129,12 +139,16 @@ async function handle(params: {
   let questionFlagsCleared = 0;
   if (providerSlug && (provider || iosProvider)) {
     const iosProviderId = provider?.source_provider_id || iosProvider?.provider_id;
+    // Build comprehensive variant set including ALL possible identifiers
+    // Questions can be stored with different provider_id values depending on source
     const variantSet = new Set<string>();
     if (iosProviderId && iosProviderId !== providerSlug) variantSet.add(iosProviderId);
     if (provider?.source_provider_id && provider.source_provider_id !== providerSlug) {
       variantSet.add(provider.source_provider_id);
     }
     if (provider?.slug && provider.slug !== providerSlug) variantSet.add(provider.slug);
+    // Include the business_profile UUID - some questions may use this as provider_id
+    if (provider?.id && provider.id !== providerSlug) variantSet.add(provider.id);
 
     const result = await sendDeferredNotificationsForProvider({
       profileId: provider?.id || "",

@@ -15,10 +15,11 @@ import {
 } from "@/lib/family-comms/alternatives";
 import { normalizeCareLabel } from "@/lib/provider-highlights";
 import { familySelfReportedYes } from "@/lib/family-comms/outcome";
+import { ARCHETYPE_ASK } from "@/lib/family-comms/archetype";
 import {
   connectionOutcomeCheckEmail,
-  payingForCareEmail,
-  payingForCareSubject,
+  archetypeEmail,
+  archetypeSubject,
   providerSilentEmail,
   familyNeverEngagedEmail,
   familyNeverEngagedSubject,
@@ -522,96 +523,67 @@ export async function GET(request: NextRequest) {
           };
         }
 
-        // ── Rung 1.5: paying-for-care guidance + in-email micro-quiz — inquiry 72-96h,
-        //    one-shot per FAMILY (profile stamp, not per-connection). The money half of
-        //    the search: leads with real state/federal programs from what we already
-        //    hold (no ask), then ONE benefits question as one-tap signed-GET chips.
-        //    Sits between the outcome check (48-72h) and alternatives (96-120h) so the
-        //    bands never collide. See Guidance Layer Direction (2026-07-03). ──
-        const rPay = fam.inquiries.find((c) => {
+        // ── Rung 1.5: ARCHETYPE first-touch (intent/urgency self-sort) — inquiry
+        //    72-96h, one-shot per FAMILY (profile stamp). The guidance journey's
+        //    clean opener, modeled on the outcome-check email: one question, three
+        //    chips, nothing else. Captures need-help-now / avoid-senior-living /
+        //    just-researching so tone, cadence, and which help we lead with are all
+        //    tailored (archetype-specific comms). The financial self-sort is DEMOTED
+        //    to the later compare/awaiting rungs (R2/R3), which already ask it via
+        //    pickQuizQuestion — so archetype leads, money follows. Sits between the
+        //    outcome check (48-72h) and alternatives (96-120h); bands never collide.
+        //    Chips capture through the same scanner-safe page-POST chain. See the
+        //    archetype module + Guidance Layer Direction. ──
+        const rArch = fam.inquiries.find((c) => {
           const a = ageMs(c);
           return a >= 72 * HOUR && a < 96 * HOUR;
         });
         // Re-narrow fam.profile locally — the loop-top guard doesn't flow into
         // this nested closure for TS.
         const fpr = fam.profile;
-        if (rPay && fpr && !familyMeta.paying_for_care_sent_at) {
-          const facts = familyBenefitsFacts(fpr);
-          const programs = await getProgramsForFamily(db, facts, 3);
-          // No programs at all (both tables empty/unreachable) → nothing to lead with;
-          // don't stamp, the 24h band ages out on its own.
-          if (programs.length > 0) {
-            const payProvider = norm(rPay.to_profile);
-            const careLabel = friendlyCareLabel(
-              (payProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0],
-            );
-            const stateName = US_STATES.find((s) => s.value === (fpr.state || ""))?.label || null;
-            const ask = pickQuizQuestion(facts);
-            return {
-              rung: "paying_for_care",
-              emailType: "paying_for_care",
-              subject: payingForCareSubject(stateName, careLabel || null),
-              metadata: { connection_id: rPay.id, program_count: programs.length, quiz_question: ask?.question || null },
-              buildHtml: (eid) => {
-                // "Learn more" goes to the program BRIEF (guided, decision-sized,
-                // personalized) — never straight to a dense article or an official
-                // site. Signed brief token carries family context; claim-family
-                // wrapper signs them in on the way.
-                const briefTok = generateBriefToken(fam.familyId, authEmailFinal);
-                return payingForCareEmail({
-                  familyName,
-                  careType: careLabel || null,
-                  city: fpr.city || null,
-                  stateName,
-                  programs: programs.map((p) => ({
-                    name: p.name,
-                    savingsRange: p.savingsRange,
-                    blurb: p.blurb,
-                    url: generateFamilyInboxUrl(
-                      authEmailFinal,
-                      appendTrackingParams(`/family/program/${p.id}?tok=${briefTok}`, eid),
-                      siteUrl,
+        if (rArch && fpr && !familyMeta.archetype && !familyMeta.archetype_sent_at) {
+          const archProvider = norm(rArch.to_profile);
+          const careLabel = friendlyCareLabel(
+            (archProvider?.care_types as string[] | undefined)?.[0] || (fpr.care_types as string[] | undefined)?.[0],
+          );
+          return {
+            rung: "archetype",
+            emailType: "family_archetype",
+            subject: archetypeSubject(),
+            metadata: { connection_id: rArch.id },
+            buildHtml: (eid) =>
+              archetypeEmail({
+                familyName,
+                careType: careLabel || null,
+                city: fpr.city || null,
+                // Chips link to the PAGE (via claim-family sign-in); the page
+                // records the answer with a client-side POST on mount — so
+                // link-scanners (SafeLinks etc.) that follow every href in an
+                // email never write anything.
+                chips: ARCHETYPE_ASK.chips.map((ch) => ({
+                  label: ch.label,
+                  url: generateFamilyInboxUrl(
+                    authEmailFinal,
+                    appendTrackingParams(
+                      `/family/quiz-answer?tok=${generateQuizToken(fam.familyId, "archetype", ch.answer, authEmailFinal)}`,
+                      eid,
                     ),
-                  })),
-                  quiz: ask
-                    ? {
-                        prompt: ask.prompt,
-                        // The self-sort LEADS the email (orientation before
-                        // programs); narrowing questions close it as before.
-                        leads: ask.question === "path",
-                        // Chips link to the PAGE (via claim-family sign-in); the page
-                        // records the answer with a client-side POST on mount — the
-                        // /connection-outcome pattern — so link-scanners (SafeLinks etc.)
-                        // that follow every href in an email never write anything.
-                        chips: ask.chips.map((ch) => ({
-                          label: ch.label,
-                          url: generateFamilyInboxUrl(
-                            authEmailFinal,
-                            appendTrackingParams(
-                              `/family/quiz-answer?tok=${generateQuizToken(fam.familyId, ask.question, ch.answer, authEmailFinal)}`,
-                              eid,
-                            ),
-                            siteUrl,
-                          ),
-                        })),
-                      }
-                    : null,
-                  fullPictureUrl: buildQuizUrl(eid),
-                  unsubscribeId: fam.familyId,
-                });
-              },
-              stamp: async (sentAt) => {
-                // Mutate familyMeta too: the unified coordinator stamp right after this
-                // spreads familyMeta into its own metadata write — without the mutation
-                // it would clobber this flag with the stale copy.
-                familyMeta.paying_for_care_sent_at = sentAt;
-                await db
-                  .from("business_profiles")
-                  .update({ metadata: { ...familyMeta } })
-                  .eq("id", fam.familyId);
-              },
-            };
-          }
+                    siteUrl,
+                  ),
+                })),
+                unsubscribeId: fam.familyId,
+              }),
+            stamp: async (sentAt) => {
+              // Mutate familyMeta too: the unified coordinator stamp right after this
+              // spreads familyMeta into its own metadata write — without the mutation
+              // it would clobber this flag with the stale copy.
+              familyMeta.archetype_sent_at = sentAt;
+              await db
+                .from("business_profiles")
+                .update({ metadata: { ...familyMeta } })
+                .eq("id", fam.familyId);
+            },
+          };
         }
 
         // ── Shared guidance ask for the compare/awaiting rungs (R2/R3/R4) ──

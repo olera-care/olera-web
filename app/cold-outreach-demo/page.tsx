@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
 // Mock images - 5 images like Chantel's Zillow-style grid
@@ -66,30 +66,6 @@ const MOCK_REVIEWS = [
   },
 ];
 
-const MOCK_QA = [
-  {
-    id: 1,
-    question: "What's included in the monthly rent?",
-    answer: "Monthly rent includes your apartment, all utilities, weekly housekeeping, scheduled transportation, access to all amenities, daily activities, and Freedom Dining with flexible meal times throughout the day.",
-    asker: "David L.",
-    date: "1 month ago",
-  },
-  {
-    id: 2,
-    question: "Are pets allowed?",
-    answer: "Yes! We're a pet-friendly community. Dogs and cats are welcome, and we have landscaped walking grounds for dog owners. There is a small pet deposit required.",
-    asker: "Carol W.",
-    date: "2 months ago",
-  },
-  {
-    id: 3,
-    question: "Can my parent try a short-term stay before committing?",
-    answer: "Absolutely. We offer respite and short-term stays so potential residents can experience our community firsthand. Contact us to learn about availability and pricing for trial stays.",
-    asker: "James R.",
-    date: "3 months ago",
-  },
-];
-
 const MOCK_AMENITIES = [
   "Meal Services",
   "Transportation",
@@ -102,58 +78,90 @@ const MOCK_AMENITIES = [
   "Outdoor Spaces",
 ];
 
-const MOCK_NEARBY = [
-  { label: "Hospital", name: "Rideout Regional Medical Center", distance: "1.8 mi" },
-  { label: "Grocery", name: "Raley's", distance: "0.6 mi" },
-  { label: "Pharmacy", name: "Walgreens", distance: "0.4 mi" },
-  { label: "Park", name: "Sam Brannan Park", distance: "0.9 mi" },
-  { label: "Restaurant", name: "Black Bear Diner", distance: "0.3 mi" },
-  { label: "Bank", name: "Wells Fargo", distance: "0.5 mi" },
-];
-
-const SECTION_NAV_ITEMS = [
-  { id: "reviews", label: "Reviews" },
-  { id: "qa", label: "Q&A" },
-  { id: "about", label: "About" },
-  { id: "care-services", label: "Care Services" },
-  { id: "amenities", label: "Amenities" },
-  { id: "neighborhood", label: "Neighborhood" },
+const MOCK_SIMILAR_PROVIDERS = [
+  {
+    id: 1,
+    name: "Sunrise Senior Living",
+    category: "Independent Living",
+    location: "Sacramento, CA",
+    rating: 4.8,
+    priceRange: "$3,500–5,200/mo",
+    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=80",
+    highlight: "Highly Rated",
+  },
+  {
+    id: 2,
+    name: "Golden Oak Residences",
+    category: "Independent Living",
+    location: "Roseville, CA",
+    rating: 4.6,
+    priceRange: "$3,200–4,800/mo",
+    image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80",
+    highlight: "Pet Friendly",
+  },
+  {
+    id: 3,
+    name: "Valley View Senior Community",
+    category: "Independent Living",
+    location: "Folsom, CA",
+    rating: 4.7,
+    priceRange: "$3,400–5,000/mo",
+    image: null,
+    highlight: "Newly Renovated",
+  },
 ];
 
 // =============================================================================
 // Provider Page (Unclaimed Demo)
 // =============================================================================
 function ProviderPageTab() {
-  const [activeSection, setActiveSection] = useState("about");
-  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const [showAllServices, setShowAllServices] = useState(false);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
 
-  // Intersection Observer to update activeSection on scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
-    );
+  // Care services with icons
+  const CARE_SERVICES = [
+    { name: "Independent Living", icon: "home" },
+    { name: "Wellness Programs", icon: "wellness" },
+    { name: "Medication Management", icon: "medication" },
+    { name: "Health Monitoring", icon: "health" },
+    { name: "Emergency Response", icon: "emergency" },
+    { name: "Coordination of Care", icon: "coordination" },
+    { name: "Scheduled Transportation", icon: "transport" },
+    { name: "Social Activities", icon: "social" },
+    { name: "Meal Services", icon: "meal" },
+    { name: "Personal Care", icon: "personal" },
+  ];
 
-    // Observe all section elements
-    SECTION_NAV_ITEMS.forEach((item) => {
-      const el = document.getElementById(item.id);
-      if (el) {
-        sectionRefs.current.set(item.id, el);
-        observer.observe(el);
-      }
-    });
+  const visibleServices = showAllServices ? CARE_SERVICES : CARE_SERVICES.slice(0, 6);
+  const visibleAmenities = showAllAmenities ? MOCK_AMENITIES : MOCK_AMENITIES.slice(0, 6);
 
-    return () => observer.disconnect();
-  }, []);
-
-  const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Simple icon component
+  const ServiceIcon = ({ type }: { type: string }) => {
+    const iconClass = "w-6 h-6 text-gray-500";
+    switch (type) {
+      case "home":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>;
+      case "wellness":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>;
+      case "medication":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.47 4.403a2.07 2.07 0 0 1-1.96 1.397H8.43a2.07 2.07 0 0 1-1.96-1.397L5 14.5m14 0H5" /></svg>;
+      case "health":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>;
+      case "emergency":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>;
+      case "coordination":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>;
+      case "transport":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>;
+      case "social":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>;
+      case "meal":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75-1.5.75a3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0L3 16.5m15-3.379a48.474 48.474 0 0 0-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 0 1 6 13.12M12.265 3.11a.375.375 0 1 1-.53 0L12 2.845l.265.265Zm-3 0a.375.375 0 1 1-.53 0L9 2.845l.265.265Zm6 0a.375.375 0 1 1-.53 0L15 2.845l.265.265Z" /></svg>;
+      case "personal":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>;
+      default:
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>;
+    }
   };
 
   return (
@@ -395,75 +403,45 @@ function ProviderPageTab() {
             {/* Care Services Section */}
             <div id="care-services" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Care Services</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  "Independent Living",
-                  "Wellness Programs",
-                  "Medication Management",
-                  "Health Monitoring",
-                  "Emergency Response",
-                  "Coordination of Care",
-                  "Scheduled Transportation",
-                  "Social Activities",
-                  "Meal Services",
-                ].map((service) => (
-                  <div key={service} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-700">{service}</span>
+              <div className="grid grid-cols-2 gap-y-5 gap-x-8">
+                {visibleServices.map((service) => (
+                  <div key={service.name} className="flex items-center gap-4">
+                    <ServiceIcon type={service.icon} />
+                    <span className="text-base text-gray-800">{service.name}</span>
                   </div>
                 ))}
               </div>
+              {CARE_SERVICES.length > 6 && (
+                <button
+                  onClick={() => setShowAllServices(!showAllServices)}
+                  className="mt-6 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+                >
+                  {showAllServices ? "Show less" : `Show all ${CARE_SERVICES.length} services`}
+                </button>
+              )}
             </div>
 
             {/* Amenities Section */}
             <div id="amenities" className="scroll-mt-14 py-8 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {MOCK_AMENITIES.map((amenity) => (
-                  <div key={amenity} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-700">{amenity}</span>
+              <div className="grid grid-cols-2 gap-y-5 gap-x-8">
+                {visibleAmenities.map((amenity) => (
+                  <div key={amenity} className="flex items-center gap-4">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <span className="text-base text-gray-800">{amenity}</span>
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Neighborhood Section */}
-            <div id="neighborhood" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 font-display">What&apos;s nearby</h2>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-medium">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Close to medical care and shopping
-                </span>
-              </div>
-              <p className="text-sm text-gray-900 mb-4">{MOCK_PROVIDER.address}, {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</p>
-
-              {/* Map placeholder */}
-              <div className="bg-gray-100 rounded-xl h-64 flex items-center justify-center mb-6">
-                <p className="text-gray-400">Interactive map</p>
-              </div>
-
-              {/* Nearby places */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {MOCK_NEARBY.map((place) => (
-                  <div key={place.label} className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{place.label}</p>
-                    <p className="text-sm font-medium text-gray-900 mt-1">{place.name}</p>
-                    <p className="text-xs text-gray-500">{place.distance}</p>
-                  </div>
-                ))}
-              </div>
+              {MOCK_AMENITIES.length > 6 && (
+                <button
+                  onClick={() => setShowAllAmenities(!showAllAmenities)}
+                  className="mt-6 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+                >
+                  {showAllAmenities ? "Show less" : `Show all ${MOCK_AMENITIES.length} amenities`}
+                </button>
+              )}
             </div>
 
             {/* Disclaimer */}
@@ -477,6 +455,61 @@ function ProviderPageTab() {
                 <button className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
                   Manage this page <span aria-hidden="true">→</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Compare Section */}
+            <div className="border-t border-gray-200 pt-8">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
+                Compare {MOCK_PROVIDER.name} to the best local options
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {MOCK_SIMILAR_PROVIDERS.map((provider) => (
+                  <div key={provider.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                    {/* Image */}
+                    <div className="relative aspect-[4/3] bg-gray-100">
+                      {provider.image ? (
+                        <Image src={provider.image} alt={provider.name} fill className="object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                          <span className="text-3xl font-bold text-primary-400">{provider.name.slice(0, 2).toUpperCase()}</span>
+                          <span className="text-sm text-primary-600 mt-1">{provider.category}</span>
+                        </div>
+                      )}
+                      {/* Save button */}
+                      <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors">
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                        </svg>
+                      </button>
+                    </div>
+                    {/* Details */}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-gray-900 leading-tight">{provider.name}</h3>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          <span className="text-sm font-medium">{provider.rating}</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">{provider.category} · {provider.location}</p>
+                      {provider.highlight && (
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-sm text-gray-600">{provider.highlight}</span>
+                        </div>
+                      )}
+                      <p className="text-sm text-gray-500 mt-2">
+                        <span className="text-xs text-gray-400 uppercase">Area avg.</span>{" "}
+                        <span className="font-semibold text-gray-900">{provider.priceRange}</span>
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

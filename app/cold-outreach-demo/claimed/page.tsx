@@ -1,0 +1,535 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+
+// Mock images - 5 images like Chantel's Zillow-style grid
+const MOCK_IMAGES = [
+  "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=1600&q=80",
+  "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80",
+  "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&q=80",
+  "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=800&q=80",
+  "https://images.unsplash.com/photo-1576765974257-b414b9e8f8ce?w=800&q=80",
+];
+
+export default function ColdOutreachClaimedDemo() {
+  return <ProviderPageTab />;
+}
+
+// =============================================================================
+// Mock Provider Data - Full data like Chantel's Emerald Oaks (CLAIMED VERSION)
+// =============================================================================
+const MOCK_PROVIDER = {
+  name: "Emerald Oaks Senior Living",
+  slug: "emerald-oaks",
+  category: "Independent Living",
+  city: "Yuba City",
+  state: "CA",
+  address: "1550 Palora Avenue",
+  rating: 4.6,
+  reviewCount: 47,
+  priceRange: "$3,880–5,800/mo",
+  lastUpdated: "July 5, 2026",
+  description: "Emerald Oaks offers resort-style independent living in the heart of Yuba City. Our community provides the perfect balance of privacy and community, with spacious apartments, chef-prepared dining, and a full calendar of activities. Whether you're looking for an active lifestyle or simply want to enjoy maintenance-free living, Emerald Oaks delivers an exceptional experience.",
+  staffName: "Jennifer Martinez",
+  staffTitle: "Community Director",
+  staffImage: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&q=80",
+  responseTime: "Usually responds within 2 hours",
+};
+
+const MOCK_REVIEWS = [
+  {
+    id: 1,
+    author: "Patricia H.",
+    rating: 5,
+    date: "2 weeks ago",
+    text: "My mother has been at Emerald Oaks for 6 months and absolutely loves it. The staff treats her like family, and the activities keep her engaged and happy. The dining is excellent - she raves about the Sunday brunch!",
+  },
+  {
+    id: 2,
+    author: "Robert M.",
+    rating: 5,
+    date: "1 month ago",
+    text: "We toured several communities before choosing Emerald Oaks. The apartments are spacious and well-maintained, and the amenities rival a resort. Dad especially loves the movie theater and billiards room.",
+  },
+  {
+    id: 3,
+    author: "Susan K.",
+    rating: 4,
+    date: "2 months ago",
+    text: "Beautiful community with caring staff. The only reason for 4 stars instead of 5 is that some activities fill up quickly. But overall, we're very happy with Mom's care here.",
+  },
+  {
+    id: 4,
+    author: "Michael T.",
+    rating: 5,
+    date: "3 months ago",
+    text: "The transition was seamless. Staff helped my parents every step of the way. Now they have an active social life and we have peace of mind knowing they're well cared for.",
+  },
+];
+
+const MOCK_AMENITIES = [
+  "Meal Services",
+  "Transportation",
+  "Housekeeping",
+  "24/7 Support",
+  "Emergency Response",
+  "Social Activities",
+  "Pet Friendly",
+  "Accessible Facilities",
+  "Outdoor Spaces",
+];
+
+const MOCK_SIMILAR_PROVIDERS = [
+  {
+    id: 1,
+    name: "Sunrise Senior Living",
+    category: "Independent Living",
+    location: "Sacramento, CA",
+    rating: 4.8,
+    priceRange: "$3,500–5,200/mo",
+    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&q=80",
+    highlight: "Highly Rated",
+  },
+  {
+    id: 2,
+    name: "Golden Oak Residences",
+    category: "Independent Living",
+    location: "Roseville, CA",
+    rating: 4.6,
+    priceRange: "$3,200–4,800/mo",
+    image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80",
+    highlight: "Pet Friendly",
+  },
+  {
+    id: 3,
+    name: "Valley View Senior Community",
+    category: "Independent Living",
+    location: "Folsom, CA",
+    rating: 4.7,
+    priceRange: "$3,400–5,000/mo",
+    image: null,
+    highlight: "Newly Renovated",
+  },
+];
+
+// =============================================================================
+// Provider Page (Claimed Demo)
+// =============================================================================
+function ProviderPageTab() {
+  const [showAllServices, setShowAllServices] = useState(false);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+
+  // Care services with icons
+  const CARE_SERVICES = [
+    { name: "Independent Living", icon: "home" },
+    { name: "Wellness Programs", icon: "wellness" },
+    { name: "Medication Management", icon: "medication" },
+    { name: "Health Monitoring", icon: "health" },
+    { name: "Emergency Response", icon: "emergency" },
+    { name: "Coordination of Care", icon: "coordination" },
+    { name: "Scheduled Transportation", icon: "transport" },
+    { name: "Social Activities", icon: "social" },
+    { name: "Meal Services", icon: "meal" },
+    { name: "Personal Care", icon: "personal" },
+  ];
+
+  const visibleServices = showAllServices ? CARE_SERVICES : CARE_SERVICES.slice(0, 6);
+  const visibleAmenities = showAllAmenities ? MOCK_AMENITIES : MOCK_AMENITIES.slice(0, 6);
+
+  // Simple icon component
+  const ServiceIcon = ({ type }: { type: string }) => {
+    const iconClass = "w-6 h-6 text-gray-500";
+    switch (type) {
+      case "home":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>;
+      case "wellness":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>;
+      case "medication":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19 14.5M14.25 3.104c.251.023.501.05.75.082M19 14.5l-1.47 4.403a2.07 2.07 0 0 1-1.96 1.397H8.43a2.07 2.07 0 0 1-1.96-1.397L5 14.5m14 0H5" /></svg>;
+      case "health":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" /></svg>;
+      case "emergency":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>;
+      case "coordination":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>;
+      case "transport":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>;
+      case "social":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>;
+      case "meal":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75-1.5.75a3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0L3 16.5m15-3.379a48.474 48.474 0 0 0-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 0 1 6 13.12M12.265 3.11a.375.375 0 1 1-.53 0L12 2.845l.265.265Zm-3 0a.375.375 0 1 1-.53 0L9 2.845l.265.265Zm6 0a.375.375 0 1 1-.53 0L15 2.845l.265.265Z" /></svg>;
+      case "personal":
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>;
+      default:
+        return <svg className={iconClass} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+
+      {/* ===== Hero Zone — Cream Background ===== */}
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pt-6">
+
+        {/* Desktop: Provider name + Save/Share above photos */}
+        <div className="hidden md:flex md:items-center md:gap-4 mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display">
+            {MOCK_PROVIDER.name}
+          </h1>
+          <div className="ml-auto flex items-center gap-2">
+            <button className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15m0-3-3-3m0 0-3 3m3-3V15" />
+              </svg>
+              <span className="underline">Share</span>
+            </button>
+            <button className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+              </svg>
+              <span className="underline">Save</span>
+            </button>
+          </div>
+        </div>
+
+        {/* One big hero image — compact like Airbnb */}
+        <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[3.5/1]">
+          <Image src={MOCK_IMAGES[0]} alt={MOCK_PROVIDER.name} fill sizes="100vw" priority className="object-cover" />
+          {/* Verified badge overlay — compact with tooltip on hover */}
+          <div className="absolute top-4 left-4 z-20 group">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm bg-white/90 text-primary-700 transition-colors">
+              <svg className="w-3.5 h-3.5 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
+                <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+              </svg>
+              Verified
+            </button>
+            {/* Tooltip */}
+            <div className="absolute top-full left-0 mt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="bg-gray-900 text-white rounded-lg px-4 py-3 text-[13px] leading-relaxed shadow-lg">
+                <p>This listing has been verified and is managed by <span className="font-medium">{MOCK_PROVIDER.name}</span>. Information is kept up to date.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Two-column layout starts here — CTA aligns with headline */}
+        <div className="md:flex md:gap-10 md:items-start mt-6">
+          {/* Left column: Details + About + Content */}
+          <div className="flex-1 min-w-0">
+            {/* Category + Location (like "Private room in rental unit in Aburi, Ghana") */}
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+              {MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}
+            </h2>
+
+            {/* Stats line: Rating · Reviews · Price · Accepting */}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-base text-gray-600">
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="font-medium">{MOCK_PROVIDER.rating}</span>
+              </span>
+              <span className="font-medium underline">{MOCK_PROVIDER.reviewCount} reviews</span>
+              <span className="text-gray-300">·</span>
+              <span className="font-medium">{MOCK_PROVIDER.priceRange}</span>
+              <span className="text-gray-300">·</span>
+              <span className="text-green-600 font-medium">Accepting new residents</span>
+            </div>
+
+            {/* Unique Qualities Section */}
+            <div className="mt-10">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Unique Qualities</h2>
+              <div className="space-y-6">
+              {/* Highlight 1 */}
+              <div className="flex gap-4">
+                <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75-1.5.75a3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0L3 16.5m15-3.379a48.474 48.474 0 0 0-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 0 1 6 13.12M12.265 3.11a.375.375 0 1 1-.53 0L12 2.845l.265.265Zm-3 0a.375.375 0 1 1-.53 0L9 2.845l.265.265Zm6 0a.375.375 0 1 1-.53 0L15 2.845l.265.265Z" />
+                </svg>
+                <div>
+                  <p className="font-medium text-gray-900">Resort-style dining</p>
+                  <p className="text-gray-500 text-sm">Chef-prepared meals served throughout the day with flexible hours.</p>
+                </div>
+              </div>
+
+              {/* Highlight 2 */}
+              <div className="flex gap-4">
+                <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 7.746 6 7.125v-1.5M4.875 8.25C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0 1 18 7.125v-1.5m1.125 2.625c-.621 0-1.125.504-1.125 1.125v1.5m2.625-2.625c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125M18 5.625v5.25M7.125 12h9.75m-9.75 0A1.125 1.125 0 0 1 6 10.875M7.125 12C6.504 12 6 12.504 6 13.125m0-2.25C6 11.496 5.496 12 4.875 12M18 10.875c0 .621-.504 1.125-1.125 1.125M18 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m-12 5.25v-5.25m0 5.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125m-12 0v-1.5c0-.621-.504-1.125-1.125-1.125M18 18.375v-5.25m0 5.25v-1.5c0-.621.504-1.125 1.125-1.125M18 13.125v1.5c0 .621.504 1.125 1.125 1.125M18 13.125c0-.621.504-1.125 1.125-1.125M6 13.125v1.5c0 .621-.504 1.125-1.125 1.125M6 13.125C6 12.504 5.496 12 4.875 12m-1.5 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M19.125 12h1.5m0 0c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h1.5m14.25 0h1.5" />
+                </svg>
+                <div>
+                  <p className="font-medium text-gray-900">On-site entertainment</p>
+                  <p className="text-gray-500 text-sm">Full-size movie theater and Main Street shops within the community.</p>
+                </div>
+              </div>
+
+              {/* Highlight 3 */}
+              <div className="flex gap-4">
+                <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+                </svg>
+                <div>
+                  <p className="font-medium text-gray-900">Pet-friendly community</p>
+                  <p className="text-gray-500 text-sm">Landscaped walking grounds and welcoming atmosphere for pets.</p>
+                </div>
+              </div>
+              </div>
+            </div>
+
+            {/* Content Sections */}
+            <div className="mt-6">
+
+            {/* Reviews Section — first after hero (matches real provider pages) */}
+            <div id="reviews" className="scroll-mt-14 pt-10 pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight mb-4 md:mb-6">
+                What families are saying
+              </h2>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {MOCK_REVIEWS.map((review) => (
+                  <div key={review.id} className="bg-gray-50 rounded-xl p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-100 to-pink-50 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-gray-600">{review.author.charAt(0)}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{review.author}</p>
+                        <div className="flex items-center gap-2">
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                              <svg key={i} className={`w-4 h-4 ${i < review.rating ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+                          <span className="text-xs text-gray-400">{review.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">{review.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Q&A Section — "Got questions?" style (matches real provider pages) */}
+            <div id="qa" className="scroll-mt-14 pt-10 pb-8">
+              <div className="mb-6">
+                <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
+                  Got questions?
+                </h2>
+                <p className="text-[14px] text-gray-400 mt-1.5">
+                  Tap a question to ask {MOCK_PROVIDER.name} directly
+                </p>
+              </div>
+
+              {/* Suggestion Cards */}
+              <div className="space-y-2">
+                {[
+                  "What services do you provide?",
+                  "What are your rates or pricing?",
+                  "How quickly can you get started?",
+                  "Do you accept insurance or Medicaid?",
+                  "What's included in the monthly rent?",
+                ].map((question) => (
+                  <button
+                    key={question}
+                    className="group/card w-full flex items-center justify-between gap-3 px-4 py-3.5 bg-gray-50 hover:bg-gray-100 rounded-xl text-left transition-colors"
+                  >
+                    <span className="text-[15px] text-gray-900 leading-snug">{question}</span>
+                    <svg className="w-4 h-4 text-gray-300 group-hover/card:text-primary-600 transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Care Services Section */}
+            <div id="care-services" className="scroll-mt-14 pt-10 pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Care Services</h2>
+              <div className="grid grid-cols-2 gap-y-5 gap-x-8">
+                {visibleServices.map((service) => (
+                  <div key={service.name} className="flex items-center gap-4">
+                    <ServiceIcon type={service.icon} />
+                    <span className="text-base text-gray-800">{service.name}</span>
+                  </div>
+                ))}
+              </div>
+              {CARE_SERVICES.length > 6 && (
+                <button
+                  onClick={() => setShowAllServices(!showAllServices)}
+                  className="mt-6 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+                >
+                  {showAllServices ? "Show less" : `Show all ${CARE_SERVICES.length} services`}
+                </button>
+              )}
+            </div>
+
+            {/* Amenities Section */}
+            <div id="amenities" className="scroll-mt-14 pt-10 pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
+              <div className="grid grid-cols-2 gap-y-5 gap-x-8">
+                {visibleAmenities.map((amenity) => (
+                  <div key={amenity} className="flex items-center gap-4">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    <span className="text-base text-gray-800">{amenity}</span>
+                  </div>
+                ))}
+              </div>
+              {MOCK_AMENITIES.length > 6 && (
+                <button
+                  onClick={() => setShowAllAmenities(!showAllAmenities)}
+                  className="mt-6 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+                >
+                  {showAllAmenities ? "Show less" : `Show all ${MOCK_AMENITIES.length} amenities`}
+                </button>
+              )}
+            </div>
+
+            {/* About Section */}
+            <div id="about" className="scroll-mt-14 pt-10 pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
+            </div>
+
+            {/* Disclaimer */}
+            <div className="pt-10 pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">Disclaimer</h2>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                We strive to keep this page accurate and current, but some details may not be up to date. Prices quoted are monthly rental charges and are provided by the community. Actual prices may differ due to one-time fees, timing, and care services required. To confirm whether {MOCK_PROVIDER.name} is the right fit for you or your loved one, please verify all information directly with the provider.
+              </p>
+            </div>
+
+            </div>{/* End Content Sections */}
+          </div>{/* End Left Column */}
+
+          {/* Right: CTA card (desktop only) — sticky */}
+          <div className="hidden md:block w-[380px] flex-shrink-0 self-stretch">
+            <div className="sticky top-24">
+              <div className="bg-gradient-to-b from-white to-primary-25/40 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+                <div className="px-5 py-5">
+                  <p className="text-sm text-gray-500">{MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-0.5">{MOCK_PROVIDER.priceRange}</p>
+
+                  <div className="border-t border-gray-200 my-4" />
+
+                  {/* Staff contact card */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100">
+                      <Image
+                        src={MOCK_PROVIDER.staffImage}
+                        alt={MOCK_PROVIDER.staffName}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{MOCK_PROVIDER.staffName}</p>
+                      <p className="text-sm text-gray-500">{MOCK_PROVIDER.staffTitle}</p>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-500 mb-3">{MOCK_PROVIDER.responseTime}</p>
+
+                  <button className="w-full py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
+                    Message {MOCK_PROVIDER.staffName.split(" ")[0]}
+                  </button>
+
+                  <div className="flex items-center justify-center gap-1.5 mt-3 text-sm text-gray-500">
+                    <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>No spam. No sales calls.</span>
+                  </div>
+
+                  <p className="text-center text-sm text-gray-400 mt-1.5">81 families checked this month</p>
+                </div>
+              </div>
+            </div>
+          </div>{/* End Right CTA */}
+
+        </div>{/* End Two-Column Layout */}
+
+        {/* Compare Section — full width, outside two-column layout */}
+        <div className="pt-10">
+          <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
+            Compare {MOCK_PROVIDER.name} to the best local options
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {MOCK_SIMILAR_PROVIDERS.map((provider) => (
+              <div key={provider.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                {/* Image */}
+                <div className="relative h-40 bg-gray-100">
+                  {provider.image ? (
+                    <Image src={provider.image} alt={provider.name} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold text-primary-400">{provider.name.slice(0, 2).toUpperCase()}</span>
+                      <span className="text-sm text-primary-600 mt-1">{provider.category}</span>
+                    </div>
+                  )}
+                  {/* Save button */}
+                  <button className="absolute top-2 right-2 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm">
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                  </button>
+                </div>
+                {/* Details */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-gray-900 leading-tight">{provider.name}</h3>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span className="text-sm font-medium">{provider.rating}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{provider.category} · {provider.location}</p>
+                  {provider.highlight && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <svg className="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-sm text-gray-600">{provider.highlight}</span>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 mt-2">
+                    <span className="text-xs text-gray-400 uppercase">Area avg.</span>{" "}
+                    <span className="font-semibold text-gray-900">{provider.priceRange}</span>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>{/* End max-w-7xl container */}
+
+      {/* Minimal Footer */}
+      <footer className="border-t border-gray-200 mt-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <p className="text-sm text-gray-500">© 2026 Olera. All rights reserved.</p>
+            <div className="flex items-center gap-6">
+              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Privacy</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Terms</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Support</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Mobile Fixed CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
+        <button className="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
+          Message {MOCK_PROVIDER.staffName.split(" ")[0]}
+        </button>
+      </div>
+    </div>
+  );
+}

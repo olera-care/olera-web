@@ -243,13 +243,10 @@ function ProviderPageTab() {
         {/* One big hero image (first principle: provider has one image) */}
         <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[2.5/1]">
           <Image src={MOCK_IMAGES[0]} alt={MOCK_PROVIDER.name} fill sizes="100vw" priority className="object-cover" />
-          {/* Claim badge overlay */}
+          {/* Unclaimed badge overlay */}
           <div className="absolute top-4 left-4 z-20">
-            <div className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm font-medium text-gray-700">Verified</span>
+            <div className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm">
+              <span className="text-sm font-medium text-gray-600">Unclaimed</span>
             </div>
           </div>
         </div>
@@ -275,6 +272,24 @@ function ProviderPageTab() {
             <span className="font-medium">{MOCK_PROVIDER.priceRange}</span>
             <span className="text-gray-300">·</span>
             <span className="text-green-600 font-medium">Accepting residents</span>
+          </div>
+
+          {/* Unclaimed section — like Airbnb's "Hosted by" */}
+          <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-200">
+            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Unclaimed listing</p>
+              <p className="text-sm text-gray-500">
+                Are you the owner?{" "}
+                <button className="text-primary-600 hover:text-primary-700 font-medium underline">
+                  Manage this page
+                </button>
+              </p>
+            </div>
           </div>
         </div>
       </div>

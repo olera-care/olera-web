@@ -469,7 +469,7 @@ function ProviderPageTab() {
             {MOCK_SIMILAR_PROVIDERS.map((provider) => (
               <div key={provider.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                 {/* Image */}
-                <div className="relative aspect-[4/3] bg-gray-100">
+                <div className="relative h-40 bg-gray-100">
                   {provider.image ? (
                     <Image src={provider.image} alt={provider.name} fill className="object-cover" />
                   ) : (
@@ -479,7 +479,7 @@ function ProviderPageTab() {
                     </div>
                   )}
                   {/* Save button */}
-                  <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white transition-colors">
+                  <button className="absolute top-2 right-2 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm">
                     <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                     </svg>

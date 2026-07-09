@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
-type Tab = "provider-page" | "admin-trigger" | "first-contact";
-
 // Mock images - 5 images like Chantel's Zillow-style grid
 const MOCK_IMAGES = [
   "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=1600&q=80",
@@ -14,44 +12,8 @@ const MOCK_IMAGES = [
   "https://images.unsplash.com/photo-1576765974257-b414b9e8f8ce?w=800&q=80",
 ];
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "provider-page", label: "Provider Page" },
-  { id: "admin-trigger", label: "Admin Trigger" },
-  { id: "first-contact", label: "First Contact" },
-];
-
 export default function ColdOutreachDemo() {
-  const [activeTab, setActiveTab] = useState<Tab>("provider-page");
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Floating Tab Navigation */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-        <nav className="flex items-center gap-1 bg-white/95 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 px-2 py-1.5" aria-label="Tabs">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? "bg-primary-600 text-white"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Tab Content */}
-      <div>
-        {activeTab === "provider-page" && <ProviderPageTab />}
-        {activeTab === "admin-trigger" && <AdminTriggerTab />}
-        {activeTab === "first-contact" && <FirstContactTab />}
-      </div>
-    </div>
-  );
+  return <ProviderPageTab />;
 }
 
 // =============================================================================
@@ -200,7 +162,7 @@ const SECTION_NAV_ITEMS = [
 ];
 
 // =============================================================================
-// Tab 1: Provider Page (FULL Chantel Design)
+// Provider Page (Unclaimed Demo)
 // =============================================================================
 function ProviderPageTab() {
   const [activeSection, setActiveSection] = useState("about");
@@ -262,8 +224,8 @@ function ProviderPageTab() {
           </div>
         </div>
 
-        {/* One big hero image (first principle: provider has one image) */}
-        <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[2.5/1]">
+        {/* One big hero image — compact like Airbnb */}
+        <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[3.5/1]">
           <Image src={MOCK_IMAGES[0]} alt={MOCK_PROVIDER.name} fill sizes="100vw" priority className="object-cover" />
           {/* Unclaimed badge overlay */}
           <div className="absolute top-4 left-4 z-20">
@@ -317,8 +279,8 @@ function ProviderPageTab() {
             </div>
 
             {/* Awards/Badges — right after unclaimed section */}
-            <div className="mt-6 border border-amber-300/70 rounded-xl px-5 py-4">
-              <div className="flex flex-wrap gap-x-10 gap-y-4">
+            <div className="mt-6 border border-gray-200 rounded-xl px-5 py-4">
+              <div className="flex flex-wrap justify-evenly gap-y-4">
                 <div className="flex items-center gap-3">
                   <svg className="w-11 h-11 shrink-0" viewBox="0 0 44 48" fill="none">
                     <path d="M22 0L44 10V24C44 37.2 34.8 45.6 22 48C9.2 45.6 0 37.2 0 24V10L22 0Z" fill="#C5A44E" />
@@ -346,29 +308,40 @@ function ProviderPageTab() {
               </div>
             </div>
 
-            {/* What makes this place special — stacked with awards above */}
-            <div className="mt-4 bg-teal-50/50 border border-teal-100 rounded-xl px-5 py-4">
-              <div className="flex items-center gap-2 mb-3">
-                <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            {/* What makes this place special — Airbnb-style highlights */}
+            <div className="mt-8 space-y-6">
+              {/* Highlight 1 */}
+              <div className="flex gap-4">
+                <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75-1.5.75a3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0L3 16.5m15-3.379a48.474 48.474 0 0 0-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 0 1 6 13.12M12.265 3.11a.375.375 0 1 1-.53 0L12 2.845l.265.265Zm-3 0a.375.375 0 1 1-.53 0L9 2.845l.265.265Zm6 0a.375.375 0 1 1-.53 0L15 2.845l.265.265Z" />
                 </svg>
-                <h3 className="text-xl font-bold text-gray-900">What makes this place special</h3>
+                <div>
+                  <p className="font-medium text-gray-900">Resort-style dining</p>
+                  <p className="text-gray-500 text-sm">Chef-prepared meals served throughout the day with flexible hours.</p>
+                </div>
               </div>
-              <ul className="space-y-2">
-                {[
-                  "Resort-style Freedom Dining with chef-prepared meals served throughout the day",
-                  "Full-size movie theater and Main Street shops on-site",
-                  "Pet-friendly community with landscaped walking grounds",
-                  "Spacious apartments from studios to 3-bedrooms with full kitchens",
-                ].map((point) => (
-                  <li key={point} className="flex items-start gap-2.5">
-                    <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    <span className="text-sm text-gray-900 leading-relaxed">{point}</span>
-                  </li>
-                ))}
-              </ul>
+
+              {/* Highlight 2 */}
+              <div className="flex gap-4">
+                <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 7.746 6 7.125v-1.5M4.875 8.25C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0 1 18 7.125v-1.5m1.125 2.625c-.621 0-1.125.504-1.125 1.125v1.5m2.625-2.625c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125M18 5.625v5.25M7.125 12h9.75m-9.75 0A1.125 1.125 0 0 1 6 10.875M7.125 12C6.504 12 6 12.504 6 13.125m0-2.25C6 11.496 5.496 12 4.875 12M18 10.875c0 .621-.504 1.125-1.125 1.125M18 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m-12 5.25v-5.25m0 5.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125m-12 0v-1.5c0-.621-.504-1.125-1.125-1.125M18 18.375v-5.25m0 5.25v-1.5c0-.621.504-1.125 1.125-1.125M18 13.125v1.5c0 .621.504 1.125 1.125 1.125M18 13.125c0-.621.504-1.125 1.125-1.125M6 13.125v1.5c0 .621-.504 1.125-1.125 1.125M6 13.125C6 12.504 5.496 12 4.875 12m-1.5 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M19.125 12h1.5m0 0c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h1.5m14.25 0h1.5" />
+                </svg>
+                <div>
+                  <p className="font-medium text-gray-900">On-site entertainment</p>
+                  <p className="text-gray-500 text-sm">Full-size movie theater and Main Street shops within the community.</p>
+                </div>
+              </div>
+
+              {/* Highlight 3 */}
+              <div className="flex gap-4">
+                <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+                </svg>
+                <div>
+                  <p className="font-medium text-gray-900">Pet-friendly community</p>
+                  <p className="text-gray-500 text-sm">Landscaped walking grounds and welcoming atmosphere for pets.</p>
+                </div>
+              </div>
             </div>
 
             {/* Content Sections */}
@@ -657,30 +630,3 @@ function ProviderPageTab() {
   );
 }
 
-// =============================================================================
-// Tab 2: Admin Trigger
-// =============================================================================
-function AdminTriggerTab() {
-  return (
-    <div className="p-8">
-      <div className="bg-white rounded-lg border border-gray-200 p-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Trigger</h2>
-        <p className="text-gray-500">Admin dashboard to initiate cold outreach — coming next</p>
-      </div>
-    </div>
-  );
-}
-
-// =============================================================================
-// Tab 3: First Contact Experience
-// =============================================================================
-function FirstContactTab() {
-  return (
-    <div className="p-8">
-      <div className="bg-white rounded-lg border border-gray-200 p-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Provider First Contact</h2>
-        <p className="text-gray-500">What the provider sees when they receive outreach — coming later</p>
-      </div>
-    </div>
-  );
-}

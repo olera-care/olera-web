@@ -31,7 +31,8 @@ export interface CampaignRequest {
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;
   subscribed_at?: string | null;
-  /** Families delivered so far (benefits_completed events tagged to this campaign). */
+  /** Families delivered so far (campaign-attributed conversions across the
+   *  inquiry + benefits funnels). Attached by the list + detail API branches. */
   delivered?: number;
 }
 

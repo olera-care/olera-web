@@ -374,29 +374,27 @@ function ProviderPageTab() {
             {/* Content Sections */}
             <div className="mt-6">
 
-            {/* About Section */}
-            <div id="about" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
-              <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
-            </div>
-
-            {/* Reviews Section */}
+            {/* Reviews Section — first after hero (matches real provider pages) */}
             <div id="reviews" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 font-display flex items-center gap-2.5">
-                  <svg className="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  Reviews
-                </h2>
-                <span className="text-sm text-gray-500">({MOCK_PROVIDER.reviewCount} reviews)</span>
+              <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight mb-2">
+                What families are saying
+              </h2>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className={`w-5 h-5 ${i < Math.floor(MOCK_PROVIDER.rating) ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="text-sm text-gray-600">{MOCK_PROVIDER.rating} · {MOCK_PROVIDER.reviewCount} reviews</span>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
                 {MOCK_REVIEWS.map((review) => (
                   <div key={review.id} className="bg-gray-50 rounded-xl p-5">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-100 to-pink-50 flex items-center justify-center">
                         <span className="text-sm font-semibold text-gray-600">{review.author.charAt(0)}</span>
                       </div>
                       <div>
@@ -419,36 +417,59 @@ function ProviderPageTab() {
               </div>
             </div>
 
-            {/* Q&A Section */}
+            {/* Q&A Section — "Got questions?" style (matches real provider pages) */}
             <div id="qa" className="scroll-mt-14 py-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 font-display mb-6 flex items-center gap-2.5">
-                <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-                </svg>
-                Questions & Answers
-              </h2>
+              <div className="mb-6">
+                <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
+                  Got questions?
+                </h2>
+                <p className="text-[14px] text-gray-400 mt-1.5">
+                  Tap a question to ask {MOCK_PROVIDER.name} directly
+                </p>
+              </div>
 
-              <div className="space-y-6">
-                {MOCK_QA.map((qa) => (
-                  <div key={qa.id} className="border-b border-gray-100 pb-6 last:border-0">
-                    <div className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold">Q</span>
-                      <div className="flex-1">
-                        <p className="text-base font-medium text-gray-900">{qa.question}</p>
-                        <p className="text-xs text-gray-400 mt-1">Asked by {qa.asker} · {qa.date}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 mt-4 ml-9">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-sm font-bold">A</span>
-                      <p className="text-sm text-gray-600 leading-relaxed">{qa.answer}</p>
-                    </div>
-                  </div>
+              {/* Suggestion Cards */}
+              <div className="space-y-2">
+                {[
+                  "What services do you provide?",
+                  "What are your rates or pricing?",
+                  "How quickly can you get started?",
+                  "Do you accept insurance or Medicaid?",
+                  "What's included in the monthly rent?",
+                ].map((question) => (
+                  <button
+                    key={question}
+                    className="group/card w-full flex items-center justify-between gap-3 px-4 py-3.5 bg-gray-50 hover:bg-gray-100 rounded-xl text-left transition-colors"
+                  >
+                    <span className="text-[15px] text-gray-900 leading-snug">{question}</span>
+                    <svg className="w-4 h-4 text-gray-300 group-hover/card:text-primary-600 transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+                    </svg>
+                  </button>
                 ))}
               </div>
 
-              <button className="mt-6 w-full py-3 px-4 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                Ask a question
-              </button>
+              {/* Answered Questions */}
+              {MOCK_QA.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-500 mb-4">{MOCK_QA.length} answered questions</p>
+                  <div className="space-y-4">
+                    {MOCK_QA.slice(0, 2).map((qa) => (
+                      <div key={qa.id} className="bg-gray-50 rounded-xl p-4">
+                        <p className="text-[15px] font-medium text-gray-900">{qa.question}</p>
+                        <p className="text-sm text-gray-600 mt-2 leading-relaxed">{qa.answer}</p>
+                        <p className="text-xs text-gray-400 mt-2">Asked by {qa.asker} · {qa.date}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* About Section — now after Reviews and Q&A */}
+            <div id="about" className="scroll-mt-14 py-8 border-b border-gray-200">
+              <h2 className="text-3xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
             </div>
 
             {/* Accommodations Section */}
@@ -596,32 +617,28 @@ function ProviderPageTab() {
             <div className="sticky top-24">
               <div className="bg-gradient-to-b from-white to-primary-25/40 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
                 <div className="px-6 py-6">
-                  <p className="text-sm text-gray-500 italic">{MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</p>
+                  <p className="text-sm text-gray-500">{MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">{MOCK_PROVIDER.priceRange}</p>
                   <p className="text-sm text-gray-500 mt-1">Pricing varies by apartment type</p>
 
                   <div className="border-t border-gray-200 my-5" />
 
-                  <h3 className="text-base font-semibold text-gray-900 mb-4">Schedule a tour</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-4">Check coverage & availability</h3>
 
-                  <div className="space-y-3 mb-4">
-                    <input type="text" placeholder="Your name" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                    <input type="email" placeholder="Your email address" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                    <input type="tel" placeholder="Phone number" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                  </div>
+                  <input type="email" placeholder="Your email address" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent mb-4" />
 
                   <button className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
-                    Request a tour
+                    Request details
                   </button>
 
                   <div className="flex items-center justify-center gap-1.5 mt-4 text-sm text-gray-500">
                     <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
-                    <span>No spam. No obligation.</span>
+                    <span>No spam. No sales calls.</span>
                   </div>
 
-                  <p className="text-center text-sm text-gray-400 mt-2">42 families toured this month</p>
+                  <p className="text-center text-sm text-gray-400 mt-2">81 families checked this month</p>
                 </div>
               </div>
             </div>
@@ -633,7 +650,7 @@ function ProviderPageTab() {
       {/* Mobile Fixed CTA — positioned above floating tabs */}
       <div className="fixed bottom-24 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
         <button className="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
-          Request a tour
+          Request details
         </button>
       </div>
     </div>

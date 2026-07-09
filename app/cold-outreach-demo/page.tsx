@@ -240,8 +240,9 @@ function ProviderPageTab() {
           </div>
         </div>
 
-        {/* Desktop: Zillow-style 1 large + 4 small photo grid */}
-        <div className="hidden md:grid md:grid-cols-4 md:grid-rows-2 gap-1 rounded-xl overflow-hidden aspect-[2.5/1] relative">
+        {/* One big hero image (first principle: provider has one image) */}
+        <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[2.5/1]">
+          <Image src={MOCK_IMAGES[0]} alt={MOCK_PROVIDER.name} fill sizes="100vw" priority className="object-cover" />
           {/* Claim badge overlay */}
           <div className="absolute top-4 left-4 z-20">
             <div className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm flex items-center gap-1.5">
@@ -250,41 +251,6 @@ function ProviderPageTab() {
               </svg>
               <span className="text-sm font-medium text-gray-700">Verified</span>
             </div>
-          </div>
-
-          {/* Large hero photo */}
-          <div className="col-span-2 row-span-2 relative bg-gray-100">
-            <Image src={MOCK_IMAGES[0]} alt={`${MOCK_PROVIDER.name} — main photo`} fill sizes="50vw" priority className="object-cover" />
-          </div>
-
-          {/* 4 smaller photos */}
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="relative bg-gray-100">
-              <Image src={MOCK_IMAGES[i]} alt={`${MOCK_PROVIDER.name} — photo ${i + 1}`} fill sizes="25vw" className="object-cover" />
-              {i === 4 && (
-                <div className="absolute inset-0 flex items-end justify-end p-3">
-                  <button className="px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-sm text-sm font-medium text-gray-900 hover:bg-white transition-colors">
-                    See all photos
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile: Single hero with swipe */}
-        <div className="md:hidden relative rounded-xl overflow-hidden aspect-[4/3]">
-          <Image src={MOCK_IMAGES[0]} alt={MOCK_PROVIDER.name} fill sizes="100vw" priority className="object-cover" />
-          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-            <div className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-sm flex items-center gap-1.5">
-              <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm font-medium text-gray-700">Verified</span>
-            </div>
-            <button className="px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-sm text-sm font-medium text-gray-900">
-              1 / 5
-            </button>
           </div>
         </div>
 

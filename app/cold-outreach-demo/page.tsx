@@ -227,7 +227,7 @@ function ProviderPageTab() {
           {/* Left column: Details + About + Content */}
           <div className="flex-1 min-w-0">
             {/* 1. Heading: Category + Location + Address */}
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+            <h2 className="text-base md:text-xl font-semibold text-gray-900">
               {MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}
               <span className="hidden md:inline">, {MOCK_PROVIDER.address}</span>
             </h2>

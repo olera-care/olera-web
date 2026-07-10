@@ -19,6 +19,7 @@ import { EntityStepBoard } from "@/components/admin/medjobs/EntityStepBoard";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderProspectDrawerBody";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
+import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
@@ -1318,6 +1319,14 @@ function ResearchModePanel({
             ? "Launch outreach (override) →"
             : "Launch outreach →"}
         </button>
+        <LaunchActivationButton
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          source="manual_prelaunch"
+          disabled={!nonOfficeCanLaunch}
+          disabledReason="Confirm the contact on a Pre-Flight call (or override), then launch."
+        />
       </div>
     );
   } else if (isOffice) {
@@ -1354,6 +1363,14 @@ function ResearchModePanel({
             ? "Launch outreach (override) →"
             : "Launch outreach →"}
         </button>
+        <LaunchActivationButton
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          source="manual_prelaunch"
+          disabled={!officeCanLaunch}
+          disabledReason="Add an email (and confirm on a call, or override) before launching."
+        />
       </div>
     );
   } else {
@@ -1367,6 +1384,14 @@ function ResearchModePanel({
         >
           Launch outreach →
         </button>
+        <LaunchActivationButton
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          source="manual_prelaunch"
+          disabled={!ready}
+          disabledReason="Add a contact with an email before launching."
+        />
       </div>
     );
   }

@@ -360,7 +360,7 @@ function defaultCallScriptForDay(type: CadenceKey, day: number, isPartner = fals
     if (isPartner) {
       return `"Hi {recipient_name}, this is {admin_first_name} from Dr. DuBose's office, following up on the Student Caregiver Program flyer I sent over. Do you know if your team was able to share it with students?"`;
     }
-    return `"Hi {recipient_name}, this is {admin_first_name} from Dr. DuBose's office, following up on the Student Caregiver Program details I sent over. Can I speak with whoever is in charge of reviewing it?"`;
+    return `"Hi {recipient_name}, this is {admin_first_name} from Dr. DuBose's office, following up on the Student Caregiver Program details I sent over. The best next step is a quick intro call with Dr. DuBose to walk through how the program works — is there a good time for you this week or next? I can set up a Google invite and Zoom link."`;
   }
   if (type === "provider") {
     if (day === 3) {

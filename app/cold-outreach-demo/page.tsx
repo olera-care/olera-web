@@ -272,7 +272,25 @@ function ProviderPageTab() {
               <span className="hidden md:inline font-medium text-gray-600">Contact for availability</span>
             </div>
 
-            {/* 3. Claim Status Section */}
+            {/* 3. Highlight Pills — only non-category highlights (category already in heading) */}
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              {/* Highly Rated — shown when rating >= 4.5 with enough reviews */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white text-sm text-gray-700">
+                <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span>Highly Rated</span>
+              </div>
+              {/* Category pill - keeping it since production shows it */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white text-sm text-gray-700">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                </svg>
+                <span>{MOCK_PROVIDER.category}</span>
+              </div>
+            </div>
+
+            {/* 4. Claim Status Section */}
             <div className="mt-4">
               <div className="flex items-center gap-3">
                 {/* Avatar with person icon (unclaimed) */}

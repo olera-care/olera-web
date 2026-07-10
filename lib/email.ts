@@ -473,7 +473,7 @@ export async function sendEmail(
     if (await isEmailDoNotContact(soleRecipient)) {
       console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — on do-not-contact list`);
       if (existingLogId) {
-        updateEmailLog(existingLogId, { status: "failed", errorMessage: "Suppressed: do-not-contact list" });
+        await updateEmailLog(existingLogId, { status: "failed", errorMessage: "Suppressed: do-not-contact list" });
       }
       return { success: true, skipped: true, skipReason: "do_not_contact", emailLogId: existingLogId ?? undefined };
     }

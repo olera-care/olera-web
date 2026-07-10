@@ -500,8 +500,51 @@ function ProviderPageTab() {
               </p>
             </div>
 
+            {/* Facility Manager Section */}
+            <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Facility manager</h2>
+              <div className="flex flex-col md:flex-row items-start gap-6">
+                <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center w-full md:w-52 md:flex-shrink-0 shadow-md">
+                  <div className="relative mx-auto mb-5 w-24 h-24">
+                    <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-3xl font-bold text-gray-500">
+                        {MOCK_PROVIDER.staffName.split(" ").map(n => n[0]).join("")}
+                      </span>
+                    </div>
+                    <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                      <circle cx="10" cy="10" r="10" fill="white" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="text-base font-bold text-gray-900">{MOCK_PROVIDER.staffName}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">Owner</p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    Most families reach us at a hard moment. A parent is declining, the adult children live an hour away or three states away, and everyone is trying to hold a job while figuring out what happens next. I...{" "}
+                    <button className="text-primary-600 hover:text-primary-700 font-medium transition-colors">Read more</button>
+                  </p>
+                  {/* Desktop: button in care motivation column */}
+                  <button className="hidden md:inline-block mt-6 px-6 py-2.5 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                    Message {MOCK_PROVIDER.staffName.split(" ")[0]}
+                  </button>
+                </div>
+              </div>
+              {/* Mobile: button full-width below */}
+              <button className="md:hidden w-full mt-6 px-6 py-3 text-sm font-semibold text-gray-900 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors text-center">
+                Message {MOCK_PROVIDER.staffName.split(" ")[0]}
+              </button>
+              <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
+                <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />
+                </svg>
+                To help protect your family, the Olera team vet facility managers for information accuracy.
+              </div>
+            </div>
+
             {/* Disclaimer */}
-            <div className="pt-10 pb-8">
+            <div className="py-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">Disclaimer</h2>
               <p className="text-sm text-gray-500 leading-relaxed">
                 We strive to keep this page accurate and current, but some details may not be up to date. Prices quoted are monthly rental charges and are provided by the community. Actual prices may differ due to one-time fees, timing, and care services required. To confirm whether {MOCK_PROVIDER.name} is the right fit for you or your loved one, please verify all information directly with the provider.

@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
-// Mock images - 5 images like Chantel's Zillow-style grid
+// Mock images - 6 images for the gallery
 const MOCK_IMAGES = [
   "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=1600&q=80",
   "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80",
   "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&q=80",
   "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=800&q=80",
   "https://images.unsplash.com/photo-1576765974257-b414b9e8f8ce?w=800&q=80",
+  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80",
 ];
 
 export default function ColdOutreachClaimedDemo() {
@@ -230,6 +232,13 @@ function ProviderPageTab() {
               </div>
             </div>
           </div>
+          {/* Show all photos button */}
+          <Link href="/cold-outreach-demo/claimed/photos" className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 text-gray-900 transition-colors shadow-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+            </svg>
+            Show all {MOCK_IMAGES.length} photos
+          </Link>
         </div>
 
         {/* Two-column layout starts here — CTA aligns with headline */}

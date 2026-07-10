@@ -32,9 +32,6 @@ const MOCK_PROVIDER = {
   lastUpdated: "July 5, 2026",
   description: "Emerald Oaks offers resort-style independent living in the heart of Yuba City. Our community provides the perfect balance of privacy and community, with spacious apartments, chef-prepared dining, and a full calendar of activities. Whether you're looking for an active lifestyle or simply want to enjoy maintenance-free living, Emerald Oaks delivers an exceptional experience.",
   staffName: "Jennifer Martinez",
-  staffTitle: "Community Director",
-  staffImage: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&q=80",
-  responseTime: "Usually responds within 2 hours",
 };
 
 const MOCK_REVIEWS = [
@@ -227,11 +224,34 @@ function ProviderPageTab() {
               {MOCK_PROVIDER.category}<span className="mx-1.5 text-gray-300">·</span>{MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}
             </p>
 
-            {/* Price (actual, not estimate for claimed) */}
-            <p className="text-xl font-bold text-gray-900 mt-1">{MOCK_PROVIDER.priceRange}</p>
+            {/* Price with estimate tooltip */}
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="text-xl font-bold text-gray-900">{MOCK_PROVIDER.priceRange}</span>
+              <span className="text-base text-gray-400">est.</span>
+              <div className="relative group">
+                <button className="text-gray-300 hover:text-gray-400 transition-colors">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                  </svg>
+                </button>
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30">
+                  <div className="bg-gray-900 text-white rounded-lg px-4 py-3 text-[13px] leading-relaxed shadow-lg">
+                    <p>This is an estimated price range for {MOCK_PROVIDER.category.toLowerCase()} in {MOCK_PROVIDER.city}. Contact the provider for actual pricing.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Address */}
             <p className="text-sm text-gray-500 mt-1">{MOCK_PROVIDER.address}</p>
+
+            {/* Verified notice — single line */}
+            <p className="text-sm text-gray-500 mt-3">
+              <span className="font-medium text-primary-700">Verified listing</span>
+              <span className="mx-1.5">·</span>
+              Managed by {MOCK_PROVIDER.name}
+            </p>
 
             {/* Unique Qualities Section */}
             <div className="mt-10">
@@ -409,29 +429,16 @@ function ProviderPageTab() {
                 <div className="px-5 py-5">
                   <p className="text-sm text-gray-500">{MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-0.5">{MOCK_PROVIDER.priceRange}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">Area estimate — not this provider&apos;s actual price</p>
 
                   <div className="border-t border-gray-200 my-4" />
 
-                  {/* Staff contact card */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gray-100">
-                      <Image
-                        src={MOCK_PROVIDER.staffImage}
-                        alt={MOCK_PROVIDER.staffName}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{MOCK_PROVIDER.staffName}</p>
-                      <p className="text-sm text-gray-500">{MOCK_PROVIDER.staffTitle}</p>
-                    </div>
-                  </div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Get actual pricing & availability</h3>
 
-                  <p className="text-sm text-gray-500 mb-3">{MOCK_PROVIDER.responseTime}</p>
+                  <input type="email" placeholder="Your email address" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent mb-3" />
 
                   <button className="w-full py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
-                    Message {MOCK_PROVIDER.staffName.split(" ")[0]}
+                    Request details
                   </button>
 
                   <div className="flex items-center justify-center gap-1.5 mt-3 text-sm text-gray-500">
@@ -523,7 +530,7 @@ function ProviderPageTab() {
       {/* Mobile Fixed CTA */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40">
         <button className="w-full py-3.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors">
-          Message {MOCK_PROVIDER.staffName.split(" ")[0]}
+          Request details
         </button>
       </div>
     </div>

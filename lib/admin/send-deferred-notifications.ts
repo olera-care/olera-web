@@ -392,6 +392,7 @@ export async function sendDeferredNotificationsForProvider(
           emailType: "question_received",
           recipientType: "provider",
           providerId: profileId || slug,
+          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
 
         // Generate one-click URL with signed token

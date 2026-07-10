@@ -425,6 +425,16 @@ export async function POST(request: NextRequest) {
           question: question.trim(),
           variant: qaVariant,
         });
+
+        const qEmailLogId = await reserveEmailLogId({
+          to: pEmail,
+          subject: qaInbox.subject,
+          emailType: "question_received",
+          recipientType: "provider",
+          providerId: providerIdForLogs,
+          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
+        });
+
         const qSendResult = await sendEmail({
           to: pEmail,
           subject: qaInbox.subject,
@@ -432,7 +442,7 @@ export async function POST(request: NextRequest) {
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
-            providerUrl,
+            providerUrl: appendTrackingParams(providerUrl, qEmailLogId),
             providerSlug: provider_id,
             preheader: qaInbox.preheader,
           }),
@@ -440,6 +450,7 @@ export async function POST(request: NextRequest) {
           recipientType: 'provider',
           providerId: providerIdForLogs,
           recipientProfileId: providerIdForLogs,
+          emailLogId: qEmailLogId ?? undefined,
           metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
         // If the provider's on-file address is undeliverable, the send path

@@ -861,9 +861,9 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
       `• We surface students looking for caregiving hours near ${PLACEHOLDER.campus}; you just interview and choose to hire.`,
       `• No cost to review and interview candidates. If you hire, we have simple terms and no long-term commitment.`,
       ``,
-      `The best way to know if it's a fit is to meet the students yourself. Whenever you're ready, you can [start interviewing candidates near ${PLACEHOLDER.campus}](${PLACEHOLDER.welcomeUrl}). If it's easier to talk through specifics first, let me know and I'll arrange a call with Dr. DuBose. And of course, you can always reply here with any questions.`,
+      `The best way to know if it's a fit is to arrange a quick intro call with Dr. DuBose who will walk through our program participation details. Is there a good time for you to meet this week or next? Let me know a few options and I'll coordinate and set up a google invite and zoom link.`,
       ``,
-      `Thanks again, and talk soon.`,
+      `Thanks again, and talk soon!`,
     ].join("\n"),
   };
 }
@@ -888,9 +888,9 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Following up. Whenever you're ready, the best way to see if it's a fit is to meet the students yourself. You can [start interviewing candidates near ${PLACEHOLDER.campus}](${PLACEHOLDER.welcomeUrl}) anytime.`,
+      `Just making sure my last note reached you. The best way to see if the program's a fit is a quick intro call with Dr. DuBose, who will walk through the program participation details.`,
       ``,
-      `And if it's easier to talk through specifics first, just let me know and I'll set up a quick call with Dr. DuBose, or reply here with any questions.`,
+      `Is there a good time for you this week or next? Send me a few options and I'll coordinate and set up a google invite and zoom link. And of course, you can always reply here with any questions.`,
     ].join("\n"),
   };
 }
@@ -915,11 +915,11 @@ export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Following up. You can review the program information [here](${CANDIDATES_URL}).`,
+      `Following up one last time. You can review the program information [here](${CANDIDATES_URL}).`,
       ``,
-      `The best way to see if it's a good fit is to meet a student yourself on a video interview, and there's no cost or commitment to do so. Whenever you're ready, you can [meet a student on a video interview](${PLACEHOLDER.welcomeUrl}).`,
+      `The best way to see if it's a good fit is a quick intro call with Dr. DuBose to walk through how the program works, and there's no cost or commitment. If you'd like to set one up, just send me a few times that work this week or next and I'll coordinate and set up a google invite and zoom link.`,
       ``,
-      `If you'd like to talk through specifics first, just let me know and I'll arrange a time with Dr. DuBose, and you can always reply here with any questions.`,
+      `And of course, you can always reply here with any questions.`,
     ].join("\n"),
   };
 }

@@ -219,9 +219,11 @@ function ProviderPageTab() {
         <div className="md:flex md:gap-10 md:items-start mt-6">
           {/* Left column: Details + About + Content */}
           <div className="flex-1 min-w-0">
-            {/* 1. Heading: Category + Location */}
+            {/* 1. Heading: Category + Location + Address */}
             <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
               {MOCK_PROVIDER.category} in {MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}
+              <span className="mx-2 text-gray-300 font-normal">·</span>
+              <span className="text-gray-500 font-normal">{MOCK_PROVIDER.address}</span>
             </h2>
 
             {/* 2. Stats line: Rating · Reviews · Price est. ⓘ · Availability */}
@@ -255,10 +257,7 @@ function ProviderPageTab() {
               <span className="font-medium text-gray-600">Contact for availability</span>
             </div>
 
-            {/* 3. Address */}
-            <p className="text-sm text-gray-500 mt-2">{MOCK_PROVIDER.address}</p>
-
-            {/* 4. Claim Status Section */}
+            {/* 3. Claim Status Section */}
             <div className="mt-4">
               <div className="flex items-center gap-3">
                 {/* Avatar with initials */}

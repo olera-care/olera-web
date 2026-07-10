@@ -50,6 +50,7 @@ import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
 import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
+import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
@@ -1586,6 +1587,17 @@ function ResearchActionFooter({
         >
           {launchLabel}
         </button>
+        {/* Skip cold outreach and start the warm activation cadence directly.
+            Same launch gate as cold outreach (valid email + pre-flight), but
+            fires launch_activation instead of schedule_sequence. */}
+        <LaunchActivationButton
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          source="manual_prelaunch"
+          disabled={!launchEnabled}
+          disabledReason={launchDisabledReason}
+        />
       </div>
 
       {showPreFlight && cadenceKey === "provider" && (

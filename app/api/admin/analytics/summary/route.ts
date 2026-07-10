@@ -457,8 +457,8 @@ async function fetchWindow(
 
   // Q&A email openers: distinct providers whose question_received notification
   // was first opened in the window. Anchored on email_log.first_opened_at
-  // (denormalized from email_events by the resend-webhook function) so this
-  // stays a flat scan, no join.
+  // (denormalized from Resend webhooks or Olera's first-party open pixel)
+  // so this stays a flat scan, no join.
   let openersQ = db
     .from("email_log")
     .select("provider_id")
@@ -473,8 +473,9 @@ async function fetchWindow(
   // Provider Q&A email funnel (cohort-anchored): every question_received
   // email sent in the window, then count downstream lifecycle on each row.
   // Uses denormalized email_log columns (delivered_at / first_opened_at /
-  // first_clicked_at) populated by the resend webhook, so this stays a flat
-  // scan with no join. Limit 50000 ≈ 700 days at current ~70 emails/day.
+  // first_clicked_at) populated by Resend webhooks plus first-party Olera
+  // open/click tracking, so this stays a flat scan with no join. Limit 50000
+  // ≈ 700 days at current ~70 emails/day.
   // Note: bounced/complained counts come from the event-anchored issues
   // query below, not from this cohort, so they stay aligned with the issues
   // list shown to admins.

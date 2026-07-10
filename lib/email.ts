@@ -315,24 +315,41 @@ async function updateEmailLog(
     status: "sent" | "failed";
     errorMessage?: string;
     htmlBody?: string;
+    metadata?: Record<string, unknown>;
   }
 ) {
   try {
     const db = getServiceDb();
     if (!db) return;
 
+    const update: Record<string, unknown> = {
+      resend_id: params.resendId ?? null,
+      status: params.status,
+      error_message: params.errorMessage ?? null,
+      html_body: params.htmlBody ?? null,
+    };
+    if (params.metadata !== undefined) {
+      update.metadata = params.metadata;
+    }
+
     await db
       .from("email_log")
-      .update({
-        resend_id: params.resendId ?? null,
-        status: params.status,
-        error_message: params.errorMessage ?? null,
-        html_body: params.htmlBody ?? null,
-      })
+      .update(update)
       .eq("id", logId);
   } catch (err) {
     console.error("[email] Failed to update email log:", err);
   }
+}
+
+function appendOpenTrackingPixel(html: string, emailLogId: string | null): string {
+  if (!emailLogId) return html;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const src = `${siteUrl}/api/email/open/${encodeURIComponent(emailLogId)}`;
+  const pixel = `<img src="${src}" width="1" height="1" alt="" style="width:1px;height:1px;opacity:0;overflow:hidden;border:0;" />`;
+  if (html.includes(src)) return html;
+  return html.includes("</body>")
+    ? html.replace("</body>", `${pixel}\n</body>`)
+    : `${html}\n${pixel}`;
 }
 
 /**
@@ -413,7 +430,7 @@ export async function sendEmail(
         // Using status "failed" with explanatory message since schema only supports sent/failed
         // This prevents the log from staying "pending" forever
         if (existingLogId) {
-          updateEmailLog(existingLogId, { status: "failed", errorMessage: "Skipped: user notification preference disabled" });
+          await updateEmailLog(existingLogId, { status: "failed", errorMessage: "Skipped: user notification preference disabled" });
         }
         return { success: true, skipped: true, skipReason: "preference_disabled", emailLogId: existingLogId ?? undefined };
       }
@@ -507,7 +524,7 @@ export async function sendEmail(
     if (suppressReason) {
       console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — ${suppressReason}`);
       if (existingLogId) {
-        updateEmailLog(existingLogId, {
+        await updateEmailLog(existingLogId, {
           status: "failed",
           errorMessage: `Suppressed: ${suppressReason}`,
         });
@@ -540,7 +557,7 @@ export async function sendEmail(
           `[email] Nudge cap reached for provider ${providerId} (${count} in ${NUDGE_WINDOW_DAYS}d) — skipping ${emailType}`,
         );
         if (existingLogId) {
-          updateEmailLog(existingLogId, { status: "failed", errorMessage: "nudge_cap" });
+          await updateEmailLog(existingLogId, { status: "failed", errorMessage: "nudge_cap" });
         }
         return { success: true, skipped: true, skipReason: "nudge_cap", emailLogId: existingLogId ?? undefined };
       }
@@ -593,7 +610,7 @@ export async function sendEmail(
             `[email] Family nudge cap reached for ${recipient} (${capHit.detail}) — skipping ${emailType}`,
           );
           if (existingLogId) {
-            updateEmailLog(existingLogId, { status: "failed", errorMessage: capHit.reason });
+            await updateEmailLog(existingLogId, { status: "failed", errorMessage: capHit.reason });
           }
           return { success: true, skipped: true, skipReason: capHit.reason, emailLogId: existingLogId ?? undefined };
         }
@@ -614,8 +631,10 @@ export async function sendEmail(
       metadata,
     }));
 
+  const htmlWithTracking = appendOpenTrackingPixel(html, logId);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sendPayload: any = { from, to, subject, html };
+  const sendPayload: any = { from, to, subject, html: htmlWithTracking };
   if (options.attachments?.length) {
     sendPayload.attachments = options.attachments.map((a) => ({
       filename: a.filename,
@@ -649,11 +668,12 @@ export async function sendEmail(
 
   // Update the log row with send result
   if (logId) {
-    updateEmailLog(logId, {
+    await updateEmailLog(logId, {
       resendId: data?.id,
       status: error ? "failed" : "sent",
       errorMessage: error?.message,
       htmlBody: html,
+      metadata,
     });
   }
 

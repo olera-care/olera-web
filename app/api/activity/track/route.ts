@@ -133,6 +133,27 @@ function classifyUserAgent(ua: string | null): "mobile" | "tablet" | "desktop" |
   return "other";
 }
 
+async function markEmailClicked(
+  db: NonNullable<ReturnType<typeof getServiceDb>>,
+  emailLogId: unknown,
+) {
+  if (typeof emailLogId !== "string" || !emailLogId) return;
+  try {
+    const clickedAt = new Date().toISOString();
+    await db
+      .from("email_log")
+      .update({
+        first_clicked_at: clickedAt,
+        last_event_type: "clicked",
+        last_event_at: clickedAt,
+      })
+      .eq("id", emailLogId)
+      .is("first_clicked_at", null);
+  } catch (err) {
+    console.error("[activity/track] Failed to stamp email click:", err);
+  }
+}
+
 /**
  * POST /api/activity/track
  *
@@ -306,6 +327,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (event_type === "email_click") {
+        await markEmailClicked(db, email_log_id);
+      }
+
       // Send Slack alert for save nudge → signup conversions
       if (event_type === "save_nudge_converted") {
         try {
@@ -365,6 +390,10 @@ export async function POST(request: NextRequest) {
         { error: "Failed to log activity" },
         { status: 500 }
       );
+    }
+
+    if (event_type === "email_click") {
+      await markEmailClicked(db, email_log_id);
     }
 
     // Auto-unarchive connection on provider engagement events

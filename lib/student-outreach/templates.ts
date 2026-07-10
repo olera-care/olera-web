@@ -796,7 +796,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `Thank you for getting back to me. Here are the ways department leaders can help:`,
+          `Thank you for connecting with me. Here are the ways department leaders can help:`,
           ``,
           `• Endorse the program to your faculty and students`,
           `• Allow us to email your professors so they can share it with their students`,
@@ -815,7 +815,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `Thanks for getting back to me. Here are the easiest ways to help:`,
+          `Thanks for connecting with me. Here are the easiest ways to help:`,
           ``,
           `• Post the application link in your group chat or on social`,
           `• Email it to your listserv (the ${programLink(FAMILIES_URL)})`,
@@ -834,7 +834,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
       body: [
         greeting,
         ``,
-        `Thanks for getting back to me. Here are the ways advisors can help:`,
+        `Thanks for connecting with me. Here are the ways advisors can help:`,
         ``,
         `• Share the ${programLink(FAMILIES_ADVISORS_URL)} with your students`,
         `• Mention it to students looking for clinical hours`,
@@ -853,7 +853,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Thanks for getting back to me. Here's a quick overview, and the full details are here: ${programLink(CANDIDATES_URL)}.`,
+      `Thanks for connecting with me. Here's a quick overview, and the full details are here: ${programLink(CANDIDATES_URL)}.`,
       ``,
       `A few things worth knowing up front:`,
       ``,

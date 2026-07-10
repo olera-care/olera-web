@@ -20,7 +20,7 @@ export default function PhotosGalleryPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Link
               href="/cold-outreach-demo"
@@ -48,26 +48,25 @@ export default function PhotosGalleryPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-5 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-8">
           Photos of {MOCK_PROVIDER.name}
         </h1>
 
-        <div className="space-y-6">
+        {/* 3-column grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {MOCK_IMAGES.map((src, index) => (
-            <div key={index} className="relative w-full aspect-[4/3] rounded-xl overflow-hidden">
+            <div key={index} className="relative aspect-[4/3] rounded-lg overflow-hidden">
               <Image
                 src={src}
                 alt={`${MOCK_PROVIDER.name} photo ${index + 1}`}
                 fill
-                sizes="(max-width: 1024px) 100vw, 1024px"
-                className="object-cover"
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
           ))}
         </div>
-
-        <div className="h-16" />
       </div>
     </div>
   );

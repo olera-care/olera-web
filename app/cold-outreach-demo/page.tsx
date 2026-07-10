@@ -313,7 +313,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Unique Qualities Section */}
-            <div className="mt-10">
+            <div className="mt-8 pt-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Unique Qualities</h2>
               <div className="space-y-6">
               {/* Highlight 1 */}

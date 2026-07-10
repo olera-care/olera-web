@@ -228,7 +228,7 @@ function ProfilePreviewCard({
 }
 
 // ============================================================
-// Inline Question Response (Demo version)
+// Inline Question Response (Demo version with activation CTA)
 // ============================================================
 
 function InlineQuestionResponse({
@@ -241,6 +241,7 @@ function InlineQuestionResponse({
   const [answer, setAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showActivation, setShowActivation] = useState(false);
 
   const handleSubmit = async () => {
     const trimmed = answer.trim();
@@ -254,9 +255,50 @@ function InlineQuestionResponse({
     setSubmitted(true);
     onSubmitted(trimmed);
     setIsSubmitting(false);
+
+    // After brief "Response sent" confirmation, show activation CTA
+    setTimeout(() => {
+      setShowActivation(true);
+    }, 1200);
   };
 
-  // Success state
+  // Activation state — prompt to complete profile
+  if (showActivation) {
+    return (
+      <div style={{ animation: "card-enter 0.3s ease-out both" }}>
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="text-[15px] font-semibold text-gray-900">
+            Response sent to {askerName}
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-primary-50 to-white rounded-xl border border-primary-100 p-5">
+          <h4 className="text-[15px] font-semibold text-gray-900 mb-1.5">
+            Complete your profile to reach more families
+          </h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Families are more likely to reach out when they can see photos, services, and verified information about your community.
+          </p>
+          <Link
+            href="/cold-outreach-demo/claimed"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all"
+          >
+            Set up your profile
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Success state — brief confirmation before activation
   if (submitted) {
     return (
       <div className="flex items-center gap-2.5 pb-2" style={{ animation: "card-enter 0.25s ease-out both" }}>

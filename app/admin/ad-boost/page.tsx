@@ -91,9 +91,10 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_130px_140px_170px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_130px_70px_140px_170px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
+          <span>Leads</span>
           <span>Setup week</span>
           <span className="text-right">Actions</span>
         </div>
@@ -178,7 +179,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_140px_170px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_70px_140px_170px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link
@@ -205,8 +206,14 @@ function RequestRow({
           )}
         </div>
 
+        {/* Leads — since-launch inquiries, same number the provider sees */}
+        <LeadsCell request={request} />
+
         {/* Setup week */}
-        <div className="text-sm text-gray-600">{fmtDateOnly(request.requested_setup_week)}</div>
+        <div className="text-sm text-gray-600">
+          <span className="sm:hidden text-gray-400">Setup week: </span>
+          {fmtDateOnly(request.requested_setup_week)}
+        </div>
 
         {/* Actions */}
         <div className="flex items-center justify-start sm:justify-end gap-1">
@@ -242,6 +249,26 @@ function RequestRow({
       </div>
 
       {error && <p className="px-4 pb-3 -mt-1 text-sm text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+/** Statuses with no campaign behind them yet. Their `delivered` is a structural
+ *  zero, not a result, so we show an em dash instead of a 0 that would read as
+ *  "the campaign ran and produced nothing". */
+const PRE_LAUNCH_STATUSES = new Set(["pending_profile", "requested", "scheduled"]);
+
+/** Leads on a queue row — the same delivered-families count the detail page
+ *  shows under Performance and lists under "Leads (N)". Already on every row
+ *  from the list API; this just surfaces it. */
+function LeadsCell({ request }: { request: CampaignRequest }) {
+  const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
+  const leads = request.delivered ?? 0;
+
+  return (
+    <div className={`text-sm tabular-nums ${preLaunch ? "text-gray-300" : "text-gray-600"}`}>
+      <span className="sm:hidden font-normal text-gray-400">Leads: </span>
+      {preLaunch ? "—" : leads}
     </div>
   );
 }

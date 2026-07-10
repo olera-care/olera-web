@@ -37,6 +37,7 @@ const PROVIDER_EVENT_TYPES = [
   "managed_ads_pitch_viewed",  // Provider saw a managed-ads pitch surface
   "managed_ads_cta_clicked",   // Provider tapped a CTA toward /provider/boost
   "managed_ads_boost_viewed",  // Provider viewed the managed-ads page
+  "managed_ads_step_viewed",   // Provider reached a step in the apply flow (metadata.step, migration 130)
   "managed_ads_requested",     // Provider submitted a managed-ads campaign request
   "your_market_viewed",        // Provider viewed the Your Market diagnostic
   "your_market_playbook_clicked", // Provider tapped a Your Market playbook step

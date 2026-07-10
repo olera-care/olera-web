@@ -351,7 +351,7 @@ function ProviderPageTab() {
             <div className="mt-6">
 
             {/* Reviews Section — first after hero (matches real provider pages) */}
-            <div id="reviews" className="scroll-mt-14 pt-10 pb-8">
+            <div id="reviews" className="scroll-mt-14 py-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight mb-4 md:mb-6">
                 What families are saying
               </h2>
@@ -384,7 +384,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Q&A Section — "Got questions?" style (matches real provider pages) */}
-            <div id="qa" className="scroll-mt-14 pt-10 pb-8">
+            <div id="qa" className="scroll-mt-14 py-8 border-t border-gray-200">
               <div className="mb-6">
                 <h2 className="text-[28px] md:text-[32px] font-bold text-gray-900 tracking-tight leading-tight">
                   Got questions?
@@ -417,7 +417,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Care Services Section */}
-            <div id="care-services" className="scroll-mt-14 pt-10 pb-8">
+            <div id="care-services" className="scroll-mt-14 py-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Care Services</h2>
               <div className="grid grid-cols-2 gap-y-5 gap-x-8">
                 {visibleServices.map((service) => (
@@ -438,7 +438,7 @@ function ProviderPageTab() {
             </div>
 
             {/* Amenities Section */}
-            <div id="amenities" className="scroll-mt-14 pt-10 pb-8">
+            <div id="amenities" className="scroll-mt-14 py-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Amenities</h2>
               <div className="grid grid-cols-2 gap-y-5 gap-x-8">
                 {visibleAmenities.map((amenity) => (
@@ -461,7 +461,7 @@ function ProviderPageTab() {
             </div>
 
             {/* About Section */}
-            <div id="about" className="scroll-mt-14 pt-10 pb-8">
+            <div id="about" className="scroll-mt-14 py-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
               <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
             </div>

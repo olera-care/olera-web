@@ -861,9 +861,9 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
       `• We surface students looking for caregiving hours near ${PLACEHOLDER.campus}; you just interview and choose to hire.`,
       `• No cost to review and interview candidates. If you hire, we have simple terms and no long-term commitment.`,
       ``,
-      `The best way to know if it's a fit is to meet the students yourself. Whenever you're ready, you can [start interviewing candidates near ${PLACEHOLDER.campus}](${PLACEHOLDER.welcomeUrl}). If it's easier to talk through specifics first, let me know and I'll arrange a call with Dr. DuBose. And of course, you can always reply here with any questions.`,
+      `The best way to know if it's a fit is to arrange a quick intro call with Dr. DuBose who will walk through our program participation details. Is there a good time for you to meet this week or next? Let me know a few options and I'll coordinate and set up a google invite and zoom link.`,
       ``,
-      `Thanks again, and talk soon.`,
+      `Thanks again, and talk soon!`,
     ].join("\n"),
   };
 }

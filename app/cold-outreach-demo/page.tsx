@@ -216,7 +216,7 @@ function ProviderPageTab() {
         </div>
 
         {/* One big hero image — compact like Airbnb */}
-        <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[2.5/1]">
+        <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-[3/1]">
           <Image src={MOCK_IMAGES[0]} alt={MOCK_PROVIDER.name} fill sizes="100vw" priority className="object-cover" />
           {/* Unclaimed badge overlay — compact with tooltip on hover */}
           <div className="absolute top-4 left-4 z-20 group">

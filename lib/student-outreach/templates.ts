@@ -784,8 +784,12 @@ export function providerFinalEmail(
 // so named is the common case.
 
 export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
-  const variant = ctx.variant ?? "named";
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  // Activation is a warm/repeat touch — greet with a simple "Hi again," rather
+  // than a name. Name personalization mis-fired when a recipient's first name
+  // resolved from a title (e.g. "Hi Assistant,"), and a static greeting keeps
+  // the Smartlead sequence merge-tag-free (finalizeTokens passes it through
+  // untouched — no {{first_name}}/{{salutation}} rewrite).
+  const greeting = `Hi again,`;
   if (ctx.is_partner) {
     // Fired manually when the team marks a partner reply "Interested". Reply-
     // agnostic (works no matter how they phrased interest) + editable before
@@ -869,8 +873,12 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
 }
 
 export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
-  const variant = ctx.variant ?? "named";
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  // Activation is a warm/repeat touch — greet with a simple "Hi again," rather
+  // than a name. Name personalization mis-fired when a recipient's first name
+  // resolved from a title (e.g. "Hi Assistant,"), and a static greeting keeps
+  // the Smartlead sequence merge-tag-free (finalizeTokens passes it through
+  // untouched — no {{first_name}}/{{salutation}} rewrite).
+  const greeting = `Hi again,`;
   if (ctx.is_partner) {
     return {
       subject: ACTIVATION_SUBJECT,
@@ -896,8 +904,12 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
 }
 
 export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
-  const variant = ctx.variant ?? "named";
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  // Activation is a warm/repeat touch — greet with a simple "Hi again," rather
+  // than a name. Name personalization mis-fired when a recipient's first name
+  // resolved from a title (e.g. "Hi Assistant,"), and a static greeting keeps
+  // the Smartlead sequence merge-tag-free (finalizeTokens passes it through
+  // untouched — no {{first_name}}/{{salutation}} rewrite).
+  const greeting = `Hi again,`;
   if (ctx.is_partner) {
     return {
       subject: ACTIVATION_SUBJECT,

@@ -312,34 +312,6 @@ function ProviderPageTab() {
               </div>
             </div>
 
-            {/* Highlights Section - verifiable data only for unclaimed */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Highlights</h2>
-              <div className="space-y-6">
-              {/* Category-based highlight */}
-              <div className="flex gap-4">
-                <svg className="w-6 h-6 text-gray-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                </svg>
-                <div>
-                  <p className="font-medium text-gray-900">{MOCK_PROVIDER.category}</p>
-                  <p className="text-gray-500 text-sm">Senior community offering maintenance-free living and social activities.</p>
-                </div>
-              </div>
-
-              {/* Google reviews highlight */}
-              <div className="flex gap-4">
-                <svg className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-                <div>
-                  <p className="font-medium text-gray-900">Highly Rated</p>
-                  <p className="text-gray-500 text-sm">{MOCK_PROVIDER.rating} stars from {MOCK_PROVIDER.reviewCount} family reviews on Google.</p>
-                </div>
-              </div>
-              </div>
-            </div>
-
             {/* Content Sections */}
             <div className="mt-6">
 

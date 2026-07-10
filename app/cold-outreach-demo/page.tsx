@@ -170,6 +170,23 @@ function ProviderPageTab() {
       {/* ===== Hero Zone — Cream Background ===== */}
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pt-6">
 
+        {/* Desktop: Breadcrumbs */}
+        <nav className="hidden md:flex items-center gap-2 text-sm text-gray-500 mb-4">
+          <a href="#" className="hover:text-gray-700 transition-colors">Home</a>
+          <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+          <a href="#" className="hover:text-gray-700 transition-colors">{MOCK_PROVIDER.category}</a>
+          <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+          <a href="#" className="hover:text-gray-700 transition-colors">{MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</a>
+          <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+          <span className="text-gray-900 font-medium">{MOCK_PROVIDER.name}</span>
+        </nav>
+
         {/* Mobile: Provider name */}
         <h1 className="md:hidden text-2xl font-bold text-gray-900 tracking-tight leading-tight font-display mb-4">
           {MOCK_PROVIDER.name}
@@ -459,6 +476,32 @@ function ProviderPageTab() {
             <div id="about" className="scroll-mt-14 pt-10 pb-8">
               <h2 className="text-2xl font-bold text-gray-900 font-display mb-3">About {MOCK_PROVIDER.name}</h2>
               <p className="text-sm text-gray-600 leading-relaxed">{MOCK_PROVIDER.description}</p>
+            </div>
+
+            {/* Payment & Insurance Section */}
+            <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Acceptable Payment / Insurance Options</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {["Private Pay"].map((payment) => (
+                  <div key={payment} className="flex items-center justify-between py-3 px-4 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="text-base text-primary-600 font-medium">{payment}</span>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-5 text-base text-gray-500">
+                For clarity and guidance,{" "}
+                <button className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                  Book a consultation
+                </button>
+              </p>
             </div>
 
             {/* Disclaimer + Claim CTA — stacked together */}

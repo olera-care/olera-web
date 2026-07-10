@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useLayoutEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useNavbar } from "@/components/shared/NavbarContext";
 
 // ============================================================
 // Mock Data — simulates a provider receiving a question notification
@@ -310,8 +311,15 @@ function InlineQuestionResponse({
 // ============================================================
 
 export default function ActivationPage() {
+  const { setForceHidden } = useNavbar();
   const [questionAnswered, setQuestionAnswered] = useState(false);
   const [submittedAnswer, setSubmittedAnswer] = useState("");
+
+  // Hide main navbar — this page has its own header (matches production SmartDashboardShell)
+  useLayoutEffect(() => {
+    setForceHidden(true);
+    return () => setForceHidden(false);
+  }, [setForceHidden]);
 
   const timeAgo = formatTimeAgo(MOCK_QUESTION.created_at);
   const answerPreview = submittedAnswer.length > 120

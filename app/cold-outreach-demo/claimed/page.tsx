@@ -171,23 +171,6 @@ function ProviderPageTab() {
       {/* ===== Hero Zone — Cream Background ===== */}
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 pt-6">
 
-        {/* Desktop: Breadcrumbs */}
-        <nav className="hidden md:flex items-center gap-2 text-sm text-gray-500 mb-4">
-          <a href="#" className="hover:text-gray-700 transition-colors">Home</a>
-          <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-          <a href="#" className="hover:text-gray-700 transition-colors">{MOCK_PROVIDER.category}</a>
-          <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-          <a href="#" className="hover:text-gray-700 transition-colors">{MOCK_PROVIDER.city}, {MOCK_PROVIDER.state}</a>
-          <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-          <span className="text-gray-900 font-medium">{MOCK_PROVIDER.name}</span>
-        </nav>
-
         {/* Mobile: Provider name */}
         <h1 className="md:hidden text-2xl font-bold text-gray-900 tracking-tight leading-tight font-display mb-4">
           {MOCK_PROVIDER.name}

@@ -50,6 +50,7 @@ import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 import { EmailReplyModal } from "@/components/admin/medjobs/EmailReplyModal";
+import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { MeetingOutcomeModal } from "@/components/admin/medjobs/MeetingOutcomeModal";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
@@ -370,6 +371,19 @@ function InOutreachBody({
               ☎ {callLabel}
             </button>
           </>
+        )}
+        {/* Cold cadence running — let the admin jump this row straight to the
+            warm activation sequence (cancels the pending cold tasks). Hidden
+            once activation is already in flight. */}
+        {!activationRunning && (
+          <LaunchActivationButton
+            ctx={ctx}
+            action={action}
+            setError={setError}
+            source="manual_in_outreach"
+            label="⚡ Launch activation"
+            className={linkBtn}
+          />
         )}
       </div>
 

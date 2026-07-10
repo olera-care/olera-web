@@ -37,6 +37,7 @@ const PROVIDER_EVENT_TYPES = [
   "managed_ads_pitch_viewed",  // Provider saw a managed-ads pitch surface
   "managed_ads_cta_clicked",   // Provider tapped a CTA toward /provider/boost
   "managed_ads_boost_viewed",  // Provider viewed the managed-ads page
+  "managed_ads_step_viewed",   // Provider reached a step in the apply flow (metadata.step, migration 130)
   "managed_ads_requested",     // Provider submitted a managed-ads campaign request
   "your_market_viewed",        // Provider viewed the Your Market diagnostic
   "your_market_playbook_clicked", // Provider tapped a Your Market playbook step
@@ -131,6 +132,27 @@ function classifyUserAgent(ua: string | null): "mobile" | "tablet" | "desktop" |
   if (/Mobile|iPhone|Android/i.test(ua)) return "mobile";
   if (/Mozilla|Chrome|Safari|Firefox|Edg/i.test(ua)) return "desktop";
   return "other";
+}
+
+async function markEmailClicked(
+  db: NonNullable<ReturnType<typeof getServiceDb>>,
+  emailLogId: unknown,
+) {
+  if (typeof emailLogId !== "string" || !emailLogId) return;
+  try {
+    const clickedAt = new Date().toISOString();
+    await db
+      .from("email_log")
+      .update({
+        first_clicked_at: clickedAt,
+        last_event_type: "clicked",
+        last_event_at: clickedAt,
+      })
+      .eq("id", emailLogId)
+      .is("first_clicked_at", null);
+  } catch (err) {
+    console.error("[activity/track] Failed to stamp email click:", err);
+  }
 }
 
 /**
@@ -306,6 +328,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (event_type === "email_click") {
+        await markEmailClicked(db, email_log_id);
+      }
+
       // Send Slack alert for save nudge → signup conversions
       if (event_type === "save_nudge_converted") {
         try {
@@ -365,6 +391,10 @@ export async function POST(request: NextRequest) {
         { error: "Failed to log activity" },
         { status: 500 }
       );
+    }
+
+    if (event_type === "email_click") {
+      await markEmailClicked(db, email_log_id);
     }
 
     // Auto-unarchive connection on provider engagement events

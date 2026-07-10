@@ -2310,7 +2310,13 @@ async function handleLaunchActivation(
     .in("task_type", ["outreach_followup_call", "outreach_email_send", "outreach_day_0"]);
 
   // 2. Promote to engaged without disturbing a more advanced stage.
-  if (row.status === "outreach_sent") {
+  //    `researched` covers a manual "Launch activation" that skips the cold
+  //    cadence (the sibling of "Launch outreach"); `outreach_sent` covers the
+  //    warm-signal path where cold outreach was already running. Both → engaged
+  //    are legal; a raw prospect never reaches launch (research is a
+  //    prerequisite, exactly as cold schedule_sequence assumes), so anything
+  //    else falls through to a plain touch rather than an illegal transition.
+  if (row.status === "researched" || row.status === "outreach_sent") {
     await transitionStage(db, row, "engaged", userId, "activation_launched");
   } else {
     await touchOutreach(db, row.id, userId);

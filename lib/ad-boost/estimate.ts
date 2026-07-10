@@ -25,6 +25,11 @@
  *    fee, never per-lead pricing.
  *  - The risk-reversal is the zero-inquiry-month guarantee (see
  *    /managed-ads-terms), surfaced here via BUDGET_TRUST_STRIP.
+ *  - The apply flow does NOT ask the provider to pick a paid tier (2026-07-10:
+ *    every real request chose the free/cheapest stop, so the pick was pure
+ *    friction). Every request starts as the free intro; paid tiers appear on
+ *    the apply step only as a quiet non-interactive preview. The wrap-up moment
+ *    (results in hand) is the only payment ask.
  *
  * The honesty model: as the budget rises, the estimate shifts from REACH framing
  * ($50 = "You're live", NO number) to a LEAD range. The provider feels "more
@@ -119,9 +124,13 @@ export const BUDGET_STOPS: BudgetStop[] = [
 /** The exact dollar values a request may carry (POST validation allowlist). */
 export const BUDGET_VALUES: number[] = BUDGET_STOPS.map((s) => s.value);
 
-/** The one honest line about how the money works (plans are all-in, no card). */
-export const BUDGET_HONEST_LINE =
-  "Your first campaign is on us. Paid plans are all-in: ad spend, setup, and management together, with no contract.";
+/** Intro under the first-campaign step heading — what the intro is, no plan ask. */
+export const INTRO_STEP_LINE =
+  "We run about $50 of ads to your page so you can see what families actually do. No card, and no plan to pick today.";
+
+/** The paid-tier preview footer — how continuing works, decided at the wrap-up. */
+export const PAID_PREVIEW_LINE =
+  "When your first campaign wraps, your results land right here and you choose whether to keep going. Paid plans are all-in: ad spend, setup, and management together, with no contract. Nothing switches on its own.";
 
 /** Shown once near the estimate. Verbatim bridge to the live `delivered` counter. */
 export const BUDGET_ESTIMATE_CAVEAT =

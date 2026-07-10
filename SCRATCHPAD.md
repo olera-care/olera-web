@@ -3404,6 +3404,21 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Session Log
 
+### 2026-07-10 — Q&A provider email open/click tracking fix
+
+Investigated why Admin Analytics showed `question_received` provider emails at
+508 sent / 463 delivered / 0 opened / 0 clicked while weekly digest tracking
+worked. Found live Q&A sends did not reserve an `email_log.id` before rendering
+links, and Resend open/click tracking was not enough to trust the Q&A bucket.
+Built first-party tracking: all `sendEmail` payloads now include an Olera open
+pixel keyed to `email_log.id`; `/api/activity/track` stamps
+`first_clicked_at` on `email_click`; live Q&A sends reserve the log row and add
+`ref=email&eid=...`; deferred Q&A sends preserve A/B metadata. Pre-test caught
+and fixed admin preview false-opens by storing clean HTML in `html_body` while
+only the outgoing payload gets the pixel. Validation: `npx --no-install tsc
+--noEmit` passes. Branch: `codex/fix-qa-email-tracking`; code commit:
+`e4c9ebee`.
+
 ### 2026-07-02 — Find Families / Ad Boost email lifecycle + admin visibility
 
 Built the provider-facing Find Families managed-ads email lifecycle on branch

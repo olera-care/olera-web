@@ -784,8 +784,12 @@ export function providerFinalEmail(
 // so named is the common case.
 
 export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
-  const variant = ctx.variant ?? "named";
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  // Activation is a warm/repeat touch — greet with a simple "Hi again," rather
+  // than a name. Name personalization mis-fired when a recipient's first name
+  // resolved from a title (e.g. "Hi Assistant,"), and a static greeting keeps
+  // the Smartlead sequence merge-tag-free (finalizeTokens passes it through
+  // untouched — no {{first_name}}/{{salutation}} rewrite).
+  const greeting = `Hi again,`;
   if (ctx.is_partner) {
     // Fired manually when the team marks a partner reply "Interested". Reply-
     // agnostic (works no matter how they phrased interest) + editable before
@@ -796,7 +800,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `Thank you for getting back to me. Here are the ways department leaders can help:`,
+          `Thank you for connecting with me. Here are the ways department leaders can help:`,
           ``,
           `• Endorse the program to your faculty and students`,
           `• Allow us to email your professors so they can share it with their students`,
@@ -815,7 +819,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
         body: [
           greeting,
           ``,
-          `Thanks for getting back to me. Here are the easiest ways to help:`,
+          `Thanks for connecting with me. Here are the easiest ways to help:`,
           ``,
           `• Post the application link in your group chat or on social`,
           `• Email it to your listserv (the ${programLink(FAMILIES_URL)})`,
@@ -834,7 +838,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
       body: [
         greeting,
         ``,
-        `Thanks for getting back to me. Here are the ways advisors can help:`,
+        `Thanks for connecting with me. Here are the ways advisors can help:`,
         ``,
         `• Share the ${programLink(FAMILIES_ADVISORS_URL)} with your students`,
         `• Mention it to students looking for clinical hours`,
@@ -853,7 +857,7 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
     body: [
       greeting,
       ``,
-      `Thanks for getting back to me. Here's a quick overview, and the full details are here: ${programLink(CANDIDATES_URL)}.`,
+      `Thanks for connecting with me. Here's a quick overview, and the full details are here: ${programLink(CANDIDATES_URL)}.`,
       ``,
       `A few things worth knowing up front:`,
       ``,
@@ -869,8 +873,12 @@ export function activationIntroEmail(ctx: TemplateContext): EmailDraft {
 }
 
 export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
-  const variant = ctx.variant ?? "named";
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  // Activation is a warm/repeat touch — greet with a simple "Hi again," rather
+  // than a name. Name personalization mis-fired when a recipient's first name
+  // resolved from a title (e.g. "Hi Assistant,"), and a static greeting keeps
+  // the Smartlead sequence merge-tag-free (finalizeTokens passes it through
+  // untouched — no {{first_name}}/{{salutation}} rewrite).
+  const greeting = `Hi again,`;
   if (ctx.is_partner) {
     return {
       subject: ACTIVATION_SUBJECT,
@@ -896,8 +904,12 @@ export function activationNudgeEmail(ctx: TemplateContext): EmailDraft {
 }
 
 export function activationFinalEmail(ctx: TemplateContext): EmailDraft {
-  const variant = ctx.variant ?? "named";
-  const greeting = variant === "named" ? `Hi ${PLACEHOLDER.firstName},` : `Hello,`;
+  // Activation is a warm/repeat touch — greet with a simple "Hi again," rather
+  // than a name. Name personalization mis-fired when a recipient's first name
+  // resolved from a title (e.g. "Hi Assistant,"), and a static greeting keeps
+  // the Smartlead sequence merge-tag-free (finalizeTokens passes it through
+  // untouched — no {{first_name}}/{{salutation}} rewrite).
+  const greeting = `Hi again,`;
   if (ctx.is_partner) {
     return {
       subject: ACTIVATION_SUBJECT,

@@ -235,7 +235,7 @@ function ProviderPageTab() {
                   </svg>
                 </button>
                 {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30">
+                <div className="absolute bottom-full left-0 mb-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30">
                   <div className="bg-gray-900 text-white rounded-lg px-4 py-3 text-[13px] leading-relaxed shadow-lg">
                     <p>This is an estimated price range for {MOCK_PROVIDER.category.toLowerCase()} in {MOCK_PROVIDER.city}. Contact the provider for actual pricing.</p>
                   </div>

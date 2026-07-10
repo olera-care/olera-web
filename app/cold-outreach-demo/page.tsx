@@ -253,15 +253,45 @@ function ProviderPageTab() {
             {/* Address */}
             <p className="text-sm text-gray-500 mt-1">{MOCK_PROVIDER.address}</p>
 
-            {/* Unclaimed notice — single line */}
-            <p className="text-sm text-gray-500 mt-3">
-              <span className="font-medium text-gray-700">Unclaimed listing</span>
-              <span className="mx-1.5">·</span>
-              Are you the owner?{" "}
-              <button className="text-primary-600 hover:text-primary-700 font-medium underline">
-                Manage this page
-              </button>
-            </p>
+            {/* Claim Status Section */}
+            <div className="mt-4">
+              <div className="flex items-center gap-3">
+                {/* Avatar with person icon (unclaimed) */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Text content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-gray-400 tracking-wide">UNCLAIMED</span>
+                    <div className="relative group">
+                      <button className="text-gray-400 hover:text-gray-500 transition-colors">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-30">
+                        <div className="bg-gray-900 text-white rounded-lg px-3 py-2 text-[12px] leading-relaxed shadow-lg">
+                          <p>This listing has not been claimed by its owner yet. Information shown is from public sources.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Are you the owner?{" "}
+                    <button className="text-primary-600 hover:text-primary-700 font-medium">
+                      Manage this page
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
 
             {/* Unique Qualities Section */}
             <div className="mt-10">

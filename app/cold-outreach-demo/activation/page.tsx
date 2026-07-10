@@ -279,16 +279,16 @@ function InlineQuestionResponse({
 
         <div className="bg-gradient-to-br from-primary-50 to-white rounded-xl border border-primary-100 p-5">
           <h4 className="text-[15px] font-semibold text-gray-900 mb-1.5">
-            Complete your profile to reach more families
+            Let your profile answer families' questions upfront
           </h4>
           <p className="text-sm text-gray-600 mb-4">
-            Families are more likely to reach out when they can see photos, services, and verified information about your community.
+            Add photos, services, and details so families can learn about your community before reaching out. Let your profile do the talking.
           </p>
           <Link
-            href="/cold-outreach-demo/claimed"
+            href="/cold-outreach-demo/profile-setup"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all"
           >
-            Set up your profile
+            Let's do it
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>

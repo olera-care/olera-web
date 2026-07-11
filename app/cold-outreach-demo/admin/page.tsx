@@ -56,6 +56,7 @@ type ApiResponse = {
   total: number;
   tabCounts: Record<OutreachStage, number>;
   cities: CityOption[];
+  withViewsCount: number;
 };
 
 // ============================================================
@@ -260,10 +261,10 @@ export default function ColdOutreachAdminPage() {
               </span>
               {" providers"}
             </p>
-            {!loading && data && (
+            {!loading && data && data.withViewsCount > 0 && (
               <p className="text-sm text-gray-500">
                 <span className="font-medium text-emerald-600">
-                  {data.rows.filter((r) => r.views > 0).length}
+                  {data.withViewsCount}
                 </span>
                 {" with views"}
               </p>

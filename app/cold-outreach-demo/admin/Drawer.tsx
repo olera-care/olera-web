@@ -353,14 +353,16 @@ export function ColdOutreachDrawer({ provider, onClose, onAction }: DrawerProps)
           <div className="px-6 py-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Links</h3>
             <div className="flex flex-wrap gap-2">
-              <Link
-                href={`/browse/${provider.slug}`}
-                target="_blank"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                View Profile
-                <ExternalLinkIcon className="h-3.5 w-3.5" />
-              </Link>
+              {provider.slug && (
+                <Link
+                  href={`/browse/${provider.slug}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  View Profile
+                  <ExternalLinkIcon className="h-3.5 w-3.5" />
+                </Link>
+              )}
               <Link
                 href={`/admin/directory/${provider.id}`}
                 target="_blank"

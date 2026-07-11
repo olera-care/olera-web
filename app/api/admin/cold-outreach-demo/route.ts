@@ -93,7 +93,6 @@ function getSimulatedOutreachStatus(providerId: string, index: number): {
       email1_clicked: true,
       email2_sent_at: daysAgo(4),
       email2_opened: true,
-      email2_clicked: false,
       responded: false,
     };
   }
@@ -107,7 +106,6 @@ function getSimulatedOutreachStatus(providerId: string, index: number): {
     email1_clicked: true,
     email2_sent_at: daysAgo(11),
     email2_opened: true,
-    email2_clicked: true,
     responded: true,
   };
 }
@@ -220,6 +218,21 @@ export async function GET(request: Request) {
       };
     });
 
+    // Calculate tab counts BEFORE any filtering (so tabs always show true totals)
+    const tabCounts: Record<OutreachStage, number> = {
+      not_started: 0,
+      sending: 0,
+      awaiting_response: 0,
+      completed: 0,
+      closed: 0,
+    };
+    for (const row of rows) {
+      tabCounts[row.stage]++;
+    }
+
+    // Also count providers with views (before filtering)
+    const withViewsCount = rows.filter((r) => r.views > 0).length;
+
     // Filter by search
     if (search) {
       rows = rows.filter((row) => {
@@ -236,18 +249,6 @@ export async function GET(request: Request) {
       rows = rows.filter((row) => row.stage === stage);
     }
 
-    // Calculate tab counts (before pagination)
-    const tabCounts: Record<OutreachStage, number> = {
-      not_started: 0,
-      sending: 0,
-      awaiting_response: 0,
-      completed: 0,
-      closed: 0,
-    };
-    for (const row of rows) {
-      tabCounts[row.stage]++;
-    }
-
     // Pagination
     const total = rows.length;
     const paginatedRows = rows.slice(page * pageSize, (page + 1) * pageSize);
@@ -257,6 +258,7 @@ export async function GET(request: Request) {
       total,
       tabCounts,
       cities,
+      withViewsCount,
     });
   } catch (err) {
     console.error("Cold outreach demo API error:", err);

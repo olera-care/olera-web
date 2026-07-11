@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getServiceClient } from "@/lib/admin";
 
 /**
  * Cold Outreach Demo API
@@ -8,7 +8,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * provider_page_view_stats to get actual view counts. Simulates outreach
  * sequence status for demo purposes.
  *
- * This mirrors the staffing-outreach queue API pattern.
+ * NOTE: This is a DEMO endpoint - no auth required since it's for presentations.
+ * Real admin outreach would use proper auth.
  */
 
 type OutreachStage = "not_started" | "sending" | "awaiting_response" | "completed" | "closed";
@@ -112,12 +113,7 @@ function getSimulatedOutreachStatus(providerId: string, index: number): {
 
 export async function GET(request: Request) {
   try {
-    const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-
-    const adminUser = await getAdminUser(user.id);
-    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
-
+    // No auth required - this is a demo endpoint for presentations
     const { searchParams } = new URL(request.url);
     const city = searchParams.get("city");
     const stage = searchParams.get("stage") as OutreachStage | null;

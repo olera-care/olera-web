@@ -507,19 +507,19 @@ function ProviderPageTab() {
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-primary-600">1</span>
-                  <p className="text-base text-gray-700 pt-0.5">Schedule a tour to see the community and meet the staff</p>
+                  <p className="text-base text-gray-700 pt-0.5">Contact us to discuss your care needs</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-primary-600">2</span>
-                  <p className="text-base text-gray-700 pt-0.5">We assess your loved one&apos;s needs and discuss care options</p>
+                  <p className="text-base text-gray-700 pt-0.5">We assess your situation and recommend options</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-primary-600">3</span>
-                  <p className="text-base text-gray-700 pt-0.5">Review pricing, availability, and finalize the agreement</p>
+                  <p className="text-base text-gray-700 pt-0.5">Review pricing and finalize the care agreement</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-primary-600">4</span>
-                  <p className="text-base text-gray-700 pt-0.5">Move in and begin enjoying your new community</p>
+                  <p className="text-base text-gray-700 pt-0.5">Care begins on your schedule</p>
                 </div>
               </div>
             </div>

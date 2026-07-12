@@ -58,7 +58,7 @@ export default function ColdOutreachAdminPage() {
   const [city, setCity] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set());
 
   // Fetch data when city changes
   const fetchData = useCallback(async () => {
@@ -76,7 +76,7 @@ export default function ColdOutreachAdminPage() {
       const json = await res.json();
       setData(json);
       setSelectedIds(new Set()); // Reset selection
-      setSent(false); // Reset sent state
+      setSentIds(new Set()); // Reset sent state
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -109,7 +109,9 @@ export default function ColdOutreachAdminPage() {
       { value: "", label: "Select a city..." },
       ...(data?.cities ?? []).map((c) => ({
         value: c.state ? `${c.city}, ${c.state}` : c.city,
-        label: `${c.city}, ${c.state} (${c.count} providers)`,
+        label: c.state
+          ? `${c.city}, ${c.state} (${c.count} providers)`
+          : `${c.city} (${c.count} providers)`,
       })),
     ],
     [data?.cities]
@@ -144,7 +146,8 @@ export default function ColdOutreachAdminPage() {
     setSending(true);
     await new Promise((r) => setTimeout(r, 2000));
     setSending(false);
-    setSent(true);
+    // Track which providers were sent to
+    setSentIds((prev) => new Set([...prev, ...selectedIds]));
     setSelectedIds(new Set());
   };
 
@@ -235,7 +238,7 @@ export default function ColdOutreachAdminPage() {
                       )}
                     </span>
                   </div>
-                  {selectedIds.size > 0 && !sent && (
+                  {selectedIds.size > 0 && (
                     <button
                       onClick={handleSendSequence}
                       disabled={sending}
@@ -259,7 +262,7 @@ export default function ColdOutreachAdminPage() {
                 </div>
 
                 {/* Sent Success Banner */}
-                {sent && (
+                {sentIds.size > 0 && (
                   <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-100 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
                       <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -280,7 +283,7 @@ export default function ColdOutreachAdminPage() {
                   {data.rows.map((provider) => {
                     const hasEmail = !!provider.email;
                     const isSelected = selectedIds.has(provider.id);
-                    const showStatus = sent && hasEmail;
+                    const wasSent = sentIds.has(provider.id);
 
                     return (
                       <li
@@ -293,7 +296,7 @@ export default function ColdOutreachAdminPage() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleSelect(provider.id)}
-                          disabled={!hasEmail || sent}
+                          disabled={!hasEmail || wasSent}
                           className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-50"
                         />
 
@@ -319,7 +322,7 @@ export default function ColdOutreachAdminPage() {
                         )}
 
                         {/* Status after sending */}
-                        {showStatus && (
+                        {wasSent && (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                             Sequence sent

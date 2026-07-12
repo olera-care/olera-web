@@ -576,10 +576,7 @@ function ProviderPageTab() {
 
             {/* How to Get Started Section */}
             <div id="get-started" className="py-8 scroll-mt-20 border-t border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">How to Get Started</h2>
-              <p className="text-base text-gray-600 mb-6">
-                Getting started with senior living is simple. Most families begin with a tour, and move-in can happen within days.
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">How to Get Started</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-primary-600">1</span>
@@ -598,9 +595,6 @@ function ProviderPageTab() {
                   <p className="text-base text-gray-700 pt-0.5">Move in and begin enjoying your new community</p>
                 </div>
               </div>
-              <button className="mt-6 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors">
-                Contact for details
-              </button>
             </div>
 
             {/* Disclaimer */}

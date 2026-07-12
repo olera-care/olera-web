@@ -7,11 +7,10 @@ import { getServiceClient } from "@/lib/admin";
  * Fetches unclaimed providers with simulated outreach status.
  * No auth required - this is a demo endpoint.
  *
- * Stages:
- * - to_send: Not yet contacted
- * - sent: Sequence in progress (email 1 or 2 sent)
- * - claimed: Provider completed their profile
- * - needs_followup: No response after sequence
+ * Key design decisions:
+ * - Only counts providers WITH emails in tab counts (actionable work)
+ * - Simulated status is deterministic based on provider ID
+ * - Supports "marking as sent" via POST for demo purposes
  */
 
 type OutreachStage = "to_send" | "sent" | "claimed" | "needs_followup";
@@ -35,6 +34,7 @@ type CityCount = {
 };
 
 // Simulated outreach status based on provider ID
+// Only applies to providers WITH emails (others are always "to_send" but non-actionable)
 function getSimulatedStatus(providerId: string, index: number): {
   stage: OutreachStage;
   email1_sent_at: string | null;
@@ -102,16 +102,17 @@ export async function GET(request: Request) {
 
     const db = getServiceClient();
 
-    // Get city counts for dropdown
+    // Get city counts for dropdown (only count providers WITH emails)
     const { data: cityCounts } = await db
       .from("business_profiles")
-      .select("city, state")
+      .select("city, state, email")
       .eq("claim_state", "unclaimed")
       .eq("is_active", true)
-      .not("city", "is", null);
+      .not("city", "is", null)
+      .not("email", "is", null); // Only providers with emails
 
     const cityMap = new Map<string, number>();
-    for (const row of (cityCounts ?? []) as { city: string; state: string }[]) {
+    for (const row of (cityCounts ?? []) as { city: string; state: string; email: string }[]) {
       if (!row.city) continue;
       const key = row.state ? `${row.city}, ${row.state}` : row.city;
       cityMap.set(key, (cityMap.get(key) ?? 0) + 1);
@@ -125,7 +126,7 @@ export async function GET(request: Request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 50);
 
-    // Get providers
+    // Get providers (include all, but we'll separate contactable vs non-contactable)
     let query = db
       .from("business_profiles")
       .select("id, slug, display_name, email, phone, city, state, category, created_at")
@@ -141,7 +142,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const { data: providers, error: providerError } = await query.limit(500);
+    const { data: providers, error: providerError } = await query.limit(1000);
 
     if (providerError) {
       console.error("Cold outreach demo - provider fetch error:", providerError);
@@ -168,7 +169,19 @@ export async function GET(request: Request) {
 
     // Build rows with simulated status
     let rows = providerRows.map((provider, index) => {
-      const status = getSimulatedStatus(provider.id, index);
+      const hasEmail = !!provider.email;
+      // Only apply simulated status to providers with emails
+      // Providers without emails are "to_send" but non-actionable
+      const status = hasEmail
+        ? getSimulatedStatus(provider.id, index)
+        : {
+            stage: "to_send" as OutreachStage,
+            email1_sent_at: null,
+            email1_opened: false,
+            email2_sent_at: null,
+            email2_opened: false,
+          };
+
       return {
         id: provider.id,
         slug: provider.slug,
@@ -179,22 +192,28 @@ export async function GET(request: Request) {
         state: provider.state,
         category: provider.category,
         views: viewsByProvider.get(provider.id) ?? 0,
+        hasEmail,
         ...status,
       };
     });
 
-    // Calculate tab counts BEFORE filtering
+    // Calculate tab counts - ONLY for providers WITH emails (actionable)
+    const contactableRows = rows.filter((r) => r.hasEmail);
     const tabCounts: Record<OutreachStage, number> = {
       to_send: 0,
       sent: 0,
       claimed: 0,
       needs_followup: 0,
     };
-    for (const row of rows) {
+    for (const row of contactableRows) {
       tabCounts[row.stage]++;
     }
 
-    // Filter by search
+    // Also track total with/without email for stats
+    const totalWithEmail = contactableRows.length;
+    const totalWithoutEmail = rows.length - totalWithEmail;
+
+    // Filter by search (applies to all rows)
     if (search) {
       rows = rows.filter((row) => {
         const haystack = [row.name, row.email, row.city, row.state, row.category]
@@ -219,6 +238,10 @@ export async function GET(request: Request) {
       total,
       tabCounts,
       cities,
+      stats: {
+        totalWithEmail,
+        totalWithoutEmail,
+      },
     });
   } catch (err) {
     console.error("Cold outreach demo API error:", err);

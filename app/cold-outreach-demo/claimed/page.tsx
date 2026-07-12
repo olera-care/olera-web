@@ -79,6 +79,19 @@ const MOCK_AMENITIES = [
   "Outdoor Spaces",
 ];
 
+// Staff screening - all options for claimed providers (provider selected these)
+const STAFF_SCREENING_CLAIMED = [
+  "Background checks",
+  "Drug screening",
+  "Reference checks",
+  "Sex offender check",
+  "Training",
+  "Driving record check",
+  "In person interviews",
+  "Residency confirmation",
+  "Work eligibility",
+];
+
 const MOCK_SIMILAR_PROVIDERS = [
   {
     id: 1,
@@ -118,6 +131,9 @@ const MOCK_SIMILAR_PROVIDERS = [
 function ProviderPageTab() {
   const [showAllServices, setShowAllServices] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const [showAllScreening, setShowAllScreening] = useState(false);
+
+  const visibleScreening = showAllScreening ? STAFF_SCREENING_CLAIMED : STAFF_SCREENING_CLAIMED.slice(0, 6);
 
   // Care services with icons
   const CARE_SERVICES = [
@@ -456,6 +472,29 @@ function ProviderPageTab() {
                   className="mt-6 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
                 >
                   {showAllAmenities ? "Show less" : `Show all ${MOCK_AMENITIES.length} amenities`}
+                </button>
+              )}
+            </div>
+
+            {/* Staff Screening Section */}
+            <div id="screening" className="scroll-mt-14 py-8 border-t border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">Staff Screening</h2>
+              <div className="grid grid-cols-2 gap-y-5 gap-x-8">
+                {visibleScreening.map((item) => (
+                  <div key={item} className="flex items-center gap-4">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                    </svg>
+                    <span className="text-base text-gray-800">{item}</span>
+                  </div>
+                ))}
+              </div>
+              {STAFF_SCREENING_CLAIMED.length > 6 && (
+                <button
+                  onClick={() => setShowAllScreening(!showAllScreening)}
+                  className="mt-6 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+                >
+                  {showAllScreening ? "Show less" : `Show all ${STAFF_SCREENING_CLAIMED.length} screenings`}
                 </button>
               )}
             </div>

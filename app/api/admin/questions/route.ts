@@ -140,8 +140,11 @@ export async function GET(request: NextRequest) {
         }
 
         // Count providers that exist, are active, and have no email
-        for (const [providerId, status] of providerStatus) {
-          if (status.exists && !status.isArchived && !status.hasEmail) {
+        // Iterate over ORIGINAL keys only (not extra keys added during lookup)
+        // to avoid double-counting when slug and provider_id differ
+        for (const providerId of needsEmailProviderIds) {
+          const status = providerStatus.get(providerId);
+          if (status?.exists && !status.isArchived && !status.hasEmail) {
             validatedNeedsEmailCount++;
           }
         }

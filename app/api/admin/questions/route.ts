@@ -76,6 +76,38 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    // Helper for provider-based pagination
+    // Groups questions by provider, paginates by provider (not question), returns questions for current page of providers
+    function paginateByProvider<T extends { provider_id: string; created_at: string }>(
+      allQuestions: T[],
+      providerOffset: number,
+      providerLimit: number
+    ): { questions: T[]; providerCount: number } {
+      // Group by provider, preserving order of most recent question per provider
+      const providerLatest = new Map<string, string>();
+      for (const q of allQuestions) {
+        const existing = providerLatest.get(q.provider_id);
+        if (!existing || q.created_at > existing) {
+          providerLatest.set(q.provider_id, q.created_at);
+        }
+      }
+
+      // Sort providers by most recent question (descending)
+      const sortedProviders = Array.from(providerLatest.entries())
+        .sort((a, b) => b[1].localeCompare(a[1]))
+        .map(([providerId]) => providerId);
+
+      const providerCount = sortedProviders.length;
+
+      // Get providers for current page
+      const pageProviders = new Set(sortedProviders.slice(providerOffset, providerOffset + providerLimit));
+
+      // Filter questions to only include those from paginated providers
+      const questions = allQuestions.filter(q => pageProviders.has(q.provider_id));
+
+      return { questions, providerCount };
+    }
+
     // If searching, find matching provider slugs first
     let searchSlugs: string[] | null = null;
     if (search) {
@@ -287,9 +319,8 @@ export async function GET(request: NextRequest) {
         return pStatus?.exists && !pStatus.isArchived && !pStatus.hasEmail;
       });
 
-      // Apply pagination manually
-      const questions = validQuestions.slice(offset, offset + limit);
-      const count = validQuestions.length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(validQuestions, offset, limit);
 
       // Continue to enrichment below with these filtered questions
       // (fall through to the enrichment code)
@@ -472,9 +503,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
       }
 
-      // Apply pagination
-      const questions = (allDeliveryIssuesQuestions ?? []).slice(offset, offset + limit);
-      const count = (allDeliveryIssuesQuestions ?? []).length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(
+        allDeliveryIssuesQuestions ?? [],
+        offset,
+        limit
+      );
 
       // Enrich with provider data
       const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
@@ -681,9 +715,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
       }
 
-      // Apply pagination
-      const questions = (allNotInterestedQuestions ?? []).slice(offset, offset + limit);
-      const count = (allNotInterestedQuestions ?? []).length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(
+        allNotInterestedQuestions ?? [],
+        offset,
+        limit
+      );
 
       // Enrich with provider data
       const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
@@ -904,9 +941,8 @@ export async function GET(request: NextRequest) {
         return true;
       });
 
-      // Apply pagination
-      const questions = filteredQuestions.slice(offset, offset + limit);
-      const count = filteredQuestions.length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(filteredQuestions, offset, limit);
 
       // Enrich with provider data
       const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
@@ -1090,11 +1126,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Standard query path (for answered, archived, and "all" tabs)
+    // Uses provider-based pagination like other tabs
     let query = db
       .from("provider_questions")
-      .select("*", { count: "exact" })
+      .select("*")
       .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(50000);
 
     // "answered" tab includes both "answered" and "approved" statuses
     if (status === "answered") {
@@ -1110,12 +1147,15 @@ export async function GET(request: NextRequest) {
     if (dateFrom) query = query.gte("created_at", dateFrom);
     if (dateTo) query = query.lt("created_at", dateTo);
 
-    const { data: questions, count, error } = await query;
+    const { data: allQuestions, error } = await query;
 
     if (error) {
       console.error("Admin questions fetch error:", error);
       return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
+
+    // Apply provider-based pagination (paginate by provider, not question)
+    const { questions, providerCount: count } = paginateByProvider(allQuestions ?? [], offset, limit);
 
     // Enrich with provider display names
     const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];

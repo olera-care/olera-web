@@ -35,15 +35,16 @@ export async function GET(request: NextRequest) {
 
     // Helper to fetch tab counts - called by each response path
     // Count unique providers per tab (not questions)
+    // Note: We use .limit(50000) to override Supabase's default 1000 row limit
     async function getTabCounts() {
       const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
-        db.from("provider_questions").select("provider_id, metadata").eq("status", "pending"),
-        db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected"),
-        db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved"),
-        db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
-        db.from("provider_questions").select("provider_id").eq("status", "archived"),
-        db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"]),
-        db.from("provider_questions").select("provider_id"),
+        db.from("provider_questions").select("provider_id, metadata").eq("status", "pending").limit(50000),
+        db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected").limit(50000),
+        db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved").limit(50000),
+        db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected").limit(50000),
+        db.from("provider_questions").select("provider_id").eq("status", "archived").limit(50000),
+        db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"]).limit(50000),
+        db.from("provider_questions").select("provider_id").limit(50000),
       ]);
 
       // Helper to count unique providers

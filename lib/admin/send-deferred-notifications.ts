@@ -291,7 +291,12 @@ export async function sendDeferredNotificationsForProvider(
         // Reset nudge counts for fresh start
         meta.nudge_count = 0;
         meta.nudged_at = null;
-        await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
+        const { error: metaUpdateErr } = await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
+        if (metaUpdateErr) {
+          // Email was sent but metadata not updated - log warning for debugging
+          // This could cause duplicate sends on retry, but we can't unsend the email
+          console.warn(`[send-deferred] Email sent for connection ${conn.id} but metadata update failed:`, metaUpdateErr);
+        }
 
         result.leadEmailsSent++;
       } catch (err) {
@@ -432,7 +437,12 @@ export async function sendDeferredNotificationsForProvider(
         // Mark as sent
         delete meta.needs_provider_email;
         meta.email_sent_at = new Date().toISOString();
-        await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+        const { error: metaUpdateErr } = await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+        if (metaUpdateErr) {
+          // Email was sent but metadata not updated - log warning for debugging
+          // This could cause duplicate sends on retry, but we can't unsend the email
+          console.warn(`[send-deferred] Question email sent for ${q.id} but metadata update failed:`, metaUpdateErr);
+        }
 
         processedQuestionIds.add(q.id);
         result.questionEmailsSent++;

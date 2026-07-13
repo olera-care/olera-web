@@ -32,6 +32,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const campusSlug = searchParams.get("campus")?.trim() || null;
+    // v10 liberalized search: filter virtual catchment prospects by provider
+    // name OR directory email so the Prospects tab search covers not-yet-
+    // materialized cards the same way it covers real ops rows.
+    const search = (searchParams.get("search") ?? "").trim().toLowerCase();
 
     const db = getServiceClient();
 
@@ -103,6 +107,12 @@ export async function GET(request: NextRequest) {
         const status = getClientStatus(p.metadata);
         if (status.isClient) continue; // already a client
         if (existingPairs.has(`${p.id}|${c.id}`)) continue; // already materialized
+        if (
+          search &&
+          !(p.display_name?.toLowerCase().includes(search) ||
+            p.email?.toLowerCase().includes(search))
+        )
+          continue; // doesn't match the active search term
         rows.push({
           id: `${p.id}|${c.id}`,
           provider_id: p.id,

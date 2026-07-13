@@ -101,7 +101,7 @@ export default function PartnersPage() {
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by organization name…"
+        placeholder="Search by name, organization, or email…"
         className="mb-6 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
       />
 

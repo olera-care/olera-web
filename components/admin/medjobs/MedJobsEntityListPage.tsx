@@ -108,7 +108,11 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
       // so Provider Prospects dropdown renders alongside Partner
       // Prospects, mirroring the In Basket tab.
       if (tab === "prospects") {
-        const r = await fetch("/api/admin/medjobs/provider-prospects");
+        // v10 liberalized search: filter virtual catchment prospects by
+        // provider name/email alongside the materialized rows.
+        const ppParams = new URLSearchParams();
+        if (debouncedSearch) ppParams.set("search", debouncedSearch);
+        const r = await fetch(`/api/admin/medjobs/provider-prospects?${ppParams}`);
         if (r.ok) {
           const d = await r.json();
           setProviderProspects((d.rows ?? []) as ProviderProspectRow[]);
@@ -257,7 +261,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by organization name…"
+          placeholder="Search by name, organization, or email…"
           size="sm"
         />
       </div>

@@ -1162,6 +1162,7 @@ export default function AdminQuestionsPage() {
             // Show "needs email" state if no email OR if email is dead (needs replacement)
             const groupNeedsEmail = hasNoEmail || emailIsDead;
             const isProviderNotInterested = providerQuestions.some((q) => q.metadata?.provider_not_interested === true);
+            const isProviderArchived = firstQ.provider_archive_info != null;
 
             return (
               <div key={providerId} className="border border-gray-100 rounded-xl overflow-hidden">
@@ -1209,6 +1210,13 @@ export default function AdminQuestionsPage() {
                     {isProviderNotInterested && (
                       <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 text-orange-600 rounded flex-shrink-0">
                         Not Interested
+                      </span>
+                    )}
+
+                    {/* Archived badge */}
+                    {isProviderArchived && (
+                      <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded flex-shrink-0">
+                        Archived
                       </span>
                     )}
                   </div>

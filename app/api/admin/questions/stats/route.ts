@@ -60,19 +60,6 @@ export async function GET(request: NextRequest) {
     });
     const providerIds = [...new Set(potentialNeedsEmail.map((r) => r.provider_id).filter(Boolean))];
 
-    // Look up providers in business_profiles (check email and is_active)
-    const { data: bpProviders } = await db
-      .from("business_profiles")
-      .select("slug, email, is_active")
-      .in("slug", providerIds);
-
-    // Look up providers in olera-providers (legacy)
-    const { data: oleraProviders } = await db
-      .from("olera-providers")
-      .select("slug, email")
-      .in("slug", providerIds)
-      .not("deleted", "is", true);
-
     // Build map of provider status: { exists, hasEmail, isArchived }
     const providerStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean }>();
 
@@ -81,25 +68,65 @@ export async function GET(request: NextRequest) {
       providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false });
     }
 
-    // Update from business_profiles (takes precedence)
-    for (const p of bpProviders ?? []) {
-      if (p.slug) {
-        providerStatus.set(p.slug, {
-          exists: true,
-          hasEmail: !!p.email,
-          isArchived: p.is_active === false,
-        });
-      }
-    }
+    // Only query if we have provider IDs to look up
+    if (providerIds.length > 0) {
+      // Look up providers in business_profiles (include source_provider_id for fallback email lookup)
+      const { data: bpProviders } = await db
+        .from("business_profiles")
+        .select("slug, email, is_active, source_provider_id")
+        .in("slug", providerIds);
 
-    // Update from olera-providers (only if not already in business_profiles)
-    for (const p of oleraProviders ?? []) {
-      if (p.slug && !providerStatus.get(p.slug)?.exists) {
-        providerStatus.set(p.slug, {
-          exists: true,
-          hasEmail: !!p.email,
-          isArchived: false, // olera-providers uses "deleted" which we already filtered
-        });
+      // Collect source_provider_ids for fallback email lookup (providers without email on business_profiles)
+      const sourceProviderIds = (bpProviders ?? [])
+        .filter((p) => p.source_provider_id && !p.email)
+        .map((p) => p.source_provider_id as string);
+
+      // Build OR conditions for olera-providers query (by slug OR by provider_id for fallback)
+      const orConditions: string[] = [];
+      if (providerIds.length > 0) {
+        orConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
+      }
+      if (sourceProviderIds.length > 0) {
+        orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
+      }
+
+      // Look up providers in olera-providers (by slug OR source_provider_id for email fallback)
+      const { data: oleraProviders } = orConditions.length > 0
+        ? await db
+            .from("olera-providers")
+            .select("slug, email, provider_id")
+            .or(orConditions.join(','))
+            .not("deleted", "is", true)
+        : { data: [] };
+
+      // Build olera email lookup by provider_id for fallback
+      const oleraEmailByProviderId = new Map<string, string>();
+      for (const p of oleraProviders ?? []) {
+        if (p.provider_id && p.email) oleraEmailByProviderId.set(p.provider_id, p.email);
+      }
+
+      // Update from business_profiles (takes precedence)
+      // Check both business_profiles.email AND linked olera-providers email via source_provider_id
+      for (const p of bpProviders ?? []) {
+        if (p.slug) {
+          const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
+          providerStatus.set(p.slug, {
+            exists: true,
+            hasEmail,
+            isArchived: p.is_active === false,
+          });
+        }
+      }
+
+      // Update from olera-providers (only if not already in business_profiles)
+      for (const p of oleraProviders ?? []) {
+        if (p.slug && !providerStatus.get(p.slug)?.exists) {
+          providerStatus.set(p.slug, {
+            exists: true,
+            hasEmail: !!p.email,
+            isArchived: false, // olera-providers uses "deleted" which we already filtered
+          });
+        }
       }
     }
 

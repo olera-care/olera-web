@@ -41,7 +41,7 @@ export interface BuildHighlightsOpts {
     background_checked?: boolean;
     licensed?: boolean;
     insured?: boolean;
-  } | null;
+  } | string[] | null;
   careTypes?: string[] | null;
   category?: ProfileCategory | string | null;
   /** Max highlights to return. Default 4 (detail page). Use 3 for cards. */
@@ -259,15 +259,32 @@ export function buildHighlights(opts: BuildHighlightsOpts): HighlightItem[] {
   }
 
   // ── Tier 4: Staff Screening ──
+  // Handle both array format (from portal) and legacy object format
   if (items.length < maxItems && opts.staffScreening) {
-    if (opts.staffScreening.background_checked) {
-      push({ label: "Background-Checked", icon: "check" });
-    }
-    if (opts.staffScreening.licensed) {
-      push({ label: "Licensed", icon: "shield" });
-    }
-    if (opts.staffScreening.insured) {
-      push({ label: "Insured", icon: "check" });
+    if (Array.isArray(opts.staffScreening)) {
+      // Array format: ["Background checks", "Drug screening", ...]
+      // Map common values to highlights
+      const screeningSet = new Set(opts.staffScreening.map(s => s.toLowerCase()));
+      if (screeningSet.has("background checks") || screeningSet.has("background checked")) {
+        push({ label: "Background-Checked", icon: "check" });
+      }
+      if (screeningSet.has("licensed")) {
+        push({ label: "Licensed", icon: "shield" });
+      }
+      if (screeningSet.has("insured")) {
+        push({ label: "Insured", icon: "check" });
+      }
+    } else {
+      // Legacy object format: { background_checked: true, licensed: true, insured: false }
+      if (opts.staffScreening.background_checked) {
+        push({ label: "Background-Checked", icon: "check" });
+      }
+      if (opts.staffScreening.licensed) {
+        push({ label: "Licensed", icon: "shield" });
+      }
+      if (opts.staffScreening.insured) {
+        push({ label: "Insured", icon: "check" });
+      }
     }
   }
 

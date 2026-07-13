@@ -24,6 +24,7 @@ export interface VerificationResult {
   status: VerificationStatus;
   subStatus: string | null;
   provider: string;
+  checkedAt?: string; // ISO timestamp when verification was performed (for cache hits)
 }
 
 function getServiceDb(): SupabaseClient | null {
@@ -209,7 +210,8 @@ export async function verifyAndCache(
     if (ageMs < maxAgeDays * 86400000) {
       // Carry sub_status through on a cache hit — the send gate needs it to apply
       // effectiveStatus() (role-address reclassification). Was previously dropped.
-      return { email: normalized, status: cached.status, subStatus: cached.subStatus, provider: "cache" };
+      // Also include checkedAt so callers can surface cache age to admins.
+      return { email: normalized, status: cached.status, subStatus: cached.subStatus, provider: "cache", checkedAt: cached.checkedAt };
     }
   }
   const result = await verifyEmailAddress(normalized);

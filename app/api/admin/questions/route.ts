@@ -34,32 +34,89 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Helper to fetch tab counts - called by each response path
-    async function getTabCounts() {
-      const [pendingQuestions, needsEmailCount, deliveryIssuesCount, notInterestedCount, archivedCount, answeredCount, allCount] = await Promise.all([
-        db.from("provider_questions").select("id, metadata").eq("status", "pending"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').neq("status", "archived").neq("status", "rejected"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { email_dead: true }).neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).in("status", ["answered", "approved"]),
-        db.from("provider_questions").select("*", { count: "exact", head: true }),
-      ]);
-      const trueUnansweredCount = (pendingQuestions.data ?? []).filter((q) => {
-        const meta = q.metadata as Record<string, unknown> | null;
-        if (meta?.email_dead === true) return false;
-        if (meta?.provider_not_interested === true) return false;
-        if (meta?.needs_provider_email === true) return false;
-        return true;
-      }).length;
-      return {
-        pending: trueUnansweredCount,
-        needs_email: needsEmailCount.count ?? 0,
-        delivery_issues: deliveryIssuesCount.count ?? 0,
-        not_interested: notInterestedCount.count ?? 0,
-        archived: archivedCount.count ?? 0,
-        answered: answeredCount.count ?? 0,
-        all: allCount.count ?? 0,
+    // Count unique providers per tab (not questions)
+    // Note: We use .limit(50000) to override Supabase's default 1000 row limit
+    // Now accepts optional date filters to match the data query
+    async function getTabCounts(filterDateFrom?: string | null, filterDateTo?: string | null) {
+      // Helper to apply date filters to a query
+      const applyDateFilters = <T extends { gte: (col: string, val: string) => T; lt: (col: string, val: string) => T }>(query: T): T => {
+        let q = query;
+        if (filterDateFrom) q = q.gte("created_at", filterDateFrom);
+        if (filterDateTo) q = q.lt("created_at", filterDateTo);
+        return q;
       };
+
+      const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
+        applyDateFilters(db.from("provider_questions").select("provider_id, metadata").eq("status", "pending")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").eq("status", "archived")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"])).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id")).limit(50000),
+      ]);
+
+      // Helper to count unique providers
+      const countUniqueProviders = (data: { provider_id: string }[] | null) =>
+        new Set((data ?? []).map(q => q.provider_id).filter(Boolean)).size;
+
+      // Filter pending questions to exclude those belonging to other tabs
+      const truePendingProviders = new Set(
+        (pendingQuestions.data ?? [])
+          .filter((q) => {
+            const meta = q.metadata as Record<string, unknown> | null;
+            if (meta?.email_dead === true) return false;
+            if (meta?.provider_not_interested === true) return false;
+            if (meta?.needs_provider_email === true) return false;
+            return true;
+          })
+          .map(q => q.provider_id)
+          .filter(Boolean)
+      );
+
+      return {
+        pending: truePendingProviders.size,
+        needs_email: countUniqueProviders(needsEmailQuestions.data),
+        delivery_issues: countUniqueProviders(deliveryIssuesQuestions.data),
+        not_interested: countUniqueProviders(notInterestedQuestions.data),
+        archived: countUniqueProviders(archivedQuestions.data),
+        answered: countUniqueProviders(answeredQuestions.data),
+        all: countUniqueProviders(allQuestions.data),
+      };
+    }
+
+    // Helper for provider-based pagination
+    // Groups questions by provider, paginates by provider (not question), returns questions for current page of providers
+    function paginateByProvider<T extends { provider_id: string; created_at: string }>(
+      allQuestions: T[],
+      providerOffset: number,
+      providerLimit: number
+    ): { questions: T[]; providerCount: number } {
+      // Group by provider, preserving order of most recent question per provider
+      // Filter out questions with missing provider_id or created_at
+      const providerLatest = new Map<string, string>();
+      for (const q of allQuestions) {
+        if (!q.provider_id || !q.created_at) continue;
+        const existing = providerLatest.get(q.provider_id);
+        if (!existing || q.created_at > existing) {
+          providerLatest.set(q.provider_id, q.created_at);
+        }
+      }
+
+      // Sort providers by most recent question (descending)
+      const sortedProviders = Array.from(providerLatest.entries())
+        .sort((a, b) => b[1].localeCompare(a[1]))
+        .map(([providerId]) => providerId);
+
+      const providerCount = sortedProviders.length;
+
+      // Get providers for current page
+      const pageProviders = new Set(sortedProviders.slice(providerOffset, providerOffset + providerLimit));
+
+      // Filter questions to only include those from paginated providers
+      const questions = allQuestions.filter(q => pageProviders.has(q.provider_id));
+
+      return { questions, providerCount };
     }
 
     // If searching, find matching provider slugs first
@@ -192,6 +249,7 @@ export async function GET(request: NextRequest) {
         .select("*")
         .contains("metadata", { needs_provider_email: true })
         .not("metadata", "cs", '{"email_dead":true}')
+        .not("metadata", "cs", '{"provider_not_interested":true}')
         .neq("status", "archived")
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
@@ -272,9 +330,8 @@ export async function GET(request: NextRequest) {
         return pStatus?.exists && !pStatus.isArchived && !pStatus.hasEmail;
       });
 
-      // Apply pagination manually
-      const questions = validQuestions.slice(offset, offset + limit);
-      const count = validQuestions.length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(validQuestions, offset, limit);
 
       // Continue to enrichment below with these filtered questions
       // (fall through to the enrichment code)
@@ -426,20 +483,19 @@ export async function GET(request: NextRequest) {
         verification_state: providerVerificationState[q.provider_id] || null,
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // For delivery_issues, show questions where email was on file but delivery failed
-    // Exclude answered questions since they're resolved (provider responded somehow)
+    // Include answered questions — the email channel is still broken and needs trust override
     if (deliveryIssues) {
       let deliveryIssuesQuery = db
         .from("provider_questions")
         .select("*")
         .contains("metadata", { email_dead: true })
+        .not("metadata", "cs", '{"provider_not_interested":true}')
         .neq("status", "archived")
         .neq("status", "rejected")
-        .neq("status", "answered")
-        .neq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(10000);
 
@@ -456,9 +512,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
       }
 
-      // Apply pagination
-      const questions = (allDeliveryIssuesQuestions ?? []).slice(offset, offset + limit);
-      const count = (allDeliveryIssuesQuestions ?? []).length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(
+        allDeliveryIssuesQuestions ?? [],
+        offset,
+        limit
+      );
 
       // Enrich with provider data
       const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
@@ -638,7 +697,7 @@ export async function GET(request: NextRequest) {
         provider_email_history: providerEmailHistory[q.provider_id] || [],
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // For not_interested, show questions where provider is marked as not interested
@@ -665,9 +724,12 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
       }
 
-      // Apply pagination
-      const questions = (allNotInterestedQuestions ?? []).slice(offset, offset + limit);
-      const count = (allNotInterestedQuestions ?? []).length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(
+        allNotInterestedQuestions ?? [],
+        offset,
+        limit
+      );
 
       // Enrich with provider data
       const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
@@ -847,7 +909,7 @@ export async function GET(request: NextRequest) {
         provider_email_history: providerEmailHistory[q.provider_id] || [],
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // For unanswered, show pending questions EXCLUDING those in other priority tabs
@@ -888,9 +950,8 @@ export async function GET(request: NextRequest) {
         return true;
       });
 
-      // Apply pagination
-      const questions = filteredQuestions.slice(offset, offset + limit);
-      const count = filteredQuestions.length;
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(filteredQuestions, offset, limit);
 
       // Enrich with provider data
       const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
@@ -1070,15 +1131,16 @@ export async function GET(request: NextRequest) {
         provider_email_history: providerEmailHistory[q.provider_id] || [],
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // Standard query path (for answered, archived, and "all" tabs)
+    // Uses provider-based pagination like other tabs
     let query = db
       .from("provider_questions")
-      .select("*", { count: "exact" })
+      .select("*")
       .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(50000);
 
     // "answered" tab includes both "answered" and "approved" statuses
     if (status === "answered") {
@@ -1094,12 +1156,15 @@ export async function GET(request: NextRequest) {
     if (dateFrom) query = query.gte("created_at", dateFrom);
     if (dateTo) query = query.lt("created_at", dateTo);
 
-    const { data: questions, count, error } = await query;
+    const { data: allQuestions, error } = await query;
 
     if (error) {
       console.error("Admin questions fetch error:", error);
       return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
+
+    // Apply provider-based pagination (paginate by provider, not question)
+    const { questions, providerCount: count } = paginateByProvider(allQuestions ?? [], offset, limit);
 
     // Enrich with provider display names
     const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
@@ -1355,9 +1420,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // For archived tab, also fetch provider-level archive info from archived_question_providers
+    // Fetch provider-level archive info from archived_question_providers for all tabs
+    // (archived providers may have old answered questions showing in other tabs)
     let providerArchiveInfo: Record<string, { reason: string | null; notes: string | null; archived_by: string | null; archived_at: string | null }> = {};
-    if (status === "archived" && slugs.length > 0) {
+    if (slugs.length > 0) {
       const { data: archiveRecords } = await db
         .from("archived_question_providers")
         .select("provider_id, reason, notes, archived_by, archived_at")
@@ -1475,7 +1541,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       questions: enriched,
       count: count ?? 0,
-      tabCounts: await getTabCounts(),
+      tabCounts: await getTabCounts(dateFrom, dateTo),
     });
   } catch (err) {
     console.error("Admin questions error:", err);

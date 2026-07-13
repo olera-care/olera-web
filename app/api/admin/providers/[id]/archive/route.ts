@@ -19,6 +19,9 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 const VALID_ARCHIVE_REASONS = [
   "provider_requested_no_emails",
   "inactive",
+  "inactive_multiple_attempts",
+  "uninterested_provider",
+  "fax_only",
   "duplicate",
   "out_of_business",
   "invalid_provider",

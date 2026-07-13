@@ -28,6 +28,9 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 const VALID_ARCHIVE_REASONS = [
   "provider_requested_no_emails",
   "inactive",
+  "inactive_multiple_attempts",
+  "uninterested_provider",
+  "fax_only",
   "duplicate",
   "out_of_business",
   "invalid_provider",
@@ -231,14 +234,15 @@ async function handle(params: {
       }
     }
 
-    // 4. Restore questions that were archived via provider archive back to pending
+    // 4. Restore ALL archived questions for this provider back to pending
     // This brings the provider's questions back into the queue
+    // Note: We restore all archived questions, not just those with archived_via metadata,
+    // because legacy individually-archived questions should also be restored
     const { data: archivedQuestions } = await db
       .from("provider_questions")
       .select("id, metadata")
       .in("provider_id", variants)
-      .eq("status", "archived")
-      .contains("metadata", { archived_via: "provider_archive" });
+      .eq("status", "archived");
 
     let questionsRestored = 0;
     if (archivedQuestions && archivedQuestions.length > 0) {

@@ -52,10 +52,16 @@ export async function POST(request: NextRequest) {
       // admissions@) is undeliverable. role_based → valid; role_based_catch_all → risky.
       const verdict = { ...raw, status: effectiveStatus(raw.status, raw.subStatus) };
       if (verdict.status === "invalid") {
+        // Include checkedAt so admin knows how old this verdict is
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
         return NextResponse.json(
           {
             error: "undeliverable",
-            message: "That address can't receive mail — it would bounce. Try another.",
+            message: `That address can't receive mail — it would bounce${ageInfo}. Try another.`,
+            checkedAt,
           },
           { status: 422 },
         );
@@ -67,11 +73,16 @@ export async function POST(request: NextRequest) {
       // operator to find a named inbox; forcing through saves the address but the
       // cold notification still won't fire.
       if (verdict.status === "risky") {
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
         return NextResponse.json(
           {
             error: "risky",
             message:
-              "That looks like a catch-all domain — mail often won't reach a real inbox, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.",
+              `That looks like a catch-all domain — mail often won't reach a real inbox${ageInfo}, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.`,
+            checkedAt,
           },
           { status: 422 },
         );
@@ -183,6 +194,10 @@ export async function POST(request: NextRequest) {
         .eq("id", provider.id);
     }
 
+    // Sync to olera-providers if linked. This only runs for:
+    // - Unclaimed accounts (no account_id), OR
+    // - Claimed accounts with NO email (enrichment case - adding first email)
+    // The claimed+has_email case is blocked above at line 164.
     const iosProviderId = provider?.source_provider_id || iosProvider?.provider_id;
     if (iosProviderId && iosProvider?.email !== effectiveEmail) {
       await db

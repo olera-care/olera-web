@@ -400,10 +400,11 @@ export async function POST(request: NextRequest) {
       const providerPageUrl = `${siteUrl}/provider/${provider_id}`;
 
       // 1. Email the provider about the new question (if they have an email)
-      // Skip if provider is admin-archived OR Q&A-archived (no emails sent).
+      // Skip if provider is admin-archived, Q&A-archived, or marked "not interested" (no question emails sent).
       const isProviderArchived =
         resolvedProvider?.metadata?.admin_archived === true || providerQuestionsArchived;
-      if (pEmail && !isProviderArchived) {
+      const shouldSkipEmail = isProviderArchived || providerNotInterested;
+      if (pEmail && !shouldSkipEmail) {
         const providerSlug = resolvedProvider?.slug || provider_id;
         let providerUrl: string;
         try {
@@ -464,10 +465,10 @@ export async function POST(request: NextRequest) {
             .update({ metadata: { needs_provider_email: true, email_dead: true } })
             .eq("id", newQuestion.id);
         }
-      } else if (newQuestion?.id && !providerQuestionsArchived) {
+      } else if (newQuestion?.id && !providerQuestionsArchived && !providerNotInterested) {
         // No provider email — flag for admin "Needs Email" tab. Skipped for
-        // Q&A-archived providers: their questions are intentionally out of the
-        // queue and must not surface in "Needs Email".
+        // Q&A-archived providers and not-interested providers: their questions
+        // are intentionally out of the normal queue.
         await db
           .from("provider_questions")
           .update({ metadata: { needs_provider_email: true } })

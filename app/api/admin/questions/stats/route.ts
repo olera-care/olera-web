@@ -70,11 +70,16 @@ export async function GET(request: NextRequest) {
 
     // Only query if we have provider IDs to look up
     if (providerIds.length > 0) {
-      // Look up providers in business_profiles (include source_provider_id for fallback email lookup)
+      // Look up providers in business_profiles by slug OR source_provider_id
+      // Questions may use slugs OR alphanumeric provider_ids (which are source_provider_id)
+      const bpOrConditions: string[] = [
+        `slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`,
+        `source_provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`,
+      ];
       const { data: bpProviders } = await db
         .from("business_profiles")
         .select("slug, email, is_active, source_provider_id")
-        .in("slug", providerIds);
+        .or(bpOrConditions.join(','));
 
       // Collect source_provider_ids for fallback email lookup (providers without email on business_profiles)
       const sourceProviderIds = (bpProviders ?? [])
@@ -110,16 +115,16 @@ export async function GET(request: NextRequest) {
         if (p.provider_id && p.email) oleraEmailByProviderId.set(p.provider_id, p.email);
       }
 
-      // Update from business_profiles (takes precedence)
-      // Check both business_profiles.email AND linked olera-providers email via source_provider_id
+      // Update from business_profiles - update BOTH by slug AND source_provider_id
+      // Questions may use either as provider_id
       for (const p of bpProviders ?? []) {
+        const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
+        const status = { exists: true, hasEmail, isArchived: p.is_active === false };
         if (p.slug) {
-          const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
-          providerStatus.set(p.slug, {
-            exists: true,
-            hasEmail,
-            isArchived: p.is_active === false,
-          });
+          providerStatus.set(p.slug, status);
+        }
+        if (p.source_provider_id && p.source_provider_id !== p.slug) {
+          providerStatus.set(p.source_provider_id, status);
         }
       }
 

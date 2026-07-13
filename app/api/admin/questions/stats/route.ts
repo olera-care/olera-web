@@ -60,6 +60,19 @@ export async function GET(request: NextRequest) {
     });
     const providerIds = [...new Set(potentialNeedsEmail.map((r) => r.provider_id).filter(Boolean))];
 
+    // Look up providers in business_profiles (check email and is_active)
+    const { data: bpProviders } = await db
+      .from("business_profiles")
+      .select("slug, email, is_active")
+      .in("slug", providerIds);
+
+    // Look up providers in olera-providers (legacy)
+    const { data: oleraProviders } = await db
+      .from("olera-providers")
+      .select("slug, email")
+      .in("slug", providerIds)
+      .not("deleted", "is", true);
+
     // Build map of provider status: { exists, hasEmail, isArchived }
     const providerStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean }>();
 
@@ -68,96 +81,37 @@ export async function GET(request: NextRequest) {
       providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false });
     }
 
-    // Only query if we have provider IDs to look up
-    if (providerIds.length > 0) {
-      // Look up providers in business_profiles by slug ONLY
-      // We do NOT query by source_provider_id here because provider_ids in questions
-      // are either slugs or alphanumeric IDs, but source_provider_id is an internal
-      // link field and matching on it causes false positives
-      const { data: bpProviders } = await db
-        .from("business_profiles")
-        .select("slug, email, is_active, source_provider_id")
-        .in("slug", providerIds);
-
-      // Collect source_provider_ids for fallback email lookup (providers without email on business_profiles)
-      const sourceProviderIds = (bpProviders ?? [])
-        .filter((p) => p.source_provider_id && !p.email)
-        .map((p) => p.source_provider_id as string);
-
-      // Build OR conditions for olera-providers query
-      // We need to look up by:
-      // 1. slug IN providerIds (for providers where question.provider_id is a slug)
-      // 2. provider_id IN providerIds (for providers where question.provider_id is an alphanumeric ID)
-      // 3. provider_id IN sourceProviderIds (for fallback email lookup via business_profiles link)
-      const orConditions: string[] = [];
-      if (providerIds.length > 0) {
-        orConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-        orConditions.push(`provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
+    // Update from business_profiles (takes precedence)
+    for (const p of bpProviders ?? []) {
+      if (p.slug) {
+        providerStatus.set(p.slug, {
+          exists: true,
+          hasEmail: !!p.email,
+          isArchived: p.is_active === false,
+        });
       }
-      if (sourceProviderIds.length > 0) {
-        orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
-      }
+    }
 
-      // Look up providers in olera-providers
-      const { data: oleraProviders } = orConditions.length > 0
-        ? await db
-            .from("olera-providers")
-            .select("slug, email, provider_id")
-            .or(orConditions.join(','))
-            .not("deleted", "is", true)
-        : { data: [] };
-
-      // Build olera email lookup by provider_id for fallback
-      const oleraEmailByProviderId = new Map<string, string>();
-      for (const p of oleraProviders ?? []) {
-        if (p.provider_id && p.email) oleraEmailByProviderId.set(p.provider_id, p.email);
-      }
-
-      // Update from business_profiles - update BOTH by slug AND source_provider_id
-      // Questions may use either as provider_id
-      for (const p of bpProviders ?? []) {
-        const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
-        const status = { exists: true, hasEmail, isArchived: p.is_active === false };
-        if (p.slug) {
-          providerStatus.set(p.slug, status);
-        }
-        if (p.source_provider_id && p.source_provider_id !== p.slug) {
-          providerStatus.set(p.source_provider_id, status);
-        }
-      }
-
-      // Update from olera-providers (only if not already found via business_profiles)
-      // We need to update BOTH by slug AND by provider_id, because questions may reference
-      // providers using either value
-      for (const p of oleraProviders ?? []) {
-        const status = { exists: true, hasEmail: !!p.email, isArchived: false };
-
-        // Update by slug if present and not already found
-        if (p.slug && !providerStatus.get(p.slug)?.exists) {
-          providerStatus.set(p.slug, status);
-        }
-
-        // Also update by provider_id if different from slug and not already found
-        // This handles cases where question.provider_id is the alphanumeric ID, not the slug
-        if (p.provider_id && p.provider_id !== p.slug && !providerStatus.get(p.provider_id)?.exists) {
-          providerStatus.set(p.provider_id, status);
-        }
+    // Update from olera-providers (only if not already in business_profiles)
+    for (const p of oleraProviders ?? []) {
+      if (p.slug && !providerStatus.get(p.slug)?.exists) {
+        providerStatus.set(p.slug, {
+          exists: true,
+          hasEmail: !!p.email,
+          isArchived: false, // olera-providers uses "deleted" which we already filtered
+        });
       }
     }
 
     // A question truly needs email if:
     // 1. metadata.needs_provider_email === true
-    // 2. metadata.email_dead !== true (belongs in Delivery Issues)
-    // 3. metadata.provider_not_interested !== true (belongs in Not Interested)
-    // 4. question status is not archived/rejected
-    // 5. provider exists
-    // 6. provider is not archived
-    // 7. provider doesn't already have email
+    // 2. question status is not archived/rejected
+    // 3. provider exists
+    // 4. provider is not archived
+    // 5. provider doesn't already have email
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
       const meta = r.metadata as Record<string, unknown> | null | undefined;
       if (meta?.needs_provider_email !== true) return false;
-      if (meta?.email_dead === true) return false; // Belongs in Delivery Issues
-      if (meta?.provider_not_interested === true) return false; // Belongs in Not Interested
       if (r.status === "archived" || r.status === "rejected") return false;
 
       const status = providerStatus.get(r.provider_id);
@@ -171,18 +125,15 @@ export async function GET(request: NextRequest) {
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
-    // KPI: needs-email PROVIDER count (unique) in the current range + prior window for delta
-    // We count providers, not questions, since the questions page operates at provider level
-    const currentProviders = new Set<string>();
-    const priorProviders = new Set<string>();
+    // KPI: needs-email count in the current range + prior window for delta
+    let kpiCurrent = 0;
+    let kpiPrior = 0;
     for (const r of allRows) {
       if (!isNeedsEmail(r)) continue;
       const t = new Date(r.created_at);
-      if (inRange(t)) currentProviders.add(r.provider_id);
-      else if (inPrior(t)) priorProviders.add(r.provider_id);
+      if (inRange(t)) kpiCurrent++;
+      else if (inPrior(t)) kpiPrior++;
     }
-    const kpiCurrent = currentProviders.size;
-    const kpiPrior = priorProviders.size;
 
     let delta: number | null = null;
     if (from) {

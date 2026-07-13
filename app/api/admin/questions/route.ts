@@ -74,93 +74,9 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       );
 
-      // For needs_email, validate provider status (exists, active, no email on file)
-      // This ensures consistency with the graph and overview counts
-      const needsEmailProviderIds = [...new Set((needsEmailQuestions.data ?? []).map(q => q.provider_id).filter(Boolean))];
-      let validatedNeedsEmailCount = 0;
-
-      if (needsEmailProviderIds.length > 0) {
-        // Look up providers in business_profiles by slug ONLY
-        // We do NOT query by source_provider_id here because provider_ids in questions
-        // are either slugs or alphanumeric IDs, but source_provider_id is an internal
-        // link field and matching on it causes false positives
-        const { data: bpProviders } = await db
-          .from("business_profiles")
-          .select("slug, email, is_active, source_provider_id")
-          .in("slug", needsEmailProviderIds);
-
-        // Collect source_provider_ids for fallback email lookup
-        const sourceProviderIds = (bpProviders ?? [])
-          .filter((p) => p.source_provider_id && !p.email)
-          .map((p) => p.source_provider_id as string);
-
-        // Build OR conditions for olera-providers query
-        // Look up by slug, provider_id (for alphanumeric IDs), and sourceProviderIds (for fallback)
-        const orConditions: string[] = [];
-        if (needsEmailProviderIds.length > 0) {
-          orConditions.push(`slug.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
-          orConditions.push(`provider_id.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
-        }
-        if (sourceProviderIds.length > 0) {
-          orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
-        }
-
-        // Look up providers in olera-providers
-        const { data: oleraProviders } = orConditions.length > 0
-          ? await db
-              .from("olera-providers")
-              .select("slug, email, provider_id")
-              .or(orConditions.join(','))
-              .not("deleted", "is", true)
-          : { data: [] };
-
-        // Build olera email lookup by provider_id for fallback
-        const oleraEmailByProviderId = new Map<string, string>();
-        for (const p of oleraProviders ?? []) {
-          if (p.provider_id && p.email) oleraEmailByProviderId.set(p.provider_id, p.email);
-        }
-
-        // Build provider status map
-        const providerStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean }>();
-        for (const id of needsEmailProviderIds) {
-          providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false });
-        }
-        // Update from business_profiles - update BOTH by slug AND source_provider_id
-        for (const p of bpProviders ?? []) {
-          const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
-          const status = { exists: true, hasEmail, isArchived: p.is_active === false };
-          if (p.slug) {
-            providerStatus.set(p.slug, status);
-          }
-          if (p.source_provider_id && p.source_provider_id !== p.slug) {
-            providerStatus.set(p.source_provider_id, status);
-          }
-        }
-        // Update from olera-providers - update both by slug and provider_id
-        for (const p of oleraProviders ?? []) {
-          const status = { exists: true, hasEmail: !!p.email, isArchived: false };
-          if (p.slug && !providerStatus.get(p.slug)?.exists) {
-            providerStatus.set(p.slug, status);
-          }
-          if (p.provider_id && p.provider_id !== p.slug && !providerStatus.get(p.provider_id)?.exists) {
-            providerStatus.set(p.provider_id, status);
-          }
-        }
-
-        // Count providers that exist, are active, and have no email
-        // Iterate over ORIGINAL keys only (not extra keys added during lookup)
-        // to avoid double-counting when slug and provider_id differ
-        for (const providerId of needsEmailProviderIds) {
-          const status = providerStatus.get(providerId);
-          if (status?.exists && !status.isArchived && !status.hasEmail) {
-            validatedNeedsEmailCount++;
-          }
-        }
-      }
-
       return {
         pending: truePendingProviders.size,
-        needs_email: validatedNeedsEmailCount,
+        needs_email: countUniqueProviders(needsEmailQuestions.data),
         delivery_issues: countUniqueProviders(deliveryIssuesQuestions.data),
         not_interested: countUniqueProviders(notInterestedQuestions.data),
         archived: countUniqueProviders(archivedQuestions.data),
@@ -217,18 +133,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Fast path: return only the count (used by admin dashboard overview)
-    // All counts are now PROVIDER counts (unique), not question counts
     if (countOnly) {
       // For needs_email, we must verify provider status (exists, not archived, no email)
       // Exclude email_dead questions - they belong in Delivery Issues tab
-      // Exclude provider_not_interested - they belong in Not Interested tab
       if (needsEmail) {
         let countQuery = db
           .from("provider_questions")
           .select("provider_id, metadata")
           .contains("metadata", { needs_provider_email: true })
           .not("metadata", "cs", '{"email_dead":true}')
-          .not("metadata", "cs", '{"provider_not_interested":true}')
           .neq("status", "archived")
           .neq("status", "rejected");
         if (searchSlugs) {
@@ -247,34 +160,27 @@ export async function GET(request: NextRequest) {
         // Get unique provider IDs and check their status
         const providerIds = [...new Set((questionsForCount ?? []).map((q) => q.provider_id).filter(Boolean))];
 
-        // Look up providers in business_profiles by slug ONLY
-        // We do NOT query by source_provider_id here because provider_ids in questions
-        // are either slugs or alphanumeric IDs, but source_provider_id is an internal
-        // link field and matching on it causes false positives
-        const { data: bpProviders } = providerIds.length > 0
-          ? await db
-              .from("business_profiles")
-              .select("slug, email, is_active, source_provider_id")
-              .in("slug", providerIds)
-          : { data: [] };
+        // Look up providers in business_profiles (include source_provider_id for fallback)
+        const { data: bpProviders } = await db
+          .from("business_profiles")
+          .select("slug, email, is_active, source_provider_id")
+          .in("slug", providerIds);
 
         // Collect source_provider_ids for fallback email lookup
         const sourceProviderIds = (bpProviders ?? [])
           .filter((p) => p.source_provider_id && !p.email)
           .map((p) => p.source_provider_id as string);
 
-        // Build OR conditions for olera-providers query
-        // Look up by slug, provider_id (for alphanumeric IDs), and sourceProviderIds (for fallback)
+        // Build OR conditions for olera-providers query (only include non-empty arrays)
         const orConditions: string[] = [];
         if (providerIds.length > 0) {
           orConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-          orConditions.push(`provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
         }
         if (sourceProviderIds.length > 0) {
           orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
         }
 
-        // Look up providers in olera-providers
+        // Look up providers in olera-providers (by slug OR source_provider_id for email fallback)
         const { data: oleraProviders } = orConditions.length > 0
           ? await db
               .from("olera-providers")
@@ -294,39 +200,26 @@ export async function GET(request: NextRequest) {
         for (const id of providerIds) {
           providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false });
         }
-        // Update from business_profiles - update BOTH by slug AND source_provider_id
-        // Questions may use either as provider_id
         for (const p of bpProviders ?? []) {
-          const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
-          const status = { exists: true, hasEmail, isArchived: p.is_active === false };
           if (p.slug) {
-            providerStatus.set(p.slug, status);
-          }
-          if (p.source_provider_id && p.source_provider_id !== p.slug) {
-            providerStatus.set(p.source_provider_id, status);
+            // Check business_profiles email first, then fallback to olera-providers via source_provider_id
+            const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
+            providerStatus.set(p.slug, { exists: true, hasEmail, isArchived: p.is_active === false });
           }
         }
-        // Update from olera-providers - update both by slug and provider_id
         for (const p of oleraProviders ?? []) {
-          const status = { exists: true, hasEmail: !!p.email, isArchived: false };
           if (p.slug && !providerStatus.get(p.slug)?.exists) {
-            providerStatus.set(p.slug, status);
-          }
-          if (p.provider_id && p.provider_id !== p.slug && !providerStatus.get(p.provider_id)?.exists) {
-            providerStatus.set(p.provider_id, status);
+            providerStatus.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: false });
           }
         }
 
-        // Count unique PROVIDERS (not questions) where provider exists, not archived, and has no email on file
-        const validProviders = new Set<string>();
-        for (const q of questionsForCount ?? []) {
+        // Count only questions where provider exists, not archived, and has no email on file
+        const validCount = (questionsForCount ?? []).filter((q) => {
           const status = providerStatus.get(q.provider_id);
-          if (status?.exists && !status.isArchived && !status.hasEmail) {
-            validProviders.add(q.provider_id);
-          }
-        }
+          return status?.exists && !status.isArchived && !status.hasEmail;
+        }).length;
 
-        return NextResponse.json({ count: validProviders.size });
+        return NextResponse.json({ count: validCount });
       }
 
       // Standard count query for non-needs_email filters

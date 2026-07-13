@@ -697,8 +697,6 @@ export default function AdminQuestionsPage() {
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; not_interested: number; archived: number; answered: number; all: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, not_interested: 0, archived: 0, answered: 0, all: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
-  const [archiveReason, setArchiveReason] = useState("");
   const [archiveProviderTarget, setArchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
   const [archiveProviderReason, setArchiveProviderReason] = useState("");
   const [archiveProviderNotes, setArchiveProviderNotes] = useState("");
@@ -865,25 +863,6 @@ export default function AdminQuestionsPage() {
       await fetchQuestions();
     } catch {
       setError("Failed to restore question");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleArchive = async (id: string, reason: string) => {
-    setActionLoading(id);
-    try {
-      const res = await fetch("/api/admin/questions", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: "archived", archive_reason: reason }),
-      });
-      if (!res.ok) throw new Error("Failed to archive");
-      setArchiveTarget(null);
-      setArchiveReason("");
-      await fetchQuestions();
-    } catch {
-      setError("Failed to archive question");
     } finally {
       setActionLoading(null);
     }
@@ -1478,10 +1457,18 @@ export default function AdminQuestionsPage() {
                           Unarchive Provider
                         </button>
                       ) : activeTab === "archived" ? (
-                        // Archived tab but individually archived: explain no bulk action
-                        <span className="text-xs text-gray-400 italic">
-                          Questions archived individually — use per-question Unarchive below
-                        </span>
+                        // Archived tab but individually archived: offer to upgrade to provider-level archive
+                        <button
+                          onClick={() => {
+                            setArchiveProviderTarget({ providerId, providerName: providerLabel });
+                            setArchiveProviderReason("");
+                            setArchiveProviderNotes("");
+                          }}
+                          disabled={actionLoading === `provider:${providerId}`}
+                          className="px-3 py-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition disabled:opacity-50"
+                        >
+                          Archive Provider (stop future questions)
+                        </button>
                       ) : (
                         // Non-archived tabs: show Archive and Not Interested buttons
                         <>
@@ -1547,22 +1534,13 @@ export default function AdminQuestionsPage() {
 
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 {isLive && (
-                                  <>
-                                    <button
-                                      onClick={() => { setArchiveTarget(q.id); setArchiveReason(""); }}
-                                      disabled={actionLoading === q.id}
-                                      className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-amber-600 transition-all disabled:opacity-40"
-                                    >
-                                      Archive
-                                    </button>
-                                    <button
-                                      onClick={() => handleRemove(q.id)}
-                                      disabled={actionLoading === q.id}
-                                      className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
-                                    >
-                                      Remove
-                                    </button>
-                                  </>
+                                  <button
+                                    onClick={() => handleRemove(q.id)}
+                                    disabled={actionLoading === q.id}
+                                    className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
+                                  >
+                                    Remove
+                                  </button>
                                 )}
                                 {isArchived && (
                                   <button
@@ -1645,42 +1623,6 @@ export default function AdminQuestionsPage() {
               </button>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Archive dialog */}
-      {archiveTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900">Archive question</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Archived questions are hidden from the public page but can be restored later.
-            </p>
-            <textarea
-              value={archiveReason}
-              onChange={(e) => setArchiveReason(e.target.value)}
-              placeholder="Reason (e.g. provider unreachable after 2 attempts)..."
-              className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
-              rows={3}
-              autoFocus
-            />
-            <div className="mt-4 flex justify-end gap-3">
-              <button
-                onClick={() => { setArchiveTarget(null); setArchiveReason(""); }}
-                disabled={actionLoading === archiveTarget}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleArchive(archiveTarget, archiveReason.trim())}
-                disabled={actionLoading === archiveTarget || !archiveReason.trim()}
-                className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
-              >
-                {actionLoading === archiveTarget ? "Archiving..." : "Archive"}
-              </button>
-            </div>
-          </div>
         </div>
       )}
 

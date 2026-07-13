@@ -81,16 +81,21 @@ export async function GET(request: NextRequest) {
         .filter((p) => p.source_provider_id && !p.email)
         .map((p) => p.source_provider_id as string);
 
-      // Build OR conditions for olera-providers query (by slug OR by provider_id for fallback)
+      // Build OR conditions for olera-providers query
+      // We need to look up by:
+      // 1. slug IN providerIds (for providers where question.provider_id is a slug)
+      // 2. provider_id IN providerIds (for providers where question.provider_id is an alphanumeric ID)
+      // 3. provider_id IN sourceProviderIds (for fallback email lookup via business_profiles link)
       const orConditions: string[] = [];
       if (providerIds.length > 0) {
         orConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
+        orConditions.push(`provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
       }
       if (sourceProviderIds.length > 0) {
         orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
       }
 
-      // Look up providers in olera-providers (by slug OR source_provider_id for email fallback)
+      // Look up providers in olera-providers
       const { data: oleraProviders } = orConditions.length > 0
         ? await db
             .from("olera-providers")
@@ -118,14 +123,21 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Update from olera-providers (only if not already in business_profiles)
+      // Update from olera-providers (only if not already found via business_profiles)
+      // We need to update BOTH by slug AND by provider_id, because questions may reference
+      // providers using either value
       for (const p of oleraProviders ?? []) {
+        const status = { exists: true, hasEmail: !!p.email, isArchived: false };
+
+        // Update by slug if present and not already found
         if (p.slug && !providerStatus.get(p.slug)?.exists) {
-          providerStatus.set(p.slug, {
-            exists: true,
-            hasEmail: !!p.email,
-            isArchived: false, // olera-providers uses "deleted" which we already filtered
-          });
+          providerStatus.set(p.slug, status);
+        }
+
+        // Also update by provider_id if different from slug and not already found
+        // This handles cases where question.provider_id is the alphanumeric ID, not the slug
+        if (p.provider_id && p.provider_id !== p.slug && !providerStatus.get(p.provider_id)?.exists) {
+          providerStatus.set(p.provider_id, status);
         }
       }
     }

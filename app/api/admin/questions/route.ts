@@ -92,9 +92,11 @@ export async function GET(request: NextRequest) {
           .map((p) => p.source_provider_id as string);
 
         // Build OR conditions for olera-providers query
+        // Look up by slug, provider_id (for alphanumeric IDs), and sourceProviderIds (for fallback)
         const orConditions: string[] = [];
         if (needsEmailProviderIds.length > 0) {
           orConditions.push(`slug.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
+          orConditions.push(`provider_id.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
         }
         if (sourceProviderIds.length > 0) {
           orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
@@ -126,9 +128,14 @@ export async function GET(request: NextRequest) {
             providerStatus.set(p.slug, { exists: true, hasEmail, isArchived: p.is_active === false });
           }
         }
+        // Update from olera-providers - update both by slug and provider_id
         for (const p of oleraProviders ?? []) {
+          const status = { exists: true, hasEmail: !!p.email, isArchived: false };
           if (p.slug && !providerStatus.get(p.slug)?.exists) {
-            providerStatus.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: false });
+            providerStatus.set(p.slug, status);
+          }
+          if (p.provider_id && p.provider_id !== p.slug && !providerStatus.get(p.provider_id)?.exists) {
+            providerStatus.set(p.provider_id, status);
           }
         }
 
@@ -240,16 +247,18 @@ export async function GET(request: NextRequest) {
           .filter((p) => p.source_provider_id && !p.email)
           .map((p) => p.source_provider_id as string);
 
-        // Build OR conditions for olera-providers query (only include non-empty arrays)
+        // Build OR conditions for olera-providers query
+        // Look up by slug, provider_id (for alphanumeric IDs), and sourceProviderIds (for fallback)
         const orConditions: string[] = [];
         if (providerIds.length > 0) {
           orConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
+          orConditions.push(`provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
         }
         if (sourceProviderIds.length > 0) {
           orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
         }
 
-        // Look up providers in olera-providers (by slug OR source_provider_id for email fallback)
+        // Look up providers in olera-providers
         const { data: oleraProviders } = orConditions.length > 0
           ? await db
               .from("olera-providers")
@@ -276,9 +285,14 @@ export async function GET(request: NextRequest) {
             providerStatus.set(p.slug, { exists: true, hasEmail, isArchived: p.is_active === false });
           }
         }
+        // Update from olera-providers - update both by slug and provider_id
         for (const p of oleraProviders ?? []) {
+          const status = { exists: true, hasEmail: !!p.email, isArchived: false };
           if (p.slug && !providerStatus.get(p.slug)?.exists) {
-            providerStatus.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: false });
+            providerStatus.set(p.slug, status);
+          }
+          if (p.provider_id && p.provider_id !== p.slug && !providerStatus.get(p.provider_id)?.exists) {
+            providerStatus.set(p.provider_id, status);
           }
         }
 

@@ -84,8 +84,10 @@ export async function GET(request: NextRequest) {
       providerLimit: number
     ): { questions: T[]; providerCount: number } {
       // Group by provider, preserving order of most recent question per provider
+      // Filter out questions with missing provider_id or created_at
       const providerLatest = new Map<string, string>();
       for (const q of allQuestions) {
+        if (!q.provider_id || !q.created_at) continue;
         const existing = providerLatest.get(q.provider_id);
         if (!existing || q.created_at > existing) {
           providerLatest.set(q.provider_id, q.created_at);

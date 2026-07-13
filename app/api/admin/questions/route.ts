@@ -36,15 +36,24 @@ export async function GET(request: NextRequest) {
     // Helper to fetch tab counts - called by each response path
     // Count unique providers per tab (not questions)
     // Note: We use .limit(50000) to override Supabase's default 1000 row limit
-    async function getTabCounts() {
+    // Now accepts optional date filters to match the data query
+    async function getTabCounts(filterDateFrom?: string | null, filterDateTo?: string | null) {
+      // Helper to apply date filters to a query
+      const applyDateFilters = <T extends { gte: (col: string, val: string) => T; lt: (col: string, val: string) => T }>(query: T): T => {
+        let q = query;
+        if (filterDateFrom) q = q.gte("created_at", filterDateFrom);
+        if (filterDateTo) q = q.lt("created_at", filterDateTo);
+        return q;
+      };
+
       const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
-        db.from("provider_questions").select("provider_id, metadata").eq("status", "pending").limit(50000),
-        db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected").limit(50000),
-        db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved").limit(50000),
-        db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected").limit(50000),
-        db.from("provider_questions").select("provider_id").eq("status", "archived").limit(50000),
-        db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"]).limit(50000),
-        db.from("provider_questions").select("provider_id").limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id, metadata").eq("status", "pending")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").eq("status", "archived")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"])).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id")).limit(50000),
       ]);
 
       // Helper to count unique providers
@@ -474,7 +483,7 @@ export async function GET(request: NextRequest) {
         verification_state: providerVerificationState[q.provider_id] || null,
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // For delivery_issues, show questions where email was on file but delivery failed
@@ -690,7 +699,7 @@ export async function GET(request: NextRequest) {
         provider_email_history: providerEmailHistory[q.provider_id] || [],
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // For not_interested, show questions where provider is marked as not interested
@@ -902,7 +911,7 @@ export async function GET(request: NextRequest) {
         provider_email_history: providerEmailHistory[q.provider_id] || [],
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // For unanswered, show pending questions EXCLUDING those in other priority tabs
@@ -1124,7 +1133,7 @@ export async function GET(request: NextRequest) {
         provider_email_history: providerEmailHistory[q.provider_id] || [],
       }));
 
-      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts() });
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
     }
 
     // Standard query path (for answered, archived, and "all" tabs)
@@ -1534,7 +1543,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       questions: enriched,
       count: count ?? 0,
-      tabCounts: await getTabCounts(),
+      tabCounts: await getTabCounts(dateFrom, dateTo),
     });
   } catch (err) {
     console.error("Admin questions error:", err);

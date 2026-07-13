@@ -34,31 +34,44 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Helper to fetch tab counts - called by each response path
+    // Count unique providers per tab (not questions)
     async function getTabCounts() {
-      const [pendingQuestions, needsEmailCount, deliveryIssuesCount, notInterestedCount, archivedCount, answeredCount, allCount] = await Promise.all([
-        db.from("provider_questions").select("id, metadata").eq("status", "pending"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').neq("status", "archived").neq("status", "rejected"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { email_dead: true }).neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
-        db.from("provider_questions").select("*", { count: "exact", head: true }).in("status", ["answered", "approved"]),
-        db.from("provider_questions").select("*", { count: "exact", head: true }),
+      const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
+        db.from("provider_questions").select("provider_id, metadata").eq("status", "pending"),
+        db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected"),
+        db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected").neq("status", "answered").neq("status", "approved"),
+        db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected"),
+        db.from("provider_questions").select("provider_id").eq("status", "archived"),
+        db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"]),
+        db.from("provider_questions").select("provider_id"),
       ]);
-      const trueUnansweredCount = (pendingQuestions.data ?? []).filter((q) => {
-        const meta = q.metadata as Record<string, unknown> | null;
-        if (meta?.email_dead === true) return false;
-        if (meta?.provider_not_interested === true) return false;
-        if (meta?.needs_provider_email === true) return false;
-        return true;
-      }).length;
+
+      // Helper to count unique providers
+      const countUniqueProviders = (data: { provider_id: string }[] | null) =>
+        new Set((data ?? []).map(q => q.provider_id).filter(Boolean)).size;
+
+      // Filter pending questions to exclude those belonging to other tabs
+      const truePendingProviders = new Set(
+        (pendingQuestions.data ?? [])
+          .filter((q) => {
+            const meta = q.metadata as Record<string, unknown> | null;
+            if (meta?.email_dead === true) return false;
+            if (meta?.provider_not_interested === true) return false;
+            if (meta?.needs_provider_email === true) return false;
+            return true;
+          })
+          .map(q => q.provider_id)
+          .filter(Boolean)
+      );
+
       return {
-        pending: trueUnansweredCount,
-        needs_email: needsEmailCount.count ?? 0,
-        delivery_issues: deliveryIssuesCount.count ?? 0,
-        not_interested: notInterestedCount.count ?? 0,
-        archived: archivedCount.count ?? 0,
-        answered: answeredCount.count ?? 0,
-        all: allCount.count ?? 0,
+        pending: truePendingProviders.size,
+        needs_email: countUniqueProviders(needsEmailQuestions.data),
+        delivery_issues: countUniqueProviders(deliveryIssuesQuestions.data),
+        not_interested: countUniqueProviders(notInterestedQuestions.data),
+        archived: countUniqueProviders(archivedQuestions.data),
+        answered: countUniqueProviders(answeredQuestions.data),
+        all: countUniqueProviders(allQuestions.data),
       };
     }
 
@@ -192,6 +205,7 @@ export async function GET(request: NextRequest) {
         .select("*")
         .contains("metadata", { needs_provider_email: true })
         .not("metadata", "cs", '{"email_dead":true}')
+        .not("metadata", "cs", '{"provider_not_interested":true}')
         .neq("status", "archived")
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
@@ -436,6 +450,7 @@ export async function GET(request: NextRequest) {
         .from("provider_questions")
         .select("*")
         .contains("metadata", { email_dead: true })
+        .not("metadata", "cs", '{"provider_not_interested":true}')
         .neq("status", "archived")
         .neq("status", "rejected")
         .neq("status", "answered")

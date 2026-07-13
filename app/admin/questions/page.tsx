@@ -75,6 +75,9 @@ const STATUS_COLORS: Record<string, string> = {
 const ARCHIVE_REASON_LABELS: Record<string, string> = {
   provider_requested_no_emails: "Provider requested no emails",
   inactive: "Inactive / No response",
+  inactive_multiple_attempts: "Inactive/unable to reach after multiple attempts",
+  uninterested_provider: "Uninterested provider",
+  fax_only: "Provider - FAX only",
   duplicate: "Duplicate provider",
   out_of_business: "Out of business",
   invalid_provider: "Invalid provider",
@@ -1699,6 +1702,9 @@ export default function AdminQuestionsPage() {
                 <option value="wrong_contact_info">Wrong contact info</option>
                 <option value="provider_requested_no_emails">Provider requested no emails</option>
                 <option value="inactive">Inactive / No response</option>
+                <option value="inactive_multiple_attempts">Inactive/unable to reach after multiple attempts</option>
+                <option value="uninterested_provider">Uninterested provider</option>
+                <option value="fax_only">Provider - FAX only</option>
                 <option value="duplicate">Duplicate provider</option>
                 <option value="relocated">Relocated</option>
                 <option value="compliance_issue">Compliance issue</option>
@@ -1828,6 +1834,11 @@ export default function AdminQuestionsPage() {
                     <option value="Not accepting new clients">Not accepting new clients</option>
                     <option value="Not a good fit">Not a good fit</option>
                     <option value="Duplicate/spam questions">Duplicate/spam questions</option>
+                    <option value="Uninterested provider">Uninterested provider</option>
+                    <option value="Invalid provider">Invalid provider</option>
+                    <option value="Out of business">Out of business</option>
+                    <option value="Inactive/unable to reach after multiple attempts">Inactive/unable to reach after multiple attempts</option>
+                    <option value="Provider - FAX only">Provider - FAX only</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>

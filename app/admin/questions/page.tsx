@@ -1620,10 +1620,11 @@ export default function AdminQuestionsPage() {
                 : activeTab === "answered" ? tabCounts.answered
                 : tabCounts.all;
               const label = activeTab === "needs_email" ? "needing email" : activeTab === "delivery_issues" ? "with delivery issues" : activeTab === "not_interested" ? "not interested" : activeTab === "unanswered" ? "unanswered" : activeTab === "archived" ? "archived" : "total";
-              if (totalProviders <= providerCount) {
-                return `${providerCount} ${providerCount === 1 ? "provider" : "providers"} ${label}`;
+              // Show multi-page format if pagination exists (based on question count)
+              if (count > PAGE_SIZE) {
+                return `${providerCount} providers on this page · ${totalProviders} providers ${label}`;
               }
-              return `${providerCount} providers on this page · ${totalProviders} providers ${label}`;
+              return `${totalProviders} ${totalProviders === 1 ? "provider" : "providers"} ${label}`;
             })()}
           </p>
           {count > PAGE_SIZE && (

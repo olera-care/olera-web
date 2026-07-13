@@ -1612,11 +1612,18 @@ export default function AdminQuestionsPage() {
           <p className="text-sm text-gray-500">
             {(() => {
               const providerCount = groupQuestionsByProvider(questions).size;
+              const totalProviders = activeTab === "needs_email" ? tabCounts.needs_email
+                : activeTab === "delivery_issues" ? tabCounts.delivery_issues
+                : activeTab === "not_interested" ? tabCounts.not_interested
+                : activeTab === "unanswered" ? tabCounts.pending
+                : activeTab === "archived" ? tabCounts.archived
+                : activeTab === "answered" ? tabCounts.answered
+                : tabCounts.all;
               const label = activeTab === "needs_email" ? "needing email" : activeTab === "delivery_issues" ? "with delivery issues" : activeTab === "not_interested" ? "not interested" : activeTab === "unanswered" ? "unanswered" : activeTab === "archived" ? "archived" : "total";
-              if (count <= PAGE_SIZE) {
-                return `${providerCount} ${providerCount === 1 ? "provider" : "providers"}, ${count} questions ${label}`;
+              if (totalProviders <= providerCount) {
+                return `${providerCount} ${providerCount === 1 ? "provider" : "providers"} ${label}`;
               }
-              return `${providerCount} providers on this page · ${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, count)} of ${count} questions`;
+              return `${providerCount} providers on this page · ${totalProviders} providers ${label}`;
             })()}
           </p>
           {count > PAGE_SIZE && (

@@ -1542,15 +1542,6 @@ export default function AdminQuestionsPage() {
                                     Remove
                                   </button>
                                 )}
-                                {isArchived && (
-                                  <button
-                                    onClick={() => handleRestore(q.id)}
-                                    disabled={actionLoading === q.id}
-                                    className="text-xs text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40"
-                                  >
-                                    Unarchive
-                                  </button>
-                                )}
                                 {isRemoved && (
                                   <button
                                     onClick={() => handleRestore(q.id)}

@@ -80,16 +80,14 @@ export async function GET(request: NextRequest) {
       let validatedNeedsEmailCount = 0;
 
       if (needsEmailProviderIds.length > 0) {
-        // Look up providers in business_profiles by slug OR source_provider_id
-        // Questions may use slugs OR alphanumeric provider_ids (which are source_provider_id)
-        const bpOrConditions: string[] = [
-          `slug.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`,
-          `source_provider_id.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`,
-        ];
+        // Look up providers in business_profiles by slug ONLY
+        // We do NOT query by source_provider_id here because provider_ids in questions
+        // are either slugs or alphanumeric IDs, but source_provider_id is an internal
+        // link field and matching on it causes false positives
         const { data: bpProviders } = await db
           .from("business_profiles")
           .select("slug, email, is_active, source_provider_id")
-          .or(bpOrConditions.join(','));
+          .in("slug", needsEmailProviderIds);
 
         // Collect source_provider_ids for fallback email lookup
         const sourceProviderIds = (bpProviders ?? [])
@@ -249,18 +247,15 @@ export async function GET(request: NextRequest) {
         // Get unique provider IDs and check their status
         const providerIds = [...new Set((questionsForCount ?? []).map((q) => q.provider_id).filter(Boolean))];
 
-        // Look up providers in business_profiles by slug OR source_provider_id
-        // Questions may use slugs OR alphanumeric provider_ids (which are source_provider_id in business_profiles)
-        const bpOrConditions: string[] = [];
-        if (providerIds.length > 0) {
-          bpOrConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-          bpOrConditions.push(`source_provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-        }
-        const { data: bpProviders } = bpOrConditions.length > 0
+        // Look up providers in business_profiles by slug ONLY
+        // We do NOT query by source_provider_id here because provider_ids in questions
+        // are either slugs or alphanumeric IDs, but source_provider_id is an internal
+        // link field and matching on it causes false positives
+        const { data: bpProviders } = providerIds.length > 0
           ? await db
               .from("business_profiles")
               .select("slug, email, is_active, source_provider_id")
-              .or(bpOrConditions.join(','))
+              .in("slug", providerIds)
           : { data: [] };
 
         // Collect source_provider_ids for fallback email lookup

@@ -629,7 +629,7 @@ function WindowedCard({
                 label="Leads"
                 value={summary.windowed.counts.lead_received}
                 prior={summary.prior?.counts.lead_received ?? null}
-                href="/admin/leads"
+                href="/admin/connections"
                 tooltip="New connection requests from care seekers to providers."
               />
               <Stat
@@ -702,7 +702,7 @@ function WindowedCard({
                 label="Engaged with leads"
                 value={summary.windowed.provider_distinct_counts.lead_engagers}
                 prior={summary.prior?.provider_distinct_counts.lead_engagers ?? null}
-                href="/admin/leads"
+                href="/admin/connections"
                 tooltip="Distinct providers who clicked through a lead-notification email."
               />
               <Stat

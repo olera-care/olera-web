@@ -114,7 +114,7 @@ export default function StaffScreeningList({
           const Icon = getScreeningIcon(item);
           return (
             <div key={item} className="flex items-center gap-4 py-1.5">
-              <Icon className="w-6 h-6 text-primary-600 flex-shrink-0" />
+              <Icon className="w-6 h-6 text-gray-600 flex-shrink-0" />
               <span className="text-[15px] text-gray-700">{item}</span>
             </div>
           );

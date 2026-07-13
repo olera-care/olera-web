@@ -1413,9 +1413,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // For archived tab, also fetch provider-level archive info from archived_question_providers
+    // Fetch provider-level archive info from archived_question_providers for all tabs
+    // (archived providers may have old answered questions showing in other tabs)
     let providerArchiveInfo: Record<string, { reason: string | null; notes: string | null; archived_by: string | null; archived_at: string | null }> = {};
-    if (status === "archived" && slugs.length > 0) {
+    if (slugs.length > 0) {
       const { data: archiveRecords } = await db
         .from("archived_question_providers")
         .select("provider_id, reason, notes, archived_by, archived_at")

@@ -12,9 +12,10 @@ import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-
  * provider's deferred questions/leads to the address — clearing the pile-up
  * that the over-aggressive checker had been blocking (e.g. The Grove).
  *
- * Unlike /api/admin/questions/add-email, this does NOT change the provider's
- * email and does NOT 403 claimed providers — the whole point is to unblock a
- * claimed provider's existing, human-confirmed inbox.
+ * If the provider's business_profiles.email or olera-providers.email was empty,
+ * syncs the trusted email to those tables so it displays correctly in the UI.
+ * Does NOT 403 claimed providers — the whole point is to unblock a claimed
+ * provider's existing, human-confirmed inbox.
  *
  * GET and POST both supported so it's triggerable straight from a browser.
  *   POST body:   { email?, providerSlug?, reason?, note? }
@@ -127,6 +128,24 @@ async function handle(params: {
   const trusted = await markEmailTrusted(email, { reason, note: note ?? undefined, createdBy: adminEmail });
   if (!trusted) {
     return NextResponse.json({ error: "Failed to record override" }, { status: 500 });
+  }
+
+  // Sync email to business_profiles and olera-providers so it displays in the UI.
+  // The trust action may have resolved email from olera-providers fallback, but the
+  // connections/questions UI relies on business_profiles.email for display.
+  if (provider && !provider.email?.trim()) {
+    await db
+      .from("business_profiles")
+      .update({ email, updated_at: new Date().toISOString() })
+      .eq("id", provider.id);
+    console.log(`[email-override] Synced email to business_profiles for ${provider.slug || provider.id}`);
+  }
+  if (iosProvider && !iosProvider.email?.trim()) {
+    await db
+      .from("olera-providers")
+      .update({ email })
+      .eq("provider_id", iosProvider.provider_id);
+    console.log(`[email-override] Synced email to olera-providers for ${iosProvider.provider_id}`);
   }
 
   // Flush the pile-up for this provider, if we have one. Now that the address is

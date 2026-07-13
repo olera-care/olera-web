@@ -22,6 +22,11 @@ const NOT_INTERESTED_REASONS = [
   "Not accepting new clients",
   "Not a good fit",
   "Duplicate/spam questions",
+  "Uninterested provider",
+  "Invalid provider",
+  "Out of business",
+  "Inactive/unable to reach after multiple attempts",
+  "Provider - FAX only",
   "Other",
 ] as const;
 

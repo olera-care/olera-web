@@ -49,10 +49,16 @@ export async function POST(request: NextRequest) {
     if (!force) {
       const verdict = await verifyAndCache(email);
       if (verdict.status === "invalid") {
+        // Include checkedAt so admin knows how old this verdict is
+        const checkedAt = verdict.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
         return NextResponse.json(
           {
             error: "undeliverable",
-            message: "That address can't receive mail — it would bounce. Try another.",
+            message: `That address can't receive mail — it would bounce${ageInfo}. Try another.`,
+            checkedAt,
           },
           { status: 422 },
         );
@@ -64,11 +70,16 @@ export async function POST(request: NextRequest) {
       // operator to find a named inbox; forcing through saves the address but the
       // cold notification still won't fire.
       if (verdict.status === "risky") {
+        const checkedAt = verdict.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
         return NextResponse.json(
           {
             error: "risky",
             message:
-              "That looks like a catch-all domain — mail often won't reach a real inbox, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.",
+              `That looks like a catch-all domain — mail often won't reach a real inbox${ageInfo}, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.`,
+            checkedAt,
           },
           { status: 422 },
         );
@@ -112,6 +123,10 @@ export async function POST(request: NextRequest) {
         .eq("id", profileId);
     }
 
+    // Sync to olera-providers if linked. This only runs for:
+    // - Unclaimed accounts (no account_id), OR
+    // - Claimed accounts with NO email (enrichment case - adding first email)
+    // The claimed+has_email case is blocked above at line 94.
     if (profile.source_provider_id) {
       const { data: iosProvider } = await db
         .from("olera-providers")
@@ -143,10 +158,20 @@ export async function POST(request: NextRequest) {
     const providerSlug = profile.slug || profile.source_provider_id || profileId;
 
     // Build additional slug variants for question lookup
-    const additionalSlugVariants: string[] = [];
+    // Questions may be stored with different provider_id values (slug, source_provider_id, UUID)
+    // Use Set to avoid duplicates
+    const variantSet = new Set<string>();
     if (profile.source_provider_id && profile.source_provider_id !== providerSlug) {
-      additionalSlugVariants.push(profile.source_provider_id);
+      variantSet.add(profile.source_provider_id);
     }
+    if (profile.slug && profile.slug !== providerSlug) {
+      variantSet.add(profile.slug);
+    }
+    // Include the business_profile UUID - some questions may use this as provider_id
+    if (profile.id && profile.id !== providerSlug) {
+      variantSet.add(profile.id);
+    }
+    const additionalSlugVariants = Array.from(variantSet);
 
     // Send deferred notifications using the unified function
     const result = await sendDeferredNotificationsForProvider({

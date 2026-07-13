@@ -105,13 +105,17 @@ export async function GET(request: NextRequest) {
 
     // A question truly needs email if:
     // 1. metadata.needs_provider_email === true
-    // 2. question status is not archived/rejected
-    // 3. provider exists
-    // 4. provider is not archived
-    // 5. provider doesn't already have email
+    // 2. metadata.email_dead !== true (belongs in Delivery Issues)
+    // 3. metadata.provider_not_interested !== true (belongs in Not Interested)
+    // 4. question status is not archived/rejected
+    // 5. provider exists
+    // 6. provider is not archived
+    // 7. provider doesn't already have email
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
       const meta = r.metadata as Record<string, unknown> | null | undefined;
       if (meta?.needs_provider_email !== true) return false;
+      if (meta?.email_dead === true) return false; // Belongs in Delivery Issues
+      if (meta?.provider_not_interested === true) return false; // Belongs in Not Interested
       if (r.status === "archived" || r.status === "rejected") return false;
 
       const status = providerStatus.get(r.provider_id);
@@ -125,15 +129,18 @@ export async function GET(request: NextRequest) {
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t < to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
 
-    // KPI: needs-email count in the current range + prior window for delta
-    let kpiCurrent = 0;
-    let kpiPrior = 0;
+    // KPI: needs-email PROVIDER count (unique) in the current range + prior window for delta
+    // We count providers, not questions, since the questions page operates at provider level
+    const currentProviders = new Set<string>();
+    const priorProviders = new Set<string>();
     for (const r of allRows) {
       if (!isNeedsEmail(r)) continue;
       const t = new Date(r.created_at);
-      if (inRange(t)) kpiCurrent++;
-      else if (inPrior(t)) kpiPrior++;
+      if (inRange(t)) currentProviders.add(r.provider_id);
+      else if (inPrior(t)) priorProviders.add(r.provider_id);
     }
+    const kpiCurrent = currentProviders.size;
+    const kpiPrior = priorProviders.size;
 
     let delta: number | null = null;
     if (from) {

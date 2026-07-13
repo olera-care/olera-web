@@ -43,6 +43,15 @@ export async function resolveOutreachSearchIds(
   const ids = new Set<string>();
 
   // Source 1 — the outreach row itself: org name + JSONB research fields.
+  //
+  // Decision makers live in TWO stores (see lib/student-outreach/decision-
+  // makers.ts): the current `decision_makers` PLURAL array and the legacy
+  // `decision_maker` SINGULAR object. PostgREST can't `ilike` into individual
+  // array elements, so we match each store as a whole via `->>` — which
+  // returns the value's JSON text — letting the pattern hit any name / email /
+  // role inside it. (A term that happens to be a bare JSON key like "email"
+  // or "role" will over-match here, but real name/email searches are precise;
+  // this is the trade for making decision-maker NAMES searchable at all.)
   const { data: rowMatches } = await db
     .from("student_outreach")
     .select("id")
@@ -51,8 +60,8 @@ export async function resolveOutreachSearchIds(
         `organization_name.ilike.${like}`,
         `research_data->>official_email.ilike.${like}`,
         `research_data->general_contact->>email.ilike.${like}`,
-        `research_data->decision_maker->>name.ilike.${like}`,
-        `research_data->decision_maker->>email.ilike.${like}`,
+        `research_data->>decision_makers.ilike.${like}`,
+        `research_data->>decision_maker.ilike.${like}`,
       ].join(","),
     )
     .limit(1000);

@@ -15,6 +15,7 @@ import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
 import CareServicesList from "@/components/providers/CareServicesList";
+import StaffScreeningList from "@/components/providers/StaffScreeningList";
 import QASectionWithVariant from "@/components/providers/QASectionWithVariant";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
@@ -1348,14 +1349,7 @@ export default async function ProviderPage({
               {hasStaffScreening && (
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
-                  <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    {staffScreeningItems.map((item) => (
-                      <div key={item} className="flex items-center gap-2.5">
-                        <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                        <span className="text-base text-gray-700">{item}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <StaffScreeningList items={staffScreeningItems} initialCount={6} />
                 </div>
               )}
 

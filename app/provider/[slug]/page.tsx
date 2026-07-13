@@ -504,8 +504,12 @@ export default async function ProviderPage({
   // Legacy format was object: { background_checked: true, licensed: true, insured: false }
   const staffScreeningItems: string[] = (() => {
     if (!rawStaffScreening) return [];
-    // If it's already an array, use it directly
-    if (Array.isArray(rawStaffScreening)) return rawStaffScreening;
+    // If it's already an array, filter to valid non-empty strings and deduplicate
+    if (Array.isArray(rawStaffScreening)) {
+      return [...new Set(
+        rawStaffScreening.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      )];
+    }
     // If it's the legacy object format, convert to array
     if (typeof rawStaffScreening === "object") {
       const items: string[] = [];

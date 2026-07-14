@@ -138,6 +138,9 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
     // per-touchpoint counters when present.
     for (const tp of ctx.touchpoints) {
       const n = narrateTouchpoint(tp, { adminFirstNames, contactsById });
+      // Chunk 1: mechanical bookkeeping note_added events narrate as hidden —
+      // skip them so the timeline stays milestones / emails / notes / endings.
+      if (n.hidden) continue;
       const isEmailSent = tp.touchpoint_type === "email_sent";
       const payload = (tp.payload as Record<string, unknown> | null) ?? null;
       const emailLogId = isEmailSent

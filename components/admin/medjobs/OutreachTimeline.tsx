@@ -41,6 +41,7 @@ import { useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
+import { deriveTimelineSummary } from "@/lib/student-outreach/timeline-summary";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 
 type ActionFn = (
@@ -259,11 +260,25 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
 
   const hasAnyActivity = futureRows.length > 0 || pastRows.length > 0;
 
+  // Chunk 3: the one-glance "read" — temperature + whose move. Null before
+  // outreach has started (the empty/upcoming state covers that case).
+  const summary = useMemo(() => deriveTimelineSummary(ctx), [ctx]);
+
   return (
     <section className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
         Timeline
       </h3>
+
+      {summary && (
+        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+          <span aria-hidden className="text-base leading-none">
+            {summary.emoji}
+          </span>
+          <span className="font-semibold text-gray-900">{summary.label}</span>
+          <span className="text-gray-500">— {summary.detail}</span>
+        </div>
+      )}
 
       {!hasAnyActivity && (
         <div className="rounded-lg border border-gray-200 bg-white">

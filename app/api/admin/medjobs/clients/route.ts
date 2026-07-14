@@ -20,7 +20,7 @@ import {
  *
  * Query params:
  *   include_expired=true     → include pilot_expired rows in response
- *   search=<string>          → filter by display_name
+ *   search=<string>          → filter by display_name OR email
  *   with_pending_task=true   → narrow to clients with ≥1 pending
  *                              business_profile_task (kind='client').
  *                              Used by the In Basket Clients tab so it
@@ -82,8 +82,17 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (search) {
-      const safe = search.replace(/[%_]/g, (m) => `\\${m}`);
-      query = query.ilike("display_name", `%${safe}%`);
+      // v10 liberalized search: match display name OR email so an admin can
+      // find a client by the address that replied, not just the org name.
+      // Escape ilike wildcards, then strip the .or() structural delimiters
+      // (, ( ) ") from the term so the filter string can't be corrupted.
+      const safe = search
+        .replace(/[%_]/g, (m) => `\\${m}`)
+        .replace(/[,()"]/g, " ")
+        .trim();
+      if (safe) {
+        query = query.or(`display_name.ilike.%${safe}%,email.ilike.%${safe}%`);
+      }
     }
 
     const { data, error } = await query;

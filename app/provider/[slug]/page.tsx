@@ -15,6 +15,7 @@ import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
 import CareServicesList from "@/components/providers/CareServicesList";
+import StaffScreeningList from "@/components/providers/StaffScreeningList";
 import QASectionWithVariant from "@/components/providers/QASectionWithVariant";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
@@ -497,7 +498,29 @@ export default async function ProviderPage({
   const suggestionStats = (qaResult.suggestionStats ?? {}) as Record<string, number>;
 
   const pricingDetails = claimMeta?.pricing_details ?? meta?.pricing_details ?? [];
-  const staffScreening = claimMeta?.staff_screening ?? meta?.staff_screening;
+  const rawStaffScreening = claimMeta?.staff_screening ?? meta?.staff_screening;
+
+  // Normalize staff_screening to array format
+  // Portal saves as array: ["Background checks", "Drug screening", ...]
+  // Legacy format was object: { background_checked: true, licensed: true, insured: false }
+  const staffScreeningItems: string[] = (() => {
+    if (!rawStaffScreening) return [];
+    // If it's already an array, filter to valid non-empty strings and deduplicate
+    if (Array.isArray(rawStaffScreening)) {
+      return [...new Set(
+        rawStaffScreening.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      )];
+    }
+    // If it's the legacy object format, convert to array
+    if (typeof rawStaffScreening === "object") {
+      const items: string[] = [];
+      if (rawStaffScreening.background_checked) items.push("Background Checked");
+      if (rawStaffScreening.licensed) items.push("Licensed");
+      if (rawStaffScreening.insured) items.push("Insured");
+      return items;
+    }
+    return [];
+  })();
 
   // === Review Data Sources (properly separated) ===
   // 1. Real reviews come from the reviews table (realReviewCount from DB query above)
@@ -542,8 +565,7 @@ export default async function ProviderPage({
   const hasPriceRange = priceRange != null;
   const hasStaff = staff != null;
   const hasReviews = reviewsToShow.length > 0 || realReviewCount > 0;
-  const hasStaffScreening = staffScreening != null &&
-    (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
+  const hasStaffScreening = staffScreeningItems.length > 0;
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
   const rawCareTypes = (profile.care_types ?? []).map(normalizeCareLabel);
@@ -561,7 +583,7 @@ export default async function ProviderPage({
     trustSignals: aiTrustSignals,
     googleReviews: googleReviewsData,
     cmsData,
-    staffScreening,
+    staffScreening: rawStaffScreening,
     careTypes: profile.care_types,
     category: profile.category,
   });
@@ -1327,18 +1349,7 @@ export default async function ProviderPage({
               {hasStaffScreening && (
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
-                  <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    {[
-                      { label: "Background Checked", verified: staffScreening!.background_checked },
-                      { label: "Licensed", verified: staffScreening!.licensed },
-                      { label: "Insured", verified: staffScreening!.insured },
-                    ].filter(item => item.verified).map((item) => (
-                      <div key={item.label} className="flex items-center gap-2.5">
-                        <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                        <span className="text-base text-gray-700">{item.label}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <StaffScreeningList items={staffScreeningItems} initialCount={6} />
                 </div>
               )}
 

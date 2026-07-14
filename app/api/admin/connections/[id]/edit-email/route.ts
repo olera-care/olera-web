@@ -474,13 +474,20 @@ export async function POST(
 
     try {
       // Build slug variants for question lookup
-      const additionalSlugVariants: string[] = [];
+      // Questions may be stored with different provider_id values (slug, source_provider_id, UUID)
+      // Use Set to avoid duplicates
+      const variantSet = new Set<string>();
       if (toProfile.slug && toProfile.slug !== providerSlug) {
-        additionalSlugVariants.push(toProfile.slug);
+        variantSet.add(toProfile.slug);
       }
       if (toProfile.source_provider_id && toProfile.source_provider_id !== providerSlug) {
-        additionalSlugVariants.push(toProfile.source_provider_id);
+        variantSet.add(toProfile.source_provider_id);
       }
+      // Include the business_profile UUID - some questions may use this as provider_id
+      if (toProfile.id && toProfile.id !== providerSlug) {
+        variantSet.add(toProfile.id);
+      }
+      const additionalSlugVariants = Array.from(variantSet);
 
       // Get provider metadata to check leads_unsubscribed status
       const { data: providerMeta } = await db

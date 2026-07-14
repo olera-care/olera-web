@@ -184,6 +184,9 @@ export function MedJobsTabPage({
 
       const ppParams = new URLSearchParams();
       if (campusSlug) ppParams.set("campus", campusSlug);
+      // v10 liberalized search: virtual catchment prospects filter alongside
+      // the materialized rows so the Prospects tab search feels complete.
+      if (debouncedSearch) ppParams.set("search", debouncedSearch);
 
       const partnerParams = new URLSearchParams();
       if (campusSlug) partnerParams.set("campus", campusSlug);
@@ -610,7 +613,7 @@ export function MedJobsTabPage({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by organization name…"
+            placeholder="Search by name, organization, or email…"
             size="sm"
           />
         </div>

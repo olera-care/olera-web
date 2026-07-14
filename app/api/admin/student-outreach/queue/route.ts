@@ -40,6 +40,7 @@ import {
   type TouchpointRow,
 } from "@/lib/student-outreach/state-derivation";
 import { countProspectGeneration } from "@/lib/medjobs/prospect-counts";
+import { resolveOutreachSearchIds } from "@/lib/student-outreach/search";
 import { resolvePartnerProspectUnlocks } from "@/lib/medjobs/partner-prospect-gate";
 import { displayContactName, displayContactRole } from "@/lib/student-outreach/formatters";
 import type {
@@ -203,12 +204,19 @@ export async function GET(req: NextRequest) {
     type: typeFilter,
   });
 
+  // v10 liberalized search: resolve the full set of matching outreach IDs
+  // ONCE (org name + on-row research emails + named-contact name/email),
+  // then let each per-tab fetcher intersect it via .in("id", …) with its own
+  // status/campus/type scoping. `null` = no search; `[]` = searched, matched
+  // nothing (fetchers return an empty list).
+  const searchIds = search ? await resolveOutreachSearchIds(db, search) : null;
+
   // Per-tab base row IDs.
   const rowIds = await fetchRowIdsForTab(db, {
     tab,
     campusId: selectedCampus?.id ?? null,
     type: typeFilter,
-    search,
+    searchIds,
     showClosed,
     page,
     pageSize,
@@ -875,13 +883,17 @@ async function fetchRowIdsForTab(
     tab: string;
     campusId: string | null;
     type: StakeholderType | null;
-    search: string;
+    searchIds: string[] | null;
     showClosed: boolean;
     page: number;
     pageSize: number;
   },
 ): Promise<string[]> {
-  const { tab, campusId, type, search, showClosed, page, pageSize } = opts;
+  const { tab, campusId, type, searchIds, showClosed, page, pageSize } = opts;
+
+  // Searched but matched nothing → no rows in any tab. (A null searchIds means
+  // "no search" and falls through to the normal per-tab queries.)
+  if (searchIds && searchIds.length === 0) return [];
 
   // v9.0 Phase 7 Commit K: when showClosed is true, dedicated entity
   // pages get the active rows for this tab plus closed-status history
@@ -894,9 +906,9 @@ async function fetchRowIdsForTab(
       // rows stay at the top. Drawer opens / inline edits don't
       // bump the row's position — admins can rely on the order to
       // be stable during research.
-      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
+      const active = await idsByStatus(db, RESEARCH_STATUSES, { campusId, type, searchIds, page, pageSize }, "created_at");
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, searchIds, page, pageSize }, "created_at");
       return [...active, ...closed];
     }
     case "candidates":
@@ -913,7 +925,7 @@ async function fetchRowIdsForTab(
       // dedicated Partners entity page shows full inventory including
       // closed partners — handled separately via /api/admin/medjobs/
       // partners. The queue endpoint stays task-driven.
-      return await idsByPartnersWithTasks(db, { campusId, type, search, page, pageSize });
+      return await idsByPartnersWithTasks(db, { campusId, type, searchIds, page, pageSize });
     }
     case "all": {
       const inc = showClosed
@@ -922,7 +934,7 @@ async function fetchRowIdsForTab(
       // v9 final: stable sort — created_at desc keeps card position
       // fixed regardless of incidental drawer activity. Matches the
       // Prospects tab.
-      return await idsByStatus(db, inc as Status[], { campusId, type, search, page, pageSize }, "created_at");
+      return await idsByStatus(db, inc as Status[], { campusId, type, searchIds, page, pageSize }, "created_at");
     }
     case "replies": {
       // Replied rows (status 'engaged') must always load at the top of the tab,
@@ -934,9 +946,9 @@ async function fetchRowIdsForTab(
       // (there's no load-more control) so the whole modest-volume tab renders and
       // nothing — replied or pending — is silently hidden past row 50.
       const repliesPageSize = Math.max(pageSize, 300);
-      const active = await idsByReplies(db, { campusId, type, search, page, pageSize: repliesPageSize });
+      const active = await idsByReplies(db, { campusId, type, searchIds, page, pageSize: repliesPageSize });
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize }, "created_at");
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, searchIds, page, pageSize }, "created_at");
       return [...active, ...closed];
     }
     case "calls": {
@@ -945,19 +957,19 @@ async function fetchRowIdsForTab(
       // touchpoints — but the queue endpoint stays focused on the
       // due-task view. Closed history on Calls means rows whose
       // outreach already closed; we append them when showClosed.
-      const active = await idsByCallsDue(db, { campusId, type, search, page, pageSize });
+      const active = await idsByCallsDue(db, { campusId, type, searchIds, page, pageSize });
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, searchIds, page, pageSize });
       return [...active, ...closed];
     }
     case "meetings": {
-      const active = await idsByMeetings(db, { campusId, type, search, page, pageSize });
+      const active = await idsByMeetings(db, { campusId, type, searchIds, page, pageSize });
       if (!showClosed) return active;
-      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, search, page, pageSize });
+      const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, searchIds, page, pageSize });
       return [...active, ...closed];
     }
     case "archive":
-      return await idsByArchive(db, { campusId, type, search, page, pageSize });
+      return await idsByArchive(db, { campusId, type, searchIds, page, pageSize });
     default:
       return [];
   }
@@ -987,7 +999,7 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .order("id", { ascending: true });
   if (opts.campusId) closedQ = closedQ.eq("campus_id", opts.campusId);
   if (opts.type) closedQ = closedQ.eq("stakeholder_type", opts.type);
-  if (opts.search) closedQ = closedQ.ilike("organization_name", `%${opts.search}%`);
+  if (opts.searchIds) closedQ = closedQ.in("id", opts.searchIds);
   const { data: closedData } = await closedQ;
   const closedIds = ((closedData ?? []) as Array<{ id: string }>).map((r) => r.id);
 
@@ -1000,7 +1012,7 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
     .order("id", { ascending: true });
   if (opts.campusId) activeQ = activeQ.eq("campus_id", opts.campusId);
   if (opts.type) activeQ = activeQ.eq("stakeholder_type", opts.type);
-  if (opts.search) activeQ = activeQ.ilike("organization_name", `%${opts.search}%`);
+  if (opts.searchIds) activeQ = activeQ.in("id", opts.searchIds);
   const { data: activeData } = await activeQ;
   const activeIds = ((activeData ?? []) as Array<{ id: string }>).map((r) => r.id);
 
@@ -1031,7 +1043,10 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
 interface QueryOpts {
   campusId: string | null;
   type: StakeholderType | null;
-  search: string;
+  /** Pre-resolved set of outreach IDs matching the liberalized search
+   *  (org name + on-row research emails + named-contact name/email), or
+   *  null when no search is active. Fetchers intersect via .in("id", …). */
+  searchIds: string[] | null;
   page: number;
   pageSize: number;
 }
@@ -1085,7 +1100,7 @@ async function idsByStatus(
     .range(opts.page * opts.pageSize, opts.page * opts.pageSize + opts.pageSize - 1);
   if (opts.campusId) q = q.eq("campus_id", opts.campusId);
   if (opts.type) q = q.eq("stakeholder_type", opts.type);
-  if (opts.search) q = q.ilike("organization_name", `%${opts.search}%`);
+  if (opts.searchIds) q = q.in("id", opts.searchIds);
   const { data } = await q;
   return ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
 }
@@ -1114,7 +1129,7 @@ async function idsByPartnersWithTasks(db: DB, opts: QueryOpts): Promise<string[]
     .order("id", { ascending: true });
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
-  if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
+  if (opts.searchIds) q = q.in("student_outreach.id", opts.searchIds);
   const { data } = await q;
   const ids: string[] = [];
   const seen = new Set<string>();
@@ -1144,7 +1159,7 @@ async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
     .limit(10000);
   if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
   if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
-  if (opts.search) q = q.ilike("student_outreach.organization_name", `%${opts.search}%`);
+  if (opts.searchIds) q = q.in("student_outreach.id", opts.searchIds);
   const { data } = await q;
   const ids: string[] = [];
   const seen = new Set<string>();
@@ -1166,7 +1181,7 @@ async function idsByMeetings(db: DB, opts: QueryOpts): Promise<string[]> {
     .in("status", REPLIES_STATUSES);
   if (opts.campusId) baseQ = baseQ.eq("campus_id", opts.campusId);
   if (opts.type) baseQ = baseQ.eq("stakeholder_type", opts.type);
-  if (opts.search) baseQ = baseQ.ilike("organization_name", `%${opts.search}%`);
+  if (opts.searchIds) baseQ = baseQ.in("id", opts.searchIds);
   const { data: candidates } = await baseQ;
   const candidateIds = ((candidates ?? []) as Array<{ id: string }>).map((r) => r.id);
   if (candidateIds.length === 0) return [];

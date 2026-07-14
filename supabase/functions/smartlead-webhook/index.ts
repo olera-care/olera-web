@@ -76,6 +76,10 @@ const PROMOTE_ON_REPLY = new Set([
   "researched",
   "prospect",
   "no_response_closed",
+  // Late interest on a retired prospect: a reply resurfaces an archived row into
+  // Emails "They replied" (matches the Archive tab's own promise + the Follow-up
+  // workflow's reversibility).
+  "archived",
 ]);
 
 type Kind = "sent" | "open" | "click" | "reply" | "bounce" | "unsubscribe" | "ignore";

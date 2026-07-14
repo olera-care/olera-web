@@ -1289,12 +1289,32 @@ async function handleAddNote(
  * admin manually created in Google Cal). No stage transition — meeting
  * state lives purely in touchpoint payloads. Marks engaged if not yet.
  */
+/**
+ * Reactivate a closed/archived row when the admin acts on late engagement
+ * (Re-engage or Book a meeting from the Follow-up/Archive drawer). Direct status
+ * force (like handleArchive/handleReopen) — bypasses the cadence-restart that a
+ * full "Reopen" does, so booking a meeting or launching a custom cadence from
+ * Archive doesn't also fire a cold Day-0. No-op for already-active rows.
+ */
+async function reviveClosedRow(db: DB, row: OutreachRow, userId: string) {
+  if (!CLOSED_STATUSES.includes(row.status)) return;
+  await touchOutreach(db, row.id, userId, {
+    status: "engaged",
+    reopen_at: null,
+    snoozed_until: null,
+  });
+  await insertTouchpoint(db, row.id, "stage_change", userId, {
+    payload: { from: row.status, to: "engaged", reactivated: true },
+  });
+}
+
 async function handleMarkMeetingScheduled(
   db: DB,
   row: OutreachRow,
   body: { meeting_at?: string; notes?: string },
   userId: string,
 ) {
+  await reviveClosedRow(db, row, userId);
   let meetingAt: Date | null = null;
   if (body.meeting_at) {
     meetingAt = new Date(body.meeting_at);
@@ -1686,9 +1706,10 @@ async function handleLogReply(
     row.status === "outreach_sent" ||
     row.status === "researched" ||
     row.status === "prospect" ||
-    row.status === "no_response_closed"
+    row.status === "no_response_closed" ||
+    row.status === "archived"
   ) {
-    if (row.status === "no_response_closed") {
+    if (row.status === "no_response_closed" || row.status === "archived") {
       await db
         .from("student_outreach")
         .update({ reopen_at: null })
@@ -2446,6 +2467,8 @@ async function handleLaunchCustomCadence(
   },
   userId: string,
 ) {
+  // Re-engaging from Follow-up/Archive: reactivate a closed row first.
+  await reviveClosedRow(db, row, userId);
   const name = (body.name ?? "").trim() || "Custom cadence";
   const rawSteps = body.steps ?? [];
   const emailSteps: CustomEmailStep[] = rawSteps
@@ -2564,7 +2587,11 @@ async function handleLaunchCustomCadence(
     await db.from("student_outreach").update({ research_data: nextResearch }).eq("id", row.id);
   }
 
-  // 5. Marker note — feeds the reply cutoff + the drawer headline.
+  // 5. Marker note — feeds the reply cutoff + the drawer headline + the
+  //    Follow-up "cadence finished" window. ends_after_days = the last EMAIL
+  //    day so the completion check knows this cadence's true length (calls are
+  //    covered separately by the pending-call gate).
+  const endsAfterDays = emailSteps.length ? Math.max(...emailSteps.map((s) => s.day)) : 0;
   await insertTouchpoint(db, row.id, "note_added", userId, {
     channel: "system",
     payload: {
@@ -2574,6 +2601,7 @@ async function handleLaunchCustomCadence(
       email_delivery: emailDelivery,
       email_steps: emailSteps.length,
       call_steps: callSteps.length,
+      ends_after_days: endsAfterDays,
     },
   });
 }

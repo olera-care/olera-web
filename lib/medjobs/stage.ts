@@ -33,6 +33,7 @@
 
 import { isClientMeta } from "@/lib/medjobs/partner-prospect-gate";
 import {
+  currentCadenceEndMs,
   deriveStateFromTouchpoints,
   hasEmailReplyToCurrentCadence,
   isCadenceComplete,
@@ -179,7 +180,7 @@ export function deriveStage(input: StageInput): Stage {
       (t) => t.status === "pending" && t.task_type === "outreach_followup_call",
     );
     if (
-      isCadenceComplete(state, hasPendingEmail, hasPendingCall, now) &&
+      isCadenceComplete(state, hasPendingEmail, hasPendingCall, currentCadenceEndMs(tps), now) &&
       !hasEmailReplyToCurrentCadence(tps)
     ) {
       return "cadence_done";

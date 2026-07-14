@@ -33,6 +33,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   computeStaleDays,
+  currentCadenceEndMs,
   deriveRepliesState,
   deriveStateFromTouchpoints,
   hasEmailReplyToCurrentCadence,
@@ -863,6 +864,7 @@ async function countMeetingsAmongRows(
         hasPendingEmail.has(id),
         hasPendingCall.has(id),
         hasEmailReplyToCurrentCadence(tps),
+        currentCadenceEndMs(tps),
         now,
       ) === "followup"
     ) {
@@ -1066,6 +1068,7 @@ async function idsByReplies(db: DB, opts: QueryOpts): Promise<string[]> {
         hasPendingEmail.has(id),
         hasPendingCall.has(id),
         hasEmailReplyToCurrentCadence(tps),
+        currentCadenceEndMs(tps),
         now,
       ) === "replies"
     );
@@ -1221,11 +1224,12 @@ function classifyOutreachRow(
   hasPendingEmail: boolean,
   hasPendingCall: boolean,
   hasEmailReplyCurrent: boolean,
+  cadenceEndMs: number | null,
   now: number,
 ): "meeting" | "replies" | "followup" {
   if (state.meeting_state !== "none") return "meeting";
   if (hasEmailReplyCurrent) return "replies";
-  if (isCadenceComplete(state, hasPendingEmail, hasPendingCall, now)) return "followup";
+  if (isCadenceComplete(state, hasPendingEmail, hasPendingCall, cadenceEndMs, now)) return "followup";
   return "replies";
 }
 
@@ -1304,6 +1308,7 @@ async function idsByFollowup(db: DB, opts: QueryOpts): Promise<string[]> {
         hasPendingEmail.has(id),
         hasPendingCall.has(id),
         hasEmailReplyToCurrentCadence(tps),
+        currentCadenceEndMs(tps),
         now,
       ) === "followup"
     );

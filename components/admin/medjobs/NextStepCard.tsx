@@ -46,6 +46,10 @@ import {
   formatRelative,
 } from "@/lib/student-outreach/formatters";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import {
+  activationSequenceRunning,
+  currentSequenceStartedAt,
+} from "@/lib/student-outreach/state-derivation";
 import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
@@ -170,7 +174,13 @@ function StageBody({
     case "in_outreach":
       return <InOutreachBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />;
     case "call_due":
-      return <CallDueBody ctx={ctx} action={action} setError={setError} />;
+      // A due call raises priority to call_due, but the Next step must look and
+      // behave like every other in-cadence card — so it renders the SAME
+      // tab-aware body: call-first in the Calls tab, reply-first in the Emails
+      // tab, with the due call surfaced as the "Call" action either way. Custom
+      // and activation cadences therefore render identically to any other row on
+      // every tab; the cadence's shape never changes how the card looks.
+      return <InOutreachBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />;
     case "meeting_set":
       return <MeetingSetBody ctx={ctx} action={action} setError={setError} />;
     case "follow_up":
@@ -233,14 +243,27 @@ function InOutreachBody({
 
   // A landed reply drives the one-line status (and is pulled into the reply
   // modal); otherwise we're awaiting one. The outcome cards live in the modal.
+  //
+  // Only replies to the CURRENT sequence count. Once a post-outreach sequence is
+  // launched (activation today; custom sequences later), the reply that
+  // triggered it belongs to the prior phase and is consumed — so we ignore
+  // replies from BEFORE the current sequence started, and the card falls through
+  // to "Awaiting reply to <sequence>" + a "No reply yet" modal until they reply
+  // to the NEW sequence. With nothing running, the cutoff is null and every
+  // reply counts (the outreach phase) — unchanged behavior.
+  const sequenceStartedAt = currentSequenceStartedAt(ctx.touchpoints);
   const latestReply = ctx.touchpoints
     .filter((t) => t.touchpoint_type === "email_replied")
+    .filter((t) => sequenceStartedAt == null || t.created_at > sequenceStartedAt)
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 
   // Which cadence are we awaiting a reply to — the cold outreach drip or the
   // warm activation cadence? Drives the headline copy (replaces the old green
   // "Activation cadence running" box).
   const activationRunning = isActivationRunning(ctx);
+  // Custom cadences show their admin-given name; activation/outreach use the
+  // generic label.
+  const customCadenceName = currentCustomCadenceName(ctx);
   const nextActivationCall = ctx.pending_tasks
     .filter(
       (t) =>
@@ -263,7 +286,17 @@ function InOutreachBody({
   // due. Script + outcome set follow the cadence we're awaiting.
   const [showConfirmCall, setShowConfirmCall] = useState(false);
   const [showReply, setShowReply] = useState(false);
-  const confirmCallTask = activationRunning ? nextActivationCall : nextColdCall;
+  // Which pending call seeds the "Call" modal's script? The CURRENT cadence's
+  // call. A custom cadence's calls are tagged cadence="custom" (non-activation),
+  // and launching a custom cadence cancels the old activation calls — so when a
+  // custom cadence is current we must read nextColdCall (which matches the custom
+  // call), NOT nextActivationCall, which is now empty and would leave the modal
+  // script-less. Otherwise: activation's call while activation runs, else cold.
+  const confirmCallTask = customCadenceName
+    ? nextColdCall
+    : activationRunning
+      ? nextActivationCall
+      : nextColdCall;
   const confirmScript =
     typeof confirmCallTask?.payload?.script === "string"
       ? (confirmCallTask.payload.script as string)
@@ -272,22 +305,30 @@ function InOutreachBody({
     typeof confirmCallTask?.payload?.day === "number"
       ? (confirmCallTask.payload.day as number)
       : null;
-  const confirmScriptLabel = activationRunning
-    ? "Activation call script"
-    : confirmDay != null
-      ? `Day ${confirmDay} script`
-      : "Call script";
+  const confirmScriptLabel = customCadenceName
+    ? "Custom cadence call"
+    : activationRunning
+      ? "Activation call script"
+      : confirmDay != null
+        ? `Day ${confirmDay} script`
+        : "Call script";
 
-  const headline = `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
-  const subline = activationRunning
-    ? nextActivationCall
-      ? `Next call ${formatDueDate(nextActivationCall.due_at)}`
-      : "Follow-ups queued"
-    : nextEmail
-      ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatDueDate(nextEmail.due_at)}`
-      : lastEmailSent
-        ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
-        : "Outreach in flight";
+  const headline = customCadenceName
+    ? `Awaiting reply to ${customCadenceName}`
+    : `Awaiting reply to ${activationRunning ? "activation" : "outreach"} cadence`;
+  const subline = customCadenceName
+    ? confirmCallTask
+      ? `Next call ${formatDueDate(confirmCallTask.due_at)}`
+      : "Cadence in flight"
+    : activationRunning
+      ? nextActivationCall
+        ? `Next call ${formatDueDate(nextActivationCall.due_at)}`
+        : "Follow-ups queued"
+      : nextEmail
+        ? `Next: Day ${nextEmail.payload?.day ?? "?"} email · due ${formatDueDate(nextEmail.due_at)}`
+        : lastEmailSent
+          ? `Last email sent ${formatRelative(lastEmailSent.created_at)} · cadence complete`
+          : "Outreach in flight";
 
   // Call-first everywhere EXCEPT the Emails tab. A call-due row (CallDueBody)
   // already reads call-first on every surface; an awaiting-reply row with a
@@ -298,7 +339,13 @@ function InOutreachBody({
   const callFirst = activeTab != null && activeTab !== "replies";
   const partner = isPartnerRow(ctx);
   const callLabel = partner ? "Call contact" : "Call provider";
-  const replyLabel = partner ? "Check for reply to contact" : "Check for reply to provider";
+  // A landed reply flips the button to "Reply now" (there's a reply to act on);
+  // an awaiting-reply row keeps "Check for reply" (still pending one).
+  const replyLabel = latestReply
+    ? "Reply now"
+    : partner
+      ? "Check for reply to contact"
+      : "Check for reply to provider";
   const callTitle = "Call this contact now and log the outcome against the call script.";
   const replyTitle = "Pull in their reply and log the outcome.";
 
@@ -420,127 +467,48 @@ function isPartnerRow(ctx: DrawerContext): boolean {
 }
 
 /**
- * Is an activation cadence currently running? Derived from the timeline:
- * a launch with no later stop. A hard "stop all outreach" (outreach_stopped)
- * counts as a stop too, so the drawer stops reading as activation-in-flight.
+ * Is the ACTIVATION cadence currently running? Thin wrapper over the shared
+ * derivation (activationSequenceRunning), so the tab, the card pill, and this
+ * drawer all read from one implementation. The reply cutoff comes from the same
+ * module (currentSequenceStartedAt) — see the import at the top.
  */
 function isActivationRunning(ctx: DrawerContext): boolean {
-  const latestReasonAt = (reason: string): string | null =>
-    ctx.touchpoints
-      .filter(
-        (t) =>
-          t.touchpoint_type === "note_added" &&
-          (t.payload as Record<string, unknown> | null)?.reason === reason,
-      )
-      .map((t) => t.created_at)
-      .sort()
-      .at(-1) ?? null;
-  const launchedAt = latestReasonAt("activation_launched");
-  const stoppedAt =
-    [latestReasonAt("activation_stopped"), latestReasonAt("outreach_stopped")]
-      .filter((d): d is string => d != null)
-      .sort()
-      .at(-1) ?? null;
-  return !!launchedAt && (!stoppedAt || stoppedAt < launchedAt);
+  return activationSequenceRunning(ctx.touchpoints);
+}
+
+/**
+ * Name of the custom cadence currently awaiting a reply — when a custom cadence
+ * is the most recent launch (newer than any activation launch). Drives the
+ * drawer headline. Returns null when the current cadence is outreach or
+ * activation (those use the generic label).
+ */
+function currentCustomCadenceName(ctx: DrawerContext): string | null {
+  let customAt: string | null = null;
+  let customName: string | null = null;
+  let activationAt: string | null = null;
+  for (const t of ctx.touchpoints) {
+    if (t.touchpoint_type !== "note_added") continue;
+    const p = (t.payload ?? {}) as Record<string, unknown>;
+    if (p.reason === "custom_sequence_launched") {
+      if (customAt === null || t.created_at > customAt) {
+        customAt = t.created_at;
+        customName = typeof p.name === "string" && p.name.trim() ? p.name.trim() : null;
+      }
+    } else if (p.reason === "activation_launched") {
+      if (activationAt === null || t.created_at > activationAt) activationAt = t.created_at;
+    }
+  }
+  if (!customAt) return null;
+  // A later activation launch supersedes the custom cadence naming.
+  if (activationAt && activationAt > customAt) return null;
+  return customName;
 }
 
 // ── call_due ─────────────────────────────────────────────────────────────
-
-/**
- * v9.1 Graize 05.13 audit (Item 5): Calls drawer Next Step
- * restructured so the three actions are unmistakable:
- *   1. CALL pill — names the step the row is on
- *   2. Phone link — one tap to dial
- *   3. Suggested script (collapsible) — sourced from the next
- *      pending outreach_followup_call task's payload, which carries
- *      the resolved script set at PreFlight time
- *   4. Log call outcome button — the action that advances the row
- *
- * The script is shown as a `<details>` so it doesn't dominate the
- * card visually, but is one click away when admin needs it.
- */
-function CallDueBody({
-  ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (m: string | null) => void;
-}) {
-  const [showFollowUp, setShowFollowUp] = useState(false);
-
-  const primaryContact =
-    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
-    ctx.contacts.find((c) => c.status === "active") ??
-    null;
-  const contactName = primaryContact
-    ? [primaryContact.title, primaryContact.first_name, primaryContact.last_name]
-        .filter(Boolean)
-        .join(" ")
-        .trim() || primaryContact.name
-    : null;
-
-  const nextCallTask = ctx.pending_tasks
-    .filter((t) => t.task_type === "outreach_followup_call")
-    .sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
-  const callScript =
-    typeof nextCallTask?.payload?.script === "string"
-      ? (nextCallTask.payload.script as string)
-      : null;
-  const callDay =
-    typeof nextCallTask?.payload?.day === "number"
-      ? (nextCallTask.payload.day as number)
-      : null;
-  const callLabel = isPartnerRow(ctx) ? "Call contact" : "Call provider";
-
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
-          Call
-        </span>
-      </div>
-      <p className="mt-2 text-sm font-medium text-gray-900">Next step: call to follow up</p>
-      {nextCallTask && (
-        <p className="mt-1 text-xs text-gray-500">
-          Next call {formatDueDate(nextCallTask.due_at)}
-        </p>
-      )}
-      {primaryContact?.phone && (
-        <p className="mt-1 text-sm">
-          <a
-            href={`tel:${primaryContact.phone}`}
-            className="font-semibold text-primary-700 hover:underline"
-          >
-            📞 {primaryContact.phone}
-          </a>
-          {contactName && (
-            <span className="ml-2 text-xs text-gray-500">· {contactName}</span>
-          )}
-        </p>
-      )}
-      <div className="mt-3">
-        <button
-          onClick={() => setShowFollowUp(true)}
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
-        >
-          ☎ {callLabel}
-        </button>
-      </div>
-      {showFollowUp && (
-        <CallFollowUpModal
-          ctx={ctx}
-          action={action}
-          script={callScript}
-          scriptLabel={callDay != null ? `Day ${callDay} script` : "Call script"}
-          onClose={() => setShowFollowUp(false)}
-          setError={setError}
-        />
-      )}
-    </>
-  );
-}
+// A call-due row no longer has its own Next-step body — it renders the shared
+// InOutreachBody (see StageBody) so every card looks and behaves the same,
+// tab-aware, whether or not a call happens to be due. The old bespoke CallDueBody
+// was the source of the "custom cadence looks different" drift and was removed.
 
 // ── meeting_set ──────────────────────────────────────────────────────────
 

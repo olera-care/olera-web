@@ -26,8 +26,196 @@ export default function IntegrationsPage() {
       </div>
 
       <SmartleadCard />
+      <BackfillCard />
       <CalendlyCard />
     </main>
+  );
+}
+
+type CampaignStat = { campaign_id: number; leads: number; replies: number; resolved: number };
+type PreviewData = {
+  found: number;
+  unresolved: number;
+  scanned: number;
+  campaigns: number;
+  capped: boolean;
+  errors: string[];
+  sample: Array<Record<string, unknown>>;
+  byCampaign: CampaignStat[];
+};
+
+function BackfillCard() {
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<PreviewData | null>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const runPreview = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setPreview(null);
+    try {
+      const res = await fetch("/api/admin/medjobs/backfill-smartlead-replies");
+      const body = (await res.json()) as {
+        replies_found?: number;
+        replies_unresolved?: number;
+        leads_scanned?: number;
+        campaigns?: number;
+        capped?: boolean;
+        errors?: string[];
+        sample?: Array<Record<string, unknown>>;
+        by_campaign?: CampaignStat[];
+        error?: string;
+      };
+      if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+      setPreview({
+        found: body.replies_found ?? 0,
+        unresolved: body.replies_unresolved ?? 0,
+        scanned: body.leads_scanned ?? 0,
+        campaigns: body.campaigns ?? 0,
+        capped: !!body.capped,
+        errors: body.errors ?? [],
+        sample: body.sample ?? [],
+        byCampaign: body.by_campaign ?? [],
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runImport = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/medjobs/backfill-smartlead-replies", { method: "POST" });
+      const body = (await res.json()) as {
+        imported?: number;
+        skipped_duplicate?: number;
+        capped?: boolean;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+      setResult(
+        `Imported ${body.imported ?? 0} past reply(ies) (${body.skipped_duplicate ?? 0} already in).` +
+          (body.capped ? " More remain — click Import again to continue." : ""),
+      );
+      setPreview(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="rounded-xl border border-gray-200 bg-white p-6">
+      <h2 className="text-lg font-semibold text-gray-900">Import past replies</h2>
+      <p className="mt-1 text-sm text-gray-600">
+        Pulls in replies that came in before the connection was live — including out-of-office — so you
+        can work those leads. Safe to run again; it won&apos;t duplicate anything.
+      </p>
+
+      <div className="mt-3 flex gap-2">
+        <button
+          onClick={runPreview}
+          disabled={loading}
+          className="rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {loading && !preview ? "Checking…" : "Preview"}
+        </button>
+        {preview && (
+          <button
+            onClick={runImport}
+            disabled={loading}
+            className="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+          >
+            {loading ? "Importing…" : `Import ${preview.found} reply(ies)`}
+          </button>
+        )}
+      </div>
+
+      {preview && (
+        <div className="mt-3 space-y-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+          <p>
+            Found <strong>{preview.found}</strong> past reply(ies)
+            {preview.unresolved > 0 ? ` (${preview.unresolved} couldn't be matched to a lead)` : ""}. Press
+            Import to bring them into the app.
+          </p>
+          <p className="text-xs text-gray-500">
+            Scanned {preview.scanned} lead(s) across {preview.campaigns} campaign(s)
+            {preview.capped ? " · hit the scan limit (some leads not reached)" : ""}.
+          </p>
+          {preview.errors.length > 0 && (
+            <details className="text-xs text-red-700">
+              <summary className="cursor-pointer font-medium">
+                {preview.errors.length} scan error(s) — click to view
+              </summary>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {preview.errors.slice(0, 12).map((e, i) => (
+                  <li key={i} className="break-all">{e}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {preview.byCampaign.length > 0 && (
+            <details className="text-xs text-gray-500">
+              <summary className="cursor-pointer font-medium">
+                Per-campaign breakdown ({preview.byCampaign.length}) — click to view
+              </summary>
+              <table className="mt-1 w-full text-left">
+                <thead className="text-gray-400">
+                  <tr>
+                    <th className="pr-3 font-medium">Campaign</th>
+                    <th className="pr-3 font-medium">Leads</th>
+                    <th className="pr-3 font-medium">Replies</th>
+                    <th className="font-medium">Matched</th>
+                  </tr>
+                </thead>
+                <tbody className="font-mono">
+                  {preview.byCampaign.map((c) => (
+                    <tr key={c.campaign_id}>
+                      <td className="pr-3">{c.campaign_id}</td>
+                      <td className="pr-3">{c.leads}</td>
+                      <td className="pr-3">{c.replies}</td>
+                      <td>{c.resolved}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </details>
+          )}
+          {preview.sample.length > 0 && (
+            <details className="text-xs text-gray-500">
+              <summary className="cursor-pointer font-medium">
+                Sample of {preview.sample.length} parsed reply(ies) — click to view
+              </summary>
+              <ul className="mt-1 space-y-1 pl-1">
+                {preview.sample.map((s, i) => (
+                  <li key={i} className="border-l-2 border-gray-200 pl-2">
+                    <span className="font-mono">{String(s.from_email ?? "?")}</span>{" "}
+                    · {String(s.subject ?? "(no subject)")}{" "}
+                    · {String(s.occurred_at ?? "?")}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
+      {result && (
+        <p className="mt-3 rounded-md border border-primary-200 bg-primary-50 px-3 py-2 text-sm text-primary-800">
+          ✓ {result}
+        </p>
+      )}
+      {error && (
+        <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -38,10 +226,8 @@ function SmartleadCard() {
   const [error, setError] = useState<string | null>(null);
 
   const connect = async () => {
-    if (!secret.trim()) {
-      setError("Paste your Smartlead webhook secret first.");
-      return;
-    }
+    // Secret is optional: when left blank the server uses the value already
+    // saved in its environment. Pasting one is only needed to override that.
     setLoading(true);
     setError(null);
     setResult(null);
@@ -54,21 +240,29 @@ function SmartleadCard() {
       const body = (await res.json()) as {
         ok?: boolean;
         total?: number;
-        registered?: number[];
+        created?: number[];
+        updated?: number[];
+        exists?: number[];
+        wired?: number;
         failed?: { campaign_id: number; error?: string }[];
         error?: string;
       };
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
-      const reg = body.registered?.length ?? 0;
+      const total = body.total ?? 0;
+      const wired = body.wired ?? 0;
+      const newCount = body.created?.length ?? 0;
+      const updatedCount = body.updated?.length ?? 0;
+      const alreadyCount = body.exists?.length ?? 0;
       const fail = body.failed?.length ?? 0;
+      const breakdown = `${newCount} newly connected, ${updatedCount} updated, ${alreadyCount} already wired`;
       if (fail > 0) {
         const detail = body.failed
           ?.map((f) => `#${f.campaign_id}: ${f.error ?? "unknown error"}`)
           .join(" · ");
-        setError(`Connected ${reg} of ${body.total ?? reg}. ${fail} failed — ${detail}`);
+        setError(`Wired ${wired} of ${total} (${breakdown}). ${fail} failed — ${detail}`);
         setResult(null);
       } else {
-        setResult(`Connected ${reg} of ${body.total ?? reg} campaign(s).`);
+        setResult(`Wired ${wired} of ${total} campaign(s): ${breakdown}.`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
@@ -81,17 +275,19 @@ function SmartleadCard() {
     <section className="rounded-xl border border-gray-200 bg-white p-6">
       <h2 className="text-lg font-semibold text-gray-900">Smartlead replies</h2>
       <p className="mt-1 text-sm text-gray-600">
-        Registers our reply line on every campus campaign so provider replies,
-        opens, and bounces show up in the Emails tab. Uses the Smartlead key
-        already in production.
+        Turns on provider replies. Connects every campaign so replies, opens,
+        and bounces show up in the Emails tab. Just press the button — you can
+        leave the box below blank.
       </p>
       <label className="mt-4 block">
-        <span className="mb-1 block text-xs font-medium text-gray-700">Webhook secret</span>
+        <span className="mb-1 block text-xs font-medium text-gray-700">
+          Webhook secret <span className="font-normal text-gray-400">(optional — leave blank to use the saved one)</span>
+        </span>
         <input
           type="text"
           value={secret}
           onChange={(e) => setSecret(e.target.value)}
-          placeholder="Paste SMARTLEAD_WEBHOOK_SECRET"
+          placeholder="Leave blank"
           className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm font-mono focus:border-gray-400 focus:outline-none"
         />
       </label>

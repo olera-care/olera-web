@@ -281,6 +281,18 @@ export interface ResearchData {
     lead_email: string | null;
     enrolled_at: string;
   };
+  /** Custom cadence Smartlead linkage — a bespoke, one-lead campaign the admin
+   *  composed by hand from the reply drawer (free-text emails + timed calls).
+   *  Holds the LATEST custom cadence (enough for reply-matching + "resume last
+   *  cadence"); prior custom campaigns aren't retained. Set by
+   *  handleLaunchCustomCadence. */
+  smartlead_custom?: {
+    campaign_id: number;
+    lead_email: string | null;
+    enrolled_at: string;
+    /** Admin-provided name, shown as the drawer headline ("Awaiting reply to …"). */
+    name?: string | null;
+  };
 }
 
 export interface Campus {
@@ -502,6 +514,12 @@ export interface TabRow extends OutreachRow {
   due_call_recipients: string[];
   /** v8 Replies tab only: which state card to render. Null otherwise. */
   replies_state: RepliesState | null;
+  /** Emails/Archive tab only: true when the row has an actual EMAIL reply to the
+   *  current cadence (an email_replied touchpoint after the cadence cutoff) — i.e.
+   *  the drawer's reply box has something to show. Drives the "They replied"
+   *  section split so non-email engagements (contact form, IG DM) don't surface
+   *  there with an empty reply box. Null on other tabs. */
+  has_email_reply?: boolean | null;
   /** v8: when the awaiting-callback state began (for "N days ago" copy). */
   awaiting_callback_at: string | null;
   /** v8: voicemail vs. they-said-they'd-call-back. */

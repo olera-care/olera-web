@@ -33,6 +33,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   computeStaleDays,
+  currentSequenceStartedAt,
   deriveRepliesState,
   deriveStateFromTouchpoints,
   type DerivedState,
@@ -936,11 +937,16 @@ async function fetchRowIdsForTab(
       return await idsByStatus(db, inc as Status[], { campusId, type, searchIds, page, pageSize }, "created_at");
     }
     case "replies": {
-      // v9 final: stable sort — created_at desc so opening a drawer
-      // or saving an inline edit doesn't shuffle the list. Earlier
-      // last_edited_at desc moved cards on every action which
-      // destabilized the admin's mental map of "what was where".
-      const active = await idsByStatus(db, REPLIES_STATUSES, { campusId, type, searchIds, page, pageSize }, "created_at");
+      // Replied rows (status 'engaged') must always load at the top of the tab,
+      // regardless of when the row was created. Otherwise an older outreach row
+      // that just replied sorts past the first page (created_at desc) and never
+      // loads — so the "They replied" section reads empty until a search shrinks
+      // the set and pulls the row in. idsByReplies loads engaged first, then
+      // fills the page with the rest of the active cadence. The page is widened
+      // (there's no load-more control) so the whole modest-volume tab renders and
+      // nothing — replied or pending — is silently hidden past row 50.
+      const repliesPageSize = Math.max(pageSize, 300);
+      const active = await idsByReplies(db, { campusId, type, searchIds, page, pageSize: repliesPageSize });
       if (!showClosed) return active;
       const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, searchIds, page, pageSize }, "created_at");
       return [...active, ...closed];
@@ -1043,6 +1049,29 @@ interface QueryOpts {
   searchIds: string[] | null;
   page: number;
   pageSize: number;
+}
+
+/**
+ * Emails/replies tab ordering: replied rows first, then the rest of the active
+ * cadence. A reply promotes the row to status 'engaged' (handleReply /
+ * importReply), so 'engaged' is the reliable "has a live reply" signal. Loading
+ * those first guarantees every replied row surfaces at the top of the tab even
+ * when the row was created long ago — the created_at pagination that governs the
+ * 'outreach_sent' fill would otherwise bury it past the first page. Client sends
+ * only page 0 (no load-more), so this resolves against page 0.
+ */
+async function idsByReplies(db: DB, opts: QueryOpts): Promise<string[]> {
+  const engaged = await idsByStatus(db, ["engaged"], { ...opts, page: 0 }, "created_at");
+  const capped = engaged.slice(0, opts.pageSize);
+  const remaining = opts.pageSize - capped.length;
+  if (remaining <= 0) return capped;
+  const outreach = await idsByStatus(
+    db,
+    ["outreach_sent"],
+    { ...opts, page: 0, pageSize: remaining },
+    "created_at",
+  );
+  return [...capped, ...outreach];
 }
 
 async function idsByStatus(
@@ -1166,6 +1195,22 @@ async function idsByMeetings(db: DB, opts: QueryOpts): Promise<string[]> {
     if (filtered.length >= opts.pageSize) break;
   }
   return filtered;
+}
+
+/**
+ * True when the row has an actual EMAIL reply to the CURRENT cadence — an
+ * `email_replied` touchpoint newer than the cadence cutoff. Mirrors the drawer's
+ * `latestReply` (InOutreachBody), so the "They replied" section and the drawer's
+ * reply box agree: a row shows in "They replied" iff the box has an email to
+ * show. Non-email engagements (contact_form_submitted, ig_dm_replied) count as a
+ * reply for status/engagement but NOT here — they'd otherwise sit in "They
+ * replied" with an empty reply box.
+ */
+function hasEmailReplyToCurrentCadence(tps: TouchpointRow[]): boolean {
+  const cutoff = currentSequenceStartedAt(tps);
+  return tps.some(
+    (t) => t.touchpoint_type === "email_replied" && (cutoff == null || t.created_at > cutoff),
+  );
 }
 
 async function fetchTouchpointsByRow(db: DB, ids: string[]): Promise<Map<string, TouchpointRow[]>> {
@@ -1567,6 +1612,10 @@ async function hydrateRows(
       followup_at: state.followup_at,
       last_activity_at: state.last_activity_at,
       replies_state: repliesState,
+      has_email_reply:
+        tab === "replies" || tab === "archive"
+          ? hasEmailReplyToCurrentCadence(tpsByOutreach.get(row.id) ?? [])
+          : null,
       awaiting_callback_at: state.awaiting_callback_at,
       awaiting_callback_kind: state.awaiting_callback_kind,
       next_step_label: deriveNextStepLabel(row.status, earliestTask),

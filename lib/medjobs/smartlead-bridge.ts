@@ -21,12 +21,14 @@ import {
   addLeads,
   attachEmailAccounts,
   createCampaign,
+  ensureMedjobsCampaignWebhook,
   getLeadByEmail,
   listEmailAccounts,
   pauseLeadInCampaign,
   saveSequence,
   setCampaignSchedule,
   setCampaignStatus,
+  type EnsureWebhookResult,
   type SmartleadLead,
   type SmartleadSequenceStep,
 } from "@/lib/smartlead";
@@ -935,7 +937,7 @@ async function provisionCampaign(
   name: string,
   poolIds: number[],
   steps: SmartleadSequenceStep[],
-): Promise<{ campaign_id?: number; errors: StageError[] }> {
+): Promise<{ campaign_id?: number; errors: StageError[]; webhook?: EnsureWebhookResult }> {
   const errors: StageError[] = [];
   const created = await createCampaign(name);
   if (!created.ok || !created.data) {
@@ -947,7 +949,31 @@ async function provisionCampaign(
   if (!attached.ok) errors.push({ stage: "attachEmailAccounts", message: attached.error ?? "attach failed" });
   const saved = await saveSequence(campaignId, steps);
   if (!saved.ok) errors.push({ stage: "saveSequence", message: saved.error ?? "save failed" });
-  return { campaign_id: campaignId, errors };
+
+  // Wire the reply/open/bounce webhook at birth so events stream into the CRM
+  // without a separate manual step (the missing link that left every campaign
+  // "No Webhooks Yet"). STRICTLY best-effort: the result is returned in its own
+  // channel and NEVER pushed onto `errors`, because callers gate `ok` on
+  // `errors.length === 0` and route.ts THROWS on `!ok` — a webhook hiccup must
+  // not fail an enrollment whose campaign + leads succeeded. Anything skipped
+  // (env unset) or failed here is recoverable via the reconcile endpoint and by
+  // the next campaign's provisioning.
+  let webhook: EnsureWebhookResult | undefined;
+  try {
+    webhook = await ensureMedjobsCampaignWebhook(campaignId);
+    if (!webhook.ok && webhook.status !== "skipped") {
+      console.warn(
+        `[smartlead-bridge] webhook registration for campaign ${campaignId} failed: ${webhook.error ?? "unknown"}`,
+      );
+    }
+  } catch (e) {
+    console.warn(
+      `[smartlead-bridge] webhook registration threw for campaign ${campaignId}:`,
+      e instanceof Error ? e.message : e,
+    );
+  }
+
+  return { campaign_id: campaignId, errors, webhook };
 }
 
 /**
@@ -1078,10 +1104,12 @@ export interface EnrollInput {
   campus: CampusContext;
   /** Used only when no campus campaign exists yet (this row is the first). */
   campaignName: string;
-  /** The campus's existing Smartlead campaign id, looked up by the caller from
-   *  a sibling row's `research_data.smartlead.campaign_id` (approach b). When
-   *  present, the lead is added to it; when absent, a new campaign is provisioned. */
-  existingCampaignId?: number;
+  /** The campus's existing Smartlead campaign id(s) for this audience, looked up
+   *  by the caller from sibling rows' `research_data.smartlead.campaign_id`. The
+   *  lead is added to the first one that STILL EXISTS in Smartlead; a fresh
+   *  campaign is provisioned only when the list is empty or every candidate was
+   *  deleted (all 404). */
+  existingCampaignIds?: number[];
   cadenceKey?: CadenceKey;
   senderEmails?: string[];
   adminFirstName?: string;
@@ -1101,10 +1129,39 @@ export interface EnrollResult {
 }
 
 /**
+ * Add leads to the first candidate campaign that STILL EXISTS in Smartlead.
+ * Tries each id in order:
+ *   - success → returns that campaign id (the live one to reuse).
+ *   - 404 (campaign was deleted) → moves on to the next candidate.
+ *   - any other error → stops and returns it (not a "deleted" case; retrying
+ *     other campaigns could double-add).
+ * Returns `campaignId: null` (no error) when the list is empty or every
+ * candidate is gone — the caller then provisions a fresh campaign. This is what
+ * makes reuse correct: one live campaign per (campus, audience), never a
+ * duplicate spawned just because a stale id was listed first.
+ */
+async function addLeadsToExistingCampaign(
+  campaignIds: number[],
+  leads: SmartleadLead[],
+): Promise<{ campaignId: number | null; error?: string }> {
+  for (const id of campaignIds) {
+    const added = await addLeads(id, leads);
+    if (added.ok) return { campaignId: id };
+    if (added.status !== 404) {
+      return { campaignId: null, error: added.error ?? "addLeads failed" };
+    }
+    console.warn(
+      `[smartlead-bridge] campaign ${id} not found (404) — trying next candidate / will provision fresh`,
+    );
+  }
+  return { campaignId: null };
+}
+
+/**
  * Enroll ONE CRM row into its campus's Smartlead campaign — the per-row path
- * the `schedule_sequence` integration drives. If `existingCampaignId` is given
- * (a sibling row already created the campus campaign), the lead is appended to
- * it; otherwise this row is the first and a new PAUSED campaign is provisioned.
+ * the `schedule_sequence` integration drives. If `existingCampaignIds` are given
+ * (sibling rows already created the campus campaign), the lead is appended to the
+ * first that still exists; otherwise a new PAUSED campaign is provisioned.
  *
  * Like `launchCampaign`: status follows SMARTLEAD_AUTO_START_CAMPAIGNS (default
  * PAUSED), never writes the CRM (the caller writes the linkage + touchpoint
@@ -1127,20 +1184,26 @@ export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<E
   }
   const leads = fanned.map((f) => f.lead);
 
-  // Existing campus campaign → just append these leads.
-  if (input.existingCampaignId) {
-    result.campaign_id = input.existingCampaignId;
-    const added = await addLeads(input.existingCampaignId, leads);
-    if (!added.ok) {
-      result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+  // Reuse the campus's LIVE campaign for this audience. Add to the first
+  // candidate that still exists; only if the list is empty or every candidate
+  // was deleted (all 404) do we provision a fresh one below.
+  const existingIds = input.existingCampaignIds ?? [];
+  if (existingIds.length > 0) {
+    const reuse = await addLeadsToExistingCampaign(existingIds, leads);
+    if (reuse.error) {
+      result.errors.push({ stage: "addLeads", message: reuse.error });
       return result;
     }
-    result.enrolled = true;
-    result.ok = true;
-    return result;
+    if (reuse.campaignId != null) {
+      result.campaign_id = reuse.campaignId;
+      result.enrolled = true;
+      result.ok = true;
+      return result;
+    }
+    // every candidate was deleted → fall through to provision a fresh one
   }
 
-  // First row for this campus → provision a new PAUSED campaign.
+  // No live campus campaign for this audience → provision a new PAUSED campaign.
   const mb = await resolveMailboxPool(input.senderEmails);
   result.mailbox_warnings = mb.pool.warnings;
   if (!mb.ok) {
@@ -1175,10 +1238,11 @@ export interface ActivationEnrollInput {
   campus: CampusContext;
   /** Used only when no campus ACTIVATION campaign exists yet. */
   campaignName: string;
-  /** The campus's existing activation campaign id (from a sibling row's
-   *  research_data.smartlead_activation.campaign_id). Append to it when set;
-   *  provision a new PAUSED activation campaign when absent. */
-  existingCampaignId?: number;
+  /** The campus's existing activation campaign id(s) (from sibling rows'
+   *  research_data.smartlead_activation.campaign_id). The lead is added to the
+   *  first one that still exists; a fresh campaign is provisioned only when the
+   *  list is empty or every candidate was deleted. */
+  existingCampaignIds?: number[];
   /** Partner (stakeholder) rows get the Recruitment Partner Portal link as
    *  their welcome_url; providers get the provider magic link (DF-3b). */
   is_partner?: boolean;
@@ -1263,20 +1327,27 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
     },
   };
 
-  // Existing campus activation campaign → just append this lead.
-  if (input.existingCampaignId) {
-    result.campaign_id = input.existingCampaignId;
-    const added = await addLeads(input.existingCampaignId, [lead]);
-    if (!added.ok) {
-      result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+  // Reuse the campus's LIVE activation campaign. Add to the first candidate
+  // that still exists; only if the list is empty or every candidate was deleted
+  // (all 404) do we provision a fresh one below.
+  const existingIds = input.existingCampaignIds ?? [];
+  if (existingIds.length > 0) {
+    const reuse = await addLeadsToExistingCampaign(existingIds, [lead]);
+    if (reuse.error) {
+      result.errors.push({ stage: "addLeads", message: reuse.error });
       return result;
     }
-    result.enrolled = true;
-    result.ok = true;
-    return result;
+    if (reuse.campaignId != null) {
+      result.campaign_id = reuse.campaignId;
+      result.enrolled = true;
+      result.ok = true;
+      return result;
+    }
+    // every candidate was deleted → fall through to provision a fresh one
   }
 
-  // First activation for this campus → provision a new PAUSED activation campaign.
+  // No live activation campaign for this campus (or all were deleted) →
+  // provision a new PAUSED activation campaign.
   const mb = await resolveMailboxPool(input.senderEmails);
   result.mailbox_warnings = mb.pool.warnings;
   if (!mb.ok) {
@@ -1285,6 +1356,144 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
   }
   const steps = buildEmailSequence(input.cadenceKey ?? "activation", {
     adminFirstName: input.adminFirstName,
+    campusSlug: input.campus.slug ?? null,
+    isPartner: input.is_partner ?? false,
+    stakeholderType: input.stakeholder_type ?? null,
+  });
+  const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
+  result.errors.push(...prov.errors);
+  if (!prov.campaign_id) return result;
+  result.campaign_id = prov.campaign_id;
+  result.created = true;
+
+  const added = await addLeads(prov.campaign_id, [lead]);
+  if (!added.ok) {
+    result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+    return result;
+  }
+  result.enrolled = true;
+
+  result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
+  result.ok = result.errors.length === 0;
+  return result;
+}
+
+// ── Custom cadence (admin-composed, per-reply) ───────────────────────────
+
+export interface CustomEmailStep {
+  /** Days after launch this email sends (0 = the first send slot). */
+  day: number;
+  subject: string;
+  body: string;
+}
+
+/**
+ * Render an admin-typed email body to Smartlead HTML. UNLIKE the template path
+ * (toSmartleadHtml) this runs NO token substitution — the text is sent verbatim
+ * — but it DOES append the standard signature so custom emails stay consistent.
+ * The signature's Calendly link carries {{outreach_id}}, so the enrolled lead
+ * must set that custom field (enrollCustomCadence does).
+ */
+function toCustomSmartleadHtml(
+  body: string,
+  campusSlug: string | null,
+  pdfAudience: "provider" | "student",
+  programLandingUrl: string,
+): string {
+  const pdfUrl = campusSlug
+    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}&audience=${pdfAudience}`
+    : PROGRAM_URL;
+  return bodyToHtml(body) + composeSmartleadFooterHtml(pdfUrl, programLandingUrl);
+}
+
+/**
+ * Build a Smartlead sequence from admin-typed email steps. Delays are relative
+ * to the previous EMAIL step (Smartlead's model), so the FIRST email's delay is
+ * its OWN day number — a cadence whose first email is Day 2 (a Day-0 call comes
+ * first) sends on Day 2, not immediately. Calls are CRM tasks, never in this
+ * sequence, so they don't affect email timing.
+ */
+export function buildCustomEmailSequence(
+  emailSteps: CustomEmailStep[],
+  opts: { campusSlug?: string | null; isPartner?: boolean; stakeholderType?: StakeholderType | null } = {},
+): SmartleadSequenceStep[] {
+  const sorted = [...emailSteps].sort((a, b) => a.day - b.day);
+  const pdfAudience: "provider" | "student" = opts.isPartner ? "student" : "provider";
+  const programLandingUrl = opts.isPartner
+    ? partnerLandingUrl(opts.stakeholderType ?? "student_org")
+    : PROGRAM_URL;
+  const steps: SmartleadSequenceStep[] = [];
+  let prevDay = 0;
+  let seq = 0;
+  for (const s of sorted) {
+    seq += 1;
+    const delay = seq === 1 ? s.day : s.day - prevDay;
+    steps.push({
+      seq_number: seq,
+      seq_delay_details: { delay_in_days: Math.max(0, delay) },
+      subject: s.subject,
+      email_body: toCustomSmartleadHtml(s.body, opts.campusSlug ?? null, pdfAudience, programLandingUrl),
+    });
+    prevDay = s.day;
+  }
+  return steps;
+}
+
+export interface CustomCadenceEnrollInput {
+  outreach_id: string;
+  organizationName: string;
+  campus: CampusContext;
+  campaignName: string;
+  emailSteps: CustomEmailStep[];
+  recipient: { email: string; first_name?: string | null; last_name?: string | null; contact_id?: string | null };
+  is_partner?: boolean;
+  stakeholder_type?: StakeholderType | null;
+  senderEmails?: string[];
+  schedule?: Record<string, unknown>;
+}
+
+/**
+ * Enroll ONE contact into a BESPOKE custom-cadence campaign. Always provisions a
+ * NEW campaign (the free-text sequence is unique to this reply, so it can't be
+ * shared like the outreach/activation campaigns). The lead carries the
+ * outreach_id custom field so the signature's Calendly link resolves. The new
+ * campaign auto-registers the reply webhook (provisionCampaign). Best-effort +
+ * inert when SMARTLEAD_API_KEY is unset.
+ */
+export async function enrollCustomCadence(input: CustomCadenceEnrollInput): Promise<EnrollResult> {
+  const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
+
+  const email = input.recipient.email?.trim();
+  if (!email) {
+    result.skipped_reason = "no_email";
+    return result;
+  }
+  if (input.emailSteps.length === 0) {
+    result.errors.push({ stage: "build", message: "no email steps" });
+    return result;
+  }
+
+  const firstName = input.recipient.first_name?.trim() || "";
+  const lead: SmartleadLead = {
+    email,
+    first_name: firstName,
+    company_name: input.organizationName,
+    custom_fields: {
+      campus: input.campus.name,
+      catchment_city: input.campus.city ?? "",
+      outreach_id: input.outreach_id,
+      recipient_kind: firstName ? "named" : "general",
+      contact_id: input.recipient.contact_id ?? "",
+    },
+  };
+
+  const mb = await resolveMailboxPool(input.senderEmails);
+  result.mailbox_warnings = mb.pool.warnings;
+  if (!mb.ok) {
+    result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
+    return result;
+  }
+  const steps = buildCustomEmailSequence(input.emailSteps, {
     campusSlug: input.campus.slug ?? null,
     isPartner: input.is_partner ?? false,
     stakeholderType: input.stakeholder_type ?? null,

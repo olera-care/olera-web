@@ -111,6 +111,22 @@ export function currentSequenceStartedAt(
 }
 
 /**
+ * Does the row have an EMAIL reply to the CURRENT cadence — an `email_replied`
+ * touchpoint newer than the cadence cutoff? Shared by the Emails/Follow-up split
+ * (queue route) and the drawer's stage derivation so a fresh reply consistently
+ * keeps the row in Emails "They replied" and out of Follow-up. Non-email
+ * engagements (contact form, IG DM) are deliberately excluded.
+ */
+export function hasEmailReplyToCurrentCadence(
+  touchpoints: ReadonlyArray<ReasonTouchpoint & { touchpoint_type: string }>,
+): boolean {
+  const cutoff = currentSequenceStartedAt(touchpoints);
+  return touchpoints.some(
+    (t) => t.touchpoint_type === "email_replied" && (cutoff == null || t.created_at > cutoff),
+  );
+}
+
+/**
  * Whether the ACTIVATION cadence specifically is running. Stays
  * activation-specific (only the "activation_launched" marker) so that when
  * custom sequences ship, "activation running" doesn't fire for them — the
@@ -266,6 +282,52 @@ export function deriveRepliesState(
   }
 
   return "mid_cadence";
+}
+
+// ── Follow-up tab: "cadence finished" detection ───────────────────────────
+// A prospect whose latest cadence has run its course with no meeting booked
+// belongs in the Follow-up tab (re-engage or archive), not cluttering Emails.
+// "Finished" = nothing left queued (no pending email/call tasks) AND the last
+// email went out at least this many BUSINESS days ago (weekends don't count —
+// a Friday send shouldn't look "stale" on Monday).
+export const FOLLOWUP_GRACE_BUSINESS_DAYS = 3;
+
+/** Count business days (Mon–Fri) strictly after `fromMs` up to `toMs`. Bounded:
+ *  once the calendar gap exceeds two weeks the answer is trivially ">= grace",
+ *  so we short-circuit rather than loop over long-dead rows. */
+export function businessDaysBetween(fromMs: number, toMs: number): number {
+  if (!Number.isFinite(fromMs) || toMs <= fromMs) return 0;
+  const DAY = 86_400_000;
+  const calDays = Math.floor((toMs - fromMs) / DAY);
+  if (calDays > 14) return 99; // far past any grace window — don't loop
+  let count = 0;
+  for (let i = 1; i <= calDays; i++) {
+    const dow = new Date(fromMs + i * DAY).getDay(); // 0=Sun … 6=Sat
+    if (dow !== 0 && dow !== 6) count++;
+  }
+  return count;
+}
+
+/**
+ * Has the row's current cadence FINISHED with no meeting? True when there's no
+ * meeting, an email was actually sent, nothing is still queued (no pending
+ * email-send or follow-up-call task), and the last email is past the grace
+ * window. Whether the prospect replied is handled by the caller (a fresh reply
+ * outranks this — it stays in Emails "They replied").
+ */
+export function isCadenceComplete(
+  state: DerivedState,
+  hasPendingEmail: boolean,
+  hasPendingCall: boolean,
+  now: number = Date.now(),
+): boolean {
+  if (state.meeting_state !== "none") return false;
+  if (!state.last_email_sent_at) return false;
+  if (hasPendingEmail || hasPendingCall) return false;
+  return (
+    businessDaysBetween(new Date(state.last_email_sent_at).getTime(), now) >=
+    FOLLOWUP_GRACE_BUSINESS_DAYS
+  );
 }
 
 /**

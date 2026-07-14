@@ -48,6 +48,7 @@ export function EmptyState({
     calls: "No phone calls due. 🎉",
     replies: "No inbox triage right now. The cadence is humming along.",
     meetings: "No meetings in flight or booked.",
+    followup: "✓ Nothing to follow up — no finished cadences waiting on a decision.",
     partners: "No partners with open tasks.",
     sites: "No sites need research or have open tasks.",
     campuses: "No sites configured yet.",

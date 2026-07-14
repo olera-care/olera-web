@@ -33,9 +33,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   computeStaleDays,
-  currentSequenceStartedAt,
   deriveRepliesState,
   deriveStateFromTouchpoints,
+  hasEmailReplyToCurrentCadence,
+  isCadenceComplete,
   type DerivedState,
   type TouchpointRow,
 } from "@/lib/student-outreach/state-derivation";
@@ -86,6 +87,7 @@ export interface TabCounts {
   calls: number;
   replies: number;
   meetings: number;
+  followup: number;
   partners: number;
   archive: number;
   all: number;
@@ -423,8 +425,8 @@ async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<{ counts: TabCounts; unread: TabCounts; callsTotal: number }> {
-  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
-  const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
+  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, followup: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
+  const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, followup: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
   // Total pending calls across ALL days (Calls-tab denominator); counts.calls
   // stays "due today" (the numerator).
   let callsTotal = 0;
@@ -474,7 +476,7 @@ async function computeTabCounts(
       // fan-out. We still collect inProgressIds for the fan-out query.
       inProgressIds.push(row.id);
     }
-    if (row.status === "no_response_closed") {
+    if (ARCHIVE_STATUSES.includes(row.status as Status)) {
       counts.archive++;
       if (isUnread) unread.archive++;
     }
@@ -561,20 +563,14 @@ async function computeTabCounts(
   unread.partners = 0;
   for (const id of partnerWithTaskSet) if (unreadIds.has(id)) unread.partners++;
 
-  // Meetings count: among in-progress rows, those whose most-recent
-  // meeting-related touchpoint is in_flight or scheduled. Also: rows
-  // with state=scheduled are dropped from the Replies tab in v8.2, so
-  // we subtract them from the replies count here.
-  // v8.10.6: stale-derived rows are dropped from Replies and added to
-  // Archive — same rebalancing pattern as scheduled meetings.
-  // v9 final: Replies now fans per-recipient, so each scheduled /
-  // stale outreach removes N replies cards (not 1) — use the
-  // per-outreach recipient count from the fan-out pass above.
+  // Meetings + Follow-up rebalancing: booked rows live only in Meetings, and
+  // finished-cadence rows live only in Follow-up — both are removed from the
+  // Replies (Emails) count. Replies fans per-recipient, so each moved outreach
+  // removes N reply cards (not 1); Follow-up is one card per outreach row.
   if (inProgressIds.length > 0) {
-    const { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds } =
+    const { meetings, meetingIds, scheduledIds, followupIds } =
       await countMeetingsAmongRows(db, inProgressIds);
     counts.meetings = meetings;
-    counts.archive += stale;
     const replyCardsFor = (id: string) =>
       repliesRecipientCountByOutreach.get(id) ?? 1;
     for (const id of meetingIds) if (unreadIds.has(id)) unread.meetings++;
@@ -585,12 +581,13 @@ async function computeTabCounts(
         unread.replies = Math.max(0, unread.replies - n);
       }
     }
-    for (const id of staleIds) {
+    for (const id of followupIds) {
       const n = replyCardsFor(id);
       counts.replies = Math.max(0, counts.replies - n);
+      counts.followup = (counts.followup ?? 0) + 1;
       if (unreadIds.has(id)) {
         unread.replies = Math.max(0, unread.replies - n);
-        unread.archive++;
+        unread.followup = (unread.followup ?? 0) + 1;
       }
     }
   }
@@ -822,12 +819,13 @@ async function computeTabCounts(
 }
 
 /**
- * For each row, derive meeting + replies state and return:
+ * For each row, derive meeting + reply/follow-up state and return:
  *   - meetings: in_flight + scheduled (Meetings-tab membership count)
  *   - scheduled: scheduled-only (subtracted from Replies count, since
  *                booked rows live only in Meetings now)
- *   - stale: rows whose derived replies-state is "stale" (subtracted
- *            from Replies count, added to Archive count in v8.10.6)
+ *   - followupIds: rows whose cadence FINISHED with no meeting + no current
+ *                  reply (Follow-up tab; subtracted from Replies count since
+ *                  they leave Emails).
  */
 async function countMeetingsAmongRows(
   db: DB,
@@ -835,29 +833,21 @@ async function countMeetingsAmongRows(
 ): Promise<{
   meetings: number;
   scheduled: number;
-  stale: number;
   meetingIds: string[];
   scheduledIds: string[];
-  staleIds: string[];
+  followupIds: string[];
 }> {
   const tpsByRow = await fetchTouchpointsByRow(db, ids);
-  const { data: pendingEmailRows } = await db
-    .from("student_outreach_tasks")
-    .select("outreach_id")
-    .eq("status", "pending")
-    .eq("task_type", "outreach_email_send")
-    .in("outreach_id", ids);
-  const hasPendingEmail = new Set<string>(
-    ((pendingEmailRows ?? []) as Array<{ outreach_id: string }>).map((r) => r.outreach_id),
-  );
+  const { hasPendingEmail, hasPendingCall } = await pendingTaskSets(db, ids);
+  const now = Date.now();
   let meetings = 0;
   let scheduled = 0;
-  let stale = 0;
   const meetingIds: string[] = [];
   const scheduledIds: string[] = [];
-  const staleIds: string[] = [];
+  const followupIds: string[] = [];
   for (const id of ids) {
-    const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
+    const tps = tpsByRow.get(id) ?? [];
+    const state = deriveStateFromTouchpoints(tps);
     if (state.meeting_state === "scheduled") {
       meetings++;
       meetingIds.push(id);
@@ -867,12 +857,19 @@ async function countMeetingsAmongRows(
       meetings++;
       meetingIds.push(id);
     }
-    if (deriveRepliesState(state, hasPendingEmail.has(id)) === "stale") {
-      stale++;
-      staleIds.push(id);
+    if (
+      classifyOutreachRow(
+        state,
+        hasPendingEmail.has(id),
+        hasPendingCall.has(id),
+        hasEmailReplyToCurrentCadence(tps),
+        now,
+      ) === "followup"
+    ) {
+      followupIds.push(id);
     }
   }
-  return { meetings, scheduled, stale, meetingIds, scheduledIds, staleIds };
+  return { meetings, scheduled, meetingIds, scheduledIds, followupIds };
 }
 
 // ── Per-tab row ID fetchers ─────────────────────────────────────────────
@@ -968,6 +965,12 @@ async function fetchRowIdsForTab(
       const closed = await idsByStatus(db, CLOSED_STATUSES, { campusId, type, searchIds, page, pageSize });
       return [...active, ...closed];
     }
+    case "followup": {
+      // Finished-cadence, no-meeting prospects. Widen the page like Emails so the
+      // whole modest-volume queue renders (no load-more control).
+      const followupPageSize = Math.max(pageSize, 300);
+      return await idsByFollowup(db, { campusId, type, searchIds, page, pageSize: followupPageSize });
+    }
     case "archive":
       return await idsByArchive(db, { campusId, type, searchIds, page, pageSize });
     default:
@@ -990,7 +993,9 @@ async function fetchRowIdsForTab(
  * records.
  */
 async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
-  // First: status-closed rows.
+  // Archive = explicitly-closed / archived rows only. The "cadence ran out with
+  // no meeting" triage now lives in the Follow-up tab (active rows), so Archive
+  // no longer derives stale outreach_sent rows — that would double-list them.
   let closedQ = db
     .from("student_outreach")
     .select("id")
@@ -1002,42 +1007,8 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
   if (opts.searchIds) closedQ = closedQ.in("id", opts.searchIds);
   const { data: closedData } = await closedQ;
   const closedIds = ((closedData ?? []) as Array<{ id: string }>).map((r) => r.id);
-
-  // Then: outreach_sent rows that derive to stale.
-  let activeQ = db
-    .from("student_outreach")
-    .select("id")
-    .eq("status", "outreach_sent")
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: true });
-  if (opts.campusId) activeQ = activeQ.eq("campus_id", opts.campusId);
-  if (opts.type) activeQ = activeQ.eq("stakeholder_type", opts.type);
-  if (opts.searchIds) activeQ = activeQ.in("id", opts.searchIds);
-  const { data: activeData } = await activeQ;
-  const activeIds = ((activeData ?? []) as Array<{ id: string }>).map((r) => r.id);
-
-  // Filter active to stale-derived only. Reuse countMeetingsAmongRows'
-  // touchpoint fetch + replies-state derivation, but inline a smaller
-  // version to skip the meetings counting work.
-  const tpsByRow = await fetchTouchpointsByRow(db, activeIds);
-  const { data: pendingEmailRows } = await db
-    .from("student_outreach_tasks")
-    .select("outreach_id")
-    .eq("status", "pending")
-    .eq("task_type", "outreach_email_send")
-    .in("outreach_id", activeIds);
-  const hasPendingEmail = new Set<string>(
-    ((pendingEmailRows ?? []) as Array<{ outreach_id: string }>).map((r) => r.outreach_id),
-  );
-  const staleIds = activeIds.filter((id) => {
-    const state = deriveStateFromTouchpoints(tpsByRow.get(id) ?? []);
-    return deriveRepliesState(state, hasPendingEmail.has(id)) === "stale";
-  });
-
-  // Merge and paginate.
-  const all = [...closedIds, ...staleIds];
   const start = opts.page * opts.pageSize;
-  return all.slice(start, start + opts.pageSize);
+  return closedIds.slice(start, start + opts.pageSize);
 }
 
 interface QueryOpts {
@@ -1060,7 +1031,10 @@ interface QueryOpts {
  * 'outreach_sent' fill would otherwise bury it past the first page. Client sends
  * only page 0 (no load-more), so this resolves against page 0.
  */
-async function idsByReplies(db: DB, opts: QueryOpts): Promise<string[]> {
+/** Shared candidate pool for the Emails + Follow-up tabs: replied rows (status
+ *  'engaged') first so they always surface at the top, then the rest of the
+ *  active cadence ('outreach_sent'). See the original idsByReplies note. */
+async function idsByReplyCandidates(db: DB, opts: QueryOpts): Promise<string[]> {
   const engaged = await idsByStatus(db, ["engaged"], { ...opts, page: 0 }, "created_at");
   const capped = engaged.slice(0, opts.pageSize);
   const remaining = opts.pageSize - capped.length;
@@ -1072,6 +1046,30 @@ async function idsByReplies(db: DB, opts: QueryOpts): Promise<string[]> {
     "created_at",
   );
   return [...capped, ...outreach];
+}
+
+async function idsByReplies(db: DB, opts: QueryOpts): Promise<string[]> {
+  const candidates = await idsByReplyCandidates(db, opts);
+  if (candidates.length === 0) return [];
+  // Drop rows whose cadence has FINISHED with no meeting + no current reply —
+  // those move to the Follow-up tab so Emails only shows live cadences and fresh
+  // replies (keeps the list from growing without bound).
+  const tpsByRow = await fetchTouchpointsByRow(db, candidates);
+  const { hasPendingEmail, hasPendingCall } = await pendingTaskSets(db, candidates);
+  const now = Date.now();
+  return candidates.filter((id) => {
+    const tps = tpsByRow.get(id) ?? [];
+    const state = deriveStateFromTouchpoints(tps);
+    return (
+      classifyOutreachRow(
+        state,
+        hasPendingEmail.has(id),
+        hasPendingCall.has(id),
+        hasEmailReplyToCurrentCadence(tps),
+        now,
+      ) === "replies"
+    );
+  });
 }
 
 async function idsByStatus(
@@ -1206,11 +1204,110 @@ async function idsByMeetings(db: DB, opts: QueryOpts): Promise<string[]> {
  * reply for status/engagement but NOT here — they'd otherwise sit in "They
  * replied" with an empty reply box.
  */
-function hasEmailReplyToCurrentCadence(tps: TouchpointRow[]): boolean {
-  const cutoff = currentSequenceStartedAt(tps);
-  return tps.some(
-    (t) => t.touchpoint_type === "email_replied" && (cutoff == null || t.created_at > cutoff),
-  );
+/**
+ * Partition an active outreach/partner-prospect row (status outreach_sent /
+ * engaged) into the tab it belongs in, by derived state. Single source of truth
+ * for the Emails ↔ Follow-up split so the two never double-list or drop a row:
+ *   - "meeting"  → a meeting is scheduled/held (lives in the Meetings tab)
+ *   - "replies"  → a fresh reply to the current cadence (Emails "They replied")
+ *                  OR the cadence is still active (Emails "Pending reply")
+ *   - "followup" → the cadence FINISHED with no meeting and no current-cadence
+ *                  reply (Follow-up tab: re-engage or archive)
+ * Precedence: meeting > fresh reply > finished > active. A fresh reply outranks
+ * "finished" so a just-replied row stays in Emails for first-touch triage.
+ */
+function classifyOutreachRow(
+  state: DerivedState,
+  hasPendingEmail: boolean,
+  hasPendingCall: boolean,
+  hasEmailReplyCurrent: boolean,
+  now: number,
+): "meeting" | "replies" | "followup" {
+  if (state.meeting_state !== "none") return "meeting";
+  if (hasEmailReplyCurrent) return "replies";
+  if (isCadenceComplete(state, hasPendingEmail, hasPendingCall, now)) return "followup";
+  return "replies";
+}
+
+/** One-line "what happened" summary for a Follow-up card: which cadence
+ *  finished, whether they ever replied, and how long since the last email. */
+function buildFollowupSummary(state: DerivedState, tps: TouchpointRow[]): string {
+  // Which cadence finished — newest launch marker wins.
+  let launchAt: string | null = null;
+  let cadence = "Outreach";
+  for (const t of tps) {
+    if (t.touchpoint_type !== "note_added") continue;
+    const p = (t.payload ?? {}) as Record<string, unknown>;
+    const reason = typeof p.reason === "string" ? p.reason : null;
+    if (reason === "activation_launched" || reason === "custom_sequence_launched") {
+      if (launchAt === null || t.created_at > launchAt) {
+        launchAt = t.created_at;
+        cadence =
+          reason === "custom_sequence_launched" && typeof p.name === "string" && p.name.trim()
+            ? p.name.trim()
+            : reason === "custom_sequence_launched"
+              ? "Custom cadence"
+              : "Activation";
+      }
+    }
+  }
+  const everReplied = tps.some((t) => t.touchpoint_type === "email_replied");
+  const lastEmail = state.last_email_sent_at;
+  const daysAgo = lastEmail
+    ? Math.max(0, Math.floor((Date.now() - new Date(lastEmail).getTime()) / 86_400_000))
+    : null;
+  const when =
+    daysAgo == null ? "" : daysAgo === 0 ? " · last email today" : ` · last email ${daysAgo}d ago`;
+  return `${cadence} finished · ${everReplied ? "replied, no meeting" : "no reply"}${when}`;
+}
+
+/** Fetch which of `ids` have a pending email-send / follow-up-call task. Powers
+ *  the cadence-finished check (finished = neither pending). */
+async function pendingTaskSets(
+  db: DB,
+  ids: string[],
+): Promise<{ hasPendingEmail: Set<string>; hasPendingCall: Set<string> }> {
+  const hasPendingEmail = new Set<string>();
+  const hasPendingCall = new Set<string>();
+  if (ids.length === 0) return { hasPendingEmail, hasPendingCall };
+  const { data } = await db
+    .from("student_outreach_tasks")
+    .select("outreach_id, task_type")
+    .eq("status", "pending")
+    .in("task_type", ["outreach_email_send", "outreach_followup_call"])
+    .in("outreach_id", ids);
+  for (const t of (data ?? []) as Array<{ outreach_id: string; task_type: string }>) {
+    if (t.task_type === "outreach_email_send") hasPendingEmail.add(t.outreach_id);
+    else hasPendingCall.add(t.outreach_id);
+  }
+  return { hasPendingEmail, hasPendingCall };
+}
+
+/**
+ * Follow-up tab membership: active rows whose cadence finished with no meeting
+ * and no current-cadence reply. Same candidate pool + ordering as Emails
+ * (engaged first, then outreach_sent), filtered by the shared classifier so the
+ * two tabs partition cleanly.
+ */
+async function idsByFollowup(db: DB, opts: QueryOpts): Promise<string[]> {
+  const candidates = await idsByReplyCandidates(db, opts);
+  if (candidates.length === 0) return [];
+  const tpsByRow = await fetchTouchpointsByRow(db, candidates);
+  const { hasPendingEmail, hasPendingCall } = await pendingTaskSets(db, candidates);
+  const now = Date.now();
+  return candidates.filter((id) => {
+    const tps = tpsByRow.get(id) ?? [];
+    const state = deriveStateFromTouchpoints(tps);
+    return (
+      classifyOutreachRow(
+        state,
+        hasPendingEmail.has(id),
+        hasPendingCall.has(id),
+        hasEmailReplyToCurrentCadence(tps),
+        now,
+      ) === "followup"
+    );
+  });
 }
 
 async function fetchTouchpointsByRow(db: DB, ids: string[]): Promise<Map<string, TouchpointRow[]>> {
@@ -1615,6 +1712,12 @@ async function hydrateRows(
       has_email_reply:
         tab === "replies" || tab === "archive"
           ? hasEmailReplyToCurrentCadence(tpsByOutreach.get(row.id) ?? [])
+          : null,
+      // Follow-up tab: flag the finished-cadence stage + a one-line summary.
+      cadence_complete: tab === "followup" ? true : null,
+      followup_summary:
+        tab === "followup"
+          ? buildFollowupSummary(state, tpsByOutreach.get(row.id) ?? [])
           : null,
       awaiting_callback_at: state.awaiting_callback_at,
       awaiting_callback_kind: state.awaiting_callback_kind,

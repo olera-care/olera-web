@@ -34,6 +34,9 @@ export type TabKey =
   | "partners"
   | "meetings"
   | "replies"
+  // Prospects whose latest cadence finished with no meeting — the re-engage /
+  // archive triage queue. Sits after Meetings in the primary bar.
+  | "followup"
   | "calls"
   | "sites"
   // Legacy state-keyed tab names — retained on the union for queue
@@ -109,6 +112,7 @@ export const TABS: TabDef[] = [
   { key: "calls",        label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
   { key: "replies",      label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
   { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "followup",     label: "Follow-up",  tooltip: "Prospects whose cadence finished with no meeting. Re-engage with a new cadence, or archive." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -157,6 +161,7 @@ export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   // (scheduled + held + no-show + rescheduled).
   meetings:    { metric: "meetings_activity", label: "meetings"            },
   replies:     { metric: "replies",          label: "replies received"     },
+  followup:    { metric: "activity",         label: "cadences finished"    },
   calls:       { metric: "calls_made",       label: "calls made"           },
   archive:     { metric: "activity",         label: "outreach actions"     },
   // v8.10.41: All-tab uses the multi-series funnel metric.

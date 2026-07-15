@@ -7,20 +7,17 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  */
 const IN_CLAUSE_BATCH_SIZE = 150;
 
-// Type for Supabase query builder (simplified for batched queries)
-type SupabaseQuery = ReturnType<ReturnType<typeof getServiceClient>["from"]>;
-
 /**
  * Helper to batch .in() queries and combine results.
  * Prevents URL length limit issues with large ID arrays.
  */
 async function batchedInQuery<T>(
   db: ReturnType<typeof getServiceClient>,
-  table: string,
+  table: "olera-providers" | "business_profiles" | "provider_outreach_tracking",
   selectColumns: string,
   inColumn: string,
   ids: string[],
-  additionalFilters?: (query: SupabaseQuery) => SupabaseQuery
+  additionalFilters?: { state?: string; city?: string; notDeleted?: boolean }
 ): Promise<T[]> {
   if (ids.length === 0) return [];
 
@@ -28,9 +25,17 @@ async function batchedInQuery<T>(
   for (let i = 0; i < ids.length; i += IN_CLAUSE_BATCH_SIZE) {
     const batch = ids.slice(i, i + IN_CLAUSE_BATCH_SIZE);
     let query = db.from(table).select(selectColumns).in(inColumn, batch);
-    if (additionalFilters) {
-      query = additionalFilters(query);
+
+    if (additionalFilters?.state) {
+      query = query.eq("state", additionalFilters.state);
     }
+    if (additionalFilters?.city) {
+      query = query.eq("city", additionalFilters.city);
+    }
+    if (additionalFilters?.notDeleted) {
+      query = query.or("deleted.is.null,deleted.eq.false");
+    }
+
     const { data, error } = await query;
     if (error) {
       console.error(`[provider-outreach] Batched query error on ${table}:`, error);
@@ -393,13 +398,7 @@ async function getClaimedProviders(
     "provider_id, provider_name, provider_category, city, state, email, phone, website, slug",
     "provider_id",
     claimedProviderIds,
-    (q) => {
-      let filtered = q.eq("state", state).or("deleted.is.null,deleted.eq.false");
-      if (city) {
-        filtered = filtered.eq("city", city);
-      }
-      return filtered;
-    }
+    { state, city: city || undefined, notDeleted: true }
   );
 
   if (providers.length === 0) {
@@ -599,7 +598,7 @@ async function getStageCounts(
       "provider_id",
       "provider_id",
       claimedSourceIds,
-      (q) => q.eq("state", state).or("deleted.is.null,deleted.eq.false")
+      { state, notDeleted: true }
     );
 
     for (const p of claimedInStateProviders) {
@@ -660,7 +659,7 @@ async function getStageCounts(
       "provider_id",
       "provider_id",
       trackedIds,
-      (q) => q.eq("state", state).or("deleted.is.null,deleted.eq.false")
+      { state, notDeleted: true }
     );
 
     for (const p of existingProviders) {

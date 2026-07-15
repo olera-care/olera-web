@@ -41,6 +41,7 @@ import { useMemo, useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
+import { deriveTimelineSummary } from "@/lib/student-outreach/timeline-summary";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 
 type ActionFn = (
@@ -87,6 +88,10 @@ interface PastRow {
   /** Show the row's timestamp as an explicit calendar date ("Jul 2, 2026")
    *  rather than the relative "2d ago" form. Set for email sends. */
   explicitDate: boolean;
+  /** True for email_sent rows. Lets EngagementChips render an explicit
+   *  "not opened yet" status on a sent email (vs. rendering nothing), while
+   *  never showing that status on non-email rows (calls, notes, etc.). */
+  isEmailSent: boolean;
   /** When the past event is an email_sent, this carries the
    *  email_log_id so the row can render engagement chips (legacy
    *  source — Bullet 5 prefers payload-based engagement). */
@@ -138,6 +143,9 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
     // per-touchpoint counters when present.
     for (const tp of ctx.touchpoints) {
       const n = narrateTouchpoint(tp, { adminFirstNames, contactsById });
+      // Chunk 1: mechanical bookkeeping note_added events narrate as hidden —
+      // skip them so the timeline stays milestones / emails / notes / endings.
+      if (n.hidden) continue;
       const isEmailSent = tp.touchpoint_type === "email_sent";
       const payload = (tp.payload as Record<string, unknown> | null) ?? null;
       const emailLogId = isEmailSent
@@ -162,6 +170,7 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         // Email sends show an explicit date ("Jul 2, 2026") instead of the
         // relative "2d ago" stamp used for other history rows.
         explicitDate: isEmailSent,
+        isEmailSent,
         emailLogId,
         emailSentPayload: isEmailSent ? payload : null,
         admin: n.admin ?? null,
@@ -251,11 +260,25 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
 
   const hasAnyActivity = futureRows.length > 0 || pastRows.length > 0;
 
+  // Chunk 3: the one-glance "read" — temperature + whose move. Null before
+  // outreach has started (the empty/upcoming state covers that case).
+  const summary = useMemo(() => deriveTimelineSummary(ctx), [ctx]);
+
   return (
     <section className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
         Timeline
       </h3>
+
+      {summary && (
+        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+          <span aria-hidden className="text-base leading-none">
+            {summary.emoji}
+          </span>
+          <span className="font-semibold text-gray-900">{summary.label}</span>
+          <span className="text-gray-500">— {summary.detail}</span>
+        </div>
+      )}
 
       {!hasAnyActivity && (
         <div className="rounded-lg border border-gray-200 bg-white">
@@ -399,6 +422,7 @@ function TimelineRowView({
             <EngagementChips
               payload={row.emailSentPayload}
               legacy={engagement}
+              isEmailSent={row.isEmailSent}
             />
           )}
         </div>
@@ -435,6 +459,7 @@ function TimelineRowView({
 function EngagementChips({
   payload,
   legacy,
+  isEmailSent,
 }: {
   /** Primary source: email_sent touchpoint payload (Bullet 3 wires the
    *  fields). Carries counts + last_*_at timestamps + clicked_ctas. */
@@ -442,6 +467,9 @@ function EngagementChips({
   /** Legacy source: kept for backward compat with email_engagement[]
    *  rows that haven't been touched by the new webhook path. */
   legacy: NonNullable<DrawerContext["email_engagement"]>[string] | null;
+  /** True when the row is an email_sent. Gates the "not opened yet" status so
+   *  it only ever shows on emails, never on calls / notes / other history. */
+  isEmailSent: boolean;
 }) {
   // Pass C3 spec: derive counts from payload, fall through to legacy bools.
   const openCount = Number(payload?.open_count ?? 0);
@@ -449,19 +477,24 @@ function EngagementChips({
   const clickedCtas = (payload?.clicked_ctas as string[] | undefined) ?? [];
   const lastOpenedAt = payload?.last_opened_at as string | undefined;
 
+  const opened = openCount > 0 || Boolean(legacy?.first_opened_at);
+  const clicked = clickCount > 0 || Boolean(legacy?.first_clicked_at);
+  const bounced = Boolean(legacy?.bounced_at);
+  const complained = Boolean(legacy?.complained_at);
+
   const chips: Array<{ label: string; tone: ChipTone }> = [];
 
   if (openCount > 0) {
-    const labelBase = openCount === 1 ? "1 open" : `${openCount} opens`;
+    const labelBase = openCount === 1 ? "Opened once" : `Opened ${openCount}×`;
     const suffix =
       openCount > 1 && lastOpenedAt ? ` · last ${formatPast(lastOpenedAt)}` : "";
     chips.push({ label: `👁 ${labelBase}${suffix}`, tone: "blue" });
   } else if (legacy?.first_opened_at) {
-    chips.push({ label: "👁 opened", tone: "blue" });
+    chips.push({ label: "👁 Opened", tone: "blue" });
   }
 
   if (clickCount > 0) {
-    const labelBase = clickCount === 1 ? "1 click" : `${clickCount} clicks`;
+    const labelBase = clickCount === 1 ? "Clicked" : `Clicked ${clickCount}×`;
     // Show the first CTA label inline; "+ N others" if multiple distinct CTAs.
     const distinct = Array.from(new Set(clickedCtas)).filter(Boolean);
     let suffix = "";
@@ -474,14 +507,22 @@ function EngagementChips({
     }
     chips.push({ label: `🖱 ${labelBase}${suffix}`, tone: "blue" });
   } else if (legacy?.first_clicked_at) {
-    chips.push({ label: "🖱 clicked", tone: "blue" });
+    chips.push({ label: "🖱 Clicked", tone: "blue" });
   }
 
-  if (legacy?.delivered_at && openCount === 0 && clickCount === 0 && !legacy.first_opened_at && !legacy.first_clicked_at) {
-    chips.push({ label: "✓ delivered", tone: "emerald" });
+  if (bounced) chips.push({ label: "⚠ Bounced", tone: "red" });
+  if (complained) chips.push({ label: "⚠ Marked spam", tone: "red" });
+
+  // Chunk 2: a sent email with no engagement signal yet reads "not opened yet"
+  // explicitly, so the admin can tell "landed but ignored" from "no data".
+  // Gated to email rows so calls / notes never show it. "Delivered" when the
+  // legacy record confirms delivery; otherwise the neutral "Sent".
+  if (isEmailSent && !opened && !clicked && !bounced && !complained) {
+    const label = legacy?.delivered_at
+      ? "✓ Delivered · not opened yet"
+      : "✉ Sent · not opened yet";
+    chips.push({ label, tone: "gray" });
   }
-  if (legacy?.bounced_at) chips.push({ label: "⚠ bounced", tone: "red" });
-  if (legacy?.complained_at) chips.push({ label: "⚠ complained", tone: "red" });
 
   if (chips.length === 0) return null;
   return (
@@ -498,12 +539,13 @@ function EngagementChips({
   );
 }
 
-type ChipTone = "emerald" | "blue" | "red";
+type ChipTone = "emerald" | "blue" | "red" | "gray";
 
 const TONE_CLASSES: Record<ChipTone, string> = {
   emerald: "bg-primary-50 text-primary-700",
   blue: "bg-blue-50 text-blue-700",
   red: "bg-red-50 text-red-700",
+  gray: "bg-gray-100 text-gray-500",
 };
 
 /** Render a clicked CTA URL as a short human label. Smartlead tracker

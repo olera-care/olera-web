@@ -1018,14 +1018,20 @@ export default function ProviderOutreachPage() {
     { value: "other", label: "Other" },
   ];
 
-  // Standardized unarchive reasons (same codes as Questions/Connections)
-  // Labels are positive inverses of archive reasons - what changed to make them viable
+  // Standardized unarchive reasons - direct positive inverses of each archive reason
   const UNARCHIVE_REASONS = [
     { value: "archived_in_error", label: "Mistakenly archived" },
-    { value: "provider_reactivated", label: "Provider now responsive" },
-    { value: "contact_info_updated", label: "Contact info obtained" },
-    { value: "provider_requested", label: "Provider requested listing" },
+    { value: "provider_now_interested", label: "Provider now interested" },
+    { value: "provider_now_wants_contact", label: "Provider now wants contact" },
+    { value: "business_confirmed_operating", label: "Business confirmed operating" },
+    { value: "provider_verified_valid", label: "Provider verified as valid" },
+    { value: "not_a_duplicate", label: "Confirmed not a duplicate" },
+    { value: "provider_existence_verified", label: "Provider existence verified" },
+    { value: "provider_now_responsive", label: "Provider now responsive" },
+    { value: "email_obtained", label: "Email address obtained" },
+    { value: "new_contact_info_obtained", label: "New contact info obtained" },
     { value: "compliance_resolved", label: "Compliance issue resolved" },
+    { value: "not_merged", label: "Confirmed separate provider" },
     { value: "other", label: "Other" },
   ];
 

@@ -42,11 +42,18 @@ const VALID_ARCHIVE_REASONS = [
 ] as const;
 
 const VALID_UNARCHIVE_REASONS = [
-  "provider_reactivated",
-  "contact_info_updated",
   "archived_in_error",
-  "provider_requested",
+  "provider_now_interested",
+  "provider_now_wants_contact",
+  "business_confirmed_operating",
+  "provider_verified_valid",
+  "not_a_duplicate",
+  "provider_existence_verified",
+  "provider_now_responsive",
+  "email_obtained",
+  "new_contact_info_obtained",
   "compliance_resolved",
+  "not_merged",
   "other",
 ] as const;
 

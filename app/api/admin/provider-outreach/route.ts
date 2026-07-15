@@ -183,12 +183,14 @@ export async function GET(request: NextRequest) {
       .select("*")
       .eq("state", state);
 
-    // When querying "archived", also include legacy "not_interested" records
+    // When querying "archived", use special function that merges tracking + system-wide archived
     if (stage === "archived") {
-      trackingQuery = trackingQuery.or("stage.eq.archived,stage.eq.not_interested");
-    } else {
-      trackingQuery = trackingQuery.eq("stage", stage);
+      const providers = await getArchivedProviders(db, state, city);
+      return NextResponse.json({ providers, stage_counts: stageCounts });
     }
+
+    // For other stages: query tracking but exclude providers who have since claimed
+    trackingQuery = trackingQuery.eq("stage", stage);
 
     if (city) {
       trackingQuery = trackingQuery.eq("city", city);
@@ -237,8 +239,6 @@ export async function GET(request: NextRequest) {
         if (!p) return null;
         // Skip if provider has claimed - they belong in Claimed tab now
         if (claimedProviderIds.has(p.provider_id)) return null;
-        // Normalize legacy "not_interested" to "archived"
-        const normalizedStage = t.stage === "not_interested" ? "archived" : t.stage;
         return {
           provider_id: p.provider_id,
           provider_name: p.provider_name,
@@ -250,7 +250,7 @@ export async function GET(request: NextRequest) {
           website: p.website,
           slug: p.slug,
           tracking_id: t.id,
-          stage: normalizedStage as OutreachStage,
+          stage: t.stage as OutreachStage,
           stage_changed_at: t.stage_changed_at,
           notes: t.notes,
         };
@@ -444,6 +444,166 @@ async function getClaimedProviders(
 }
 
 /**
+ * Get archived providers from BOTH sources:
+ * 1. provider_outreach_tracking where stage = "archived" or "not_interested"
+ * 2. business_profiles where metadata.admin_archived = true
+ *
+ * This ensures providers archived from Questions/Connections also appear here.
+ */
+async function getArchivedProviders(
+  db: ReturnType<typeof getServiceClient>,
+  state: string,
+  city: string | null
+): Promise<OutreachProvider[]> {
+  // Track all archived provider IDs to dedupe
+  const archivedProviderMap = new Map<string, OutreachProvider>();
+
+  // Step 1: Get providers from tracking table with stage = archived or not_interested
+  let trackingQuery = db
+    .from("provider_outreach_tracking")
+    .select("*")
+    .eq("state", state)
+    .or("stage.eq.archived,stage.eq.not_interested");
+
+  if (city) {
+    trackingQuery = trackingQuery.eq("city", city);
+  }
+
+  const { data: trackingRows } = await trackingQuery;
+
+  if (trackingRows && trackingRows.length > 0) {
+    const trackingProviderIds = trackingRows.map((t) => t.provider_id);
+
+    // Get provider details
+    const { data: providerRows } = await db
+      .from("olera-providers")
+      .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+      .in("provider_id", trackingProviderIds);
+
+    const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
+
+    // Exclude claimed providers
+    const { data: claimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .in("source_provider_id", trackingProviderIds)
+      .not("account_id", "is", null);
+
+    const claimedProviderIds = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
+
+    for (const t of trackingRows as TrackingRow[]) {
+      const p = providerMap.get(t.provider_id);
+      if (!p) continue;
+      if (claimedProviderIds.has(p.provider_id)) continue;
+
+      archivedProviderMap.set(p.provider_id, {
+        provider_id: p.provider_id,
+        provider_name: p.provider_name,
+        provider_category: p.provider_category,
+        city: p.city,
+        state: p.state,
+        email: p.email,
+        phone: p.phone,
+        website: p.website,
+        slug: p.slug,
+        tracking_id: t.id,
+        stage: "archived" as OutreachStage,
+        stage_changed_at: t.stage_changed_at,
+        notes: t.notes,
+      });
+    }
+  }
+
+  // Step 2: Get system-wide archived providers (admin_archived = true in business_profiles)
+  const { data: adminArchivedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id, metadata, updated_at")
+    .not("source_provider_id", "is", null)
+    .filter("metadata->>admin_archived", "eq", "true");
+
+  if (adminArchivedBps && adminArchivedBps.length > 0) {
+    const adminArchivedSourceIds = adminArchivedBps
+      .map((bp) => bp.source_provider_id)
+      .filter(Boolean) as string[];
+
+    // Get provider details from olera-providers, filtered by state
+    let providerQuery = db
+      .from("olera-providers")
+      .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+      .in("provider_id", adminArchivedSourceIds)
+      .eq("state", state)
+      .or("deleted.is.null,deleted.eq.false");
+
+    if (city) {
+      providerQuery = providerQuery.eq("city", city);
+    }
+
+    const { data: providerRows } = await providerQuery;
+
+    if (providerRows && providerRows.length > 0) {
+      // Exclude claimed providers
+      const { data: claimedBps } = await db
+        .from("business_profiles")
+        .select("source_provider_id")
+        .in("source_provider_id", providerRows.map((p) => p.provider_id))
+        .not("account_id", "is", null);
+
+      const claimedProviderIds = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
+
+      // Create a map of provider_id -> metadata for archive info
+      const metaMap = new Map(
+        adminArchivedBps.map((bp) => [
+          bp.source_provider_id,
+          {
+            metadata: bp.metadata as Record<string, unknown>,
+            updated_at: bp.updated_at,
+          },
+        ])
+      );
+
+      for (const p of providerRows as ProviderRow[]) {
+        // Skip if already in map (tracking takes precedence) or if claimed
+        if (archivedProviderMap.has(p.provider_id)) continue;
+        if (claimedProviderIds.has(p.provider_id)) continue;
+
+        const bpInfo = metaMap.get(p.provider_id);
+        const meta = bpInfo?.metadata ?? {};
+        const archiveReason = meta.admin_archived_reason as string | undefined;
+        const archiveNotes = meta.admin_archived_notes as string | undefined;
+        const archivedAt = (meta.admin_archived_at as string) || bpInfo?.updated_at || null;
+
+        // Build notes string from metadata
+        let notes: string | null = null;
+        if (archiveReason) {
+          notes = archiveNotes ? `${archiveReason} - ${archiveNotes}` : archiveReason;
+        }
+
+        archivedProviderMap.set(p.provider_id, {
+          provider_id: p.provider_id,
+          provider_name: p.provider_name,
+          provider_category: p.provider_category,
+          city: p.city,
+          state: p.state,
+          email: p.email,
+          phone: p.phone,
+          website: p.website,
+          slug: p.slug,
+          tracking_id: null, // No tracking row for system-archived
+          stage: "archived" as OutreachStage,
+          stage_changed_at: archivedAt,
+          notes,
+        });
+      }
+    }
+  }
+
+  // Return all archived providers, sorted by name
+  return Array.from(archivedProviderMap.values()).sort((a, b) =>
+    a.provider_name.localeCompare(b.provider_name)
+  );
+}
+
+/**
  * Search providers by name across ALL stages within a state.
  * Returns a flat list with stage info included for each provider.
  */
@@ -500,18 +660,52 @@ async function searchProviders(
     (trackingRows || []).map((t) => [t.provider_id, t])
   );
 
+  // Get system-wide archived providers (admin_archived = true in business_profiles)
+  const { data: adminArchivedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id, metadata, updated_at")
+    .in("source_provider_id", providerIds)
+    .filter("metadata->>admin_archived", "eq", "true");
+
+  const adminArchivedMap = new Map(
+    (adminArchivedBps || []).map((bp) => [
+      bp.source_provider_id,
+      {
+        metadata: bp.metadata as Record<string, unknown>,
+        updated_at: bp.updated_at,
+      },
+    ])
+  );
+
   // Build results with stage info
   const result: OutreachProvider[] = (providers as ProviderRow[]).map((p) => {
     const claimInfo = claimedMap.get(p.provider_id);
     const tracking = trackingMap.get(p.provider_id);
+    const adminArchived = adminArchivedMap.get(p.provider_id);
 
-    // Determine stage
+    // Determine stage - claimed takes precedence, then check tracking and system archive
     let stage: OutreachStage;
+    let stageChangedAt: string | null = null;
+    let notes: string | null = null;
+
     if (claimInfo) {
       stage = "claimed";
+      stageChangedAt = claimInfo.timestamp;
     } else if (tracking) {
       // Normalize legacy "not_interested" to "archived"
       stage = tracking.stage === "not_interested" ? "archived" : (tracking.stage as OutreachStage);
+      stageChangedAt = tracking.stage_changed_at;
+      notes = tracking.notes;
+    } else if (adminArchived) {
+      // System-wide archived (from Questions/Connections)
+      stage = "archived";
+      const meta = adminArchived.metadata ?? {};
+      stageChangedAt = (meta.admin_archived_at as string) || adminArchived.updated_at || null;
+      const archiveReason = meta.admin_archived_reason as string | undefined;
+      const archiveNotes = meta.admin_archived_notes as string | undefined;
+      if (archiveReason) {
+        notes = archiveNotes ? `${archiveReason} - ${archiveNotes}` : archiveReason;
+      }
     } else {
       stage = "not_contacted";
     }
@@ -528,8 +722,8 @@ async function searchProviders(
       slug: p.slug,
       tracking_id: tracking?.id ?? null,
       stage,
-      stage_changed_at: claimInfo?.timestamp || tracking?.stage_changed_at || null,
-      notes: tracking?.notes ?? null,
+      stage_changed_at: stageChangedAt,
+      notes,
       verification_state: claimInfo?.verification_state || null,
     };
   });
@@ -547,8 +741,8 @@ async function searchProviders(
  * - "claimed" count = actual claimed providers (from business_profiles with account_id)
  * - Active stages (in_sequence, needs_call) = tracking count MINUS those who have since claimed
  * - "called" = terminal for our outreach (ball in provider's court), count MINUS those who claimed
- * - "archived" = tracking count as-is
- * - "not_contacted" = total providers - claimed - tracked
+ * - "archived" = tracking count + system-wide archived (admin_archived = true in business_profiles)
+ * - "not_contacted" = total providers - claimed - tracked - system-archived
  */
 async function getStageCounts(
   db: ReturnType<typeof getServiceClient>,
@@ -647,8 +841,39 @@ async function getStageCounts(
     }
   }
 
-  // Step 4: Verify tracked providers still exist in olera-providers (not deleted)
-  // This prevents counting tracking records for deleted providers
+  // Step 4: Get system-wide archived providers FIRST (admin_archived = true in business_profiles)
+  // We need this before counting stages so we can exclude them from their tracking stage
+  const { data: adminArchivedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .filter("metadata->>admin_archived", "eq", "true");
+
+  const adminArchivedSourceIds = (adminArchivedBps || [])
+    .map((bp) => bp.source_provider_id)
+    .filter(Boolean) as string[];
+
+  // Verify which system-archived are in the target state and not claimed
+  const systemArchivedProviderIds = new Set<string>();
+
+  if (adminArchivedSourceIds.length > 0) {
+    const archivedInStateProviders = await batchedInQuery<{ provider_id: string }>(
+      db,
+      "olera-providers",
+      "provider_id",
+      "provider_id",
+      adminArchivedSourceIds,
+      { state, notDeleted: true }
+    );
+
+    for (const p of archivedInStateProviders) {
+      if (!claimedProviderIds.has(p.provider_id)) {
+        systemArchivedProviderIds.add(p.provider_id);
+      }
+    }
+  }
+
+  // Step 5: Verify tracked providers still exist in olera-providers (not deleted)
   const trackedIds = [...trackedProviderIds];
   const existingTrackedIds = new Set<string>();
 
@@ -667,7 +892,8 @@ async function getStageCounts(
     }
   }
 
-  // Now count stages only for providers that still exist and aren't claimed
+  // Now count stages only for providers that still exist, aren't claimed, and aren't system-archived
+  // System-archived providers should ONLY be counted in archived (via additionalSystemArchived)
   if (trackingRows) {
     for (const row of trackingRows) {
       let stage = row.stage as string;
@@ -675,6 +901,8 @@ async function getStageCounts(
       if (stage === "not_contacted" || stage === "claimed") continue;
       if (claimedProviderIds.has(row.provider_id)) continue;
       if (!existingTrackedIds.has(row.provider_id)) continue; // Skip deleted providers
+      // Skip system-archived - they'll be counted via additionalSystemArchived
+      if (systemArchivedProviderIds.has(row.provider_id)) continue;
 
       if (stage in counts) {
         counts[stage as OutreachStage]++;
@@ -682,11 +910,33 @@ async function getStageCounts(
     }
   }
 
-  // Step 5: Calculate not_contacted = total - claimed - tracked (only existing, non-claimed)
+  // Step 6: Add system-archived providers to archived count
+  // Dedupe: only count those NOT already tracked as archived (via tracking table)
+  const trackingArchivedIds = new Set<string>();
+  if (trackingRows) {
+    for (const row of trackingRows) {
+      const stage = row.stage === "not_interested" ? "archived" : row.stage;
+      if (stage === "archived" && existingTrackedIds.has(row.provider_id) && !claimedProviderIds.has(row.provider_id)) {
+        trackingArchivedIds.add(row.provider_id);
+      }
+    }
+  }
+
+  // System-archived providers: count those not already tracked as archived
+  // (They may have tracking rows with different stages, but admin_archived = true takes precedence)
+  let additionalSystemArchived = 0;
+  for (const pid of systemArchivedProviderIds) {
+    if (!trackingArchivedIds.has(pid)) {
+      additionalSystemArchived++;
+    }
+  }
+  counts.archived += additionalSystemArchived;
+
+  // Step 7: Calculate not_contacted = total - claimed - tracked (only existing, non-claimed, non-system-archived) - system-archived
   const trackedExistingNotClaimed = [...existingTrackedIds].filter(
-    (id) => !claimedProviderIds.has(id)
+    (id) => !claimedProviderIds.has(id) && !systemArchivedProviderIds.has(id)
   ).length;
-  counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed);
+  counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed - additionalSystemArchived);
 
   return counts;
 }

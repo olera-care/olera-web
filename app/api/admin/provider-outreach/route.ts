@@ -2,6 +2,48 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
+ * Batch size for .in() queries to avoid URL length limits.
+ * Each UUID is 36 chars; 150 UUIDs ≈ 5400 chars, safely under ~8000 limit.
+ */
+const IN_CLAUSE_BATCH_SIZE = 150;
+
+// Type for Supabase query builder (simplified for batched queries)
+type SupabaseQuery = ReturnType<ReturnType<typeof getServiceClient>["from"]>;
+
+/**
+ * Helper to batch .in() queries and combine results.
+ * Prevents URL length limit issues with large ID arrays.
+ */
+async function batchedInQuery<T>(
+  db: ReturnType<typeof getServiceClient>,
+  table: string,
+  selectColumns: string,
+  inColumn: string,
+  ids: string[],
+  additionalFilters?: (query: SupabaseQuery) => SupabaseQuery
+): Promise<T[]> {
+  if (ids.length === 0) return [];
+
+  const results: T[] = [];
+  for (let i = 0; i < ids.length; i += IN_CLAUSE_BATCH_SIZE) {
+    const batch = ids.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+    let query = db.from(table).select(selectColumns).in(inColumn, batch);
+    if (additionalFilters) {
+      query = additionalFilters(query);
+    }
+    const { data, error } = await query;
+    if (error) {
+      console.error(`[provider-outreach] Batched query error on ${table}:`, error);
+      throw new Error(`Failed to query ${table}`);
+    }
+    if (data) {
+      results.push(...(data as T[]));
+    }
+  }
+  return results;
+}
+
+/**
  * Outreach stages and their properties
  */
 export const OUTREACH_STAGES = [
@@ -342,28 +384,25 @@ async function getClaimedProviders(
   }
 
   // Step 2: Get provider details for the claimed ones, filtered by state
+  // Uses batched query to avoid URL length limits
   const claimedProviderIds = claimedBps.map((bp) => bp.source_provider_id).filter(Boolean) as string[];
 
-  // Batch the query if needed (though claimed providers are typically <1000)
-  let providerQuery = db
-    .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
-    .in("provider_id", claimedProviderIds)
-    .eq("state", state)
-    .or("deleted.is.null,deleted.eq.false");
+  const providers = await batchedInQuery<ProviderRow>(
+    db,
+    "olera-providers",
+    "provider_id, provider_name, provider_category, city, state, email, phone, website, slug",
+    "provider_id",
+    claimedProviderIds,
+    (q) => {
+      let filtered = q.eq("state", state).or("deleted.is.null,deleted.eq.false");
+      if (city) {
+        filtered = filtered.eq("city", city);
+      }
+      return filtered;
+    }
+  );
 
-  if (city) {
-    providerQuery = providerQuery.eq("city", city);
-  }
-
-  const { data: providers, error: provError } = await providerQuery;
-
-  if (provError) {
-    console.error("[provider-outreach] Provider query error:", provError);
-    throw new Error("Failed to fetch provider details");
-  }
-
-  if (!providers || providers.length === 0) {
+  if (providers.length === 0) {
     return [];
   }
 
@@ -550,25 +589,24 @@ async function getStageCounts(
     .map((bp) => bp.source_provider_id)
     .filter(Boolean) as string[];
 
-  // Now verify which of these are in the target state
-  // This query is safe because claimedSourceIds is small (~600)
-  let claimedInState = 0;
+  // Now verify which of these are in the target state (using batched query)
   const claimedProviderIds = new Set<string>();
 
   if (claimedSourceIds.length > 0) {
-    const { data: claimedInStateProviders } = await db
-      .from("olera-providers")
-      .select("provider_id")
-      .in("provider_id", claimedSourceIds)
-      .eq("state", state)
-      .or("deleted.is.null,deleted.eq.false");
+    const claimedInStateProviders = await batchedInQuery<{ provider_id: string }>(
+      db,
+      "olera-providers",
+      "provider_id",
+      "provider_id",
+      claimedSourceIds,
+      (q) => q.eq("state", state).or("deleted.is.null,deleted.eq.false")
+    );
 
-    claimedInState = claimedInStateProviders?.length || 0;
-    for (const p of claimedInStateProviders || []) {
+    for (const p of claimedInStateProviders) {
       claimedProviderIds.add(p.provider_id);
     }
   }
-  counts.claimed = claimedInState;
+  counts.claimed = claimedProviderIds.size;
 
   // Step 3: Get all tracking rows for this state (small set, filtered by state)
   const { data: trackingRows } = await db
@@ -576,43 +614,80 @@ async function getStageCounts(
     .select("provider_id, stage")
     .eq("state", state);
 
+  // Collect all tracked provider IDs and their stages
   const trackedProviderIds = new Set<string>();
+  const stageCounts: Record<string, number> = {};
 
   if (trackingRows) {
     for (const row of trackingRows) {
-      let stage = row.stage as OutreachStage;
+      let stage = row.stage as string;
 
       // Handle legacy "not_interested" records - treat as archived
-      if (stage === ("not_interested" as OutreachStage)) {
+      if (stage === "not_interested") {
         stage = "archived";
       }
 
+      // Skip not_contacted and claimed - they're calculated separately
       if (stage === "not_contacted" || stage === "claimed") {
-        // Skip - not_contacted is calculated separately, claimed is from business_profiles
         continue;
       }
 
-      // Track this provider as being in tracking
-      if (stage !== "not_contacted") {
-        trackedProviderIds.add(row.provider_id);
-      }
+      // Track this provider ID (we'll verify it exists later)
+      trackedProviderIds.add(row.provider_id);
 
-      // Don't count if provider has since claimed - they belong in Claimed now
+      // Skip counting if provider has since claimed
       if (claimedProviderIds.has(row.provider_id)) {
         continue;
       }
 
-      // Only count if stage exists in our counts object
+      // Accumulate stage counts (we'll adjust after verifying provider existence)
+      stageCounts[row.provider_id] = stageCounts[row.provider_id] || 0;
       if (stage in counts) {
-        counts[stage]++;
+        stageCounts[row.provider_id] = stage as unknown as number; // Store the stage for later
       }
     }
   }
 
-  // Step 4: Calculate not_contacted = total - claimed - tracked (excluding claimed from tracked)
-  // Note: Some tracked providers may have claimed, so we need to be careful
-  const trackedNotClaimed = [...trackedProviderIds].filter((id) => !claimedProviderIds.has(id)).length;
-  counts.not_contacted = totalProviders - claimedInState - trackedNotClaimed;
+  // Step 4: Verify tracked providers still exist in olera-providers (not deleted)
+  // This prevents counting tracking records for deleted providers
+  const trackedIds = [...trackedProviderIds];
+  const existingTrackedIds = new Set<string>();
+
+  if (trackedIds.length > 0) {
+    const existingProviders = await batchedInQuery<{ provider_id: string }>(
+      db,
+      "olera-providers",
+      "provider_id",
+      "provider_id",
+      trackedIds,
+      (q) => q.eq("state", state).or("deleted.is.null,deleted.eq.false")
+    );
+
+    for (const p of existingProviders) {
+      existingTrackedIds.add(p.provider_id);
+    }
+  }
+
+  // Now count stages only for providers that still exist and aren't claimed
+  if (trackingRows) {
+    for (const row of trackingRows) {
+      let stage = row.stage as string;
+      if (stage === "not_interested") stage = "archived";
+      if (stage === "not_contacted" || stage === "claimed") continue;
+      if (claimedProviderIds.has(row.provider_id)) continue;
+      if (!existingTrackedIds.has(row.provider_id)) continue; // Skip deleted providers
+
+      if (stage in counts) {
+        counts[stage as OutreachStage]++;
+      }
+    }
+  }
+
+  // Step 5: Calculate not_contacted = total - claimed - tracked (only existing, non-claimed)
+  const trackedExistingNotClaimed = [...existingTrackedIds].filter(
+    (id) => !claimedProviderIds.has(id)
+  ).length;
+  counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed);
 
   return counts;
 }

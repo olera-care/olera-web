@@ -1019,12 +1019,12 @@ export default function ProviderOutreachPage() {
   ];
 
   // Standardized unarchive reasons (same codes as Questions/Connections)
-  // Labels explain what changed to make them viable for outreach again
+  // Labels are positive inverses of archive reasons - what changed to make them viable
   const UNARCHIVE_REASONS = [
-    { value: "archived_in_error", label: "Archived in error" },
-    { value: "contact_info_updated", label: "Contact info updated" },
-    { value: "provider_reactivated", label: "Provider re-engaged / responded" },
-    { value: "provider_requested", label: "Provider requested to be listed" },
+    { value: "archived_in_error", label: "Mistakenly archived" },
+    { value: "provider_reactivated", label: "Provider now responsive" },
+    { value: "contact_info_updated", label: "Contact info obtained" },
+    { value: "provider_requested", label: "Provider requested listing" },
     { value: "compliance_resolved", label: "Compliance issue resolved" },
     { value: "other", label: "Other" },
   ];

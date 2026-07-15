@@ -336,8 +336,39 @@ export async function POST(
         }
       }
 
+      // Sync with Provider Outreach: update tracking to "not_contacted" if archived there
+      // This ensures bidirectional sync - unarchiving from Connections also unarchives from Provider Outreach
+      const oleraProviderId = providerFull?.source_provider_id;
+      let outreachSynced = false;
+
+      if (oleraProviderId) {
+        const { data: trackingRow } = await db
+          .from("provider_outreach_tracking")
+          .select("id, stage")
+          .eq("provider_id", oleraProviderId)
+          .maybeSingle();
+
+        if (trackingRow && (trackingRow.stage === "archived" || trackingRow.stage === "not_interested")) {
+          const { error: trackingUpdateErr } = await db
+            .from("provider_outreach_tracking")
+            .update({
+              stage: "not_contacted",
+              stage_changed_at: now,
+              notes: `${reason}${notes?.trim() ? ` - ${notes.trim()}` : ""} (unarchived from Connections)`
+            })
+            .eq("id", trackingRow.id);
+
+          if (trackingUpdateErr) {
+            console.error("[archive-provider] Failed to update provider_outreach_tracking:", trackingUpdateErr);
+          } else {
+            outreachSynced = true;
+            console.log(`[archive-provider] Updated provider_outreach_tracking for ${oleraProviderId} to not_contacted`);
+          }
+        }
+      }
+
       console.log(
-        `[archive-provider] Unarchived provider ${providerId} (${provider.display_name}), resumed ${connectionsAffected} followup sequences`
+        `[archive-provider] Unarchived provider ${providerId} (${provider.display_name}), resumed ${connectionsAffected} followup sequences${outreachSynced ? ", synced to Provider Outreach" : ""}`
       );
 
       return NextResponse.json({
@@ -346,6 +377,7 @@ export async function POST(
         provider_name: provider.display_name,
         admin_archived: false,
         connections_affected: connectionsAffected,
+        outreach_synced: outreachSynced,
         unarchived_at: now,
         unarchived_by: user.email,
         reason,

@@ -520,6 +520,13 @@ export interface TabRow extends OutreachRow {
    *  section split so non-email engagements (contact form, IG DM) don't surface
    *  there with an empty reply box. Null on other tabs. */
   has_email_reply?: boolean | null;
+  /** True when this row's cadence finished with no meeting (Follow-up tab). Set
+   *  on rows served by the follow-up tab; drives the "Follow-up" stage pill.
+   *  Null/absent elsewhere. */
+  cadence_complete?: boolean | null;
+  /** Follow-up card summary — one line of "what happened" (last email age,
+   *  whether they replied, which cadence finished). Null off the Follow-up tab. */
+  followup_summary?: string | null;
   /** v8: when the awaiting-callback state began (for "N days ago" copy). */
   awaiting_callback_at: string | null;
   /** v8: voicemail vs. they-said-they'd-call-back. */
@@ -588,6 +595,8 @@ export interface TabCounts {
   partners: number;
   archive: number;
   all: number;
+  /** Prospects whose cadence finished with no meeting (Follow-up tab). */
+  followup?: number;
   clients?: number;
   campuses?: number;
   // Audience queues — server-composed totals for the In Basket primary bar.
@@ -625,6 +634,8 @@ export interface TabUnreadCounts {
   partners: number;
   archive: number;
   all: number;
+  /** Prospects whose cadence finished with no meeting (Follow-up tab). */
+  followup?: number;
   clients?: number;
   campuses?: number;
   providers?: number;

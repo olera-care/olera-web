@@ -32,6 +32,13 @@
  */
 
 import { isClientMeta } from "@/lib/medjobs/partner-prospect-gate";
+import {
+  currentCadenceEndMs,
+  deriveStateFromTouchpoints,
+  hasEmailReplyToCurrentCadence,
+  isCadenceComplete,
+  type TouchpointRow,
+} from "@/lib/student-outreach/state-derivation";
 
 export type Stage =
   | "closed"
@@ -39,6 +46,9 @@ export type Stage =
   | "bounce_fix"
   | "call_due"
   | "follow_up"
+  // Cadence finished with no meeting + no current reply — the Follow-up tab's
+  // triage state (re-engage or archive).
+  | "cadence_done"
   | "meeting_set"
   | "in_outreach"
   | "prospect";
@@ -154,6 +164,29 @@ export function deriveStage(input: StageInput): Stage {
     }
   }
 
+  // 6.5 · cadence_done — an active-outreach row whose cadence has FINISHED with
+  //       no meeting and no reply to the current cadence. It has nothing queued
+  //       and nothing fresh to triage, so it drops out of Emails into Follow-up
+  //       (re-engage or archive). Must match the queue's classifyOutreachRow so
+  //       the tab and drawer agree. A fresh current-cadence reply outranks this
+  //       (stays in_outreach → Emails "They replied").
+  if (OUTREACH_ACTIVE_STATUSES.has(input.outreach.status)) {
+    const tps = input.touchpoints as unknown as TouchpointRow[];
+    const state = deriveStateFromTouchpoints(tps);
+    const hasPendingEmail = input.pendingTasks.some(
+      (t) => t.status === "pending" && t.task_type === "outreach_email_send",
+    );
+    const hasPendingCall = input.pendingTasks.some(
+      (t) => t.status === "pending" && t.task_type === "outreach_followup_call",
+    );
+    if (
+      isCadenceComplete(state, hasPendingEmail, hasPendingCall, currentCadenceEndMs(tps), now) &&
+      !hasEmailReplyToCurrentCadence(tps)
+    ) {
+      return "cadence_done";
+    }
+  }
+
   // 7 · in_outreach — sequence active, no higher-priority signal.
   if (OUTREACH_ACTIVE_STATUSES.has(input.outreach.status)) return "in_outreach";
 
@@ -186,6 +219,7 @@ export const STAGE_DISPLAY: Record<
 > = {
   prospect: { label: "Prospect", tone: "green" },
   in_outreach: { label: "Outreach", tone: "emerald" },
+  cadence_done: { label: "Follow-up", tone: "amber" },
   call_due: { label: "Call due", tone: "amber" },
   meeting_set: { label: "Meeting", tone: "purple" },
   follow_up: { label: "Follow-up", tone: "amber" },
@@ -217,6 +251,10 @@ export function deriveStageForTabRow(row: {
   meeting_state?: "none" | "in_flight" | "scheduled" | null;
   has_custom_task?: boolean;
   due_call_task?: { id: string; due_at: string } | null;
+  /** Server flag: the row's cadence has finished (Follow-up tab). The
+   *  business-days/last-email math isn't available from TabRow fields, so the
+   *  queue computes it and passes it through for the card pill. */
+  cadence_complete?: boolean;
 }): Stage {
   if (CLOSED_STATUSES.has(row.status)) return "closed";
   if (PARTNER_STATUSES.has(row.status)) return "converted";
@@ -225,6 +263,9 @@ export function deriveStageForTabRow(row: {
   if (row.has_custom_task === true) return "follow_up";
   if (row.meeting_state === "in_flight" || row.meeting_state === "scheduled") {
     return "meeting_set";
+  }
+  if (row.cadence_complete === true && OUTREACH_ACTIVE_STATUSES.has(row.status)) {
+    return "cadence_done";
   }
   if (OUTREACH_ACTIVE_STATUSES.has(row.status)) return "in_outreach";
   return "prospect";

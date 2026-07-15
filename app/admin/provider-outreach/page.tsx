@@ -980,6 +980,13 @@ export default function ProviderOutreachPage() {
   const [selectedAction, setSelectedAction] = useState<"called" | "archived" | "hidden" | "unhide" | null>(null);
   const [actionReason, setActionReason] = useState("");
   const [actionNotes, setActionNotes] = useState("");
+  // Unarchive preview state
+  const [unarchivePreview, setUnarchivePreview] = useState<{
+    archived_questions_count: number;
+    connections_affected_count: number;
+    loading: boolean;
+  } | null>(null);
+  const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
 
   // Sequence confirmation modal state
   const [showSequenceConfirm, setShowSequenceConfirm] = useState(false);
@@ -1035,6 +1042,8 @@ export default function ProviderOutreachPage() {
     setSelectedAction(null);
     setActionReason("");
     setActionNotes("");
+    setUnarchivePreview(null);
+    setUnarchivePreviewConfirmed(false);
   };
 
   // Fetch cities for not_contacted stage
@@ -1673,7 +1682,26 @@ export default function ProviderOutreachPage() {
                 {/* Unarchive - only show if provider is currently archived */}
                 {actionModalProvider.stage === "archived" && (
                   <button
-                    onClick={() => setSelectedAction("unhide")}
+                    onClick={async () => {
+                      setSelectedAction("unhide");
+                      // Fetch unarchive preview
+                      setUnarchivePreview({ archived_questions_count: 0, connections_affected_count: 0, loading: true });
+                      try {
+                        const res = await fetch(`/api/admin/provider-outreach/unarchive-preview?provider_id=${actionModalProvider.provider_id}`);
+                        if (res.ok) {
+                          const data = await res.json();
+                          setUnarchivePreview({
+                            archived_questions_count: data.archived_questions_count || 0,
+                            connections_affected_count: data.connections_affected_count || 0,
+                            loading: false,
+                          });
+                        } else {
+                          setUnarchivePreview(null);
+                        }
+                      } catch {
+                        setUnarchivePreview(null);
+                      }
+                    }}
                     className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
                   >
                     <div className="flex items-start gap-3">
@@ -1779,81 +1807,185 @@ export default function ProviderOutreachPage() {
                 {/* Back button */}
                 <button
                   onClick={() => {
-                    setSelectedAction(null);
-                    setActionReason("");
-                    setActionNotes("");
+                    // If we're in the preview step (unarchive not yet confirmed), go back to action selection
+                    // If we're in the reason step (preview confirmed), go back to preview step
+                    if (selectedAction === "unhide" && actionModalProvider?.stage === "archived" && unarchivePreviewConfirmed) {
+                      setUnarchivePreviewConfirmed(false);
+                      setActionReason("");
+                      setActionNotes("");
+                    } else {
+                      setSelectedAction(null);
+                      setActionReason("");
+                      setActionNotes("");
+                      setUnarchivePreview(null);
+                      setUnarchivePreviewConfirmed(false);
+                    }
                   }}
                   className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
-                  Back
+                  {selectedAction === "unhide" && actionModalProvider?.stage === "archived" && unarchivePreviewConfirmed ? "Back to Preview" : "Back"}
                 </button>
 
-                {/* Action description */}
-                <div className={`p-3 rounded-lg ${
-                  selectedAction === "called" ? "bg-purple-50 border border-purple-200" :
-                  selectedAction === "archived" ? "bg-amber-50 border border-amber-200" :
-                  selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-50 border border-emerald-200" :
-                  selectedAction === "unhide" ? "bg-blue-50 border border-blue-200" :
-                  "bg-gray-50 border border-gray-200"
-                }`}>
-                  <p className="text-sm font-medium text-gray-900">
-                    {selectedAction === "called" ? "Mark as Called" :
-                     selectedAction === "archived" ? "Archive Provider" :
-                     selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Unarchive Provider" :
-                     selectedAction === "unhide" ? "Unhide Provider" :
-                     "Hide Provider"}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-0.5">
-                    {selectedAction === "called" ? "Provider will be moved to Called tab. We've done our part - ball is in their court." :
-                     selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
-                     selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
-                     selectedAction === "unhide" ? "Provider will return to Not Contacted and be available for outreach." :
-                     "Provider will be hidden from this sequence but can be unhidden later."}
-                  </p>
-                </div>
+                {/* Unarchive Preview Step - show impact before reason selection */}
+                {selectedAction === "unhide" && actionModalProvider?.stage === "archived" && !unarchivePreviewConfirmed && (
+                  <div className="space-y-4">
+                    <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                      <p className="text-sm font-medium text-gray-900">Unarchive Provider</p>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        This will restore the provider to active outreach across all systems.
+                      </p>
+                    </div>
 
-                {/* Reason dropdown - not needed for "called" */}
-                {selectedAction !== "called" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Reason
-                    </label>
-                    <select
-                      value={actionReason}
-                      onChange={(e) => setActionReason(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    >
-                      <option value="">Select a reason...</option>
-                      {(selectedAction === "archived" ? ARCHIVE_REASONS :
-                        selectedAction === "unhide" ? (
-                          // If provider was archived, use UNARCHIVE_REASONS; otherwise UNHIDE_REASONS
-                          actionModalProvider?.stage === "archived" ? UNARCHIVE_REASONS : UNHIDE_REASONS
-                        ) :
-                        HIDE_REASONS
-                      ).map((reason) => (
-                        <option key={reason.value} value={reason.value}>{reason.label}</option>
-                      ))}
-                    </select>
+                    {/* Loading state */}
+                    {unarchivePreview?.loading && (
+                      <div className="flex items-center justify-center py-6">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+                        <span className="ml-2 text-sm text-gray-500">Loading impact preview...</span>
+                      </div>
+                    )}
+
+                    {/* Fallback when API fetch failed */}
+                    {!unarchivePreview && (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-sm text-yellow-800">
+                            Unable to load impact preview. You can still proceed with unarchiving.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setUnarchivePreviewConfirmed(true)}
+                          className="w-full px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+                        >
+                          Continue to Reason Selection
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Impact preview */}
+                    {unarchivePreview && !unarchivePreview.loading && (
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-gray-700">Cross-system impact:</p>
+
+                        {/* Questions impact */}
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <span className="text-blue-500">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                            </svg>
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              Questions eligibility restored
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Provider will be eligible to receive new questions
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Connections impact */}
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <span className="text-purple-500">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                            </svg>
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {unarchivePreview.connections_affected_count > 0
+                                ? `${unarchivePreview.connections_affected_count} connection${unarchivePreview.connections_affected_count === 1 ? "" : "s"} will resume followups`
+                                : "No connections with paused followups"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {unarchivePreview.connections_affected_count > 0
+                                ? "Followup email sequences will be re-enabled"
+                                : "No followup sequences to resume"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => setUnarchivePreviewConfirmed(true)}
+                          className="w-full mt-2 px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+                        >
+                          Continue to Reason Selection
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Notes textarea - not needed for "called" */}
-                {selectedAction !== "called" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Notes <span className="text-gray-400 font-normal">{actionReason === "other" ? "(required)" : "(optional)"}</span>
-                    </label>
-                    <textarea
-                      value={actionNotes}
-                      onChange={(e) => setActionNotes(e.target.value)}
-                      placeholder="Add any additional context..."
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
-                    />
-                  </div>
+                {/* Standard confirmation flow - show for non-unarchive actions OR after unarchive preview is confirmed */}
+                {(selectedAction !== "unhide" || actionModalProvider?.stage !== "archived" || unarchivePreviewConfirmed) && (
+                  <>
+                    {/* Action description */}
+                    <div className={`p-3 rounded-lg ${
+                      selectedAction === "called" ? "bg-purple-50 border border-purple-200" :
+                      selectedAction === "archived" ? "bg-amber-50 border border-amber-200" :
+                      selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-50 border border-emerald-200" :
+                      selectedAction === "unhide" ? "bg-blue-50 border border-blue-200" :
+                      "bg-gray-50 border border-gray-200"
+                    }`}>
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedAction === "called" ? "Mark as Called" :
+                         selectedAction === "archived" ? "Archive Provider" :
+                         selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Unarchive Provider" :
+                         selectedAction === "unhide" ? "Unhide Provider" :
+                         "Hide Provider"}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        {selectedAction === "called" ? "Provider will be moved to Called tab. We've done our part - ball is in their court." :
+                         selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
+                         selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
+                         selectedAction === "unhide" ? "Provider will return to Not Contacted and be available for outreach." :
+                         "Provider will be hidden from this sequence but can be unhidden later."}
+                      </p>
+                    </div>
+
+                    {/* Reason dropdown - not needed for "called" */}
+                    {selectedAction !== "called" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Reason
+                        </label>
+                        <select
+                          value={actionReason}
+                          onChange={(e) => setActionReason(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                        >
+                          <option value="">Select a reason...</option>
+                          {(selectedAction === "archived" ? ARCHIVE_REASONS :
+                            selectedAction === "unhide" ? (
+                              // If provider was archived, use UNARCHIVE_REASONS; otherwise UNHIDE_REASONS
+                              actionModalProvider?.stage === "archived" ? UNARCHIVE_REASONS : UNHIDE_REASONS
+                            ) :
+                            HIDE_REASONS
+                          ).map((reason) => (
+                            <option key={reason.value} value={reason.value}>{reason.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Notes textarea - not needed for "called" */}
+                    {selectedAction !== "called" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Notes <span className="text-gray-400 font-normal">{actionReason === "other" ? "(required)" : "(optional)"}</span>
+                        </label>
+                        <textarea
+                          value={actionNotes}
+                          onChange={(e) => setActionNotes(e.target.value)}
+                          placeholder="Add any additional context..."
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -1866,7 +1998,8 @@ export default function ProviderOutreachPage() {
               >
                 Cancel
               </button>
-              {selectedAction && (
+              {/* Show Confirm button only when not in unarchive preview step */}
+              {selectedAction && !(selectedAction === "unhide" && actionModalProvider?.stage === "archived" && !unarchivePreviewConfirmed) && (
                 <button
                   onClick={async () => {
                     // "called" doesn't require a reason

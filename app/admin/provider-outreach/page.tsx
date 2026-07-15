@@ -1019,11 +1019,12 @@ export default function ProviderOutreachPage() {
   ];
 
   // Standardized unarchive reasons (same codes as Questions/Connections)
+  // Labels explain what changed to make them viable for outreach again
   const UNARCHIVE_REASONS = [
-    { value: "provider_reactivated", label: "Ready for outreach" },
     { value: "archived_in_error", label: "Archived in error" },
     { value: "contact_info_updated", label: "Contact info updated" },
-    { value: "provider_requested", label: "Provider requested" },
+    { value: "provider_reactivated", label: "Provider re-engaged / responded" },
+    { value: "provider_requested", label: "Provider requested to be listed" },
     { value: "compliance_resolved", label: "Compliance issue resolved" },
     { value: "other", label: "Other" },
   ];

@@ -891,7 +891,8 @@ function CityRow({
                     </div>
 
                     {/* Actions button - ellipsis icon, opens modal */}
-                    {stage !== "archived" && stage !== "claimed" && (
+                    {/* Show for all stages except claimed (archived can be unarchived) */}
+                    {stage !== "claimed" && (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -985,30 +986,47 @@ export default function ProviderOutreachPage() {
   const [sequenceConfirmProviders, setSequenceConfirmProviders] = useState<OutreachProvider[]>([]);
   const [showSequencePreview, setShowSequencePreview] = useState(false);
 
-  // Reason options for archiving
+  // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
   const ARCHIVE_REASONS = [
-    "Provider declined / Not interested",
-    "Provider requested no contact",
-    "Out of business / Permanently closed",
-    "Invalid listing (fake/spam)",
-    "Duplicate of another listing",
-    "Unable to verify provider exists",
-    "Other",
+    { value: "uninterested_provider", label: "Provider declined / Not interested" },
+    { value: "provider_requested_no_emails", label: "Provider requested no contact" },
+    { value: "out_of_business", label: "Out of business / Permanently closed" },
+    { value: "invalid_provider", label: "Invalid listing (fake/spam)" },
+    { value: "duplicate", label: "Duplicate of another listing" },
+    { value: "wrong_contact_info", label: "Unable to verify provider exists" },
+    { value: "inactive", label: "Inactive / No response" },
+    { value: "inactive_multiple_attempts", label: "Inactive after multiple attempts" },
+    { value: "fax_only", label: "Fax only / No email" },
+    { value: "relocated", label: "Relocated" },
+    { value: "compliance_issue", label: "Compliance issue" },
+    { value: "merged", label: "Merged with another provider" },
+    { value: "other", label: "Other" },
   ];
 
   const HIDE_REASONS = [
-    "Test account",
-    "Duplicate entry",
-    "Data quality issue",
-    "Other",
+    { value: "test_account", label: "Test account" },
+    { value: "duplicate", label: "Duplicate entry" },
+    { value: "data_quality", label: "Data quality issue" },
+    { value: "other", label: "Other" },
   ];
 
+  // Standardized unarchive reasons (same codes as Questions/Connections)
+  const UNARCHIVE_REASONS = [
+    { value: "provider_reactivated", label: "Ready for outreach" },
+    { value: "archived_in_error", label: "Archived in error" },
+    { value: "contact_info_updated", label: "Contact info updated" },
+    { value: "provider_requested", label: "Provider requested" },
+    { value: "compliance_resolved", label: "Compliance issue resolved" },
+    { value: "other", label: "Other" },
+  ];
+
+  // Keep legacy UNHIDE_REASONS for hidden -> not_contacted transition
   const UNHIDE_REASONS = [
-    "Ready for outreach",
-    "Hidden in error",
-    "Data issue resolved",
-    "Other",
+    { value: "ready_for_outreach", label: "Ready for outreach" },
+    { value: "hidden_in_error", label: "Hidden in error" },
+    { value: "data_issue_resolved", label: "Data issue resolved" },
+    { value: "other", label: "Other" },
   ];
 
   // Close action modal and reset state
@@ -1212,7 +1230,14 @@ export default function ProviderOutreachPage() {
   };
 
   // Quick action for single provider (from modal)
-  const handleQuickAction = async (providerId: string, action: "not_contacted" | "called" | "archived" | "hidden", notes?: string | null) => {
+  // If requiresReasonValidation is true, reason is required (archive/unarchive actions)
+  const handleQuickAction = async (
+    providerId: string,
+    action: "not_contacted" | "called" | "archived" | "hidden",
+    reason?: string | null,
+    notes?: string | null,
+    requiresReasonValidation?: boolean
+  ) => {
     setActionLoading(true);
     try {
       const res = await fetch("/api/admin/provider-outreach/update-stage", {
@@ -1221,6 +1246,7 @@ export default function ProviderOutreachPage() {
         body: JSON.stringify({
           provider_ids: [providerId],
           stage: action,
+          reason: requiresReasonValidation ? reason : undefined,
           notes: notes || undefined,
         }),
       });
@@ -1517,9 +1543,9 @@ export default function ProviderOutreachPage() {
                         {STAGE_LABELS[provider.stage]}
                       </span>
                     </div>
-                    {/* Actions - hide for terminal stages (archived, claimed, called) */}
+                    {/* Actions - hide for claimed only (archived can be unarchived) */}
                     <div className="w-10">
-                      {!["archived", "claimed", "called"].includes(provider.stage) && (
+                      {!["claimed"].includes(provider.stage) && (
                         <button
                           type="button"
                           onClick={(e) => {
@@ -1644,6 +1670,26 @@ export default function ProviderOutreachPage() {
             {/* Step 1: Select Action */}
             {!selectedAction && (
               <div className="p-4 space-y-2">
+                {/* Unarchive - only show if provider is currently archived */}
+                {actionModalProvider.stage === "archived" && (
+                  <button
+                    onClick={() => setSelectedAction("unhide")}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-emerald-500 mt-0.5">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">Unarchive</p>
+                        <p className="text-xs text-gray-500">Restore to Not Contacted for outreach</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
                 {/* Unhide - only show if provider is currently hidden */}
                 {actionModalProvider.stage === "hidden" && (
                   <button
@@ -1685,26 +1731,28 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Archive */}
-                <button
-                  onClick={() => setSelectedAction("archived")}
-                  className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-amber-500 mt-0.5">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                      </svg>
-                    </span>
-                    <div>
-                      <p className="font-medium text-gray-900">Archive</p>
-                      <p className="text-xs text-gray-500">Stop all outreach to this provider</p>
+                {/* Archive - only show if NOT already archived */}
+                {actionModalProvider.stage !== "archived" && (
+                  <button
+                    onClick={() => setSelectedAction("archived")}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-amber-500 mt-0.5">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">Archive</p>
+                        <p className="text-xs text-gray-500">Stop all outreach to this provider</p>
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                )}
 
-                {/* Hide - only show if provider is NOT already hidden */}
-                {actionModalProvider.stage !== "hidden" && (
+                {/* Hide - only show if provider is NOT already hidden or archived */}
+                {actionModalProvider.stage !== "hidden" && actionModalProvider.stage !== "archived" && (
                   <button
                     onClick={() => setSelectedAction("hidden")}
                     className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
@@ -1747,18 +1795,21 @@ export default function ProviderOutreachPage() {
                 <div className={`p-3 rounded-lg ${
                   selectedAction === "called" ? "bg-purple-50 border border-purple-200" :
                   selectedAction === "archived" ? "bg-amber-50 border border-amber-200" :
+                  selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-50 border border-emerald-200" :
                   selectedAction === "unhide" ? "bg-blue-50 border border-blue-200" :
                   "bg-gray-50 border border-gray-200"
                 }`}>
                   <p className="text-sm font-medium text-gray-900">
                     {selectedAction === "called" ? "Mark as Called" :
                      selectedAction === "archived" ? "Archive Provider" :
+                     selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Unarchive Provider" :
                      selectedAction === "unhide" ? "Unhide Provider" :
                      "Hide Provider"}
                   </p>
                   <p className="text-xs text-gray-600 mt-0.5">
                     {selectedAction === "called" ? "Provider will be moved to Called tab. We've done our part - ball is in their court." :
-                     selectedAction === "archived" ? "Provider will be archived and removed from active outreach." :
+                     selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
+                     selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
                      selectedAction === "unhide" ? "Provider will return to Not Contacted and be available for outreach." :
                      "Provider will be hidden from this sequence but can be unhidden later."}
                   </p>
@@ -1777,10 +1828,13 @@ export default function ProviderOutreachPage() {
                     >
                       <option value="">Select a reason...</option>
                       {(selectedAction === "archived" ? ARCHIVE_REASONS :
-                        selectedAction === "unhide" ? UNHIDE_REASONS :
+                        selectedAction === "unhide" ? (
+                          // If provider was archived, use UNARCHIVE_REASONS; otherwise UNHIDE_REASONS
+                          actionModalProvider?.stage === "archived" ? UNARCHIVE_REASONS : UNHIDE_REASONS
+                        ) :
                         HIDE_REASONS
                       ).map((reason) => (
-                        <option key={reason} value={reason}>{reason}</option>
+                        <option key={reason.value} value={reason.value}>{reason.label}</option>
                       ))}
                     </select>
                   </div>
@@ -1790,7 +1844,7 @@ export default function ProviderOutreachPage() {
                 {selectedAction !== "called" && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Notes <span className="text-gray-400 font-normal">{actionReason === "Other" ? "(required)" : "(optional)"}</span>
+                      Notes <span className="text-gray-400 font-normal">{actionReason === "other" ? "(required)" : "(optional)"}</span>
                     </label>
                     <textarea
                       value={actionNotes}
@@ -1818,28 +1872,30 @@ export default function ProviderOutreachPage() {
                     // "called" doesn't require a reason
                     if (selectedAction !== "called") {
                       if (!actionReason) return;
-                      if (actionReason === "Other" && !actionNotes.trim()) return;
+                      if (actionReason === "other" && !actionNotes.trim()) return;
                     }
                     // Map "unhide" to "not_contacted" stage
                     const stageToSet = selectedAction === "unhide" ? "not_contacted" : selectedAction;
-                    const notes = selectedAction === "called"
-                      ? null
-                      : `${actionReason}${actionNotes.trim() ? ` - ${actionNotes.trim()}` : ""}`;
+                    // Detect if this is an unarchive scenario (moving from archived to not_contacted)
+                    const isUnarchiving = actionModalProvider.stage === "archived" && stageToSet === "not_contacted";
                     await handleQuickAction(
                       actionModalProvider.provider_id,
                       stageToSet,
-                      notes
+                      actionReason,
+                      actionNotes.trim() || null,
+                      isUnarchiving || selectedAction === "archived"
                     );
                     closeActionModal();
                   }}
                   disabled={
                     actionLoading ||
                     (selectedAction !== "called" && !actionReason) ||
-                    (selectedAction !== "called" && actionReason === "Other" && !actionNotes.trim())
+                    (selectedAction !== "called" && actionReason === "other" && !actionNotes.trim())
                   }
                   className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     selectedAction === "called" ? "bg-purple-600 hover:bg-purple-700" :
                     selectedAction === "archived" ? "bg-amber-600 hover:bg-amber-700" :
+                    selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-600 hover:bg-emerald-700" :
                     selectedAction === "unhide" ? "bg-blue-600 hover:bg-blue-700" :
                     "bg-gray-600 hover:bg-gray-700"
                   }`}

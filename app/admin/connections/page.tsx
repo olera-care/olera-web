@@ -605,13 +605,20 @@ export default function ConnectionsTrackerPage() {
     { value: "other", label: "Other" },
   ] as const;
 
-  // Unarchive Provider reason options (maps to API values)
+  // Unarchive Provider reason options - positive inverses of archive reasons
   const UNARCHIVE_PROVIDER_REASONS = [
-    { value: "provider_reactivated", label: "Provider reactivated / Back in business" },
-    { value: "contact_info_updated", label: "Contact info updated" },
-    { value: "archived_in_error", label: "Archived in error" },
-    { value: "provider_requested", label: "Provider requested reactivation" },
+    { value: "archived_in_error", label: "Mistakenly archived" },
+    { value: "provider_now_interested", label: "Provider now interested" },
+    { value: "provider_now_wants_contact", label: "Provider now wants contact" },
+    { value: "business_confirmed_operating", label: "Business confirmed operating" },
+    { value: "provider_verified_valid", label: "Provider verified as valid" },
+    { value: "not_a_duplicate", label: "Confirmed not a duplicate" },
+    { value: "provider_existence_verified", label: "Provider existence verified" },
+    { value: "provider_now_responsive", label: "Provider now responsive" },
+    { value: "email_obtained", label: "Email address obtained" },
+    { value: "new_contact_info_obtained", label: "New contact info obtained" },
     { value: "compliance_resolved", label: "Compliance issue resolved" },
+    { value: "not_merged", label: "Confirmed separate provider" },
     { value: "other", label: "Other" },
   ] as const;
 

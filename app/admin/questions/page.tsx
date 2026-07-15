@@ -1712,11 +1712,18 @@ export default function AdminQuestionsPage() {
                 autoFocus
               >
                 <option value="">Select a reason...</option>
-                <option value="provider_reactivated">Provider reactivated</option>
-                <option value="contact_info_updated">Contact info updated</option>
-                <option value="archived_in_error">Archived in error</option>
-                <option value="provider_requested">Provider requested</option>
+                <option value="archived_in_error">Mistakenly archived</option>
+                <option value="provider_now_interested">Provider now interested</option>
+                <option value="provider_now_wants_contact">Provider now wants contact</option>
+                <option value="business_confirmed_operating">Business confirmed operating</option>
+                <option value="provider_verified_valid">Provider verified as valid</option>
+                <option value="not_a_duplicate">Confirmed not a duplicate</option>
+                <option value="provider_existence_verified">Provider existence verified</option>
+                <option value="provider_now_responsive">Provider now responsive</option>
+                <option value="email_obtained">Email address obtained</option>
+                <option value="new_contact_info_obtained">New contact info obtained</option>
                 <option value="compliance_resolved">Compliance issue resolved</option>
+                <option value="not_merged">Confirmed separate provider</option>
                 <option value="other">Other</option>
               </select>
             </div>

@@ -46,6 +46,7 @@ const PROMOTE_ON_REPLY = new Set([
   "researched",
   "prospect",
   "no_response_closed",
+  "archived",
 ]);
 
 const LEAD_PAGE = 100;

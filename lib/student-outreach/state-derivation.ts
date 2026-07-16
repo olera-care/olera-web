@@ -19,6 +19,7 @@ import type {
   AwaitingCallbackKind,
   RepliesState,
 } from "@/lib/student-outreach/types";
+import { CADENCE_END_DAY } from "@/lib/student-outreach/cadence";
 
 export const STALE_DAYS = 4;
 
@@ -108,6 +109,22 @@ export function currentSequenceStartedAt(
   touchpoints: ReadonlyArray<ReasonTouchpoint>,
 ): string | null {
   return runningSequenceStartedAt(touchpoints, SEQUENCE_LAUNCH_REASONS, SEQUENCE_STOP_REASONS);
+}
+
+/**
+ * Does the row have an EMAIL reply to the CURRENT cadence — an `email_replied`
+ * touchpoint newer than the cadence cutoff? Shared by the Emails/Follow-up split
+ * (queue route) and the drawer's stage derivation so a fresh reply consistently
+ * keeps the row in Emails "They replied" and out of Follow-up. Non-email
+ * engagements (contact form, IG DM) are deliberately excluded.
+ */
+export function hasEmailReplyToCurrentCadence(
+  touchpoints: ReadonlyArray<ReasonTouchpoint & { touchpoint_type: string }>,
+): boolean {
+  const cutoff = currentSequenceStartedAt(touchpoints);
+  return touchpoints.some(
+    (t) => t.touchpoint_type === "email_replied" && (cutoff == null || t.created_at > cutoff),
+  );
 }
 
 /**
@@ -266,6 +283,84 @@ export function deriveRepliesState(
   }
 
   return "mid_cadence";
+}
+
+// ── Follow-up tab: "cadence finished" detection ───────────────────────────
+// A prospect whose latest cadence has run its course with no meeting booked
+// belongs in the Follow-up tab (re-engage or archive), not cluttering Emails.
+//
+// Smartlead owns the EMAIL schedule, so a mid-drip row has no pending CRM task
+// telling us "another email is coming." A fixed time-grace would guess wrong on
+// long inter-email gaps. Instead we anchor on the cadence's KNOWN length: the
+// row was enrolled/launched at a marker touchpoint, and each cadence runs a
+// known number of days. "Finished" = that whole window (last email day + a
+// reply window) has elapsed AND no calls are left AND no meeting. A row can't
+// reach Follow-up until every email has had time to send.
+export const REPLY_WINDOW_DAYS = 3;
+
+// note_added reasons that anchor "when the current cadence started". The newest
+// one wins (a later activation/custom launch supersedes the cold enrollment).
+const CADENCE_ANCHOR_REASONS = new Set([
+  "smartlead_enrolled",
+  "activation_launched",
+  "custom_sequence_launched",
+  "cadence_restarted",
+]);
+
+/**
+ * When the current cadence's whole schedule has elapsed, in epoch ms — the
+ * point past which no more emails are coming. Anchors on the newest cadence
+ * marker + the cadence length (CADENCE_END_DAY for cold/activation; the custom
+ * cadence's own stored `ends_after_days`), plus a reply window. Null when no
+ * marker exists (can't tell → treat as not finished, i.e. keep in Emails).
+ */
+export function currentCadenceEndMs(
+  touchpoints: ReadonlyArray<ReasonTouchpoint>,
+  replyWindowDays: number = REPLY_WINDOW_DAYS,
+): number | null {
+  let bestAt: string | null = null;
+  let bestReason: string | null = null;
+  let bestPayload: Record<string, unknown> | null = null;
+  for (const t of touchpoints) {
+    if (t.touchpoint_type !== "note_added") continue;
+    const p = (t.payload ?? null) as Record<string, unknown> | null;
+    const reason = p && typeof p.reason === "string" ? p.reason : null;
+    if (reason && CADENCE_ANCHOR_REASONS.has(reason) && (bestAt === null || t.created_at > bestAt)) {
+      bestAt = t.created_at;
+      bestReason = reason;
+      bestPayload = p;
+    }
+  }
+  if (bestAt === null) return null;
+  const startMs = new Date(bestAt).getTime();
+  if (Number.isNaN(startMs)) return null;
+  let lastEmailDay = CADENCE_END_DAY;
+  if (bestReason === "custom_sequence_launched") {
+    const d = bestPayload && typeof bestPayload.ends_after_days === "number" ? bestPayload.ends_after_days : null;
+    if (d != null && d >= 0) lastEmailDay = d;
+  }
+  return startMs + (lastEmailDay + replyWindowDays) * 86_400_000;
+}
+
+/**
+ * Has the row's current cadence FINISHED with no meeting? True when there's no
+ * meeting, an email actually went out, nothing is still queued (no pending
+ * email-send or follow-up-call task), and the cadence's whole window has
+ * elapsed (`cadenceEndMs`). Whether the prospect replied is handled by the
+ * caller (a fresh reply outranks this — it stays in Emails "They replied").
+ */
+export function isCadenceComplete(
+  state: DerivedState,
+  hasPendingEmail: boolean,
+  hasPendingCall: boolean,
+  cadenceEndMs: number | null,
+  now: number = Date.now(),
+): boolean {
+  if (state.meeting_state !== "none") return false;
+  if (!state.last_email_sent_at) return false;
+  if (hasPendingEmail || hasPendingCall) return false;
+  if (cadenceEndMs == null) return false;
+  return now >= cadenceEndMs;
 }
 
 /**

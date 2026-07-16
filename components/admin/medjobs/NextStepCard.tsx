@@ -54,10 +54,12 @@ import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 import { EmailReplyModal } from "@/components/admin/medjobs/EmailReplyModal";
+import { CustomCadenceModal } from "@/components/admin/medjobs/CustomCadenceModal";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { MeetingOutcomeModal } from "@/components/admin/medjobs/MeetingOutcomeModal";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
+import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
 
@@ -181,6 +183,8 @@ function StageBody({
       // and activation cadences therefore render identically to any other row on
       // every tab; the cadence's shape never changes how the card looks.
       return <InOutreachBody ctx={ctx} action={action} setError={setError} activeTab={activeTab} />;
+    case "cadence_done":
+      return <CadenceDoneBody ctx={ctx} action={action} setError={setError} />;
     case "meeting_set":
       return <MeetingSetBody ctx={ctx} action={action} setError={setError} />;
     case "follow_up":
@@ -510,6 +514,122 @@ function currentCustomCadenceName(ctx: DrawerContext): string | null {
 // tab-aware, whether or not a call happens to be due. The old bespoke CallDueBody
 // was the source of the "custom cadence looks different" drift and was removed.
 
+// ── cadence_done (Follow-up tab) ──────────────────────────────────────────
+
+/**
+ * The cadence finished with no meeting — the Follow-up tab's triage face. Two
+ * moves: Re-engage (compose a fresh custom cadence, reusing the same builder as
+ * the reply drawer → row returns to active) or Archive (retire the row; it
+ * auto-resurfaces if they ever reply/call back).
+ */
+function CadenceDoneBody({
+  ctx,
+  action,
+  setError,
+}: {
+  ctx: DrawerContext;
+  action: ActionFn;
+  setError: (m: string | null) => void;
+}) {
+  const [showCustom, setShowCustom] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+
+  // Recipient derivation mirrors EmailReplyModal so the re-engage cadence enrolls
+  // exactly who the reply flow would.
+  const primary =
+    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
+    ctx.contacts.find((c) => c.status === "active") ??
+    null;
+  const dm = ctx.outreach.research_data?.decision_maker;
+  const gc = ctx.outreach.research_data?.general_contact;
+  const recipientEmail =
+    (dm && !dm.unavailable && dm.email ? dm.email : null) ?? primary?.email ?? gc?.email ?? null;
+  const recipientName = primary
+    ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() || primary.name
+    : dm?.name ?? null;
+  const recipientPayload = {
+    name: recipientName,
+    email: recipientEmail,
+    phone: primary?.phone ?? gc?.phone ?? null,
+    contact_id: primary?.id ?? null,
+    first_name: primary?.first_name ?? (dm?.name ? dm.name.trim().split(/\s+/)[0] : null) ?? null,
+    last_name: primary?.last_name ?? null,
+  };
+
+  const archive = async () => {
+    setArchiving(true);
+    setError(null);
+    try {
+      await action("archive", {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Archive failed");
+      setArchiving(false);
+    }
+  };
+
+  const bookMeeting = async () => {
+    setError(null);
+    try {
+      await action("mark_meeting_scheduled", {});
+      window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Booking failed");
+    }
+  };
+
+  if (showCustom) {
+    return (
+      <CustomCadenceModal
+        recipientName={recipientName}
+        recipientEmail={recipientEmail}
+        onCancel={() => setShowCustom(false)}
+        onSubmit={async (payload) => {
+          try {
+            await action("launch_custom_cadence", {
+              name: payload.name,
+              steps: payload.steps,
+              recipient: recipientPayload,
+              source: "followup",
+            });
+            setShowCustom(false);
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Launch failed");
+            throw e;
+          }
+        }}
+      />
+    );
+  }
+
+  return (
+    <>
+      <p className="text-sm font-medium text-gray-900">Cadence finished — no meeting booked</p>
+      <p className="mt-0.5 text-xs text-gray-500">Re-engage, book a meeting, or archive.</p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setShowCustom(true)}
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+        >
+          ↻ Re-engage
+        </button>
+        <button
+          onClick={bookMeeting}
+          className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          📅 Book a meeting
+        </button>
+        <button
+          onClick={archive}
+          disabled={archiving}
+          className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        >
+          {archiving ? "Archiving…" : "Archive"}
+        </button>
+      </div>
+    </>
+  );
+}
+
 // ── meeting_set ──────────────────────────────────────────────────────────
 
 function MeetingSetBody({
@@ -676,10 +796,35 @@ function ClosedBody({
   setError: (m: string | null) => void;
 }) {
   const [reopening, setReopening] = useState(false);
+  const [showCustom, setShowCustom] = useState(false);
   const closedAt = ctx.outreach.last_edited_at
     ? formatLongDate(ctx.outreach.last_edited_at)
     : null;
   const reasonLabel = closedReasonLabel(ctx.outreach.status);
+  // do_not_contact stays terminal — never offer reactivation (compliance).
+  const reopenable = ctx.outreach.status !== "do_not_contact";
+
+  // Recipient derivation (same precedence as the reply/re-engage flows) so a
+  // re-engage cadence enrolls the right person.
+  const primary =
+    ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
+    ctx.contacts.find((c) => c.status === "active") ??
+    null;
+  const dm = ctx.outreach.research_data?.decision_maker;
+  const gc = ctx.outreach.research_data?.general_contact;
+  const recipientEmail =
+    (dm && !dm.unavailable && dm.email ? dm.email : null) ?? primary?.email ?? gc?.email ?? null;
+  const recipientName = primary
+    ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() || primary.name
+    : dm?.name ?? null;
+  const recipientPayload = {
+    name: recipientName,
+    email: recipientEmail,
+    phone: primary?.phone ?? gc?.phone ?? null,
+    contact_id: primary?.id ?? null,
+    first_name: primary?.first_name ?? (dm?.name ? dm.name.trim().split(/\s+/)[0] : null) ?? null,
+    last_name: primary?.last_name ?? null,
+  };
 
   const reopen = async () => {
     setReopening(true);
@@ -693,22 +838,71 @@ function ClosedBody({
     }
   };
 
+  const bookMeeting = async () => {
+    setError(null);
+    try {
+      await action("mark_meeting_scheduled", {});
+      window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Booking failed");
+    }
+  };
+
+  if (showCustom) {
+    return (
+      <CustomCadenceModal
+        recipientName={recipientName}
+        recipientEmail={recipientEmail}
+        onCancel={() => setShowCustom(false)}
+        onSubmit={async (payload) => {
+          try {
+            await action("launch_custom_cadence", {
+              name: payload.name,
+              steps: payload.steps,
+              recipient: recipientPayload,
+              source: "followup",
+            });
+            setShowCustom(false);
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Launch failed");
+            throw e;
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <p className="text-sm text-gray-700">
         Closed{closedAt ? ` ${closedAt}` : ""}
         {reasonLabel ? ` · ${reasonLabel}` : ""}
       </p>
-      {ctx.outreach.status !== "do_not_contact" && (
-        <div className="mt-3">
-          <button
-            onClick={reopen}
-            disabled={reopening}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            {reopening ? "Reopening…" : "Reopen →"}
-          </button>
-        </div>
+      {reopenable && (
+        <>
+          <p className="mt-0.5 text-xs text-gray-500">Late interest? Bring them back.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowCustom(true)}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+            >
+              ↻ Re-engage
+            </button>
+            <button
+              onClick={bookMeeting}
+              className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              📅 Book a meeting
+            </button>
+            <button
+              onClick={reopen}
+              disabled={reopening}
+              className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50"
+            >
+              {reopening ? "Reopening…" : "Reopen →"}
+            </button>
+          </div>
+        </>
       )}
     </>
   );
@@ -720,6 +914,8 @@ function closedReasonLabel(status: string): string | null {
       return "not interested";
     case "no_response_closed":
       return "no response";
+    case "archived":
+      return "archived";
     case "do_not_contact":
       return "do not contact";
     case "wrong_contact":

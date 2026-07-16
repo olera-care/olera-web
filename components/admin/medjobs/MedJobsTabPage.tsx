@@ -800,6 +800,23 @@ export function MedJobsTabPage({
         ) : (
           <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
         )
+      ) : tab === "followup" ? (
+        rows.length === 0 ? (
+          <p className="py-12 text-center text-sm text-gray-400">
+            ✓ Nothing to follow up — no finished cadences waiting on a decision.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {rows.map((row) => (
+              <li key={row.row_key ?? row.id}>
+                {row.followup_summary && (
+                  <p className="mb-1 px-1 text-xs text-gray-500">{row.followup_summary}</p>
+                )}
+                {renderRow(row)}
+              </li>
+            ))}
+          </ul>
+        )
       ) : tab === "sites" ? (
         // v9.0 Phase 7 Commit N: In Basket Sites tab surfaces sites
         // with active operational work — research-needed prompts OR

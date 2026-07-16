@@ -26,6 +26,12 @@ export interface NarratedTouchpoint {
   detail: string | null;
   admin: string | null;
   whenIso: string;
+  /** When true, the timeline should skip this row entirely. Used for
+   *  mechanical bookkeeping note_added events (drip paused, activation link
+   *  sent, job-board task queued, meeting-in-flight) that carry no operational
+   *  meaning for an admin scanning the story. Keeping the decision here means
+   *  "what shows in the timeline" lives in one place. */
+  hidden?: boolean;
 }
 
 export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): NarratedTouchpoint {
@@ -41,6 +47,8 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
   // events override this with payload-derived detail so the note — which often
   // just restates the title — isn't echoed twice.
   let detail: string | null = note;
+  // Rows the timeline should skip (mechanical bookkeeping). Set in note_added.
+  let hidden = false;
   switch (t.touchpoint_type) {
     case "stage_change": {
       // E3: narrate stage transitions as complete sentences. Terminal
@@ -207,7 +215,64 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
       // a generic "Note added" so the timeline tells the actual story.
       const reasonRaw = typeof p.reason === "string" ? p.reason : null;
       const fields = Array.isArray(p.fields_updated) ? p.fields_updated.join(", ") : "";
+      // Free-form text can live in the notes column OR payload.notes (some
+      // actions write it into the payload). Prefer whichever is present.
+      const noteText = note ?? str(p.notes);
+
+      // Mechanical bookkeeping — no operational meaning for an admin scanning
+      // the timeline. Hidden so the story stays about milestones, emails,
+      // notes, and endings. One list, easy to adjust.
+      const HIDDEN_REASONS = new Set([
+        "meeting_in_flight", // vague "still finding a time" — dropped by design
+        "smartlead_drips_paused", // internal cadence mechanics
+        "activation_link_sent", // sub-step already implied by activation_launched
+        "job_board_task_queued", // bookkeeping; the actual post is kept
+      ]);
+      if (reasonRaw && HIDDEN_REASONS.has(reasonRaw)) {
+        hidden = true;
+        text = "";
+        break;
+      }
+
       switch (reasonRaw) {
+        // ── Cadence milestones — where the prospect sits in the funnel ──
+        case "smartlead_enrolled":
+          text = `🚀 Outreach launched — enrolled in the cold-email cadence.`;
+          detail = null;
+          break;
+        case "activation_launched":
+          text = `⚡ Activation launched — enrolled in the activation cadence.`;
+          detail = null;
+          break;
+        case "partner_welcome_launched":
+          text = `🎉 Welcome sequence launched.`;
+          detail = null;
+          break;
+        case "outreach_stopped":
+          text = `🛑 Outreach stopped.`;
+          detail = noteText;
+          break;
+        case "cadence_ended_cold":
+          text = `🛑 Outreach ended — no response.`;
+          detail = null;
+          break;
+        // ── Other real actions worth seeing ──
+        case "post_meeting_followup":
+          text = `📝 Post-meeting follow-up.`;
+          detail = noteText;
+          break;
+        case "job_board_posted":
+          text = `📋 Posted to the job board.`;
+          detail = noteText;
+          break;
+        case "pre_flight_override":
+          text = `✅ Pre-Flight overridden — outreach unlocked manually.`;
+          detail = noteText;
+          break;
+        case "call_offered":
+          text = `📅 Offered a call booking link.`;
+          detail = noteText;
+          break;
         case "platform_visited":
           text = `🔗 Provider clicked the magic link and visited the candidate board.`;
           detail = null;
@@ -268,9 +333,19 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
           break;
         }
         default:
-          text = fields ? `📋 Research / notes updated (${fields}).` : `Note added.`;
-          // For a plain research/notes update the free-form note IS the detail;
-          // keep the default `detail = note`.
+          if (fields) {
+            text = `📋 Research / notes updated (${fields}).`;
+            // For a plain research/notes update the free-form note IS the
+            // detail; keep the default `detail = note`.
+          } else if (noteText) {
+            // A plain typed note — show it with an honest, minimal title.
+            text = `📝 Note`;
+            detail = noteText;
+          } else {
+            // Unknown reason with no text → nothing worth a timeline row.
+            hidden = true;
+            text = "";
+          }
       }
       break;
     }
@@ -295,7 +370,7 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
       text = String(t.touchpoint_type).replace(/_/g, " ");
   }
 
-  return { text, detail, admin, whenIso: t.created_at };
+  return { text, detail, admin, whenIso: t.created_at, hidden };
 }
 
 function labelFor(status: string): string {

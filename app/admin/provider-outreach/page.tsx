@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import { US_STATES } from "@/lib/us-states";
 import Select from "@/components/ui/Select";
+import PulseHeader from "@/components/admin/PulseHeader";
+import { type DateRangeValue } from "@/components/admin/DateRangePopover";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 
@@ -42,6 +44,37 @@ interface CityStats {
   total: number;
   has_email: number;
   needs_email: number;
+}
+
+// Funnel stat component for metrics display
+function FunnelStat({
+  label,
+  value,
+  format,
+  highlight,
+  subtitle,
+}: {
+  label: string;
+  value: number;
+  format?: "number" | "percent";
+  highlight?: boolean;
+  subtitle?: string;
+}) {
+  return (
+    <div
+      className={`rounded-xl border px-3 py-2.5 ${
+        highlight ? "border-emerald-200 bg-emerald-50/50" : "border-gray-200 bg-white"
+      }`}
+    >
+      <div className={`text-xl font-semibold tabular-nums ${highlight ? "text-emerald-600" : "text-gray-900"}`}>
+        {format === "percent" ? `${value}%` : value.toLocaleString()}
+      </div>
+      <div className="mt-0.5 text-xs text-gray-500">{label}</div>
+      {subtitle && (
+        <div className="mt-0.5 text-[10px] text-gray-400">{subtitle}</div>
+      )}
+    </div>
+  );
 }
 
 // Helper to compute city stats from providers (for non-not_contacted stages)
@@ -934,6 +967,9 @@ export default function ProviderOutreachPage() {
   // State filter
   const [selectedState, setSelectedState] = useState<string>("AL");
 
+  // Date range for PulseHeader
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
+
   // Stage tab
   const [stage, setStage] = useState<OutreachStage>("not_contacted");
 
@@ -971,6 +1007,9 @@ export default function ProviderOutreachPage() {
 
   // Action loading
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Stats section expanded state
+  const [statsExpanded, setStatsExpanded] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -1356,70 +1395,67 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
-            Provider Cold Outreach
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Track and manage outreach to unclaimed providers
-          </p>
-        </div>
-
-        {/* State Dropdown */}
-        <div className="w-56">
-          <Select
-            value={selectedState}
-            onChange={setSelectedState}
-            options={US_STATES.map((s) => ({
-              value: s.value,
-              label: `${s.label} (${s.value})`,
-            }))}
-            searchable
-            searchPlaceholder="Search states..."
-            size="sm"
-          />
-        </div>
-      </div>
-
-      {/* Search bar */}
-      <div className="mb-6">
-        <div className="relative">
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search providers by name..."
-            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          />
-          {search && (
-            <button
-              onClick={() => {
-                setSearch("");
-                setDebouncedSearch("");
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+      {/* PulseHeader with funnel metrics */}
+      <PulseHeader
+        title="Provider Cold Outreach"
+        kpiSuffix="claimed"
+        statsPath={`/api/admin/provider-outreach/stats?state=${selectedState}&metric=funnel`}
+        range={range}
+        onRangeChange={setRange}
+        actions={
+          <div className="flex items-center gap-3">
+            {/* Search input */}
+            <div className="relative w-64">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                  clipRule="evenodd"
+                />
               </svg>
-            </button>
-          )}
-        </div>
-      </div>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search providers..."
+                className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+              {search && (
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setDebouncedSearch("");
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {/* State picker */}
+            <div className="w-44">
+              <Select
+                value={selectedState}
+                onChange={setSelectedState}
+                options={US_STATES.map((s) => ({
+                  value: s.value,
+                  label: `${s.label} (${s.value})`,
+                }))}
+                searchable
+                searchPlaceholder="Search states..."
+                size="sm"
+              />
+            </div>
+          </div>
+        }
+      />
 
       {/* Stage Tabs - underlined style like Questions page */}
       <div className="flex gap-1 mb-6 border-b border-gray-100">
@@ -1441,6 +1477,65 @@ export default function ProviderOutreachPage() {
             )}
           </button>
         ))}
+      </div>
+
+      {/* Collapsible Funnel Stats */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setStatsExpanded(!statsExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg
+            className={`w-4 h-4 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span>Outreach Funnel</span>
+        </button>
+
+        {statsExpanded && (
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <FunnelStat
+              label="In Sequence"
+              value={stageCounts.in_sequence}
+              subtitle="actively receiving emails"
+            />
+            <FunnelStat
+              label="Needs Call"
+              value={stageCounts.needs_call}
+              subtitle="sequence complete"
+            />
+            <FunnelStat
+              label="Called"
+              value={stageCounts.called}
+              subtitle="awaiting response"
+            />
+            <FunnelStat
+              label="Claimed"
+              value={stageCounts.claimed}
+              highlight
+              subtitle="success"
+            />
+            <FunnelStat
+              label="Claim Rate"
+              value={
+                stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed > 0
+                  ? Math.round(
+                      (stageCounts.claimed /
+                        (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed)) *
+                        100
+                    )
+                  : 0
+              }
+              format="percent"
+              subtitle="of providers who entered sequence"
+            />
+          </div>
+        )}
       </div>
 
       {/* Action Bar (when items selected) - hidden during search since providers may be from different stages */}

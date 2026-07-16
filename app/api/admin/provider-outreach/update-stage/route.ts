@@ -185,7 +185,15 @@ export async function POST(request: NextRequest) {
 
     // Separate into updates and inserts
     const toUpdate: { id: string; provider_id: string; oldStage: string }[] = [];
-    const toInsert: { provider_id: string; stage: OutreachStage; city: string | null; state: string | null; notes: string | null }[] = [];
+    const toInsert: {
+      provider_id: string;
+      stage: OutreachStage;
+      city: string | null;
+      state: string | null;
+      notes: string | null;
+      sequence_started_at?: string;
+      claimed_at?: string;
+    }[] = [];
 
     for (const providerId of provider_ids) {
       const providerDetails = providerMap.get(providerId);
@@ -200,13 +208,26 @@ export async function POST(request: NextRequest) {
         if ((isArchiving || isUnarchiving) && reason) {
           insertNotes = notes?.trim() ? `${reason} - ${notes.trim()}` : reason;
         }
-        toInsert.push({
+
+        const insertRow: typeof toInsert[number] = {
           provider_id: providerId,
           stage: stage as OutreachStage,
           city: providerDetails.city,
           state: providerDetails.state,
           notes: insertNotes,
-        });
+        };
+
+        // Set sequence_started_at for new in_sequence entries
+        if (stage === "in_sequence") {
+          insertRow.sequence_started_at = nowIso;
+        }
+
+        // Set claimed_at for new claimed entries
+        if (stage === "claimed") {
+          insertRow.claimed_at = nowIso;
+        }
+
+        toInsert.push(insertRow);
       }
     }
 

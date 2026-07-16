@@ -42,11 +42,18 @@ const VALID_ARCHIVE_REASONS = [
 ] as const;
 
 const VALID_UNARCHIVE_REASONS = [
-  "provider_reactivated",
-  "contact_info_updated",
   "archived_in_error",
-  "provider_requested",
+  "provider_now_interested",
+  "provider_now_wants_contact",
+  "business_confirmed_operating",
+  "provider_verified_valid",
+  "not_a_duplicate",
+  "provider_existence_verified",
+  "provider_now_responsive",
+  "email_obtained",
+  "new_contact_info_obtained",
   "compliance_resolved",
+  "not_merged",
   "other",
 ] as const;
 
@@ -234,7 +241,39 @@ async function handle(params: {
       }
     }
 
-    // 4. Restore ALL archived questions for this provider back to pending
+    // 4. Sync with Provider Outreach: update tracking to "not_contacted" if archived there
+    // This ensures bidirectional sync - unarchiving from Questions also unarchives from Provider Outreach
+    const oleraProviderId = oleraProviderData?.provider_id || (businessProfileId ?
+      (await db.from("business_profiles").select("source_provider_id").eq("id", businessProfileId).single()).data?.source_provider_id
+      : null);
+
+    if (oleraProviderId) {
+      const { data: trackingRow } = await db
+        .from("provider_outreach_tracking")
+        .select("id, stage")
+        .eq("provider_id", oleraProviderId)
+        .maybeSingle();
+
+      if (trackingRow && (trackingRow.stage === "archived" || trackingRow.stage === "not_interested")) {
+        const { error: trackingUpdateErr } = await db
+          .from("provider_outreach_tracking")
+          .update({
+            stage: "not_contacted",
+            stage_changed_at: nowIso,
+            notes: `${reason}${notes?.trim() ? ` - ${notes.trim()}` : ""} (unarchived from Questions)`
+          })
+          .eq("id", trackingRow.id);
+
+        if (trackingUpdateErr) {
+          console.error("[archive-provider] Failed to update provider_outreach_tracking:", trackingUpdateErr);
+          // Non-fatal - continue with unarchive
+        } else {
+          console.log(`[archive-provider] Updated provider_outreach_tracking for ${oleraProviderId} to not_contacted`);
+        }
+      }
+    }
+
+    // 5. Restore ALL archived questions for this provider back to pending
     // This brings the provider's questions back into the queue
     // Note: We restore all archived questions, not just those with archived_via metadata,
     // because legacy individually-archived questions should also be restored

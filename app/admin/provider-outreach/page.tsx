@@ -1009,7 +1009,7 @@ export default function ProviderOutreachPage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   // Stats section expanded state
-  const [statsExpanded, setStatsExpanded] = useState(true);
+  const [statsExpanded, setStatsExpanded] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);

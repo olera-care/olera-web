@@ -992,6 +992,7 @@ export default function ProviderOutreachPage() {
   // Providers data
   const [providers, setProviders] = useState<OutreachProvider[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
+  const [providerListMessage, setProviderListMessage] = useState<string | null>(null);
 
   // Stage counts
   const [stageCounts, setStageCounts] = useState<Record<OutreachStage, number>>({
@@ -1134,6 +1135,7 @@ export default function ProviderOutreachPage() {
         const data = await res.json();
         setProviders(data.providers || []);
         setIsSearchResult(!!data.is_search);
+        setProviderListMessage(data.message || null);
         if (data.stage_counts) {
           setStageCounts(data.stage_counts);
         }
@@ -1186,6 +1188,7 @@ export default function ProviderOutreachPage() {
     setSelectedProviders(new Set());
     setExpandedCities(new Set());
     setProviders([]);
+    setProviderListMessage(null);
     // Clear stage counts when STATE changes (not stage) to avoid showing stale data
     // Stage counts are state-level, so changing stage within same state keeps counts
   }, [stage, selectedState, debouncedSearch]);
@@ -1737,6 +1740,12 @@ export default function ProviderOutreachPage() {
 
               return (
                 <div>
+                  {/* Show message when results are truncated or city filter required */}
+                  {providerListMessage && stage !== "not_contacted" && (
+                    <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 text-sm text-amber-700">
+                      {providerListMessage}
+                    </div>
+                  )}
                   {displayCities.map((city) => (
                     <CityRow
                       key={city.city}

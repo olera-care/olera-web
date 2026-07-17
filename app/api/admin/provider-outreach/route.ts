@@ -8,6 +8,12 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 const IN_CLAUSE_BATCH_SIZE = 150;
 
 /**
+ * Maximum providers to return per request to prevent memory/performance issues.
+ * Tracked stages (in_sequence, needs_call, etc.) rarely exceed this.
+ */
+const MAX_PROVIDERS_PER_REQUEST = 2000;
+
+/**
  * Helper to batch .in() queries and combine results.
  * Prevents URL length limit issues with large ID arrays.
  */
@@ -166,6 +172,15 @@ export async function GET(request: NextRequest) {
 
     if (stage === "not_contacted") {
       // Special case: providers NOT in tracking OR with stage = not_contacted
+      // For performance, require city filter - without it, return empty and let frontend use cities endpoint
+      if (!city) {
+        return NextResponse.json({
+          providers: [],
+          stage_counts: stageCounts,
+          requires_city_filter: true,
+          message: "Select a city to view providers. Use the cities list for summary counts.",
+        });
+      }
       const providers = await getNotContactedProviders(db, state, city);
       return NextResponse.json({ providers, stage_counts: stageCounts });
     }
@@ -190,25 +205,29 @@ export async function GET(request: NextRequest) {
     }
 
     // For other stages: query tracking but exclude providers who have since claimed
-    trackingQuery = trackingQuery.eq("stage", stage);
+    trackingQuery = trackingQuery
+      .eq("stage", stage)
+      .limit(MAX_PROVIDERS_PER_REQUEST + 1); // +1 to detect if there are more
 
     if (city) {
       trackingQuery = trackingQuery.eq("city", city);
     }
 
     const { data: trackingRows, error: trackingError } = await trackingQuery;
+    const hasMoreTracking = trackingRows && trackingRows.length > MAX_PROVIDERS_PER_REQUEST;
+    const limitedTrackingRows = hasMoreTracking ? trackingRows.slice(0, MAX_PROVIDERS_PER_REQUEST) : trackingRows;
 
     if (trackingError) {
       console.error("[provider-outreach] Tracking query error:", trackingError);
       return NextResponse.json({ error: "Failed to fetch tracking data" }, { status: 500 });
     }
 
-    if (!trackingRows || trackingRows.length === 0) {
+    if (!limitedTrackingRows || limitedTrackingRows.length === 0) {
       return NextResponse.json({ providers: [], stage_counts: stageCounts });
     }
 
     // Get provider details for tracked providers
-    const providerIds = trackingRows.map((t) => t.provider_id);
+    const providerIds = limitedTrackingRows.map((t) => t.provider_id);
     const { data: providerRows, error: provError } = await db
       .from("olera-providers")
       .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
@@ -233,7 +252,7 @@ export async function GET(request: NextRequest) {
 
     // Join tracking with provider data
     const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
-    const providers = (trackingRows as TrackingRow[])
+    const providers = (limitedTrackingRows as TrackingRow[])
       .map((t): OutreachProvider | null => {
         const p = providerMap.get(t.provider_id);
         if (!p) return null;
@@ -258,7 +277,14 @@ export async function GET(request: NextRequest) {
       .filter((p): p is OutreachProvider => p !== null)
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
-    return NextResponse.json({ providers, stage_counts: stageCounts });
+    return NextResponse.json({
+      providers,
+      stage_counts: stageCounts,
+      ...(hasMoreTracking && {
+        has_more: true,
+        message: `Showing first ${MAX_PROVIDERS_PER_REQUEST} providers. Use city filter to narrow results.`,
+      }),
+    });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
     return NextResponse.json(

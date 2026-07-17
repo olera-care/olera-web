@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
+import {
+  enrollProviderIntoCampaign,
+  generateCampaignName,
+  type ProviderOutreachRow,
+  type EnrollResult,
+} from "@/lib/provider-outreach/smartlead-enrollment";
 
 /**
  * POST /api/admin/provider-outreach/update-stage
@@ -106,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Check which providers already have tracking rows
     const { data: existingTracking } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, id, stage")
+      .select("provider_id, id, stage, smartlead_campaign_id, smartlead_lead_id")
       .in("provider_id", provider_ids);
 
     const existingMap = new Map((existingTracking || []).map((t) => [t.provider_id, t]));
@@ -267,6 +273,137 @@ export async function POST(request: NextRequest) {
       if (insertError) {
         console.error("[provider-outreach/update-stage] Insert error:", insertError);
         return NextResponse.json({ error: "Failed to create tracking records" }, { status: 500 });
+      }
+    }
+
+    // ── SmartLead Enrollment: Enroll providers when moving to in_sequence ──
+    let smartleadEnrolled = 0;
+    let smartleadSkipped = 0;
+    const smartleadErrors: { providerId: string; error: string }[] = [];
+
+    if (stage === "in_sequence") {
+      // Get fresh tracking rows with IDs (needed for tracking_id in claim URLs)
+      const { data: freshTracking } = await db
+        .from("provider_outreach_tracking")
+        .select("id, provider_id, smartlead_campaign_id")
+        .in("provider_id", provider_ids);
+
+      const trackingIdMap = new Map(
+        (freshTracking || []).map((t) => [t.provider_id, { id: t.id, campaignId: t.smartlead_campaign_id }])
+      );
+
+      // Find existing campaign for this city (reuse if available)
+      // Group providers by city to batch campaign lookups
+      const providersByCity = new Map<string, typeof providers>();
+      for (const p of providers) {
+        if (!p.city || !p.state) continue;
+        const key = `${p.city}|${p.state}`;
+        if (!providersByCity.has(key)) providersByCity.set(key, []);
+        providersByCity.get(key)!.push(p);
+      }
+
+      // For each city, find existing campaign from other enrolled providers
+      const cityCampaignMap = new Map<string, number>();
+      for (const [cityKey] of providersByCity) {
+        const [city, state] = cityKey.split("|");
+        const { data: existingCampaign } = await db
+          .from("provider_outreach_tracking")
+          .select("smartlead_campaign_id")
+          .eq("city", city)
+          .eq("state", state)
+          .not("smartlead_campaign_id", "is", null)
+          .limit(1)
+          .maybeSingle();
+
+        if (existingCampaign?.smartlead_campaign_id) {
+          cityCampaignMap.set(cityKey, existingCampaign.smartlead_campaign_id);
+        }
+      }
+
+      // Enroll each provider
+      for (const provider of providers) {
+        const trackingInfo = trackingIdMap.get(provider.provider_id);
+        if (!trackingInfo) continue;
+
+        // Skip if already enrolled
+        if (trackingInfo.campaignId) {
+          smartleadSkipped++;
+          continue;
+        }
+
+        // Skip if no email
+        if (!provider.email?.trim()) {
+          smartleadSkipped++;
+          continue;
+        }
+
+        // Skip if no city (can't create campaign name)
+        if (!provider.city?.trim() || !provider.state?.trim()) {
+          smartleadSkipped++;
+          continue;
+        }
+
+        const cityKey = `${provider.city}|${provider.state}`;
+        const existingCampaignId = cityCampaignMap.get(cityKey) ?? null;
+
+        const enrollRow: ProviderOutreachRow = {
+          provider_id: provider.provider_id,
+          provider_name: provider.provider_name,
+          email: provider.email,
+          city: provider.city,
+          state: provider.state,
+          slug: provider.slug,
+          tracking_id: trackingInfo.id,
+        };
+
+        try {
+          const result: EnrollResult = await enrollProviderIntoCampaign({
+            provider: enrollRow,
+            campaignName: generateCampaignName(provider.city, provider.state),
+            existingCampaignId,
+          });
+
+          if (result.enrolled && result.campaign_id) {
+            // Update tracking row with SmartLead data
+            const { error: updateErr } = await db
+              .from("provider_outreach_tracking")
+              .update({
+                smartlead_campaign_id: result.campaign_id,
+                // Note: smartlead_lead_id would come from addLeads response,
+                // but SmartLead API doesn't return it directly. We'll get it
+                // from webhook or subsequent API call if needed.
+              })
+              .eq("id", trackingInfo.id);
+
+            if (updateErr) {
+              console.error(`[provider-outreach] Failed to update tracking for ${provider.provider_id}:`, updateErr);
+              smartleadErrors.push({ providerId: provider.provider_id, error: "Failed to save campaign ID" });
+            } else {
+              smartleadEnrolled++;
+              // Update the city campaign map so subsequent providers reuse this campaign
+              if (result.created) {
+                cityCampaignMap.set(cityKey, result.campaign_id);
+              }
+            }
+          } else if (result.skipped_reason) {
+            smartleadSkipped++;
+          } else if (result.errors.length > 0) {
+            const errorMsg = result.errors.map((e) => `${e.stage}: ${e.message}`).join("; ");
+            console.error(`[provider-outreach] SmartLead enrollment failed for ${provider.provider_id}:`, errorMsg);
+            smartleadErrors.push({ providerId: provider.provider_id, error: errorMsg });
+          }
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          console.error(`[provider-outreach] SmartLead enrollment exception for ${provider.provider_id}:`, err);
+          smartleadErrors.push({ providerId: provider.provider_id, error: errorMsg });
+        }
+      }
+
+      if (smartleadEnrolled > 0 || smartleadErrors.length > 0) {
+        console.log(
+          `[provider-outreach/update-stage] SmartLead enrollment: ${smartleadEnrolled} enrolled, ` +
+          `${smartleadSkipped} skipped, ${smartleadErrors.length} failed`
+        );
       }
     }
 
@@ -563,46 +700,59 @@ export async function POST(request: NextRequest) {
         business_profiles_updated: businessProfilesUpdated,
         questions_restored: questionsRestored,
         sync_errors: syncErrors.length > 0 ? syncErrors : undefined,
+        // SmartLead enrollment (when moving to in_sequence)
+        smartlead_enrolled: smartleadEnrolled,
+        smartlead_skipped: smartleadSkipped,
+        smartlead_errors: smartleadErrors.length > 0 ? smartleadErrors : undefined,
       },
     });
 
-    // If there were sync errors, return partial success with warning
+    // Build warnings array
+    const warnings: string[] = [];
+
+    // Archive/unarchive sync errors
     if (syncErrors.length > 0) {
-      // Check for critical errors (archived_question_providers failures affect question blocking)
       const archiveCriticalErrors = syncErrors.filter(e => e.step === "archived_question_providers");
       const unarchiveCriticalErrors = syncErrors.filter(e => e.step === "archived_question_providers_delete");
 
-      let syncWarning: string;
       if (archiveCriticalErrors.length > 0) {
-        syncWarning = `Archive incomplete: ${archiveCriticalErrors.length} provider(s) not added to question block list. New questions may still reach them.`;
+        warnings.push(`Archive incomplete: ${archiveCriticalErrors.length} provider(s) not added to question block list.`);
       } else if (unarchiveCriticalErrors.length > 0) {
-        syncWarning = `Unarchive incomplete: ${unarchiveCriticalErrors.length} provider(s) not removed from question block list. They may still be blocked from receiving questions.`;
+        warnings.push(`Unarchive incomplete: ${unarchiveCriticalErrors.length} provider(s) not removed from question block list.`);
       } else {
         const actionWord = isArchiving ? "Archive" : "Unarchive";
-        syncWarning = `${actionWord} completed with ${syncErrors.length} non-critical sync error(s). Check audit log for details.`;
+        warnings.push(`${actionWord} completed with ${syncErrors.length} non-critical sync error(s).`);
       }
-
-      return NextResponse.json({
-        success: true,
-        partialFailure: true,
-        updated: toUpdate.length,
-        created: toInsert.length,
-        connectionsAffected,
-        businessProfilesUpdated,
-        questionsRestored,
-        syncWarning,
-        syncErrors,
-      });
     }
 
-    return NextResponse.json({
+    // SmartLead enrollment errors (non-blocking but informative)
+    if (smartleadErrors.length > 0) {
+      warnings.push(`SmartLead enrollment failed for ${smartleadErrors.length} provider(s). They're marked in_sequence but emails won't send until re-enrolled.`);
+    }
+
+    // Build response
+    const response: Record<string, unknown> = {
       success: true,
       updated: toUpdate.length,
       created: toInsert.length,
       connectionsAffected,
       businessProfilesUpdated,
       questionsRestored,
-    });
+      // SmartLead enrollment results (only when moving to in_sequence)
+      ...(stage === "in_sequence" && {
+        smartleadEnrolled,
+        smartleadSkipped,
+        smartleadErrors: smartleadErrors.length > 0 ? smartleadErrors : undefined,
+      }),
+    };
+
+    if (warnings.length > 0) {
+      response.partialFailure = true;
+      response.warnings = warnings;
+      response.syncErrors = syncErrors.length > 0 ? syncErrors : undefined;
+    }
+
+    return NextResponse.json(response);
   } catch (err) {
     console.error("[provider-outreach/update-stage] Error:", err);
     return NextResponse.json(

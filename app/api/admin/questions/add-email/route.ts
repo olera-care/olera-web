@@ -244,14 +244,23 @@ export async function POST(request: NextRequest) {
     // Send deferred notifications using the unified function
     // Note: For questions-only providers (no business_profile), we still try to send
     // This handles the case where questions exist but no leads
-    const result = await sendDeferredNotificationsForProvider({
-      profileId: provider?.id || "",  // May be empty for olera-providers-only
-      email: effectiveEmail,
-      providerName: displayName,
-      providerSlug,
-      additionalSlugVariants,
-      leadsUnsubscribed: !!profileMeta.leads_unsubscribed,
-    });
+    let result = { leadEmailsSent: 0, questionEmailsSent: 0, leadsSkipped: 0 };
+    let notificationError: string | null = null;
+    try {
+      result = await sendDeferredNotificationsForProvider({
+        profileId: provider?.id || "",  // May be empty for olera-providers-only
+        email: effectiveEmail,
+        providerName: displayName,
+        providerSlug,
+        additionalSlugVariants,
+        leadsUnsubscribed: !!profileMeta.leads_unsubscribed,
+      });
+    } catch (notifErr) {
+      // Log but don't fail the request - email was saved successfully
+      // But track the error so we can surface it to the admin
+      console.error("[add-email] Deferred notification error:", notifErr);
+      notificationError = notifErr instanceof Error ? notifErr.message : String(notifErr);
+    }
 
     // Clear email_dead and needs_provider_email flags from questions for this provider.
     // These flags were set when the previous email bounced or was missing — now that
@@ -304,6 +313,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       emailsSent: result.leadEmailsSent + result.questionEmailsSent,
+      ...(notificationError && {
+        notificationWarning: `Email saved but failed to send notifications: ${notificationError}`,
+      }),
     });
   } catch (err) {
     console.error("Add email (questions) error:", err);

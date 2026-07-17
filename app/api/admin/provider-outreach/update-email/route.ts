@@ -107,6 +107,7 @@ export async function PATCH(request: NextRequest) {
 
     // Send deferred notifications for any pending questions/leads
     let notificationResult = { leadEmailsSent: 0, questionEmailsSent: 0, leadsSkipped: 0 };
+    let notificationError: string | null = null;
     try {
       notificationResult = await sendDeferredNotificationsForProvider({
         profileId: linkedProfile?.id || "",
@@ -117,7 +118,9 @@ export async function PATCH(request: NextRequest) {
       });
     } catch (notifErr) {
       // Log but don't fail the request - email was saved successfully
+      // But track the error so we can surface it to the admin
       console.error("[provider-outreach/update-email] Deferred notification error:", notifErr);
+      notificationError = notifErr instanceof Error ? notifErr.message : String(notifErr);
     }
 
     // Clear email_dead/needs_provider_email flags from questions
@@ -170,6 +173,9 @@ export async function PATCH(request: NextRequest) {
       success: true,
       email: trimmedEmail,
       notificationsSent: notificationResult.leadEmailsSent + notificationResult.questionEmailsSent,
+      ...(notificationError && {
+        notificationWarning: `Email saved but failed to send notifications: ${notificationError}`,
+      }),
     });
   } catch (err) {
     console.error("[provider-outreach/update-email] Error:", err);

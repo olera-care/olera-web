@@ -274,6 +274,7 @@ export async function POST(request: NextRequest) {
     let connectionsAffected = 0;
     let businessProfilesUpdated = 0;
     let archivedQuestionProvidersUpdated = 0;
+    let questionsRestored = 0;
 
     if (isArchiving) {
       // Archiving: sync each provider to system-wide archive
@@ -484,13 +485,44 @@ export async function POST(request: NextRequest) {
         } else {
           console.error(`[provider-outreach/update-stage] Failed to delete archived_question_providers for ${providerId}:`, delErr);
         }
+
+        // Restore ALL archived questions for this provider back to pending
+        // This ensures parity with Questions page unarchive behavior
+        const { data: archivedQuestions } = await db
+          .from("provider_questions")
+          .select("id, metadata")
+          .in("provider_id", variants)
+          .eq("status", "archived");
+
+        if (archivedQuestions && archivedQuestions.length > 0) {
+          for (const q of archivedQuestions) {
+            const meta = (q.metadata as Record<string, unknown>) ?? {};
+            // Clear archive-related metadata
+            delete meta.archive_reason;
+            delete meta.archived_at;
+            delete meta.archived_via;
+            // Add unarchive tracking
+            meta.unarchived_at = nowIso;
+            meta.unarchived_by = adminEmail;
+            meta.unarchived_reason = reason;
+            meta.unarchived_via = "provider_outreach";
+
+            const { error: restoreErr } = await db
+              .from("provider_questions")
+              .update({ status: "pending", is_public: true, metadata: meta, updated_at: nowIso })
+              .eq("id", q.id);
+
+            if (!restoreErr) questionsRestored++;
+          }
+        }
       }
 
       console.log(
         `[provider-outreach/update-stage] Unarchived ${providersBeingUnarchived.length} provider(s), ` +
         `updated ${businessProfilesUpdated} business_profiles, ` +
         `removed ${archivedQuestionProvidersUpdated} archived_question_providers rows, ` +
-        `resumed ${connectionsAffected} followup sequences`
+        `resumed ${connectionsAffected} followup sequences, ` +
+        `restored ${questionsRestored} questions`
       );
     }
 
@@ -511,6 +543,7 @@ export async function POST(request: NextRequest) {
         is_unarchiving: isUnarchiving,
         connections_affected: connectionsAffected,
         business_profiles_updated: businessProfilesUpdated,
+        questions_restored: questionsRestored,
       },
     });
 
@@ -520,6 +553,7 @@ export async function POST(request: NextRequest) {
       created: toInsert.length,
       connectionsAffected,
       businessProfilesUpdated,
+      questionsRestored,
     });
   } catch (err) {
     console.error("[provider-outreach/update-stage] Error:", err);

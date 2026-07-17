@@ -528,9 +528,19 @@ function InlineEmailInput({
           });
 
       if (res.ok) {
-        setSuccess(true);
-        setForceKind(null);
-        setTimeout(() => onEmailAdded(), 1400);
+        const data = await res.json();
+        // If there's a notification warning, show it as an error but still proceed
+        // Don't set success=true so the warning remains visible
+        if (data.notificationWarning) {
+          setError(data.notificationWarning);
+          setForceKind(null);
+          // Still call onEmailAdded after a delay so the warning is visible
+          setTimeout(() => onEmailAdded(), 2500);
+        } else {
+          setSuccess(true);
+          setForceKind(null);
+          setTimeout(() => onEmailAdded(), 1400);
+        }
       } else {
         const data = await res.json();
         setError(data.message || data.error || "Couldn't save that — try again.");

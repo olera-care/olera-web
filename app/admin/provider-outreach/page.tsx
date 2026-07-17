@@ -333,14 +333,19 @@ function ProviderContactEditor({
         body: JSON.stringify({ provider_id: providerId, email: email.trim() }),
       });
 
+      const data = await res.json();
       if (res.ok) {
         setSaved(true);
         setIsEditing(false);
-        setError(null);
+        // Show notification warning if present (email saved but notifications failed)
+        if (data.notificationWarning) {
+          setError(data.notificationWarning);
+        } else {
+          setError(null);
+        }
         onEmailUpdate?.(email.trim());
         setTimeout(() => setSaved(false), 2000);
       } else {
-        const data = await res.json();
         setError(data.error || "Failed to save");
       }
     } catch {

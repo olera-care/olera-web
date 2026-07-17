@@ -18,9 +18,10 @@
 
 import { createHmac } from "crypto";
 
-// IMPORTANT: Must match lib/claim-tokens.ts fallback exactly for token compatibility.
+// IMPORTANT: Must match lib/claim-tokens.ts fallback chain exactly for token compatibility.
 // Both files must use the same secret for tokens to validate correctly.
-const TOKEN_SECRET = process.env.CLAIM_TOKEN_SECRET || "default-secret-key";
+// lib/claim-tokens.ts uses: CLAIM_TOKEN_SECRET || SUPABASE_SERVICE_ROLE_KEY || "fallback-secret"
+const TOKEN_SECRET = process.env.CLAIM_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-secret";
 
 /** TTL for outreach claim tokens: 30 days (matches cadence length). */
 export const CLAIM_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;

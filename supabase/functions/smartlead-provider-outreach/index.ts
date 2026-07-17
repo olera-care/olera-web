@@ -1,10 +1,13 @@
 // Provider Outreach SmartLead webhook receiver — Supabase Edge Function (Deno).
 //
 // Routes SmartLead lifecycle events for Provider Outreach cold campaigns:
-//   EMAIL_REPLY     → stage=needs_call (they responded, time to call)
-//   EMAIL_BOUNCE    → flag in sequence_metadata for email fix
+//   EMAIL_REPLY       → stage=needs_call (they responded, time to call)
 //   EMAIL_UNSUBSCRIBE → stage=archived with reason
-//   EMAIL_CLICK     → track in sequence_metadata (claim link clicked)
+//   EMAIL_CLICK       → track in sequence_metadata (claim link clicked)
+//   EMAIL_OPEN        → track open count (lightweight engagement)
+//
+// NOTE: EMAIL_BOUNCE is NOT supported by SmartLead's webhook API (see lib/smartlead.ts).
+// Bounce handler exists defensively but won't receive events in practice.
 //
 // WHY an Edge Function (not a Vercel route): Vercel's Bot Protection edge
 // layer 403s external webhook POSTs. Same issue as MedJobs/Resend webhooks.
@@ -111,44 +114,51 @@ async function resolveTrackingRow(
 ): Promise<TrackingRow | null> {
   // Try by campaign_id first
   if (campaignId) {
+    // Don't use .limit(1) here — multiple providers can share a campaign (city-based).
+    // We need all rows to disambiguate by email if provided.
     const { data } = await supabase
       .from("provider_outreach_tracking")
       .select("id, provider_id, stage, sequence_metadata")
-      .eq("smartlead_campaign_id", campaignId)
-      .limit(1);
+      .eq("smartlead_campaign_id", campaignId);
 
-    // If multiple providers in same campaign, we need email to disambiguate
-    // For now, if we have email, filter further
-    if (data && data.length > 0 && leadEmail) {
-      // Look up provider by email
-      const { data: provider } = await supabase
-        .from("olera-providers")
-        .select("provider_id")
-        .ilike("email", leadEmail)
-        .maybeSingle();
+    if (data && data.length > 0) {
+      // If we have email, disambiguate by looking up the provider
+      if (leadEmail) {
+        const { data: provider } = await supabase
+          .from("olera-providers")
+          .select("provider_id")
+          .ilike("email", leadEmail)
+          .maybeSingle();
 
-      if (provider) {
-        const match = data.find((r) => r.provider_id === provider.provider_id);
-        if (match) {
-          return {
-            id: match.id as string,
-            provider_id: match.provider_id as string,
-            stage: match.stage as string,
-            sequence_metadata: (match.sequence_metadata as Record<string, unknown>) ?? {},
-          };
+        if (provider) {
+          const match = data.find((r) => r.provider_id === provider.provider_id);
+          if (match) {
+            return {
+              id: match.id as string,
+              provider_id: match.provider_id as string,
+              stage: match.stage as string,
+              sequence_metadata: (match.sequence_metadata as Record<string, unknown>) ?? {},
+            };
+          }
         }
       }
-    }
 
-    // Fallback: return first match (single provider in campaign)
-    if (data && data.length === 1) {
-      const row = data[0];
-      return {
-        id: row.id as string,
-        provider_id: row.provider_id as string,
-        stage: row.stage as string,
-        sequence_metadata: (row.sequence_metadata as Record<string, unknown>) ?? {},
-      };
+      // Fallback: return first match only if there's exactly one provider in the campaign
+      if (data.length === 1) {
+        const row = data[0];
+        return {
+          id: row.id as string,
+          provider_id: row.provider_id as string,
+          stage: row.stage as string,
+          sequence_metadata: (row.sequence_metadata as Record<string, unknown>) ?? {},
+        };
+      }
+
+      // Multiple providers, no email to disambiguate — can't resolve
+      console.warn("[provider-outreach-webhook] multiple providers in campaign, no email to disambiguate", {
+        campaignId,
+        providerCount: data.length,
+      });
     }
   }
 

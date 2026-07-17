@@ -7,10 +7,11 @@ Supabase Edge Function that receives SmartLead webhook events for Provider Outre
 | SmartLead Event   | Action                                              |
 |-------------------|-----------------------------------------------------|
 | EMAIL_REPLY       | Move to `needs_call` stage (if in_sequence)         |
-| EMAIL_BOUNCE      | Flag `needs_email_fix` in metadata                  |
 | EMAIL_UNSUBSCRIBE | Move to `archived` stage with reason                |
 | EMAIL_CLICK       | Track click count, detect claim link clicks         |
 | EMAIL_OPEN        | Track open count (lightweight, no stage change)     |
+
+> **Note:** SmartLead's API does not support `EMAIL_BOUNCE` as a webhook event type (confirmed live — see `lib/smartlead.ts`). Bounce detection must be done via SmartLead dashboard or API polling if needed.
 
 ## Deployment
 

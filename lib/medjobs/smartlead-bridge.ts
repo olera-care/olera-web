@@ -417,7 +417,7 @@ export function buildEmailSequence(
   const ctxStakeholderType: StakeholderType =
     cadenceKey === "activation" || cadenceKey === "partner_welcome"
       ? opts.stakeholderType ?? "student_org"
-      : cadenceKey === "provider"
+      : cadenceKey === "provider" || cadenceKey === "provider_claim"
         ? "student_org"
         : cadenceKey;
   const ctx = {
@@ -444,7 +444,7 @@ export function buildEmailSequence(
   // (stakeholder cold, partner activation, partner welcome) links the student
   // flyer that partners share with students.
   const pdfAudience: "provider" | "student" =
-    cadenceKey === "provider" || (cadenceKey === "activation" && !(opts.isPartner ?? false))
+    cadenceKey === "provider" || cadenceKey === "provider_claim" || (cadenceKey === "activation" && !(opts.isPartner ?? false))
       ? "provider"
       : "student";
 

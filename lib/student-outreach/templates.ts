@@ -117,6 +117,10 @@ const PLACEHOLDER = {
    *  row's outreach id) via the per-lead {{apply_url}} Smartlead merge tag set
    *  in rowToLeads. Applies through it trace back to the org that shared it. */
   applyUrl: "{apply_url}",
+  /** Provider's city for claim outreach. Substituted at send time. */
+  city: "{city}",
+  /** Provider claim magic link. Takes them directly to the claim flow. */
+  claimUrl: "{claim_url}",
 };
 
 /** Canonical program name (no university name baked in — see programName). */
@@ -218,6 +222,10 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "partner_welcome_intro": return partnerWelcomeIntroEmail(ctx);
     case "partner_welcome_checkin": return partnerWelcomeCheckinEmail(ctx);
     case "partner_welcome_planning": return partnerWelcomePlanningEmail(ctx);
+    // Provider claim cadence (Olera directory outreach)
+    case "claim_intro": return claimIntroEmail(ctx);
+    case "claim_followup": return claimFollowupEmail(ctx);
+    case "claim_final": return claimFinalEmail(ctx);
   }
 }
 
@@ -998,6 +1006,112 @@ export function partnerWelcomePlanningEmail(ctx: TemplateContext): EmailDraft {
       `Find a time that works for you: [grab a time with Dr. DuBose](${PLACEHOLDER.calendlyUrl}).`,
       ``,
       `In the meantime, the latest one-pager is here to share: [program one-pager](${PLACEHOLDER.programPdf}), and you can manage everything from your partner portal: [open the partner portal](${PLACEHOLDER.welcomeUrl}).`,
+    ].join("\n"),
+  };
+}
+
+// ── Provider claim cadence (Olera directory outreach) ───────────────────
+//
+// Cold outreach to unclaimed olera-providers to get them to claim their
+// profiles on Olera. Goal: providers claim accounts and edit their
+// profiles, giving us organic, accurate provider data.
+//
+// Distinct from the MedJobs "provider" cadence which targets agencies for
+// the student caregiver program. This cadence is for general Olera
+// directory outreach to any unclaimed provider.
+//
+// Tone: professional, warm, helpful. Not salesy. Focus on value to the
+// provider: families are searching, you control your listing, get leads.
+
+/** Olera main site URL for signatures and fallback links. */
+const OLERA_URL = "https://olera.care";
+
+/** Subject lines for the claim cadence. */
+const CLAIM_SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} are looking for care providers`;
+const CLAIM_SUBJECT_FOLLOWUP = `Your listing on Olera`;
+const CLAIM_SUBJECT_FINAL = `One last note about your Olera profile`;
+
+/**
+ * Provider claim Day 0 intro.
+ *
+ * First touch to an unclaimed provider. Establishes context (families
+ * are searching), explains why we're reaching out, offers claim link.
+ * Warm but professional.
+ */
+export function claimIntroEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: CLAIM_SUBJECT_INTRO,
+    body: [
+      `Hello,`,
+      ``,
+      `I'm reaching out from Olera, a directory that helps families find care providers in their area.`,
+      ``,
+      `${PLACEHOLDER.orgName} has a listing on our site, and families in ${PLACEHOLDER.city} have been viewing it while searching for care options. We wanted to let you know so you can take control of your profile.`,
+      ``,
+      `When you claim your listing, you can:`,
+      ``,
+      `• Update your contact information, services, and hours`,
+      `• Respond directly to families who have questions`,
+      `• Receive leads from families looking for care in your area`,
+      ``,
+      `It only takes a minute: [Claim your listing](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `If you have any questions, just reply to this email.`,
+      ``,
+      `Best,`,
+      `The Olera Team`,
+    ].join("\n"),
+  };
+}
+
+/**
+ * Provider claim Day 3 follow-up.
+ *
+ * Lighter touch. Reminds them about the listing, emphasizes ease of
+ * claiming. Addresses potential concern (it's free, no obligation).
+ */
+export function claimFollowupEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: CLAIM_SUBJECT_FOLLOWUP,
+    body: [
+      `Hello,`,
+      ``,
+      `Following up on my note about your listing for ${PLACEHOLDER.orgName} on Olera.`,
+      ``,
+      `Claiming your profile is free and takes about a minute. Once verified, you'll have full control over what families see when they find you.`,
+      ``,
+      `[Claim your listing](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `If this isn't the right contact, feel free to forward this to whoever manages your online presence.`,
+      ``,
+      `Best,`,
+      `The Olera Team`,
+    ].join("\n"),
+  };
+}
+
+/**
+ * Provider claim Day 7 final.
+ *
+ * Last touch. Low pressure, graceful close. Leaves the door open
+ * without being pushy.
+ */
+export function claimFinalEmail(_ctx: TemplateContext): EmailDraft {
+  return {
+    subject: CLAIM_SUBJECT_FINAL,
+    body: [
+      `Hello,`,
+      ``,
+      `This is my last note about your Olera listing for ${PLACEHOLDER.orgName}.`,
+      ``,
+      `The listing will stay on our directory either way, but claimed profiles tend to get more engagement from families because they have complete, up-to-date information.`,
+      ``,
+      `If you'd like to claim it: [Claim your listing](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `No response needed if you're not interested. We won't reach out again about this.`,
+      ``,
+      `Best,`,
+      `The Olera Team`,
     ].join("\n"),
   };
 }

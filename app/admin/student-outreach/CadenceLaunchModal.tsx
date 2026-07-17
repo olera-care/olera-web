@@ -88,7 +88,7 @@ export function CadenceLaunchModal({
   const templateStakeholderType: StakeholderType =
     cadenceKey === "activation" || cadenceKey === "partner_welcome"
       ? partnerStakeholderType ?? "student_org"
-      : cadenceKey === "provider"
+      : cadenceKey === "provider" || cadenceKey === "provider_claim"
         ? "student_org"
         : cadenceKey;
 

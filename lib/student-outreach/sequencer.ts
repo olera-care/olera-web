@@ -406,7 +406,7 @@ export function defaultSnapshotsFor(
   // rows borrow student_org's first-name salutation pattern (informal,
   // no Dr./Prof. honorific). All other variables are kind-agnostic.
   const templateStakeholderType: StakeholderType =
-    type === "provider" || type === "activation" || type === "partner_welcome"
+    type === "provider" || type === "provider_claim" || type === "activation" || type === "partner_welcome"
       ? "student_org"
       : type;
   for (const day of days) {
@@ -454,7 +454,7 @@ export function defaultSnapshotsByVariant(
   const general: EmailSnapshot[] = [];
   const named: EmailSnapshot[] = [];
   const templateStakeholderType: StakeholderType =
-    type === "provider" || type === "activation" || type === "partner_welcome"
+    type === "provider" || type === "provider_claim" || type === "activation" || type === "partner_welcome"
       ? "student_org"
       : type;
   for (const day of days) {

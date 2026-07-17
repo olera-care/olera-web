@@ -72,6 +72,7 @@ export function PreFlightReviewModal({
   // salutation rule.
   const templateStakeholderType: StakeholderType =
     stakeholderType === "provider" ||
+    stakeholderType === "provider_claim" ||
     stakeholderType === "activation" ||
     stakeholderType === "partner_welcome"
       ? "student_org"

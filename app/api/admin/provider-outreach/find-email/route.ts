@@ -5,20 +5,30 @@ import { findEmail, type ProviderContext } from "@/lib/medjobs/outreach-enrichme
 /**
  * POST /api/admin/provider-outreach/find-email
  *
- * Body: { provider_id: string }
+ * Body: { provider_id: string, forceRefresh?: boolean }
  *
  * Finds email address for an unclaimed provider (olera-providers).
  * Uses web scraping + Perplexity AI fallback.
  *
+ * Checks multiple sources in order:
+ * 1. olera-providers.email (existing email on file)
+ * 2. business_profiles.email (linked profile may have email)
+ * 3. business_profiles.metadata.email_enrichment_data (cached from Connections page)
+ * 4. Fresh enrichment via web scraping + Perplexity AI
+ *
+ * Caches results in business_profiles.metadata so both Provider Outreach and
+ * Connections pages share the same cache (saves ~$0.008/call to Perplexity).
+ *
  * Returns:
  * {
  *   email: "contact@provider.com" | null,
- *   source: "scrape" | "perplexity" | null,
+ *   source: "scrape" | "perplexity" | "existing" | null,
  *   candidates: ["contact@provider.com", "info@provider.com"],
- *   candidatesWithUrls: [{ email: "...", url: "..." }]
+ *   candidatesWithUrls: [{ email: "...", url: "..." }],
+ *   cached: boolean
  * }
  *
- * Read-only operation - does not modify any data.
+ * Read-only for olera-providers - only caches to business_profiles.metadata.
  * The caller is responsible for saving the email if desired.
  */
 export const runtime = "nodejs";
@@ -36,8 +46,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const body = (await request.json()) as { provider_id?: string };
+    const body = (await request.json()) as { provider_id?: string; forceRefresh?: boolean };
     const providerId = body.provider_id?.trim();
+    const forceRefresh = body.forceRefresh || false;
 
     if (!providerId) {
       return NextResponse.json(
@@ -64,7 +75,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // If provider already has an email, return it immediately
+    // Check 1: If olera-providers already has an email, return it immediately
     if (provider.email) {
       return NextResponse.json({
         email: provider.email,
@@ -75,7 +86,25 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Build context for email lookup
+    // Check 2: Look for linked business_profile (may have email or cached enrichment)
+    const { data: linkedProfile } = await db
+      .from("business_profiles")
+      .select("id, email, metadata")
+      .eq("source_provider_id", providerId)
+      .maybeSingle();
+
+    // If linked profile has an email, return it
+    if (linkedProfile?.email) {
+      return NextResponse.json({
+        email: linkedProfile.email,
+        source: "existing",
+        candidates: [linkedProfile.email],
+        candidatesWithUrls: [{ email: linkedProfile.email, url: null }],
+        cached: true,
+      });
+    }
+
+    // Build context for email lookup (needed for cache validation and enrichment)
     const ctx: ProviderContext = {
       name: provider.provider_name || null,
       website: provider.website || null,
@@ -94,7 +123,47 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Call the email finder (tries scraping first, then Perplexity AI)
+    // Create context hash for cache validation (same as Connections page)
+    const contextHash = JSON.stringify({
+      name: ctx.name || "",
+      website: ctx.website || "",
+      place_id: ctx.place_id || "",
+      city: ctx.city || "",
+      state: ctx.state || "",
+    });
+
+    // Check 3: Look for cached enrichment data in business_profiles.metadata
+    if (linkedProfile && !forceRefresh) {
+      const metadata = (linkedProfile.metadata || {}) as Record<string, unknown>;
+      const cachedData = metadata.email_enrichment_data as Record<string, unknown> | undefined;
+
+      if (cachedData && cachedData.enriched_at) {
+        const enrichedAt = new Date(cachedData.enriched_at as string);
+        const timestamp = enrichedAt.getTime();
+
+        // Validate cache: must be fresh (< 30 days) AND context must match
+        if (!isNaN(timestamp)) {
+          const ageInDays = (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
+          const cachedContextHash = cachedData.context_hash as string | undefined;
+          const contextMatches = cachedContextHash === contextHash;
+
+          if (ageInDays < 30 && ageInDays >= 0 && contextMatches) {
+            console.log(`[provider-outreach/find-email] Cache hit for ${providerId} (${Math.round(ageInDays)} days old)`);
+            return NextResponse.json({
+              email: cachedData.email || null,
+              source: cachedData.source || null,
+              foundUrl: cachedData.foundUrl || null,
+              candidates: (cachedData.candidates as string[]) || [],
+              candidatesWithUrls: cachedData.candidatesWithUrls || [],
+              cached: true,
+              enriched_at: cachedData.enriched_at,
+            });
+          }
+        }
+      }
+    }
+
+    // Check 4: Fresh enrichment via web scraping + Perplexity AI
     let result;
     try {
       result = await findEmail(ctx);
@@ -108,12 +177,43 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Cache the result in business_profiles.metadata (if linked profile exists)
+    // This allows Connections page to reuse the result
+    if (linkedProfile) {
+      const metadata = (linkedProfile.metadata || {}) as Record<string, unknown>;
+      const updatedMetadata = {
+        ...metadata,
+        email_enrichment_data: {
+          email: result.email,
+          source: result.source,
+          foundUrl: result.foundUrl || null,
+          candidates: result.candidates || [],
+          candidatesWithUrls: result.candidatesWithUrls || [],
+          enriched_at: new Date().toISOString(),
+          context_hash: contextHash,
+        },
+      };
+
+      // Fire and forget - don't block response on cache write
+      db.from("business_profiles")
+        .update({ metadata: updatedMetadata })
+        .eq("id", linkedProfile.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error("[provider-outreach/find-email] Failed to cache result:", error);
+          } else {
+            console.log(`[provider-outreach/find-email] Cached enrichment for ${providerId}`);
+          }
+        });
+    }
+
     return NextResponse.json({
       email: result.email,
       source: result.source,
       foundUrl: result.foundUrl || null,
       candidates: result.candidates || [],
       candidatesWithUrls: result.candidatesWithUrls || [],
+      cached: false,
     });
   } catch (e) {
     console.error("[provider-outreach/find-email] Error:", e);

@@ -48,6 +48,7 @@ export interface ProviderOutreachRow {
 
 export type SkipReason =
   | "no_email"
+  | "no_city"
   | "already_enrolled"
   | "suppressed";
 
@@ -69,6 +70,7 @@ export function selectEligibleProviders(rows: ProviderOutreachRow[]): SelectionR
     let reason: SkipReason | null = null;
 
     if (!row.email?.trim()) reason = "no_email";
+    else if (!row.city?.trim()) reason = "no_city";
     else if (row.already_enrolled) reason = "already_enrolled";
     else if (row.suppressed) reason = "suppressed";
 

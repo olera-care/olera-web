@@ -59,7 +59,14 @@ export type TemplateKey =
   // with Dr. DuBose.
   | "partner_welcome_intro"
   | "partner_welcome_checkin"
-  | "partner_welcome_planning";
+  | "partner_welcome_planning"
+  // Provider claim cadence — cold outreach to unclaimed olera-providers to
+  // get them to claim their accounts and edit their profiles. Email-only,
+  // 3 touches over 7 days. Distinct from the MedJobs "provider" cadence
+  // which targets agencies for the student caregiver program.
+  | "claim_intro"
+  | "claim_followup"
+  | "claim_final";
 
 /**
  * Cadence lookup key. Stakeholder rows use their StakeholderType;
@@ -67,7 +74,7 @@ export type TemplateKey =
  * Keeps one cadence registry serving both surfaces — the universal
  * launch path goes through schedule_sequence regardless of kind.
  */
-export type CadenceKey = StakeholderType | "provider" | "activation" | "partner_welcome";
+export type CadenceKey = StakeholderType | "provider" | "provider_claim" | "activation" | "partner_welcome";
 
 export interface OutreachStep {
   id: StepId;
@@ -349,6 +356,37 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       title: "Day 300 · term-planning meeting",
       steps: [
         { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
+      ],
+    },
+  ],
+  // Provider claim cadence — cold outreach to unclaimed olera-providers to
+  // get them to claim their Olera profile. Email-only, 3 touches over 7 days.
+  // Goal: drive providers to claim their accounts and edit their profiles
+  // so we get organic, accurate provider data.
+  //
+  // Distinct from the MedJobs "provider" cadence which targets agencies for
+  // the student caregiver program. This cadence is for general Olera directory
+  // outreach to any unclaimed provider.
+  provider_claim: [
+    {
+      day: 0,
+      title: "Day 0 · intro email",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "claim_intro" },
+      ],
+    },
+    {
+      day: 3,
+      title: "Day 3 · follow-up",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "claim_followup" },
+      ],
+    },
+    {
+      day: 7,
+      title: "Day 7 · final",
+      steps: [
+        { id: "email", channel: "email", required: true, template: "claim_final" },
       ],
     },
   ],

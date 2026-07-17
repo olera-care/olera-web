@@ -18,12 +18,14 @@ import {
   addLeads,
   attachEmailAccounts,
   createCampaign,
+  ensureCampaignWebhook,
   listEmailAccounts,
   saveSequence,
   setCampaignSchedule,
   setCampaignStatus,
   type SmartleadLead,
   type SmartleadSequenceStep,
+  type EnsureWebhookResult,
 } from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
@@ -261,16 +263,58 @@ function autoStartEnabled(): boolean {
   return v === "true" || v === "1";
 }
 
+/** Webhook event types for Provider Outreach campaigns. */
+const PROVIDER_WEBHOOK_EVENT_TYPES = [
+  "EMAIL_SENT",
+  "EMAIL_OPEN",
+  "EMAIL_LINK_CLICK",
+  "EMAIL_REPLY",
+  "LEAD_UNSUBSCRIBED",
+] as const;
+
+/** Webhook name in SmartLead campaign settings. */
+const PROVIDER_WEBHOOK_NAME = "Provider Outreach";
+
+/** URL path for our Supabase edge function. */
+const PROVIDER_WEBHOOK_PATH = "/functions/v1/smartlead-provider-outreach";
+
+/**
+ * Build the Provider Outreach webhook URL from the Supabase project URL + secret.
+ * Returns null if env vars are missing.
+ */
+function buildProviderWebhookUrl(): string | null {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const secret = (process.env.SMARTLEAD_PROVIDER_WEBHOOK_SECRET ?? "").trim();
+  if (!base || !secret) return null;
+  return `${base.replace(/\/+$/, "")}${PROVIDER_WEBHOOK_PATH}?secret=${encodeURIComponent(secret)}`;
+}
+
+/**
+ * Register the Provider Outreach webhook on a campaign.
+ * Best-effort: returns status but doesn't block on failure.
+ */
+async function ensureProviderWebhook(campaignId: number): Promise<EnsureWebhookResult> {
+  const url = buildProviderWebhookUrl();
+  if (!url) {
+    return {
+      ok: false,
+      status: "skipped",
+      error: "SMARTLEAD_PROVIDER_WEBHOOK_SECRET or NEXT_PUBLIC_SUPABASE_URL not set",
+    };
+  }
+  return ensureCampaignWebhook(campaignId, url, PROVIDER_WEBHOOK_EVENT_TYPES);
+}
+
 type StageError = { stage: string; message: string };
 
 /**
- * Provision a new campaign: create → attach mailboxes → save sequence.
+ * Provision a new campaign: create → attach mailboxes → save sequence → register webhook.
  */
 async function provisionCampaign(
   name: string,
   poolIds: number[],
   steps: SmartleadSequenceStep[],
-): Promise<{ campaign_id?: number; errors: StageError[] }> {
+): Promise<{ campaign_id?: number; errors: StageError[]; webhookStatus?: string }> {
   const errors: StageError[] = [];
 
   const created = await createCampaign(name);
@@ -290,7 +334,20 @@ async function provisionCampaign(
     errors.push({ stage: "saveSequence", message: saved.error ?? "save failed" });
   }
 
-  return { campaign_id: campaignId, errors };
+  // Register webhook for reply/bounce/unsubscribe events (best-effort)
+  let webhookStatus: string | undefined;
+  try {
+    const webhook = await ensureProviderWebhook(campaignId);
+    webhookStatus = webhook.status;
+    if (!webhook.ok && webhook.status !== "skipped") {
+      errors.push({ stage: "registerWebhook", message: webhook.error ?? "webhook failed" });
+    }
+  } catch (err) {
+    console.warn(`[provider-outreach] Webhook registration failed for campaign ${campaignId}:`, err);
+    webhookStatus = "error";
+  }
+
+  return { campaign_id: campaignId, errors, webhookStatus };
 }
 
 /**

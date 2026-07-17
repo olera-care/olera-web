@@ -132,7 +132,6 @@ export async function sendDeferredNotificationsForProvider(
     for (const conn of unnotifiedLeads) {
       try {
         // Re-fetch metadata to check if another process already sent this notification
-        // This narrows the race condition window significantly
         const { data: freshConn } = await db
           .from("connections")
           .select("metadata")
@@ -151,9 +150,55 @@ export async function sendDeferredNotificationsForProvider(
           continue;
         }
 
+        // Check for stale claims (process crashed mid-operation)
+        // If claim is older than 5 minutes, treat it as abandoned and proceed
+        const STALE_CLAIM_MS = 5 * 60 * 1000;
+        if (meta.email_claiming_at) {
+          const claimAge = Date.now() - new Date(meta.email_claiming_at as string).getTime();
+          if (claimAge < STALE_CLAIM_MS) {
+            // Recent claim by another process - skip
+            continue;
+          }
+          // Stale claim - proceed to overwrite
+          console.log(`[send-deferred] Overwriting stale claim (${Math.round(claimAge / 1000)}s old) for connection ${conn.id}`);
+        }
+
+        // ATOMIC CLAIM: Try to set a claim timestamp to prevent duplicate sends
+        // Another process seeing this will skip, narrowing the race window
+        const claimTimestamp = new Date().toISOString();
+        meta.email_claiming_at = claimTimestamp;
+        const { error: claimError } = await db
+          .from("connections")
+          .update({ metadata: meta })
+          .eq("id", conn.id)
+          .is("metadata->>email_sent_at", null); // Only update if not already sent
+
+        if (claimError) {
+          console.warn(`[send-deferred] Failed to claim connection ${conn.id}:`, claimError);
+          continue;
+        }
+
+        // Re-verify our claim - if another process also claimed, check timestamps
+        const { data: verifyConn } = await db
+          .from("connections")
+          .select("metadata")
+          .eq("id", conn.id)
+          .maybeSingle();
+
+        const verifyMeta = (verifyConn?.metadata as Record<string, unknown>) || {};
+        if (verifyMeta.email_sent_at) {
+          // Already sent by another process
+          continue;
+        }
+        if (verifyMeta.email_claiming_at !== claimTimestamp) {
+          // Another process overwrote our claim - let them handle it
+          continue;
+        }
+
         // If provider unsubscribed from leads, mark as skipped
         if (leadsUnsubscribed) {
           delete meta.needs_provider_email;
+          delete meta.email_claiming_at;
           meta.email_skipped_unsubscribed = true;
           await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
           result.leadsSkipped++;
@@ -273,13 +318,17 @@ export async function sendDeferredNotificationsForProvider(
 
         // Only mark as sent if email actually succeeded
         if (!emailSuccess) {
-          console.error(`[send-deferred] Email send failed for connection ${conn.id}, skipping metadata update`);
+          console.error(`[send-deferred] Email send failed for connection ${conn.id}, clearing claim for retry`);
+          // Clear the claim so another process (or retry) can attempt
+          delete meta.email_claiming_at;
+          await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
           continue;
         }
 
         // Mark as sent and reset follow-up sequence
         // This ensures providers who got email added later start fresh from Day 0
         delete meta.needs_provider_email;
+        delete meta.email_claiming_at; // Clear the claim now that we're done
         meta.email_sent_at = new Date().toISOString();
         // Reset follow-up sequence to start fresh
         meta.followup_stage = 0;
@@ -384,6 +433,55 @@ export async function sendDeferredNotificationsForProvider(
           continue;
         }
 
+        // Check for stale claims (process crashed mid-operation)
+        // If claim is older than 5 minutes, treat it as abandoned and proceed
+        const STALE_CLAIM_MS = 5 * 60 * 1000;
+        if (meta.email_claiming_at) {
+          const claimAge = Date.now() - new Date(meta.email_claiming_at as string).getTime();
+          if (claimAge < STALE_CLAIM_MS) {
+            // Recent claim by another process - skip
+            processedQuestionIds.add(q.id);
+            continue;
+          }
+          // Stale claim - proceed to overwrite
+          console.log(`[send-deferred] Overwriting stale claim (${Math.round(claimAge / 1000)}s old) for question ${q.id}`);
+        }
+
+        // ATOMIC CLAIM: Try to set a claim timestamp to prevent duplicate sends
+        // Another process seeing this will skip, narrowing the race window
+        const claimTimestamp = new Date().toISOString();
+        meta.email_claiming_at = claimTimestamp;
+        const { error: claimError } = await db
+          .from("provider_questions")
+          .update({ metadata: meta })
+          .eq("id", q.id)
+          .is("metadata->>email_sent_at", null); // Only update if not already sent
+
+        if (claimError) {
+          console.warn(`[send-deferred] Failed to claim question ${q.id}:`, claimError);
+          processedQuestionIds.add(q.id);
+          continue;
+        }
+
+        // Re-verify our claim - if another process also claimed, check timestamps
+        const { data: verifyQ } = await db
+          .from("provider_questions")
+          .select("metadata")
+          .eq("id", q.id)
+          .maybeSingle();
+
+        const verifyMeta = (verifyQ?.metadata as Record<string, unknown>) || {};
+        if (verifyMeta.email_sent_at) {
+          // Already sent by another process
+          processedQuestionIds.add(q.id);
+          continue;
+        }
+        if (verifyMeta.email_claiming_at !== claimTimestamp) {
+          // Another process overwrote our claim - let them handle it
+          processedQuestionIds.add(q.id);
+          continue;
+        }
+
         const qaVariant = assignQuestionVariant();
         const qaInbox = questionReceivedInbox({
           providerName: providerName || "your organization",
@@ -429,13 +527,17 @@ export async function sendDeferredNotificationsForProvider(
 
         // Only mark as sent if email actually succeeded
         if (!questionEmailSuccess) {
-          console.error(`[send-deferred] Question email send failed for question ${q.id}, skipping metadata update`);
+          console.error(`[send-deferred] Question email send failed for question ${q.id}, clearing claim for retry`);
+          // Clear the claim so another process (or retry) can attempt
+          delete meta.email_claiming_at;
+          await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
           processedQuestionIds.add(q.id);
           continue;
         }
 
-        // Mark as sent
+        // Mark as sent and clear the claim
         delete meta.needs_provider_email;
+        delete meta.email_claiming_at; // Clear the claim now that we're done
         meta.email_sent_at = new Date().toISOString();
         const { error: metaUpdateErr } = await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
         if (metaUpdateErr) {

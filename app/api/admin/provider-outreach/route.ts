@@ -96,6 +96,11 @@ interface TrackingRow {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  // SmartLead integration (migration 134)
+  smartlead_campaign_id: number | null;
+  smartlead_lead_id: number | null;
+  smartlead_enrolled_at: string | null;
+  sequence_metadata: Record<string, unknown>;
 }
 
 export interface OutreachProvider {

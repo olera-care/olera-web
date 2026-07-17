@@ -166,8 +166,13 @@ export async function GET(request: NextRequest) {
 
     // If search is provided, search across ALL stages and return flat results
     if (search) {
-      const searchResults = await searchProviders(db, state, search);
-      return NextResponse.json({ providers: searchResults, stage_counts: stageCounts, is_search: true });
+      const { providers: searchResults, hasMore } = await searchProviders(db, state, search);
+      return NextResponse.json({
+        providers: searchResults,
+        stage_counts: stageCounts,
+        is_search: true,
+        ...(hasMore && { has_more: true, message: "Showing first 100 results. Refine your search for more specific results." }),
+      });
     }
 
     if (stage === "not_contacted") {
@@ -633,11 +638,13 @@ async function getArchivedProviders(
  * Search providers by name across ALL stages within a state.
  * Returns a flat list with stage info included for each provider.
  */
+const SEARCH_LIMIT = 100;
+
 async function searchProviders(
   db: ReturnType<typeof getServiceClient>,
   state: string,
   search: string
-): Promise<OutreachProvider[]> {
+): Promise<{ providers: OutreachProvider[]; hasMore: boolean }> {
   // Get all providers in this state matching the search term
   const { data: providers, error: provError } = await db
     .from("olera-providers")
@@ -645,7 +652,7 @@ async function searchProviders(
     .eq("state", state)
     .or("deleted.is.null,deleted.eq.false")
     .ilike("provider_name", `%${search}%`)
-    .limit(100);
+    .limit(SEARCH_LIMIT + 1); // +1 to detect if there are more
 
   if (provError) {
     console.error("[provider-outreach] Search query error:", provError);
@@ -653,10 +660,13 @@ async function searchProviders(
   }
 
   if (!providers || providers.length === 0) {
-    return [];
+    return { providers: [], hasMore: false };
   }
 
-  const providerIds = providers.map((p) => p.provider_id);
+  const hasMore = providers.length > SEARCH_LIMIT;
+  const limitedProviders = hasMore ? providers.slice(0, SEARCH_LIMIT) : providers;
+
+  const providerIds = limitedProviders.map((p) => p.provider_id);
 
   // Get claimed providers (have business_profile with account_id)
   const { data: claimedBps } = await db
@@ -704,7 +714,7 @@ async function searchProviders(
   );
 
   // Build results with stage info
-  const result: OutreachProvider[] = (providers as ProviderRow[]).map((p) => {
+  const result: OutreachProvider[] = (limitedProviders as ProviderRow[]).map((p) => {
     const claimInfo = claimedMap.get(p.provider_id);
     const tracking = trackingMap.get(p.provider_id);
     const adminArchived = adminArchivedMap.get(p.provider_id);
@@ -755,7 +765,10 @@ async function searchProviders(
   });
 
   // Sort by name
-  return result.sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+  return {
+    providers: result.sort((a, b) => a.provider_name.localeCompare(b.provider_name)),
+    hasMore,
+  };
 }
 
 /**

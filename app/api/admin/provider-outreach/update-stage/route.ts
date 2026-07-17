@@ -275,6 +275,7 @@ export async function POST(request: NextRequest) {
     let businessProfilesUpdated = 0;
     let archivedQuestionProvidersUpdated = 0;
     let questionsRestored = 0;
+    const syncErrors: { providerId: string; step: string; error: string }[] = [];
 
     if (isArchiving) {
       // Archiving: sync each provider to system-wide archive
@@ -314,7 +315,11 @@ export async function POST(request: NextRequest) {
             .update({ metadata: meta, updated_at: nowIso })
             .eq("id", businessProfileId);
 
-          if (!updateErr) businessProfilesUpdated++;
+          if (!updateErr) {
+            businessProfilesUpdated++;
+          } else {
+            syncErrors.push({ providerId, step: "business_profiles_update", error: updateErr.message });
+          }
         } else {
           // No business_profile exists - create a minimal one
           const slug = provider.slug || providerId;
@@ -348,8 +353,9 @@ export async function POST(request: NextRequest) {
             businessProfileId = newBp.id;
             businessProfilesUpdated++;
           } else if (insertErr) {
-            // Non-fatal - slug collision or other issue
+            // Slug collision or other issue - track but continue (non-blocking for archive)
             console.error(`[provider-outreach/update-stage] Failed to create business_profile for ${providerId}:`, insertErr);
+            syncErrors.push({ providerId, step: "business_profiles_insert", error: insertErr.message });
           }
         }
 
@@ -369,7 +375,9 @@ export async function POST(request: NextRequest) {
         if (!supErr) {
           archivedQuestionProvidersUpdated += variants.length;
         } else {
+          // This is critical - new questions won't be blocked without this
           console.error(`[provider-outreach/update-stage] Failed to upsert archived_question_providers for ${providerId}:`, supErr);
+          syncErrors.push({ providerId, step: "archived_question_providers", error: supErr.message });
         }
 
         // Stop connection followup sequences
@@ -447,7 +455,11 @@ export async function POST(request: NextRequest) {
             .update({ metadata: meta, updated_at: nowIso })
             .eq("id", linkedBp.id);
 
-          if (!updateErr) businessProfilesUpdated++;
+          if (!updateErr) {
+            businessProfilesUpdated++;
+          } else {
+            syncErrors.push({ providerId, step: "business_profiles_unarchive", error: updateErr.message });
+          }
 
           // Clear followup_stopped_reason from connections
           const { data: connections } = await db
@@ -483,7 +495,9 @@ export async function POST(request: NextRequest) {
         if (!delErr) {
           archivedQuestionProvidersUpdated += variants.length;
         } else {
+          // This is critical - provider will still be blocked from receiving questions
           console.error(`[provider-outreach/update-stage] Failed to delete archived_question_providers for ${providerId}:`, delErr);
+          syncErrors.push({ providerId, step: "archived_question_providers_delete", error: delErr.message });
         }
 
         // Restore ALL archived questions for this provider back to pending
@@ -512,7 +526,11 @@ export async function POST(request: NextRequest) {
               .update({ status: "pending", is_public: true, metadata: meta, updated_at: nowIso })
               .eq("id", q.id);
 
-            if (!restoreErr) questionsRestored++;
+            if (!restoreErr) {
+              questionsRestored++;
+            } else {
+              syncErrors.push({ providerId, step: "question_restore", error: restoreErr.message });
+            }
           }
         }
       }
@@ -544,8 +562,38 @@ export async function POST(request: NextRequest) {
         connections_affected: connectionsAffected,
         business_profiles_updated: businessProfilesUpdated,
         questions_restored: questionsRestored,
+        sync_errors: syncErrors.length > 0 ? syncErrors : undefined,
       },
     });
+
+    // If there were sync errors, return partial success with warning
+    if (syncErrors.length > 0) {
+      // Check for critical errors (archived_question_providers failures affect question blocking)
+      const archiveCriticalErrors = syncErrors.filter(e => e.step === "archived_question_providers");
+      const unarchiveCriticalErrors = syncErrors.filter(e => e.step === "archived_question_providers_delete");
+
+      let syncWarning: string;
+      if (archiveCriticalErrors.length > 0) {
+        syncWarning = `Archive incomplete: ${archiveCriticalErrors.length} provider(s) not added to question block list. New questions may still reach them.`;
+      } else if (unarchiveCriticalErrors.length > 0) {
+        syncWarning = `Unarchive incomplete: ${unarchiveCriticalErrors.length} provider(s) not removed from question block list. They may still be blocked from receiving questions.`;
+      } else {
+        const actionWord = isArchiving ? "Archive" : "Unarchive";
+        syncWarning = `${actionWord} completed with ${syncErrors.length} non-critical sync error(s). Check audit log for details.`;
+      }
+
+      return NextResponse.json({
+        success: true,
+        partialFailure: true,
+        updated: toUpdate.length,
+        created: toInsert.length,
+        connectionsAffected,
+        businessProfilesUpdated,
+        questionsRestored,
+        syncWarning,
+        syncErrors,
+      });
+    }
 
     return NextResponse.json({
       success: true,

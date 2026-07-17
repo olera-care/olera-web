@@ -1017,7 +1017,7 @@ export default function ProviderOutreachPage() {
   const [statsExpanded, setStatsExpanded] = useState(false);
 
   // Toast
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "warning" } | null>(null);
 
   // Action modal state
   const [actionModalProvider, setActionModalProvider] = useState<OutreachProvider | null>(null);
@@ -1208,7 +1208,7 @@ export default function ProviderOutreachPage() {
   }, [selectedState]);
 
   // Show toast helper
-  const showToast = (message: string, type: "success" | "error") => {
+  const showToast = (message: string, type: "success" | "error" | "warning") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
@@ -1267,7 +1267,12 @@ export default function ProviderOutreachPage() {
 
       if (res.ok) {
         const data = await res.json();
-        showToast(`Moved ${data.updated + data.created} provider(s) to ${STAGE_LABELS[newStage]}`, "success");
+        // Check for sync warnings (partial failures)
+        if (data.syncWarning) {
+          showToast(data.syncWarning, "warning");
+        } else {
+          showToast(`Moved ${data.updated + data.created} provider(s) to ${STAGE_LABELS[newStage]}`, "success");
+        }
         setSelectedProviders(new Set());
 
         // Refresh data
@@ -1312,8 +1317,14 @@ export default function ProviderOutreachPage() {
       });
 
       if (res.ok) {
+        const data = await res.json();
         const actionLabel = action === "not_contacted" ? "Unhidden" : action === "called" ? "Called" : action === "hidden" ? "Hidden" : "Archived";
-        showToast(`Marked as ${actionLabel}`, "success");
+        // Check for sync warnings (partial failures)
+        if (data.syncWarning) {
+          showToast(data.syncWarning, "warning");
+        } else {
+          showToast(`Marked as ${actionLabel}`, "success");
+        }
 
         // Refresh data
         if (stage === "not_contacted") {
@@ -1392,8 +1403,10 @@ export default function ProviderOutreachPage() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-            toast.type === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium max-w-md ${
+            toast.type === "success" ? "bg-emerald-600 text-white" :
+            toast.type === "warning" ? "bg-amber-500 text-white" :
+            "bg-red-600 text-white"
           }`}
         >
           {toast.message}

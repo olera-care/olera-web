@@ -32,6 +32,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const campusSlug = searchParams.get("campus")?.trim() || null;
+    // v10 liberalized search: filter virtual catchment prospects by provider
+    // name OR directory email so the Prospects tab search covers not-yet-
+    // materialized cards the same way it covers real ops rows.
+    const search = (searchParams.get("search") ?? "").trim().toLowerCase();
 
     const db = getServiceClient();
 
@@ -103,6 +107,12 @@ export async function GET(request: NextRequest) {
         const status = getClientStatus(p.metadata);
         if (status.isClient) continue; // already a client
         if (existingPairs.has(`${p.id}|${c.id}`)) continue; // already materialized
+        if (
+          search &&
+          !(p.display_name?.toLowerCase().includes(search) ||
+            p.email?.toLowerCase().includes(search))
+        )
+          continue; // doesn't match the active search term
         rows.push({
           id: `${p.id}|${c.id}`,
           provider_id: p.id,
@@ -120,8 +130,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Sort: most recent provider creation first (newest agencies
-    // surface to the top — likeliest to need outreach soon).
-    rows.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    // surface to the top — likeliest to need outreach soon). Tiebreak by
+    // id so providers sharing a created_at (e.g. the unknown-date cohort)
+    // hold a stable order across refreshes instead of shuffling.
+    rows.sort((a, b) => {
+      const byDate = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return byDate !== 0 ? byDate : a.id.localeCompare(b.id);
+    });
 
     return NextResponse.json({ rows, total: rows.length });
   } catch (err) {

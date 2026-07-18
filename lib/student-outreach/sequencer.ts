@@ -26,6 +26,7 @@ import {
 } from "./cadence";
 import { onStageEnter } from "./state-machine";
 import { getTemplate } from "./templates";
+import { nextBusinessDayET } from "./business-day";
 import type { Contact, StakeholderType } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -184,6 +185,13 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
       (input.call_scripts ?? []).map((s) => [s.day, s.script]),
     );
 
+    // Keep a recipient's successive calls on DISTINCT business days. Business-
+    // day rounding (nextBusinessDayET) can otherwise collapse Day 3 and Day 5
+    // onto the same date, so two legitimate calls stack on one day and read as
+    // a duplicate. We track the last call date per recipient and push a later
+    // call to the business day after it when they'd otherwise coincide.
+    const lastCallDueMsByRecipient = new Map<string, number>();
+
     for (const day of days) {
       for (const step of day.steps) {
         const dueAt = new Date(now.getTime() + day.day * DAY_MS);
@@ -252,9 +260,19 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
               /\{recipient_name\}/g,
               r.recipient_name || "the right person",
             );
+            // Calls only land on a business day (ET). Keep this recipient's
+            // successive calls on distinct days: if rounding would put this
+            // call on/before the previous one, push it to the next business day.
+            const recipientKey = r.contact_id ?? "__general__";
+            let callDue = nextBusinessDayET(dueAt);
+            const lastDueMs = lastCallDueMsByRecipient.get(recipientKey);
+            if (lastDueMs != null && callDue.getTime() <= lastDueMs) {
+              callDue = nextBusinessDayET(new Date(lastDueMs + DAY_MS));
+            }
+            lastCallDueMsByRecipient.set(recipientKey, callDue.getTime());
             tasks.push({
               task_type: "outreach_followup_call",
-              due_at: dueAt,
+              due_at: callDue,
               payload: {
                 day: day.day,
                 label: step.label ?? "Follow-up call",
@@ -297,7 +315,8 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
         if (input.has_phone === false) continue;
         tasks.push({
           task_type: "outreach_followup_call",
-          due_at: dueAt,
+          // Calls only land on a business day (ET); emails keep their raw date.
+          due_at: nextBusinessDayET(dueAt),
           payload: {
             day: day.day,
             label: step.label ?? "Follow-up call",
@@ -315,91 +334,52 @@ export function planSequence(input: SequencerInput, now: Date = new Date()): Que
  * PreFlight modal seeds these for admin edit; tasks carry the
  * resolved script through to log time.
  */
-export function defaultCallScriptsFor(type: CadenceKey): CallScript[] {
+export function defaultCallScriptsFor(
+  type: CadenceKey,
+  isPartner = false,
+): CallScript[] {
   const days = OUTREACH_DAYS_BY_TYPE[type];
   const result: CallScript[] = [];
   for (const day of days) {
     if (!day.steps.some((s) => s.channel === "phone")) continue;
-    result.push({ day: day.day, script: defaultCallScriptForDay(type, day.day) });
+    result.push({ day: day.day, script: defaultCallScriptForDay(type, day.day, isPartner) });
   }
   return result;
 }
 
-// v9.1 Graize 05.13 audit (Items 7 + 8): call scripts trimmed to a
-// short conversational prompt. The previous version restated the
-// entire program on every call which was too long; the new scripts
-// reference the email that was just sent and pivot quickly to the
-// operational ask (who handles caregiver hiring, is there a better
-// email, etc.). Tips moved out into defaultCallTipsForDay below so
-// PreFlight can render them as a separate read-only block under
-// the editable script body, not embedded in the script text.
+// Call scripts: a tight, one-breath opener everywhere. Each follows the same
+// shape — identity fused with topic ("from Dr. DuBose's office about the
+// Student Caregiver Program for {campus_name} students"), a soft "make sure it
+// reached the right person" line, then ONE low-friction ask. Cold calls close
+// on a yes/no receipt check; activation (warm) calls reference what we sent.
 //
-// Placeholders substitute at PreFlight ({campus_name},
-// {organization_name}, {admin_first_name}) and per-task at queue
-// time ({recipient_name}). Stakeholder paths fall through to the
-// generic line at the bottom — admin can edit in PreFlight.
-function defaultCallScriptForDay(type: CadenceKey, day: number): string {
+// Placeholders substitute at PreFlight ({campus_name}, {admin_first_name}) and
+// per-task at queue time ({recipient_name}).
+function defaultCallScriptForDay(type: CadenceKey, day: number, isPartner = false): string {
   if (type === "activation") {
-    // Activation cadence has a single check-in call. Reference the link we
-    // already sent and offer the meeting as the easy alternative.
-    return `"Hi {recipient_name}, it's {admin_first_name} from Dr. DuBose's office at Olera. I sent over the link to view the {campus_name} students near you and wanted to check in. Did you have any questions, or would it be easier to find a few minutes with Dr. DuBose to walk through getting set up?"`;
+    if (isPartner) {
+      return `"Hi {recipient_name}, this is {admin_first_name} from Dr. DuBose's office, following up on the Student Caregiver Program flyer I sent over. Do you know if your team was able to share it with students?"`;
+    }
+    return `"Hi {recipient_name}, this is {admin_first_name} from Dr. DuBose's office, following up on the Student Caregiver Program details I sent over. The best next step is a quick intro call with Dr. DuBose to walk through how the program works — is there a good time for you this week or next? I can set up a Google invite and Zoom link."`;
   }
   if (type === "provider") {
-    if (day === 0) {
-      // v9.1 Graize 05.13 audit (Item 6): Day 0 purpose locked in.
-      // Confirm the email arrived, confirm it reached the right
-      // person, ask for a better leadership/hiring contact if not,
-      // and (briefly) signal that the program info + next steps
-      // are already in the email.
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, calling about Olera's {campus_name} Student Caregiver Program. We just emailed {organization_name} with the program information and next steps — reply with interest or schedule a quick call with Dr. DuBose. I'm trying to make sure it reached the right person. Could you point me toward whoever handles caregiver hiring or your leadership team, or share a better email to forward it to?"`;
-    }
-    if (day === 1) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, following up on yesterday's email and call about Olera's {campus_name} Student Caregiver Program. Just want to confirm the right contact for caregiver hiring at {organization_name} — would you have a moment, or is there a better email I can forward the program details to?"`;
+    if (day === 3) {
+      return `"Hi, this is {admin_first_name} from Dr. DuBose's office about the Student Caregiver Program for {campus_name} students. I wanted to make sure it reached the right person. Do you know if someone in caregiver hiring saw the email?"`;
     }
     if (day === 5) {
-      return `"Hi, this is {admin_first_name} from Dr. Logan DuBose's office, circling back on Olera's {campus_name} Student Caregiver Program. Just making sure the email reached the right person at {organization_name}. Is there someone else on the team I should resend it to?"`;
+      return `"Hi, this is {admin_first_name} from Dr. DuBose's office about the Student Caregiver Program for {campus_name} students. I'm circling back to make sure it reached the right person. Do you know if someone in caregiver hiring saw it?"`;
     }
   }
-  return `Day ${day} follow-up call for {recipient_name} at {organization_name}. Reference prior outreach from {admin_first_name} and ask whether there's a better person to forward the program details to.`;
-}
-
-/**
- * v9.1 Graize 05.13 audit (Item 8): tips moved into their own
- * accessor so PreFlight can render them as a read-only block under
- * the editable script body. Tips are constant per (type, day) and
- * not stored on the queued task — the admin sees them in PreFlight
- * when reviewing the cadence, and they don't need per-row
- * personalization. Returns an empty array for cadences without
- * provider-specific tips.
- */
-export function defaultCallTipsForDay(type: CadenceKey, day: number): string[] {
-  if (type === "provider") {
-    if (day === 0) {
-      return [
-        "If a receptionist answers, ask for the hiring coordinator or whoever handles caregiver staffing.",
-        "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Reference today's email from Graize and Olera's {campus_name} Student Caregiver Program.",
-        "Offer to resend the information packet if useful.",
-      ];
-    }
-    if (day === 1) {
-      return [
-        "Ask for the hiring coordinator if the receptionist answers.",
-        "Confirm who handles caregiver staffing if you're not sure.",
-        "Offer to resend the information packet via email.",
-        "Leave a voicemail if unavailable. Reference prior outreach and Dr. DuBose's calendar.",
-      ];
-    }
-    if (day === 5) {
-      return [
-        "Keep the tone light and non-pushy.",
-        "If there's a better person on the leadership or hiring team, ask for a redirect.",
-        "Confirm the best email if you reach a new contact.",
-        "Leave a voicemail if unavailable. Offer Dr. DuBose's calendar as the easy next step.",
-      ];
-    }
+  if (type === "student_org") {
+    return `"Hi, this is {admin_first_name} from Dr. DuBose's office about the Student Caregiver Program for {campus_name} students. I wanted to make sure your group saw it. Do you know if someone in leadership received it?"`;
   }
-  return [];
+  if (type === "advisor") {
+    return `"Hi, this is {admin_first_name} from Dr. DuBose's office about the Student Caregiver Program for {campus_name} students. I wanted to make sure it reached you. Do you know if you or a colleague received it?"`;
+  }
+  if (type === "dept_head") {
+    return `"Hello, this is {admin_first_name} from Dr. DuBose's office about the Student Caregiver Program for {campus_name} students. I wanted to make sure it reached you. Do you know if you or a colleague received it?"`;
+  }
+  return `"Hi {recipient_name}, this is {admin_first_name} from Dr. DuBose's office about the Student Caregiver Program for {campus_name} students. I wanted to make sure it got to the right person. Do you know who that would be?"`;
 }
 
 /**

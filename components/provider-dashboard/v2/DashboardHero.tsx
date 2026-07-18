@@ -12,6 +12,17 @@ import {
   type NudgeSectionId,
   type NextAction,
 } from "@/lib/next-best-action";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
+import { prefetchBoostState } from "@/lib/ad-boost/boost-state";
+import {
+  HERO_DISMISS_KEY,
+  isDismissibleBanner,
+  todayStamp,
+  readDismissedToday,
+} from "./heroDismiss";
+import type { ManagedAdsVariant } from "@/lib/analytics/managed-ads-variant";
+import { managedAdsPitchCopy } from "@/lib/analytics/managed-ads-variant-copy";
+import { useManagedAdsVariant, isManagedAdsPreviewMode } from "@/hooks/use-managed-ads-variant";
 
 /**
  * Pillar A — Greeting + one primary action (Wispr-style dark moment).
@@ -65,7 +76,7 @@ const SECTION_IMAGES: Record<NudgeSectionId, string> = {
   about: "/images/for-providers/dashboard-hero-about.jpg",
   pricing: "/images/for-providers/dashboard-hero-pricing.jpg",
   services: "/images/for-providers/dashboard-hero-services.jpg",
-  screening: "/images/for-providers/dashboard-hero-screening.jpg",
+  screening: "/images/for-providers/dashboard-hero-overview.jpg", // reuses overview (original had white strip)
   payment: "/images/for-providers/dashboard-hero-payment.jpg",
   overview: "/images/for-providers/dashboard-hero-overview.jpg",
 };
@@ -76,6 +87,7 @@ const TIER_LEADS_IMAGE = "/images/for-providers/dashboard-hero-leads.jpg";
 const TIER_QUESTIONS_IMAGE = "/images/for-providers/dashboard-hero-questions.jpg";
 const TIER_SPIKE_IMAGE = "/images/for-providers/dashboard-hero-spike.jpg";
 const TIER_FALLBACK_IMAGE = "/images/for-providers/dashboard-hero-fallback.jpg";
+const TIER_MANAGED_ADS_IMAGE = "/images/for-providers/dashboard-hero-managed-ads.jpg";
 
 // Every hero image we might render. Preloaded on mount so tier swaps during
 // the session (provider saves a section → completeness changes → picker
@@ -87,18 +99,20 @@ const ALL_HERO_IMAGES: readonly string[] = [
   TIER_QUESTIONS_IMAGE,
   TIER_SPIKE_IMAGE,
   TIER_FALLBACK_IMAGE,
+  TIER_MANAGED_ADS_IMAGE,
   ...Object.values(SECTION_IMAGES),
 ];
 
 const ENGAGEMENT_VIEW_THRESHOLD = 10;
 
-// Find Families lives at /provider/matches (the market diagnostic + any pinned
-// real seekers). Two banners point here: the hot "family near you" tier (a real
-// nearby published seeker) and the cold "market intel" tier (no seeker yet, so
-// the value is the demand read, not a roster). Reuse existing hero imagery —
-// the leads photo (someone reaching out) for the live-family case, the spike
-// photo (upward momentum) for the market read — so no new assets ship.
+// Find Families (/provider/matches) is now leads-only: the hot "family near you"
+// tier links here to the lead cards. The cold "market intel" tier instead links
+// to Growth (/provider/growth) — the demand/competition diagnostic, which
+// split out into its own tab. Reuse existing hero imagery — the leads photo
+// (someone reaching out) for the live-family case, the spike photo (upward
+// momentum) for the market read — so no new assets ship.
 const FIND_FAMILIES_HREF = "/provider/matches";
+const MARKET_HREF = "/provider/growth";
 const FIND_FAMILIES_LIVE_IMAGE = TIER_LEADS_IMAGE;
 const MARKET_INTEL_IMAGE = TIER_SPIKE_IMAGE;
 
@@ -124,6 +138,9 @@ function bumpHeroRotation(): number {
   }
 }
 
+// Dismiss helpers (shared with DashboardHeroSkeleton so the skeleton hides too).
+// See heroDismiss.ts for the Robinhood-style daily-reset rationale.
+
 interface Props {
   firstName: string;
   data: ProviderDashboardV2Data;
@@ -139,6 +156,13 @@ interface Props {
    *  bar can mirror exactly what the hero shows (same rotation, same tier).
    *  Null when the current tier carries no CTA (e.g. the view-spike moment). */
   onHeroAction?: (action: HeroAction | null) => void;
+  /** Reports the banner the hero resolved to this visit, so the dashboard can
+   *  suppress the redundant post-edit managed-ads nudge when the hero itself
+   *  is already showing the managed-ads banner. */
+  onBannerResolved?: (bannerId: string) => void;
+  /** True if the provider has an active ad boost request. When true, the
+   *  reviews banner is shown instead of managed_ads in the cold tier. */
+  hasActiveBoostRequest?: boolean;
 }
 
 /** The hero's chosen action, flattened for the mobile sticky bar to mirror. */
@@ -192,12 +216,38 @@ export default function DashboardHero({
   onOpenSection,
   providerSlug,
   onHeroAction,
+  onBannerResolved,
+  hasActiveBoostRequest = false,
 }: Props) {
   // Per-browser visit counter, read once per mount (lazy init runs a single
   // time, even under StrictMode's double-invoked effects). Drives the cold-tier
   // rotation below.
   const [rotationCount] = useState(bumpHeroRotation);
-  const hook = resolveHook(data, completeness, category, rotationCount);
+  const managedAdsVariant = useManagedAdsVariant(providerSlug);
+  const hook = resolveHook(
+    data,
+    completeness,
+    category,
+    rotationCount,
+    managedAdsVariant ?? "direct_reach",
+    hasActiveBoostRequest,
+  );
+
+  // Robinhood-style dismiss: only the non-essential banner is hideable, and only
+  // for the rest of today. `hidden` gates rendering + every side effect below so
+  // a dismissed banner fires no impression and clears the mobile sticky CTA.
+  const [dismissedToday, setDismissedToday] = useState(readDismissedToday);
+  const dismissible = isDismissibleBanner(hook.bannerId);
+  const hidden = dismissible && dismissedToday;
+
+  const handleDismiss = () => {
+    try {
+      window.localStorage.setItem(HERO_DISMISS_KEY, todayStamp());
+    } catch {
+      /* storage blocked — dismissal just won't persist across reloads */
+    }
+    setDismissedToday(true);
+  };
 
   // Preload every tier image once the hero mounts. After a provider saves
   // a section the picker re-evaluates and the hero swaps to a different
@@ -219,6 +269,7 @@ export default function DashboardHero({
   }, []);
 
   const firedImpression = useRef<string | null>(null);
+  const firedManagedAdsPitch = useRef(false);
   const { bannerId } = hook;
   const sectionId =
     hook.cta && isSectionCta(hook.cta) ? hook.cta.sectionId : null;
@@ -230,14 +281,55 @@ export default function DashboardHero({
   // all banners. Section banners still carry section/weight for the existing
   // rollup.
   useEffect(() => {
+    if (hidden) return; // dismissed today — not shown, so not an impression
     if (firedImpression.current === bannerId) return;
     firedImpression.current = bannerId;
     track("provider_picker_impression", providerSlug, {
       source: "hero",
       banner: bannerId,
+      ...(bannerId === "managed_ads" ? { managed_ads_variant: managedAdsVariant ?? "direct_reach" } : {}),
       ...(sectionId ? { section: sectionId, weight: sectionWeight } : {}),
     });
-  }, [bannerId, sectionId, sectionWeight, providerSlug]);
+  }, [hidden, bannerId, managedAdsVariant, sectionId, sectionWeight, providerSlug]);
+
+  useEffect(() => {
+    if (hidden || bannerId !== "managed_ads" || !managedAdsVariant || firedManagedAdsPitch.current) return;
+    if (isManagedAdsPreviewMode()) return;
+    firedManagedAdsPitch.current = true;
+    trackProviderEvent(providerSlug, "managed_ads_pitch_viewed", {
+      provider_name: firstName,
+      source: "hero",
+      managed_ads_variant: managedAdsVariant,
+    });
+    // Separate touchpoint tracking for behavior analysis
+    trackProviderEvent(providerSlug, "ads_touchpoint_viewed", {
+      touchpoint: "hero_managed_ads",
+      provider_name: firstName,
+    });
+  }, [hidden, bannerId, firstName, managedAdsVariant, providerSlug]);
+
+  // Track views_to_ads banner separately for touchpoint analysis
+  const firedViewsToAdsPitch = useRef(false);
+  useEffect(() => {
+    if (hidden || bannerId !== "views_to_ads" || firedViewsToAdsPitch.current) return;
+    if (isManagedAdsPreviewMode()) return;
+    firedViewsToAdsPitch.current = true;
+    trackProviderEvent(providerSlug, "ads_touchpoint_viewed", {
+      touchpoint: "hero_views_to_ads",
+      provider_name: firstName,
+    });
+  }, [hidden, bannerId, firstName, providerSlug]);
+
+  // Tell the dashboard which banner won this visit, so it can suppress the
+  // post-edit managed-ads nudge when the hero is already the managed-ads pitch.
+  // When the managed-ads banner wins, also warm the boost-state cache so the
+  // "Get my launch plan" → /provider/boost transition paints instantly (no snap).
+  useEffect(() => {
+    // When dismissed, the hero shows nothing — report no resolved banner so the
+    // dashboard's separate (non-hero) managed-ads nudge isn't wrongly suppressed.
+    onBannerResolved?.(hidden ? "" : bannerId);
+    if (!hidden && bannerId === "managed_ads") prefetchBoostState();
+  }, [hidden, bannerId, onBannerResolved]);
 
   // Flatten the resolved CTA for the mobile sticky bar. Reported via effect so
   // the bar mirrors EXACTLY the tier the hero landed on this visit — no
@@ -247,7 +339,9 @@ export default function DashboardHero({
     hook.cta && !isSectionCta(hook.cta) ? hook.cta.href : null;
   useEffect(() => {
     if (!onHeroAction) return;
-    if (!hook.cta) {
+    // Hidden (dismissed) → clear the mobile sticky CTA so it doesn't mirror a
+    // banner that isn't on screen.
+    if (hidden || !hook.cta) {
       onHeroAction(null);
       return;
     }
@@ -258,7 +352,7 @@ export default function DashboardHero({
     );
     // hook.cta is recomputed each render; key the effect on its primitives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onHeroAction, sectionId, heroActionLabel, heroActionHref]);
+  }, [onHeroAction, hidden, sectionId, heroActionLabel, heroActionHref]);
 
   const handleSectionClick = (cta: SectionCta) => {
     track("provider_picker_clicked", providerSlug, {
@@ -283,7 +377,32 @@ export default function DashboardHero({
       ...(cta.engagementTier ? { tier: cta.engagementTier } : {}),
       destination: cta.href,
     });
+    // Also feed the managed-ads funnel so hero-origin shows up alongside the
+    // dashboard-card / Find Families sources (the boost page reads source).
+    if (bannerId === "managed_ads") {
+      trackProviderEvent(providerSlug, "managed_ads_cta_clicked", {
+        provider_name: firstName,
+        source: "hero",
+        managed_ads_variant: managedAdsVariant ?? "direct_reach",
+      });
+      // Separate touchpoint tracking for behavior analysis
+      trackProviderEvent(providerSlug, "ads_touchpoint_clicked", {
+        touchpoint: "hero_managed_ads",
+        provider_name: firstName,
+      });
+    }
+    // Track views_to_ads clicks for touchpoint analysis
+    if (bannerId === "views_to_ads") {
+      trackProviderEvent(providerSlug, "ads_touchpoint_clicked", {
+        touchpoint: "hero_views_to_ads",
+        provider_name: firstName,
+      });
+    }
   };
+
+  // Dismissed for today — render nothing. The wrapping div in DashboardPage has
+  // no intrinsic height, so this leaves no gap.
+  if (hidden) return null;
 
   return (
     <HeroCard
@@ -292,6 +411,7 @@ export default function DashboardHero({
       className="mb-6"
       onSectionClick={handleSectionClick}
       onNavClick={handleNavClick}
+      onDismiss={dismissible ? handleDismiss : undefined}
     />
   );
 }
@@ -323,6 +443,7 @@ export function HeroCard({
   className = "",
   onSectionClick,
   onNavClick,
+  onDismiss,
 }: {
   firstName: string;
   hook: Hook;
@@ -330,6 +451,10 @@ export function HeroCard({
   className?: string;
   onSectionClick?: (cta: SectionCta) => void;
   onNavClick?: (cta: NavCta) => void;
+  /** When provided, renders a dismiss (X) in the top-right. Only the live
+   *  dashboard passes this (for non-essential banners); the admin preview omits
+   *  it so previews show the banner content uncluttered. */
+  onDismiss?: () => void;
 }) {
   // Photo + gradient paint for desktop/responsive; mobile is solid warm-950.
   const showPhoto = surface !== "mobile";
@@ -350,6 +475,25 @@ export function HeroCard({
 
   return (
     <div className={`relative overflow-hidden rounded-2xl bg-warm-950 ${minH} ${className}`}>
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/30 text-white/90 backdrop-blur-sm hover:bg-black/50 hover:text-white active:bg-black/60 transition-colors"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.25}
+            viewBox="0 0 24 24"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
       {showPhoto && (
         <>
           {/* Background image — warm photo behind the card. backgroundSize is
@@ -397,7 +541,7 @@ export function HeroCard({
           {hook.headline}
         </p>
         {hook.subline && (
-          <p className="mt-2 text-sm text-warm-100/70 leading-relaxed">
+          <p className="mt-2 text-sm text-warm-100/90 leading-relaxed [text-shadow:0_1px_3px_rgba(42,24,16,0.55)]">
             {hook.subline}
           </p>
         )}
@@ -516,6 +660,18 @@ function engagementCompletionHook(viewCount: number, next: NextAction): Hook {
   };
 }
 
+/** Views-to-ads banner (≥10 views, complete profile): leverage existing traffic
+ *  to pitch ads — they have eyeballs, help them convert more. */
+function viewsToAdsHook(viewCount: number): Hook {
+  return {
+    bannerId: "views_to_ads",
+    headline: `${viewCount} families viewed your page this month.`,
+    subline: "Turn views into leads.",
+    cta: { label: "See how", href: "/provider/boost" },
+    imageUrl: TIER_SPIKE_IMAGE,
+  };
+}
+
 /** Cold-tier completion banner (sparse traffic): the section's own headline. */
 function coldCompletionHook(next: NextAction): Hook {
   return {
@@ -536,8 +692,39 @@ function marketIntelHook(): Hook {
     headline: "See who's searching in your market",
     subline:
       "Olera tracks the families looking for care near you — explore your local demand and where you stand against nearby providers.",
-    cta: { label: "Explore your market", href: FIND_FAMILIES_HREF },
+    cta: { label: "Explore your market", href: MARKET_HREF },
     imageUrl: MARKET_INTEL_IMAGE,
+  };
+}
+
+/** Managed Ads banner — the primary cold-tier nudge. The ~99% have no local
+ *  families surfacing organically; managed ads is the one lever that GENERATES
+ *  demand (external paid acquisition), so it leads the empty-handed fallback.
+ *  Shown regardless of completeness — the 70% eligibility gate lives on
+ *  /provider/boost, which routes thin profiles to "finish these to unlock," so
+ *  the ads desire pulls providers into completing. */
+function managedAdsHook(variant: ManagedAdsVariant): Hook {
+  const copy = managedAdsPitchCopy(variant);
+  return {
+    bannerId: "managed_ads",
+    headline: `${copy.headline} ${copy.accent}.`,
+    subline: copy.body,
+    cta: { label: "Get my launch plan", href: "/provider/boost" },
+    imageUrl: TIER_MANAGED_ADS_IMAGE,
+  };
+}
+
+/** Reviews banner — shown when provider already has an active ad boost request.
+ *  Instead of showing "Get my launch plan" again, we nudge them to collect
+ *  reviews, which strengthens their profile for when families arrive via ads. */
+function reviewsHook(): Hook {
+  return {
+    bannerId: "reviews",
+    headline: "Collect reviews from families.",
+    subline:
+      "Reviews build trust with new families. Send a quick invite to past clients and let their words do the selling.",
+    cta: { label: "Get more reviews", href: "/provider/reviews" },
+    imageUrl: TIER_SPIKE_IMAGE,
   };
 }
 
@@ -546,6 +733,8 @@ function resolveHook(
   completeness: ProfileCompleteness,
   category: ProfileCategory | null,
   rotationCount: number,
+  managedAdsVariant: ManagedAdsVariant,
+  hasActiveBoostRequest: boolean,
 ): Hook {
   const { greeting } = data;
 
@@ -578,26 +767,48 @@ function resolveHook(
   // closer to converting and the gap is the higher-leverage fix). With a
   // complete profile, there's nothing to fix, so pull them toward Find Families
   // market intel instead of the old no-CTA filler.
-  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD) {
-    if (next) return engagementCompletionHook(greeting.viewsThisPeriod, next);
+  // Priority 5 — meaningful traffic (≥10 views) with a completion gap. They
+  // already have eyeballs arriving organically, so plugging the profile leak
+  // converts traffic they ALREADY have — higher leverage than paying for more.
+  // No rotation here; this is the strongest activation moment. (Complete + this
+  // much traffic falls through to the managed-ads default below.)
+  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD && next) {
+    return engagementCompletionHook(greeting.viewsThisPeriod, next);
+  }
+
+  // Priority 5b — meaningful traffic (≥10 views) with a COMPLETE profile and no
+  // active boost. They have eyeballs but no completion lever to pull — pitch ads
+  // as the way to convert views into leads.
+  if (greeting.viewsThisPeriod >= ENGAGEMENT_VIEW_THRESHOLD && !next && !hasActiveBoostRequest) {
+    return viewsToAdsHook(greeting.viewsThisPeriod);
+  }
+
+  // Priorities 6-7 — the cold, empty-handed majority (~99%): no leads, no
+  // questions, no nearby family, sparse traffic. Managed Ads leads here — it's
+  // the one lever that GENERATES demand (external paid acquisition) rather than
+  // waiting on an empty local funnel, so it's the KPI move for this cohort.
+  // Shown regardless of completeness: the 70% gate lives on /provider/boost,
+  // which turns the ads desire into a profile-completion pull.
+  //
+  // Every ROTATE_EVERY-th visit we rotate to a secondary so neither the
+  // activation nudge nor the market insight is lost — alternating completion
+  // (when there's a gap) and the market read across rotations. Providers with
+  // active ads see the reviews banner on rotation visits too — keeps the
+  // reviews nudge visible more often to drive review collection.
+  if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) {
+    if (hasActiveBoostRequest) return reviewsHook();
+    const altCompletion = Math.floor(rotationCount / ROTATE_EVERY) % 2 === 0;
+    if (next && altCompletion) return coldCompletionHook(next);
     return marketIntelHook();
   }
 
-  // Priority 6 — sparse traffic AND a completion gap. Cold provider: completion
-  // is the default (a blank profile won't convert a family even if one shows
-  // up), but every ROTATE_EVERY-th visit we rotate in Find Families market
-  // intel so the capability surfaces early and repeatedly without letting
-  // profile completion collapse.
-  if (next) {
-    if (rotationCount > 0 && rotationCount % ROTATE_EVERY === 0) return marketIntelHook();
-    return coldCompletionHook(next);
-  }
+  // If the provider already has an active ad boost request, show the reviews
+  // banner instead of "Get my launch plan" — no point pitching ads to someone
+  // who already bought in. Reviews strengthen their profile for when families
+  // arrive via ads.
+  if (hasActiveBoostRequest) return reviewsHook();
 
-  // Priority 7 — sparse traffic AND fully complete. Profile is dialed in and
-  // there's no nearby seeker yet, so the most useful evergreen nudge is the
-  // market read — surface the Find Families capability rather than a static
-  // "your page is live" reassurance.
-  return marketIntelHook();
+  return managedAdsHook(managedAdsVariant);
 }
 
 /** One previewable banner: the stable id (matches the leaderboard) + the hook
@@ -618,8 +829,11 @@ export function buildBannerPreviews(): BannerPreview[] {
     { bannerId: "leads", hook: leadsHook(3) },
     { bannerId: "questions", hook: questionsHook(2) },
     { bannerId: "find_families_live", hook: nearbyFamiliesHook(1) },
+    { bannerId: "managed_ads", hook: managedAdsHook("direct_reach") },
+    { bannerId: "reviews", hook: reviewsHook() },
     { bannerId: "find_families_intel", hook: marketIntelHook() },
     { bannerId: "view_spike", hook: viewSpikeHook(33, 12, 9) },
+    { bannerId: "views_to_ads", hook: viewsToAdsHook(15) },
   ];
   for (const sectionId of NUDGE_SECTION_IDS) {
     previews.push({

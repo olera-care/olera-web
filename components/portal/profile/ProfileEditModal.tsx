@@ -7,6 +7,7 @@ import ModalFooter from "@/components/provider-dashboard/edit-modals/ModalFooter
 import Input from "@/components/ui/Input";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 
 // ── Options ──
 
@@ -399,13 +400,16 @@ export default function ProfileEditModal({
               placeholder="your@email.com"
             />
 
-            <Input
-              label="Phone number"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone((e.target as HTMLInputElement).value)}
-              placeholder="(555) 123-4567"
-            />
+            <div>
+              <Input
+                label="Phone number"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone((e.target as HTMLInputElement).value)}
+                placeholder="(555) 123-4567"
+              />
+              <SmsConsentDisclosure className="mt-2" />
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2.5">

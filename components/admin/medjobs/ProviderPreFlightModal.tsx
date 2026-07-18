@@ -51,14 +51,17 @@ import {
 } from "@/lib/student-outreach/cadence";
 import {
   defaultCallScriptsFor,
-  defaultCallTipsForDay,
   type RecipientPlan,
   type CallScript,
 } from "@/lib/student-outreach/sequencer";
 import type { Contact, SmartleadPreviewSnapshot } from "@/lib/student-outreach/types";
 import Input from "@/components/ui/Input";
-import { getProgramPdfConfig } from "@/lib/program-pdf/configs";
-import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
+import { CallScriptBlock } from "@/components/admin/medjobs/CallScriptBlock";
+import {
+  getProgramPdfConfig,
+  resolveProgramPdfConfig,
+  type PdfAudience,
+} from "@/lib/program-pdf/configs";
 import type { SmartleadLinkage } from "@/lib/medjobs/smartlead-inbox";
 
 interface Props {
@@ -100,6 +103,10 @@ interface Props {
   /** Smartlead thread linkage, when known, for the manual-reply inbox link.
    *  Omitted before a campaign exists — the link falls back to the root inbox. */
   smartleadLinkage?: SmartleadLinkage | null;
+  /** Which program PDF this row's emails link — provider brochure (default) or
+   *  the student flyer (partner/student-org rows). Drives the attachment preview
+   *  and the hard no-PDF launch block (mirrors the server gate). */
+  pdfAudience?: PdfAudience;
   onCancel: () => void;
   onSubmit: (payload: {
     recipients: RecipientPlan[];
@@ -158,6 +165,7 @@ export function ProviderPreFlightModal({
   smartleadPreview,
   cadenceKey = PROVIDER_CADENCE_KEY,
   smartleadLinkage,
+  pdfAudience = "provider",
   onCancel,
   onSubmit,
 }: Props) {
@@ -165,8 +173,11 @@ export function ProviderPreFlightModal({
   // admin sees the outreach package before launching. Resolution
   // mirrors the server's loadProgramPdfAttachment order:
   //   1. campus.program_pdf_url override (custom upload)
-  //   2. lib/program-pdf/configs/<slug>.ts (template config)
-  //   3. null — no PDF indicator, no attachment
+  //   2. lib/program-pdf/configs/<slug>.ts (campus-specific config)
+  //   3. the generic floor config for this audience (standard flyer)
+  // There is always a PDF — the generic config is the floor, so launch is
+  // never blocked on a missing per-campus flyer.
+  const hasCampusConfig = Boolean(campusSlug && getProgramPdfConfig(campusSlug, pdfAudience));
   const programPdfAttachment = (() => {
     if (campusProgramPdfUrl) {
       const filename =
@@ -178,15 +189,20 @@ export function ProviderPreFlightModal({
         previewUrl: campusProgramPdfUrl,
       };
     }
-    if (!campusSlug) return null;
-    const config = getProgramPdfConfig(campusSlug);
+    const config = resolveProgramPdfConfig(campusSlug, pdfAudience);
     if (!config) return null;
+    // config.slug is the campus slug when configured, else "generic". The route
+    // also falls back to generic, so linking the campus slug is equivalent.
     return {
-      source: "template" as const,
-      filename: `${config.slug}-student-caregiver-program.pdf`,
-      previewUrl: `/api/medjobs/program-pdf?university=${config.slug}`,
+      source: hasCampusConfig ? ("template" as const) : ("generic" as const),
+      filename: `${config.slug}-${pdfAudience === "student" ? "student-program" : "student-caregiver-program"}.pdf`,
+      previewUrl: `/api/medjobs/program-pdf?university=${config.slug}&audience=${pdfAudience}`,
     };
   })();
+
+  // A flyer always resolves (campus upload, campus config, or the generic
+  // floor), so launch is never blocked.
+  const pdfConfigured = programPdfAttachment != null;
   // Build the recipient roster. First slot (when present) is the
   // synthetic General Contact row — organization-level fallback
   // (research_data.general_contact || business_profiles fields).
@@ -309,12 +325,6 @@ export function ProviderPreFlightModal({
     });
   };
 
-  const updateScript = (day: number, script: string) => {
-    setCallScripts((cur) =>
-      cur.map((s) => (s.day === day ? { ...s, script } : s)),
-    );
-  };
-
   const submit = async () => {
     setErr(null);
     if (queuedEmails === 0 && queuedCalls === 0) {
@@ -358,14 +368,6 @@ export function ProviderPreFlightModal({
             <h3 className="text-base font-semibold text-gray-900">
               Confirm outreach plan
             </h3>
-            <p className="mt-0.5 text-xs text-gray-500">
-              {organizationName} · Smartlead campaign. Emails ship from
-              findmedjobs.co (warmed); calls queue to the Calls tab.
-            </p>
-            {/* Replies land in Smartlead — open the inbox to answer by hand. */}
-            <p className="mt-1">
-              <SmartleadInboxLink linkage={smartleadLinkage} label="Reply manually in Smartlead" />
-            </p>
           </div>
           <button
             onClick={onCancel}
@@ -396,32 +398,6 @@ export function ProviderPreFlightModal({
               {queuedEmails === 1 ? "" : "s"} +{" "}
               <strong className="tabular-nums">{queuedCalls}</strong> call
               {queuedCalls === 1 ? "" : "s"} across the cadence below
-            </p>
-            <p className="mt-0.5 text-[11px] text-gray-600">
-              {smartleadPreview?.sender_pool.length
-                ? `Sender: ${smartleadPreview.sender_pool.join(" / ")} (rotated by Smartlead)`
-                : "Sender: all connected Smartlead mailboxes (rotated)"}
-            </p>
-            <p className="mt-0.5 text-[11px]">
-              Program PDF:{" "}
-              {programPdfAttachment ? (
-                <span className="text-gray-700">
-                  ✓ linked in body per email ({programPdfAttachment.filename}){" "}
-                  <a
-                    href={programPdfAttachment.previewUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary-700 hover:underline"
-                  >
-                    preview ↗
-                  </a>
-                </span>
-              ) : (
-                <span className="text-amber-700">
-                  ✗ no PDF configured for {campusName} — emails will ship
-                  without a program PDF link
-                </span>
-              )}
             </p>
           </section>
 
@@ -576,11 +552,9 @@ export function ProviderPreFlightModal({
                                   </li>
                                 ))}
                               </ul>
-                              <CallScriptEditor
+                              <CallScriptBlock
                                 label={`Day ${d.day} script (shared by all callers above)`}
                                 script={script.script}
-                                onChange={(s) => updateScript(d.day, s)}
-                                tips={defaultCallTipsForDay(cadenceKey, d.day)}
                               />
                             </div>
                           </div>
@@ -615,71 +589,15 @@ export function ProviderPreFlightModal({
             <button
               onClick={submit}
               disabled={
-                submitting || (queuedEmails === 0 && queuedCalls === 0)
+                submitting || !pdfConfigured || (queuedEmails === 0 && queuedCalls === 0)
               }
+              title={!pdfConfigured ? "No program PDF configured for this campus." : undefined}
               className="rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
             >
               {submitting ? "Starting…" : "Start outreach"}
             </button>
           </div>
         </footer>
-      </div>
-    </div>
-  );
-}
-
-// ── Editors ─────────────────────────────────────────────────────────────
-
-
-/**
- * v9.1 Graize 05.13 audit (Item 8): tips render as a read-only
- * block underneath the editable script body, not merged into the
- * script text itself. Admin edits only the script; tips stay
- * constant per day (defaultCallTipsForDay) and serve as quick
- * operational reminders for receptionist / voicemail / redirect
- * handling.
- */
-function CallScriptEditor({
-  label,
-  script,
-  onChange,
-  tips,
-}: {
-  label: string;
-  script: string;
-  onChange: (s: string) => void;
-  tips?: string[];
-}) {
-  return (
-    <div className="rounded-md border border-amber-200 bg-white">
-      <header className="bg-amber-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
-        {label}
-      </header>
-      <div className="space-y-2 px-3 py-2">
-        <Input
-          as="textarea"
-          value={script}
-          onChange={(e) => onChange(e.target.value)}
-          rows={3}
-          placeholder="What to say on this call: tone, key references, target ask."
-          size="sm"
-        />
-        {tips && tips.length > 0 && (
-          <div className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-              Tips
-            </p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] leading-relaxed text-gray-600">
-              {tips.map((t, i) => (
-                <li key={i}>{t}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <p className="text-[11px] text-gray-500">
-          Shown to admin in the Log call modal as reference. Admin can edit
-          later if cadence strategy evolves.
-        </p>
       </div>
     </div>
   );

@@ -38,6 +38,8 @@ export function EmptyState({
     );
   }
   const blurbs: Record<TabKey, string> = {
+    providers: "No provider work right now.",
+    partner_book: "No partner work right now.",
     unread: "✓ Inbox zero — nothing unread.",
     undone: "✓ All caught up — no aging tasks.",
     clients: "No clients with open tasks.",
@@ -46,6 +48,7 @@ export function EmptyState({
     calls: "No phone calls due. 🎉",
     replies: "No inbox triage right now. The cadence is humming along.",
     meetings: "No meetings in flight or booked.",
+    followup: "✓ Nothing to follow up — no finished cadences waiting on a decision.",
     partners: "No partners with open tasks.",
     sites: "No sites need research or have open tasks.",
     campuses: "No sites configured yet.",

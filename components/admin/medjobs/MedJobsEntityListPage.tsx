@@ -51,6 +51,7 @@ const CLOSED_STATUSES = new Set([
   "not_interested",
   "do_not_contact",
   "wrong_contact",
+  "archived",
 ]);
 
 interface Props {
@@ -107,7 +108,11 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
       // so Provider Prospects dropdown renders alongside Partner
       // Prospects, mirroring the In Basket tab.
       if (tab === "prospects") {
-        const r = await fetch("/api/admin/medjobs/provider-prospects");
+        // v10 liberalized search: filter virtual catchment prospects by
+        // provider name/email alongside the materialized rows.
+        const ppParams = new URLSearchParams();
+        if (debouncedSearch) ppParams.set("search", debouncedSearch);
+        const r = await fetch(`/api/admin/medjobs/provider-prospects?${ppParams}`);
         if (r.ok) {
           const d = await r.json();
           setProviderProspects((d.rows ?? []) as ProviderProspectRow[]);
@@ -206,6 +211,23 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
               setError(e instanceof Error ? e.message : "Action failed");
             }
           }}
+          onArchive={
+            row.status === "archived"
+              ? undefined
+              : async () => {
+                  if (
+                    !window.confirm(
+                      "Archive this prospect? This halts outreach and parks it. You can reopen it later.",
+                    )
+                  )
+                    return;
+                  try {
+                    await callAction(row.id, "archive");
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "Action failed");
+                  }
+                }
+          }
           onReopen={
             isClosed
               ? async () => {
@@ -239,7 +261,7 @@ export function MedJobsEntityListPage({ tab, title, subtitle }: Props) {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by organization name…"
+          placeholder="Search by name, organization, or email…"
           size="sm"
         />
       </div>

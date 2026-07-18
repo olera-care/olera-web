@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Badge from "@/components/ui/Badge";
+import StatusBadge from "@/components/admin/StatusBadge";
 
 interface RemovalRequest {
   id: string;
@@ -130,7 +130,7 @@ export default function AdminRemovalRequestsPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50/50">
@@ -175,9 +175,10 @@ export default function AdminRemovalRequestsPage() {
                     <p className="text-xs text-gray-500">{req.business_phone}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant={req.action === "delete" ? "rejected" : "default"}>
-                      {req.action}
-                    </Badge>
+                    <StatusBadge
+                      status={req.action}
+                      tone={req.action === "delete" ? "rose" : "gray"}
+                    />
                   </td>
                   <td className="px-6 py-4">
                     <p className="text-sm text-gray-600 max-w-[200px] truncate" title={req.reason}>
@@ -190,17 +191,7 @@ export default function AdminRemovalRequestsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <Badge
-                      variant={
-                        req.status === "pending"
-                          ? "pending"
-                          : req.status === "approved"
-                          ? "verified"
-                          : "rejected"
-                      }
-                    >
-                      {req.status}
-                    </Badge>
+                    <StatusBadge status={req.status} />
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(req.created_at).toLocaleDateString("en-US", {

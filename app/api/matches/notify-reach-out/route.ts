@@ -5,6 +5,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { providerReachOutEmail, providerReachOutConfirmationEmail } from "@/lib/email-templates";
 import { sendSlackAlert } from "@/lib/slack";
+import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 
 /**
  * POST /api/matches/notify-reach-out
@@ -52,12 +53,12 @@ export async function POST(request: Request) {
     const [{ data: provider }, { data: family }] = await Promise.all([
       db
         .from("business_profiles")
-        .select("display_name, city, state")
+        .select("display_name, city, state, metadata")
         .eq("id", account.active_profile_id)
         .single(),
       db
         .from("business_profiles")
-        .select("display_name, email, city, account_id, claim_token")
+        .select("display_name, email, city, account_id, claim_token, phone, state, phone_validity")
         .eq("id", toProfileId)
         .single(),
     ]);
@@ -155,6 +156,28 @@ export async function POST(request: Request) {
       console.error("[notify-reach-out] Family email notification failed:", familyEmailError);
     }
 
+    // Reactive SMS alert (Tier 1) — transactional, gated by phone/opt-out/quiet
+    // hours inside the helper. Uses a STABLE inbox URL (not the 1h magic link),
+    // since a quiet-hours-deferred text could be delivered the next morning.
+    try {
+      const smsPath = conn?.id ? `/portal/inbox?id=${conn.id}` : "/portal/inbox";
+      let smsUrl = `${siteUrl}${smsPath}`;
+      if (!family.account_id && family.claim_token) {
+        const sep = smsPath.includes("?") ? "&" : "?";
+        smsUrl = `${siteUrl}${smsPath}${sep}token=${family.claim_token}`;
+      }
+      await sendReactiveFamilyAlert({
+        familyProfileId: toProfileId,
+        phone: family.phone,
+        state: family.state,
+        phoneValidity: family.phone_validity,
+        emailType: "provider_reach_out",
+        body: `Olera: ${providerDisplayName} in ${providerCity} reached out about your care needs. Read & reply: ${smsUrl}`,
+      });
+    } catch (smsErr) {
+      console.error("[notify-reach-out] Reactive SMS failed:", smsErr);
+    }
+
     // Slack alert (fire-and-forget)
     try {
       await sendSlackAlert(
@@ -165,9 +188,13 @@ export async function POST(request: Request) {
     }
 
     // Send confirmation email to the provider
+    // Skip if provider is admin-archived (no emails sent to them)
+    const providerMeta = (provider?.metadata as Record<string, unknown>) ?? {};
+    const isProviderArchived = providerMeta.admin_archived === true;
+
     try {
       const providerEmail = user.email;
-      if (providerEmail) {
+      if (providerEmail && !isProviderArchived) {
         // Count other providers who have reached out to this family (competitive urgency)
         const { count: competitorCount } = await db
           .from("connections")

@@ -1,9 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
-import { medjobsAccessActive } from "@/lib/medjobs/pilot-tier";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
 import type { StudentMetadata } from "@/lib/types";
 import {
@@ -17,9 +15,24 @@ import {
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
-import BackLink from "./BackLink";
 import RefreshAfterCheckout from "@/components/medjobs/RefreshAfterCheckout";
-import { LOGAN_DEMO_CANDIDATE } from "@/lib/medjobs/demo-candidate";
+import { getSampleBySlug, isSampleSlug } from "@/lib/medjobs/demo-candidate";
+
+/** The subset of a student business_profiles row this page renders. Sample
+ *  profiles are mapped into this same shape so they flow through one layout. */
+interface ProfileView {
+  id: string;
+  slug: string;
+  display_name: string | null;
+  email: string | null;
+  phone: string | null;
+  description: string | null;
+  city: string | null;
+  state: string | null;
+  image_url: string | null;
+  metadata: StudentMetadata | null;
+  updated_at: string | null;
+}
 
 function getSupabase() {
   return createClient(
@@ -63,17 +76,10 @@ async function checkHasFullAccess(): Promise<boolean> {
 
     if (!profile) return false;
 
-    // v10 Phase 2+3 Bullet 2 (2026-06-04): paid OR active-pilot unlocks
-    // full candidate detail. medjobsAccessActive OR's the two paths.
-    const meta = (profile.metadata || {}) as Record<string, unknown>;
-    const isPaid = medjobsAccessActive(meta);
-
-    // Check verification state (verified or not_required)
-    const verificationState = profile.verification_state as string | null;
-    const isVerified = verificationState === "verified" || verificationState === "not_required";
-
-    // Require BOTH paid AND verified for full access
-    return isPaid && isVerified;
+    // Phase A: any signed-in provider gets full candidate detail (incl.
+    // contact). The old pilot + verified blurring is removed. See
+    // docs/medjobs/PROVIDER_FUNNEL_BUILD_PLAN.md.
+    return true;
   } catch {
     return false;
   }
@@ -126,7 +132,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .eq("is_active", true)
     .single();
 
-  if (!data) return { title: "Candidate Not Found | Olera MedJobs" };
+  if (!data) return { title: "Candidate Not Found | Olera" };
 
   const meta = data.metadata as StudentMetadata;
   const trackLabel = getTrackLabel(meta);
@@ -136,7 +142,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const redactedName = parts.length <= 1 ? parts[0] : `${parts[0]} ${parts[parts.length - 1].charAt(0)}.`;
 
   return {
-    title: `${redactedName} — Student Caregiver | Olera MedJobs`,
+    title: `${redactedName}, Pre-Health Student Caregiver | Olera`,
     description: `${redactedName} is a ${trackLabel || "healthcare"} student${meta.university ? ` at ${meta.university}` : ""} seeking healthcare experience${data.city ? ` in ${data.city}, ${data.state}` : ""}.`,
   };
 }
@@ -156,57 +162,49 @@ function formatLastUpdated(dateStr: string): string {
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
 
-  // Demo sample profile (shown when a campus has no real students yet). Opens
-  // like a normal candidate, clearly labeled as a demo. No scheduling — it's
-  // not a real student.
-  if (slug === LOGAN_DEMO_CANDIDATE.id) {
-    const d = LOGAN_DEMO_CANDIDATE;
-    return (
-      <main className="min-h-screen bg-[#FAFAF8]">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-16">
-          <BackLink studentSlug={slug} />
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-white overflow-hidden">
-            <div className="bg-amber-50 px-6 py-2 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
-              Demo · This is not a real student
-            </div>
-            <div className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0">
-                  <Image src={d.photo_url} alt={d.first_name} fill className="object-cover" sizes="64px" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 font-display">
-                    {d.first_name} {d.last_name}
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    {d.program_track} · {d.city}, {d.state}
-                  </p>
-                </div>
-              </div>
-              <p className="mt-5 text-sm leading-relaxed text-gray-700">{d.bio}</p>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
+  // Sample profile (shown when a campus has no real students yet). Renders the
+  // SAME full layout as a real student — read-only, clearly labeled, with the
+  // CTA routed to "grab a time" instead of an invite. Client-side data only;
+  // never hits the DB.
+  const sample = isSampleSlug(slug) ? getSampleBySlug(slug) : null;
+  const isSample = !!sample;
+
+  let profile: ProfileView;
+  let providerHasFullAccess = false;
+  let isOwnProfile = false;
+
+  if (sample) {
+    profile = {
+      id: sample.id,
+      slug: sample.slug,
+      display_name: sample.display_name,
+      email: null,
+      phone: null,
+      description: sample.description,
+      city: sample.city,
+      state: sample.state,
+      image_url: sample.image_url ?? null,
+      metadata: sample.metadata,
+      updated_at: sample.created_at,
+    };
+  } else {
+    // Check if current user is a provider with full access
+    providerHasFullAccess = await checkHasFullAccess();
+    // Check if caregiver is viewing their own profile
+    isOwnProfile = await checkIsOwnProfile(slug);
+
+    const supabase = getSupabase();
+    const { data } = await supabase
+      .from("business_profiles")
+      .select("*")
+      .eq("slug", slug)
+      .eq("type", "student")
+      .eq("is_active", true)
+      .single();
+
+    if (!data) notFound();
+    profile = data as ProfileView;
   }
-
-  // Check if current user is a provider with full access (paid + verified)
-  const providerHasFullAccess = await checkHasFullAccess();
-
-  // Check if caregiver is viewing their own profile
-  const isOwnProfile = await checkIsOwnProfile(slug);
-
-  const supabase = getSupabase();
-  const { data: profile } = await supabase
-    .from("business_profiles")
-    .select("*")
-    .eq("slug", slug)
-    .eq("type", "student")
-    .eq("is_active", true)
-    .single();
-
-  if (!profile) notFound();
 
   const meta = (profile.metadata || {}) as StudentMetadata;
   const trackLabel = getTrackLabel(meta);
@@ -214,8 +212,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const durationLabel = formatDuration(meta);
   const videoAvailable = hasVideo(meta);
   const youtubeId = videoAvailable ? getYouTubeId(meta.video_intro_url!) : null;
-  // Show full name if viewing own profile, otherwise just first name
-  const displayName = isOwnProfile
+  // Samples + own profile show the full name; others see first name only.
+  const displayName = isOwnProfile || isSample
     ? (profile.display_name || "This candidate")
     : (profile.display_name?.split(" ")[0] || "This candidate");
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
@@ -256,11 +254,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
           this just pulls the updated DB state into client memory. */}
       <RefreshAfterCheckout />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-32 lg:pb-12">
-        {/* Back link - hidden when viewing own profile */}
-        <div className="mb-4">
-          <BackLink studentSlug={profile.slug} />
-        </div>
-
         {/* ═══════════════════════════════════════════════════════════════════
             TWO-COLUMN LAYOUT: Content (left) + Sticky CTA (right)
             ═══════════════════════════════════════════════════════════════════ */}
@@ -277,7 +270,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {profile.image_url ? (
                     <Image
                       src={profile.image_url}
-                      alt={profile.display_name}
+                      alt={profile.display_name || "Candidate"}
                       width={120}
                       height={120}
                       className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md ring-4 ring-white"
@@ -318,10 +311,17 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     {meta.university && (
                       <p className="text-base text-gray-700 font-medium">{meta.university}</p>
                     )}
-                    <p className="text-sm text-gray-500">
-                      {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
-                        .filter(Boolean)
-                        .join(" · ")}
+                    <p className="text-sm text-gray-500 flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+                      <span>
+                        {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                      {isSample && (
+                        <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-semibold text-primary-700">
+                          Demo
+                        </span>
+                      )}
                     </p>
                   </div>
 
@@ -373,7 +373,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Video Section ── */}
               {videoAvailable && (
                 <div className="py-8 px-6 sm:px-8">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     Meet {firstName}
                   </h2>
                   <div className="rounded-xl overflow-hidden border border-gray-100">
@@ -411,7 +411,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
               {/* ── Availability Section ── */}
               <div className={`py-8 px-6 sm:px-8 ${videoAvailable ? "border-t border-gray-200" : ""}`}>
-                <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                   Availability
                 </h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -484,7 +484,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
               {/* ── Qualifications Section ── */}
               <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                   Qualifications
                 </h2>
 
@@ -587,7 +587,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Commitments Section ── */}
               {hasCommitments && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     {firstName}&apos;s Commitments
                   </h2>
                   <p className="text-sm text-gray-500 mb-4">Verified commitments this candidate has made</p>
@@ -618,7 +618,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Screening Responses Section ── */}
               {hasScenarios && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     Screening Responses
                   </h2>
                   <p className="text-sm text-gray-500 mb-6">{firstName}&apos;s responses to common care scenarios</p>
@@ -636,7 +636,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── About Section ── */}
               {hasAbout && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     About {firstName}
                   </h2>
                   <div className="space-y-4">
@@ -669,7 +669,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── References Section ── */}
               {hasReferences && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     References
                   </h2>
                   <div className="space-y-4">
@@ -695,7 +695,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
               {/* ── Documents & Links Section (Profile Owner / Paid Providers Only) ── */}
               {canViewFullProfile && (resumeUrl || meta.linkedin_url) && (
                 <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                  <h2 className="text-2xl font-display font-bold text-gray-900 mb-5">
                     Documents & Links
                   </h2>
                   <div className="space-y-3">
@@ -761,7 +761,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   candidate={{
                     id: profile.id,
                     slug: profile.slug,
-                    displayName: profile.display_name,
+                    displayName: profile.display_name || "This candidate",
                     email: profile.email,
                     phone: profile.phone,
                     imageUrl: profile.image_url,
@@ -770,6 +770,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     metadata: meta,
                   }}
                   variant="inline"
+                  isSample={isSample}
                 />
               </div>
             </div>
@@ -785,7 +786,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
           candidate={{
             id: profile.id,
             slug: profile.slug,
-            displayName: profile.display_name,
+            displayName: profile.display_name || "This candidate",
             email: profile.email,
             phone: profile.phone,
             imageUrl: profile.image_url,
@@ -794,6 +795,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
             metadata: meta,
           }}
           variant="sticky"
+          isSample={isSample}
         />
       </div>
     </main>

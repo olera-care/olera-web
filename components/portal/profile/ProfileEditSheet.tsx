@@ -8,6 +8,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import type { CitySearchResult } from "@/lib/us-city-search";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
+import { SmsConsentDisclosure } from "@/components/sms/SmsConsentDisclosure";
 
 // ============================================================
 // Types
@@ -686,6 +687,7 @@ export default function ProfileEditSheet({
                 placeholder="(555) 123-4567"
                 className="w-full px-4 py-3.5 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 placeholder:text-gray-400"
               />
+              <SmsConsentDisclosure className="mt-2" />
             </div>
 
             <div>

@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail, reserveEmailLogId } from "@/lib/email";
-import { connectionResponseEmail, providerSilentEmail } from "@/lib/email-templates";
+import { connectionResponseEmail, providerSilentEmail, careUnsubscribeUrl } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
+import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -141,7 +142,7 @@ export async function POST(request: Request) {
           const [{ data: initiatorBp }, { data: responderBp }] = await Promise.all([
             admin
               .from("business_profiles")
-              .select("email, display_name, account_id, type")
+              .select("email, display_name, account_id, type, phone, state, phone_validity")
               .eq("id", initiatorProfileId)
               .single(),
             admin
@@ -191,6 +192,25 @@ export async function POST(request: Request) {
               emailType: 'connection_response',
               recipientType: isProviderRequest ? 'provider' : 'family',
             });
+
+            // Reactive SMS (Tier 1): a provider got back to the family on THEIR
+            // inquiry. Accept-only — a decline is poor as a first text and stays
+            // email. Stable inbox URL (queue-safe). Helper applies all gates.
+            if (!isProviderRequest && action === "accept") {
+              try {
+                const smsUrl = `${getSiteUrl()}/portal/inbox?id=${connectionId}`;
+                await sendReactiveFamilyAlert({
+                  familyProfileId: initiatorProfileId,
+                  phone: initiatorBp?.phone,
+                  state: initiatorBp?.state,
+                  phoneValidity: initiatorBp?.phone_validity,
+                  emailType: "connection_response",
+                  body: `Olera: ${responderName} responded to your care inquiry. Read & reply: ${smsUrl}`,
+                });
+              } catch (smsErr) {
+                console.error(`[manage] reactive SMS failed:`, smsErr);
+              }
+            }
           }
         } catch (emailErr) {
           console.error(`[manage] ${action} email failed:`, emailErr);
@@ -310,7 +330,8 @@ export async function POST(request: Request) {
             .single();
 
           const recheckMeta = (recheck?.metadata as Record<string, unknown>) || {};
-          const wasAlreadyArchived = recheckMeta.archived === true;
+          // Check BOTH flags: `archived` (inbox) and `lead_archived` (provider decline)
+          const wasAlreadyArchived = recheckMeta.archived === true || recheckMeta.lead_archived === true;
 
           if (wasAlreadyArchived) {
             // Another request already archived and sent email, skip to avoid duplicate
@@ -460,6 +481,7 @@ export async function POST(request: Request) {
 
               // Send email using existing providerSilentEmail template
               const html = providerSilentEmail({
+                unsubscribeId: familyProfileId,
                 familyName: familyProfile.display_name || "there",
                 providerName,
                 providerPassed: true, // This changes the email copy to "isn't able to take new families"
@@ -481,6 +503,7 @@ export async function POST(request: Request) {
                   recommended_count: recommendedProviders.length,
                 },
                 emailLogId: emailLogId ?? undefined,
+                listUnsubscribeUrl: careUnsubscribeUrl(familyProfileId),
               });
 
               console.log("[manage] Sent provider declined email to family:", familyEmailForSending);

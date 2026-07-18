@@ -1,16 +1,15 @@
 import twilio from "twilio";
 import { createClient } from "@supabase/supabase-js";
-import { normalizeUSPhone } from "./twilio";
+import { normalizeUSPhone, createTwilioClient } from "./twilio";
 import { shouldSendNotification } from "./notification-prefs";
 
 let twilioClient: twilio.Twilio | null = null;
 
 function getTwilio(): twilio.Twilio | null {
   if (twilioClient) return twilioClient;
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token) return null;
-  twilioClient = twilio(sid, token);
+  // Prefer the scoped API key, fall back to the account auth token — see
+  // createTwilioClient() in ./twilio for the rationale.
+  twilioClient = createTwilioClient();
   return twilioClient;
 }
 

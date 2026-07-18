@@ -85,7 +85,7 @@ export default function ClientsPage() {
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by provider name…"
+        placeholder="Search by provider name or email…"
         className="mb-6 w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-gray-400 focus:outline-none"
       />
 

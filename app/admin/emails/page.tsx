@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 type StatusFilter = "all" | "sent" | "failed";
 
@@ -24,6 +26,8 @@ const EMAIL_TYPE_OPTIONS = [
   { value: "claim_decision", label: "Claim Decision" },
   { value: "matches_live", label: "Matches Live" },
   { value: "matches_nudge", label: "Matches Nudge" },
+  { value: "matches_encouragement", label: "Matches Encouragement" },
+  { value: "weekly_analytics_digest", label: "Weekly Provider Digest" },
   { value: "provider_reach_out", label: "Provider Reach Out" },
   { value: "reach_out_accepted", label: "Reach Out Accepted" },
   { value: "checklist", label: "Benefits Checklist" },
@@ -246,25 +250,27 @@ export default function AdminEmailsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Emails</h1>
-            <p className="text-lg text-gray-600 mt-1">
-              Complete log of every email sent through the platform.
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
+      <AdminPageHeader
+        title="Emails"
+        description="Complete log of every email sent through the platform."
+        actions={
+          <>
             <span className="text-sm text-gray-500">{total} total</span>
+            <Link
+              href="/admin/emails/gallery"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Email Gallery →
+            </Link>
             <button
               onClick={handleExport}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Export CSV
             </button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Search bar */}
       <div className="mb-4">

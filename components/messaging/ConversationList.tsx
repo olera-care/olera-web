@@ -96,6 +96,31 @@ function getCareType(connection: ConnectionWithProfile): string | null {
   return null;
 }
 
+/**
+ * Transform system message text for the viewer's perspective.
+ * - Provider view: "You declined this inquiry"
+ * - Family view: "Unable to help at this time" (gentler tone)
+ *
+ * Uses specific system message patterns to avoid transforming user messages.
+ */
+function transformPreviewText(text: string, variant: "family" | "provider"): string {
+  // Check for system message patterns (these exact phrases only appear in system messages)
+  // Format: "This provider has declined this inquiry. Reason: ..." or "This provider has passed on this inquiry..."
+  const isSystemDeclineMessage =
+    text.startsWith("This provider has declined") ||
+    text.startsWith("This provider has passed on");
+
+  if (isSystemDeclineMessage) {
+    if (variant === "provider") {
+      return "You declined this inquiry";
+    } else {
+      return "Unable to help at this time";
+    }
+  }
+
+  return text;
+}
+
 function getLastMessage(connection: ConnectionWithProfile): { text: string; timestamp: string } | null {
   const meta = connection.metadata as Record<string, unknown> | undefined;
   const thread = (meta?.thread as ThreadMessage[]) || [];
@@ -564,7 +589,7 @@ export default function ConversationList({
                   <span className={`text-base truncate ${isUnread && !isPast ? "font-semibold text-gray-900" : "font-normal text-gray-900"}`}>
                     {name}
                   </span>
-                  {otherProfile?.verification_state === "verified" && (
+                  {(otherProfile?.verification_state === "verified" || otherProfile?.verification_state === "not_required") && (
                     <svg className="w-4 h-4 text-primary-600 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-label="Verified">
                       <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
                     </svg>
@@ -592,7 +617,7 @@ export default function ConversationList({
               )}
               {lastMsg && (
                 <p className="text-[15px] text-gray-500 truncate mt-0.5">
-                  {lastMsg.text}
+                  {transformPreviewText(lastMsg.text, variant)}
                 </p>
               )}
             </div>

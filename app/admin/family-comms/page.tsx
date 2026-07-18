@@ -1,0 +1,1016 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import DateRangePopover, {
+  resolveRange,
+  rangeLabel,
+  type DateRangeValue,
+} from "@/components/admin/DateRangePopover";
+import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
+import ReorderableSections from "@/components/admin/ReorderableSections";
+
+/**
+ * /admin/family-comms — the family-engagement + email-observability surface.
+ *
+ * First-principles read on how families move through our funnel and how every
+ * family email performs (deliver → open → click → convert), so we can iterate
+ * on copy/CTAs by data. The compare-led flywheel is the spine; the cutover
+ * lens is a secondary, collapsible view. Data: GET /api/admin/family-comms-analytics/summary.
+ */
+
+interface PerfRow {
+  type: string;
+  label: string;
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  complained: number;
+  weeklySends: number[];
+  weeklyOpens: number[];
+  compareBearing: boolean;
+  deliveryRate: number;
+  openRate: number;
+  clickRate: number;
+  bounceRate: number;
+}
+
+interface Summary {
+  range: { from: string; to: string };
+  generatedAt: string;
+  totals: { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number };
+  compareClick: { sends: number; opened: number; clicked: number; openRate: number; clickRate: number };
+  emailPerformance: PerfRow[];
+  funnel: {
+    emailed: number; opened: number; clicked: number; introRequested: number; answered: number;
+    engaged: number; benefitsStarted: number; benefitsCompleted: number; published: number;
+  };
+  sensor: { sent: number; answered: number; yes: number; no: number; notYet: number; responseRate: number; yesRate: number };
+  archetypeSensor?: { sent: number; answered: number; overwhelmed: number; avoiding: number; urgent: number; answerRate: number };
+  conversions: { compareSaved: number; guideSaved: number; benefitsStarted: number; benefitsCompleted: number; published: number; quizAnswers?: number };
+  guidance?: {
+    quizAnswers: number; quizByQuestion: Record<string, number>;
+    briefViews: number; stepsExpanded: number;
+    pathDistribution: Record<string, number>;
+    sortsBySource?: Record<string, { a: number; b: number; c: number }>;
+  };
+  outcomes: { total: number; connected: number; active: number; guided: number; stalled: number; lookbackDays: number };
+  cutover: { anchor: string; cutoverWeekIndex: number; weekStartsISO: string[]; sendsWeekly: number[]; goLivesWeekly: number[] };
+}
+
+interface SmsSummary {
+  configured: boolean;
+  range?: { from: string; to: string };
+  generatedAt?: string;
+  senderLast4?: string;
+  totals?: { total: number; delivered: number; undelivered: number; failed: number; sentUnconfirmed: number; inFlight: number };
+  deliveredRate?: number;
+  buckets?: { registration: number; badNumber: number; optOut: number; filtered: number; other: number };
+  registrationSinceApproval?: number;
+  byError?: { code: number; label: string; count: number }[];
+  recent?: { ts: string | null; toLast4: string; status: string; errorCode: number | null; errorLabel: string | null }[];
+  daily?: { date: string; sent: number; delivered: number; undelivered: number; failed: number }[];
+  truncated?: boolean;
+  error?: string;
+}
+
+const pct = (n: number) => `${(n * 100).toFixed(n >= 0.0995 ? 0 : 1)}%`;
+const num = (n: number) => n.toLocaleString();
+
+function Sparkline({ points, color = "#0d9488" }: { points: (number | null)[]; color?: string }) {
+  const w = 72, h = 18;
+  const real = points.filter((p): p is number => p !== null);
+  if (!real.length) return <svg width={w} height={h} />;
+  const max = Math.max(1, ...real);
+  const step = points.length > 1 ? w / (points.length - 1) : w;
+  // Null weeks (no sends) break the line — a gap is honest, a zero is a lie.
+  let d = "";
+  let pen = false;
+  points.forEach((p, i) => {
+    if (p === null) { pen = false; return; }
+    d += `${pen ? "L" : "M"}${(i * step).toFixed(1)},${(h - (p / max) * (h - 2) - 1).toFixed(1)} `;
+    pen = true;
+  });
+  // An isolated week draws no path segment — give it a visible dot.
+  const dots = points
+    .map((p, i) => ({ p, i }))
+    .filter(({ p, i }) => p !== null && points[i - 1] == null && points[i + 1] == null);
+  return (
+    <svg width={w} height={h} className="overflow-visible">
+      <path d={d.trim()} fill="none" stroke={color} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" />
+      {dots.map(({ p, i }) => (
+        <circle key={i} cx={(i * step).toFixed(1)} cy={(h - ((p as number) / max) * (h - 2) - 1).toFixed(1)} r={1.5} fill={color} />
+      ))}
+    </svg>
+  );
+}
+
+// ── By-type table: journey grouping + zero-state semantics (2026-07-04) ─────
+// The table's fix was hierarchy, not controls: rows group into the system's
+// real journeys in the order a family experiences them, quiet rows collapse,
+// and a zero explains itself (new vs quiet vs retired) instead of reading as
+// "broken?".
+const PERF_GROUP_ORDER = [
+  "Guidance cascade — after an inquiry",
+  "Conversations & matches",
+  "Profile lifecycle",
+  "Campaigns",
+  "Other",
+] as const;
+
+const PERF_GROUPS: Record<string, { group: (typeof PERF_GROUP_ORDER)[number]; order: number }> = {
+  family_outcome_check: { group: "Guidance cascade — after an inquiry", order: 1 },
+  family_archetype: { group: "Guidance cascade — after an inquiry", order: 2 },
+  paying_for_care: { group: "Guidance cascade — after an inquiry", order: 3 },
+  family_provider_silent: { group: "Guidance cascade — after an inquiry", order: 3 },
+  family_provider_silent_guidance: { group: "Guidance cascade — after an inquiry", order: 4 },
+  family_never_engaged: { group: "Guidance cascade — after an inquiry", order: 5 },
+  provider_still_silent: { group: "Guidance cascade — after an inquiry", order: 6 },
+  day_10_awaiting: { group: "Guidance cascade — after an inquiry", order: 7 },
+  family_reach_out_nudge: { group: "Conversations & matches", order: 1 },
+  stale_conversation: { group: "Conversations & matches", order: 2 },
+  matches_nudge: { group: "Conversations & matches", order: 3 },
+  post_connection_followup: { group: "Conversations & matches", order: 4 },
+  family_nudge: { group: "Profile lifecycle", order: 1 },
+  completion_nudge_1: { group: "Profile lifecycle", order: 2 },
+  completion_nudge_2: { group: "Profile lifecycle", order: 3 },
+  completion_nudge_3: { group: "Profile lifecycle", order: 4 },
+  completion_nudge_4: { group: "Profile lifecycle", order: 5 },
+  completion_maintenance: { group: "Profile lifecycle", order: 6 },
+  publish_nudge_1: { group: "Profile lifecycle", order: 7 },
+  publish_nudge_2: { group: "Profile lifecycle", order: 8 },
+  publish_nudge_3: { group: "Profile lifecycle", order: 9 },
+  publish_nudge_4: { group: "Profile lifecycle", order: 10 },
+  publish_maintenance: { group: "Profile lifecycle", order: 11 },
+  monthly_recommendations: { group: "Profile lifecycle", order: 12 },
+  inactivity_reengagement: { group: "Profile lifecycle", order: 13 },
+  go_live_reminder: { group: "Profile lifecycle", order: 14 },
+  dormant_reengagement: { group: "Profile lifecycle", order: 15 },
+  archetype_intro: { group: "Campaigns", order: 1 },
+  orientation_intro: { group: "Campaigns", order: 2 },
+};
+
+/** Types that no sender emits anymore — history only, folded into the quiet line.
+ *  paying_for_care + orientation_intro retired 2026-07-08 when the archetype
+ *  first-touch replaced the financial self-sort as the opener. */
+const PERF_RETIRED = new Set(["go_live_reminder", "dormant_reengagement", "paying_for_care", "orientation_intro"]);
+
+/** Zero-send rows that are NEW (not broken): show a badge, not dead dashes. */
+const PERF_NEW_NOTES: Record<string, string> = {
+  family_archetype: "new first-touch · not sent yet",
+  archetype_intro: "one-time campaign · not sent yet",
+};
+
+/** Open-rate trend per send-week cohort; weeks with no sends are honest gaps. */
+function openRateTrend(p: PerfRow): (number | null)[] {
+  return p.weeklySends.map((s, i) => (s > 0 ? ((p.weeklyOpens?.[i] ?? 0) / s) * 100 : null));
+}
+
+function Stat({ label, value, sub, accent, info }: { label: string; value: string; sub?: string; accent?: boolean; info?: string }) {
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+      <div className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+        <span>{label}</span>
+        {info && (
+          <span
+            title={info}
+            className="inline-flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-gray-300 text-[9px] font-semibold text-gray-400 hover:border-gray-400 hover:text-gray-600"
+            aria-label={info}
+          >
+            ?
+          </span>
+        )}
+      </div>
+      <div className={`mt-1 text-[26px] font-semibold tabular-nums ${accent ? "text-teal-700" : "text-gray-900"}`}>{value}</div>
+      {sub && <div className="mt-0.5 text-[11px] text-gray-500">{sub}</div>}
+    </div>
+  );
+}
+
+// ── Per-type detail drawer ──────────────────────────────────────────────────
+interface VariantMeta {
+  id: string;
+  audience: string;
+  label: string;
+  subject: string;
+  emailType: string;
+  cron: string | null;
+  who: string | null;
+  why: string | null;
+  from: string;
+}
+
+/**
+ * Right-side drawer that opens when an email-type row is clicked. Shows the live
+ * rendered template (iframe → /api/admin/emails/sample?id=…&raw=1), the "who gets
+ * it / why" rationale, and the row's performance. Replaces the old "dump to the
+ * unfiltered /admin/emails list" link so copy can be analyzed in place.
+ */
+function EmailTypeDrawer({
+  row,
+  variants,
+  variantsLoading,
+  onClose,
+}: {
+  row: PerfRow;
+  variants: VariantMeta[] | null;
+  variantsLoading: boolean;
+  onClose: () => void;
+}) {
+  const matches = useMemo(
+    () => (variants || []).filter((v) => v.emailType === row.type && v.audience === "family"),
+    [variants, row.type],
+  );
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const active = matches.find((v) => v.id === activeId) ?? matches[0] ?? null;
+  const rationale = matches.find((v) => v.who || v.why) ?? null;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-gray-900/30" onClick={onClose} aria-hidden />
+      <div className="relative flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate text-lg font-semibold text-gray-900">{row.label}</h2>
+              {row.compareBearing && (
+                <span className="rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700">compare</span>
+              )}
+            </div>
+            <div className="mt-0.5 font-mono text-[11px] text-gray-400">{row.type}</div>
+          </div>
+          <button onClick={onClose} className="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {/* Performance strip */}
+          <div className="grid grid-cols-4 gap-px border-b border-gray-100 bg-gray-100">
+            {[
+              { k: "Sent", v: num(row.sent) },
+              { k: "Deliv.", v: row.sent ? pct(row.deliveryRate) : "—" },
+              { k: "Open", v: row.sent ? pct(row.openRate) : "—" },
+              { k: "Click", v: row.sent ? pct(row.clickRate) : "—" },
+            ].map((s) => (
+              <div key={s.k} className="bg-white px-3 py-2.5 text-center">
+                <div className="text-[10px] uppercase tracking-wide text-gray-400">{s.k}</div>
+                <div className="mt-0.5 text-base font-semibold tabular-nums text-gray-900">{s.v}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Who / Why */}
+          <div className="space-y-3 border-b border-gray-100 px-5 py-4">
+            {rationale?.who && (
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Who gets this</div>
+                <p className="mt-1 text-sm leading-relaxed text-gray-700">{rationale.who}</p>
+              </div>
+            )}
+            {rationale?.why && (
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Why</div>
+                <p className="mt-1 text-sm leading-relaxed text-gray-700">{rationale.why}</p>
+              </div>
+            )}
+            {active?.cron && (
+              <div className="text-[11px] text-gray-400">
+                Sent by{" "}
+                <Link href={`/admin/automations`} className="text-teal-700 hover:underline">{active.cron}</Link>
+              </div>
+            )}
+            {!rationale && !variantsLoading && (
+              <p className="text-sm text-gray-400">No rationale registered for this type yet.</p>
+            )}
+          </div>
+
+          {/* Preview */}
+          <div className="px-5 py-4">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Email preview</div>
+              {active && (
+                <a
+                  href={`/api/admin/emails/sample?id=${encodeURIComponent(active.id)}&raw=1`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] text-teal-700 hover:underline"
+                >
+                  Open full ↗
+                </a>
+              )}
+            </div>
+
+            {/* Variant switcher (when a type has multiple copy variants) */}
+            {matches.length > 1 && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {matches.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => setActiveId(v.id)}
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                      active?.id === v.id ? "bg-teal-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {active && (
+              <div className="mb-2 space-y-1 rounded-md bg-gray-50 px-3 py-2 text-[12px] text-gray-600">
+                {active.from && (
+                  <div><span className="inline-block w-12 text-gray-400">From</span> {active.from}</div>
+                )}
+                {active.subject && (
+                  <div><span className="inline-block w-12 text-gray-400">Subject</span> {active.subject}</div>
+                )}
+              </div>
+            )}
+
+            {variantsLoading ? (
+              <p className="py-8 text-center text-sm text-gray-400">Loading preview…</p>
+            ) : active ? (
+              <iframe
+                title={`Preview of ${row.label}`}
+                src={`/api/admin/emails/sample?id=${encodeURIComponent(active.id)}&raw=1`}
+                className="h-[60vh] w-full rounded-lg border border-gray-200 bg-white"
+              />
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center">
+                <p className="text-sm text-gray-500">No template preview registered for this type yet.</p>
+                <Link href={`/admin/emails?type=${encodeURIComponent(row.type)}`} className="mt-2 inline-block text-[12px] text-teal-700 hover:underline">
+                  View sent copies in the email log →
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer links */}
+        <div className="flex items-center gap-4 border-t border-gray-100 px-5 py-3 text-[12px]">
+          <Link href={`/admin/emails?type=${encodeURIComponent(row.type)}`} className="text-gray-600 hover:text-teal-700">View sent log</Link>
+          <Link href="/admin/emails/gallery" className="text-gray-600 hover:text-teal-700">Open Email Gallery</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Outcome distribution — every family that inquired in the lookback, split into
+ * connected / active / guided / stalled. Matchmaking outcomes (connected/active)
+ * on the warm side, Guidance outcomes (guided/stalled) on the cool side; the
+ * sensor is the conceptual switch between them. Calm palette, not a RAG heatmap.
+ */
+function OutcomePanel({ oc }: { oc: NonNullable<Summary["outcomes"]> }) {
+  const segs = [
+    { key: "connected", label: "Connected", value: oc.connected, bar: "bg-emerald-500", text: "text-emerald-700", note: "a real match formed" },
+    { key: "active", label: "Active", value: oc.active, bar: "bg-teal-400", text: "text-teal-700", note: "still matchmaking" },
+    { key: "guided", label: "Guided", value: oc.guided, bar: "bg-amber-400", text: "text-amber-700", note: "onto self-serve help" },
+    { key: "stalled", label: "Stalled", value: oc.stalled, bar: "bg-stone-400", text: "text-stone-500", note: "no connection, no engagement" },
+  ] as const;
+  const total = oc.total;
+  const share = (v: number) => (total > 0 ? v / total : 0);
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        {segs.map((s) => (
+          <div key={s.key} className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400">
+              <span className={`inline-block h-2 w-2 rounded-full ${s.bar}`} />
+              <span>{s.label}</span>
+            </div>
+            <div className={`mt-1 text-[26px] font-semibold tabular-nums ${s.text}`}>{num(s.value)}</div>
+            <div className="mt-0.5 text-[11px] text-gray-500">{total > 0 ? pct(share(s.value)) : "—"} · {s.note}</div>
+          </div>
+        ))}
+      </div>
+      {total > 0 && (
+        <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100">
+          {segs.map((s) => (
+            <div key={s.key} className={s.bar} style={{ width: `${share(s.value) * 100}%` }} title={`${s.label}: ${num(s.value)}`} />
+          ))}
+        </div>
+      )}
+      <p className="mt-3 text-[11px] text-gray-400 leading-relaxed">
+        {num(total)} families that inquired in the last {oc.lookbackDays} days (rolling — independent of the date range above,
+        since a family that connected weeks ago is still connected). <span className="text-emerald-700 font-medium">Connected</span> = provider
+        engaged/accepted or the family self-reported a reply; <span className="text-teal-700 font-medium">Active</span> = inquiry &lt; 7d, still
+        matchmaking; <span className="text-amber-700 font-medium">Guided</span> = engaged compare/guide/benefits after matchmaking stalled;
+        <span className="text-stone-500 font-medium"> Stalled</span> = silent, no engagement (the set v2 exists to shrink). Derived from
+        connections + self-report + seeker_activity — no new tracking.
+      </p>
+    </>
+  );
+}
+
+// ── SMS delivery health ─────────────────────────────────────────────────────
+// The sibling to email deliverability. Source is Twilio (the real carrier
+// status), NOT email_log — the log's "sent" only means Twilio accepted the API
+// call, which read green even while carriers silently dropped ~80% pre-10DLC.
+// Covers ALL outbound SMS from our A2P number: family reply-alerts + provider
+// new-inquiry alerts (one number, one campaign, one delivery story).
+function smsStatusChip(status: string) {
+  if (status === "delivered") return "bg-emerald-50 text-emerald-700";
+  if (status === "undelivered" || status === "failed") return "bg-rose-50 text-rose-700";
+  if (status === "sent") return "bg-amber-50 text-amber-700";
+  return "bg-gray-100 text-gray-500";
+}
+
+function SmsDeliveryPanel({ sms, loading, error }: { sms: SmsSummary | null; loading: boolean; error: string | null }) {
+  if (loading && !sms) return <p className="text-sm text-gray-400">Loading Twilio delivery data…</p>;
+  if (error) return <p className="text-sm text-rose-600">Failed to load SMS delivery: {error}</p>;
+  if (sms && sms.configured === false) return <p className="text-sm text-gray-400">Twilio isn&rsquo;t configured in this environment, so there&rsquo;s no SMS delivery data to show.</p>;
+  if (sms?.error) return <p className="text-sm text-rose-600">Twilio query failed: {sms.error}</p>;
+  if (!sms || !sms.totals) return <p className="text-sm text-gray-400">No SMS delivery data.</p>;
+
+  const t = sms.totals;
+  const b = sms.buckets || { registration: 0, badNumber: 0, optOut: 0, filtered: 0, other: 0 };
+  const regSince = sms.registrationSinceApproval ?? 0;
+  const terminal = t.delivered + t.undelivered + t.failed;
+  const segs = [
+    { key: "delivered", label: "Delivered", value: t.delivered, bar: "bg-emerald-500", text: "text-emerald-700", note: "landed on the handset" },
+    { key: "badNumber", label: "Bad number", value: b.badNumber, bar: "bg-amber-400", text: "text-amber-700", note: "landline / disconnected — data quality" },
+    { key: "registration", label: "Unregistered", value: b.registration, bar: "bg-rose-500", text: "text-rose-700", note: "pre-10DLC drops — should be 0 now" },
+    { key: "optOut", label: "Opted out", value: b.optOut, bar: "bg-violet-400", text: "text-violet-700", note: "recipient sent STOP" },
+    { key: "filtered", label: "Filtered", value: b.filtered, bar: "bg-orange-400", text: "text-orange-700", note: "carrier spam filter" },
+    { key: "other", label: "Other", value: b.other, bar: "bg-stone-400", text: "text-stone-500", note: "other failures" },
+  ].filter((s) => s.key === "delivered" || s.value > 0);
+  const share = (v: number) => (terminal > 0 ? v / terminal : 0);
+  const sentSeries = (sms.daily || []).map((d) => d.sent);
+
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <Stat label="Texts sent" value={num(t.total)} sub={t.inFlight + t.sentUnconfirmed > 0 ? `${num(t.inFlight + t.sentUnconfirmed)} in flight / unconfirmed` : "in this window"} info="Every outbound SMS from our A2P sender number in this window — family reply-alerts and provider new-inquiry alerts combined. Pulled live from Twilio." />
+        <Stat label="Delivered rate" value={terminal > 0 ? pct(sms.deliveredRate || 0) : "—"} sub={`${num(t.delivered)} of ${num(terminal)} confirmed`} accent info="Share of texts with a confirmed carrier outcome that were delivered. Denominator excludes in-flight/unconfirmed sends. This is the number 10DLC approval was meant to move (was ~20%, should now be near 100% minus bad numbers)." />
+        <Stat label="Failed / undelivered" value={num(t.undelivered + t.failed)} sub={b.badNumber > 0 ? `${num(b.badNumber)} bad numbers` : "carrier outcomes"} info="Texts the carrier rejected. Most are 'bad number' (landline/disconnected) — a data-quality issue with directory-scraped phones, not a delivery-system problem." />
+        <Stat label="Unregistered (30034)" value={num(regSince)} sub={regSince > 0 ? "since 10DLC approval — investigate" : b.registration > 0 ? `0 new · ${num(b.registration)} historical (pre-7/15) ✓` : "cleared by 10DLC ✓"} info="The pre-approval failure mode: carrier dropped the text because the number wasn't on an approved A2P 10DLC campaign. This tile counts only drops AFTER the campaign approved (2026-07-15) — those are the actionable ones. Pre-approval drops are expected history and don't count here. Anything above 0 means a send is bypassing the registered sender." />
+      </div>
+
+      {terminal > 0 && (
+        <>
+          <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100 mb-3">
+            {segs.map((s) => (
+              <div key={s.key} className={s.bar} style={{ width: `${share(s.value) * 100}%` }} title={`${s.label}: ${num(s.value)}`} />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+            {segs.map((s) => (
+              <div key={s.key} className="flex items-start gap-1.5">
+                <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${s.bar}`} />
+                <div className="min-w-0">
+                  <div className={`text-sm font-semibold tabular-nums ${s.text}`}>{num(s.value)} <span className="text-[11px] font-normal text-gray-400">{terminal > 0 ? pct(share(s.value)) : ""}</span></div>
+                  <div className="text-[11px] leading-tight text-gray-500">{s.label} · {s.note}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent sends — the live tail, with real carrier status */}
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Recent sends</span>
+            {sentSeries.some((v) => v > 0) && <Sparkline points={sentSeries} />}
+          </div>
+          {sms.recent && sms.recent.length > 0 ? (
+            <div className="divide-y divide-gray-100 rounded-lg border border-gray-100">
+              {sms.recent.slice(0, 12).map((r, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-1.5 text-[12px]">
+                  <span className="w-28 shrink-0 text-gray-400 tabular-nums">{r.ts ? new Date(r.ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"}</span>
+                  <span className="w-16 shrink-0 font-mono text-gray-500">••{r.toLast4}</span>
+                  <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${smsStatusChip(r.status)}`}>{r.status}</span>
+                  <span className="truncate text-gray-400">{r.errorLabel || ""}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-gray-400">No texts sent in this window.</p>
+          )}
+        </div>
+
+        {/* Error breakdown — whose fault, not just which code */}
+        <div>
+          <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Why texts failed</span>
+          {sms.byError && sms.byError.length > 0 ? (
+            <div className="space-y-1.5">
+              {sms.byError.map((e) => (
+                <div key={e.code} className="flex items-center gap-3 text-[13px]">
+                  <span className="flex-1 truncate text-gray-600">{e.label}</span>
+                  <span className="font-mono text-[11px] text-gray-400">{e.code}</span>
+                  <span className="w-8 text-right font-semibold tabular-nums text-gray-800">{num(e.count)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-gray-400">No failures in this window — every confirmed text delivered. 🎉</p>
+          )}
+        </div>
+      </div>
+
+      <p className="mt-4 text-[11px] text-gray-400 leading-relaxed">
+        Live from Twilio (sender ••{sms.senderLast4}) — the real carrier status, not the app&rsquo;s
+        &ldquo;sent&rdquo; log, which only means Twilio accepted the request.
+        <span className="font-medium text-rose-700"> Unregistered (30034)</span> = the pre-10DLC failure, cleared when the A2P
+        campaign approved on 2026-07-15. <span className="font-medium text-amber-700">Bad number</span> = the destination is a
+        landline or disconnected line (directory-scraped provider phones), which no delivery fix can help. In-flight/unconfirmed
+        sends are excluded from the delivered rate.{sms.truncated ? " Showing the most recent 2,000 sends — window may be truncated." : ""}
+      </p>
+    </>
+  );
+}
+
+/** Horizontal funnel step with a width bar relative to the top of the funnel. */
+function FunnelStep({ label, value, base, note }: { label: string; value: number; base: number; note?: string }) {
+  const w = base > 0 ? Math.max(2, (value / base) * 100) : 0;
+  const conv = base > 0 ? value / base : 0;
+  return (
+    <div className="flex items-center gap-3 py-1.5">
+      <div className="w-44 shrink-0 text-sm text-gray-700">{label}</div>
+      <div className="flex-1 min-w-0">
+        <div className="h-7 rounded-md bg-teal-50 overflow-hidden">
+          <div className="h-full rounded-md bg-teal-500/80 flex items-center px-2" style={{ width: `${w}%` }}>
+            <span className="text-[11px] font-semibold text-white tabular-nums">{num(value)}</span>
+          </div>
+        </div>
+      </div>
+      <div className="w-28 shrink-0 text-right text-[11px] text-gray-500 tabular-nums">
+        {pct(conv)} of emailed{note ? "" : ""}
+      </div>
+    </div>
+  );
+}
+
+export default function FamilyCommsAnalyticsPage() {
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
+  const [data, setData] = useState<Summary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openRow, setOpenRow] = useState<PerfRow | null>(null);
+  const [variants, setVariants] = useState<VariantMeta[] | null>(null);
+  const [variantsLoading, setVariantsLoading] = useState(true);
+  const [quietOpen, setQuietOpen] = useState<Record<string, boolean>>({});
+  const [sms, setSms] = useState<SmsSummary | null>(null);
+  const [smsLoading, setSmsLoading] = useState(true);
+  const [smsError, setSmsError] = useState<string | null>(null);
+
+  // Variant metadata (who/why + render ids) — fetched once for the drawer.
+  useEffect(() => {
+    fetch("/api/admin/emails/sample")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d: { variants: VariantMeta[] }) => setVariants(d.variants || []))
+      .catch(() => setVariants([]))
+      .finally(() => setVariantsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    const { from, to } = resolveRange(range);
+    const params = new URLSearchParams();
+    if (from) params.set("date_from", from);
+    if (to) params.set("date_to", to);
+    fetch(`/api/admin/family-comms-analytics/summary?${params.toString()}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d: Summary) => setData(d))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [range]);
+
+  // SMS delivery health fetched independently — Twilio latency (or a Twilio
+  // hiccup) must never block the email dashboard from rendering.
+  useEffect(() => {
+    setSmsLoading(true);
+    setSmsError(null);
+    const { from, to } = resolveRange(range);
+    const params = new URLSearchParams();
+    if (from) params.set("date_from", from);
+    if (to) params.set("date_to", to);
+    fetch(`/api/admin/family-comms-analytics/sms?${params.toString()}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d: SmsSummary) => setSms(d))
+      .catch((e) => setSmsError(e.message))
+      .finally(() => setSmsLoading(false));
+  }, [range]);
+
+  const f = data?.funnel;
+  const sensor = data?.sensor;
+  const conv = data?.conversions;
+  const g = data?.guidance;
+  const oc = data?.outcomes;
+
+  const sensorBreakdown = useMemo(() => {
+    if (!sensor || sensor.answered === 0) return null;
+    return [
+      { k: "Yes — provider got back", v: sensor.yes, c: "bg-emerald-500" },
+      { k: "Not yet", v: sensor.notYet, c: "bg-amber-400" },
+      { k: "No", v: sensor.no, c: "bg-rose-400" },
+    ];
+  }, [sensor]);
+
+  const archetype = data?.archetypeSensor;
+  const archetypeBreakdown = useMemo(() => {
+    if (!archetype || archetype.answered === 0) return null;
+    return [
+      { k: "Don't know where to start", v: archetype.overwhelmed, c: "bg-sky-400" },
+      { k: "Rather avoid senior living", v: archetype.avoiding, c: "bg-violet-400" },
+      { k: "Need help right away", v: archetype.urgent, c: "bg-rose-400" },
+    ];
+  }, [archetype]);
+
+  // Journey-grouped by-type rows: active (sent this window), new (zero but
+  // expected — badge), quiet (zero, folded into one expandable line; retired
+  // types live there with a chip).
+  const perfGroups = useMemo(() => {
+    const rows = data?.emailPerformance || [];
+    const byGroup = new Map<string, { active: PerfRow[]; fresh: PerfRow[]; quiet: PerfRow[] }>();
+    for (const p of rows) {
+      const g = PERF_GROUPS[p.type]?.group || "Other";
+      const bucket = byGroup.get(g) || { active: [], fresh: [], quiet: [] };
+      if (p.sent > 0) bucket.active.push(p);
+      else if (PERF_NEW_NOTES[p.type]) bucket.fresh.push(p);
+      else bucket.quiet.push(p);
+      byGroup.set(g, bucket);
+    }
+    const orderOf = (p: PerfRow) => PERF_GROUPS[p.type]?.order ?? 99;
+    const journey = (a: PerfRow, b: PerfRow) => orderOf(a) - orderOf(b) || b.sent - a.sent;
+    const out: { title: string; active: PerfRow[]; fresh: PerfRow[]; quiet: PerfRow[] }[] = [];
+    for (const title of PERF_GROUP_ORDER) {
+      const b = byGroup.get(title);
+      if (!b || (!b.active.length && !b.fresh.length && !b.quiet.length)) continue;
+      b.active.sort(journey);
+      b.fresh.sort(journey);
+      b.quiet.sort(journey);
+      out.push({ title, ...b });
+    }
+    return out;
+  }, [data?.emailPerformance]);
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
+        <div>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Link href="/admin/automations" className="hover:text-gray-600">Automations</Link>
+            <span>·</span>
+            <Link href="/admin/emails" className="hover:text-gray-600">Emails log</Link>
+          </div>
+          <h1 className="mt-1 text-2xl font-semibold text-gray-900">Family Comms — engagement & email performance</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            How families move through the compare-led flywheel, and how every family email performs. {" "}
+            <span className="text-gray-400">{rangeLabel(range)}</span>
+          </p>
+        </div>
+        <DateRangePopover value={range} onChange={setRange} />
+      </div>
+
+      {loading && <p className="text-sm text-gray-500">Loading…</p>}
+      {error && <p className="text-sm text-red-600">Failed to load: {error}</p>}
+
+      {data && !error && (
+        <>
+          {/* Top-line stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
+            <Stat label="Emails sent" value={num(data.totals.sent)} info="Total family emails sent in this window (recipient is a family, not a provider)." />
+            <Stat label="Open rate" value={pct(data.totals.sent ? data.totals.opened / (data.totals.delivered || data.totals.sent) : 0)} sub={`${num(data.totals.opened)} opened`} info="Share of delivered family emails that were opened (Resend webhook)." />
+            <Stat label="Click rate" value={pct(data.totals.opened ? data.totals.clicked / data.totals.opened : 0)} sub={`${num(data.totals.clicked)} clicked`} info="Share of opened emails where a link was clicked." />
+            <Stat label="Intros requested" value={num(data.funnel.introRequested)} sub="one-tap intros" accent info="Families who tapped 'Introduce me' on a compare card, creating a real inquiry to that provider (B2). The clearest signal the curated shortlist drove action — the connection-driver we built it for." />
+            <Stat label="Reply rate" value={pct(sensor?.responseRate ?? 0)} sub={`${num(sensor?.answered ?? 0)} / ${num(sensor?.sent ?? 0)} answered`} accent info={`Share of "Outcome check" emails where the family answered the question "Did the provider get back to you?" — our ground-truth signal. ${num(sensor?.answered ?? 0)} of ${num(sensor?.sent ?? 0)} sent answered.`} />
+            <Stat label="Provider got back" value={pct(sensor?.yesRate ?? 0)} sub="of those who answered" info="Of families who answered the outcome-check, the share who said YES, a provider did get back to them. A 'no / not yet' routes them into the help cascade." />
+            <Stat label="Went live" value={num(conv?.published ?? 0)} sub="profiles published" accent info="Family care-seeker profiles that were published (went live) in this window — the North-Star proxy. Counts the action across all families, not attributed to a single email." />
+          </div>
+
+          <BulkCollapseToolbar />
+
+          {/* Sections are drag-reorderable via the grip that appears on hover —
+              identity comes from each section's storageKey, order persists per
+              operator in localStorage. */}
+          <ReorderableSections storageKey="family-comms">
+
+          {/* Where families land — the outcome distribution (Phase 0).
+              The north star made legible: we count outcomes, not just sends. */}
+          {oc && (
+            <CollapsibleSection title="Where families land — outcomes" storageKey="fc.outcomes" defaultCollapsed={false}>
+              <OutcomePanel oc={oc} />
+            </CollapsibleSection>
+          )}
+
+          {/* Flywheel funnel */}
+          <CollapsibleSection title="Family engagement flywheel" storageKey="fc.funnel" defaultCollapsed={false}>
+            {f && (
+              <>
+                <div className="space-y-0.5">
+                  <FunnelStep label="Emailed" value={f.emailed} base={f.emailed} />
+                  <FunnelStep label="Opened" value={f.opened} base={f.emailed} />
+                  <FunnelStep label="Clicked" value={f.clicked} base={f.emailed} />
+                  <FunnelStep label="Introductions requested" value={f.introRequested} base={f.emailed} />
+                  <FunnelStep label="Replied to outcome-check" value={f.answered} base={f.emailed} />
+                  <FunnelStep label="Saved compare / guide" value={f.engaged} base={f.emailed} />
+                  <FunnelStep label="Benefits quiz completed" value={f.benefitsCompleted} base={f.emailed} />
+                  <FunnelStep label="Went live (published)" value={f.published} base={f.emailed} />
+                </div>
+                <p className="mt-3 text-[11px] text-gray-400 leading-relaxed">
+                  Emailed / Opened / Clicked are exact per-send email metrics. The later steps are window totals of each
+                  action across all families (not yet attributed to a specific send), so treat the lower funnel as
+                  directional volume, not a strict click-through chain.
+                </p>
+              </>
+            )}
+          </CollapsibleSection>
+
+          {/* Email performance by type — the iterate workhorse */}
+          <CollapsibleSection title="Email performance by type" storageKey="fc.perf" defaultCollapsed={false}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 text-left text-[10px] uppercase tracking-wider text-gray-500">
+                    <th className="py-2 pr-3 font-medium">Email</th>
+                    <th className="py-2 px-2 font-medium text-right">Sent</th>
+                    <th className="py-2 px-2 font-medium text-right">Deliv.</th>
+                    <th className="py-2 px-2 font-medium text-right">Open</th>
+                    <th className="py-2 px-2 font-medium text-right">Click</th>
+                    <th className="py-2 px-2 font-medium text-right">Bounce</th>
+                    <th className="py-2 pl-3 font-medium text-right">8-wk open trend</th>
+                  </tr>
+                </thead>
+                {perfGroups.map((grp) => {
+                  const quietRows = grp.quiet;
+                  const showQuiet = !!quietOpen[grp.title];
+                  const renderRow = (p: PerfRow, muted = false) => (
+                    <tr
+                      key={p.type}
+                      className={`group cursor-pointer transition-colors hover:bg-teal-50/40 ${muted ? "text-gray-400" : ""}`}
+                      onClick={() => setOpenRow(p)}
+                    >
+                      <td className="py-2 pr-3">
+                        <span className={`${muted ? "text-gray-400" : "text-gray-800"} group-hover:text-teal-700 transition-colors`}>{p.label}</span>
+                        {p.compareBearing && (
+                          <span className="ml-2 rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700">compare</span>
+                        )}
+                        {PERF_RETIRED.has(p.type) && (
+                          <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">retired</span>
+                        )}
+                        {p.sent === 0 && PERF_NEW_NOTES[p.type] && (
+                          <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">{PERF_NEW_NOTES[p.type]}</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-2 text-right tabular-nums text-gray-900">{num(p.sent)}</td>
+                      <td className="py-2 px-2 text-right tabular-nums text-gray-500">{p.sent ? pct(p.deliveryRate) : "—"}</td>
+                      <td className="py-2 px-2 text-right tabular-nums text-gray-700">{p.sent ? pct(p.openRate) : "—"}</td>
+                      <td className="py-2 px-2 text-right tabular-nums text-gray-700">{p.sent ? pct(p.clickRate) : "—"}</td>
+                      <td className={`py-2 px-2 text-right tabular-nums ${p.bounceRate > 0.02 ? "text-rose-600" : "text-gray-400"}`}>{p.sent ? pct(p.bounceRate) : "—"}</td>
+                      <td className="py-2 pl-3 text-right">
+                        <div className="relative inline-block">
+                          <Sparkline points={openRateTrend(p)} />
+                          <svg className="absolute -right-4 top-1/2 -translate-y-1/2 opacity-0 transition group-hover:opacity-50" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                  return (
+                    <tbody key={grp.title} className="divide-y divide-gray-100">
+                      <tr>
+                        <td colSpan={7} className="pt-5 pb-1.5">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{grp.title}</span>
+                        </td>
+                      </tr>
+                      {grp.active.map((p) => renderRow(p))}
+                      {grp.fresh.map((p) => renderRow(p))}
+                      {quietRows.length > 0 && (
+                        <tr>
+                          <td colSpan={7} className="py-1.5">
+                            <button
+                              type="button"
+                              className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors"
+                              onClick={() => setQuietOpen((q) => ({ ...q, [grp.title]: !q[grp.title] }))}
+                            >
+                              {showQuiet ? "Hide" : "Show"} {quietRows.length} quiet {quietRows.length === 1 ? "type" : "types"} (no sends this window) {showQuiet ? "▴" : "›"}
+                            </button>
+                          </td>
+                        </tr>
+                      )}
+                      {showQuiet && quietRows.map((p) => renderRow(p, true))}
+                    </tbody>
+                  );
+                })}
+                {perfGroups.length === 0 && (
+                  <tbody><tr><td colSpan={7} className="py-6 text-center text-sm text-gray-400">No family emails sent in this window.</td></tr></tbody>
+                )}
+              </table>
+            </div>
+            <p className="mt-3 text-[11px] text-gray-400">
+              Groups follow the family&rsquo;s journey, rows in the order they&rsquo;re experienced. Click any row to preview
+              the email and see who it goes to and why. Open rate = opened / delivered · Click rate = clicked / opened ·
+              all from Resend webhook events. The trend is each week&rsquo;s open rate (gaps = weeks with no sends). The
+              <span className="font-medium text-teal-700"> compare</span> tag marks rungs whose body carries alternative-provider cards.
+            </p>
+          </CollapsibleSection>
+
+          {/* SMS delivery — the sibling channel to email. Source is Twilio's real
+              carrier status (not the email_log "sent"), so it tells the honest
+              deliverability story the 10DLC approval was about. */}
+          <CollapsibleSection title="Text message delivery (SMS)" storageKey="fc.sms" defaultCollapsed={false}>
+            <SmsDeliveryPanel sms={sms} loading={smsLoading} error={smsError} />
+          </CollapsibleSection>
+
+          {/* Sensor detail */}
+          <CollapsibleSection title="Outcome-check sensor (ground-truth signal)" storageKey="fc.sensor" defaultCollapsed={false}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <Stat label="Sent" value={num(sensor?.sent ?? 0)} />
+              <Stat label="Answered" value={num(sensor?.answered ?? 0)} sub={pct(sensor?.responseRate ?? 0)} accent />
+              <Stat label="Provider got back" value={num(sensor?.yes ?? 0)} sub={`${pct(sensor?.yesRate ?? 0)} of answers`} />
+              <Stat label="No / not yet" value={num((sensor?.no ?? 0) + (sensor?.notYet ?? 0))} sub="→ help cascade" />
+            </div>
+            {sensorBreakdown && (
+              <div className="space-y-1.5">
+                {sensorBreakdown.map((b) => (
+                  <div key={b.k} className="flex items-center gap-3">
+                    <div className="w-44 shrink-0 text-sm text-gray-700">{b.k}</div>
+                    <div className="flex-1 h-5 rounded bg-gray-100 overflow-hidden">
+                      <div className={`h-full ${b.c}`} style={{ width: `${sensor && sensor.answered ? (b.v / sensor.answered) * 100 : 0}%` }} />
+                    </div>
+                    <div className="w-12 text-right text-xs tabular-nums text-gray-600">{num(b.v)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CollapsibleSection>
+
+          {/* Archetype self-sort — the first-touch signal. Same shape as the
+              outcome-check sensor: sent/answered cards + a three-row bar chart of
+              which scenario families pick. The distribution is the cadence dial. */}
+          <CollapsibleSection title="Archetype self-sort (first-touch signal)" storageKey="fc.archetype" defaultCollapsed={false}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <Stat label="Sent" value={num(archetype?.sent ?? 0)} />
+              <Stat label="Answered" value={num(archetype?.answered ?? 0)} sub={pct(archetype?.answerRate ?? 0)} accent info={`Share of archetype emails ("Where are you in all this?") where the family tapped a scenario. ${num(archetype?.answered ?? 0)} of ${num(archetype?.sent ?? 0)} sent answered.`} />
+              <Stat label="Need help now" value={num(archetype?.urgent ?? 0)} sub="→ providers + intros" />
+              <Stat label="Just starting" value={num(archetype?.overwhelmed ?? 0)} sub="→ orientation" />
+            </div>
+            {archetypeBreakdown ? (
+              <div className="space-y-1.5">
+                {archetypeBreakdown.map((b) => (
+                  <div key={b.k} className="flex items-center gap-3">
+                    <div className="w-44 shrink-0 text-sm text-gray-700">{b.k}</div>
+                    <div className="flex-1 h-5 rounded bg-gray-100 overflow-hidden">
+                      <div className={`h-full ${b.c}`} style={{ width: `${archetype && archetype.answered ? (b.v / archetype.answered) * 100 : 0}%` }} />
+                    </div>
+                    <div className="w-12 text-right text-xs tabular-nums text-gray-600">{num(b.v)}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[12px] text-gray-400">No archetype answers yet — the bars fill once families start tapping the first-touch email.</p>
+            )}
+          </CollapsibleSection>
+
+          {/* Conversions strip */}
+          <CollapsibleSection title="Downstream conversions" storageKey="fc.conv" defaultCollapsed={false}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <Stat label="Compare saved" value={num(conv?.compareSaved ?? 0)} />
+              <Stat label="Guide saved" value={num(conv?.guideSaved ?? 0)} />
+              <Stat label="Quiz answers" value={num(conv?.quizAnswers ?? 0)} sub="one-tap chips" />
+              <Stat label="Benefits started" value={num(conv?.benefitsStarted ?? 0)} sub="quiz opens (under-tracked)" />
+              <Stat label="Benefits completed" value={num(conv?.benefitsCompleted ?? 0)} sub={conv && conv.benefitsStarted >= conv.benefitsCompleted && conv.benefitsStarted > 0 ? pct(conv.benefitsCompleted / conv.benefitsStarted) + " of started" : "results saved"} />
+              <Stat label="Went live" value={num(conv?.published ?? 0)} accent />
+            </div>
+          </CollapsibleSection>
+
+          {/* Guidance journey (orientation layer) */}
+          <CollapsibleSection title="Guidance journey — orientation & one-tap quiz" storageKey="fc.guidance" defaultCollapsed={false}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <Stat label="Quiz answers" value={num(g?.quizAnswers ?? 0)} sub="one-tap chips" />
+              <Stat label="Cost self-sorts" value={num(g?.quizByQuestion?.path ?? 0)} sub="financial path · demoted" />
+              <Stat label="Brief views" value={num(g?.briefViews ?? 0)} sub="program briefs opened" />
+              <Stat label="Steps opened" value={num(g?.stepsExpanded ?? 0)} sub="playbook expansions" />
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Where families land on cost — financial path <span className="normal-case font-normal text-gray-300">(demoted secondary sort; the first-touch archetype self-sort is the panel above)</span></p>
+            {(() => {
+              const d = g?.pathDistribution || { a: 0, b: 0, c: 0 };
+              const total = (d.a || 0) + (d.b || 0) + (d.c || 0);
+              const rows = [
+                { key: "b", label: "Some savings, but not endless", color: "bg-teal-500" },
+                { key: "a", label: "We can cover it comfortably", color: "bg-teal-300" },
+                { key: "c", label: "Resources are very limited", color: "bg-teal-700" },
+              ];
+              return (
+                <div className="space-y-2">
+                  {rows.map((r) => {
+                    const v = d[r.key] || 0;
+                    return (
+                      <div key={r.key} className="flex items-center gap-3">
+                        <span className="w-56 flex-none text-[13px] text-gray-600">{r.label}</span>
+                        <div className="flex-1 h-3 rounded-full bg-gray-100 overflow-hidden">
+                          <div className={`h-3 ${r.color}`} style={{ width: total ? `${Math.max((v / total) * 100, v > 0 ? 2 : 0)}%` : 0 }} />
+                        </div>
+                        <span className="w-16 flex-none text-right text-[13px] text-gray-700">{num(v)}{total ? ` · ${pct(v / total)}` : ""}</span>
+                      </div>
+                    );
+                  })}
+                  {total === 0 ? <p className="text-[12px] text-gray-400">No cost sorts yet — the financial question now comes from the later compare/awaiting rungs, not the first touch.</p> : null}
+                </div>
+              );
+            })()}
+            {(() => {
+              const SOURCE_LABELS: Record<string, string> = {
+                orientation_intro: "Orientation campaign",
+                paying_for_care: "Day-3 paying-for-care",
+                family_never_engaged: "Never-engaged email",
+                family_provider_silent: "Provider-silent email",
+                day_10_awaiting: "Day-10 email",
+                on_site: "On-site (brief / page)",
+              };
+              const entries = Object.entries(g?.sortsBySource || {}).map(([k, v]) => ({
+                key: k, label: SOURCE_LABELS[k] || k, ...v, total: (v.a || 0) + (v.b || 0) + (v.c || 0),
+              })).sort((x, y) => y.total - x.total);
+              if (!entries.length) return null;
+              return (
+                <div className="mt-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Where sorts come from (this window)</p>
+                  <div className="space-y-1.5">
+                    {entries.map((e) => (
+                      <div key={e.key} className="flex items-center gap-3 text-[13px]">
+                        <span className="w-56 flex-none text-gray-600">{e.label}</span>
+                        <span className="w-10 flex-none text-right font-medium text-gray-800">{num(e.total)}</span>
+                        <span className="text-gray-400">A {e.a} · B {e.b} · C {e.c}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+            <p className="mt-4 text-[11px] text-gray-400">Quiz answers, brief views, and step expansions are window totals from profile stamps. The path split is a current-state snapshot of every sorted family; the by-source rows are windowed taps attributed to the email that produced them. Slack gets a live line per answer (mute: GUIDANCE_SLACK_DISABLED=1).</p>
+          </CollapsibleSection>
+
+          {/* Secondary: cutover lens */}
+          <CollapsibleSection title="Cutover lens — coordinator vs. the old firehose" storageKey="fc.cutover" defaultCollapsed={true}>
+            <p className="text-[12px] text-gray-500 mb-4">
+              The coordinator took over the 6 inquiry crons on <span className="font-medium text-gray-700">2026-06-24</span>.
+              Weekly family-email volume and go-lives spanning that boundary — directional, since go-lives aren&apos;t solely email-attributed.
+            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <WeeklyBars title="Family emails / week" series={data.cutover.sendsWeekly} starts={data.cutover.weekStartsISO} cutoverIdx={data.cutover.cutoverWeekIndex} color="bg-teal-400" />
+              <WeeklyBars title="Profiles went live / week" series={data.cutover.goLivesWeekly} starts={data.cutover.weekStartsISO} cutoverIdx={data.cutover.cutoverWeekIndex} color="bg-emerald-500" />
+            </div>
+          </CollapsibleSection>
+
+          </ReorderableSections>
+
+          <p className="mt-2 text-[11px] text-gray-400">
+            Generated {new Date(data.generatedAt).toLocaleString()} · all signals from existing data (email_log + Resend webhooks + seeker_activity).
+          </p>
+        </>
+      )}
+
+      {openRow && (
+        <EmailTypeDrawer
+          row={openRow}
+          variants={variants}
+          variantsLoading={variantsLoading}
+          onClose={() => setOpenRow(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function WeeklyBars({ title, series, starts, cutoverIdx, color }: { title: string; series: number[]; starts: string[]; cutoverIdx: number; color: string }) {
+  const max = Math.max(1, ...series);
+  return (
+    <div>
+      <div className="text-[11px] font-medium uppercase tracking-wide text-gray-400 mb-2">{title}</div>
+      <div className="flex items-end gap-1.5 h-28">
+        {series.map((v, i) => {
+          const isPost = cutoverIdx >= 0 && i >= cutoverIdx;
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <span className="text-[10px] tabular-nums text-gray-500">{v || ""}</span>
+              <div className="w-full rounded-t bg-gray-100 flex items-end" style={{ height: "100%" }}>
+                <div className={`w-full rounded-t ${color} ${isPost ? "" : "opacity-45"}`} style={{ height: `${(v / max) * 100}%` }} />
+              </div>
+              <span className="text-[9px] text-gray-400">{new Date(starts[i]).toLocaleDateString("en-US", { month: "numeric", day: "numeric" })}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-2 flex items-center gap-3 text-[10px] text-gray-400">
+        <span className="flex items-center gap-1"><span className={`inline-block w-2.5 h-2.5 rounded-sm ${color} opacity-45`} />pre-cutover</span>
+        <span className="flex items-center gap-1"><span className={`inline-block w-2.5 h-2.5 rounded-sm ${color}`} />post-cutover</span>
+      </div>
+    </div>
+  );
+}

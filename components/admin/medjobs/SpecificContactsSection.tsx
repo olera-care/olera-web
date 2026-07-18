@@ -48,6 +48,7 @@ export function SpecificContactsSection({
   researchKey,
   title,
   primaryRoleLabel,
+  rolePresets,
   addLabel,
   helpText,
 }: {
@@ -58,22 +59,30 @@ export function SpecificContactsSection({
   researchKey: string;
   /** Plural section title (e.g. "Advisors" / "Decision makers"). */
   title: string;
-  /** Default role preselect label (e.g. "Advisor" / "Decision maker"). */
+  /** Default role preselect label (e.g. "Advisor" / "Decision maker"). Used as
+   *  the single preset when `rolePresets` is not given. */
   primaryRoleLabel: string;
+  /** Optional set of role presets (e.g. student-org Leaders: President, VP,
+   *  Faculty Advisor, …). When provided, the role picker offers each as a
+   *  segment + Other. When omitted, falls back to [primaryRoleLabel] + Other so
+   *  Advisors / Decision makers keep their single-preset behavior. */
+  rolePresets?: string[];
   /** Add-button label (e.g. "Add an advisor" / "Add decision maker"). */
   addLabel: string;
   helpText: string;
 }) {
   const list =
     ((ctx.outreach.research_data as Record<string, unknown>)[researchKey] as SpecificContact[] | undefined) ?? [];
+  const presets = rolePresets && rolePresets.length ? rolePresets : [primaryRoleLabel];
+  const OTHER = "__other__";
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<SpecificContact>({});
-  const [roleKind, setRoleKind] = useState<"primary" | "other">("primary");
+  const [roleSel, setRoleSel] = useState<string>(presets[0]);
   const [sourceKind, setSourceKind] = useState<"website" | "call">("website");
 
   const reset = () => {
     setDraft({});
-    setRoleKind("primary");
+    setRoleSel(presets[0]);
     setSourceKind("website");
   };
 
@@ -90,7 +99,7 @@ export function SpecificContactsSection({
       setError("Add a name or an email");
       return;
     }
-    const titleVal = roleKind === "primary" ? primaryRoleLabel : draft.title?.trim() || "Other";
+    const titleVal = roleSel === OTHER ? draft.title?.trim() || "Other" : roleSel;
     const item: SpecificContact = {
       ...draft,
       title: titleVal,
@@ -157,10 +166,12 @@ export function SpecificContactsSection({
 
           <div>
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Role</p>
-            <div className="flex gap-1.5">
-              <Segment active={roleKind === "primary"} onClick={() => setRoleKind("primary")}>{primaryRoleLabel}</Segment>
-              <Segment active={roleKind === "other"} onClick={() => setRoleKind("other")}>Other</Segment>
-              {roleKind === "other" && (
+            <div className="flex flex-wrap gap-1.5">
+              {presets.map((p) => (
+                <Segment key={p} active={roleSel === p} onClick={() => setRoleSel(p)}>{p}</Segment>
+              ))}
+              <Segment active={roleSel === OTHER} onClick={() => setRoleSel(OTHER)}>Other</Segment>
+              {roleSel === OTHER && (
                 <input className={`${input} flex-1`} placeholder="Title (e.g. Director, Coordinator)" value={draft.title ?? ""} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
               )}
             </div>

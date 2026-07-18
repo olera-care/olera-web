@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob } from "@/lib/crons/registry";
-import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail } from "@/lib/email-templates";
+import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail } from "@/lib/email-templates";
 import { resolveFromAddress } from "@/lib/email";
+import { getVariant } from "@/lib/email-samples";
 
 /** Pull the inbox preview text (preheader) out of a rendered email's hidden preheader div. */
 function extractPreheader(html: string): string | null {
@@ -96,6 +97,15 @@ function digestVariantSample(variant: string): { subject: string; html: string }
           ctaUrl: SAMPLE_LINK, manageUrl: SAMPLE_LINK, unsubscribeUrl: `${SAMPLE_LINK}/unsubscribe`,
         }),
       };
+    case "managed_ads":
+      return {
+        subject: "140 families searched for care near Austin this week",
+        html: providerManagedAdsEmail({
+          providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care",
+          ctaUrl: `${SAMPLE_LINK}?action=ads`, city: "Austin",
+          category: "home_care_agency", localDemand: 140,
+        }),
+      };
     default:
       return null;
   }
@@ -130,15 +140,31 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const variant = searchParams.get("variant");
   if (variant) {
     const sample = digestVariantSample(variant);
-    if (!sample) return NextResponse.json({ error: `Unknown variant "${variant}"` }, { status: 404 });
-    if (raw) return new NextResponse(sample.html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    if (sample) {
+      if (raw) return new NextResponse(sample.html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+      return NextResponse.json({
+        variant,
+        html: sample.html,
+        subject: sample.subject,
+        sample: true,
+        from: resolveFromAddress(undefined, job.emailTypes[0]),
+        preheader: extractPreheader(sample.html),
+      });
+    }
+
+    const registered = getVariant(variant);
+    if (!registered || registered.cron !== job.id) {
+      return NextResponse.json({ error: `Unknown variant "${variant}"` }, { status: 404 });
+    }
+    const html = registered.render();
+    if (raw) return new NextResponse(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
     return NextResponse.json({
       variant,
-      html: sample.html,
-      subject: sample.subject,
+      html,
+      subject: registered.subject,
       sample: true,
-      from: resolveFromAddress(undefined, job.emailTypes[0]),
-      preheader: extractPreheader(sample.html),
+      from: resolveFromAddress(undefined, registered.emailType),
+      preheader: extractPreheader(html),
     });
   }
 

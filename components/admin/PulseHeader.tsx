@@ -37,6 +37,7 @@ export default function PulseHeader({
   range,
   onRangeChange,
   actions,
+  deltaDirection = "up-good",
 }: {
   title: string;
   kpiSuffix: string;
@@ -47,6 +48,10 @@ export default function PulseHeader({
    *  picker. Used for page-level CTAs like "Add Stakeholder" or
    *  "Open Gmail" without adding a competing top-right block. */
   actions?: React.ReactNode;
+  /** Delta valence. Backlog-style metrics (e.g. "needing email") pass
+   *  "up-bad" so an increase renders in the alarm color and a decrease
+   *  in green, instead of the default growth-metric coloring. */
+  deltaDirection?: "up-good" | "up-bad";
 }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,7 +114,7 @@ export default function PulseHeader({
               </span>
               <span className="text-sm text-gray-500">{kpiSuffix}</span>
             </div>
-            <DeltaLine stats={stats} range={range} />
+            <DeltaLine stats={stats} range={range} deltaDirection={deltaDirection} />
           </div>
           <div className="shrink-0">
             <DateRangePopover value={range} onChange={onRangeChange} />
@@ -132,7 +137,15 @@ export default function PulseHeader({
   );
 }
 
-function DeltaLine({ stats, range }: { stats: Stats | null; range: DateRangeValue }) {
+function DeltaLine({
+  stats,
+  range,
+  deltaDirection,
+}: {
+  stats: Stats | null;
+  range: DateRangeValue;
+  deltaDirection: "up-good" | "up-bad";
+}) {
   if (!stats) return <p className="mt-2 text-xs text-gray-400">&nbsp;</p>;
   if (range.preset === "all") {
     return <p className="mt-2 text-xs text-gray-400">All time</p>;
@@ -141,9 +154,20 @@ function DeltaLine({ stats, range }: { stats: Stats | null; range: DateRangeValu
     return <p className="mt-2 text-xs text-gray-400">&nbsp;</p>;
   }
 
+  // A huge percentage means the prior-period base was near zero — the
+  // number is meaningless noise ("up 9329%"), so render a neutral line.
+  if (Math.abs(stats.delta) > 500) {
+    return <p className="mt-2 text-xs text-gray-400">vs. quiet prior period</p>;
+  }
+
   const sign = stats.delta > 0 ? "up" : stats.delta < 0 ? "down" : "flat";
+  const goodSign = deltaDirection === "up-bad" ? "down" : "up";
   const color =
-    sign === "up" ? "text-emerald-600" : sign === "down" ? "text-rose-600" : "text-gray-400";
+    sign === "flat"
+      ? "text-gray-400"
+      : sign === goodSign
+        ? "text-emerald-600"
+        : "text-rose-600";
   const label = sign === "flat" ? "flat" : `${sign} ${Math.abs(stats.delta)}%`;
 
   return (

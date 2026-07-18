@@ -307,6 +307,11 @@ export interface OrganizationMetadata {
   demo_mode?: boolean;
   demo_reviews?: DemoReview[];
 
+  // MedJobs guest provider: created via "Continue as guest" (anonymous auth).
+  // Always paired with is_active=false + unclaimed so existing visibility
+  // filters hide it; flipped off on "Finish setup". See app/api/provider/guest.
+  is_guest?: boolean;
+
   // Google Places data (external, read-only)
   google_metadata?: GoogleMetadata;
 
@@ -379,6 +384,11 @@ export interface FamilyMetadata {
   // Benefits intake fields
   income_range?: string;
   medicaid_status?: string;
+  veteran_status?: string;
+  /** Orientation self-sort (a: private pay / b: the middle / c: Medicaid-now).
+   *  Written by the one-tap quiz, or derived fill-only from finder intake —
+   *  an explicit self-sort tap always wins over a derived value. */
+  financial_path?: "a" | "b" | "c";
   whatsapp_opted_in?: boolean;
   whatsapp_opted_in_at?: string;
   notification_prefs?: NotificationPrefs;
@@ -457,6 +467,16 @@ export interface StudentMetadata {
   care_experience_types?: string[];  // "dementia", "post_surgical", "mobility", etc.
   languages?: string[];
 
+  // Experience timeline (resume-style entries)
+  experience_entries?: Array<{
+    id: string;           // unique id for React keys
+    title: string;        // role / job title
+    description: string;  // one-liner about the role
+    start_date: string;   // "YYYY-MM" format
+    end_date?: string;    // "YYYY-MM" or omitted for "Present"
+    tag: "paid" | "volunteer" | "family" | "clinical" | "internship" | "other";
+  }>;
+
   // Availability
   availability_type?: "part_time" | "full_time" | "flexible" | "summer_only" | "weekends";
   hours_per_week?: number;
@@ -494,10 +514,13 @@ export interface StudentMetadata {
   why_caregiving?: string;
   personal_statement?: string;
 
-  // Course Schedule
+  // Course Schedule (legacy grid)
   course_schedule_description?: string;
   course_schedule_grid?: string;      // JSON serialized ScheduleGrid (day-slot toggles)
   course_schedule_semester?: string;  // e.g. "Fall 2026"
+
+  // Weekly availability — precise time ranges per day
+  availability_schedule?: Record<string, Array<{ start: string; end: string }>>; // day → [{start: "09:00", end: "14:00"}]
 
   // Availability & Commitment
   commitment_statement?: string;        // Required free-text on commitment to shifts
@@ -523,6 +546,9 @@ export interface StudentMetadata {
   school_balance_pledge?: boolean;
   advance_notice_pledge?: boolean;
   prn_willing?: boolean;
+
+  // Skills (matches job-posting SKILLS for matching)
+  skills?: string[];
 
   // Scenario Responses
   scenario_responses?: Array<{

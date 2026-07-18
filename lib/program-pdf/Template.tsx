@@ -314,11 +314,26 @@ export function ProgramPdfTemplate({
   config: ProgramPdfConfig;
   assets: ProgramPdfAssets;
 }) {
+  // Provider defaults — the student config overrides each of these.
+  const subtitle =
+    config.subtitle ??
+    "A Student Caregiver Program that matches vetted student caregivers to your recurring shifts";
+  // Descriptive, non-possessive default. The header pairs this with the
+  // university name; "<University> · Student Caregiver Program" would imply
+  // the university runs the program, so the tagline describes the audience
+  // instead.
+  const universityTagLine = config.universityTagLine ?? "Paid caregiving program";
+  const headers = config.sectionHeaders ?? {
+    benefits: "Why agencies participate",
+    steps: "How it works",
+    vetting: "Student vetting",
+    pricing: "Participation & pricing",
+  };
   return (
     <Document
-      title={`${config.universityShort} Student Caregiver Program`}
+      title="Olera's Student Caregiver Program"
       author="Olera"
-      subject="Provider outreach packet"
+      subject={config.documentSubject ?? "Provider outreach packet"}
     >
       <Page size="LETTER" style={styles.page}>
         {/* ── Header row */}
@@ -343,23 +358,24 @@ export function ProgramPdfTemplate({
             >
               {config.universityName}
             </Text>
-            <Text style={styles.universityTag}>Pre-health staffing pipeline</Text>
+            <Text style={styles.universityTag}>{universityTagLine}</Text>
           </View>
         </View>
 
         {/* ── Title */}
-        {/* v9.1 Graize 05.13 audit (Item 11): title now reads
-            "Olera's {university} Student Caregiver Program" to
-            anchor the brand; subtitle uses "Pre-nursing and pre-
-            medical student staffing pipeline" to match the email
-            terminology and remove the vague "pre-health" framing. */}
+        {/* Title is "Olera's Student Caregiver Program" — the university is
+            NOT baked into the program name (a possessive "Olera's <University>
+            …" implies the school runs/endorses it). The campus still appears
+            descriptively in the header lockup and, for real campuses, the
+            eyebrow line below. Matches the outreach emails' framing. */}
         <View style={styles.titleBlock}>
-          <Text style={styles.programTitle}>
-            Olera&apos;s {config.universityShort} Student Caregiver Program
-          </Text>
-          <Text style={styles.programSubtitle}>
-            Pre-nursing and pre-medical student staffing pipeline for home care agencies
-          </Text>
+          {config.universityShort ? (
+            <Text style={styles.programSubtitle}>
+              For pre-health students near {config.universityName}
+            </Text>
+          ) : null}
+          <Text style={styles.programTitle}>Olera’s Student Caregiver Program</Text>
+          <Text style={styles.programSubtitle}>{subtitle}</Text>
         </View>
 
         {/* ── Hero */}
@@ -369,7 +385,7 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── Benefits */}
-        <Text style={styles.sectionHeader}>Why agencies participate</Text>
+        <Text style={styles.sectionHeader}>{headers.benefits}</Text>
         <View style={styles.benefitGrid}>
           {config.benefits.map((b, i) => (
             <View key={i} style={styles.benefitCell}>
@@ -382,7 +398,7 @@ export function ProgramPdfTemplate({
         </View>
 
         {/* ── How it works */}
-        <Text style={styles.sectionHeader}>How it works</Text>
+        <Text style={styles.sectionHeader}>{headers.steps}</Text>
         <View style={styles.stepsRow}>
           {config.steps.map((s, i) => (
             <View key={i} style={styles.stepCell}>
@@ -394,8 +410,8 @@ export function ProgramPdfTemplate({
           ))}
         </View>
 
-        {/* ── Student vetting */}
-        <Text style={styles.sectionHeader}>Student vetting</Text>
+        {/* ── Eligibility / vetting */}
+        <Text style={styles.sectionHeader}>{headers.vetting}</Text>
         <View style={styles.vettingBlock}>
           {config.vetting.map((v, i) => (
             <View key={i} style={styles.vettingRow}>
@@ -405,8 +421,8 @@ export function ProgramPdfTemplate({
           ))}
         </View>
 
-        {/* ── Participation & pricing */}
-        <Text style={styles.sectionHeader}>Participation &amp; pricing</Text>
+        {/* ── Participation / what to expect */}
+        <Text style={styles.sectionHeader}>{headers.pricing}</Text>
         <View style={styles.pricingBlock}>
           <Text style={styles.pricingHeadline}>{config.pricing.headline}</Text>
           <Text style={styles.pricingBody}>{config.pricing.body}</Text>
@@ -423,7 +439,7 @@ export function ProgramPdfTemplate({
                 <Text style={styles.sigName}>Dr. Logan DuBose, MD, MBA</Text>
                 <Text style={styles.sigCred}>Texas A&M College of Medicine &apos;22</Text>
                 <Text style={styles.sigCred}>NIH-funded researcher</Text>
-                <Text style={styles.sigCred}>Director, Olera&apos;s Texas A&M Student Caregiver Program</Text>
+                <Text style={styles.sigCred}>Director, Olera Student Caregiver Program</Text>
               </View>
             </View>
             <View style={styles.sigBlock}>
@@ -432,7 +448,7 @@ export function ProgramPdfTemplate({
               ) : null}
               <View style={styles.sigText}>
                 <Text style={styles.sigName}>Graize Belandres</Text>
-                <Text style={styles.sigCred}>Research Assistant to</Text>
+                <Text style={styles.sigCred}>Assistant to</Text>
                 <Text style={styles.sigCred}>Dr. Logan DuBose</Text>
                 <Text style={styles.sigCred}>graize@olera.care</Text>
               </View>
@@ -442,7 +458,9 @@ export function ProgramPdfTemplate({
             <Image src={assets.qrDataUri} style={styles.qrImage} />
             <Text style={styles.ctaLabel}>{config.ctaLabel}</Text>
             <Text style={styles.ctaUrl}>
-              {config.ctaUrl.replace(/^https?:\/\//, "")}
+              {/* QR encodes the full (attributed) URL; the printed text shows a
+                  clean, memorable URL without the query string. */}
+              {config.ctaUrl.replace(/^https?:\/\//, "").replace(/\?.*$/, "")}
             </Text>
           </View>
         </View>

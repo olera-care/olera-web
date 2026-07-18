@@ -2,27 +2,46 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { isTransientSkip } from "@/lib/email-governance";
 import {
   // Legacy templates (kept for post-connection followup)
   postConnectionFollowupEmail,
-  // Sequence-based templates
-  completionNudge1Email,
-  completionNudge2Email,
-  completionNudge3Email,
-  completionNudge4Email,
+  // Publish-sequence templates (completion-sequence templates moved to the coordinator)
   publishNudge1Email,
   publishNudge2Email,
   publishNudge3Email,
   publishNudge4Email,
-  completionMaintenanceEmail,
+  publishNudgeSubject,
   publishMaintenanceEmail,
   // Milestone emails
-  completionCelebrationEmail,
   monthlyProviderRecommendationsEmail,
   inactivityReengagementEmail,
 } from "@/lib/email-templates";
+import type { CompareCardItem } from "@/lib/email-templates";
+import { categoryStockImage } from "@/lib/family-comms/alternatives";
+import {
+  daysSince,
+  getSequenceWithMigration,
+  shouldSendPublishNudge,
+  PUBLISH_ACTIVE_COUNT,
+  MAX_MAINTENANCE_NUDGES,
+} from "@/lib/family-comms/nudge-sequence";
+import {
+  countProvidersInArea,
+  countNewProvidersInArea,
+  getTopProviders,
+} from "@/lib/family-comms/provider-recs.server";
 import { withCronRun } from "@/lib/crons/run";
-import type { NudgeSequence, NudgeSequencePhase, FamilyMetadata } from "@/lib/types";
+import {
+  fetchFamilyProfilesPage,
+  countActiveProvidersInArea,
+  countRecentProvidersInArea,
+  getTopRatedProvidersByCityState,
+  getTopRatedProvidersByState,
+  getBusinessProfileNameSlug,
+  updateFamilyMetadata,
+} from "@/lib/providers";
+import type { NudgeSequence, FamilyMetadata } from "@/lib/types";
 
 /**
  * GET /api/cron/family-nudges
@@ -65,47 +84,18 @@ export const maxDuration = 60;
 
 // ── Sequence configuration ──
 
-const COMPLETION_ACTIVE_COUNT = 4;
-const PUBLISH_ACTIVE_COUNT = 4;
-const COMPLETION_COOLDOWNS = [0, 2, 4, 7]; // days between nudges — same-day, Day 2, Day 6, Day 13
-const PUBLISH_COOLDOWNS = [0, 2, 4, 7];    // days between nudges — same-day after complete, Day 2, Day 6, Day 13
-const MAINTENANCE_COOLDOWN = 30;           // days between maintenance nudges
-const MAX_MAINTENANCE_NUDGES = 6;          // cap monthly nudges at 6 (stop after ~8 months total)
+// Sequence cadence constants (COMPLETION_*, PUBLISH_*, MAINTENANCE_*, MAX_MAINTENANCE_NUDGES)
+// now live in lib/family-comms/nudge-sequence (shared with the coordinator's completion track).
 const MAX_MONTHLY_RECOMMENDATIONS = 12;    // cap monthly recommendations at 12 (1 year)
 const MAX_REENGAGEMENT_ATTEMPTS = 2;       // max re-engagement emails (2 total)
 const INACTIVITY_THRESHOLD_DAYS = 30;      // days of inactivity before re-engagement
 const REENGAGEMENT_COOLDOWN_DAYS = 30;     // days between re-engagement attempts
 const READY_TO_PUBLISH_THRESHOLD = 60;     // ≥60% can publish profile (enrichment completion is sufficient)
-const FULLY_COMPLETE_THRESHOLD = 100;      // ≥100% is "fully complete" — no more completion nudges needed
 const REPUBLISH_GRACE_PERIOD_DAYS = 30;    // don't nudge to re-publish if was published 30+ days ago
-const ACTIVE_CONVERSATION_DAYS = 7;        // skip nudges if user has connection activity within this window
 
-// ── Care type mapping: family profile → olera-providers ──
-
-const CARE_TYPE_TO_CATEGORY: Record<string, string> = {
-  "Home Care": "Home Care (Non-medical)",
-  "Home Health Care": "Home Health Care",
-  "Assisted Living": "Assisted Living",
-  "Memory Care": "Memory Care",
-  "Nursing Home": "Nursing Home",
-  "Independent Living": "Independent Living",
-  "Hospice Care": "Hospice",
-  "Adult Day Care": "Adult Day Care",
-};
-
-// ── Provider recommendation types ──
-
-interface ProviderRec {
-  name: string;
-  category: string;
-  slug: string;
-  rating: number;
-  reviewCount: number;
-  reviewSnippet: string | null;
-  city: string;
-  state: string;
-  priceRange: string | null;
-}
+// Care-type → olera-providers category mapping, the ProviderRec shape, and the
+// area-aware recommendation queries now live in lib/family-comms/provider-recs.server
+// (shared with the coordinator's completion track).
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
@@ -137,13 +127,12 @@ async function fetchAllFamilies(db: DB, cutoffTime: string): Promise<FamilyRow[]
   let hasMore = true;
 
   while (hasMore) {
-    const { data, error } = await db
-      .from("business_profiles")
-      .select("id, display_name, email, phone, image_url, city, state, description, care_types, metadata, created_at, account_id, claim_token")
-      .eq("type", "family")
-      .lte("created_at", cutoffTime)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1);
+    const { data, error } = await fetchFamilyProfilesPage(
+      db,
+      cutoffTime,
+      offset,
+      PAGE_SIZE,
+    );
 
     if (error) {
       console.error("[cron/family-nudges] fetchAllFamilies error:", error);
@@ -162,171 +151,9 @@ async function fetchAllFamilies(db: DB, cutoffTime: string): Promise<FamilyRow[]
   return allFamilies;
 }
 
-// ── Provider query helpers (with caching) ──
-
-const providerCountCache = new Map<string, number>();
-const topProviderCache = new Map<string, ProviderRec[]>();
-
-function cacheKey(city: string, state: string, careTypes: string[]): string {
-  return `${city}|${state}|${[...careTypes].sort().join(",")}`;
-}
-
-async function countProvidersInArea(
-  db: DB,
-  city: string,
-  state: string,
-  careTypes: string[],
-): Promise<number> {
-  const key = cacheKey(city, state, careTypes);
-  if (providerCountCache.has(key)) return providerCountCache.get(key)!;
-
-  const categories = careTypes
-    .map((ct) => CARE_TYPE_TO_CATEGORY[ct])
-    .filter(Boolean);
-
-  let query = db
-    .from("olera-providers")
-    .select("provider_id", { count: "exact", head: true })
-    .eq("state", state)
-    .ilike("city", city)
-    .or("deleted.is.null,deleted.eq.false");
-
-  if (categories.length > 0) {
-    query = query.in("provider_category", categories);
-  }
-
-  const { count } = await query;
-  const result = count ?? 0;
-  providerCountCache.set(key, result);
-  return result;
-}
-
-async function getTopProviders(
-  db: DB,
-  city: string,
-  state: string,
-  careTypes: string[],
-  limit = 4,
-): Promise<ProviderRec[]> {
-  const key = cacheKey(city, state, careTypes);
-  if (topProviderCache.has(key)) return topProviderCache.get(key)!;
-
-  const categories = careTypes
-    .map((ct) => CARE_TYPE_TO_CATEGORY[ct])
-    .filter(Boolean);
-
-  // Try city + state first
-  let query = db
-    .from("olera-providers")
-    .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data, metadata")
-    .eq("state", state)
-    .ilike("city", city)
-    .or("deleted.is.null,deleted.eq.false")
-    .not("google_rating", "is", null)
-    .gte("google_rating", 3.5)
-    .order("google_rating", { ascending: false, nullsFirst: false })
-    .limit(limit);
-
-  if (categories.length > 0) {
-    query = query.in("provider_category", categories);
-  }
-
-  let { data: providers } = await query;
-
-  // Fall back to state-only if not enough results
-  if (!providers || providers.length < 2) {
-    let stateQuery = db
-      .from("olera-providers")
-      .select("provider_name, provider_category, slug, city, state, google_rating, google_reviews_data, metadata")
-      .eq("state", state)
-      .or("deleted.is.null,deleted.eq.false")
-      .not("google_rating", "is", null)
-      .gte("google_rating", 4.0)
-      .order("google_rating", { ascending: false, nullsFirst: false })
-      .limit(limit);
-
-    if (categories.length > 0) {
-      stateQuery = (stateQuery as any).in("provider_category", categories);
-    }
-
-    const { data: stateProviders } = await stateQuery;
-    if (stateProviders && stateProviders.length > (providers?.length ?? 0)) {
-      providers = stateProviders;
-    }
-  }
-
-  const results: ProviderRec[] = (providers || []).map((p) => {
-    const grd = p.google_reviews_data as {
-      rating?: number;
-      review_count?: number;
-      reviews?: { text?: string }[];
-    } | null;
-
-    // Extract price range from metadata if available
-    const meta = (p as Record<string, unknown>).metadata as Record<string, unknown> | null;
-    let priceRange: string | null = null;
-    if (meta?.price_range) {
-      priceRange = meta.price_range as string;
-    } else if (meta?.lower_price && meta?.upper_price) {
-      priceRange = `$${(meta.lower_price as number).toLocaleString()}–${(meta.upper_price as number).toLocaleString()}/mo`;
-    } else if (meta?.contact_for_pricing) {
-      priceRange = "Contact for pricing";
-    }
-
-    return {
-      name: p.provider_name,
-      category: p.provider_category,
-      slug: p.slug || p.provider_name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      rating: grd?.rating ?? p.google_rating ?? 0,
-      reviewCount: grd?.review_count ?? 0,
-      reviewSnippet: grd?.reviews?.[0]?.text?.slice(0, 150) ?? null,
-      city: p.city ?? "",
-      state: p.state ?? "",
-      priceRange,
-    };
-  });
-
-  topProviderCache.set(key, results);
-  return results;
-}
-
-const newProviderCountCache = new Map<string, number>();
-
-/**
- * Count providers that joined in the last 30 days for a given area.
- * Used to provide fresh "new providers" content in maintenance emails.
- */
-async function countNewProvidersInArea(
-  db: DB,
-  city: string,
-  state: string,
-  careTypes: string[],
-): Promise<number> {
-  const key = `new-${cacheKey(city, state, careTypes)}`;
-  if (newProviderCountCache.has(key)) return newProviderCountCache.get(key)!;
-
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const categories = careTypes
-    .map((ct) => CARE_TYPE_TO_CATEGORY[ct])
-    .filter(Boolean);
-
-  let query = db
-    .from("olera-providers")
-    .select("provider_id", { count: "exact", head: true })
-    .eq("state", state)
-    .ilike("city", city)
-    .or("deleted.is.null,deleted.eq.false")
-    .gte("created_at", thirtyDaysAgo);
-
-  if (categories.length > 0) {
-    query = query.in("provider_category", categories);
-  }
-
-  const { count } = await query;
-  const result = count ?? 0;
-  newProviderCountCache.set(key, result);
-  return result;
-}
+// Area-aware provider recommendation helpers (countProvidersInArea, getTopProviders,
+// countNewProvidersInArea) now live in lib/family-comms/provider-recs.server, imported
+// above and shared with the coordinator's completion track.
 
 let connectionStatsCache: { familiesThisWeek: number; familiesThisMonth: number } | null = null;
 
@@ -423,79 +250,9 @@ async function generateMagicLinkUrl(
   return plainUrl;
 }
 
-// ── Sequence helpers ──
-
-function daysSince(isoDate: string | undefined | null): number {
-  if (!isoDate) return Infinity;
-  return Math.floor((Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function getSequenceOrDefault(seq: NudgeSequence | undefined): NudgeSequence {
-  return seq ?? { nudge_count: 0, phase: "active" as NudgeSequencePhase };
-}
-
-/**
- * Get sequence with migration handling for legacy flags.
- * If user has legacy flag but no sequence, start them at nudge #2 (skip #1).
- */
-function getSequenceWithMigration(
-  seq: NudgeSequence | undefined,
-  legacyFlagSent: boolean | undefined,
-): NudgeSequence {
-  if (seq) return seq;
-
-  // No sequence yet - check if they got the legacy email
-  if (legacyFlagSent) {
-    // They already got the old email, start at nudge #2
-    return { nudge_count: 1, phase: "active" as NudgeSequencePhase };
-  }
-
-  // Fresh user, start at #1
-  return { nudge_count: 0, phase: "active" as NudgeSequencePhase };
-}
-
-function getCooldownForNudge(nudgeCount: number, cooldowns: number[]): number {
-  // nudgeCount is 0-indexed (0 = before first nudge)
-  // cooldowns[0] = days before first nudge, cooldowns[1] = days between 1st and 2nd, etc.
-  if (nudgeCount < cooldowns.length) {
-    return cooldowns[nudgeCount];
-  }
-  // After active phase, use maintenance cooldown
-  return MAINTENANCE_COOLDOWN;
-}
-
-function shouldSendCompletionNudge(
-  seq: NudgeSequence,
-  createdAt: string,
-): boolean {
-  const daysSinceLastNudge = daysSince(seq.last_nudge_at ?? createdAt);
-
-  if (seq.phase === "active") {
-    const cooldown = getCooldownForNudge(seq.nudge_count, COMPLETION_COOLDOWNS);
-    return daysSinceLastNudge >= cooldown;
-  } else {
-    // Maintenance phase
-    return daysSinceLastNudge >= MAINTENANCE_COOLDOWN;
-  }
-}
-
-function shouldSendPublishNudge(
-  seq: NudgeSequence,
-  profileCompletedAt: string | undefined,
-  createdAt: string,
-): boolean {
-  // For first nudge, use profile completion time as baseline
-  const baseline = profileCompletedAt || createdAt;
-  const daysSinceLastNudge = daysSince(seq.last_nudge_at ?? baseline);
-
-  if (seq.phase === "active") {
-    const cooldown = getCooldownForNudge(seq.nudge_count, PUBLISH_COOLDOWNS);
-    return daysSinceLastNudge >= cooldown;
-  } else {
-    // Maintenance phase
-    return daysSinceLastNudge >= MAINTENANCE_COOLDOWN;
-  }
-}
+// Sequence cadence helpers (daysSince, getSequenceOrDefault, getCooldownForNudge,
+// shouldSendPublishNudge, ...) now live in lib/family-comms/nudge-sequence, imported above
+// and shared with the coordinator's completion track.
 
 // ── Main handler ──
 
@@ -644,10 +401,19 @@ export async function GET(request: NextRequest) {
       const email = family.email || (family.account_id ? accountEmailMap[family.account_id] : null);
       if (!email) { counts.skipped++; continue; }
 
+      // Subordinate to the Family Comms Coordinator: if the coordinator already sent this
+      // family a governed email this cycle, stand down (it wins every collision). The
+      // coordinator owns the help-cascade rungs; family-nudges is the demoted publish/
+      // completion machine and should never pile on. See plans/family-comms-system.md.
+      const lastCoordEmailAt = (meta as Record<string, unknown>).last_coordinator_email_at as string | undefined;
+      if (lastCoordEmailAt && Date.now() - new Date(lastCoordEmailAt).getTime() < 20 * 60 * 60 * 1000) {
+        counts.skipped++;
+        continue;
+      }
+
       // Calculate profile completeness using the same function as lead-family-nudge
       const completeness = calculateFamilyCompleteness(family, email);
       const readyToPublish = completeness.percentage >= READY_TO_PUBLISH_THRESHOLD;  // ≥60% can publish
-      const fullyComplete = completeness.percentage >= FULLY_COMPLETE_THRESHOLD;      // 100% is fully done
 
       // Used to determine whether to fetch provider count/list
       const hasLocation = !!(family.city && family.state);
@@ -737,7 +503,7 @@ export async function GET(request: NextRequest) {
             state: family.state || undefined,
           });
 
-          await sendEmail({
+          const mrResult = await sendEmail({
             to: email,
             subject: mrSubject,
             html,
@@ -745,17 +511,20 @@ export async function GET(request: NextRequest) {
             recipientType: "family",
             emailLogId: logId ?? undefined,
           });
+          // A transient (frequency-cap) skip sent nothing — don't advance the sequence,
+          // retry a later run. Terminal skips (do-not-contact/bounce/prefs) will never
+          // send, so fall through and advance state as before or they retry daily forever.
+          if (!mrResult.success || (mrResult.skipped && isTransientSkip(mrResult.skipReason))) {
+            counts.skipped++;
+            continue;
+          }
 
           // Update metadata with timestamp and increment count
-          await db.from("business_profiles")
-            .update({
-              metadata: {
-                ...meta,
-                monthly_recommendations_sent_at: new Date().toISOString(),
-                monthly_recommendations_count: recCount + 1,
-              },
-            })
-            .eq("id", family.id);
+          await updateFamilyMetadata(db, family.id, {
+            ...meta,
+            monthly_recommendations_sent_at: new Date().toISOString(),
+            monthly_recommendations_count: recCount + 1,
+          });
         }
 
         counts.monthlyRecommendations++;
@@ -778,269 +547,13 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // ── MILESTONE: Completion Celebration (one-time when profile hits 100%) ──
-      // Celebrate reaching full completion before nudging to publish.
-      // This is a positive milestone email, not a nudge.
-      if (fullyComplete && !meta.completion_celebrated_at) {
-        const ccSubject = "Your care profile is complete";
-        const emailType = "completion_celebration";
-
-        if (!dryRun) {
-          const logId = await reserveEmailLogId({
-            to: email,
-            subject: ccSubject,
-            emailType,
-            recipientType: "family",
-            metadata: {
-              family_profile_id: family.id,
-              profile_snapshot: {
-                completeness: completeness.percentage,
-                is_published: isPublished,
-              },
-            },
-          });
-
-          // Build URL with tracking
-          const profilePath = appendTrackingParams("/portal/profile", logId);
-          const profileUrl = await generateMagicLinkUrl(db, family, profilePath, siteUrl);
-
-          const html = completionCelebrationEmail({
-            unsubscribeId: family.id,
-            familyName: firstName,
-            profileUrl,
-            city: family.city || undefined,
-          });
-
-          await sendEmail({
-            to: email,
-            subject: ccSubject,
-            html,
-            emailType,
-            recipientType: "family",
-            emailLogId: logId ?? undefined,
-          });
-
-          // Set celebration flag (one-time only)
-          await db.from("business_profiles")
-            .update({
-              metadata: {
-                ...meta,
-                completion_celebrated_at: new Date().toISOString(),
-                profile_completeness: completeness.percentage,
-              },
-            })
-            .eq("id", family.id);
-        }
-
-        counts.completionCelebrations++;
-        // Don't send any other emails this run — let the celebration stand alone
-        continue;
-      }
-
-      // ── SKIP CONDITION: User has recent conversation activity ──
-      // If they've had connection activity in the last 7 days, they're actively engaged.
-      // Don't nag them with completion nudges — they're already making progress.
-      const hasRecentActivity = connData?.lastActivityDate &&
-        daysSince(connData.lastActivityDate) < ACTIVE_CONVERSATION_DAYS;
-
-      // ── PHASE 1: Profile Completion ──
-      // Nudge users who haven't reached the publish threshold yet (< 60%)
-      // Note: Published users (any %) skip this entirely due to stop condition above
-      const wouldNeedCompletionNudges = !readyToPublish;
-
-      // Skip completion nudges if they have recent conversation activity
-      if (wouldNeedCompletionNudges && hasRecentActivity) {
-        counts.skippedActiveConversation++;
-        // Don't `continue` — let them fall through to check other email types
-      }
-
-      const needsCompletionNudges = wouldNeedCompletionNudges && !hasRecentActivity;
-      if (needsCompletionNudges) {
-        // Use migration-aware function: if they got the old email, skip nudge #1
-        const seq = getSequenceWithMigration(
-          meta.completion_sequence,
-          meta.profile_incomplete_reminder_sent,
-        );
-
-        if (shouldSendCompletionNudge(seq, family.created_at)) {
-          let providerCount: number | undefined;
-          let newProviderCount = 0;
-          if (hasLocation) {
-            providerCount = await countProvidersInArea(db, family.city!, family.state!, careTypes);
-            newProviderCount = await countNewProvidersInArea(db, family.city!, family.state!, careTypes);
-          }
-          const topProviders = hasLocation
-            ? await getTopProviders(db, family.city!, family.state!, careTypes, 3)
-            : [];
-
-          const nudgeNumber = seq.nudge_count + 1;
-          const isMaintenanceNudge = seq.phase === "maintenance";
-
-          // ── STOP CONDITION: Max maintenance nudges reached (cap at 6 monthly = 10 total) ──
-          if (isMaintenanceNudge && nudgeNumber > COMPLETION_ACTIVE_COUNT + MAX_MAINTENANCE_NUDGES) {
-            counts.skipped++;
-            continue; // Give up gracefully — they're not engaging
-          }
-
-          // Step 1: Determine subject, emailType, and increment counters
-          let subject: string;
-          let emailType: string;
-          const locationText = family.city || family.state || "your area";
-
-          if (isMaintenanceNudge) {
-            // Dynamic subject based on whether there are actually new providers
-            subject = newProviderCount > 0
-              ? `${newProviderCount} new providers joined in ${locationText}`
-              : `Top providers in ${locationText} you might have missed`;
-            emailType = "completion_maintenance";
-            counts.maintenanceNudges++;
-          } else {
-            switch (nudgeNumber) {
-              case 1:
-                subject = "Quick question about your care search";
-                break;
-              case 2:
-                subject = providerCount
-                  ? `${providerCount} providers in ${locationText} are looking for families`
-                  : `Providers in ${locationText} are looking for families`;
-                break;
-              case 3:
-                subject = "Families with complete profiles hear back faster";
-                break;
-              case 4:
-              default:
-                subject = `Providers near you (including these top-rated ones)`;
-                break;
-            }
-            emailType = `completion_nudge_${nudgeNumber}`;
-            counts.completionNudges++;
-            // Also increment legacy counter for backward compat reporting
-            counts.profileIncomplete++;
-          }
-
-          // Step 2: Reserve logId BEFORE building HTML (so tracking works)
-          let logId: string | null = null;
-          if (!dryRun) {
-            logId = await reserveEmailLogId({
-              to: email,
-              subject,
-              emailType,
-              recipientType: "family",
-              metadata: {
-                family_profile_id: family.id,
-                profile_snapshot: {
-                  completeness: completeness.percentage,
-                  is_published: isPublished,
-                },
-              },
-            });
-          }
-
-          // Step 3: Build magic link URL with tracking (auto-signs user in)
-          const trackedPath = appendTrackingParams("/welcome", logId);
-          const welcomeUrl = await generateMagicLinkUrl(db, family, trackedPath, siteUrl);
-
-          // Step 4: Build HTML using tracked URL
-          let html: string;
-          if (isMaintenanceNudge) {
-            html = completionMaintenanceEmail({
-              unsubscribeId: family.id,
-              familyName: firstName,
-              welcomeUrl,
-              providers: topProviders,
-              newProviderCount,
-              missingFields: completeness.missingFields,
-              completionPercent: completeness.percentage,
-              city: family.city || undefined,
-              state: family.state || undefined,
-            });
-          } else {
-            switch (nudgeNumber) {
-              case 1:
-                html = completionNudge1Email({
-                  unsubscribeId: family.id,
-                  familyName: firstName,
-                  welcomeUrl,
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providerCount,
-                  city: family.city || undefined,
-                });
-                break;
-              case 2:
-                html = completionNudge2Email({
-                  unsubscribeId: family.id,
-                  familyName: firstName,
-                  welcomeUrl,
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providerCount,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
-                break;
-              case 3:
-                html = completionNudge3Email({
-                  unsubscribeId: family.id,
-                  familyName: firstName,
-                  welcomeUrl,
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providerCount,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
-                break;
-              case 4:
-              default:
-                html = completionNudge4Email({
-                  unsubscribeId: family.id,
-                  familyName: firstName,
-                  welcomeUrl,
-                  missingFields: completeness.missingFields,
-                  completionPercent: completeness.percentage,
-                  providers: topProviders,
-                  providerCount,
-                  city: family.city || undefined,
-                  state: family.state || undefined,
-                });
-                break;
-            }
-          }
-
-          // Step 5: Send email (if not dryRun)
-          if (!dryRun) {
-            await sendEmail({
-              to: email,
-              subject,
-              html,
-              emailType,
-              recipientType: "family",
-              emailLogId: logId ?? undefined,
-            });
-
-            // Update sequence metadata
-            const newSeq: NudgeSequence = {
-              nudge_count: nudgeNumber,
-              last_nudge_at: new Date().toISOString(),
-              phase: nudgeNumber >= COMPLETION_ACTIVE_COUNT ? "maintenance" : "active",
-            };
-            await db.from("business_profiles")
-              .update({
-                metadata: {
-                  ...meta,
-                  completion_sequence: newSeq,
-                  // Also set legacy flag for backward compat
-                  profile_incomplete_reminder_sent: true,
-                  // Store calculated completeness for accurate display in Find Families
-                  profile_completeness: completeness.percentage,
-                },
-              })
-              .eq("id", family.id);
-          }
-          continue;
-        }
-      }
+      // NOTE (Track 2 / Option B, 2026-06-29): the COMPLETION track and the 100%
+      // completion CELEBRATION moved to the family-comms-coordinator, which is now the
+      // single owner of the "fill your profile" ask (for all incomplete families, with or
+      // without a connection). family-nudges no longer sends completion_nudge_*,
+      // completion_maintenance, or completion_celebration. It still owns the PUBLISH track
+      // (below), monthly recommendations, re-engagement, and post-connection follow-up.
+      // See plans/family-comms-system.md "Track 2 — Option B build spec".
 
       // ── PHASE 2: Profile Publishing (if ready to publish but not published yet) ──
       if (readyToPublish && !isPublished) {
@@ -1092,21 +605,7 @@ export async function GET(request: NextRequest) {
             emailType = "publish_maintenance";
             counts.maintenanceNudges++;
           } else {
-            switch (nudgeNumber) {
-              case 1:
-                subject = "Let providers come to you";
-                break;
-              case 2:
-                subject = "These providers want to help families like yours";
-                break;
-              case 3:
-                subject = "Skip the phone tag";
-                break;
-              case 4:
-              default:
-                subject = "Still thinking it over?";
-                break;
-            }
+            subject = publishNudgeSubject(nudgeNumber);
             emailType = `publish_nudge_${nudgeNumber}`;
             counts.publishNudges++;
             // Also increment legacy counter for backward compat reporting
@@ -1159,16 +658,28 @@ export async function GET(request: NextRequest) {
                   city: family.city || undefined,
                 });
                 break;
-              case 2:
+              case 2: {
+                // Photo + hairline cards (completion_nudge_4 / R3 style), not the
+                // boxed text cards. Each directory provider gets a category stock
+                // image so cards never render blank.
+                const pubCards: CompareCardItem[] = topProviders.map((p, i) => ({
+                  name: p.name,
+                  viewUrl: `${siteUrl}/provider/${p.slug}`,
+                  imageUrl: categoryStockImage(p.category, i),
+                  priceRange: p.priceRange ?? null,
+                  rating: p.rating || null,
+                  reviewCount: p.reviewCount || null,
+                }));
                 html = publishNudge2Email({
                   unsubscribeId: family.id,
                   familyName: firstName,
                   matchesUrl,
                   providerCount,
-                  providers: topProviders,
+                  providers: pubCards,
                   city: family.city || undefined,
                 });
                 break;
+              }
               case 3:
                 html = publishNudge3Email({
                   unsubscribeId: family.id,
@@ -1195,7 +706,7 @@ export async function GET(request: NextRequest) {
 
           // Step 5: Send email (if not dryRun)
           if (!dryRun) {
-            await sendEmail({
+            const pubResult = await sendEmail({
               to: email,
               subject,
               html,
@@ -1203,6 +714,12 @@ export async function GET(request: NextRequest) {
               recipientType: "family",
               emailLogId: logId ?? undefined,
             });
+            // Transient (cap) skip: don't advance the sequence, retry a later run.
+            // Terminal skips fall through — they'd otherwise retry daily forever.
+            if (!pubResult.success || (pubResult.skipped && isTransientSkip(pubResult.skipReason))) {
+              counts.skipped++;
+              continue;
+            }
 
             // Update sequence metadata
             const newSeq: NudgeSequence = {
@@ -1210,18 +727,14 @@ export async function GET(request: NextRequest) {
               last_nudge_at: new Date().toISOString(),
               phase: nudgeNumber >= PUBLISH_ACTIVE_COUNT ? "maintenance" : "active",
             };
-            await db.from("business_profiles")
-              .update({
-                metadata: {
-                  ...meta,
-                  publish_sequence: newSeq,
-                  // Also set legacy flag for backward compat
-                  go_live_reminder_sent: true,
-                  // Store calculated completeness for accurate display in Find Families
-                  profile_completeness: completeness.percentage,
-                },
-              })
-              .eq("id", family.id);
+            await updateFamilyMetadata(db, family.id, {
+              ...meta,
+              publish_sequence: newSeq,
+              // Also set legacy flag for backward compat
+              go_live_reminder_sent: true,
+              // Store calculated completeness for accurate display in Find Families
+              profile_completeness: completeness.percentage,
+            });
           }
           continue;
         }
@@ -1246,11 +759,7 @@ export async function GET(request: NextRequest) {
         let providerSlug = "";
 
         if (connData.firstToProfileId) {
-          const { data: providerBp } = await db
-            .from("business_profiles")
-            .select("display_name, slug")
-            .eq("id", connData.firstToProfileId)
-            .single();
+          const providerBp = await getBusinessProfileNameSlug(db, connData.firstToProfileId);
           if (providerBp?.slug) {
             providerName = providerBp.display_name || "your provider";
             providerSlug = providerBp.slug;
@@ -1265,7 +774,7 @@ export async function GET(request: NextRequest) {
         if (!dryRun) {
           const pcfSubject = `How was your experience with ${providerName}?`;
           const pcfLogId = await reserveEmailLogId({ to: email, subject: pcfSubject, emailType: "post_connection_followup", recipientType: "family" });
-          await sendEmail({
+          const pcfResult = await sendEmail({
             to: email,
             subject: pcfSubject,
             html: postConnectionFollowupEmail({
@@ -1279,9 +788,13 @@ export async function GET(request: NextRequest) {
             recipientType: "family",
             emailLogId: pcfLogId ?? undefined,
           });
-          await db.from("business_profiles")
-            .update({ metadata: { ...meta, post_connection_followup_sent: true } })
-            .eq("id", family.id);
+          // Transient (cap) skip: leave the one-shot flag unset, retry a later run.
+          // Terminal skips fall through — they'd otherwise retry daily forever.
+          if (!pcfResult.success || (pcfResult.skipped && isTransientSkip(pcfResult.skipReason))) {
+            counts.skipped++;
+            continue;
+          }
+          await updateFamilyMetadata(db, family.id, { ...meta, post_connection_followup_sent: true });
         }
         counts.postConnectionFollowup++;
         continue;
@@ -1389,7 +902,7 @@ export async function GET(request: NextRequest) {
           state: family.state || undefined,
         });
 
-        await sendEmail({
+        const reResult = await sendEmail({
           to: email,
           subject: reSubject,
           html,
@@ -1397,17 +910,19 @@ export async function GET(request: NextRequest) {
           recipientType: "family",
           emailLogId: logId ?? undefined,
         });
+        // Transient (cap) skip: don't burn a re-engagement attempt, retry a later run.
+        // Terminal skips fall through — they'd otherwise retry daily forever.
+        if (!reResult.success || (reResult.skipped && isTransientSkip(reResult.skipReason))) {
+          counts.skipped++;
+          continue;
+        }
 
         // Update metadata
-        await db.from("business_profiles")
-          .update({
-            metadata: {
-              ...meta,
-              reengagement_sent_at: new Date().toISOString(),
-              reengagement_count: reengageCount + 1,
-            },
-          })
-          .eq("id", family.id);
+        await updateFamilyMetadata(db, family.id, {
+          ...meta,
+          reengagement_sent_at: new Date().toISOString(),
+          reengagement_count: reengageCount + 1,
+        });
       }
 
       counts.reengagementEmails++;

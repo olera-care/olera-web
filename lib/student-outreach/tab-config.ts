@@ -18,15 +18,25 @@ import type { StakeholderType, TabCounts, TabRow } from "./types";
  * net-new). For Phase 0 the keys mirror the legacy v8.10 surface.
  */
 export type TabKey =
+  // Audience queues — the In Basket primary bar groups upstream work by
+  // audience (provider side / partner side), folding each audience's
+  // prospecting + active-entity work into one tab with sectioned content.
+  | "providers"
+  | "partner_book"
   // v9.0 Phase 7: entity-keyed In Basket tabs in the priority order
   // the team triages them. Smart-hide removes empty ones; the active
-  // tab anchors the bar mid-session.
+  // tab anchors the bar mid-session. (clients/prospects/partners are now
+  // folded into the audience queues above; retained on the union for the
+  // queue endpoint, dedicated pages, card slots, and deep links.)
   | "clients"
   | "candidates"
   | "prospects"
   | "partners"
   | "meetings"
   | "replies"
+  // Prospects whose latest cadence finished with no meeting — the re-engage /
+  // archive triage queue. Sits after Meetings in the primary bar.
+  | "followup"
   | "calls"
   | "sites"
   // Legacy state-keyed tab names — retained on the union for queue
@@ -97,10 +107,12 @@ export interface TabDef {
 //
 // Smart-hide tucks empty tabs away; the active tab anchors the bar.
 export const TABS: TabDef[] = [
-  { key: "prospects",  label: "Prospects",  tooltip: "Stakeholders being researched + provider prospects in catchment. Top of the funnel." },
-  { key: "calls",      label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "replies",    label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
-  { key: "meetings",   label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "providers",    label: "Providers",  tooltip: "Provider side: agency prospects in catchment + active clients with a pending task." },
+  { key: "partner_book", label: "Partners",   tooltip: "Partner side: campus stakeholder prospects (student orgs, dept heads, advisors) + active partners with a pending task." },
+  { key: "calls",        label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
+  { key: "replies",      label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
+  { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "followup",     label: "Follow-up",  tooltip: "Prospects whose cadence finished with no meeting. Re-engage with a new cadence, or archive." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -126,6 +138,10 @@ export const MENU_TABS: TabDef[] = [
 // metric (drives the time series fetched from /stats) and a label
 // (drives the kpiSuffix shown in the header).
 export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
+  // Audience queues — In Basket uses InBasketHero (not a per-tab PulseHeader),
+  // so these entries exist only to satisfy the Record<TabKey> shape.
+  providers:    { metric: "prospects_added",  label: "provider prospects"   },
+  partner_book: { metric: "prospects_added",  label: "partner prospects"    },
   // v9.0 Phase 7: state-keyed legacy entries retained for the queue
   // endpoint's union; never rendered as tabs.
   unread:      { metric: "activity",         label: "operational events"   },
@@ -145,6 +161,7 @@ export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   // (scheduled + held + no-show + rescheduled).
   meetings:    { metric: "meetings_activity", label: "meetings"            },
   replies:     { metric: "replies",          label: "replies received"     },
+  followup:    { metric: "activity",         label: "cadences finished"    },
   calls:       { metric: "calls_made",       label: "calls made"           },
   archive:     { metric: "activity",         label: "outreach actions"     },
   // v8.10.41: All-tab uses the multi-series funnel metric.
@@ -360,6 +377,12 @@ export interface RowCardCallbacks {
   onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
   /** Reset attention. Wired to mark_unread action. */
   onMarkUnread: () => Promise<void>;
+  /** Whole-prospect Archive (halts cadence, parks the row). Wired to the
+   *  `archive` action. Shown in the overflow for any non-archived row. */
+  onArchive?: () => Promise<void>;
+  /** Reopen a closed/archived row. Wired to the `reopen` action; shown in
+   *  the overflow only for closed/archived rows. */
+  onReopen?: () => Promise<void>;
   /** Jump to the public directory page (provider rows only). */
   onOpenDirectory?: () => void;
   /** Jump to the unified Logs feed pre-filtered to this row's history. */

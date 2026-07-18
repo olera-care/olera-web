@@ -16,6 +16,11 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
   const providerProfile = useProviderProfile();
   const retriedRef = useRef(false);
   const [retryDone, setRetryDone] = useState(false);
+  // A just-claimed provider's new profile can lag the auth context by a beat
+  // (read-after-write). Retry once before bouncing to /portal so the quiz ->
+  // /provider/medjobs/candidates hop lands instead of being kicked out.
+  const provRetriedRef = useRef(false);
+  const [provRetryDone, setProvRetryDone] = useState(false);
 
   // Public provider pages that manage their own auth state — skip layout gates
   // Includes: /provider/[slug] (detail), /provider/[slug]/onboard, /provider/welcome
@@ -24,10 +29,11 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     (pathname.startsWith("/provider/") && !pathname.startsWith("/provider/connections") &&
      !pathname.startsWith("/provider/inbox") && !pathname.startsWith("/provider/reviews") &&
      !pathname.startsWith("/provider/matches") && !pathname.startsWith("/provider/pro") &&
+     !pathname.startsWith("/provider/boost") && !pathname.startsWith("/provider/growth") &&
      !pathname.startsWith("/provider/qna") && !pathname.startsWith("/provider/medjobs"));
 
   // Known hub routes that require authentication
-  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/qna", "/provider/medjobs"];
+  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/boost", "/provider/growth", "/provider/qna", "/provider/medjobs"];
 
   const isHubRoute = HUB_ROUTES.some((route) =>
     route === "/provider" ? pathname === "/provider" : pathname.startsWith(route)
@@ -46,6 +52,19 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
       setRetryDone(false);
     }
   }, [user, account, fetchError, refreshAccountData]);
+
+  // Account loaded but no provider profile yet → refresh once before bouncing.
+  useEffect(() => {
+    if (user && account && !providerProfile && !provRetriedRef.current) {
+      provRetriedRef.current = true;
+      setProvRetryDone(false);
+      refreshAccountData().finally(() => setProvRetryDone(true));
+    }
+    if (providerProfile) {
+      provRetriedRef.current = false;
+      setProvRetryDone(false);
+    }
+  }, [user, account, providerProfile, refreshAccountData]);
 
   if (isPublicRoute || !isHubRoute) {
     return <>{children}</>;
@@ -117,9 +136,18 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Authenticated but no provider profile — redirect to family portal (not onboarding)
-  // Users should only reach provider onboarding via explicit "Add profile" action
+  // Authenticated but no provider profile. A freshly-claimed provider (e.g. from
+  // the MedJobs needs quiz) can lag by a beat — wait for the one-time retry to
+  // finish before bouncing, so we don't kick them off the board they just earned.
   if (!providerProfile) {
+    if (!provRetryDone) {
+      return (
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full" />
+        </div>
+      );
+    }
+    // Retry completed and still no provider profile → genuine non-provider.
     router.replace("/portal");
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
@@ -128,5 +156,6 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  // Bottom tabs spacer is now handled in LayoutShell for all pages
   return <>{children}</>;
 }

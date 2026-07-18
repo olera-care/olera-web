@@ -35,7 +35,7 @@
  * No bulk selection in MVP — admins click rows individually.
  */
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import type { ResearchCampusCard, TabRow } from "@/lib/student-outreach/types";
 import type { ProviderProspectRow } from "@/lib/student-outreach/tab-config";
 import { ProviderProspectCard } from "../cards/ProviderProspectCard";
@@ -67,6 +67,12 @@ export function ResearchTabContent({
 }) {
   const router = useRouter();
   const [researchCampus, setResearchCampus] = useState<ResearchCampusCard | null>(null);
+  // Per-card element cache for the provider section (see providerItems
+  // below). Declared here so the hook runs unconditionally, before the
+  // empty-state early return.
+  const nodeCacheRef = useRef<Map<string, { src: unknown; node: ReactNode }>>(
+    new Map(),
+  );
   // Split materialized rows by kind. Provider-kind rows belong with the
   // virtual provider catchment cards; everything else is a stakeholder
   // (advisor / professor / dept_head / student_org) that lives under
@@ -162,61 +168,79 @@ export function ResearchTabContent({
                 window.location.href = `/admin/medjobs/logs?provider_id=${p.provider_id}`;
               },
             },
-            {
-              label: "Mark as Client ✓",
-              tone: "celebration",
-              onClick: async () => {
-                if (
-                  !window.confirm(
-                    `Mark ${p.provider_name} as a Client?\n\nMaterializes the outreach row and flags the provider as a Client.`,
-                  )
-                )
-                  return;
-                try {
-                  const res = await fetch(
-                    "/api/admin/medjobs/provider-prospects/materialize",
-                    {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        provider_id: p.provider_id,
-                        campus_id: p.campus_id,
-                      }),
-                    },
-                  );
-                  const body = await res.json();
-                  if (!res.ok) throw new Error(body.error || "Materialize failed");
-                  await fetch(`/api/admin/student-outreach/${body.id}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "make_client" }),
-                  });
-                  window.location.reload();
-                } catch (e) {
-                  console.error(e);
-                }
-              },
-            },
           ]}
         />
       }
     />
   );
 
-  const providerItems = hasProvider
-    ? [
-        ...providerRows.map((row) => ({
-          key: row.row_key ?? row.id,
-          sortKey: row.created_at,
-          node: renderRow(row),
-        })),
-        ...providerProspects.map((p) => ({
-          key: p.id,
-          sortKey: p.created_at,
-          node: renderVirtualProspect(p),
-        })),
-      ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
-    : [];
+  // Stable render order — a function of WHICH cards exist, not of any
+  // mutable field. A card keeps its position once it has one; new cards
+  // append (newest-first among the newcomers); removed cards drop out.
+  // This makes it structurally impossible for ANY re-render — a read-state
+  // flip, an optimistic update, a background refresh — to reorder the list.
+  // Only a genuine change to the set of cards moves anything. Replaces the
+  // every-render re-sort by created_at, where order was derived from a
+  // refetched/mutable field and so shuffled whenever the list re-rendered.
+  // Per-card element cache. A card's rendered element is reused (SAME
+  // object reference) as long as its source row object is unchanged, so
+  // React bails out of re-rendering that card entirely. An optimistic read
+  // flip (setStakeholderRead) creates a new object ONLY for the clicked
+  // row — every other row keeps its reference — so opening an unread card
+  // re-renders just that one card instead of all ~60. That double-work
+  // (full-list re-render + drawer mount in one commit) is what made
+  // opening an UNREAD card slow while a READ card opened instantly.
+  let providerItems: Array<{ key: string; node: ReactNode }> = [];
+  if (hasProvider) {
+    const nextCache = new Map<string, { src: unknown; node: ReactNode }>();
+    const cachedNode = (key: string, src: unknown, make: () => ReactNode): ReactNode => {
+      const prev = nodeCacheRef.current.get(key);
+      if (prev && prev.src === src) {
+        nextCache.set(key, prev);
+        return prev.node;
+      }
+      const node = make();
+      nextCache.set(key, { src, node });
+      return node;
+    };
+    // Order by created_at desc (id tiebreak). created_at is stable across
+    // refreshes (catchment uses an epoch sentinel for null, never new Date),
+    // and a materialized row inherits the provider's created_at — the SAME
+    // value its virtual prospect card used — so materializing a prospect
+    // leaves the card exactly where it was instead of moving it. The earlier
+    // frozen-order ref appended the materialized row's new key to the bottom,
+    // which is what made a freshly-clicked prospect jump to the end of the
+    // list. The per-card node cache (above) is what keeps re-renders cheap;
+    // sorting by a stable key is what keeps positions correct.
+    // Shared provider identity key: a virtual prospect and the outreach row
+    // it materializes into both key to `${olera_provider_id}|${campus_id}`,
+    // so materialization is an in-place content swap (same key, same sort
+    // position) instead of a remove + re-add that jumps the card. Falls back
+    // to the row id for legacy rows without an olera_provider_id.
+    const providerKey = (row: (typeof providerRows)[number]): string => {
+      const opid = (row.research_data as { olera_provider_id?: string } | null)
+        ?.olera_provider_id;
+      return opid ? `${opid}|${row.campus_id}` : row.row_key ?? row.id;
+    };
+    const sorted = [
+      ...providerRows.map((row) => {
+        const key = providerKey(row);
+        return { key, sortKey: row.created_at, node: cachedNode(key, row, () => renderRow(row)) };
+      }),
+      ...providerProspects.map((p) => ({
+        key: p.id,
+        sortKey: p.created_at,
+        node: cachedNode(p.id, p, () => renderVirtualProspect(p)),
+      })),
+    ].sort((a, b) => {
+      const byDate = b.sortKey.localeCompare(a.sortKey);
+      return byDate !== 0 ? byDate : a.key.localeCompare(b.key);
+    });
+    nodeCacheRef.current = nextCache;
+    providerItems = sorted.map((it) => ({ key: it.key, node: it.node }));
+  } else {
+    nodeCacheRef.current = new Map();
+  }
 
   const providerCardList = hasProvider ? (
     <ul className="space-y-2 pt-2">

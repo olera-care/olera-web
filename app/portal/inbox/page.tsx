@@ -14,6 +14,7 @@ import ReportConnectionModal from "@/components/messaging/ReportConnectionModal"
 import { useProviderVerification } from "@/lib/hooks/useProviderVerification";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
+import type { QuickReplyRequest } from "@/lib/quick-reply-config";
 
 type RoleFilter = "all" | "family" | "provider";
 
@@ -338,7 +339,7 @@ function InboxContent() {
 
       // Only wait for active connections (pending/accepted) before proceeding to render
       // Query both inquiry connections AND accepted provider-initiated matches (type=request)
-      const [outbound, inbound, matchesOutbound, matchesInbound] = await Promise.all([
+      const [outbound, inbound, matchesOutbound, matchesInbound, invitesOutbound, invitesInbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
@@ -370,16 +371,33 @@ function InboxContent() {
           .eq("type", "request")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
+        // MedJobs invitations (provider↔student messaging)
+        supabase
+          .from("connections")
+          .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
+          .eq("from_profile_id", activeProfileId)
+          .eq("type", "invitation")
+          .in("status", ["pending", "accepted"])
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("connections")
+          .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
+          .eq("to_profile_id", activeProfileId)
+          .eq("type", "invitation")
+          .in("status", ["pending", "accepted"])
+          .order("updated_at", { ascending: false }),
       ]);
 
       // Merge and deduplicate — skip hidden and metadata-archived connections
       // (archive state lives in metadata.archived, not the status column)
-      // Includes: inquiries, accepted provider-sent requests, pending/accepted family-received requests
+      // Includes: inquiries, accepted provider-sent requests, pending/accepted family-received requests, MedJobs invitations
       const allConns = [
         ...(outbound.data || []),
         ...(inbound.data || []),
         ...(matchesOutbound.data || []),
         ...(matchesInbound.data || []),
+        ...(invitesOutbound.data || []),
+        ...(invitesInbound.data || []),
       ] as Connection[];
       const deduped = new Map<string, Connection>();
       for (const conn of allConns) {
@@ -665,20 +683,19 @@ function InboxContent() {
     }
   }, [activeProfile]);
 
-  // Handle message sent — update thread in local state
-  const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[]) => {
+  // Handle message sent — update thread and quick_reply_request in local state
+  const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[], quickReplyRequest?: QuickReplyRequest | null) => {
     setConnections((prev) =>
-      prev.map((conn) =>
-        conn.id === connectionId
-          ? {
-              ...conn,
-              metadata: {
-                ...((conn.metadata as Record<string, unknown>) || {}),
-                thread,
-              },
-            }
-          : conn
-      )
+      prev.map((conn) => {
+        if (conn.id !== connectionId) return conn;
+        const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+        const updatedMeta: Record<string, unknown> = { ...existingMeta, thread };
+        // Update quick_reply_request if provided
+        if (quickReplyRequest !== undefined) {
+          updatedMeta.quick_reply_request = quickReplyRequest;
+        }
+        return { ...conn, metadata: updatedMeta };
+      })
     );
   }, []);
 

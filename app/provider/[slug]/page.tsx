@@ -2,24 +2,26 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { buildPowerPageUrlForDeletedProvider } from "@/lib/power-pages";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
-import { iosProviderToProfile } from "@/lib/mock-providers";
-import type { Provider as IOSProvider } from "@/lib/types/provider";
+import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
+import StudentProviderCTA from "@/components/medjobs/StudentProviderCTA";
+import { buildOpportunity, readOpportunityProfile } from "@/lib/medjobs/opportunity";
+import { DEMAND_PROFILE_KEY } from "@/lib/medjobs/eligibility";
+import { readRequirements, DEMAND_SHAPE_OPTIONS, PRN_OPTIONS } from "@/lib/medjobs/hiring-needs-questions";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
 import CareServicesList from "@/components/providers/CareServicesList";
+import StaffScreeningList from "@/components/providers/StaffScreeningList";
 import QASectionWithVariant from "@/components/providers/QASectionWithVariant";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
 import MobileProviderTopNav from "@/components/providers/MobileProviderTopNav";
-import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import MobilePricingTooltip from "@/components/providers/MobilePricingTooltip";
 import MobileClaimTooltip from "@/components/providers/MobileClaimTooltip";
 import { MobileManageLink } from "@/components/providers/MobileManageLink";
@@ -33,6 +35,7 @@ import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
+import ManagedUtmCapture from "@/components/providers/ManagedUtmCapture";
 import { LeadCaptureSheetWrapper } from "@/components/providers/lead-capture";
 import BenefitsDiscoveryModule from "@/components/providers/BenefitsDiscoveryModule";
 import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryModule";
@@ -60,61 +63,13 @@ import { ViewTracker } from "@/components/analytics/ViewTracker";
 // Dynamic Metadata (SEO title, description, OG, canonical)
 // ============================================================
 
-async function fetchProviderForMeta(slug: string) {
-  try {
-    const supabase = await createClient();
-
-    // Try slug column first (human-readable URL)
-    const { data: bySlug } = await supabase
-      .from("olera-providers")
-      .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
-      .eq("slug", slug)
-      .not("deleted", "is", true)
-      .single();
-    if (bySlug) return bySlug;
-
-    // Fall back to provider_id (legacy alphanumeric ID)
-    const { data: byId } = await supabase
-      .from("olera-providers")
-      .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
-      .eq("provider_id", slug)
-      .not("deleted", "is", true)
-      .single();
-    if (byId) return byId;
-  } catch { /* fall through */ }
-
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("business_profiles")
-      .select("display_name, category, city, state, description, image_url")
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .in("type", ["organization", "caregiver"])
-      .single();
-    if (data) {
-      return {
-        provider_name: data.display_name,
-        provider_category: data.category,
-        city: data.city,
-        state: data.state,
-        provider_description: data.description,
-        provider_images: null,
-        provider_logo: data.image_url,
-      };
-    }
-  } catch { /* fall through */ }
-
-  return null;
-}
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const provider = await fetchProviderForMeta(slug);
+  const provider = await resolveProviderForMeta(slug, await createClient());
 
   if (!provider) {
     return { title: "Provider Not Found | Olera" };
@@ -275,10 +230,17 @@ function HighlightIcon({ icon, className }: { icon: HighlightIconType; className
 
 export default async function ProviderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
+  // MedJobs student context — families board → student-view of the provider:
+  // hiring banner + "Request interview" CTA, family-only sections hidden.
+  const sp = searchParams ? await searchParams : undefined;
+  const isStudentContext = sp?.ctx === "medjobs-student";
+  const studentCampus = typeof sp?.campus === "string" ? sp.campus : null;
 
   // --- Data fetching ---
   let profile: Profile | null = null;
@@ -290,127 +252,25 @@ export default async function ProviderPage({
   let parentOrganization: { name: string; url?: string } | null = null;
   let providerSource: "ios" | "bp" = "ios";
 
-  // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
-  try {
-    const supabase = await createClient();
-
-    // Try slug column (human-readable URL)
-    const { data: bySlug } = await supabase
-      .from("olera-providers")
-      .select("*")
-      .eq("slug", slug)
-      .not("deleted", "is", true)
-      .single<IOSProvider>();
-
-    if (bySlug) {
-      profile = iosProviderToProfile(bySlug);
-      googleReviewsData = bySlug.google_reviews_data;
-      cmsData = bySlug.cms_data ?? null;
-      aiTrustSignals = bySlug.ai_trust_signals ?? null;
-      providerPlaceId = bySlug.place_id;
-      rawProviderId = bySlug.provider_id;
-      parentOrganization = bySlug.parent_organization ?? null;
-    } else {
-      // Fall back to provider_id (legacy alphanumeric ID)
-      const { data: byId } = await supabase
-        .from("olera-providers")
-        .select("*")
-        .eq("provider_id", slug)
-        .not("deleted", "is", true)
-        .single<IOSProvider>();
-
-      if (byId) {
-        profile = iosProviderToProfile(byId);
-        googleReviewsData = byId.google_reviews_data;
-        cmsData = byId.cms_data ?? null;
-        aiTrustSignals = byId.ai_trust_signals ?? null;
-        providerPlaceId = byId.place_id;
-        rawProviderId = byId.provider_id;
-        parentOrganization = byId.parent_organization ?? null;
-      }
-    }
-  } catch {
-    // iOS Supabase not configured or provider not found
+  // Resolve the provider through the canonical front door (lib/providers).
+  // The resolver returns data only; control flow (notFound/permanentRedirect)
+  // stays here at the page boundary so those framework throws aren't swallowed.
+  // See plans/provider-data-foundation.md (Step 1).
+  const supabase = await createClient();
+  const resolved = await resolveProvider(slug, supabase);
+  if (resolved.kind === "gone") notFound();
+  if (resolved.kind === "redirect") permanentRedirect(resolved.to);
+  if (resolved.kind === "active") {
+    const p = resolved.provider;
+    profile = p.profile;
+    googleReviewsData = p.googleReviewsData;
+    cmsData = p.cmsData;
+    aiTrustSignals = p.aiTrustSignals;
+    providerPlaceId = p.placeId;
+    rawProviderId = p.rawProviderId;
+    parentOrganization = p.parentOrganization;
+    providerSource = p.source === "account" ? "bp" : "ios";
   }
-
-  // 2. Try web business_profiles table
-  if (!profile) {
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("business_profiles")
-        .select("*")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .in("type", ["organization", "caregiver"])
-        .single<Profile>();
-      if (data) {
-        profile = data;
-        providerSource = "bp";
-        // Extract Google data from business_profile metadata
-        const bpMeta = data.metadata as Record<string, unknown> | null;
-        const gm = bpMeta?.google_metadata as { place_id?: string; rating?: number; review_count?: number } | undefined;
-        const bpGoogleReviews = bpMeta?.google_reviews_data as GoogleReviewsData | undefined;
-        if (bpGoogleReviews) {
-          googleReviewsData = bpGoogleReviews;
-        }
-        if (gm?.place_id) {
-          providerPlaceId = gm.place_id;
-        }
-        rawProviderId = data.id;
-      }
-    } catch {
-      // Supabase not configured — fall through to mock lookup
-    }
-  }
-
-  // 3. Reason-aware response for soft-deleted iOS providers (migration 081).
-  //    Runs AFTER both active-row lookups so a claimed business_profile
-  //    whose underlying iOS row got soft-deleted still wins. Without this,
-  //    every soft-delete falls to a generic 404 — ~40K rows bleeding into
-  //    the GSC "Not found" bucket and losing link equity.
-  //      provider_request → notFound() (placeholder for HTTP 410)
-  //      everything else  → permanentRedirect() to /{category}/{state}/{city}
-  //
-  //    Lookup runs inside try/catch (network can fail), but notFound() /
-  //    permanentRedirect() are called OUTSIDE — both throw control-flow
-  //    errors caught at the framework boundary, so a local catch would
-  //    swallow the redirect.
-  let deletedRedirect: string | null = null;
-  let deletedHardRemoval = false;
-  if (!profile) {
-    try {
-      const supabase = await createClient();
-      const { data: deletedRow } = await supabase
-        .from("olera-providers")
-        .select("provider_category, state, city, deletion_reason")
-        .or(`slug.eq.${slug},provider_id.eq.${slug}`)
-        .eq("deleted", true)
-        .limit(1)
-        .maybeSingle<{
-          provider_category: string | null;
-          state: string | null;
-          city: string | null;
-          deletion_reason: IOSProvider["deletion_reason"];
-        }>();
-
-      if (deletedRow) {
-        if (deletedRow.deletion_reason === "provider_request") {
-          deletedHardRemoval = true;
-        } else {
-          deletedRedirect = buildPowerPageUrlForDeletedProvider({
-            category: deletedRow.provider_category,
-            state: deletedRow.state,
-            city: deletedRow.city,
-          });
-        }
-      }
-    } catch {
-      // Supabase unreachable — fall through, page will 404 below
-    }
-  }
-  if (deletedHardRemoval) notFound();
-  if (deletedRedirect) permanentRedirect(deletedRedirect);
 
   if (!profile) {
     notFound();
@@ -476,10 +336,15 @@ export default async function ProviderPage({
   })();
 
   const rating = meta?.rating;
-  const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
+  const images =
+    meta?.images && meta.images.length > 0
+      ? meta.images
+      : profile.image_url
+        ? [profile.image_url]
+        : [];
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;
-  const acceptedPayments = meta?.accepted_payments || [];
+  let acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
@@ -496,19 +361,7 @@ export default async function ProviderPage({
   const [claimResult, similarProviders, qaResult, outreachCandidates] = await Promise.all([
     // 1. Actual claim state (iOS data always says "unclaimed")
     profile.source_provider_id
-      ? (async () => {
-          try {
-            const supabase = await createClient();
-            const { data: bp } = await supabase
-              .from("business_profiles")
-              .select("claim_state, account_id, metadata, verification_state")
-              .eq("source_provider_id", profile.source_provider_id!)
-              .maybeSingle();
-            return bp;
-          } catch {
-            return null;
-          }
-        })()
+      ? getClaimedAccount(profile.source_provider_id, supabase)
       : Promise.resolve(null),
 
     // 2. Similar providers for Compare section AND multi_provider card stack
@@ -597,29 +450,77 @@ export default async function ProviderPage({
   // For native business_profiles, use profile.verification_state directly
   // For iOS providers, this may be undefined but claimResult will override
   let actualVerificationState: string | null = profile.verification_state ?? null;
+  let claimMeta: ExtendedMetadata | null = null;
   if (claimResult) {
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
     actualVerificationState = claimResult.verification_state ?? actualVerificationState;
-    // Merge staff/owner data from business_profiles metadata (iOS metadata doesn't have it)
-    const bpMeta = claimResult.metadata as ExtendedMetadata | null;
-    if (bpMeta?.staff) {
-      staff = bpMeta.staff;
+
+    // Only overlay editorial metadata if the claim is verified.
+    // Unverified providers' edits should not appear on the public page.
+    // badge_approved is an admin override that grants verified status.
+    const claimMetadataRaw = claimResult.metadata as Record<string, unknown> | null;
+    const badgeApprovedOverride = claimMetadataRaw?.badge_approved === true;
+    const isVerifiedClaim =
+      claimResult.claim_state === "claimed" &&
+      (claimResult.verification_state === "verified" ||
+       claimResult.verification_state === "not_required" ||
+       badgeApprovedOverride);
+
+    if (isVerifiedClaim) {
+      // Overlay the editorial fields the provider edits in their dashboard but
+      // that don't exist on the directory row — owner story, payment types,
+      // staff screening, itemized pricing. This makes a directory-linked CLAIMED
+      // provider's public page show the same editorial data as an account-first
+      // provider (Chunk 4 Step 2). iOS/directory metadata has none of these.
+      claimMeta = claimResult.metadata as ExtendedMetadata | null;
+      if (claimMeta?.staff) staff = claimMeta.staff;
+      if (claimMeta?.accepted_payments) acceptedPayments = claimMeta.accepted_payments;
     }
   }
 
-  // Only show "Claimed" badge when provider is BOTH claimed AND verified
-  // This prevents the trust signal from appearing before verification is complete
-  const displayClaimState = (actualClaimState === "claimed" && actualVerificationState === "verified")
-    ? "claimed"
-    : "unclaimed";
+  // Compute tri-state badge display: "unclaimed" | "verified" | "claimed"
+  // - "verified": provider is claimed AND verified (admin-approved, self-verified, or high-trust auto-verified)
+  // - "claimed": provider is claimed but NOT yet verified (pending verification, unverified, or rejected)
+  // - "unclaimed": provider is not claimed (unclaimed, pending claim, rejected claim, or archived)
+  const badgeApproved = (claimMeta as Record<string, unknown> | null)?.badge_approved === true;
+  const computeBadgeDisplayState = (): "unclaimed" | "verified" | "claimed" => {
+    if (actualClaimState !== "claimed") return "unclaimed";
+    if (actualVerificationState === "verified" ||
+        actualVerificationState === "not_required" ||
+        badgeApproved) return "verified";
+    return "claimed"; // claimed but not verified
+  };
+  const displayClaimState = computeBadgeDisplayState();
 
   const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
   const realReviewCount = qaResult.reviewCount;
   const suggestionStats = (qaResult.suggestionStats ?? {}) as Record<string, number>;
 
-  const pricingDetails = meta?.pricing_details || [];
-  const staffScreening = meta?.staff_screening;
+  const pricingDetails = claimMeta?.pricing_details ?? meta?.pricing_details ?? [];
+  const rawStaffScreening = claimMeta?.staff_screening ?? meta?.staff_screening;
+
+  // Normalize staff_screening to array format
+  // Portal saves as array: ["Background checks", "Drug screening", ...]
+  // Legacy format was object: { background_checked: true, licensed: true, insured: false }
+  const staffScreeningItems: string[] = (() => {
+    if (!rawStaffScreening) return [];
+    // If it's already an array, filter to valid non-empty strings and deduplicate
+    if (Array.isArray(rawStaffScreening)) {
+      return [...new Set(
+        rawStaffScreening.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      )];
+    }
+    // If it's the legacy object format, convert to array
+    if (typeof rawStaffScreening === "object") {
+      const items: string[] = [];
+      if (rawStaffScreening.background_checked) items.push("Background Checked");
+      if (rawStaffScreening.licensed) items.push("Licensed");
+      if (rawStaffScreening.insured) items.push("Insured");
+      return items;
+    }
+    return [];
+  })();
 
   // === Review Data Sources (properly separated) ===
   // 1. Real reviews come from the reviews table (realReviewCount from DB query above)
@@ -664,12 +565,9 @@ export default async function ProviderPage({
   const hasPriceRange = priceRange != null;
   const hasStaff = staff != null;
   const hasReviews = reviewsToShow.length > 0 || realReviewCount > 0;
-  const hasStaffScreening = staffScreening != null &&
-    (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
+  const hasStaffScreening = staffScreeningItems.length > 0;
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
-  // Build care services: real data first, then pad with category-inferred services
-  // Normalize labels to collapse synonyms (e.g., "Home Care (Non-medical)" → "Home Care")
   const rawCareTypes = (profile.care_types ?? []).map(normalizeCareLabel);
   const careServices: string[] = [...rawCareTypes];
   if (profile.category) {
@@ -685,7 +583,7 @@ export default async function ProviderPage({
     trustSignals: aiTrustSignals,
     googleReviews: googleReviewsData,
     cmsData,
-    staffScreening,
+    staffScreening: rawStaffScreening,
     careTypes: profile.care_types,
     category: profile.category,
   });
@@ -868,6 +766,7 @@ export default async function ProviderPage({
   return (
     <div className="min-h-screen pb-20 md:pb-0">
       <ViewTracker providerId={slug} />
+      <ManagedUtmCapture />
 
       {/* Structured data */}
       <script
@@ -931,15 +830,14 @@ export default async function ProviderPage({
                   rating: rating || undefined,
                 }}
               />
-              {images.length > 0 && (
-                <div className="absolute top-4 left-4 z-20 hidden md:block">
-                  <ClaimBadge
-                    claimState={displayClaimState}
-                    providerName={profile.display_name}
-                    claimUrl={`/provider/onboarding?org=${profile.slug}`}
-                  />
-                </div>
-              )}
+              {/* Badge always shows regardless of images - positioned over gallery/fallback */}
+              <div className="absolute top-4 left-4 z-20">
+                <ClaimBadge
+                  displayState={displayClaimState}
+                  providerName={profile.display_name}
+                  claimUrl={`/provider/onboarding?org=${profile.slug}`}
+                />
+              </div>
             </div>
 
             {/* Identity */}
@@ -1039,7 +937,7 @@ export default async function ProviderPage({
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
-                      {displayClaimState === "claimed" && staff?.image ? (
+                      {displayClaimState === "verified" && staff?.image ? (
                         <Image
                           src={staff.image}
                           alt={staff.name || "Manager"}
@@ -1047,21 +945,27 @@ export default async function ProviderPage({
                           height={48}
                           className="w-12 h-12 rounded-full object-cover"
                         />
-                      ) : displayClaimState === "claimed" && staff?.name ? (
+                      ) : displayClaimState === "verified" && staff?.name ? (
                         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                           <span className="text-sm font-semibold text-gray-500">
                             {getInitials(staff.name)}
                           </span>
                         </div>
+                      ) : displayClaimState === "claimed" ? (
+                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                        </div>
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                           <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                           </svg>
                         </div>
                       )}
-                      {/* Verification badge */}
-                      {displayClaimState === "claimed" && (
+                      {/* Verification badge - only show for verified state */}
+                      {displayClaimState === "verified" && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white rounded-full flex items-center justify-center">
                           <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
@@ -1072,14 +976,35 @@ export default async function ProviderPage({
 
                     {/* Text content */}
                     <div className="flex-1 min-w-0">
-                      {displayClaimState === "claimed" ? (
+                      {displayClaimState === "verified" ? (
                         <>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-primary-600 tracking-wide">CLAIMED</span>
-                            <MobileClaimTooltip content="This business has been verified and is actively managed by its owner on Olera." />
+                            <span className="text-xs font-bold text-primary-600 tracking-wide">VERIFIED</span>
+                            <MobileClaimTooltip content="This listing has been verified and is managed by the owner. Information is kept up to date." />
                           </div>
                           <p className="text-sm text-gray-600 mt-0.5">
                             Managed by <span className="font-semibold text-gray-900">{staff?.name || profile.display_name}</span>
+                          </p>
+                        </>
+                      ) : displayClaimState === "claimed" ? (
+                        <>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-gray-400 tracking-wide">CLAIMED</span>
+                            <MobileClaimTooltip content="This listing has been claimed. If you're the owner, you can manage this page." />
+                          </div>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            Are you the owner?{" "}
+                            <MobileManageLink
+                              providerName={profile.display_name}
+                              providerSlug={profile.slug}
+                              providerId={profile.id}
+                              sourceProviderId={profile.source_provider_id}
+                              providerEmail={profile.email}
+                              providerCity={profile.city}
+                              providerState={profile.state}
+                              claimState={actualClaimState}
+                              claimAccountId={claimAccountId}
+                            />
                           </p>
                         </>
                       ) : (
@@ -1098,6 +1023,8 @@ export default async function ProviderPage({
                               providerEmail={profile.email}
                               providerCity={profile.city}
                               providerState={profile.state}
+                              claimState={actualClaimState}
+                              claimAccountId={claimAccountId}
                             />
                           </p>
                         </>
@@ -1131,7 +1058,7 @@ export default async function ProviderPage({
                   )}
                 </div>
 
-                {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                {!isStudentContext && (pricingConfig?.tier === 3 && !hasPriceRange ? (
                   <div className="mt-1">
                     <PricingEducationBadge
                       category={profile.category!}
@@ -1150,7 +1077,7 @@ export default async function ProviderPage({
                   />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-                )}
+                ))}
 
                 {profile.address && (
                   <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
@@ -1173,41 +1100,41 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── "Manage this page" CTA — hidden on mobile for cleaner hero ── */}
-              <div className="hidden md:block">
-              <ManagePageCTA
-                providerSlug={profile.slug}
-                providerName={profile.display_name}
-                providerId={profile.id}
-                sourceProviderId={profile.source_provider_id}
-                providerEmail={profile.email}
-                providerCity={profile.city}
-                providerState={profile.state}
-                isClaimed={actualClaimState === "claimed"}
-                claimAccountId={claimAccountId}
-              />
-              </div>
+              {/* ── "Manage this page" CTA — only for unclaimed/claimed, not verified ── */}
+              {displayClaimState !== "verified" && (
+                <div className="hidden md:block">
+                <ManagePageCTA
+                  providerSlug={profile.slug}
+                  providerName={profile.display_name}
+                  providerId={profile.id}
+                  sourceProviderId={profile.source_provider_id}
+                  providerEmail={profile.email}
+                  providerCity={profile.city}
+                  providerState={profile.state}
+                  isClaimed={actualClaimState === "claimed"}
+                  claimAccountId={claimAccountId}
+                />
+                </div>
+              )}
 
-              {/* Managed by — only show when staff data exists, hidden on mobile */}
-              {hasStaff && (
+              {/* Verified status section — only show for verified providers, hidden on mobile */}
+              {displayClaimState === "verified" && (
                 <div className="hidden md:flex items-center gap-2.5 mt-4">
                   <div className="relative flex-shrink-0">
-                    {staff!.image ? (
-                      <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                    {staff?.image ? (
+                      <Image src={staff.image} alt={staff.name || profile.display_name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
                     ) : (
                       <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
+                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff?.name || profile.display_name)}</span>
                       </div>
                     )}
-                    {displayClaimState === "claimed" && (
-                      <svg className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
-                        <circle cx="10" cy="10" r="10" fill="white" />
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                    <svg className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                      <circle cx="10" cy="10" r="10" fill="white" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                    </svg>
                   </div>
                   <p className="text-sm text-gray-500">
-                    Managed by: <span className="font-medium text-gray-700">{staff!.name}</span>
+                    Managed by: <span className="font-medium text-gray-700">{staff?.name || profile.display_name}</span>
                   </p>
                 </div>
               )}
@@ -1232,6 +1159,93 @@ export default async function ProviderPage({
                ══════════════════════════════════════════ */}
             <div data-spotlight-parent>
 
+              {/* ── About this opportunity (student context only) ── */}
+              {isStudentContext && (() => {
+                const oppMeta = (profile.metadata ?? null) as unknown as Record<string, unknown> | null;
+                const oppProfile = readOpportunityProfile(oppMeta);
+                const demand = (oppMeta?.[DEMAND_PROFILE_KEY] ?? null) as {
+                  coverage_buckets?: string[];
+                  demand_shape?: "regular" | "varies" | "unpredictable";
+                  prn_open?: "yes" | "maybe" | "no";
+                } | null;
+                const opp = buildOpportunity({
+                  careText: categoryLabel ?? profile.category,
+                  isClaimed: providerSource === "bp",
+                  coverageBuckets: demand?.coverage_buckets,
+                  profile: oppProfile,
+                });
+                // Surface what the provider entered in their "Hire more
+                // caregivers" block: demand shape, PRN openness, and requirements.
+                const shapeLabel = demand?.demand_shape
+                  ? DEMAND_SHAPE_OPTIONS.find((o) => o.value === demand.demand_shape)?.label ?? null
+                  : null;
+                const prnLabel = demand?.prn_open
+                  ? PRN_OPTIONS.find((o) => o.value === demand.prn_open)?.label ?? null
+                  : null;
+                const req = readRequirements(oppMeta);
+                const reqLabels: string[] = [
+                  ...(req.background_check ? ["Background check"] : []),
+                  ...(req.drug_test ? ["Drug test"] : []),
+                  ...(req.transportation ? ["Reliable transportation (license + insurance)"] : []),
+                ];
+                return (
+                  <div className="py-8 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About this opportunity</h2>
+                    <p className="text-base font-semibold text-gray-900">{opp.roleLabel}</p>
+                    <p className="mt-4 text-sm font-medium text-gray-500">What you&apos;d do</p>
+                    <ul className="mt-1 list-disc pl-5 text-sm text-gray-700 space-y-0.5">
+                      {opp.tasks.map((t) => (<li key={t}>{t}</li>))}
+                    </ul>
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">When</p>
+                        <p className="text-sm text-gray-700">{opp.when}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Pay</p>
+                        <p className="text-sm text-gray-700">{opp.pay}</p>
+                      </div>
+                      {shapeLabel && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Schedule</p>
+                          <p className="text-sm text-gray-700">{shapeLabel}</p>
+                        </div>
+                      )}
+                      {prnLabel && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Open to PRN (on-call)</p>
+                          <p className="text-sm text-gray-700">{prnLabel}</p>
+                        </div>
+                      )}
+                    </div>
+                    {(opp.certifications || opp.skills) && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Who we&apos;re looking for</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {[...(opp.certifications ?? []), ...(opp.skills ?? [])].map((r) => (
+                            <span key={r} className="inline-block rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-700">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {reqLabels.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-500">Requirements</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {reqLabels.map((r) => (
+                            <span key={r} className="inline-block rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs text-amber-800">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <p className="mt-4 text-sm font-medium text-emerald-700">
+                      Counts toward your 120 patient-care hours.
+                    </p>
+                    {opp.note && <p className="mt-2 text-xs text-gray-500">{opp.note}</p>}
+                  </div>
+                );
+              })()}
+
               {/* ── What families are saying (above services when reviews exist) ── */}
               {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
                 <div id="reviews" className="scroll-mt-20">
@@ -1243,12 +1257,14 @@ export default async function ProviderPage({
                     isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
                     googleReviewsData={googleReviewsData}
                     placeId={providerPlaceId}
+                    heading={isStudentContext ? "About this provider" : undefined}
                     hideBorder
                   />
                 </div>
               )}
 
-              {/* ── Customer Questions & Answers ── */}
+              {/* ── Customer Questions & Answers (family-facing; hidden in student context) ── */}
+              {!isStudentContext && (
               <div id="qa" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
                 <QASectionWithVariant
                   providerId={profile.slug}
@@ -1291,13 +1307,14 @@ export default async function ProviderPage({
                   />
                 )}
               </div>
+              )}
 
               {/* ── Benefits Discovery ── */}
               {/* Wrapped in BenefitsArmGate so the section disappears for the
                   40% of visitors in the outreach or multi_provider arms of the
                   5-way intake A/B. The 60% in the 3 benefits arms see the existing
                   module unchanged (with its internal mod-3 copy A/B). */}
-              {hasBenefitsData && benefitsData && (
+              {!isStudentContext && hasBenefitsData && benefitsData && (
                 <BenefitsArmGate>
                   <div id="benefits" className="py-8 scroll-mt-20 border-t border-gray-200">
                     <BenefitsDiscoveryModule
@@ -1332,23 +1349,13 @@ export default async function ProviderPage({
               {hasStaffScreening && (
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
-                  <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    {[
-                      { label: "Background Checked", verified: staffScreening!.background_checked },
-                      { label: "Licensed", verified: staffScreening!.licensed },
-                      { label: "Insured", verified: staffScreening!.insured },
-                    ].filter(item => item.verified).map((item) => (
-                      <div key={item.label} className="flex items-center gap-2.5">
-                        <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                        <span className="text-base text-gray-700">{item.label}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <StaffScreeningList items={staffScreeningItems} initialCount={6} />
                 </div>
               )}
 
-              {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
-              {(googleReviewsData?.reviews?.length ?? 0) === 0 && (
+              {/* ── What families are saying (below Q&A when no reviews — empty state;
+                    hidden in student context, the "be first to review" prompt is family-facing) ── */}
+              {!isStudentContext && (googleReviewsData?.reviews?.length ?? 0) === 0 && (
                 <div id="reviews" className="scroll-mt-20">
                   <ReviewsSection
                     providerId={profile.slug}
@@ -1466,7 +1473,7 @@ export default async function ProviderPage({
                             <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
                           </div>
                         )}
-                        {displayClaimState === "claimed" && (
+                        {displayClaimState === "verified" && (
                           <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
                             <circle cx="10" cy="10" r="10" fill="white" />
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
@@ -1521,6 +1528,18 @@ export default async function ProviderPage({
           {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
           <div className="hidden md:block lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
+              {isStudentContext ? (
+                <StudentProviderCTA
+                  surface="sidebar"
+                  providerId={profile.id}
+                  providerName={profile.display_name}
+                  providerSlug={profile.slug}
+                  providerSource={providerSource}
+                  city={profile.city}
+                  state={profile.state}
+                  campus={studentCampus}
+                />
+              ) : (
               <DesktopCTAVariantRouter
                 providerId={profile.id}
                 providerName={profile.display_name}
@@ -1554,12 +1573,13 @@ export default async function ProviderPage({
                   highlights: p.highlights || [],
                 }))}
               />
+              )}
             </div>
           </div>
         </div>
 
-        {/* ===== Compare Providers ===== */}
-        {similarProviders.providers.length > 0 && (
+        {/* ===== Compare Providers (hidden in student context) ===== */}
+        {!isStudentContext && similarProviders.providers.length > 0 && (
           <div className="border-t border-gray-200 pt-8 mt-4">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               {similarProviders.isLocal
@@ -1579,6 +1599,18 @@ export default async function ProviderPage({
       </div>
 
       {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
+      {isStudentContext ? (
+        <StudentProviderCTA
+          surface="mobile"
+          providerId={profile.id}
+          providerName={profile.display_name}
+          providerSlug={profile.slug}
+          providerSource={providerSource}
+          city={profile.city}
+          state={profile.state}
+          campus={studentCampus}
+        />
+      ) : (
       <MobileCTAVariantRouter
         providerName={profile.display_name}
         priceRange={priceRange}
@@ -1615,8 +1647,10 @@ export default async function ProviderPage({
           highlights: p.highlights || [],
         }))}
       />
+      )}
 
       {/* Lead capture sheet (unified modal for mobile + desktop) */}
+      {!isStudentContext && (
       <LeadCaptureSheetWrapper
         providerId={profile.id}
         providerName={profile.display_name}
@@ -1630,6 +1664,7 @@ export default async function ProviderPage({
           image: staff.image || null,
         } : null}
       />
+      )}
     </div>
   );
 }

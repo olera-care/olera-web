@@ -17,9 +17,21 @@ export interface NarrationContext {
 }
 
 export interface NarratedTouchpoint {
+  /** One-line action sentence (the "what happened"). */
   text: string;
+  /** Secondary specifics shown beneath the title (the partner's message, the
+   *  event details, an admin's free-form note). Null when the title says it
+   *  all. Kept separate from `text` so the timeline never renders the same
+   *  note twice. */
+  detail: string | null;
   admin: string | null;
   whenIso: string;
+  /** When true, the timeline should skip this row entirely. Used for
+   *  mechanical bookkeeping note_added events (drip paused, activation link
+   *  sent, job-board task queued, meeting-in-flight) that carry no operational
+   *  meaning for an admin scanning the story. Keeping the decision here means
+   *  "what shows in the timeline" lives in one place. */
+  hidden?: boolean;
 }
 
 export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): NarratedTouchpoint {
@@ -28,8 +40,15 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
   const contactSuffix = contact ? ` to ${contact.email ?? contact.name}` : "";
   const contactName = contact ? ` (${contact.name})` : "";
   const p = t.payload ?? {};
+  const note = typeof t.notes === "string" && t.notes.trim() ? t.notes.trim() : null;
 
   let text: string;
+  // Default subline = the free-form note (admin/system specifics). Structured
+  // events override this with payload-derived detail so the note — which often
+  // just restates the title — isn't echoed twice.
+  let detail: string | null = note;
+  // Rows the timeline should skip (mechanical bookkeeping). Set in note_added.
+  let hidden = false;
   switch (t.touchpoint_type) {
     case "stage_change": {
       // E3: narrate stage transitions as complete sentences. Terminal
@@ -48,8 +67,6 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
         const via = typeof p.via === "string" ? p.via : null;
         if (via === "self_serve_activation") {
           text = `🎉 Pilot Active — provider accepted the agreement on the candidate board.`;
-        } else if (via === "admin_make_client") {
-          text = `🎉 Pilot Active — admin activated on the provider's behalf.`;
         } else {
           text = `🎉 Pilot Active — row converted, now an active partner.`;
         }
@@ -63,14 +80,18 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
         text = `Row closed — contact was unreachable.`;
       } else if (to === "redirected") {
         text = `Row redirected to a different stakeholder.`;
+      } else if (to === "archived") {
+        text = `Prospect archived — outreach halted. Can be reopened.`;
       } else {
         text = `Row moved from ${fromLabel} to ${toLabel}.`;
       }
       break;
     }
     case "email_sent": {
-      const tmpl = p.template ? ` (${p.template})` : "";
-      text = `Sent email${contactSuffix}${contactName}${tmpl}.`;
+      text = `Sent email${contactSuffix}${contactName}.`;
+      // Prefer an admin note; otherwise label which email in the sequence went
+      // out (humanized template) so the row reads as the cadence step it is.
+      detail = note ?? friendlyTemplate(typeof p.template === "string" ? p.template : null);
       break;
     }
     case "email_replied":
@@ -101,8 +122,6 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
         text = `Reached${contactName} — interested. Cadence stopped; row moved to Replies.`;
       } else if (outcome === "promised_callback") {
         text = `Reached${contactName} — promised callback. Row awaiting their return call.`;
-      } else if (outcome === "convert_to_client") {
-        text = `Reached${contactName} — converted to Client.`;
       } else if (outcome === "convert_to_partner") {
         text = `Reached${contactName} — committing to Partner.`;
       } else if (outcome === "connected_not_interested") {
@@ -191,23 +210,142 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
       break;
     case "note_added": {
       // v10 Phases 2-5 (2026-06-04): the magic-link landing + Calendly
-      // webhook + activation API all use note_added with structured
-      // `reason` payloads. Surface the operational meaning instead of
+      // webhook + activation API + partner self-service all use note_added with
+      // structured `reason` payloads. Surface the operational meaning instead of
       // a generic "Note added" so the timeline tells the actual story.
       const reasonRaw = typeof p.reason === "string" ? p.reason : null;
       const fields = Array.isArray(p.fields_updated) ? p.fields_updated.join(", ") : "";
+      // Free-form text can live in the notes column OR payload.notes (some
+      // actions write it into the payload). Prefer whichever is present.
+      const noteText = note ?? str(p.notes);
+
+      // Mechanical bookkeeping — no operational meaning for an admin scanning
+      // the timeline. Hidden so the story stays about milestones, emails,
+      // notes, and endings. One list, easy to adjust.
+      const HIDDEN_REASONS = new Set([
+        "meeting_in_flight", // vague "still finding a time" — dropped by design
+        "smartlead_drips_paused", // internal cadence mechanics
+        "activation_link_sent", // sub-step already implied by activation_launched
+        "job_board_task_queued", // bookkeeping; the actual post is kept
+      ]);
+      if (reasonRaw && HIDDEN_REASONS.has(reasonRaw)) {
+        hidden = true;
+        text = "";
+        break;
+      }
+
       switch (reasonRaw) {
+        // ── Cadence milestones — where the prospect sits in the funnel ──
+        case "smartlead_enrolled":
+          text = `🚀 Outreach launched — enrolled in the cold-email cadence.`;
+          detail = null;
+          break;
+        case "activation_launched":
+          text = `⚡ Activation launched — enrolled in the activation cadence.`;
+          detail = null;
+          break;
+        case "partner_welcome_launched":
+          text = `🎉 Welcome sequence launched.`;
+          detail = null;
+          break;
+        case "outreach_stopped":
+          text = `🛑 Outreach stopped.`;
+          detail = noteText;
+          break;
+        case "cadence_ended_cold":
+          text = `🛑 Outreach ended — no response.`;
+          detail = null;
+          break;
+        // ── Other real actions worth seeing ──
+        case "post_meeting_followup":
+          text = `📝 Post-meeting follow-up.`;
+          detail = noteText;
+          break;
+        case "job_board_posted":
+          text = `📋 Posted to the job board.`;
+          detail = noteText;
+          break;
+        case "pre_flight_override":
+          text = `✅ Pre-Flight overridden — outreach unlocked manually.`;
+          detail = noteText;
+          break;
+        case "call_offered":
+          text = `📅 Offered a call booking link.`;
+          detail = noteText;
+          break;
         case "platform_visited":
           text = `🔗 Provider clicked the magic link and visited the candidate board.`;
+          detail = null;
+          break;
+        case "partner_portal_visited":
+          text = `🔗 Partner opened their portal and signed in.`;
+          detail = null;
           break;
         case "claim_conflict":
           text = `⚠️ Magic-link click on an organization already linked to another account. Read-only co-tenancy until reconciled.`;
+          detail = null;
           break;
         case "calendly_reschedule_pending":
           text = `📅 Calendly reschedule in progress (old slot canceled — waiting for the new one).`;
+          detail = null;
           break;
+        // ── Partner self-service from the portal (relationship signals) ──
+        case "partner_referral": {
+          const name = str(p.referred_name) ?? "a colleague";
+          const role = str(p.referred_role);
+          text = `🤝 Partner referred a colleague: ${name}${role ? `, ${role}` : ""}.`;
+          detail = joinDetail([str(p.referred_email), str(p.context)]);
+          break;
+        }
+        case "partner_event": {
+          const name = str(p.event_name) ?? "a campus event";
+          text = `📅 Partner flagged a campus event: ${name}.`;
+          detail = joinDetail([
+            str(p.date) ?? str(p.timing),
+            p.mode === "virtual" ? "virtual" : str(p.location),
+            str(p.notes),
+          ]);
+          break;
+        }
+        case "partner_message": {
+          text = `💬 Partner sent a message.`;
+          detail = str(p.message) ?? note;
+          break;
+        }
+        case "dept_head_partner_documented": {
+          const perm: Record<string, string> = {
+            yes: "✅ professor outreach approved",
+            no: "🚫 no professor outreach",
+            not_yet: "⏳ professor outreach not yet",
+            unclear: "❓ professor permission unclear",
+          };
+          const next: Record<string, string> = {
+            email_professors: "We may email professors directly",
+            will_forward: "Dept head will forward the flyer",
+            will_introduce: "Dept head will introduce us",
+            need_followup: "Need a follow-up to decide",
+            do_not_contact_yet: "Do not contact professors yet",
+            other: "See notes",
+          };
+          const permLabel = perm[String(p.professor_permission)] ?? "professor permission documented";
+          text = `🏛️ Department-head partnership documented — ${permLabel}.`;
+          detail = next[String(p.next_step)] ?? note;
+          break;
+        }
         default:
-          text = fields ? `Notes / research updated (${fields}).` : `Note added.`;
+          if (fields) {
+            text = `📋 Research / notes updated (${fields}).`;
+            // For a plain research/notes update the free-form note IS the
+            // detail; keep the default `detail = note`.
+          } else if (noteText) {
+            // A plain typed note — show it with an honest, minimal title.
+            text = `📝 Note`;
+            detail = noteText;
+          } else {
+            // Unknown reason with no text → nothing worth a timeline row.
+            hidden = true;
+            text = "";
+          }
       }
       break;
     }
@@ -229,17 +367,42 @@ export function narrateTouchpoint(t: Touchpoint, ctx: NarrationContext): Narrate
       break;
 
     default:
-      text = String(t.touchpoint_type);
+      text = String(t.touchpoint_type).replace(/_/g, " ");
   }
 
-  if (t.notes) {
-    text = `${text} — “${t.notes}”`;
-  }
-  return { text, admin, whenIso: t.created_at };
+  return { text, detail, admin, whenIso: t.created_at, hidden };
 }
 
 function labelFor(status: string): string {
   return (STATUS_LABELS as Record<string, string>)[status] ?? status;
+}
+
+/** Coerce an unknown payload field to a trimmed non-empty string, or null. */
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+/** Join present detail fragments into one " · "-separated subline, or null. */
+function joinDetail(parts: Array<string | null | undefined>): string | null {
+  const kept = parts.filter((x): x is string => typeof x === "string" && x.trim().length > 0);
+  return kept.length > 0 ? kept.join(" · ") : null;
+}
+
+/** Humanize an email template key (e.g. "activation_nudge" → "Activation nudge
+ *  email", "followup_final" → "Final follow-up email") for the timeline subline.
+ *  Returns null when there's no template to label. */
+function friendlyTemplate(key: string | null): string | null {
+  if (!key) return null;
+  const k = key.toLowerCase();
+  if (k.includes("final")) return "Final follow-up email";
+  if (k.includes("socialproof")) return "Social-proof follow-up email";
+  if (k.includes("nudge")) return "Activation nudge email";
+  if (k.includes("followup") || k.includes("follow_up")) return "Follow-up email";
+  if (k.includes("intro")) return "Intro email";
+  if (k.includes("welcome")) return "Welcome email";
+  // Fallback: strip the audience prefix + de-snake.
+  const cleaned = k.replace(/^(provider|partner|activation|advisor|student_org|dept_head|professor)_/, "").replace(/_/g, " ");
+  return cleaned ? `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1)} email` : null;
 }
 
 function formatDate(iso: string): string {

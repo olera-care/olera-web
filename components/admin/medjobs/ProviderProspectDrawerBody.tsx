@@ -24,12 +24,12 @@
 
 import { useState } from "react";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
+import { decisionMakerEmailRecipients } from "@/lib/student-outreach/decision-makers";
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
-import { PartnerPreFlightPanel } from "@/components/admin/medjobs/PartnerPreFlightPanel";
-import { DangerZone } from "@/components/admin/medjobs/DangerZone";
 
 interface Props {
   ctx: DrawerContext;
@@ -38,9 +38,12 @@ interface Props {
     payload?: Record<string, unknown>,
   ) => Promise<DrawerContext>;
   setError: (msg: string | null) => void;
+  /** Which In Basket tab the drawer was opened from — threaded to NextStepCard
+   *  so providers get the same tab-aware call-first behavior as partners. */
+  activeTab?: TabKey;
 }
 
-export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
+export function ProviderProspectDrawerBody({ ctx, action, setError, activeTab }: Props) {
   const { outreach } = ctx;
   const [showMore, setShowMore] = useState(false);
 
@@ -73,9 +76,18 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
   // Maker show in the checklist but DON'T gate — the philosophy is "do we
   // know enough to confidently send outreach to the correct person?", not
   // "force perfect data collection".
-  const dm = ctx.outreach.research_data?.decision_maker;
-  const hasDecisionMakerEmail = Boolean(dm?.email && dm.email.includes("@"));
-  const hasEmail = hasGeneralEmail || hasDecisionMakerEmail;
+  // Decision-maker emails come from BOTH research_data.decision_makers
+  // (plural, current UI) and the legacy singular slot — decisionMakerEmailRecipients
+  // reads both. Also count any already-materialized emailable contact, so a
+  // provider with a decision-maker email (but no general email) can launch.
+  const hasDecisionMakerEmail =
+    decisionMakerEmailRecipients(
+      ctx.outreach.research_data as Record<string, unknown> | null,
+    ).length > 0;
+  const hasContactEmail = ctx.contacts.some(
+    (c) => c.status === "active" && Boolean(c.email && c.email.trim()),
+  );
+  const hasEmail = hasGeneralEmail || hasDecisionMakerEmail || hasContactEmail;
 
   // v9.x simplified verification gate. Two unlock paths:
   //   1. Verified — admin confirmed contacts on a call.
@@ -90,16 +102,28 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
     preFlightOverridden,
   );
 
+  // Pre-flight call rule (P1): the confirm call is to the MAIN number only
+  // (the General Contact line) — never an individual/decision-maker number.
+  // The call is REQUIRED only when a main phone is on file; with no main
+  // phone there's nothing to call, so the row launches on email alone.
+  const mainPhone =
+    gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
+  const hasMainPhone = Boolean(mainPhone && String(mainPhone).trim());
+
   // R5: partners (stakeholder rows) often have no phone, so they can't do a
-  // confirm call — email alone is enough to launch. Providers keep the full
-  // gate (email + verified-on-call / override).
+  // confirm call — email alone is enough to launch. Providers gate on the
+  // confirm-call (or override) ONLY when a main phone exists; phoneless
+  // providers launch directly on a valid email.
   const isPartner = outreach.kind != null && outreach.kind !== "provider";
-  const launchEnabled = isPartner
-    ? hasEmail
-    : hasEmail && verificationState.can_launch;
+  const launchEnabled =
+    isPartner || !hasMainPhone
+      ? hasEmail
+      : hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
-    ? "Add an email — General Contact or Decision Maker."
-    : !isPartner && !verificationState.can_launch
+    ? hasMainPhone
+      ? "No email on file. Add an email, or use Call to Confirm → Override & launch to run a calls-only cadence."
+      : "Add an email — General Contact or Decision Maker."
+    : !isPartner && hasMainPhone && !verificationState.can_launch
       ? "Confirm contacts on a Pre-Flight call, or override Pre-Flight."
       : undefined;
 
@@ -115,12 +139,9 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
           starts directly with the Research Card — the old thin "Pre-Flight"
           indicator box was redundant (the Research Card's own orienting line
           says what to do). NextStepCard stays for post-launch stage CTAs. */}
-      {!isPreLaunch && <NextStepCard ctx={ctx} action={action} setError={setError} />}
-
-      {/* Partner pre-flight (Chunk 1.4): stakeholder-only, additive to the
-          SnapshotCard — source links, org contacts + faculty advisor, and the
-          professor permission lock. Self-gates to non-provider rows. */}
-      {isPreLaunch && isPartner && <PartnerPreFlightPanel ctx={ctx} />}
+      {!isPreLaunch && (
+        <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
+      )}
 
       {/* Zone 3 · Snapshot — prominent pre-launch only. Carries the
           General Contact + Specific Contacts + research notes the
@@ -165,7 +186,6 @@ export function ProviderProspectDrawerBody({ ctx, action, setError }: Props) {
                 setError={setError}
               />
             )}
-            <DangerZone ctx={ctx} action={action} setError={setError} />
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
+import { useToast } from "@/components/admin/Toast";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 
 interface Rollup {
@@ -35,6 +36,12 @@ interface RunRow {
   error: string | null;
   triggered_by: string;
 }
+interface SamplePreviewType {
+  id: string;
+  label: string;
+  subject: string;
+  emailType: string;
+}
 interface DetailResponse {
   job: {
     id: string;
@@ -57,6 +64,7 @@ interface DetailResponse {
   trend: Array<{ week: string; sent: number; delivered: number; opened: number; clicked: number }>;
   variants: VariantRow[];
   previewTypes: string[];
+  samplePreviewTypes: SamplePreviewType[];
   runs: RunRow[];
   windowDays: number;
 }
@@ -78,6 +86,11 @@ interface PreviewResponse {
 const DIGEST_SAMPLES: { key: string; label: string }[] = [
   { key: "family_question", label: "Family question" },
   { key: "leads", label: "Leads recap" },
+  // Registry-backed (lib/email-samples.ts) rather than the legacy switch below it:
+  // the key must equal the EMAIL_VARIANTS id so the preview route's getVariant()
+  // fallback resolves it.
+  { key: "provider_find_families", label: "Find Families" },
+  { key: "managed_ads", label: "Managed ads" },
   { key: "referral_teaser", label: "Referral teaser" },
   { key: "weekly_digest_rank", label: "Market rank digest" },
   { key: "weekly_digest_plain", label: "Weekly digest · plain" },
@@ -89,8 +102,10 @@ const DIGEST_SAMPLES: { key: string; label: string }[] = [
 const VARIANT_TRIGGERS: Record<string, string> = {
   family_question: "Goes to providers with an open, unanswered family question. Leads with the question and a one-click answer link.",
   leads: "Goes to providers who received one or more new family inquiries this week. A weekly recap that nudges them to respond, with a one-click link to their connections inbox. Outranks every variant except an open question — a lead is the hottest weekly signal.",
-  referral_teaser: "Goes to providers with a computed market and usable referral targets when there is no hotter lead/question/completion nudge. Leads with curiosity about nearby referral sources instead of asking them to work the call sheet immediately. Converts when they work a referral target in Your Market.",
-  market_rank: "Goes to active providers whose local market rank has been computed and who do not have a hotter lead/question/completion nudge. Converts when they work a referral target in Your Market.",
+  find_families: "Goes to providers with published care seekers within 50 miles who have no open question and no new lead. Leads with the nearest family's town, care need, and timing, plus a one-click link to /provider/matches. Converts when they reach out to a family.",
+  managed_ads: "Goes to the no-leads cohort (no open question, no new lead, not a cold first-contact). Leads with the managed-ads pitch — the one lever that generates demand for an empty local funnel — with a one-click link to /provider/boost. Rotated ~1 in 3 weeks so it yields to the market read / completion nudge. Converts when they view the managed-ads page.",
+  referral_teaser: "Goes to providers with a computed market and usable referral targets when there is no hotter lead/question/completion nudge. Leads with curiosity about nearby referral sources instead of asking them to work the call sheet immediately. Converts when they work a referral target in Growth.",
+  market_rank: "Goes to active providers whose local market rank has been computed and who do not have a hotter lead/question/completion nudge. Converts when they work a referral target in Growth.",
   weekly_digest: "Goes to providers active in the last 14 days — page views or clicks. Providers with a new lead or an open question get the Leads recap / Family question variant instead.",
   completion: "Goes to claimed providers with an incomplete profile (e.g. no owner story). Nudges them to finish it with a one-click deep link to the editor.",
   cold_rank: "Goes to top-5-ranked agencies in a computed market with no recent activity who haven't claimed their listing — a cold first-contact.",
@@ -348,6 +363,7 @@ export default function AutomationDetailPage() {
   const [showAllRuns, setShowAllRuns] = useState(false);
   const [windowDays, setWindowDays] = useState(30);
   const reqSeq = useRef(0);
+  const toast = useToast();
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -362,7 +378,7 @@ export default function AutomationDetailPage() {
       if (reqId !== reqSeq.current) return; // a newer window selection superseded this fetch
       setData(d);
       const isDigestJob = d.job.id === "weekly-provider-digest";
-      setPreviewType((prev) => prev ?? (isDigestJob ? DIGEST_SAMPLES[0].key : (d.previewTypes[0] ?? null)));
+      setPreviewType((prev) => prev ?? (isDigestJob ? DIGEST_SAMPLES[0].key : (d.samplePreviewTypes[0]?.id ?? d.previewTypes[0] ?? null)));
       const bestRun = d.runs.find((rr) => { const s = rr.summary?.sent; return typeof s === "number" && s > 0; }) ?? d.runs[0] ?? null;
       setSelectedRun((prev) => prev ?? bestRun?.id ?? null);
     } catch (e) {
@@ -377,15 +393,17 @@ export default function AutomationDetailPage() {
     if (!id || !previewType) return;
     setPreview("loading");
     let cancelled = false;
-    // Digest sample keys fetch a rendered variant sample; other jobs fetch their latest real email.
-    const isSample = DIGEST_SAMPLES.some((s) => s.key === previewType);
+    // Sample keys fetch a rendered fixture; other values fetch the latest real email.
+    const isSample =
+      DIGEST_SAMPLES.some((s) => s.key === previewType) ||
+      data?.samplePreviewTypes.some((s) => s.id === previewType);
     const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`;
     fetch(`/api/admin/automations/${id}/preview?${qs}`)
       .then((r) => (r.ok ? r.json() : r.status === 404 ? Promise.resolve("none") : Promise.reject(new Error())))
       .then((d) => { if (!cancelled) setPreview(d === "none" ? "none" : (d as PreviewResponse)); })
       .catch(() => { if (!cancelled) setPreview("none"); });
     return () => { cancelled = true; };
-  }, [id, previewType]);
+  }, [id, previewType, data?.samplePreviewTypes]);
 
   useEffect(() => {
     if (!id || !selectedRun) { setRecipients(null); return; }
@@ -410,7 +428,7 @@ export default function AutomationDetailPage() {
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
         await load();
       } catch (e) {
-        alert(`Failed: ${e instanceof Error ? e.message : e}`);
+        toast(`Failed: ${e instanceof Error ? e.message : e}`, { variant: "error" });
       } finally { setBusy(false); }
     } else {
       const reason = prompt(`Pause "${job.name}"? It stops running but still logs a skipped entry each cycle; auto-resumes in 30 days.\n\nReason (optional):`);
@@ -421,7 +439,7 @@ export default function AutomationDetailPage() {
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
         await load();
       } catch (e) {
-        alert(`Failed: ${e instanceof Error ? e.message : e}`);
+        toast(`Failed: ${e instanceof Error ? e.message : e}`, { variant: "error" });
       } finally { setBusy(false); }
     }
   }
@@ -438,6 +456,7 @@ export default function AutomationDetailPage() {
   }
 
   const ghostBtn = "rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50";
+  const canPause = data?.job.path.startsWith("/api/cron/") ?? false;
 
   return (
     <div className="max-w-5xl">
@@ -458,7 +477,9 @@ export default function AutomationDetailPage() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{data.job.name}</h1>
-                {data.paused ? (
+                {data.job.fn === "event" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-medium text-teal-700 ring-1 ring-inset ring-teal-200"><span className="h-1.5 w-1.5 rounded-full bg-teal-500" />Event monitor</span>
+                ) : data.paused ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Paused</span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Active</span>
@@ -493,9 +514,11 @@ export default function AutomationDetailPage() {
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {data.job.relatedAdminPath && <Link href={data.job.relatedAdminPath} className={ghostBtn}>Related queue →</Link>}
-              <button disabled={busy} onClick={togglePause} className={`${ghostBtn} ${data.paused ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : ""}`}>
-                {busy ? "…" : data.paused ? "Resume" : "Pause"}
-              </button>
+              {canPause && (
+                <button disabled={busy} onClick={togglePause} className={`${ghostBtn} ${data.paused ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50" : ""}`}>
+                  {busy ? "…" : data.paused ? "Resume" : "Pause"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -597,20 +620,27 @@ export default function AutomationDetailPage() {
 
                   {data.variants && data.variants.length > 1 && (
                     <div className="mt-6">
-                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">By variant · last {data.windowDays} days</h3>
+                      {(() => {
+                        const hasConversion = data.variants.some((v) => Boolean(v.convLabel));
+                        const breakdownLabel = data.job.id === "weekly-provider-digest" ? "By variant" : "By email type";
+                        return (
+                          <>
+                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{breakdownLabel} · last {data.windowDays} days</h3>
                       {/* No overflow-hidden here: the per-row trigger tooltips are absolutely positioned and must escape the wrapper. */}
                       <div className="rounded-xl border border-gray-200">
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
-                              <th className="px-4 py-2 font-medium">Variant</th>
+                              <th className="px-4 py-2 font-medium">{data.job.id === "weekly-provider-digest" ? "Variant" : "Email type"}</th>
                               <th className="px-4 py-2 text-right font-medium">Sent</th>
                               <th className="px-4 py-2 text-right font-medium">Delivered</th>
                               <th className="px-4 py-2 text-right font-medium">Opened</th>
                               <th className="px-4 py-2 text-right font-medium">Clicked</th>
+                              {hasConversion && (
                               <th className="px-4 py-2 text-right font-medium">
                                 <span className="inline-flex items-center">Converted<InfoDot text="Share of delivered emails where the provider took that variant's goal action (answered, opened a lead, worked the market, claimed, published, or re-visited the portal) within 14 days of the send — last-touch, so a single action is never double-counted across consecutive weekly sends. This is the honest signal: opens are inflated by Apple Mail's privacy proxy. Note: very recent sends may still be inside their 14-day window." /></span>
                               </th>
+                              )}
                               <th className="px-4 py-2 text-right font-medium">Bounced</th>
                             </tr>
                           </thead>
@@ -627,6 +657,7 @@ export default function AutomationDetailPage() {
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  {hasConversion && (
                                   <td className="px-4 py-2 text-right">
                                     {v.sent > 0 && v.delivered > 0 ? (
                                       <div className="leading-tight">
@@ -635,6 +666,7 @@ export default function AutomationDetailPage() {
                                       </div>
                                     ) : "—"}
                                   </td>
+                                  )}
                                   <td className={`px-4 py-2 text-right tabular-nums ${v.bounced + v.complained > 0 ? "text-amber-600" : "text-gray-300"}`}>{v.sent > 0 ? (v.bounced + v.complained || "—") : "—"}</td>
                                 </tr>
                                 {v.split && (["withRank", "plain"] as const).map((sk) => {
@@ -646,7 +678,9 @@ export default function AutomationDetailPage() {
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.delivered, s.sent) : "—"}</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.opened, s.sent) : "—"}</td>
                                       <td className="px-4 py-1.5 text-right tabular-nums">{s.sent > 0 ? pct(s.clicked, s.sent) : "—"}</td>
+                                      {hasConversion && (
                                       <td className="px-4 py-1.5 text-right text-gray-300">—</td>
+                                      )}
                                       <td className="px-4 py-1.5 text-right tabular-nums text-gray-300">{s.sent > 0 ? (s.bounced + s.complained || "—") : "—"}</td>
                                     </tr>
                                   );
@@ -656,7 +690,13 @@ export default function AutomationDetailPage() {
                           </tbody>
                         </table>
                       </div>
-                      <p className="mt-2 text-xs text-gray-400">Open/click rates are % of sent. Converted is % of delivered who took the variant&apos;s goal action within 14 days. Variants are inferred from the email for sends before tagging was added.</p>
+                      <p className="mt-2 text-xs text-gray-400">
+                        Open/click rates are % of sent.
+                        {hasConversion ? " Converted is % of delivered who took the variant's goal action within 14 days. Variants are inferred from the email for sends before tagging was added." : " Rows are grouped by email_type so this monitor shows which lifecycle emails are actually going out."}
+                      </p>
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
 
@@ -666,7 +706,7 @@ export default function AutomationDetailPage() {
                         <svg viewBox="0 0 12 12" className="h-3 w-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4.5 2.5l4 3.5-4 3.5" /></svg>
                         Weekly breakdown
                       </summary>
-                      <div className="mt-2 overflow-hidden rounded-xl border border-gray-200">
+                      <div className="mt-2 overflow-x-auto rounded-xl border border-gray-200">
                         <table className="w-full text-sm">
                           <thead className="border-b border-gray-200 bg-gray-50 text-xs text-gray-400">
                             <tr><th className="px-4 py-2 text-left font-medium">Week of</th><th className="px-4 py-2 text-right font-medium">Sent</th><th className="px-4 py-2 text-right font-medium">Delivered</th><th className="px-4 py-2 text-right font-medium">Open</th><th className="px-4 py-2 text-right font-medium">Click</th></tr>
@@ -696,8 +736,11 @@ export default function AutomationDetailPage() {
               {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
               {(() => {
                 const isDigest = data.job.id === "weekly-provider-digest";
-                if (!isDigest && data.previewTypes.length === 0) return null;
-                const sampleSel = DIGEST_SAMPLES.some((s) => s.key === previewType);
+                const sampleTypes = isDigest
+                  ? DIGEST_SAMPLES.map((s) => ({ id: s.key, label: s.label }))
+                  : data.samplePreviewTypes.map((s) => ({ id: s.id, label: s.label }));
+                if (sampleTypes.length === 0 && data.previewTypes.length === 0) return null;
+                const sampleSel = sampleTypes.some((s) => s.id === previewType);
                 const fullUrl = previewType
                   ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`}&raw=1`
                   : null;
@@ -705,7 +748,7 @@ export default function AutomationDetailPage() {
                   <div className="overflow-hidden rounded-xl border border-gray-200">
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
                       <div className="flex min-w-0 items-center gap-2 text-sm">
-                        <span className="font-medium text-gray-700">{isDigest ? "Email samples" : "Latest email"}</span>
+                        <span className="font-medium text-gray-700">{sampleTypes.length > 0 ? "Email samples" : "Latest email"}</span>
                         {preview && typeof preview === "object" && (
                           <span className="truncate text-xs text-gray-400">
                             {preview.sample
@@ -723,10 +766,10 @@ export default function AutomationDetailPage() {
                         {fullUrl && <a href={fullUrl} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
                       </div>
                     </div>
-                    {isDigest && (
+                    {sampleTypes.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 border-b border-gray-100 bg-gray-50/40 px-4 py-2">
-                        {DIGEST_SAMPLES.map((s) => (
-                          <button key={s.key} onClick={() => { setPreviewType(s.key); setPreviewExpanded(false); }} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${previewType === s.key ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
+                        {sampleTypes.map((s) => (
+                          <button key={s.id} onClick={() => { setPreviewType(s.id); setPreviewExpanded(false); }} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${previewType === s.id ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
                             {s.label}
                           </button>
                         ))}
@@ -739,7 +782,7 @@ export default function AutomationDetailPage() {
                       </div>
                     )}
                     {preview === "loading" && <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview…</div>}
-                    {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">{isDigest ? "Couldn't render this sample." : "No rendered email on file yet for this type."}</div>}
+                    {preview === "none" && <div className="px-4 py-8 text-center text-sm text-gray-400">{sampleSel ? "Couldn't render this sample." : "No rendered email on file yet for this type."}</div>}
                     {preview && typeof preview === "object" && (
                       <div className="relative bg-white">
                         <iframe srcDoc={preview.html} title="Email preview" className={`w-full bg-white transition-[height] ${previewExpanded ? "h-[720px]" : "h-[320px]"}`} sandbox="" />

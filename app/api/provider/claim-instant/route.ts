@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
-import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
+import { directoryHydrationFields, DIRECTORY_HYDRATION_COLUMNS } from "@/lib/providers/directory-hydrate";
+import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/lib/slack";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult,
+} from "@/lib/claim-trust";
 import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
@@ -208,7 +214,55 @@ export async function POST(request: Request) {
     }
 
     // ──────────────────────────────────────────────────────────
-    // 5. Create business_profile
+    // 5. Trust scoring
+    // ──────────────────────────────────────────────────────────
+    let trustResult: ClaimTrustResult = { level: "medium", reason: "not_scored" };
+
+    // For existing provider claims, fetch provider data for trust scoring
+    if (!isNewOrg && providerId) {
+      const { data: iosProvider } = await supabaseAdmin
+        .from("olera-providers")
+        .select("website, category, provider_category")
+        .eq("provider_id", providerId)
+        .maybeSingle();
+
+      if (iosProvider) {
+        try {
+          trustResult = await scoreClaimTrust({
+            email: normalizedEmail,
+            providerName: providerName || "Provider",
+            providerCity: city,
+            providerState: state,
+            providerCategory: iosProvider.category || iosProvider.provider_category,
+            providerDomain: extractDomainFromWebsite(iosProvider.website),
+          });
+        } catch (err) {
+          console.error("[claim-instant] trust scoring failed:", err);
+          // Keep default: medium/not_scored (fail safe to unverified)
+        }
+      }
+    } else if (isNewOrg) {
+      // For new orgs, score based on email + location (no website to compare)
+      try {
+        trustResult = await scoreClaimTrust({
+          email: normalizedEmail,
+          providerName: orgName,
+          providerCity: city,
+          providerState: state,
+        });
+      } catch (err) {
+        console.error("[claim-instant] trust scoring failed:", err);
+        // Keep default: medium/not_scored (fail safe to unverified)
+      }
+    }
+
+    // Set verification_state based on trust level:
+    // - High trust: 'not_required' (full access, no verification needed)
+    // - Medium/Low trust: 'unverified' (gated, must complete verification)
+    const verificationState = trustResult.level === "high" ? "not_required" : "unverified";
+
+    // ──────────────────────────────────────────────────────────
+    // 6. Create business_profile
     // ──────────────────────────────────────────────────────────
     const slug = await generateUniqueSlug(
       supabaseAdmin,
@@ -216,6 +270,19 @@ export async function POST(request: Request) {
       city || "",
       state || ""
     );
+
+    // Claiming a directory listing → hydrate the new business_profile with the
+    // directory's full display data (one complete, editable record from the
+    // start), instead of a thin shell projected at render time.
+    let hydration: ReturnType<typeof directoryHydrationFields> | null = null;
+    if (!isNewOrg && providerId) {
+      const { data: dirRow } = await supabaseAdmin
+        .from("olera-providers")
+        .select(DIRECTORY_HYDRATION_COLUMNS)
+        .eq("provider_id", providerId)
+        .maybeSingle();
+      if (dirRow) hydration = directoryHydrationFields(dirRow as Record<string, unknown>);
+    }
 
     const profileData = isNewOrg
       ? {
@@ -229,7 +296,9 @@ export async function POST(request: Request) {
           state: state,
           care_types: careTypes || [],
           claim_state: "claimed",
-          verification_state: "unverified", // Gated until verified
+          verification_state: verificationState,
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: trustResult.reason,
           source: "self_service",
           is_active: true,
           metadata: {},
@@ -243,11 +312,18 @@ export async function POST(request: Request) {
           email: normalizedEmail,
           city: city || null,
           state: state || null,
+          // Hydrated from the directory listing (the one record).
+          description: hydration?.description ?? null,
+          care_types: hydration?.care_types ?? [],
+          category: hydration?.category ?? null,
+          image_url: hydration?.image_url ?? null,
           claim_state: "claimed",
-          verification_state: "unverified", // Gated until verified
+          verification_state: verificationState,
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: trustResult.reason,
           source: "claimed_from_directory",
           is_active: true,
-          metadata: {},
+          metadata: hydration?.images?.length ? { images: hydration.images } : {},
         };
 
     const { data: newProfile, error: insertErr } = await supabaseAdmin
@@ -320,6 +396,7 @@ export async function POST(request: Request) {
       providerName: displayName,
       claimedByEmail: normalizedEmail,
       providerSlug: slug,
+      claimSource: isNewOrg ? "new_org_signup" : "instant_claim",
     });
     const claimResults = await Promise.allSettled([
       supabaseAdmin
@@ -331,7 +408,8 @@ export async function POST(request: Request) {
           metadata: {
             source: "instant_claim",
             olera_provider_id: providerId || null,
-            verification_state: "unverified",
+            verification_state: verificationState,
+            claim_trust_level: trustResult.level,
           },
         }),
       sendSlackAlert(claimAlert.text, claimAlert.blocks),
@@ -341,6 +419,24 @@ export async function POST(request: Request) {
     }
     if (claimResults[1].status === "rejected") {
       console.error("[claim-instant] Slack alert failed:", claimResults[1].reason);
+    }
+
+    // 8b. Suspicious claim alert for medium/low trust
+    // Only send if trust scoring actually ran (reason !== "not_scored")
+    if (trustResult.reason !== "not_scored" &&
+        (trustResult.level === "medium" || trustResult.level === "low")) {
+      try {
+        const suspiciousAlert = slackSuspiciousClaim({
+          providerName: displayName,
+          claimedByEmail: normalizedEmail,
+          providerSlug: slug,
+          trustLevel: trustResult.level,
+          trustReason: trustResult.reason,
+        });
+        await sendSlackAlert(suspiciousAlert.text, suspiciousAlert.blocks);
+      } catch {
+        // Non-blocking
+      }
     }
 
     // ──────────────────────────────────────────────────────────

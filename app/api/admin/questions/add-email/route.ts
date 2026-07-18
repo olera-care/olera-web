@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
-import { verifyAndCache } from "@/lib/email-verification";
+import { verifyAndCache, effectiveStatus } from "@/lib/email-verification";
+import { markEmailTrusted } from "@/lib/email";
 
 /**
  * POST /api/admin/questions/add-email
@@ -45,12 +46,43 @@ export async function POST(request: NextRequest) {
     // save or send; tell the operator to find another, or force through.
     // Fails OPEN: a verification error returns 'unknown' and we proceed.
     if (!force) {
-      const verdict = await verifyAndCache(email);
+      const raw = await verifyAndCache(email);
+      // Apply the same role-address reclassification the send gate uses, so the
+      // operator isn't falsely warned that a deliverable role inbox (info@,
+      // admissions@) is undeliverable. role_based → valid; role_based_catch_all → risky.
+      const verdict = { ...raw, status: effectiveStatus(raw.status, raw.subStatus) };
       if (verdict.status === "invalid") {
+        // Include checkedAt so admin knows how old this verdict is
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
         return NextResponse.json(
           {
             error: "undeliverable",
-            message: "That address can't receive mail — it would bounce. Try another.",
+            message: `That address can't receive mail — it would bounce${ageInfo}. Try another.`,
+            checkedAt,
+          },
+          { status: 422 },
+        );
+      }
+      // Catch-all ('risky'): the domain accepts all mail at the door, so we can't
+      // confirm a real inbox exists. These bounce ~15%, and the cold lane now
+      // suppresses catch-all at send (lib/email.ts) — so the deferred question/
+      // lead notification to this address would be skipped anyway. Warn the
+      // operator to find a named inbox; forcing through saves the address but the
+      // cold notification still won't fire.
+      if (verdict.status === "risky") {
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
+        return NextResponse.json(
+          {
+            error: "risky",
+            message:
+              `That looks like a catch-all domain — mail often won't reach a real inbox${ageInfo}, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.`,
+            checkedAt,
           },
           { status: 422 },
         );
@@ -63,7 +95,7 @@ export async function POST(request: NextRequest) {
     // Strategy 1: business_profiles by slug
     let provider = await db
       .from("business_profiles")
-      .select("id, display_name, email, source_provider_id, slug, metadata")
+      .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
       .eq("slug", providerSlug)
       .maybeSingle()
       .then(r => r.data);
@@ -116,15 +148,38 @@ export async function POST(request: NextRequest) {
       if (iosProvider) {
         provider = await db
           .from("business_profiles")
-          .select("id, display_name, email, source_provider_id, slug, metadata")
+          .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
           .eq("source_provider_id", iosProvider.provider_id)
           .maybeSingle()
           .then(r => r.data);
       }
     }
 
+    // Last resort: try by business_profiles UUID (some questions may store this as provider_id)
+    if (!provider && !iosProvider) {
+      provider = await db
+        .from("business_profiles")
+        .select("id, display_name, email, source_provider_id, slug, metadata, account_id")
+        .eq("id", providerSlug)
+        .maybeSingle()
+        .then(r => r.data);
+    }
+
     if (!provider && !iosProvider) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+    }
+
+    // Protection: If this account is claimed (has account_id) AND already has an email,
+    // block the change. The provider owns this email and should update it themselves.
+    // However, if NO email is on file, allow adding one (for directory enrichment).
+    if (provider?.account_id && provider?.email) {
+      return NextResponse.json(
+        {
+          error: "claimed_account",
+          message: "This provider has claimed their account. Their email cannot be changed by admins.",
+        },
+        { status: 403 }
+      );
     }
 
     // Use submitted email, or fall back to existing email on file
@@ -139,6 +194,10 @@ export async function POST(request: NextRequest) {
         .eq("id", provider.id);
     }
 
+    // Sync to olera-providers if linked. This only runs for:
+    // - Unclaimed accounts (no account_id), OR
+    // - Claimed accounts with NO email (enrichment case - adding first email)
+    // The claimed+has_email case is blocked above at line 164.
     const iosProviderId = provider?.source_provider_id || iosProvider?.provider_id;
     if (iosProviderId && iosProvider?.email !== effectiveEmail) {
       await db
@@ -167,7 +226,20 @@ export async function POST(request: NextRequest) {
     if (provider?.slug && provider.slug !== providerSlug) {
       variantSet.add(provider.slug);
     }
+    // Include the business_profile UUID - some questions may use this as provider_id
+    if (provider?.id && provider.id !== providerSlug) {
+      variantSet.add(provider.id);
+    }
     const additionalSlugVariants = Array.from(variantSet);
+
+    // When an operator forces past the deliverability warning, they're asserting
+    // human knowledge that the inbox is real (they fetched it, called, etc.).
+    // Trust it so the deferred send below — and all future sends — bypass
+    // suppression. Without this, a prior bounce on this address would still skip
+    // the send here, which is the "override just retries and rejects" bug.
+    if (force && effectiveEmail) {
+      await markEmailTrusted(effectiveEmail, { reason: "admin", note: "force-added via Questions tab", createdBy: adminUser.id });
+    }
 
     // Send deferred notifications using the unified function
     // Note: For questions-only providers (no business_profile), we still try to send
@@ -180,6 +252,37 @@ export async function POST(request: NextRequest) {
       additionalSlugVariants,
       leadsUnsubscribed: !!profileMeta.leads_unsubscribed,
     });
+
+    // Clear email_dead and needs_provider_email flags from questions for this provider.
+    // These flags were set when the previous email bounced or was missing — now that
+    // we have a working email, clear them so the questions leave the "Delivery Issues"
+    // and "Needs Email" tabs.
+    const allSlugVariants = [providerSlug, ...additionalSlugVariants];
+    const { data: flaggedQuestions } = await db
+      .from("provider_questions")
+      .select("id, metadata")
+      .in("provider_id", allSlugVariants);
+
+    let questionFlagsCleared = 0;
+    if (flaggedQuestions?.length) {
+      for (const q of flaggedQuestions) {
+        const meta = (q.metadata || {}) as Record<string, unknown>;
+        if (meta.email_dead || meta.needs_provider_email) {
+          delete meta.email_dead;
+          delete meta.needs_provider_email;
+          const { error: updateErr } = await db
+            .from("provider_questions")
+            .update({ metadata: meta })
+            .eq("id", q.id);
+          if (!updateErr) {
+            questionFlagsCleared++;
+          }
+        }
+      }
+      if (questionFlagsCleared > 0) {
+        console.log(`[add-email] Cleared email_dead/needs_provider_email flags from ${questionFlagsCleared} question(s) for ${providerSlug}`);
+      }
+    }
 
     await logAuditAction({
       adminUserId: adminUser.id,
@@ -194,6 +297,7 @@ export async function POST(request: NextRequest) {
         question_emails_sent: result.questionEmailsSent,
         lead_emails_sent: result.leadEmailsSent,
         leads_skipped: result.leadsSkipped,
+        question_flags_cleared: questionFlagsCleared,
       },
     });
 

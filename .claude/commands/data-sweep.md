@@ -172,7 +172,7 @@ After Phase 7 completes, summarize the sweep:
 | Wall time | Nh |
 | Phase 7 reflection | path to MD |
 
-Update SCRATCHPAD.md with the result. Optionally write a Notion report under "Product Development > PR Merge Reports" (or a dedicated Data Sweep folder).
+Update SCRATCHPAD.md with the result. Optionally write a Notion report under a dedicated Data Sweep folder in Product Development.
 
 ## Anti-patterns to avoid (lessons from sweep #1)
 

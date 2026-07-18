@@ -4,6 +4,12 @@ import { createClient } from "@supabase/supabase-js";
 import { generateUniqueSlug } from "@/lib/slug";
 import { isBlockedEmailDomain } from "@/lib/email-validation";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
+import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/lib/slack";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult,
+} from "@/lib/claim-trust";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -29,7 +35,6 @@ function getAdminClient() {
  * - providerId: string (provider_id from olera-providers)
  * - providerName: string
  * - providerSlug?: string
- * - providerEmail?: string (email on file for the listing)
  * - city?: string
  * - state?: string
  *
@@ -73,7 +78,6 @@ export async function POST(request: Request) {
       providerId,
       providerName,
       providerSlug,
-      providerEmail,
       city,
       state,
       // New org fields
@@ -169,6 +173,19 @@ export async function POST(request: Request) {
       // Generate unique slug for the new profile
       const slug = await generateUniqueSlug(db, orgName, city, state);
 
+      // Score trust for the new org claim
+      const trustResult: ClaimTrustResult = await scoreClaimTrust({
+        email: user.email || "",
+        providerName: orgName,
+        providerCity: city,
+        providerState: state,
+      });
+
+      // Set verification_state based on trust level:
+      // - High trust: 'not_required' (full access, no verification needed)
+      // - Medium/Low trust: 'unverified' (gated, must complete verification)
+      const verificationState = trustResult.level === "high" ? "not_required" : "unverified";
+
       // Create the business_profile (no source_provider_id - self-created)
       const { data: newProfile, error: insertErr } = await db
         .from("business_profiles")
@@ -184,7 +201,9 @@ export async function POST(request: Request) {
           state: state,
           care_types: careTypes || [],
           claim_state: "claimed",
-          verification_state: "verified",
+          verification_state: verificationState,
+          claim_trust_level: trustResult.level,
+          claim_trust_reason: trustResult.reason,
           source: "self_service",
           is_active: true,
           metadata: {},
@@ -226,6 +245,16 @@ export async function POST(request: Request) {
 
       console.log("[claim-listing] Created new org profile:", newProfile.id, "for account:", accountId);
 
+      // Log provider activity for analytics (new org creation)
+      db.from("provider_activity").insert({
+        provider_id: slug,
+        profile_id: newProfile.id,
+        event_type: "claim_completed",
+        metadata: { source: "new_org_signup" },
+      }).then(({ error: actErr }: { error: { message: string } | null }) => {
+        if (actErr) console.error("[provider_activity] claim_completed (new_org) insert failed:", actErr);
+      });
+
       // Send deferred notifications for any pending leads/questions (fire-and-forget)
       if (user.email) {
         sendDeferredNotificationsForProvider({
@@ -238,9 +267,39 @@ export async function POST(request: Request) {
         });
       }
 
+      // Slack alert for new org creation (fire-and-forget)
+      try {
+        const alert = slackProviderClaimed({
+          providerName: orgName,
+          claimedByEmail: user.email || "unknown",
+          providerSlug: slug,
+          claimSource: "new_org_signup",
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-blocking
+      }
+
+      // Suspicious claim alert if trust is medium/low
+      if (trustResult.reason !== "not_scored" &&
+          (trustResult.level === "medium" || trustResult.level === "low")) {
+        try {
+          const suspiciousAlert = slackSuspiciousClaim({
+            providerName: orgName,
+            claimedByEmail: user.email || "unknown",
+            providerSlug: slug,
+            trustLevel: trustResult.level,
+            trustReason: trustResult.reason,
+          });
+          await sendSlackAlert(suspiciousAlert.text, suspiciousAlert.blocks);
+        } catch {
+          // Non-blocking
+        }
+      }
+
       return NextResponse.json({
         profileId: newProfile.id,
-        verificationState: "verified",
+        verificationState: verificationState,
         isNewOrg: true,
       });
     }
@@ -352,6 +411,19 @@ export async function POST(request: Request) {
         });
       }
 
+      // Slack alert for re-claim (fire-and-forget)
+      try {
+        const alert = slackProviderClaimed({
+          providerName: providerName || "Provider",
+          claimedByEmail: user.email || "unknown",
+          providerSlug: providerSlug || providerId,
+          claimSource: "re_claim_from_page",
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-blocking
+      }
+
       return NextResponse.json({
         profileId: existingProfile.id,
         verificationState: "verified",
@@ -359,7 +431,28 @@ export async function POST(request: Request) {
     }
 
     // No existing profile - create a new business_profile linked to the olera-providers listing
-    // User has verified via OTP, so they get full verified access
+
+    // Fetch provider data from olera-providers for trust scoring
+    const { data: oleraProvider } = await db
+      .from("olera-providers")
+      .select("website, category, provider_category")
+      .eq("provider_id", providerId)
+      .maybeSingle();
+
+    // Score trust for the claim
+    const trustResult: ClaimTrustResult = await scoreClaimTrust({
+      email: user.email || "",
+      providerName: providerName || "Provider",
+      providerCity: city,
+      providerState: state,
+      providerCategory: oleraProvider?.category || oleraProvider?.provider_category,
+      providerDomain: extractDomainFromWebsite(oleraProvider?.website),
+    });
+
+    // Set verification_state based on trust level:
+    // - High trust: 'not_required' (full access, no verification needed)
+    // - Medium/Low trust: 'unverified' (gated, must complete verification)
+    const verificationState = trustResult.level === "high" ? "not_required" : "unverified";
 
     // Generate unique slug for the new profile (don't use providerSlug to avoid collisions)
     const slug = await generateUniqueSlug(db, providerName || "Provider", city || "", state || "");
@@ -377,7 +470,9 @@ export async function POST(request: Request) {
         city: city || null,
         state: state || null,
         claim_state: "claimed",
-        verification_state: "verified",
+        verification_state: verificationState,
+        claim_trust_level: trustResult.level,
+        claim_trust_reason: trustResult.reason,
         source: "claimed_from_directory",
         is_active: true,
         metadata: {},
@@ -445,9 +540,39 @@ export async function POST(request: Request) {
       });
     }
 
+    // Slack alert for claim (fire-and-forget)
+    try {
+      const alert = slackProviderClaimed({
+        providerName: providerName || "My Business",
+        claimedByEmail: user.email || "unknown",
+        providerSlug: slug,
+        claimSource: "claimed_from_page",
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
+    }
+
+    // Suspicious claim alert if trust is medium/low
+    if (trustResult.reason !== "not_scored" &&
+        (trustResult.level === "medium" || trustResult.level === "low")) {
+      try {
+        const suspiciousAlert = slackSuspiciousClaim({
+          providerName: providerName || "My Business",
+          claimedByEmail: user.email || "unknown",
+          providerSlug: slug,
+          trustLevel: trustResult.level,
+          trustReason: trustResult.reason,
+        });
+        await sendSlackAlert(suspiciousAlert.text, suspiciousAlert.blocks);
+      } catch {
+        // Non-blocking
+      }
+    }
+
     return NextResponse.json({
       profileId: newProfile.id,
-      verificationState: "verified",
+      verificationState: verificationState,
     });
   } catch (err) {
     console.error("Claim listing error:", err);

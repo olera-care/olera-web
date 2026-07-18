@@ -47,7 +47,7 @@ export default function PilotTermsModal({
     pilot_active_through: string;
   }) => void;
 }) {
-  const verb = actionVerb || "activate the pilot";
+  const verb = actionVerb || "join as a partner";
   const verbCapitalized = verb.charAt(0).toUpperCase() + verb.slice(1);
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -114,29 +114,29 @@ export default function PilotTermsModal({
           </p>
           <ul className="space-y-2.5 text-sm text-gray-700">
             <ReassuranceBullet>
-              <span className="font-semibold">Free for 3 months</span> — no
-              payment information needed.
+              <span className="font-semibold">Free to browse and interview</span>{" "}
+              — no payment information needed to start.
             </ReassuranceBullet>
             <ReassuranceBullet>
-              <span className="font-semibold">No obligation to hire</span>{" "}
-              anyone you review.
+              <span className="font-semibold">$200 once per hire</span>, refunded
+              in full if they work under 15 hours — you only pay for placements
+              that stick.
             </ReassuranceBullet>
             <ReassuranceBullet>
-              <span className="font-semibold">
-                Your agency makes all hiring decisions
-              </span>{" "}
-              — we just connect you with students.
+              <span className="font-semibold">No obligation to hire</span> anyone
+              you review — your agency makes every hiring decision and is the
+              employer.
             </ReassuranceBullet>
             <ReassuranceBullet>
               <span className="font-semibold">
                 You&apos;re claiming your Olera listing
               </span>{" "}
               — the public profile families see — under your account, so you
-              can manage it. It stays visible throughout the pilot.
+              can manage it. It stays visible throughout the program.
             </ReassuranceBullet>
           </ul>
           <p className="text-xs leading-relaxed text-gray-500">
-            By continuing you accept Olera&apos;s caregiver-hiring pilot terms
+            By continuing you accept Olera&apos;s caregiver-hiring partner terms
             and claim your provider listing in the Olera family directory. Claiming
             doesn&apos;t verify your listing — you can complete verification later.
           </p>
@@ -147,7 +147,7 @@ export default function PilotTermsModal({
               rel="noopener noreferrer"
               className="font-medium text-primary-700 hover:underline"
             >
-              Read the full pilot agreement →
+              Read the full partner agreement →
             </Link>
             <a
               href="/medjobs/pilot-agreement.pdf"
@@ -165,7 +165,7 @@ export default function PilotTermsModal({
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             <span className="text-gray-700">
-              I have read and agree to the pilot agreement.
+              I have read and agree to the partner agreement.
             </span>
           </label>
         </div>

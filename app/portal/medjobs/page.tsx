@@ -23,15 +23,20 @@ import EditWhyModal from "@/components/caregiver-portal/edit-modals/EditWhyModal
 import EditScenarioModal from "@/components/caregiver-portal/edit-modals/EditScenarioModal";
 import EditBackgroundModal from "@/components/caregiver-portal/edit-modals/EditBackgroundModal";
 import EditResumeModal from "@/components/caregiver-portal/edit-modals/EditResumeModal";
+import EditSkillsModal from "@/components/caregiver-portal/edit-modals/EditSkillsModal";
+import EditCertificationsModal from "@/components/caregiver-portal/edit-modals/EditCertificationsModal";
 import {
   ScheduleCard,
   AvailabilityCard,
   WhyCard,
   ScenariosCard,
   BackgroundCard,
+  CertificationsCard,
+  SkillsCard,
   ResumeCard,
 } from "@/components/caregiver-portal/cards";
 import GoLiveCelebrationModal from "@/components/caregiver-portal/GoLiveCelebrationModal";
+import GoLiveReviewModal from "@/components/caregiver-portal/GoLiveReviewModal";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -450,7 +455,7 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
   return (
     <div>
       <p className="text-sm text-gray-500 mb-2">
-        This is one of the first things providers read. Be genuine — think of it like a personal statement.
+        This is one of the first things the families and care teams who hire you will read. Be genuine — think of it like a personal statement.
       </p>
       <div className="text-xs text-gray-400 mb-2 space-y-1">
         <p><strong>Strong answers include:</strong></p>
@@ -459,7 +464,7 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
           <li>How this connects to your career path (med school, nursing, PA, etc.)</li>
           <li>A specific experience that motivated you (family care, volunteer work, etc.)</li>
         </ul>
-        <p className="mt-2 text-gray-300 italic">AI tools are fine for brainstorming, but write the final version in your own voice. Providers can tell when answers feel generic — your real story is what makes you stand out.</p>
+        <p className="mt-2 text-gray-300 italic">AI tools are fine for brainstorming, but write the final version in your own voice. Families and care teams can tell when answers feel generic — your real story is what makes you stand out.</p>
       </div>
       <div className="relative">
         <textarea
@@ -516,10 +521,10 @@ function ScenarioSection({ profileId, responses, onSave }: {
   return (
     <div>
       <p className="text-sm text-gray-500 mb-2">
-        Providers use these answers to assess reliability, judgement, and commitment. Thoughtful, honest responses make you stand out.
+        Families and care teams use these answers to assess reliability, judgement, and commitment. Thoughtful, honest responses make you stand out.
       </p>
       <p className="text-xs text-gray-300 italic mb-4">
-        You can use AI to organize your thoughts, but make sure the final answers reflect how you would actually respond. Providers may ask follow-up questions in interviews.
+        You can use AI to organize your thoughts, but make sure the final answers reflect how you would actually respond. They may ask follow-up questions in interviews.
       </p>
       <div className="space-y-5">
         {SCENARIO_QUESTIONS.map((q, i) => (
@@ -589,7 +594,7 @@ function CommitmentStatementSection({ profileId, value, onSave }: {
         Commitment statement <span className="text-red-400">*</span>
       </label>
       <p className="text-xs text-gray-400 mb-2">
-        Describe your commitment to taking caregiving shifts around your coursework for 6+ months. Visible to providers.
+        Describe your commitment to taking caregiving shifts around your coursework for 6+ months. Visible to the families and care teams who hire.
       </p>
       {!text && (
         <div className="mb-3 space-y-2">
@@ -718,7 +723,7 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-xs text-blue-700 leading-relaxed">
-            This is the #1 thing providers look at. They need to know you&apos;re committed to taking shifts around coursework for 6+ months.
+            This is the #1 thing families and care teams look at. They need to know you&apos;re committed to taking shifts around coursework for 6+ months.
           </p>
         </div>
 
@@ -732,7 +737,7 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
         {/* Flexibility & accountability pledges */}
         <div>
           <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Additional commitments</label>
-          <p className="text-xs text-gray-400 mb-3">These show providers you understand the responsibility. Check all that apply.</p>
+          <p className="text-xs text-gray-400 mb-3">These show families and care teams you understand the responsibility. Check all that apply.</p>
           <div className="space-y-2">
             <button type="button" disabled={saving}
               onClick={() => { const next = !prnWilling; setPrnWilling(next); saveToggle("prn_willing", next); }}
@@ -744,7 +749,7 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
               }`}>
                 {prnWilling && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
               </span>
-              <span className="text-sm text-gray-700">I am okay to be on-call / PRN until a client needs shifts that fit my schedule</span>
+              <span className="text-sm text-gray-700">I am okay to be on-call / PRN until a family needs shifts that fit my schedule</span>
             </button>
 
             <button type="button" disabled={saving}
@@ -1116,6 +1121,7 @@ function StudentPortalContent({
   const [editingSection, setEditingSection] = useState<CaregiverSectionId | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [pendingCelebration, setPendingCelebration] = useState(false);
+  const [showGoLiveReview, setShowGoLiveReview] = useState(false);
   // Track if profile was live when verification modal opened (to detect first-time going live)
   const wasLiveOnModalOpen = useRef(profile.is_active);
 
@@ -1123,7 +1129,6 @@ function StudentPortalContent({
   const hasPhoto = !!profile.image_url;
   const verificationItems = getVerificationItems(meta);
   const verificationDone = verificationItems.every((v) => v.done);
-  const firstName = profile.display_name?.split(" ")[0] || "there";
 
   // Video verification
   const videoAvailable = hasVideo(meta);
@@ -1249,39 +1254,6 @@ function StudentPortalContent({
   return (
     <main className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Guided onboarding banner */}
-        {guided.shouldPrompt && !guided.isGuidedActive && (
-          <div className="mb-6 bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-[15px] font-semibold text-gray-900">
-                Complete your profile to get matched faster
-              </p>
-              <p className="text-sm text-gray-500 mt-0.5">
-                We&apos;ll guide you through each section step by step.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={guided.dismiss}
-                className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2"
-              >
-                Dismiss
-              </button>
-              <button
-                onClick={() => {
-                  guided.startGuided();
-                  if (guided.firstIncompleteSection) {
-                    setEditingSection(guided.firstIncompleteSection);
-                  }
-                }}
-                className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
-              >
-                Get Started
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* ── Grid: Main + Sidebar ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
@@ -1290,14 +1262,32 @@ function StudentPortalContent({
             {/* Profile Header Card — with photo upload */}
             <div id="overview" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 relative">
                   {profile.image_url ? (
                     <img src={profile.image_url} alt="" className="w-20 h-20 rounded-xl object-cover ring-2 ring-primary-100 ring-offset-2" />
                   ) : (
-                    <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-sm shadow-primary-500/10 border border-primary-100/60">
-                      <span className="text-xl font-display font-bold text-primary-700">
+                    <button
+                      type="button"
+                      onClick={() => setEditingSection("overview")}
+                      className="group relative w-20 h-20 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-sm shadow-primary-500/10 border-2 border-dashed border-primary-300 hover:border-primary-500 transition-all cursor-pointer"
+                    >
+                      <span className="text-xl font-display font-bold text-primary-700 group-hover:opacity-30 transition-opacity">
                         {profile.display_name?.split(" ").filter(Boolean).map((n) => n[0]).slice(0, 2).join("").toUpperCase() || "?"}
                       </span>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                        </svg>
+                        <span className="text-[9px] font-semibold text-primary-600 mt-0.5">Add photo</span>
+                      </div>
+                    </button>
+                  )}
+                  {!profile.image_url && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center shadow-sm">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                      </svg>
                     </div>
                   )}
                 </div>
@@ -1321,6 +1311,7 @@ function StudentPortalContent({
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[15px] text-gray-500">
                     {meta.university && <span>{meta.university}</span>}
+                    {meta.major && <><span className="text-gray-300">·</span><span>{meta.major}</span></>}
                     {profile.city && profile.state && <><span className="text-gray-300">·</span><span>{profile.city}, {profile.state}</span></>}
                   </div>
                   {profile.is_active && (
@@ -1357,6 +1348,8 @@ function StudentPortalContent({
             <WhyCard meta={meta} onEdit={() => setEditingSection("why")} />
             <ScenariosCard meta={meta} onEdit={() => setEditingSection("scenarios")} />
             <BackgroundCard meta={meta} onEdit={() => setEditingSection("background")} />
+            <CertificationsCard meta={meta} onEdit={() => setEditingSection("certifications")} />
+            <SkillsCard meta={meta} onEdit={() => setEditingSection("skills")} />
             <ResumeCard meta={meta} onEdit={() => setEditingSection("resume")} />
 
             {/* Verification Card — Final step to go live */}
@@ -1530,20 +1523,20 @@ function StudentPortalContent({
 
           {/* ── Sidebar (1/3) ── */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Not Live CTA - only shows when profile is inactive */}
+            {/* Go Live CTA - only shows when profile is inactive */}
             {!profile.is_active && (
               <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   <span className="text-sm font-medium text-gray-900">Not live yet</span>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Complete verification to make your profile visible to care providers.
+                  Make your profile visible to providers and start getting matched with jobs.
                 </p>
                 <button
                   type="button"
-                  onClick={handleOpenVerificationModal}
-                  className="w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors"
+                  onClick={() => setShowGoLiveReview(true)}
+                  className="w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl transition-all hover:shadow-lg"
                 >
                   Go Live
                 </button>
@@ -1578,7 +1571,7 @@ function StudentPortalContent({
                  "JUST GETTING STARTED"}
               </p>
               <p className="text-center text-xs text-gray-400 mb-5">
-                Complete your profile to get matched
+                Complete your application to get matched
               </p>
 
               {/* Section checklist - 8 logical sections */}
@@ -1626,7 +1619,23 @@ function StudentPortalContent({
       {editingSection === "why" && <EditWhyModal {...modalProps} />}
       {editingSection === "scenarios" && <EditScenarioModal {...modalProps} />}
       {editingSection === "background" && <EditBackgroundModal {...modalProps} />}
+      {editingSection === "certifications" && <EditCertificationsModal {...modalProps} />}
+      {editingSection === "skills" && <EditSkillsModal {...modalProps} />}
       {editingSection === "resume" && <EditResumeModal {...modalProps} />}
+
+      {/* Go Live Review Modal */}
+      <GoLiveReviewModal
+        isOpen={showGoLiveReview}
+        onClose={() => {
+          setShowGoLiveReview(false);
+          refresh();
+        }}
+        profileId={profile.id}
+        sections={completeSections}
+        onGoLive={() => {
+          refresh();
+        }}
+      />
 
       {/* Celebration Modal - shown when profile goes live */}
       <GoLiveCelebrationModal

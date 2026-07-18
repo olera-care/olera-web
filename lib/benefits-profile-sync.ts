@@ -112,7 +112,54 @@ export function computeBenefitsProfileSync(
     }
   }
 
+  // Medicaid/veteran answers → the canonical fact fields the guidance layer
+  // reads (familyBenefitsFacts). Fill-only. Without this the micro-quiz
+  // re-asks what the finder already learned — the "never re-ask" rule.
+  if (!meta.medicaid_status && answers.medicaidStatus) {
+    payload.metadata.medicaid_status = answers.medicaidStatus;
+    hasChanges = true;
+  }
+  if (!meta.veteran_status && (answers.veteranStatus === "yes" || answers.veteranStatus === "no")) {
+    payload.metadata.veteran_status = answers.veteranStatus;
+    hasChanges = true;
+  }
+
+  // Intake → financial_path (FILL-ONLY: an explicit one-tap self-sort always
+  // wins; the finder only fills the gap so both intake systems share one fact)
+  if (!meta.financial_path) {
+    const path = deriveFinancialPathFromIntake(answers);
+    if (path) {
+      payload.metadata.financial_path = path;
+      hasChanges = true;
+    }
+  }
+
   return hasChanges ? payload : null;
+}
+
+/**
+ * Map finder intake to the orientation self-sort (a: private pay / b: the
+ * middle / c: Medicaid-now). Income bands are a PROXY for the paths'
+ * asset-based definitions, so map conservatively: only the extremes leave
+ * the middle. preferNotToSay (or nothing held) derives nothing — unknown is
+ * not a path.
+ */
+export function deriveFinancialPathFromIntake(
+  answers: Pick<BenefitsIntakeAnswers, "incomeRange" | "medicaidStatus">
+): "a" | "b" | "c" | null {
+  if (answers.medicaidStatus === "alreadyHas" || answers.medicaidStatus === "applying") return "c";
+  switch (answers.incomeRange) {
+    case "under1500":
+      return "c";
+    case "under2500":
+    case "under4000":
+    case "under6000":
+      return "b";
+    case "over6000":
+      return "a";
+    default:
+      return null;
+  }
 }
 
 /**

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
 import Badge from "@/components/ui/Badge";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 interface Dispute {
   id: string;
@@ -121,12 +122,10 @@ export default function AdminDisputesPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Disputes</h1>
-        <p className="text-lg text-gray-600 mt-1">
-          Review ownership disputes for claimed providers.
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Disputes"
+        description="Review ownership disputes for claimed providers."
+      />
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6">

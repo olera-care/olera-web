@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams, markEmailTrusted } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
 import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
+import { verifyAndCache } from "@/lib/email-verification";
 
 /**
  * POST /api/admin/connections/[id]/edit-email
@@ -34,6 +35,7 @@ export async function POST(
     const { id: connectionId } = await params;
     const body = await request.json();
     const newEmail = body.newEmail?.trim();
+    const force = body.force === true;
 
     // Validation
     if (!newEmail) {
@@ -43,6 +45,36 @@ export async function POST(
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+    }
+
+    // Safety net: verify email unless force flag is set
+    if (!force) {
+      const verdict = await verifyAndCache(newEmail);
+      if (verdict.status === "invalid") {
+        return NextResponse.json(
+          {
+            error: "undeliverable",
+            message: "That address can't receive mail — it would bounce.",
+          },
+          { status: 422 }
+        );
+      }
+      // Catch-all ('risky'): the domain accepts all mail at the door, so we can't
+      // confirm a real inbox exists. These bounce ~15%, and the cold lane now
+      // suppresses catch-all at send (lib/email.ts) — so the deferred notification
+      // to this address would be skipped anyway. Warn the operator to find a named
+      // inbox; forcing through saves the address but the cold notification still
+      // won't fire.
+      if (verdict.status === "risky") {
+        return NextResponse.json(
+          {
+            error: "risky",
+            message:
+              "That looks like a catch-all domain — mail often won't reach a real inbox, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.",
+          },
+          { status: 422 }
+        );
+      }
     }
 
     const db = getServiceClient();
@@ -73,8 +105,175 @@ export async function POST(
 
     const oldEmail = toProfile.email?.trim() || null;
 
+    // Special case: "trusting" the same email (force + same email)
+    // This happens when admin confirms a failed/invalid email actually works.
+    // We trust it AND resend Day 0 (since original may have failed).
     if (oldEmail === newEmail) {
-      return NextResponse.json({ error: "New email is the same as current email" }, { status: 400 });
+      if (!force) {
+        return NextResponse.json({ error: "New email is the same as current email" }, { status: 400 });
+      }
+
+      // Trust the email first
+      await markEmailTrusted(newEmail, {
+        reason: "admin",
+        note: `trust-existing-email on connection ${connectionId}`,
+        createdBy: `admin:${admin.id}`,
+      });
+
+      // Now resend Day 0 notification (the original may have failed)
+      // This ensures the provider actually receives the lead notification
+      const fromProfile = Array.isArray(conn.from_profile) ? conn.from_profile[0] : conn.from_profile;
+      const familyName = fromProfile?.display_name || "A family";
+      const careTypes = fromProfile?.care_types as string[] | null;
+      const careType = careTypes?.[0] || null;
+      const providerName = toProfile.display_name || "Provider";
+      const providerSlug = toProfile.slug || toProfile.source_provider_id || toProfile.id;
+
+      // Get care recipient from family metadata
+      const familyMeta = (fromProfile?.metadata as Record<string, unknown>) || {};
+      const relationshipRaw = familyMeta.relationship_to_recipient as string | undefined;
+      const careRecipientMap: Record<string, string | null> = {
+        parent: "their parent",
+        spouse: "their spouse",
+        grandparent: "their grandparent",
+        myself: "themselves",
+        other: null,
+      };
+      const careRecipient = relationshipRaw
+        ? (careRecipientMap[relationshipRaw] !== undefined ? careRecipientMap[relationshipRaw] : null)
+        : null;
+
+      // Get provider city
+      let city: string | null = null;
+      if (toProfile.source_provider_id) {
+        const { data: iosProvider } = await db
+          .from("olera-providers")
+          .select("city")
+          .eq("provider_id", toProfile.source_provider_id)
+          .maybeSingle();
+        city = iosProvider?.city || null;
+      }
+
+      // Get current email version (don't increment - email didn't change)
+      const meta = (conn.metadata || {}) as Record<string, unknown>;
+      const emailVersion = (meta.email_version as number) || 1;
+      const now = new Date().toISOString();
+
+      // Send Day 0 email
+      const emailLogId = await reserveEmailLogId({
+        to: newEmail,
+        subject: `${familyName} is interested in your care services`,
+        emailType: "connection_request",
+        recipientType: "provider",
+        providerId: toProfile.id,
+        metadata: {
+          connection_id: connectionId,
+          email_version: emailVersion,
+          sent_by: `admin:${admin.id}`,
+          is_trust_resend: true,
+        },
+      });
+
+      const claimUrl = generateLeadClaimUrl(providerSlug, newEmail, connectionId, siteUrl);
+      const viewUrl = appendTrackingParams(claimUrl, emailLogId);
+      const manageListingUrl = generateProviderPortalUrl(providerSlug, newEmail, "manage", siteUrl);
+      const settingsUrl = generateProviderPortalUrl(providerSlug, newEmail, "settings", siteUrl);
+
+      const html = connectionRequestEmail({
+        providerName,
+        familyName,
+        careType,
+        city,
+        careRecipient,
+        viewUrl,
+        manageListingUrl,
+        settingsUrl,
+      });
+
+      const { success, error: sendError } = await sendEmail({
+        to: newEmail,
+        subject: `${familyName} is interested in your care services`,
+        html,
+        emailType: "connection_request",
+        recipientType: "provider",
+        providerId: toProfile.id,
+        metadata: {
+          connection_id: connectionId,
+          email_version: emailVersion,
+          sent_by: `admin:${admin.id}`,
+          is_trust_resend: true,
+        },
+        emailLogId: emailLogId ?? undefined,
+      });
+
+      if (!success) {
+        console.error("[edit-email] Trust resend failed:", sendError);
+        // Email is still trusted, but resend failed
+        return NextResponse.json({
+          success: true,
+          trusted: true,
+          resendFailed: true,
+          newEmail,
+          message: "Email trusted but resend failed. Check email logs.",
+        });
+      }
+
+      // Reset sequence metadata (fresh start with trusted email)
+      const updatedMeta = {
+        ...meta,
+        email_sent_at: now,
+        followup_stage: 0,
+        followup_sent_at: null,
+        followup_sent_by: null,
+        followup_stopped_at: null,
+        followup_stopped_reason: null,
+        needs_call: false,
+        nudge_count: 0,
+        nudged_at: null,
+      };
+
+      const { error: metaError } = await db
+        .from("connections")
+        .update({ metadata: updatedMeta })
+        .eq("id", connectionId);
+
+      if (metaError) {
+        console.error("[edit-email] Trust resend metadata update failed:", metaError);
+        // Email was sent but metadata not updated - warn admin
+        return NextResponse.json({
+          success: true,
+          trusted: true,
+          resent: true,
+          warning: "Email trusted and resent, but sequence state may be inconsistent.",
+          newEmail,
+        });
+      }
+
+      console.log(
+        `[edit-email] Trusted and resent Day 0 for connection ${connectionId}: ${newEmail}`
+      );
+
+      return NextResponse.json({
+        success: true,
+        trusted: true,
+        resent: true,
+        newEmail,
+        message: "Email trusted and Day 0 resent. Sequence restarted.",
+      });
+    }
+
+    // Protection: If this account is claimed (has account_id) AND already has an email,
+    // block the change. The provider owns this email and should update it themselves.
+    // However, if NO email is on file, allow adding one (for directory enrichment).
+    const isAccountClaimed = !!(toProfile as { account_id?: string | null }).account_id;
+    if (isAccountClaimed && oldEmail) {
+      return NextResponse.json(
+        {
+          error: "claimed_account",
+          message: "This provider has claimed their account. Their email cannot be changed by admins.",
+        },
+        { status: 403 }
+      );
     }
 
     // Update business_profiles.email
@@ -89,9 +288,8 @@ export async function POST(
     }
 
     // Also update olera-providers.email if source_provider_id exists (keep databases in sync)
-    // BUT: Skip this if the provider has claimed their account (account_id is set)
-    // When claimed, the provider has set their own email via auth flow, we should not overwrite it
-    const isAccountClaimed = !!(toProfile as { account_id?: string | null }).account_id;
+    // Skip if provider has claimed their account (we already checked above, this is for
+    // the edge case where the provider is adding their first email to a claimed account)
     let skippedOleraProvidersSync = false;
 
     if (toProfile.source_provider_id && !isAccountClaimed) {
@@ -210,6 +408,20 @@ export async function POST(
       }, { status: 500 });
     }
 
+    // If the admin forced past the verification gate, this is a human-trusted
+    // address — they have better evidence the inbox is real than ZeroBounce
+    // (phoned the provider, pulled it off the official site). Record it on the
+    // trust allowlist so future sends AND the connections queue stop re-flagging
+    // it as invalid/failed; otherwise the override "reverts" to Needs Email on the
+    // next list load. Best-effort (never throws).
+    if (force) {
+      await markEmailTrusted(newEmail, {
+        reason: "admin",
+        note: `edit-email override on connection ${connectionId}`,
+        createdBy: `admin:${admin.id}`,
+      });
+    }
+
     // Email sent successfully - now update connection metadata
     const updatedMeta = {
       ...meta,
@@ -262,13 +474,20 @@ export async function POST(
 
     try {
       // Build slug variants for question lookup
-      const additionalSlugVariants: string[] = [];
+      // Questions may be stored with different provider_id values (slug, source_provider_id, UUID)
+      // Use Set to avoid duplicates
+      const variantSet = new Set<string>();
       if (toProfile.slug && toProfile.slug !== providerSlug) {
-        additionalSlugVariants.push(toProfile.slug);
+        variantSet.add(toProfile.slug);
       }
       if (toProfile.source_provider_id && toProfile.source_provider_id !== providerSlug) {
-        additionalSlugVariants.push(toProfile.source_provider_id);
+        variantSet.add(toProfile.source_provider_id);
       }
+      // Include the business_profile UUID - some questions may use this as provider_id
+      if (toProfile.id && toProfile.id !== providerSlug) {
+        variantSet.add(toProfile.id);
+      }
+      const additionalSlugVariants = Array.from(variantSet);
 
       // Get provider metadata to check leads_unsubscribed status
       const { data: providerMeta } = await db
@@ -288,6 +507,37 @@ export async function POST(
         additionalSlugVariants,
         leadsUnsubscribed,
       });
+
+      // Also clear email_dead and needs_provider_email flags from questions for this provider.
+      // These flags were set when the previous email bounced or was missing — now that
+      // we have a working email, clear them so the questions leave the "Delivery Issues"
+      // and "Needs Email" tabs.
+      const allSlugVariants = [providerSlug, ...additionalSlugVariants];
+      const { data: flaggedQuestions } = await db
+        .from("provider_questions")
+        .select("id, metadata")
+        .in("provider_id", allSlugVariants);
+
+      let questionFlagsCleared = 0;
+      if (flaggedQuestions?.length) {
+        for (const q of flaggedQuestions) {
+          const qMeta = (q.metadata || {}) as Record<string, unknown>;
+          if (qMeta.email_dead || qMeta.needs_provider_email) {
+            delete qMeta.email_dead;
+            delete qMeta.needs_provider_email;
+            const { error: updateErr } = await db
+              .from("provider_questions")
+              .update({ metadata: qMeta })
+              .eq("id", q.id);
+            if (!updateErr) {
+              questionFlagsCleared++;
+            }
+          }
+        }
+        if (questionFlagsCleared > 0) {
+          console.log(`[edit-email] Cleared email_dead/needs_provider_email flags from ${questionFlagsCleared} question(s) for ${providerSlug}`);
+        }
+      }
 
       console.log(
         `[edit-email] Deferred notifications sent: ${deferredResult.leadEmailsSent} leads, ` +

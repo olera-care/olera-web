@@ -156,7 +156,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       provider?.id,
       providerProfileId,
     ].filter(Boolean) as string[];
-    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_copied: false, email_copied: false, phone_clicked: false, email_link_clicked: false, messaged: false };
+    let engagement = { email_clicked: false, lead_opened: false, contact_revealed: false, phone_copied: false, email_copied: false, phone_clicked: false, email_link_clicked: false, messaged: false, family_confirmed: false };
     if (engagementKeys.length > 0) {
       const { data: events } = await db
         .from("provider_activity")
@@ -164,7 +164,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         .in("provider_id", engagementKeys)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"]);
 
+      // Filter events to only those for THIS connection (by connection_id or lead_id in metadata)
+      // This prevents provider-wide events from showing on unrelated connections
       for (const e of events ?? []) {
+        const eventMeta = e.metadata as Record<string, unknown> | null;
+        const eventConnectionId = (eventMeta?.connection_id || eventMeta?.lead_id) as string | undefined;
+
+        // Skip events that don't match this connection
+        // Exception: email_click events from provider emails may not have connection_id (legacy)
+        if (eventConnectionId && eventConnectionId !== id && e.event_type !== "email_click") {
+          continue;
+        }
+
         if (e.event_type === "email_click") engagement.email_clicked = true;
         else if (e.event_type === "lead_opened") engagement.lead_opened = true;
         else if (e.event_type === "contact_revealed") {
@@ -187,6 +198,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       (m) => m.from_profile_id === providerProfileId && m.is_auto_reply !== true && !!m.text?.trim()
     );
     engagement.messaged = providerMessaged;
+
+    // Family self-reported that provider got back to them (ground-truth connection signal)
+    engagement.family_confirmed = meta.family_confirmed === true;
 
     // Email trail — every notification sent to this provider since the lead
     // arrived (provider_id keys both manual nudges and the consolidated cron
@@ -299,8 +313,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       familyFallbackEmails.forEach(e => foundIds.add(e.id));
     }
 
-    // 3. Query provider emails by provider_id (for older emails without connection_id)
-    // Use direction-aware providerProfileId
+    // 3. Query ALL provider emails by provider_id (full history, not just this connection)
+    // This shows every email we've ever sent to this provider - claim emails, marketing,
+    // emails about other leads, etc. - to understand what brought them in.
     const emailProviderKeys = [
       providerProfileId,
       provider?.slug,
@@ -315,18 +330,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
           "id, email_type, recipient, recipient_type, status, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata"
         )
         .in("provider_id", emailProviderKeys)
-        .in("email_type", PROVIDER_FALLBACK_EMAIL_TYPES)
-        .gte("created_at", c.created_at)
+        // No email_type filter - show ALL emails to this provider
+        // No date filter - show emails from before this connection too
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
 
-      // Filter out emails that have connection_id for a DIFFERENT connection
+      // Only filter out duplicates (already found by connection_id query)
+      // Include emails for other connections to show full provider history
       providerFallbackEmails = (providerIdLogs ?? []).filter(e => {
-        if (foundIds.has(e.id)) return false; // Already found
-        const emailMeta = e.metadata as Record<string, unknown> | null;
-        const emailConnId = emailMeta?.connection_id as string | undefined;
-        // Include if: no connection_id, or connection_id matches this connection
-        return !emailConnId || emailConnId === c.id;
+        return !foundIds.has(e.id); // Only exclude duplicates
       }) as EmailLogRow[];
     }
 
@@ -341,7 +353,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
         return bTime - aTime;
       })
-      .slice(0, 30) as EmailLogRow[];
+      .slice(0, 100) as EmailLogRow[]; // Increased limit for full provider history
 
     // Family nudge info
     const familyNudgeCount = (meta.family_nudge_count as number) || 0;
@@ -364,9 +376,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       careType = CARE_TYPE_LABELS[family.care_types[0]] || family.care_types[0];
     }
 
-    // Extract archive information if provider declined the lead
-    const archived = meta.archived === true;
-    const archiveReason = archived ? (meta.archive_reason as string | null) : null;
+    // Extract archive information
+    // archived = true for both provider-declined AND admin-archived leads
+    // Check BOTH flags: `archived` (inbox/admin) and `lead_archived` (provider decline)
+    // archiveReason = only set for provider-declined (valid decline reasons)
+    // Admin archives have free-text reasons that don't match valid decline reasons
+    const archived = meta.archived === true || meta.lead_archived === true;
+    const rawArchiveReason = meta.archive_reason as string | null;
+    // Only recognize valid provider decline reasons - admin archives should not show "Provider Declined" banner
+    const VALID_DECLINE_REASONS = ["not_a_fit", "not_accepting_clients", "unable_to_reach", "other"];
+    const archiveReason = archived && rawArchiveReason && VALID_DECLINE_REASONS.includes(rawArchiveReason)
+      ? rawArchiveReason
+      : null;
     const archiveMessage = archived ? (meta.archive_message as string | null) : null;
     const archivedBy = archived ? (meta.archived_by as string | null) : null;
     const archivedAt = archived ? (meta.archived_at as string | null) : null;
@@ -413,6 +434,72 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     });
   } catch (err) {
     console.error("[connections/:id] fatal:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * PATCH /api/admin/connections/[id] — update connection metadata
+ * Used for admin actions like tagging "no contact found" in Needs Email tab.
+ */
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const admin = await getAdminUser(user.id);
+    if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const { id } = await params;
+    const body = await req.json();
+    const db = getServiceClient();
+
+    // First fetch the existing connection
+    const { data: existing, error: fetchError } = await db
+      .from("connections")
+      .select("id, metadata")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("[connections/:id PATCH] fetch error:", fetchError);
+      return NextResponse.json({ error: "Failed to fetch connection" }, { status: 500 });
+    }
+    if (!existing) {
+      return NextResponse.json({ error: "Connection not found" }, { status: 404 });
+    }
+
+    const meta = (existing.metadata as Record<string, unknown>) || {};
+
+    // Handle "no contact found" tag toggle
+    if ("noContactFound" in body) {
+      const shouldTag = body.noContactFound === true;
+      if (shouldTag) {
+        meta.no_contact_found = true;
+        meta.no_contact_found_at = new Date().toISOString();
+        meta.no_contact_found_by = admin.email || user.id;
+      } else {
+        // Untag - remove the flag
+        delete meta.no_contact_found;
+        delete meta.no_contact_found_at;
+        delete meta.no_contact_found_by;
+      }
+    }
+
+    // Update the connection metadata
+    const { error: updateError } = await db
+      .from("connections")
+      .update({ metadata: meta })
+      .eq("id", id);
+
+    if (updateError) {
+      console.error("[connections/:id PATCH] update error:", updateError);
+      return NextResponse.json({ error: "Failed to update connection" }, { status: 500 });
+    }
+
+    console.log(`[connections/:id PATCH] Connection ${id} updated by admin ${user.id}:`, body);
+    return NextResponse.json({ success: true, noContactFound: meta.no_contact_found === true });
+  } catch (err) {
+    console.error("[connections/:id PATCH] fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

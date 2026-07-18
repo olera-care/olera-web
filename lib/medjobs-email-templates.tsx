@@ -53,6 +53,127 @@ function button(label: string, href: string): string {
   return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
 }
 
+/**
+ * Human signature block for the program's relationship-driven mail (the
+ * bidirectional "ready" notifications + the cold student-interest note). These
+ * are sent by Graize on Dr. DuBose's behalf, so they sign as a person rather
+ * than as a faceless product — matching the cold-outreach voice providers and
+ * students already know from the campaign.
+ */
+function graizeSignature(): string {
+  return `
+    <table cellpadding="0" cellspacing="0" style="width:100%;margin:24px 0 0;border-top:1px solid #f3f4f6;">
+      <tr><td style="padding:16px 0 0;">
+        <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">Graize Belandres</p>
+        <p style="font-size:13px;color:#6b7280;margin:2px 0 0;">Olera MedJobs</p>
+        <p style="font-size:12px;color:#9ca3af;margin:10px 0 0;font-style:italic;">Message approved by Dr. Logan DuBose, MD, MBA</p>
+      </td></tr>
+    </table>`;
+}
+
+// ── Bidirectional "ready" notifications (Graize-signed) ───────────────
+
+/**
+ * Cold provider notification: a real student requested to interview with a
+ * provider who hasn't claimed their account yet. Treated like cold outreach
+ * (Graize voice, isolated sending domain via the "medjobs_student_interest"
+ * type) rather than a transactional interview email. The claim link signs the
+ * provider in and drops them on the interview.
+ */
+export function studentInterestColdEmail({
+  providerName,
+  campus,
+  claimUrl,
+}: {
+  providerName?: string | null;
+  campus?: string | null;
+  claimUrl: string;
+}): string {
+  const safeProvider = providerName ? escapeHtml(firstName(providerName, "there")) : "there";
+  const studentDesc = campus ? `A ${escapeHtml(campus)} student` : "A local pre-health student";
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">
+      ${studentDesc} is interested in working with you
+    </h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProvider}, ${studentDesc.charAt(0).toLowerCase()}${studentDesc.slice(1)} caregiver candidate found your
+      agency on Olera and asked to set up an interview for a paid caregiver role. These are
+      pre-health students (pre-med, nursing, PA) looking for hands-on caregiving experience.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
+      Review the request and pick a time — it only takes a minute.
+    </p>
+    <p style="margin:0;">${button("Review the request", claimUrl)}</p>
+    ${graizeSignature()}
+  `, `${studentDesc} wants to interview with you`);
+}
+
+/**
+ * Provider notification (catchment-wide): a new student caregiver just went
+ * live near the provider. Sent to both claimed and cold providers in the
+ * catchment, so it carries the Graize voice and a one-click link to the
+ * candidate's profile.
+ */
+export function candidateReadyEmail({
+  providerName,
+  campus,
+  candidateName,
+  viewUrl,
+}: {
+  providerName?: string | null;
+  campus?: string | null;
+  candidateName?: string | null;
+  viewUrl: string;
+}): string {
+  const safeProvider = providerName ? escapeHtml(firstName(providerName, "there")) : "there";
+  const where = campus ? `near ${escapeHtml(campus)}` : "near you";
+  const who = candidateName ? escapeHtml(candidateName) : "A new student caregiver";
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">
+      Ready for interview: a student caregiver candidate ${where}
+    </h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProvider}, ${who} is now available to interview for a paid caregiver role ${where}.
+      Take a look at their profile and schedule an interview if they're a fit.
+    </p>
+    <p style="margin:0;">${button("View candidate", viewUrl)}</p>
+    ${graizeSignature()}
+  `, `A student caregiver candidate is ready to interview ${where}`);
+}
+
+/**
+ * Student notification (catchment-wide): a provider near the student's campus
+ * just opened a caregiver opportunity (accepted the program terms). Sent to
+ * live students on the warm olera.care domain, Graize-signed, with a one-click
+ * link to the provider's opportunity page.
+ */
+export function jobReadyEmail({
+  studentName,
+  campus,
+  providerName,
+  viewUrl,
+}: {
+  studentName?: string | null;
+  campus?: string | null;
+  providerName?: string | null;
+  viewUrl: string;
+}): string {
+  const safeStudent = studentName ? escapeHtml(firstName(studentName, "there")) : "there";
+  const where = campus ? `near ${escapeHtml(campus)}` : "near you";
+  const who = providerName ? escapeHtml(providerName) : "A care provider";
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">
+      A caregiver job ${where} is open
+    </h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeStudent}, ${who} ${where} is hiring student caregivers and ready to interview.
+      This is a paid role with flexible hours — a great way to build hands-on caregiving experience.
+    </p>
+    <p style="margin:0;">${button("See the opportunity", viewUrl)}</p>
+    ${graizeSignature()}
+  `, `A caregiver job ${where} just opened`);
+}
+
 // ── Student Templates ────────────────────────────────────────────
 
 export function studentWelcomeEmail({
@@ -167,15 +288,15 @@ export function studentActivationEmail({
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${firstName}!</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Congratulations — your MedJobs profile is 100% complete and verified. Providers${locationLine} can now find you and reach out via the platform, email, or phone.
+      Congratulations — your MedJobs profile is 100% complete and verified. Families${locationLine} can now find you and reach out via the platform, email, or phone.
     </p>
     <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
       <tr><td>
         <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 8px;">What happens now?</p>
         <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
-          <li>Providers can view your profile and reach out to you</li>
-          <li>You can browse open positions and apply directly</li>
-          <li>Reaching out to providers directly often leads to conversations faster</li>
+          <li>Families and care teams can view your profile and reach out to you</li>
+          <li>You can browse families hiring near you and ask to be introduced</li>
+          <li>Reaching out directly often leads to conversations faster</li>
         </ol>
       </td></tr>
     </table>
@@ -186,10 +307,10 @@ export function studentActivationEmail({
       <a href="${profileUrl}" style="color:${BRAND_COLOR};">${profileUrl}</a>
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
-      Share this link when reaching out to providers — it shows your video, availability, and background at a glance.
+      Share this link when reaching out — it shows your video, availability, and background at a glance.
     </p>
     <p style="margin:0 0 16px;">
-      ${button("Browse Open Jobs", `${BASE_URL}/portal/medjobs/jobs`)}
+      ${button("See families hiring near you", `${BASE_URL}/medjobs/families`)}
     </p>
   `);
 }
@@ -431,4 +552,81 @@ export function providerSubscriptionConfirmationEmail({
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>
   `, "Your MedJobs Pro subscription is now active");
+}
+
+// ── Invitation Templates ──────────────────────────────────────────
+
+/**
+ * Sent to the student when a provider invites them to apply for a job posting.
+ */
+export function invitationReceivedEmail({
+  studentName,
+  providerName,
+  jobTitle,
+  hoursLabel,
+  payRange,
+}: {
+  studentName: string;
+  providerName: string;
+  jobTitle: string;
+  hoursLabel: string;
+  payRange: string;
+}): string {
+  const safeStudentName = escapeHtml(firstName(studentName, "there"));
+  const safeProviderName = escapeHtml(providerName);
+  const safeJobTitle = escapeHtml(jobTitle);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">You've been invited to apply!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeStudentName}, <strong>${safeProviderName}</strong> thinks you'd be a great fit for a role and wants you to check it out.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;width:100%;margin:0 0 16px;">
+      <tr><td style="padding:16px;">
+        <p style="font-size:15px;color:#111827;font-weight:600;margin:0 0 4px;">${safeJobTitle}</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;">${escapeHtml(hoursLabel)} &middot; ${escapeHtml(payRange)}</p>
+      </td></tr>
+    </table>
+    <p style="margin:0 0 16px;">
+      ${button("View Invitation", `${BASE_URL}/medjobs/jobs`)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `${safeProviderName} invited you to apply for ${safeJobTitle}`);
+}
+
+/**
+ * Confirmation sent to the provider after they invite a student.
+ */
+export function invitationSentEmail({
+  providerName,
+  studentName,
+  jobTitle,
+}: {
+  providerName: string;
+  studentName: string;
+  jobTitle: string;
+}): string {
+  const safeProviderName = escapeHtml(firstName(providerName, "there"));
+  const safeStudentName = escapeHtml(studentName);
+  const safeJobTitle = escapeHtml(jobTitle);
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Invite Sent!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Hi ${safeProviderName}, your invitation to <strong>${safeStudentName}</strong> for
+      <strong>${safeJobTitle}</strong> has been sent. They'll get an email with the details.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      If they're interested, they'll apply and show up in your hiring dashboard.
+      You can also message them directly from your inbox.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Browse More Candidates", `${BASE_URL}/medjobs/candidates`)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    </p>
+  `, `Your invite to ${safeStudentName} was sent`);
 }

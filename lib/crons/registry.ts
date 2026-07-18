@@ -17,7 +17,7 @@
 export type CronAudience = "Providers" | "Care seekers" | "MedJobs" | "Students" | "Internal" | "Data & maintenance";
 
 /** What kind of automation it is — shown as a chip; also tells us whether to expect an email rollup. */
-export type CronFn = "nudge" | "alert" | "digest" | "outreach" | "refresh" | "maintenance";
+export type CronFn = "nudge" | "alert" | "digest" | "outreach" | "event" | "refresh" | "maintenance";
 
 export interface CronJob {
   /** Stable id. Matches the route folder name under app/api/cron/ and cron_runs.job_id. */
@@ -80,6 +80,48 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: ["verification_reminder_7d", "verification_reminder_21d"],
     successSignal: "Provider completes verification.",
     relatedAdminPath: "/admin/verification",
+  },
+  {
+    id: "ad-boost-profile-reminders",
+    name: "Ad Boost profile reminders",
+    description:
+      "Nudges providers whose Ad Boost launch plan is queued because their profile is still below the launch threshold. If a queued provider has become launch-ready, promotes the request instead of sending a reminder.",
+    recipientCohort:
+      "Providers with a pending-profile Ad Boost request that is at least 48 hours old and has not received this reminder yet.",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "30 14 * * *",
+    humanSchedule: "Daily, 14:30 UTC (~9–10 AM ET)",
+    path: "/api/cron/ad-boost-profile-reminders",
+    emailTypes: ["ad_boost_profile_reminder", "ad_boost_ready"],
+    successSignal: "Provider completes the page/verification work and the queued campaign moves into setup.",
+    relatedAdminPath: "/admin/ad-boost",
+  },
+  {
+    id: "ad-boost-emails",
+    name: "Ad Boost emails",
+    description:
+      "Event-triggered visibility for Find Families / Ad Boost provider emails: launch-plan receipt, queued-profile follow-up, launch-ready promotion, campaign launch, campaign-attributed lead, early traction, and starter-promo wrap-up.",
+    recipientCohort:
+      "Providers who request, queue, launch, or receive activity from Find Families managed-ad campaigns.",
+    audience: "Providers",
+    fn: "event",
+    schedule: "event-triggered",
+    humanSchedule: "Event-triggered by Ad Boost request, admin status changes, lead delivery, and metric saves",
+    path: "/admin/ad-boost",
+    emailTypes: [
+      "ad_boost_queued",
+      "ad_boost_requested",
+      "ad_boost_profile_reminder",
+      "ad_boost_ready",
+      "ad_boost_campaign_launched",
+      "ad_boost_lead_delivered",
+      "ad_boost_traction",
+      "ad_boost_promo_complete",
+    ],
+    successSignal:
+      "Provider completes setup, sees campaign progress, opens campaign-attributed leads, or replies to the promo wrap-up.",
+    relatedAdminPath: "/admin/ad-boost",
   },
   {
     id: "provider-welcome",
@@ -169,36 +211,6 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/connections",
   },
   {
-    id: "lead-family-nudge",
-    name: "Lead family nudge",
-    description:
-      "Twice-weekly nudge to families with active leads who need to complete or publish their profile. One email per family per run.",
-    recipientCohort: "Families with leads 2+ days old whose profile is incomplete (<60%) or not published.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 16 * * 2,5",
-    humanSchedule: "Tuesdays & Fridays, 16:00 UTC (~11 AM ET)",
-    path: "/api/cron/lead-family-nudge",
-    emailTypes: ["family_nudge", "go_live_reminder"],
-    successSignal: "Family completes or publishes their profile.",
-    relatedAdminPath: "/admin/analytics",
-  },
-  {
-    id: "matches-family-nudge",
-    name: "Matches family response nudge",
-    description:
-      "Daily nudge to families who haven't responded to provider reach-outs via Matches. Targets pending connections 3+ days old where family hasn't accepted or replied.",
-    recipientCohort: "Families with pending provider reach-outs 3+ days old, not nudged in last 7 days.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 15 * * *",
-    humanSchedule: "Daily, 15:00 UTC (~10 AM ET)",
-    path: "/api/cron/matches-family-nudge",
-    emailTypes: ["family_reach_out_nudge"],
-    successSignal: "Family accepts or responds to the provider reach-out.",
-    relatedAdminPath: "/admin/matches",
-  },
-  {
     id: "conversation-stale",
     name: "Stale conversation nudge",
     description:
@@ -219,14 +231,31 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "family-nudges",
     name: "Family lifecycle nudges",
     description:
-      "Five-email priority waterfall for care-seeker profiles: Go-Live reminder (complete but not live, 24h+), Profile-incomplete (missing care types/location, 3d+), Provider-recommendation (complete, zero connections, 5d+), Dormant re-engagement (zero connections, 14d+), Post-connection follow-up. One email per family per run.",
-    recipientCohort: "Care-seeker profiles 24h+ old that match one of the five lifecycle states above — one email per family per run.",
+      "Publish/lifecycle waterfall for care-seeker profiles: publish nudges 1-4 (day 0/2/6/13) then monthly publish maintenance for publish-ready families, monthly provider recommendations for published families, inactivity re-engagement (30d+ idle, max 2), and post-connection follow-up. One email per family per run; stands down for any family the coordinator emailed in the last 20h. The completion track moved to family-comms-coordinator (Track 2).",
+    recipientCohort: "Care-seeker profiles 24h+ old matching a lifecycle state above — one email per family per run.",
     audience: "Care seekers",
     fn: "nudge",
-    schedule: "0 15 * * *",
-    humanSchedule: "Daily, 15:00 UTC (~10–11 AM ET)",
+    // 18:00 = one hour AFTER the family-comms-coordinator (17:00) so this engine's
+    // "stand down if the coordinator emailed in the last 20h" guard actually sees
+    // today's coordinator send. At the old 15:00 slot the freshest stamp was ~22h
+    // old and the guard never fired — the two engines double-sent the same day.
+    schedule: "0 18 * * *",
+    humanSchedule: "Daily, 18:00 UTC (~1–2 PM ET)",
     path: "/api/cron/family-nudges",
-    emailTypes: ["go_live_reminder", "family_profile_incomplete", "provider_recommendation", "dormant_reengagement", "post_connection_followup"],
+    // Match what the route ACTUALLY sends — the automations monitor groups email_log
+    // by this list. The old list attributed provider-dormant's dormant_reengagement
+    // (provider mail) and paused lead-family-nudge's go_live_reminder to this cron,
+    // while missing every type it really emits.
+    emailTypes: [
+      "publish_nudge_1",
+      "publish_nudge_2",
+      "publish_nudge_3",
+      "publish_nudge_4",
+      "publish_maintenance",
+      "monthly_recommendations",
+      "inactivity_reengagement",
+      "post_connection_followup",
+    ],
     successSignal: "Family completes/lives their profile or initiates a connection.",
     relatedAdminPath: "/admin/care-seekers",
   },
@@ -242,7 +271,21 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/matches-nudge",
     emailTypes: ["matches_nudge", "provider_incomplete_profile"],
     successSignal: "Family activates Matches / provider completes their profile.",
-    relatedAdminPath: "/admin/matches",
+    relatedAdminPath: "/admin/activity?actor=families",
+  },
+  {
+    id: "sms-queue-flush",
+    name: "SMS queue flush",
+    description: "Drains sms_queue — reactive care-seeker reply-alert texts held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out + the daily safety throttle at delivery.",
+    recipientCohort: "Families with a deferred reply-alert SMS whose send window has opened.",
+    audience: "Care seekers",
+    fn: "alert",
+    schedule: "0 * * * *",
+    humanSchedule: "Hourly, on the hour",
+    path: "/api/cron/sms-queue-flush",
+    emailTypes: [],
+    successSignal: "Held reply-alert texts deliver at a civil hour without re-texting opted-out families.",
+    relatedAdminPath: "/admin/family-comms",
   },
   {
     id: "matches-unread",
@@ -256,7 +299,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/matches-unread",
     emailTypes: ["unread_reminder"],
     successSignal: "Recipient opens the thread and replies.",
-    relatedAdminPath: "/admin/matches",
+    relatedAdminPath: "/admin/activity?actor=families",
   },
   {
     id: "unread-reminders",
@@ -273,31 +316,27 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/connections",
   },
   {
-    id: "family-provider-silent",
-    name: "Provider silent — alternative providers",
-    description: "Daily: sends Email #4 when provider has been silent for ~4 days. Recommends responsive alternative providers nearby. Stops if family connects elsewhere.",
-    recipientCohort: "Families with 4-day-old connections where provider hasn't responded and family hasn't connected elsewhere.",
+    id: "family-comms-coordinator",
+    name: "Family comms coordinator — help-cascade arbiter",
+    description:
+      "The family-side arbitration brain. One daily cron that picks the single highest-priority message per family per cycle via a fixed help-cascade ladder (outcome-check → provider-silent+alternatives → never-engaged → awaiting-match → pending reach-out → lead follow-up), replacing the uncoordinated firehose of the 6 connection-triggered family crons. Global stops for unsubscribed / self-reported-yes / active live threads. Sends flow through the per-family nudge cap; ?dry_run=true returns the per-family selection without sending.",
+    recipientCohort:
+      "Every family with an open inquiry/request connection; at most one governed email per family per run, chosen by the ladder.",
     audience: "Care seekers",
     fn: "nudge",
-    schedule: "0 15 * * *",
-    humanSchedule: "Daily, 15:00 UTC (~10 AM ET)",
-    path: "/api/cron/family-provider-silent",
-    emailTypes: ["family_provider_silent"],
-    successSignal: "Family reaches out to one of the recommended providers.",
-    relatedAdminPath: "/admin/connections",
-  },
-  {
-    id: "family-never-engaged",
-    name: "Family never engaged — gentle re-engagement",
-    description: "Daily: sends Email #5 when family never sent a message after 5+ days. Guide-first value offer with zero pressure. Family-level intelligence — ONE email per family even with multiple connections.",
-    recipientCohort: "Families with 5-day-old connections who have NEVER sent a message in ANY connection.",
-    audience: "Care seekers",
-    fn: "nudge",
-    schedule: "0 16 * * *",
-    humanSchedule: "Daily, 16:00 UTC (~11 AM ET)",
-    path: "/api/cron/family-never-engaged",
-    emailTypes: ["family_never_engaged"],
-    successSignal: "Family downloads the guide or returns to their inbox.",
+    schedule: "0 17 * * *",
+    humanSchedule: "Daily, 17:00 UTC (~12 PM ET)",
+    path: "/api/cron/family-comms-coordinator",
+    emailTypes: [
+      "family_outcome_check",
+      "family_provider_silent",
+      "family_never_engaged",
+      "day_10_awaiting",
+      "family_reach_out_nudge",
+      "family_nudge",
+      "go_live_reminder",
+    ],
+    successSignal: "Family is meaningfully helped (responds, reaches an alternative, completes, or publishes).",
     relatedAdminPath: "/admin/connections",
   },
   {
@@ -316,20 +355,6 @@ export const CRON_REGISTRY: CronJob[] = [
   },
 
   // ── MedJobs (student talent marketplace) ───────────────────────────
-  {
-    id: "medjobs-digest",
-    name: "MedJobs weekly candidate digest",
-    description: "Weekly roundup to MedJobs provider clients of new student candidates from the past week.",
-    recipientCohort: "MedJobs provider clients.",
-    audience: "MedJobs",
-    fn: "digest",
-    schedule: "0 13 * * 1",
-    humanSchedule: "Mondays, 13:00 UTC (~8 AM CT)",
-    path: "/api/cron/medjobs-digest",
-    emailTypes: ["new_candidate_alert"],
-    successSignal: "Provider opens a candidate / books an interview.",
-    relatedAdminPath: "/admin/medjobs/candidates",
-  },
   {
     id: "medjobs-nudge",
     name: "MedJobs student nudges",
@@ -428,6 +453,20 @@ export const CRON_REGISTRY: CronJob[] = [
     humanSchedule: "Daily, 04:00 UTC",
     path: "/api/cron/cleanup",
     emailTypes: [],
+  },
+  {
+    id: "email-preverify",
+    name: "Email pre-verification",
+    description:
+      "Proactively verifies cold-lane recipient addresses (question_received + the weekly digest's unclaimed slice) ahead of send, throttled to dodge ZeroBounce's burst rate limit. Pre-populates the email_verifications cache so the send path reliably suppresses known-bad addresses instead of failing open during the weekly burst. Caps NEW verifications per run; the backlog drains across runs then steady-states.",
+    recipientCohort: "(No recipients — a verification/data job. Verifies the question_received + unclaimed-digest address pools.)",
+    audience: "Data & maintenance",
+    fn: "maintenance",
+    schedule: "0 */6 * * *",
+    humanSchedule: "Every 6 hours (00/06/12/18 UTC) — the 12:00 run pre-warms the 13:00 weekday digest",
+    path: "/api/cron/email-preverify",
+    emailTypes: [],
+    relatedAdminPath: "/admin/automations",
   },
 ];
 

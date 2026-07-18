@@ -24,6 +24,8 @@ interface SelectProps {
   placeholder?: string;
   /** Optional label above the select */
   label?: string;
+  /** Accessible label for screen readers (when no visible label) */
+  ariaLabel?: string;
   /** Show required indicator */
   required?: boolean;
   /** Disabled state */
@@ -64,6 +66,7 @@ export default function Select({
   onChange,
   placeholder = "Select an option",
   label,
+  ariaLabel,
   required = false,
   disabled = false,
   error = false,
@@ -180,8 +183,23 @@ export default function Select({
       }
     };
 
+    // Close dropdown when page scrolls to prevent floating dropdown issue.
+    // But ignore scroll events from inside the dropdown itself (e.g., scrolling
+    // through a long list of options).
+    const handleScroll = (e: Event) => {
+      const scrolledInsideDropdown = listRef.current?.contains(e.target as Node);
+      if (!scrolledInsideDropdown) {
+        setIsOpen(false);
+        setFocusedIndex(-1);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
   }, [isOpen]);
 
   // ────────────────────────────────────────────────────────────
@@ -355,7 +373,7 @@ export default function Select({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={[
-          "w-full pr-10 rounded-lg border text-left transition-all cursor-pointer",
+          "w-full pr-10 rounded-lg border text-left transition-all cursor-pointer truncate",
           sizeClasses[size],
           isOpen
             ? "border-primary-400 ring-2 ring-primary-100 bg-white"
@@ -370,6 +388,7 @@ export default function Select({
         ].filter(Boolean).join(" ")}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-label={!label ? ariaLabel : undefined}
         aria-labelledby={label ? labelId : undefined}
         aria-controls={listboxId}
         aria-invalid={error}

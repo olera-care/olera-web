@@ -29,13 +29,15 @@ const nextConfig: NextConfig = {
   // ── 301 Redirects (v1.0 → v2.0 migration) ──
   async redirects() {
     return [
-      // MedJobs board consolidation (G3): the public, ungated /medjobs/candidates
-      // board is canonical (it's the only board that renders for an authed-but-
-      // unclaimed provider — the cold magic-link state). The gated /provider
-      // portal board redirects into it. Edge-level so it runs before the
-      // /provider layout's profile gate (which would otherwise eject to /portal).
-      { source: "/provider/medjobs/candidates/:path*", destination: "/medjobs/candidates/:path*", permanent: true },
-      { source: "/provider/medjobs", destination: "/medjobs/candidates", permanent: true },
+      // MedJobs provider board: /provider/medjobs/candidates IS the gated Hire
+      // Caregivers board (candidate cards + campus map + welcome banner). The
+      // public marketing + preview surface is /medjobs/candidates. An earlier G3
+      // consolidation 301'd the gated board into the marketing page — and because
+      // `:path*` matches zero segments, it caught the board's own URL, stranding
+      // the post-quiz hop on the marketing page. That rule is removed. A bare
+      // /provider/medjobs has no page of its own, so send it to the board (307 so
+      // it isn't cached hard like the old 301).
+      { source: "/provider/medjobs", destination: "/provider/medjobs/candidates", permanent: false },
       // Tier 1: Provider portal renames
       { source: "/provider-portal", destination: "/portal", permanent: true },
       { source: "/provider-portal/dashboard", destination: "/portal", permanent: true },
@@ -186,6 +188,9 @@ const nextConfig: NextConfig = {
       // exist as dedicated entity pages. The Phase 6 redirects that
       // pointed them at /in-basket are removed — next.js now routes
       // straight to the real pages.
+
+      // Provider hub: Your Market → Growth rename (2026-06-24)
+      { source: "/provider/market", destination: "/provider/growth", permanent: true },
     ];
   },
 

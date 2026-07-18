@@ -23,7 +23,40 @@ import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import { createClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
 import { sendEmail } from "@/lib/email";
+import { sendSlackAlert } from "@/lib/slack";
 import { providerSubscriptionConfirmationEmail } from "@/lib/medjobs-email-templates";
+
+/** Map a Stripe subscription status onto ad_campaign_requests.plan_status.
+ *  Values must stay inside the DB CHECK: active | past_due | canceled.
+ *  Mirrors supabase/functions/stripe-webhook/index.ts. */
+async function syncAdBoostPlanStatus(
+  supabase: ReturnType<typeof getAdminClient>,
+  subscriptionId: string,
+  stripeStatus: string,
+) {
+  const planStatus =
+    stripeStatus === "active" || stripeStatus === "trialing"
+      ? "active"
+      : stripeStatus === "past_due"
+        ? "past_due"
+        : stripeStatus === "canceled" || stripeStatus === "unpaid"
+          ? "canceled"
+          : null;
+  if (!planStatus) return;
+  const { data: rows } = await supabase
+    .from("ad_campaign_requests")
+    .update({ plan_status: planStatus, updated_at: new Date().toISOString() })
+    .eq("stripe_subscription_id", subscriptionId)
+    .select("id, display_name, provider_slug");
+  const row = rows?.[0];
+  if (row && (planStatus === "canceled" || planStatus === "past_due")) {
+    const icon = planStatus === "canceled" ? ":octagonal_sign:" : ":warning:";
+    const verb = planStatus === "canceled" ? "canceled their plan" : "payment past due";
+    await sendSlackAlert(
+      `${icon} Ad Boost: *${row.display_name ?? row.provider_slug ?? row.id}* ${verb}`,
+    );
+  }
+}
 
 // Use the service role key for webhook processing (bypasses RLS)
 function getAdminClient() {
@@ -55,13 +88,24 @@ export async function POST(request: NextRequest) {
   try {
     const stripe = getStripe();
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err: unknown) {
-    const msg =
-      err && typeof err === "object" && "message" in err
-        ? (err as { message: string }).message
-        : "Unknown error";
-    console.error("Webhook signature verification failed:", msg);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  } catch (liveErr: unknown) {
+    // Optional test-mode secret fallback (mirrors the Supabase Edge Function).
+    const testSecret = process.env.STRIPE_WEBHOOK_SECRET_TEST;
+    if (!testSecret) {
+      const msg =
+        liveErr && typeof liveErr === "object" && "message" in liveErr
+          ? (liveErr as { message: string }).message
+          : "Unknown error";
+      console.error("Webhook signature verification failed:", msg);
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    }
+    try {
+      const stripe = getStripe();
+      event = stripe.webhooks.constructEvent(body, signature, testSecret);
+    } catch {
+      console.error("Webhook signature verification failed (live + test)");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    }
   }
 
   const supabase = getAdminClient();
@@ -70,6 +114,42 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // Ad Boost paid plan (Phase 2): activate the campaign request row.
+        // Mirrors supabase/functions/stripe-webhook/index.ts (the prod path).
+        if (session.metadata?.product === "adboost" && session.metadata?.request_id) {
+          const subscriptionId =
+            typeof session.subscription === "string"
+              ? session.subscription
+              : (session.subscription as Stripe.Subscription | null)?.id ?? null;
+          const { data: row } = await supabase
+            .from("ad_campaign_requests")
+            .update({
+              plan_status: "active",
+              plan_value: Number(session.metadata.plan_value) || null,
+              stripe_subscription_id: subscriptionId,
+              stripe_customer_id:
+                typeof session.customer === "string"
+                  ? session.customer
+                  : (session.customer?.id ?? null),
+              subscribed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", session.metadata.request_id)
+            .select("id, display_name, provider_slug")
+            .maybeSingle();
+          if (row) {
+            await sendSlackAlert(
+              `:moneybag: Ad Boost conversion: *${row.display_name ?? row.provider_slug ?? row.id}* subscribed at $${session.metadata.plan_value}/mo`,
+            );
+          } else {
+            console.error(
+              "[stripe/webhook] Ad Boost activation: request not found",
+              session.metadata.request_id,
+            );
+          }
+          break;
+        }
 
         // Handle MedJobs-specific subscription
         if (session.metadata?.product === "medjobs" && session.metadata?.profile_id) {
@@ -166,6 +246,14 @@ export async function POST(request: NextRequest) {
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
+
+        // Ad Boost subs carry product metadata (set at checkout); sync their
+        // plan_status and stop — they have no membership row.
+        if (subscription.metadata?.product === "adboost") {
+          await syncAdBoostPlanStatus(supabase, subscription.id, subscription.status);
+          break;
+        }
+
         const customerId =
           typeof subscription.customer === "string"
             ? subscription.customer
@@ -214,6 +302,12 @@ export async function POST(request: NextRequest) {
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
+
+        if (subscription.metadata?.product === "adboost") {
+          await syncAdBoostPlanStatus(supabase, subscription.id, "canceled");
+          break;
+        }
+
         const customerId =
           typeof subscription.customer === "string"
             ? subscription.customer

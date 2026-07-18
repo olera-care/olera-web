@@ -143,15 +143,16 @@ export function generateNotificationUrl(
  *
  * @param providerSlug - Provider's slug or ID
  * @param email - Provider's email for token generation
- * @param destination - Portal destination: "manage" (dashboard), "settings", "market", or "leads"
- *   ("market" lands on the Find Families market-intelligence / rank view after one-click auth;
- *   "leads" lands on the Find Families connections inbox — the weekly lead-recap CTA)
+ * @param destination - Portal destination: "manage" (dashboard), "settings", "market", "leads", "ads", or "matches"
+ *   ("market" lands on the Your Market diagnostic; "leads" lands on the Find Families
+ *   connections inbox; "ads" lands on /provider/boost — the managed-ads pitch + setup;
+ *   "matches" lands on /provider/matches — the Find Families nearby-seeker leads view)
  * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
  */
 export function generateProviderPortalUrl(
   providerSlug: string,
   email: string,
-  destination: "manage" | "settings" | "market" | "leads",
+  destination: "manage" | "settings" | "market" | "leads" | "ads" | "matches",
   baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
 ): string {
   const token = generateClaimToken(providerSlug, email);
@@ -208,6 +209,25 @@ export function generateMedJobsNotificationUrl(
   const token = generateClaimToken(providerSlug, email);
   const url = new URL(`${baseUrl}/api/medjobs/claim-${action}`);
   url.searchParams.set("interviewId", actionId);
+  url.searchParams.set("otk", token);
+  return url.toString();
+}
+
+/**
+ * Generate a STUDENT-side one-click interview link. Mirror of
+ * generateMedJobsNotificationUrl but routes to the student claim handler, which
+ * authenticates the (already-registered) student and redirects to their portal
+ * interviews tab with ?newInterview=<id>. The token's id field is opaque here —
+ * the route re-derives the student from the interview and verifies the email.
+ */
+export function generateMedJobsStudentInterviewUrl(
+  email: string,
+  interviewId: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  const token = generateClaimToken("student", email);
+  const url = new URL(`${baseUrl}/api/medjobs/claim-interview-student`);
+  url.searchParams.set("interviewId", interviewId);
   url.searchParams.set("otk", token);
   return url.toString();
 }
@@ -272,4 +292,208 @@ export function generateFamilyInboxUrl(
   url.searchParams.set("otk", token);
   url.searchParams.set("next", destination);
   return url.toString();
+}
+
+/**
+ * ── One-tap intro tokens (B2) ────────────────────────────────────────────────
+ *
+ * Authorizes a single family→provider inquiry created from an email link (a GET
+ * write). Signs the whole payload — family, target provider, the source inquiry
+ * whose intent we carry forward, and the family's email — so none of it can be
+ * tampered in the URL. Same HMAC-SHA256 + base64url + 72h-expiry scheme as the
+ * claim tokens above, but a distinct signature domain ("intro:") so an intro
+ * token can never be replayed as a claim token or vice versa.
+ */
+interface IntroTokenPayload {
+  /** The family's business_profiles id — from_profile_id of the new inquiry. */
+  familyProfileId: string;
+  /** The alternative provider's business_profiles id — to_profile_id. */
+  targetProviderId: string;
+  /** The original inquiry we carry care-type/intent forward from. */
+  sourceConnectionId: string;
+  /** The family's email — for rate limiting + post-write one-click auth. */
+  email: string;
+  expiresAt: number;
+}
+
+interface IntroTokenData extends IntroTokenPayload {
+  signature: string;
+}
+
+function generateIntroSignature(p: IntroTokenPayload): string {
+  const data = `intro:${p.familyProfileId}:${p.targetProviderId}:${p.sourceConnectionId}:${p.email}:${p.expiresAt}`;
+  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+}
+
+export function generateIntroToken(
+  familyProfileId: string,
+  targetProviderId: string,
+  sourceConnectionId: string,
+  email: string,
+): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: IntroTokenPayload = { familyProfileId, targetProviderId, sourceConnectionId, email, expiresAt };
+  const tokenData: IntroTokenData = { ...payload, signature: generateIntroSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateIntroToken(
+  token: string,
+):
+  | { valid: true; familyProfileId: string; targetProviderId: string; sourceConnectionId: string; email: string }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData: IntroTokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8"));
+    const { familyProfileId, targetProviderId, sourceConnectionId, email, expiresAt, signature } = tokenData;
+    if (!familyProfileId || !targetProviderId || !sourceConnectionId || !email || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    const expected = generateIntroSignature({ familyProfileId, targetProviderId, sourceConnectionId, email, expiresAt });
+    if (signature !== expected) return { valid: false, error: "Invalid token signature" };
+    return { valid: true, familyProfileId, targetProviderId, sourceConnectionId, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+/**
+ * Build a one-tap intro URL for an email compare card. Clicking it creates the
+ * inquiry to `targetProviderId` (carrying the source inquiry's intent), notifies
+ * the provider, signs the family in, and lands them on the confirmation screen.
+ */
+export function generateIntroUrl(
+  familyProfileId: string,
+  targetProviderId: string,
+  sourceConnectionId: string,
+  email: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care",
+): string {
+  const token = generateIntroToken(familyProfileId, targetProviderId, sourceConnectionId, email);
+  const url = new URL(`${baseUrl}/api/family-intro`);
+  url.searchParams.set("tok", token);
+  return url.toString();
+}
+
+/**
+ * ── In-email micro-quiz tokens ───────────────────────────────────────────────
+ *
+ * Authorizes a single quiz-answer write from an email link (a GET write): one
+ * benefits-intake fact (Medicaid status / veteran status / age band) stamped
+ * onto the family's profile. The whole payload is signed — family, question,
+ * answer, email — so a chip URL can't be tampered into writing a different
+ * answer or a different family. Same HMAC-SHA256 + base64url + 72h-expiry
+ * scheme as the claim/intro tokens, distinct "quiz:" signature domain.
+ */
+
+export type QuizQuestion = "path" | "medicaid" | "veteran" | "age" | "archetype";
+
+interface QuizTokenPayload {
+  familyProfileId: string;
+  question: QuizQuestion;
+  answer: string;
+  email: string;
+  expiresAt: number;
+}
+
+interface QuizTokenData extends QuizTokenPayload {
+  signature: string;
+}
+
+function generateQuizSignature(p: QuizTokenPayload): string {
+  const data = `quiz:${p.familyProfileId}:${p.question}:${p.answer}:${p.email}:${p.expiresAt}`;
+  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+}
+
+export function generateQuizToken(
+  familyProfileId: string,
+  question: QuizQuestion,
+  answer: string,
+  email: string,
+): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: QuizTokenPayload = { familyProfileId, question, answer, email, expiresAt };
+  const tokenData: QuizTokenData = { ...payload, signature: generateQuizSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateQuizToken(
+  token: string,
+):
+  | { valid: true; familyProfileId: string; question: QuizQuestion; answer: string; email: string }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData: QuizTokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8"));
+    const { familyProfileId, question, answer, email, expiresAt, signature } = tokenData;
+    if (!familyProfileId || !question || !answer || !email || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    const expected = generateQuizSignature({ familyProfileId, question, answer, email, expiresAt });
+    if (signature !== expected) return { valid: false, error: "Invalid token signature" };
+    return { valid: true, familyProfileId, question, answer, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+// NOTE: there is deliberately no URL builder pointing chips at /api/family-quiz.
+// Chips link to /family/quiz-answer (through claim-family), and the PAGE posts
+// the token — a GET that writes would let email link-scanners, which follow
+// every href, overwrite the family's real answer with the last chip scanned.
+
+/**
+ * ── Program-brief tokens ─────────────────────────────────────────────────────
+ *
+ * Carries family context (id + email) to /family/program/[pid] so the brief can
+ * personalize its eligibility checklist and mint quiz chips. READ-ONLY grant:
+ * the brief page writes nothing with it; writes still go through quiz tokens.
+ * Same HMAC scheme, distinct "brief:" domain.
+ */
+interface BriefTokenPayload {
+  familyProfileId: string;
+  email: string;
+  expiresAt: number;
+}
+
+function generateBriefSignature(p: BriefTokenPayload): string {
+  const data = `brief:${p.familyProfileId}:${p.email}:${p.expiresAt}`;
+  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+}
+
+export function generateBriefToken(familyProfileId: string, email: string): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: BriefTokenPayload = { familyProfileId, email, expiresAt };
+  const tokenData = { ...payload, signature: generateBriefSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateBriefToken(
+  token: string,
+): { valid: true; familyProfileId: string; email: string } | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as BriefTokenPayload & { signature: string };
+    const { familyProfileId, email, expiresAt, signature } = tokenData;
+    if (!familyProfileId || !email || !expiresAt || !signature) return { valid: false, error: "Invalid token format" };
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    if (signature !== generateBriefSignature({ familyProfileId, email, expiresAt })) return { valid: false, error: "Invalid token signature" };
+    return { valid: true, familyProfileId, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
 }

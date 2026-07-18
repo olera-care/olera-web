@@ -16,6 +16,10 @@ import { useUnreadQnACount } from "@/hooks/useUnreadQnACount";
 import { useUnreadReviewsCount } from "@/hooks/useUnreadReviewsCount";
 import { useUnreadLeadsCount } from "@/hooks/useUnreadLeadsCount";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
+import MobileBottomTabs from "@/components/shared/MobileBottomTabs";
+import MoreBottomSheet from "@/components/shared/MoreBottomSheet";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 export default function Navbar() {
   const router = useRouter();
@@ -32,6 +36,7 @@ export default function Navbar() {
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const mobileNavImpressionFired = useRef(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
@@ -61,6 +66,10 @@ export default function Navbar() {
   const reviewsCount = useUnreadReviewsCount(activeProviderId);
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
+
+  // Mobile nav variant for A/B testing bottom tabs vs hamburger
+  const mobileNavVariant = useMobileNavVariant();
 
   // Track client-side mount for createPortal (SSR-safe)
   useEffect(() => {
@@ -88,6 +97,8 @@ export default function Navbar() {
     pathname.startsWith("/provider/profile") ||
     pathname.startsWith("/provider/reviews") ||
     pathname.startsWith("/provider/matches") ||
+    pathname.startsWith("/provider/growth") ||
+    pathname.startsWith("/provider/boost") ||
     pathname.startsWith("/provider/pro") ||
     pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/account") ||
@@ -100,6 +111,8 @@ export default function Navbar() {
     (pathname.startsWith("/medjobs/candidates") && activeProfile?.type === "organization") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard")) ||
+    // Account settings page when user is a provider - show provider nav
+    (pathname.startsWith("/account") && activeProfile?.type === "organization") ||
     // Unified inbox when active profile is a provider
     isInboxProviderMode;
   const isMinimalNav = pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
@@ -110,14 +123,31 @@ export default function Navbar() {
     pathname.startsWith("/provider/inbox") ||
     pathname.startsWith("/provider/reviews") ||
     pathname.startsWith("/provider/matches") ||
+    pathname.startsWith("/provider/growth") ||
+    pathname.startsWith("/provider/boost") ||
     pathname.startsWith("/provider/pro") ||
     pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/medjobs");
   const isProviderWelcome = pathname.startsWith("/provider/welcome");
 
+  // Track mobile nav variant impression — fires once per page load on mobile provider portal
+  useEffect(() => {
+    // Skip if already fired, not mounted, not provider portal, or no variant assigned yet
+    if (mobileNavImpressionFired.current || !mounted || !isProviderPortal || !mobileNavVariant) return;
+    // Skip if not on mobile viewport (lg breakpoint = 1024px)
+    if (typeof window === "undefined" || window.innerWidth >= 1024) return;
+    // Skip if no provider to attribute the event to
+    if (!activeProviderSlug) return;
+
+    mobileNavImpressionFired.current = true;
+    trackProviderEvent(activeProviderSlug, "mobile_nav_variant_impression", {
+      variant: mobileNavVariant,
+    });
+  }, [mounted, isProviderPortal, mobileNavVariant, activeProviderSlug]);
+
   // Provider detail page detection — has its own mobile nav (MobileProviderTopNav)
   // Pattern: /provider/[slug] where slug is not a known portal route
-  const providerPortalRoutes = ["connections", "inbox", "onboarding", "profile", "reviews", "matches", "pro", "qna", "account", "medjobs", "caregivers", "welcome"];
+  const providerPortalRoutes = ["connections", "inbox", "onboarding", "profile", "reviews", "matches", "growth", "boost", "pro", "qna", "account", "medjobs", "caregivers", "welcome"];
   const isProviderDetailPage = (() => {
     if (!pathname.startsWith("/provider/")) return false;
     const segments = pathname.split("/").filter(Boolean);
@@ -365,7 +395,7 @@ export default function Navbar() {
                   </svg>
                   {item.label}
                   {item.badge > 0 && (
-                    <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                    <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
                       {item.badge}
                     </span>
                   )}
@@ -388,16 +418,6 @@ export default function Navbar() {
             <>
               {/* Caregiver (Student) links */}
               <Link
-                href="/portal/medjobs"
-                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                onClick={() => setIsUserMenuOpen(false)}
-              >
-                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Application
-              </Link>
-              <Link
                 href="/portal/medjobs/jobs"
                 className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 onClick={() => setIsUserMenuOpen(false)}
@@ -405,7 +425,17 @@ export default function Navbar() {
                 <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
                   <path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
                 </svg>
-                Open Jobs
+                Find Jobs
+              </Link>
+              <Link
+                href="/portal/medjobs"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Profile
               </Link>
               <Link
                 href="/portal/medjobs/interviews"
@@ -426,7 +456,7 @@ export default function Navbar() {
                   <path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
-                Account Settings
+                Settings
               </Link>
             </>
           ) : hasStudentProfile ? (
@@ -450,7 +480,7 @@ export default function Navbar() {
                 <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
                   <path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
                 </svg>
-                Open Jobs
+                Find Jobs
               </Link>
               <Link
                 href="/portal/medjobs/interviews"
@@ -477,7 +507,7 @@ export default function Navbar() {
                 </svg>
                 Inbox
                 {unreadInboxCount > 0 && (
-                  <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                  <span className="ml-auto text-[10px] font-bold text-white bg-red-500 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
                     {unreadInboxCount}
                   </span>
                 )}
@@ -611,7 +641,7 @@ export default function Navbar() {
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            router.push("/medjobs");
+            router.push("/medjobs/families");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
@@ -631,7 +661,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isProviderDetailPage ? "hidden md:block" : ""} ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isProviderDetailPage ? "hidden md:block" : ""} ${isInboxPage && mobileNavVariant === "bottom_tabs" ? "hidden lg:block" : ""} ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
@@ -659,41 +689,7 @@ export default function Navbar() {
             {/* ── CENTER — Primary navigation (page-centered, hidden on mobile + inbox) ── */}
             {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
-                {hasStudentProfile ? (
-                  /* Caregiver (MedJobs) nav links - use hasStudentProfile for faster detection after login */
-                  <>
-                    <Link
-                      href="/portal/medjobs"
-                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
-                        pathname === "/portal/medjobs"
-                          ? "text-primary-600"
-                          : "text-gray-700 hover:text-gray-900"
-                      }`}
-                    >
-                      Application
-                    </Link>
-                    <Link
-                      href="/portal/medjobs/jobs"
-                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
-                        pathname.startsWith("/portal/medjobs/jobs")
-                          ? "text-primary-600"
-                          : "text-gray-700 hover:text-gray-900"
-                      }`}
-                    >
-                      Open Jobs
-                    </Link>
-                    <Link
-                      href="/portal/medjobs/interviews"
-                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
-                        pathname.startsWith("/portal/medjobs/interviews")
-                          ? "text-primary-600"
-                          : "text-gray-700 hover:text-gray-900"
-                      }`}
-                    >
-                      Interviews
-                    </Link>
-                  </>
-                ) : (isProviderPortal || activeProfile?.type === "organization") ? (
+                {hasStudentProfile ? null : (isProviderPortal || activeProfile?.type === "organization") ? (
                   /* Provider Hub nav links - shown on /provider/* URLs or for organization users (e.g., in inbox) */
                   <>
                     {/* Profile */}
@@ -722,11 +718,23 @@ export default function Navbar() {
                       Find Families
                     </Link>
 
+                    {/* Growth */}
+                    <Link
+                      href="/provider/growth"
+                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
+                        pathname.startsWith("/provider/growth")
+                          ? "text-primary-600"
+                          : "text-gray-700 hover:text-gray-900"
+                      }`}
+                    >
+                      Growth
+                    </Link>
+
                     {/* Hire Caregivers */}
                     <Link
-                      href="/medjobs/candidates"
+                      href="/provider/medjobs/candidates"
                       className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
-                        pathname.startsWith("/medjobs/candidates")
+                        pathname.startsWith("/provider/medjobs/candidates") || pathname.startsWith("/medjobs/candidates")
                           ? "text-primary-600"
                           : "text-gray-700 hover:text-gray-900"
                       }`}
@@ -852,7 +860,7 @@ export default function Navbar() {
                             </div>
                           )}
                           {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0 || reviewsCount > 0) && (
-                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                           )}
                         </button>
                         {isUserMenuOpen && signedInDropdown}
@@ -933,7 +941,7 @@ export default function Navbar() {
                             </div>
                           )}
                           {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
-                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                           )}
                         </button>
                         {isUserMenuOpen && signedInDropdown}
@@ -970,22 +978,40 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Mobile Menu Button — always on right */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {isMobileMenuOpen ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                )}
-              </button>
+              {/* Mobile Menu Button — direct link to settings for bottom_tabs variant, hamburger otherwise */}
+              {isProviderPortal && mobileNavVariant === "bottom_tabs" ? (
+                /* Direct link to account settings for bottom_tabs variant — just avatar, no menu icon */
+                <Link
+                  href="/account/settings"
+                  className="lg:hidden flex items-center justify-center w-11 h-11 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Account settings"
+                >
+                  {activeProfile?.image_url ? (
+                    <Image src={activeProfile.image_url} alt={displayName} width={36} height={36} className="w-9 h-9 rounded-full object-cover aspect-square" />
+                  ) : (
+                    <div className="w-9 h-9 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                      {initials || "?"}
+                    </div>
+                  )}
+                </Link>
+              ) : (
+                /* Hamburger button for default variant */
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="lg:hidden w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+                  aria-label="Toggle menu"
+                >
+                  {isMobileMenuOpen ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  )}
+                </button>
+              )}
             </div>
           </div>
 
@@ -1018,7 +1044,8 @@ export default function Navbar() {
 
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-5 py-4">
-            <div className="flex flex-col">
+            {/* Top-anchored list (Apple Settings / Airbnb sections), not centered. max-w-md keeps a tidy column on tablet. */}
+            <div className="flex flex-col w-full max-w-md mx-auto">
               {authLoading ? (
                 /* Loading state - show skeleton while auth is initializing */
                 <div className="py-4 space-y-4">
@@ -1103,7 +1130,8 @@ export default function Navbar() {
                       {([
                         { label: "Profile", href: "/provider", match: "/provider", badge: 0, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
                         { label: "Find Families", href: "/provider/matches", match: "/provider/matches", badge: 0, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
-                        { label: "Hire Caregivers", href: "/medjobs/candidates", match: "/medjobs/candidates", badge: 0, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
+                        { label: "Growth", href: "/provider/growth", match: "/provider/growth", badge: 0, icon: "M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.519l2.74-1.22m0 0-5.94-2.28m5.94 2.28-2.28 5.941" },
+                        { label: "Hire Caregivers", href: "/provider/medjobs/candidates", match: "/provider/medjobs/candidates", badge: 0, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
                         { label: "Inbox", href: "/portal/inbox?role=provider", match: "/portal/inbox", badge: providerInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
                         { label: "Q&A", href: "/provider/qna", match: "/provider/qna", badge: qnaCount, icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
                         { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
@@ -1120,6 +1148,18 @@ export default function Navbar() {
                               // Switch to provider profile if not already active
                               if (hasProviderProfile && providerProfileId) switchProfile(providerProfileId);
                               setIsMobileMenuOpen(false);
+                              // Track key navigation actions for A/B test analysis
+                              if (activeProviderSlug && item.label === "Find Families") {
+                                trackProviderEvent(activeProviderSlug, "nav_families_clicked", {
+                                  variant: mobileNavVariant ?? "current",
+                                  source: "hamburger_menu",
+                                });
+                              } else if (activeProviderSlug && item.label === "Hire Caregivers") {
+                                trackProviderEvent(activeProviderSlug, "nav_hire_clicked", {
+                                  variant: mobileNavVariant ?? "current",
+                                  source: "hamburger_menu",
+                                });
+                              }
                             }}
                           >
                             <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1127,13 +1167,27 @@ export default function Navbar() {
                             </svg>
                             <span className="text-[15px]">{item.label}</span>
                             {item.badge > 0 && (
-                              <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center px-1.5 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                              <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center px-1.5 text-[10px] font-bold text-white bg-red-500 rounded-full">
                                 {item.badge}
                               </span>
                             )}
                           </Link>
                         );
                       })}
+
+                      {/* Account Settings */}
+                      <div className="my-3 border-t border-gray-100" />
+                      <Link
+                        href="/account/settings"
+                        className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="text-[15px]">Account Settings</span>
+                      </Link>
 
                       {/* Switch to Family */}
                       {hasFamilyProfile && (
@@ -1182,10 +1236,10 @@ export default function Navbar() {
                         {mobileAccordion === "hub" && (
                           <div className="mt-1 space-y-0.5">
                             {([
-                              { label: "Application", href: "/portal/medjobs", match: "/portal/medjobs", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-                              { label: "Open Jobs", href: "/portal/medjobs/jobs", match: "/portal/medjobs/jobs", icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" },
+                              { label: "Find Jobs", href: "/portal/medjobs/jobs", match: "/portal/medjobs/jobs", icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" },
+                              { label: "Profile", href: "/portal/medjobs", match: "/portal/medjobs", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
                               { label: "Interviews", href: "/portal/medjobs/interviews", match: "/portal/medjobs/interviews", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
-                              { label: "Account Settings", href: "/account/settings", match: "/account/settings", icon: "M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
+                              { label: "Settings", href: "/account/settings", match: "/account/settings", icon: "M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
                             ] as const).map((item) => {
                               const active = item.match === "/portal/medjobs" ? pathname === "/portal/medjobs" : pathname.startsWith(item.match);
                               return (
@@ -1248,7 +1302,7 @@ export default function Navbar() {
                                   </svg>
                                   <span className="text-[15px]">{item.label}</span>
                                   {item.badge > 0 && (
-                                    <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center px-1.5 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                                    <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center px-1.5 text-[10px] font-bold text-white bg-red-500 rounded-full">
                                       {item.badge}
                                     </span>
                                   )}
@@ -1356,7 +1410,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setIsMobileCareOpen((prev) => !prev)}
-                    className={`flex items-center justify-between w-full py-3 font-medium ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center justify-between w-full py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     aria-expanded={isMobileCareOpen}
                   >
                     <span className="flex items-center gap-3">
@@ -1388,11 +1442,11 @@ export default function Navbar() {
                   {/* Caregiver Support */}
                   <Link
                     href="/caregiver-support"
-                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
                     </svg>
                     Caregiver Support
                   </Link>
@@ -1400,7 +1454,7 @@ export default function Navbar() {
                   {/* Find Benefits */}
                   <Link
                     href="/senior-benefits"
-                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/senior-benefits") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1413,7 +1467,7 @@ export default function Navbar() {
                   {(!hasSession || hasFamilyProfile) && (
                     <Link
                       href="/saved"
-                      className={`flex items-center gap-3 py-3 font-medium ${pathname === "/saved" ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                      className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname === "/saved" ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <svg className={`w-5 h-5 shrink-0 ${pathname === "/saved" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1429,7 +1483,7 @@ export default function Navbar() {
                       <div className="my-3 border-t border-gray-100" />
                       <Link
                         href="/for-providers"
-                        className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                        className={`flex items-center gap-3 py-4 text-xl font-semibold transition active:opacity-60 ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1464,14 +1518,14 @@ export default function Navbar() {
                 Sign out
               </button>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 w-full max-w-md mx-auto">
                 <button
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     openAuth({ defaultMode: "sign-in" });
                   }}
-                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors min-h-[48px]"
+                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors active:bg-primary-800 min-h-[48px]"
                 >
                   Log in or sign up
                 </button>
@@ -1483,7 +1537,7 @@ export default function Navbar() {
                     const returnTo = pathname.startsWith("/provider/onboarding") ? "/for-providers" : pathname;
                     router.push(`/provider/onboarding?returnTo=${encodeURIComponent(returnTo)}`);
                   }}
-                  className="w-full py-2.5 text-sm text-gray-500 hover:text-primary-600 transition-colors min-h-[44px]"
+                  className="w-full py-2.5 text-[15px] font-medium text-gray-700 hover:text-primary-600 transition-colors active:opacity-60 min-h-[44px]"
                 >
                   Find your organization
                 </button>
@@ -1491,9 +1545,9 @@ export default function Navbar() {
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    router.push("/medjobs");
+                    router.push("/medjobs/families");
                   }}
-                  className="w-full py-2.5 text-sm text-gray-500 hover:text-primary-600 transition-colors min-h-[44px]"
+                  className="w-full py-2.5 text-[15px] font-medium text-gray-700 hover:text-primary-600 transition-colors active:opacity-60 min-h-[44px]"
                 >
                   Join as a caregiver
                 </button>
@@ -1519,6 +1573,38 @@ export default function Navbar() {
           megaMenuCloseTimer.current = setTimeout(() => setIsFindCareOpen(false), 200);
         }}
       />
+
+      {/* Mobile Bottom Tabs — only shown for provider portal when variant is bottom_tabs */}
+      {isProviderPortal && mobileNavVariant === "bottom_tabs" && (
+        <div className="lg:hidden">
+          <MobileBottomTabs
+            hasNotifications={providerInboxCount > 0 || qnaCount > 0 || newLeadsCount > 0}
+            onMorePress={() => setIsMoreSheetOpen(true)}
+            onNavClick={(tabKey) => {
+              if (!activeProviderSlug) return;
+              // Track key navigation actions for A/B test analysis
+              if (tabKey === "families") {
+                trackProviderEvent(activeProviderSlug, "nav_families_clicked", {
+                  variant: "bottom_tabs",
+                  source: "bottom_tabs",
+                });
+              } else if (tabKey === "hire") {
+                trackProviderEvent(activeProviderSlug, "nav_hire_clicked", {
+                  variant: "bottom_tabs",
+                  source: "bottom_tabs",
+                });
+              }
+            }}
+          />
+          <MoreBottomSheet
+            isOpen={isMoreSheetOpen}
+            onClose={() => setIsMoreSheetOpen(false)}
+            inboxCount={providerInboxCount}
+            qnaCount={qnaCount}
+            leadsCount={newLeadsCount}
+          />
+        </div>
+      )}
     </>
   );
 }

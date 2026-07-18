@@ -42,14 +42,15 @@
  * to pull from its existing surface.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Contact, DrawerContext } from "@/lib/student-outreach/types";
 import type { VerificationState } from "@/lib/student-outreach/verification-state";
 import type { CadenceKey } from "@/lib/student-outreach/cadence";
 import { OTHER, PROVIDER_CONTACT_ROLES } from "@/lib/student-outreach/presets";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
-import { CallForEmailModal } from "@/components/admin/medjobs/CallForEmailModal";
+import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
+import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
@@ -58,6 +59,7 @@ import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightRevi
 type ActionFn = (
   actionName: string,
   payload?: Record<string, unknown>,
+  opts?: { silent?: boolean },
 ) => Promise<DrawerContext>;
 
 interface Props {
@@ -95,6 +97,24 @@ export function ProviderSnapshotCard({
   const livePagePath = slug ? `/provider/${slug}` : null;
   const isPreLaunch =
     outreach.status === "prospect" || outreach.status === "researched";
+
+  // Pre-flight content lock. Once a real account owns the listing, its
+  // directory content is sovereign: Business Name + General Contact render
+  // read-only by default so an operator doesn't casually edit a claimed
+  // provider's profile. An Edit override unlocks them to capture a better
+  // contact found on a call — those edits persist to the outreach record only
+  // (the backend never mirrors a claimed provider's data to the directory; see
+  // update_general_contact + getProviderOwnership). Decision-maker targeting
+  // stays editable (CRM-only). Outreach still launches in either state.
+  const owned = Boolean(bp?.account_id);
+  const [overrideEdit, setOverrideEdit] = useState(false);
+  const editable = isPreLaunch && (!owned || overrideEdit);
+  const claimTag = owned
+    ? bp?.verification_state === "verified" ||
+      bp?.verification_state === "not_required"
+      ? "Claimed · verified"
+      : "Claimed · unverified"
+    : null;
 
   const activeContacts = useMemo(
     () => ctx.contacts.filter((c) => c.status === "active"),
@@ -190,6 +210,32 @@ export function ProviderSnapshotCard({
         </div>
       </header>
 
+      {/* Claimed-provider lock banner. The provider owns this listing, so its
+          content is read-only by default; Edit captures a better outreach
+          contact (saved to the outreach record only — never the public page). */}
+      {owned && (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-amber-900">
+              🔒 {claimTag} — owned by the provider
+            </p>
+            <p className="mt-0.5 text-[11px] text-amber-800">
+              Fields are read-only; edits update our outreach contact only and
+              never change the provider&apos;s public page.
+            </p>
+          </div>
+          {isPreLaunch && (
+            <button
+              type="button"
+              onClick={() => setOverrideEdit((v) => !v)}
+              className="shrink-0 rounded-md border border-amber-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-amber-800 hover:bg-amber-100"
+            >
+              {overrideEdit ? "Done editing" : "Edit"}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── 0. Business Name ───────────────────────────────────────
           Editable canonical name. Materialized from business_profiles
           but the directory data can be stale; admin needs to fix it
@@ -199,7 +245,7 @@ export function ProviderSnapshotCard({
         ctx={ctx}
         action={action}
         setError={setError}
-        editable={isPreLaunch}
+        editable={editable}
       />
 
       {/* ── 1. General Contact ─────────────────────────────────────
@@ -211,7 +257,7 @@ export function ProviderSnapshotCard({
         ctx={ctx}
         action={action}
         setError={setError}
-        editable={isPreLaunch}
+        editable={editable}
         lastContactFormOutcome={
           (lastContactFormTp?.payload as Record<string, unknown> | null)
             ?.outcome as string | undefined
@@ -525,9 +571,14 @@ function GeneralContactSection({
     setSaving(field);
     setError(null);
     try {
-      await action("update_general_contact", {
-        [field]: trimmed === "" ? null : trimmed,
-      });
+      // During the on-open auto-fill, write silently so the parent In Basket
+      // isn't refreshed (which would race mark_read and re-bold the row).
+      // Manual edits keep the normal path.
+      await action(
+        "update_general_contact",
+        { [field]: trimmed === "" ? null : trimmed },
+        { silent: autoFillingRef.current },
+      );
       setSavedAt(Date.now());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -558,7 +609,17 @@ function GeneralContactSection({
     set(true);
     setTimeout(() => set(false), 1200);
   };
-  const applyEmail = async (value: string | null) => {
+  // Persist a discovered website as the source of record — only when none is
+  // already on file (the route only discovers in that case anyway).
+  const applyWebsite = async (value: string | null) => {
+    if (!value || (website ?? "").trim()) return;
+    setWebsite(value);
+    await saveField("website", value);
+  };
+  // blanksOnly (auto-fill): never overwrite a value already on file (e.g. the
+  // directory's email/phone) — only populate empty fields.
+  const applyEmail = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (email ?? "").trim()) return;
     if (value) {
       setEmail(value);
       setNoteFor("email", null);
@@ -568,7 +629,8 @@ function GeneralContactSection({
       setNoteFor("email", { kind: "miss", text: "No email on the site." });
     }
   };
-  const applyForm = async (value: string | null) => {
+  const applyForm = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (contactFormUrl ?? "").trim()) return;
     if (value) {
       setContactFormUrl(value);
       setNoteFor("contact_form", null);
@@ -578,7 +640,8 @@ function GeneralContactSection({
       setNoteFor("contact_form", { kind: "miss", text: "No contact form on the site." });
     }
   };
-  const applyPhone = async (value: string | null) => {
+  const applyPhone = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (phone ?? "").trim()) return;
     if (value) {
       setPhone(value);
       setNoteFor("phone", null);
@@ -588,7 +651,8 @@ function GeneralContactSection({
       setNoteFor("phone", { kind: "miss", text: "No phone on the site." });
     }
   };
-  const applyFax = async (value: string | null) => {
+  const applyFax = async (value: string | null, blanksOnly = false) => {
+    if (blanksOnly && (fax ?? "").trim()) return;
     if (value) {
       setFax(value);
       setNoteFor("fax", null);
@@ -600,30 +664,34 @@ function GeneralContactSection({
   };
   // Address is multi-part: each component saves independently so admin can
   // edit any incorrect part without re-typing the rest. A hit means at
-  // least one part came back; we apply whatever we have.
-  const applyAddress = async (parts: {
-    street: string | null;
-    city: string | null;
-    state: string | null;
-    zip: string | null;
-  }) => {
+  // least one part came back; we apply whatever we have (blanks-only skips
+  // any part already filled).
+  const applyAddress = async (
+    parts: {
+      street: string | null;
+      city: string | null;
+      state: string | null;
+      zip: string | null;
+    },
+    blanksOnly = false,
+  ) => {
     const { street: s, city: c, state: st, zip: z } = parts;
     if (s || c || st || z) {
       setNoteFor("address", null);
       flash("address");
-      if (s) {
+      if (s && !(blanksOnly && (street ?? "").trim())) {
         setStreet(s);
         await saveField("street", s);
       }
-      if (c) {
+      if (c && !(blanksOnly && (city ?? "").trim())) {
         setCity(c);
         await saveField("city", c);
       }
-      if (st) {
+      if (st && !(blanksOnly && (stateField ?? "").trim())) {
         setStateField(st);
         await saveField("state", st);
       }
-      if (z) {
+      if (z && !(blanksOnly && (zip ?? "").trim())) {
         setZip(z);
         await saveField("zip", z);
       }
@@ -631,7 +699,7 @@ function GeneralContactSection({
       setNoteFor("address", { kind: "miss", text: "No address on the site." });
     }
   };
-  const findContact = async (mode: FindMode) => {
+  const findContact = async (mode: FindMode, fillBlanksOnly = false) => {
     setFinding(mode);
     // Clear stale notes for any field this lookup will touch.
     const touched: FindField[] =
@@ -649,6 +717,7 @@ function GeneralContactSection({
       });
       const data = (await res.json()) as {
         value?: string | null;
+        website?: { value: string | null };
         email?: { value: string | null };
         contactForm?: { value: string | null };
         phone?: { value: string | null };
@@ -668,16 +737,20 @@ function GeneralContactSection({
       };
       if (!res.ok) throw new Error(data.error || "Lookup failed");
       if (mode === "all") {
-        await applyEmail(data.email?.value ?? null);
-        await applyForm(data.contactForm?.value ?? null);
-        await applyPhone(data.phone?.value ?? null);
-        await applyFax(data.fax?.value ?? null);
-        await applyAddress({
-          street: data.address?.street ?? null,
-          city: data.address?.city ?? null,
-          state: data.address?.state ?? null,
-          zip: data.address?.zip ?? null,
-        });
+        await applyWebsite(data.website?.value ?? null);
+        await applyEmail(data.email?.value ?? null, fillBlanksOnly);
+        await applyForm(data.contactForm?.value ?? null, fillBlanksOnly);
+        await applyPhone(data.phone?.value ?? null, fillBlanksOnly);
+        await applyFax(data.fax?.value ?? null, fillBlanksOnly);
+        await applyAddress(
+          {
+            street: data.address?.street ?? null,
+            city: data.address?.city ?? null,
+            state: data.address?.state ?? null,
+            zip: data.address?.zip ?? null,
+          },
+          fillBlanksOnly,
+        );
       } else if (mode === "both") {
         await applyEmail(data.email?.value ?? null);
         await applyForm(data.contactForm?.value ?? null);
@@ -704,6 +777,58 @@ function GeneralContactSection({
       setFinding(null);
     }
   };
+
+  // Task 2: auto-run "Fill from Website" the FIRST time a provider prospect
+  // drawer opens — saves a click and overlaps the lookup with the admin's
+  // reading. Fires once ever: gated on (a) provider rows, (b) nothing filled
+  // yet, and (c) no prior auto-fill marker. The marker (research_data
+  // .provider_autofill_at, written via the merge-any update_research action)
+  // guarantees an empty result never re-fires on a later open. The button
+  // stays for manual re-runs.
+  const alreadyAutoFilled = Boolean(
+    (ctx.outreach.research_data as { provider_autofill_at?: string } | null)
+      ?.provider_autofill_at,
+  );
+  // Run on first open even when the directory already gave us email/phone — the
+  // enrichment fills the GAPS (contact form, fax, address, a missing email)
+  // from the website, blanks-only, so directory data is never overwritten. The
+  // marker is the only "once" guard.
+  const canAutoFill =
+    editable && ctx.outreach.kind === "provider" && !alreadyAutoFilled;
+  const autoFillRan = useRef(false);
+  // True only while the on-open auto-fill is writing. saveField reads this to
+  // persist silently (no parent list refresh) during the auto-fill window,
+  // so opening a card never resurrects its unread/bold state. Manual edits,
+  // which happen outside this window, keep the normal refreshing path.
+  const autoFillingRef = useRef(false);
+  useEffect(() => {
+    if (autoFillRan.current || !canAutoFill) return;
+    autoFillRan.current = true;
+    void (async () => {
+      // The route discovers a website (Google Places) when none is on file, so
+      // this pre-fills on EVERY first open — source link or not. Blanks-only, so
+      // existing values are never overwritten. Stamp "done" once afterward.
+      autoFillingRef.current = true;
+      try {
+        await findContact("all", true);
+        try {
+          await action(
+            "update_research",
+            { research: { provider_autofill_at: new Date().toISOString() } },
+            { silent: true },
+          );
+        } catch {
+          /* marker is best-effort; the ref still prevents a re-run this session */
+        }
+      } finally {
+        autoFillingRef.current = false;
+      }
+    })();
+    // findContact/action are stable for our purposes; the ref guard makes any
+    // re-run inert, so we only need to react to canAutoFill flipping true.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canAutoFill]);
+
   const websiteHref = website
     ? website.startsWith("http")
       ? website
@@ -732,6 +857,17 @@ function GeneralContactSection({
           General Contact
         </p>
         <div className="flex items-center gap-2">
+          {websiteHref && (
+            <a
+              href={websiteHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open the website / research source"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
+            >
+              🌐 source ↗
+            </a>
+          )}
           {showAutofill && (
             <button
               type="button"
@@ -1050,17 +1186,8 @@ function BusinessNameSection({
           Business Name
         </p>
         <span className="flex items-center gap-2">
-          {sourceUrl && (
-            <a
-              href={sourceUrl.startsWith("http") ? sourceUrl : `https://${sourceUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary-600 hover:underline"
-              title="Open the website / research source"
-            >
-              🌐 source ↗
-            </a>
-          )}
+          {/* The source link moved to the General Contact row (next to Fill
+              from Website). */}
           {saving && <p className="text-[10px] text-gray-400">Saving…</p>}
         </span>
       </div>
@@ -1287,7 +1414,7 @@ function DecisionMakerSection({
 /**
  * v9.x Phase 2b: Pre-Flight status indicator inside the Research Card.
  * Read-only — the actual unlock happens in the Pre-Flight call modal
- * (CallForEmailModal) via log_research_call(verified) or
+ * (PreFlightCallModal) via log_research_call(verified) or
  * override_pre_flight. This section just mirrors the derived state
  * so admin can see at a glance whether Launch will fire.
  */
@@ -1346,7 +1473,7 @@ export function VerificationSection({ state }: { state: VerificationState }) {
  * Card. Owns the three operational affordances:
  *
  *   - Visit Website        → opens provider site (research entry point)
- *   - Call to Confirm      → opens CallForEmailModal (pre-flight outcome)
+ *   - Call to Confirm      → opens PreFlightCallModal (pre-flight outcome)
  *   - Launch Outreach      → opens ProviderPreFlightModal (cadence)
  *
  * Modals live inside this component so the Research Card is self-
@@ -1399,6 +1526,26 @@ function ResearchActionFooter({
       ? "Launch outreach (override) →"
       : "Launch outreach →";
 
+  // Prepare recipients (materialize decision makers with an email into named
+  // contacts) and open the cadence pre-flight review. Shared by the normal
+  // Launch button and the call modal's "Override & launch outreach" escape
+  // hatch — the latter skips the launchEnabled gate (override already written).
+  const prepareAndOpenReview = async () => {
+    if (beforeLaunch) await beforeLaunch();
+    const dms = (ctx.outreach.research_data as Record<string, unknown>).decision_makers;
+    if (Array.isArray(dms)) {
+      const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
+      const gcLc = ctx.outreach.research_data?.general_contact?.email?.toLowerCase();
+      for (const m of dms as Array<{ name?: string; title?: string; email?: string; phone?: string }>) {
+        const em = m.email?.trim().toLowerCase();
+        if (!em || em === gcLc || existing.has(em)) continue;
+        existing.add(em);
+        await action("add_contact", { name: m.name, title: m.title ?? null, role: m.title ?? null, email: m.email, phone: m.phone });
+      }
+    }
+    setShowPreFlight(true);
+  };
+
   return (
     <div className="border-t border-gray-200 pt-4">
       {/* Two clean actions only — the website lives in the green source link by
@@ -1423,23 +1570,7 @@ function ResearchActionFooter({
               return;
             }
             try {
-              if (beforeLaunch) await beforeLaunch();
-              // Materialize decision makers (research_data.decision_makers) with
-              // an email into named contacts so they're selectable recipients
-              // alongside the general contact — same pattern as the office's
-              // advisors. Deduped against existing contacts + the general email.
-              const dms = (ctx.outreach.research_data as Record<string, unknown>).decision_makers;
-              if (Array.isArray(dms)) {
-                const existing = new Set(ctx.contacts.map((c) => c.email?.toLowerCase()).filter(Boolean) as string[]);
-                const gcLc = ctx.outreach.research_data?.general_contact?.email?.toLowerCase();
-                for (const m of dms as Array<{ name?: string; title?: string; email?: string; phone?: string }>) {
-                  const em = m.email?.trim().toLowerCase();
-                  if (!em || em === gcLc || existing.has(em)) continue;
-                  existing.add(em);
-                  await action("add_contact", { name: m.name, title: m.title ?? null, role: m.title ?? null, email: m.email, phone: m.phone });
-                }
-              }
-              setShowPreFlight(true);
+              await prepareAndOpenReview();
             } catch (e) {
               setError(
                 e instanceof Error ? e.message : "Failed to prepare launch",
@@ -1456,6 +1587,17 @@ function ResearchActionFooter({
         >
           {launchLabel}
         </button>
+        {/* Skip cold outreach and start the warm activation cadence directly.
+            Same launch gate as cold outreach (valid email + pre-flight), but
+            fires launch_activation instead of schedule_sequence. */}
+        <LaunchActivationButton
+          ctx={ctx}
+          action={action}
+          setError={setError}
+          source="manual_prelaunch"
+          disabled={!launchEnabled}
+          disabledReason={launchDisabledReason}
+        />
       </div>
 
       {showPreFlight && cadenceKey === "provider" && (
@@ -1508,7 +1650,7 @@ function ResearchActionFooter({
         />
       )}
       {showCallForEmail && (
-        <CallForEmailModal
+        <PreFlightCallModal
           organizationName={ctx.outreach.organization_name}
           campusName={ctx.campus?.name ?? null}
           phone={generalContactPhone}
@@ -1516,6 +1658,9 @@ function ResearchActionFooter({
           onCancel={() => setShowCallForEmail(false)}
           onDone={() => setShowCallForEmail(false)}
           setError={setError}
+          // Escape hatch when the provider can't be reached by phone: override
+          // the confirm-call gate and open the cadence review directly.
+          onOverrideLaunch={prepareAndOpenReview}
         />
       )}
     </div>
@@ -2142,7 +2287,7 @@ export function ContactFormBanner({
         <p className="font-semibold text-gray-700">How to submit:</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-4">
           <li>Contact forms come in different shapes — use the best available fields and your judgment.</li>
-          <li>Email field → use <span className="font-mono">graize@olera.care</span>.</li>
+          <li>Email field → use <span className="font-mono">support@olera.care</span>.</li>
           <li>Phone field → use Olera&apos;s outreach phone number.</li>
           <li>Family / client-lead forms → still submit the message if it&apos;s the only contact path; the goal is reaching the agency through every available channel.</li>
           <li>Paste the message above, submit the form, then log the outcome below.</li>

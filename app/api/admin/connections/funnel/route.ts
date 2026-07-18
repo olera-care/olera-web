@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq("type", "inquiry")
       .not("metadata", "cs", JSON.stringify({ archived: true }))
+      .not("metadata", "cs", JSON.stringify({ admin_hidden: true }))
       .limit(5000);
 
     if (dateFrom) connectionsQuery = connectionsQuery.gte("created_at", dateFrom);
@@ -104,7 +105,7 @@ export async function GET(request: NextRequest) {
     if (providerKeyArray.length > 0) {
       let activityQuery = db
         .from("provider_activity")
-        .select("provider_id, event_type")
+        .select("provider_id, event_type, metadata")
         .in("provider_id", providerKeyArray)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked"])
         .limit(10000);
@@ -121,7 +122,15 @@ export async function GET(request: NextRequest) {
 
       for (const a of activities ?? []) {
         if (a.event_type === "email_click") clickedProviders.add(a.provider_id);
-        if (a.event_type === "lead_opened") viewedProviders.add(a.provider_id);
+        // Only count lead_opened if it has a specific connection_id
+        // Events without connection_id are from landing on the page, not actually viewing a lead
+        if (a.event_type === "lead_opened") {
+          const meta = a.metadata as Record<string, unknown> | null;
+          const connectionId = meta?.connection_id || meta?.lead_id;
+          if (connectionId) {
+            viewedProviders.add(a.provider_id);
+          }
+        }
         // contact_revealed, phone_clicked, email_link_clicked all count as "contact revealed"
         if (a.event_type === "contact_revealed" || a.event_type === "phone_clicked" || a.event_type === "email_link_clicked") {
           revealedProviders.add(a.provider_id);
@@ -140,6 +149,24 @@ export async function GET(request: NextRequest) {
         providersResponded++;
       }
     }
+
+    // 4b. Family self-reported outcomes (the dating-app "did you meet?" check).
+    // Distinct from providers_responded above: this is the FAMILY's own answer,
+    // our ground-truth signal for connections that happen off-platform. Recorded
+    // in connections.metadata.outcome by /api/families/connection-outcome.
+    let outcomeChecksSent = 0;
+    let outcomeYes = 0;
+    let outcomeNo = 0;
+    let outcomeNotYet = 0;
+    for (const c of allConnections) {
+      const meta = (c.metadata as Record<string, unknown>) || {};
+      if (meta.outcome_check_sent_at) outcomeChecksSent++;
+      const value = (meta.outcome as { value?: string } | undefined)?.value;
+      if (value === "yes") outcomeYes++;
+      else if (value === "no") outcomeNo++;
+      else if (value === "not_yet") outcomeNotYet++;
+    }
+    const outcomeAnswered = outcomeYes + outcomeNo + outcomeNotYet;
 
     // 5. Calculate conversion rates (percentage, rounded)
     // Note: Rates are calculated for the UI's 5-stage funnel:
@@ -165,6 +192,17 @@ export async function GET(request: NextRequest) {
 
       // Overall conversion
       overall_rate: safeRate(providersResponded, leadsSent),
+
+      // Family self-reported outcomes (ground-truth connection signal)
+      self_reported_outcomes: {
+        checks_sent: outcomeChecksSent,
+        answered: outcomeAnswered,
+        yes: outcomeYes,
+        no: outcomeNo,
+        not_yet: outcomeNotYet,
+        answer_rate: safeRate(outcomeAnswered, outcomeChecksSent), // answered / asked
+        connected_rate: safeRate(outcomeYes, outcomeAnswered), // self-reported "yes" / answered
+      },
     });
   } catch (err) {
     console.error("[connections/funnel] fatal:", err);

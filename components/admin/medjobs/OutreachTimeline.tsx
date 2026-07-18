@@ -38,10 +38,11 @@
  */
 
 import { useMemo, useState } from "react";
-import Input from "@/components/ui/Input";
 import type { DrawerContext } from "@/lib/student-outreach/types";
+import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { narrateTouchpoint } from "@/lib/student-outreach/narration";
-import { LogCallOutcomeModal } from "@/app/admin/student-outreach/LogCallOutcomeModal";
+import { deriveTimelineSummary } from "@/lib/student-outreach/timeline-summary";
+import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 
 type ActionFn = (
   actionName: string,
@@ -63,8 +64,8 @@ interface FutureRow {
   subline: string | null;
   /**
    * v9 Phase 9: optional per-task call action. When present, the
-   * timeline row renders an inline Log button that opens
-   * LogCallOutcomeModal scoped to this specific task. Other future
+   * timeline row renders an inline Log button that opens the shared
+   * CallFollowUpModal scoped to this specific task. Other future
    * row types (email queued, custom event) leave this null.
    */
   callTask: {
@@ -73,6 +74,7 @@ interface FutureRow {
     recipientPhone: string | null;
     recipientRole: string | null;
     cadenceDay: number | null;
+    script: string | null;
   } | null;
 }
 
@@ -83,6 +85,13 @@ interface PastRow {
   icon: string;
   title: string;
   subline: string | null;
+  /** Show the row's timestamp as an explicit calendar date ("Jul 2, 2026")
+   *  rather than the relative "2d ago" form. Set for email sends. */
+  explicitDate: boolean;
+  /** True for email_sent rows. Lets EngagementChips render an explicit
+   *  "not opened yet" status on a sent email (vs. rendering nothing), while
+   *  never showing that status on non-email rows (calls, notes, etc.). */
+  isEmailSent: boolean;
   /** When the past event is an email_sent, this carries the
    *  email_log_id so the row can render engagement chips (legacy
    *  source — Bullet 5 prefers payload-based engagement). */
@@ -115,24 +124,53 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
     const future: FutureRow[] = [];
     const past: PastRow[] = [];
 
+    // The earliest email_sent touchpoint is the initial outreach email; every
+    // later one is a cadence follow-up. Rank up front so the loop can label
+    // them "Initial outreach email sent" vs "Outreach email sent".
+    const initialEmailSentId = ctx.touchpoints
+      .filter((t) => t.touchpoint_type === "email_sent")
+      .reduce<{ id: string; created_at: string } | null>(
+        (earliest, t) =>
+          !earliest || t.created_at < earliest.created_at
+            ? { id: t.id, created_at: t.created_at }
+            : earliest,
+        null,
+      )?.id ?? null;
+
     // Past events from touchpoints. narrateTouchpoint handles the
     // copy variants per type; we extract both the legacy email_log_id
     // AND the full payload so EngagementChips can prefer the new
     // per-touchpoint counters when present.
     for (const tp of ctx.touchpoints) {
       const n = narrateTouchpoint(tp, { adminFirstNames, contactsById });
+      // Chunk 1: mechanical bookkeeping note_added events narrate as hidden —
+      // skip them so the timeline stays milestones / emails / notes / endings.
+      if (n.hidden) continue;
       const isEmailSent = tp.touchpoint_type === "email_sent";
       const payload = (tp.payload as Record<string, unknown> | null) ?? null;
       const emailLogId = isEmailSent
         ? ((payload?.email_log_id as string | undefined) ?? null)
         : null;
+      // Outreach emails get a plain, date-stamped label: the very first is the
+      // "Initial outreach email sent"; the rest are cadence follow-ups.
+      const title = isEmailSent
+        ? tp.id === initialEmailSentId
+          ? "Initial outreach email sent"
+          : "Outreach email sent"
+        : n.text;
       past.push({
         kind: "past",
         key: `tp-${tp.id}`,
         whenIso: tp.created_at,
         icon: iconForTouchpoint(tp.touchpoint_type),
-        title: n.text,
-        subline: tp.notes ?? null,
+        title,
+        // n.detail owns the subline now — narration split title vs detail so a
+        // free-form note is never rendered twice (it used to land in both).
+        subline: n.detail,
+        // Email sends show an explicit date ("Jul 2, 2026") instead of the
+        // relative "2d ago" stamp used for other history rows.
+        explicitDate: isEmailSent,
+        isEmailSent,
         emailLogId,
         emailSentPayload: isEmailSent ? payload : null,
         admin: n.admin ?? null,
@@ -148,7 +186,7 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         typeof payload?.recipient_name === "string"
           ? (payload.recipient_name as string)
           : null;
-      const title = futureTitleFor(t.task_type, day, payload, recipientName);
+      const title = futureTitleFor(t.task_type, payload, recipientName);
       const isCallTask = t.task_type === "outreach_followup_call";
       future.push({
         kind: "future",
@@ -177,22 +215,35 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
                   ? (payload.recipient_role as string)
                   : null,
               cadenceDay: day,
+              script:
+                typeof payload?.script === "string"
+                  ? (payload.script as string)
+                  : null,
             }
           : null,
       });
     }
+
+    // Smartlead owns the EMAIL drip, so queued emails aren't CRM tasks — only
+    // the call days are. Synthesize the upcoming email steps from the active
+    // cadence's schedule + enrollment anchor so "Upcoming" reflects the WHOLE
+    // cadence (emails + calls), not just calls. Past/overdue steps are omitted
+    // (they're already in Past Activity once Smartlead's webhook lands).
+    future.push(...syntheticUpcomingEmailRows(ctx));
 
     // Future ASC (soonest first), past DESC (newest first).
     future.sort((a, b) => a.whenIso.localeCompare(b.whenIso));
     past.sort((a, b) => b.whenIso.localeCompare(a.whenIso));
 
     return { futureRows: future, pastRows: past };
-  }, [ctx.touchpoints, ctx.pending_tasks, adminFirstNames, contactsById]);
+  }, [ctx, adminFirstNames, contactsById]);
 
   // v10 Bullet 5: Past Activity collapse. If past has >5 events,
   // default to showing last 3 + "Show all" affordance.
-  const PAST_COLLAPSE_THRESHOLD = 5;
-  const PAST_COLLAPSE_DEFAULT_SHOW = 3;
+  // Bias toward showing the relationship story: only collapse long histories,
+  // and when we do, keep a generous default window before "Show all".
+  const PAST_COLLAPSE_THRESHOLD = 8;
+  const PAST_COLLAPSE_DEFAULT_SHOW = 5;
   const [showAllPast, setShowAllPast] = useState(false);
   const pastNeedsCollapse = pastRows.length > PAST_COLLAPSE_THRESHOLD;
   const visiblePastRows =
@@ -201,33 +252,17 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
       : pastRows;
   const hiddenPastCount = pastRows.length - visiblePastRows.length;
 
-  // v9 Phase 9: per-task call logging state. When admin clicks Log
-  // on a call task row, we open LogCallOutcomeModal scoped to that
-  // specific recipient + task_id. The handler dispatches log_call
-  // with task_id so markCurrentCallTaskComplete claims THAT task
-  // (not the most-overdue auto-pick).
+  // Per-task call logging state. When admin clicks Log on a call task row, we
+  // open the shared CallFollowUpModal scoped to that specific task_id so
+  // markCurrentCallTaskComplete claims THAT task (not the most-overdue
+  // auto-pick). Same flow as the drawer's "Call to follow up" button.
   const [callLogTask, setCallLogTask] = useState<FutureRow["callTask"]>(null);
 
-  const submitCallLog = async (
-    outcome: string,
-    notes: string,
-  ): Promise<void> => {
-    if (!callLogTask) return;
-    try {
-      await action("log_call", {
-        outcome,
-        notes,
-        task_id: callLogTask.taskId,
-        cadence_day: callLogTask.cadenceDay ?? undefined,
-      });
-      setCallLogTask(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to log call");
-      throw e;
-    }
-  };
-
   const hasAnyActivity = futureRows.length > 0 || pastRows.length > 0;
+
+  // Chunk 3: the one-glance "read" — temperature + whose move. Null before
+  // outreach has started (the empty/upcoming state covers that case).
+  const summary = useMemo(() => deriveTimelineSummary(ctx), [ctx]);
 
   return (
     <section className="space-y-3">
@@ -235,12 +270,21 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         Timeline
       </h3>
 
+      {summary && (
+        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+          <span aria-hidden className="text-base leading-none">
+            {summary.emoji}
+          </span>
+          <span className="font-semibold text-gray-900">{summary.label}</span>
+          <span className="text-gray-500">— {summary.detail}</span>
+        </div>
+      )}
+
       {!hasAnyActivity && (
         <div className="rounded-lg border border-gray-200 bg-white">
           <p className="px-4 py-6 text-center text-sm text-gray-400">
             No outreach activity yet.
           </p>
-          <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
         </div>
       )}
 
@@ -296,20 +340,20 @@ export function OutreachTimeline({ ctx, action, setError }: Props) {
         </div>
       )}
 
-      {hasAnyActivity && (
-        <div className="rounded-lg border border-gray-200 bg-white">
-          <AddCustomEventFooter ctx={ctx} action={action} setError={setError} />
-        </div>
-      )}
-
       {callLogTask && (
-        <LogCallOutcomeModal
-          organizationName={ctx.outreach.organization_name}
-          contactName={callLogTask.recipientName}
-          contactPhone={callLogTask.recipientPhone}
-          rowKind={ctx.outreach.kind === "provider" ? "provider" : "stakeholder"}
-          onCancel={() => setCallLogTask(null)}
-          onSubmit={submitCallLog}
+        <CallFollowUpModal
+          ctx={ctx}
+          action={action}
+          script={callLogTask.script}
+          scriptLabel={
+            callLogTask.cadenceDay != null
+              ? `Day ${callLogTask.cadenceDay} script`
+              : "Call script"
+          }
+          taskId={callLogTask.taskId}
+          cadenceDay={callLogTask.cadenceDay}
+          onClose={() => setCallLogTask(null)}
+          setError={setError}
         />
       )}
     </section>
@@ -332,9 +376,11 @@ function TimelineRowView({
    *  attached when the row is a future call task. */
   onLogCall?: () => void;
 }) {
+  // Upcoming rows and email sends read as explicit dates ("Jul 2, 2026"); other
+  // past-activity rows keep the compact relative "2d ago" stamp.
   const whenLabel =
-    row.kind === "future"
-      ? formatFuture(row.whenIso)
+    row.kind === "future" || row.explicitDate
+      ? formatQueueDate(row.whenIso)
       : formatPast(row.whenIso);
   // Only surface the Log CTA when the task is actually due (due_at <=
   // now). Future-scheduled tasks render as queued items without the
@@ -355,14 +401,20 @@ function TimelineRowView({
         </span>
         <div className="min-w-0 flex-1">
           <p
-            className={`truncate ${
-              row.kind === "future" ? "text-gray-600" : "text-gray-800"
-            }`}
+            className={
+              row.kind === "future"
+                ? "truncate text-gray-600"
+                : "text-gray-800" // past rows wrap so the full descriptive line shows
+            }
           >
             {row.title}
           </p>
           {row.subline && (
-            <p className="mt-0.5 truncate text-xs italic text-gray-500">
+            <p
+              className={`mt-0.5 text-xs italic text-gray-500 ${
+                row.kind === "future" ? "truncate" : "whitespace-pre-line"
+              }`}
+            >
               {row.subline}
             </p>
           )}
@@ -370,6 +422,7 @@ function TimelineRowView({
             <EngagementChips
               payload={row.emailSentPayload}
               legacy={engagement}
+              isEmailSent={row.isEmailSent}
             />
           )}
         </div>
@@ -406,6 +459,7 @@ function TimelineRowView({
 function EngagementChips({
   payload,
   legacy,
+  isEmailSent,
 }: {
   /** Primary source: email_sent touchpoint payload (Bullet 3 wires the
    *  fields). Carries counts + last_*_at timestamps + clicked_ctas. */
@@ -413,6 +467,9 @@ function EngagementChips({
   /** Legacy source: kept for backward compat with email_engagement[]
    *  rows that haven't been touched by the new webhook path. */
   legacy: NonNullable<DrawerContext["email_engagement"]>[string] | null;
+  /** True when the row is an email_sent. Gates the "not opened yet" status so
+   *  it only ever shows on emails, never on calls / notes / other history. */
+  isEmailSent: boolean;
 }) {
   // Pass C3 spec: derive counts from payload, fall through to legacy bools.
   const openCount = Number(payload?.open_count ?? 0);
@@ -420,19 +477,24 @@ function EngagementChips({
   const clickedCtas = (payload?.clicked_ctas as string[] | undefined) ?? [];
   const lastOpenedAt = payload?.last_opened_at as string | undefined;
 
+  const opened = openCount > 0 || Boolean(legacy?.first_opened_at);
+  const clicked = clickCount > 0 || Boolean(legacy?.first_clicked_at);
+  const bounced = Boolean(legacy?.bounced_at);
+  const complained = Boolean(legacy?.complained_at);
+
   const chips: Array<{ label: string; tone: ChipTone }> = [];
 
   if (openCount > 0) {
-    const labelBase = openCount === 1 ? "1 open" : `${openCount} opens`;
+    const labelBase = openCount === 1 ? "Opened once" : `Opened ${openCount}×`;
     const suffix =
       openCount > 1 && lastOpenedAt ? ` · last ${formatPast(lastOpenedAt)}` : "";
     chips.push({ label: `👁 ${labelBase}${suffix}`, tone: "blue" });
   } else if (legacy?.first_opened_at) {
-    chips.push({ label: "👁 opened", tone: "blue" });
+    chips.push({ label: "👁 Opened", tone: "blue" });
   }
 
   if (clickCount > 0) {
-    const labelBase = clickCount === 1 ? "1 click" : `${clickCount} clicks`;
+    const labelBase = clickCount === 1 ? "Clicked" : `Clicked ${clickCount}×`;
     // Show the first CTA label inline; "+ N others" if multiple distinct CTAs.
     const distinct = Array.from(new Set(clickedCtas)).filter(Boolean);
     let suffix = "";
@@ -445,14 +507,22 @@ function EngagementChips({
     }
     chips.push({ label: `🖱 ${labelBase}${suffix}`, tone: "blue" });
   } else if (legacy?.first_clicked_at) {
-    chips.push({ label: "🖱 clicked", tone: "blue" });
+    chips.push({ label: "🖱 Clicked", tone: "blue" });
   }
 
-  if (legacy?.delivered_at && openCount === 0 && clickCount === 0 && !legacy.first_opened_at && !legacy.first_clicked_at) {
-    chips.push({ label: "✓ delivered", tone: "emerald" });
+  if (bounced) chips.push({ label: "⚠ Bounced", tone: "red" });
+  if (complained) chips.push({ label: "⚠ Marked spam", tone: "red" });
+
+  // Chunk 2: a sent email with no engagement signal yet reads "not opened yet"
+  // explicitly, so the admin can tell "landed but ignored" from "no data".
+  // Gated to email rows so calls / notes never show it. "Delivered" when the
+  // legacy record confirms delivery; otherwise the neutral "Sent".
+  if (isEmailSent && !opened && !clicked && !bounced && !complained) {
+    const label = legacy?.delivered_at
+      ? "✓ Delivered · not opened yet"
+      : "✉ Sent · not opened yet";
+    chips.push({ label, tone: "gray" });
   }
-  if (legacy?.bounced_at) chips.push({ label: "⚠ bounced", tone: "red" });
-  if (legacy?.complained_at) chips.push({ label: "⚠ complained", tone: "red" });
 
   if (chips.length === 0) return null;
   return (
@@ -469,12 +539,13 @@ function EngagementChips({
   );
 }
 
-type ChipTone = "emerald" | "blue" | "red";
+type ChipTone = "emerald" | "blue" | "red" | "gray";
 
 const TONE_CLASSES: Record<ChipTone, string> = {
   emerald: "bg-primary-50 text-primary-700",
   blue: "bg-blue-50 text-blue-700",
   red: "bg-red-50 text-red-700",
+  gray: "bg-gray-100 text-gray-500",
 };
 
 /** Render a clicked CTA URL as a short human label. Smartlead tracker
@@ -501,107 +572,57 @@ function formatCtaLabel(url: string): string {
   }
 }
 
-// ── Custom event footer ──────────────────────────────────────────────────
+// ── Synthetic upcoming Smartlead emails ──────────────────────────────────
+//
+// The Smartlead campaign sends the EMAIL drip, so queued emails never exist
+// as CRM tasks (only the call days do). Without this, a phone-less office in
+// an active cadence shows an empty "Upcoming" even though emails are queued.
+// We reconstruct the upcoming email steps from the active cadence's schedule
+// anchored at its enrollment time. Nominal dates (Smartlead actually sends
+// within business hours, so real sends can lag a little); steps whose nominal
+// time has passed are omitted — they're sent (in Past Activity) or about to be.
 
-function AddCustomEventFooter({
-  ctx: _ctx,
-  action,
-  setError,
-}: {
-  ctx: DrawerContext;
-  action: ActionFn;
-  setError: (m: string | null) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [dueAt, setDueAt] = useState("");
-  const [saving, setSaving] = useState(false);
+function syntheticUpcomingEmailRows(ctx: DrawerContext): FutureRow[] {
+  const rd = ctx.outreach.research_data;
+  if (!rd) return [];
+  const status = ctx.outreach.status;
 
-  // Default due_at: tomorrow at noon. Matches the operational rhythm
-  // of "I owe a follow-up tomorrow" without forcing the admin to pick.
-  const defaultDueAt = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(12, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
-  }, []);
-
-  const submit = async () => {
-    const t = title.trim();
-    if (!t) {
-      setError("Add a title for the custom event.");
-      return;
-    }
-    const dueIso = (dueAt || defaultDueAt) + ":00.000Z";
-    setSaving(true);
-    setError(null);
-    try {
-      await action("queue_manual_task", {
-        task_type: "manual_followup",
-        due_at: new Date(dueAt || defaultDueAt).toISOString(),
-        notes: t,
-      });
-      setTitle("");
-      setDueAt("");
-      setOpen(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to add event");
-    } finally {
-      setSaving(false);
-    }
-    void dueIso; // silence unused
-  };
-
-  if (!open) {
-    return (
-      <div className="border-t border-gray-100 px-4 py-2">
-        <button
-          onClick={() => setOpen(true)}
-          className="text-xs font-medium text-primary-700 hover:underline"
-        >
-          + Add custom event
-        </button>
-      </div>
-    );
+  // One cadence is active at a time. Pick it by stage so we never show stale
+  // cold emails after activation/welcome takes over.
+  let cadenceKey: CadenceKey | null = null;
+  let anchorIso: string | null = null;
+  if (status === "active_partner" && rd.smartlead_welcome?.enrolled_at) {
+    cadenceKey = "partner_welcome";
+    anchorIso = rd.smartlead_welcome.enrolled_at;
+  } else if (status === "engaged" && rd.smartlead_activation?.enrolled_at) {
+    cadenceKey = "activation";
+    anchorIso = rd.smartlead_activation.enrolled_at;
+  } else if (status === "outreach_sent" && rd.smartlead?.enrolled_at) {
+    cadenceKey = ctx.outreach.kind === "provider" ? "provider" : ctx.outreach.stakeholder_type;
+    anchorIso = rd.smartlead.enrolled_at;
   }
+  if (!cadenceKey || !anchorIso) return [];
 
-  return (
-    <div className="space-y-2 border-t border-gray-100 px-4 py-3">
-      <Input
-        type="text"
-        autoFocus
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="e.g. Send proposal PDF · Call back when free"
-        size="sm"
-      />
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="datetime-local"
-          value={dueAt || defaultDueAt}
-          onChange={(e) => setDueAt(e.target.value)}
-          className="rounded-md border border-gray-200 px-2 py-1 text-xs"
-        />
-        <button
-          onClick={submit}
-          disabled={saving || !title.trim()}
-          className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
-        >
-          {saving ? "Adding…" : "Add"}
-        </button>
-        <button
-          onClick={() => {
-            setOpen(false);
-            setTitle("");
-            setDueAt("");
-          }}
-          className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
+  const anchor = new Date(anchorIso).getTime();
+  if (Number.isNaN(anchor)) return [];
+  const now = Date.now();
+
+  const rows: FutureRow[] = [];
+  for (const day of OUTREACH_DAYS_BY_TYPE[cadenceKey]) {
+    if (!day.steps.some((s) => s.channel === "email")) continue;
+    const dueMs = anchor + day.day * 86_400_000;
+    if (dueMs <= now) continue; // already sent / sending → lives in Past Activity
+    rows.push({
+      kind: "future",
+      key: `sl-${cadenceKey}-${day.day}`,
+      whenIso: new Date(dueMs).toISOString(),
+      icon: "✉",
+      title: "Email queued",
+      subline: "via Smartlead",
+      callTask: null,
+    });
+  }
+  return rows;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -634,23 +655,21 @@ function iconForTaskType(type: string): string {
 
 function futureTitleFor(
   taskType: string,
-  day: number | null,
   payload: Record<string, unknown> | null,
   recipientName?: string | null,
 ): string {
-  const dayLabel = day != null ? `Day ${day} ` : "";
+  // No "Day N" prefix — the queued date (shown on the row) is the anchor the
+  // admin reads, not the cadence day number.
   const recipientSuffix = recipientName ? ` to ${recipientName}` : "";
   switch (taskType) {
     case "outreach_email_send":
-      return `${dayLabel}email queued${recipientSuffix}`;
+      return `Email queued${recipientSuffix}`;
     case "outreach_followup_email":
-      return `${dayLabel}follow-up email queued${recipientSuffix}`;
+      return `Follow-up email queued${recipientSuffix}`;
     case "outreach_followup_call":
-      return recipientName
-        ? `${dayLabel}call to ${recipientName}`
-        : `${dayLabel}call queued`;
+      return recipientName ? `Call to ${recipientName}` : "Call queued";
     case "outreach_day_0":
-      return "Day 0 outreach queued";
+      return "Outreach queued";
     case "manual_followup": {
       const summary =
         typeof payload?.notes === "string"
@@ -685,17 +704,12 @@ function formatPast(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
-function formatFuture(iso: string): string {
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms < 0) {
-    const days = Math.round(-ms / 86_400_000);
-    return days >= 1 ? `${days}d overdue` : "due now";
-  }
-  const min = Math.round(ms / 60_000);
-  if (min < 60) return `in ${min}m`;
-  const hr = Math.round(min / 60);
-  if (hr < 24) return `in ${hr}h`;
-  const d = Math.round(hr / 24);
-  if (d < 60) return `in ${d}d`;
-  return new Date(iso).toLocaleDateString();
+// Explicit calendar date for queued (future) rows and email sends —
+// "Jul 2, 2026". Uses the browser's local day, matching the Calls-tab sections.
+function formatQueueDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }

@@ -21,18 +21,23 @@ import {
   addLeads,
   attachEmailAccounts,
   createCampaign,
+  ensureMedjobsCampaignWebhook,
+  getLeadByEmail,
   listEmailAccounts,
+  pauseLeadInCampaign,
   saveSequence,
   setCampaignSchedule,
   setCampaignStatus,
+  type EnsureWebhookResult,
   type SmartleadLead,
   type SmartleadSequenceStep,
 } from "@/lib/smartlead";
 import { OUTREACH_DAYS_BY_TYPE, type CadenceKey } from "@/lib/student-outreach/cadence";
 import { bodyToHtml } from "@/lib/student-outreach/email-markdown";
-import { CALENDLY_URL, PROGRAM_URL, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
+import { CALENDLY_URL, PROGRAM_URL, CANDIDATES_URL, partnerLandingUrl, isDoctorTitle, getTemplate, salutationFor } from "@/lib/student-outreach/templates";
 import { buildWelcomeUrl, buildPartnerPortalUrl } from "@/lib/medjobs/welcome-token";
-import type { Status } from "@/lib/student-outreach/types";
+import { studentApplyUrl } from "@/lib/medjobs/apply-link";
+import type { Status, StakeholderType } from "@/lib/student-outreach/types";
 
 export type BridgeKind = "provider" | "student_org" | "advisor" | "dept_head" | "professor";
 
@@ -54,7 +59,6 @@ export interface NamedContact {
    *  formal recipients still get "Dear <Last>," fallback, not "Hi <First>,". */
   title?: string | null;
   role: string | null;
-  email_verdict?: "valid" | "invalid" | "risky" | "unknown" | null;
   suppressed?: boolean;
 }
 
@@ -76,8 +80,6 @@ export interface BridgeRow {
   first_name: string | null;
   /** `research_data.smartlead.campaign_id` already set → already enrolled. */
   already_enrolled: boolean;
-  /** Cached pre-send verification verdict (lib/email-verification). */
-  email_verdict?: "valid" | "invalid" | "risky" | "unknown" | null;
   /** In the shared bounce/complaint suppression set (same one Resend honors). */
   suppressed?: boolean;
   /** Specific Contacts attached to this outreach row. Each becomes an
@@ -101,8 +103,7 @@ export type SkipReason =
   | "already_in_flight"
   | "already_enrolled"
   | "no_email"
-  | "suppressed"
-  | "unverified_email";
+  | "suppressed";
 
 export interface SelectionResult {
   eligible: BridgeRow[];
@@ -142,17 +143,15 @@ export function selectEligibleRows(rows: BridgeRow[]): SelectionResult {
   for (const row of rows) {
     let reason: SkipReason | null = null;
 
+    // NOTE: email verification is intentionally NOT a gate in the medjobs
+    // flow. ZeroBounce verdicts still exist for non-medjobs uses (family /
+    // provider nudges, digests) but never block cold/activation enrollment
+    // here — admins decide reachability. There is no `unverified_email` skip.
     if (TERMINAL.has(row.status)) reason = "terminal_status";
     else if (IN_FLIGHT.has(row.status)) reason = "already_in_flight";
     else if (row.already_enrolled) reason = "already_enrolled";
     else if (!hasAnyUsableEmail(row)) reason = "no_email";
     else if (row.suppressed && !hasUsableNamedContact(row)) reason = "suppressed";
-    else if (
-      row.email_verdict === "invalid" &&
-      (!row.email?.trim() || !hasUsableNamedContact(row))
-    ) {
-      reason = "unverified_email";
-    }
 
     if (reason) skipped.push({ outreach_id: row.outreach_id, reason });
     else eligible.push(row);
@@ -167,9 +166,8 @@ function hasAnyUsableEmail(row: BridgeRow): boolean {
 }
 
 function hasUsableNamedContact(row: BridgeRow): boolean {
-  return (row.contacts ?? []).some(
-    (c) => c.email && c.email.trim() && !c.suppressed && c.email_verdict !== "invalid",
-  );
+  // No email_verdict gate — verification never blocks medjobs enrollment.
+  return (row.contacts ?? []).some((c) => c.email && c.email.trim() && !c.suppressed);
 }
 
 /**
@@ -248,8 +246,18 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
     }
   };
 
+  // Per-row student apply link: campus pre-filled + attributed to THIS row's
+  // outreach id, so applies that come through a partner's shared link count for
+  // that partner. Same for both leads on the row.
+  const applyUrl = studentApplyUrl({
+    campusSlug: campus.slug ?? null,
+    universityName: campus.name,
+    partnerOutreachId: row.outreach_id,
+    source: "partner_email",
+  });
+
   const generalEmail = row.email?.trim();
-  if (generalEmail && !row.suppressed && row.email_verdict !== "invalid") {
+  if (generalEmail && !row.suppressed) {
     leads.push({
       outreach_id: row.outreach_id,
       contact_id: null,
@@ -269,6 +277,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           // formal cadences the greeting stays neutral.
           salutation: "Hello",
           welcome_url: buildWelcomeFor(generalEmail),
+          apply_url: applyUrl,
         },
       },
     });
@@ -278,8 +287,8 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
     const email = c.email?.trim();
     if (!email) continue;
     if (c.suppressed) continue;
-    if (c.email_verdict === "invalid") continue;
     const firstName = c.first_name?.trim() || "";
+    const lastName = c.last_name?.trim() || "";
     const salutation = isFormal
       ? `Dear ${salutationFor(
           row.kind === "dept_head" ? "dept_head" : "professor",
@@ -287,9 +296,13 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           c.last_name,
           c.title ?? null,
         )}`
-      : firstName
-        ? `Hi ${firstName}`
-        : "Hello";
+      : isDoctorTitle(c.title)
+        ? lastName
+          ? `Hello Dr. ${lastName}`
+          : "Hello"
+        : firstName
+          ? `Hi ${firstName}`
+          : "Hello";
     leads.push({
       outreach_id: row.outreach_id,
       contact_id: c.contact_id,
@@ -307,6 +320,7 @@ export function rowToLeads(row: BridgeRow, campus: CampusContext): FannedLead[] 
           role: c.role ?? "",
           salutation,
           welcome_url: buildWelcomeFor(email),
+          apply_url: applyUrl,
         },
       },
     });
@@ -374,6 +388,10 @@ export interface SequenceOptions {
   campusSlug?: string | null;
   /** Activation audience — partner (advisor) copy vs provider. */
   isPartner?: boolean;
+  /** Row's real stakeholder type — drives per-type partner activation /
+   *  welcome copy. Falls back to "student_org" when absent. Inert for cold
+   *  stakeholder cadences (they pass the type as the cadenceKey itself). */
+  stakeholderType?: StakeholderType | null;
 }
 
 /**
@@ -396,10 +414,12 @@ export function buildEmailSequence(
   // actual cadence-derived type so each stakeholder cadence gets the right
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
-  const ctxStakeholderType =
-    cadenceKey === "provider" || cadenceKey === "activation" || cadenceKey === "partner_welcome"
-      ? "student_org"
-      : cadenceKey;
+  const ctxStakeholderType: StakeholderType =
+    cadenceKey === "activation" || cadenceKey === "partner_welcome"
+      ? opts.stakeholderType ?? "student_org"
+      : cadenceKey === "provider"
+        ? "student_org"
+        : cadenceKey;
   const ctx = {
     stakeholder_type: ctxStakeholderType,
     organization_name: MERGE_COMPANY,
@@ -419,6 +439,23 @@ export function buildEmailSequence(
     contacts: [],
   };
 
+  // Which program PDF this cadence links: provider cadences (cold provider +
+  // non-partner activation) link the agency brochure; everything partner-facing
+  // (stakeholder cold, partner activation, partner welcome) links the student
+  // flyer that partners share with students.
+  const pdfAudience: "provider" | "student" =
+    cadenceKey === "provider" || (cadenceKey === "activation" && !(opts.isPartner ?? false))
+      ? "provider"
+      : "student";
+
+  // Logan's signature "Student Caregiver Program" link follows the same
+  // audience bucket as the body + flyer: provider cadences point to the
+  // provider landing; student-side cadences point to the program/families page
+  // (advisors/dept-heads/professors → the "For advisors, faculty & student
+  // orgs" section, student orgs → the families page).
+  const programLandingUrl =
+    pdfAudience === "provider" ? PROGRAM_URL : partnerLandingUrl(ctxStakeholderType);
+
   const days = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const steps: SmartleadSequenceStep[] = [];
   let prevEmailDay = 0;
@@ -434,7 +471,7 @@ export function buildEmailSequence(
         seq_number: seq,
         seq_delay_details: { delay_in_days: seq === 1 ? 0 : day.day - prevEmailDay },
         subject: finalizeTokens(draft.subject, adminFirstName),
-        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null),
+        email_body: toSmartleadHtml(draft.body, adminFirstName, opts.campusSlug ?? null, pdfAudience, programLandingUrl),
       });
       prevEmailDay = day.day;
     }
@@ -480,6 +517,18 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     // rowToLeads as custom_fields.welcome_url. Smartlead substitutes
     // the {{welcome_url}} merge tag at send time.
     .replace(/\{welcome_url\}/g, "{{welcome_url}}")
+    // Chunk 5: per-lead PUBLIC board link for the cold provider cadence. Carries
+    // the row's outreach_id (already a custom field) + screener=1 so the landing
+    // pre-locks the eligibility screener to the provider's own directory listing
+    // — no auth token, so cold deliverability is unaffected.
+    .replace(
+      /\{board_url\}/g,
+      `${CANDIDATES_URL}?outreach_id={{outreach_id}}&screener=1`,
+    )
+    // Per-lead application link (campus + that row's outreach id) set in
+    // rowToLeads as custom_fields.apply_url. Lets a partner-shared link trace
+    // applies back to the org that shared it.
+    .replace(/\{apply_url\}/g, "{{apply_url}}")
     .replace(/\{first_name\}/g, "{{first_name}}")
     .replace(/(^|\n)(Hi|Dear) \{salutation\}/g, `$1{salutation}`)
     .replace(/\{salutation\}/g, MERGE_SALUTATION)
@@ -491,12 +540,16 @@ function finalizeTokens(text: string, adminFirstName: string): string {
     .replace(/(^|\n)Hello,/g, `$1${MERGE_SALUTATION},`);
 }
 
+// Email-client image hosts: olera.care/images/* is WAF-challenged (429) for
+// non-browser fetches, so signature photos there silently fail to render in
+// inboxes. Default to the Supabase public bucket (same host the Resend family
+// templates use; both assets verified 200). Env overrides still win.
 const LOGAN_PHOTO_URL =
   process.env.STUDENT_OUTREACH_LOGAN_PHOTO_URL ??
-  "https://olera.care/images/for-providers/team/logan.jpg";
+  "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
 const GRAZIE_PHOTO_URL =
   process.env.STUDENT_OUTREACH_GRAZIE_PHOTO_URL ??
-  "https://olera.care/images/for-providers/team/grazie.png";
+  "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/grazie.png";
 
 /**
  * Smartlead-side outreach footer. Mirrors `email-send.ts:composeFooterHtml`
@@ -511,18 +564,18 @@ const GRAZIE_PHOTO_URL =
  * Structure: Best, → Graize block → divider → "Message Approved" → Logan
  * block. Matches the Resend ordering.
  */
-function composeSmartleadFooterHtml(): string {
+function composeSmartleadFooterHtml(flyerUrl: string, programLandingUrl: string): string {
   return [
     `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
-    grazieSignatureHtml(),
+    `<p style="margin:0;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Graize</p>`,
+    grazieSignatureHtml(flyerUrl),
     `<hr style="margin:20px 0;border:none;border-top:1px solid #e5e7eb;" />`,
     `<p style="margin:0 0 8px;font-size:12px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Message Approved by Dr. Logan DuBose, MD/MBA</p>`,
-    loganSignatureHtml(),
+    loganSignatureHtml(programLandingUrl),
   ].join("\n");
 }
 
-function loganSignatureHtml(): string {
+function loganSignatureHtml(programLandingUrl: string): string {
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
   <tr>
@@ -535,7 +588,7 @@ function loganSignatureHtml(): string {
       <p style="margin:0 0 2px;">Researcher funded by the National Institutes of Health Small Business Innovation Research (SBIR) Program</p>
       <p style="margin:0 0 2px;">Texas A&amp;M College of Medicine, Class of 2022</p>
       <p style="margin:0 0 2px;">General Practitioner, Fredericksburg Christian Health Clinic, Virginia</p>
-      <p style="margin:0 0 8px;">Director, <a href="${PROGRAM_URL}" style="color:#059669;">Texas A&amp;M Student Caregiver Program</a></p>
+      <p style="margin:0 0 8px;">Director, <a href="${programLandingUrl}" style="color:#059669;">Student Caregiver Program</a></p>
       <p style="margin:0;">
         <a href="${CALENDLY_URL}?utm_content={{outreach_id}}" style="color:#059669;font-weight:500;">Schedule a meeting with Dr. DuBose →</a>
       </p>
@@ -544,17 +597,17 @@ function loganSignatureHtml(): string {
 </table>`;
 }
 
-function grazieSignatureHtml(): string {
+function grazieSignatureHtml(flyerUrl: string): string {
   return `
-<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+<table cellpadding="0" cellspacing="0" style="margin-top:6px;">
   <tr>
     <td style="vertical-align:top;padding-right:16px;">
       <img src="${GRAZIE_PHOTO_URL}" alt="Graize Belandres" width="100" height="100" style="border-radius:8px;display:block;" />
     </td>
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0 0 4px;font-weight:600;color:#111827;">Graize Belandres</p>
-      <p style="margin:0 0 2px;">Research Assistant to Dr. Logan DuBose</p>
-      <p style="margin:0;"><a href="${PROGRAM_URL}" style="color:#059669;">${PROGRAM_URL.replace(/^https?:\/\//, "")}</a></p>
+      <p style="margin:0 0 2px;">Assistant to Dr. Logan DuBose</p>
+      <p style="margin:0;"><a href="${flyerUrl}" style="color:#059669;">Program flyer</a></p>
     </td>
   </tr>
 </table>`;
@@ -585,23 +638,34 @@ function toSmartleadHtml(
   body: string,
   adminFirstName: string,
   campusSlug: string | null,
+  pdfAudience: "provider" | "student" = "provider",
+  programLandingUrl: string = PROGRAM_URL,
 ): string {
+  // Partner/student-org/welcome emails link the STUDENT flyer (what partners
+  // share with students); provider emails link the agency brochure.
   const pdfUrl = campusSlug
-    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}`
+    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}&audience=${pdfAudience}`
     : PROGRAM_URL;
   // Templates that place the program PDF inline use the {program_pdf} token;
   // we fill it here (per-campaign slug). Stakeholder templates still say
   // "attached information packet" — rewrite that + append the link instead.
   const hasInlinePdf = /\{program_pdf\}/.test(body);
+  // Only auto-append the PDF link for templates that actually reference the
+  // packet (the "information packet" phrasing). Newer templates either inline
+  // {program_pdf} where they want the flyer, or intentionally carry no flyer
+  // (e.g. the one-line bump) — those must NOT get a packet link appended.
+  const mentionsPacket = /information packet/i.test(body);
   let rewritten = body
     .replace(/\{program_pdf\}/g, pdfUrl)
     .replace(/The attached information packet/g, "The program packet (linked below)")
     .replace(/the attached information packet/g, "the program packet (linked below)");
-  if (campusSlug && !hasInlinePdf) {
+  if (campusSlug && !hasInlinePdf && mentionsPacket) {
     rewritten += `\n\nProgram details (PDF): ${pdfUrl}`;
   }
   const bodyHtml = bodyToHtml(finalizeTokens(rewritten, adminFirstName));
-  return bodyHtml + composeSmartleadFooterHtml();
+  // Signatures: Graize's "Program flyer" → audience-aware PDF; Logan's
+  // "Student Caregiver Program" → audience-aware landing page.
+  return bodyHtml + composeSmartleadFooterHtml(pdfUrl, programLandingUrl);
 }
 
 // ── Server-side preview rendering (no network) ───────────────────────────
@@ -687,6 +751,11 @@ export function buildSmartleadPreview(input: {
   cadenceKey?: CadenceKey;
   adminFirstName?: string;
   senderEmails?: string[];
+  /** Row's stakeholder type — needed so an ACTIVATION preview renders the
+   *  correct partner landing (advisor/dept_head → families#help, student_org →
+   *  families). Without it the preview defaults to student_org and shows the
+   *  wrong link, even though the actual send is correct. */
+  stakeholderType?: StakeholderType | null;
 }): SmartleadPreview {
   const fanned = rowToLeads(input.row, input.campus);
 
@@ -726,6 +795,10 @@ export function buildSmartleadPreview(input: {
   const seq = buildEmailSequence(input.cadenceKey ?? "provider", {
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
+    // Partner rows (kind != provider) preview the student flyer link.
+    isPartner: input.row.kind !== "provider",
+    // Activation previews need the type to render the right partner landing.
+    stakeholderType: input.stakeholderType ?? null,
   });
   const days = OUTREACH_DAYS_BY_TYPE[input.cadenceKey ?? "provider"];
   const emailDays = days.filter((d) => d.steps.some((s) => s.channel === "email"));
@@ -864,7 +937,7 @@ async function provisionCampaign(
   name: string,
   poolIds: number[],
   steps: SmartleadSequenceStep[],
-): Promise<{ campaign_id?: number; errors: StageError[] }> {
+): Promise<{ campaign_id?: number; errors: StageError[]; webhook?: EnsureWebhookResult }> {
   const errors: StageError[] = [];
   const created = await createCampaign(name);
   if (!created.ok || !created.data) {
@@ -876,12 +949,53 @@ async function provisionCampaign(
   if (!attached.ok) errors.push({ stage: "attachEmailAccounts", message: attached.error ?? "attach failed" });
   const saved = await saveSequence(campaignId, steps);
   if (!saved.ok) errors.push({ stage: "saveSequence", message: saved.error ?? "save failed" });
-  return { campaign_id: campaignId, errors };
+
+  // Wire the reply/open/bounce webhook at birth so events stream into the CRM
+  // without a separate manual step (the missing link that left every campaign
+  // "No Webhooks Yet"). STRICTLY best-effort: the result is returned in its own
+  // channel and NEVER pushed onto `errors`, because callers gate `ok` on
+  // `errors.length === 0` and route.ts THROWS on `!ok` — a webhook hiccup must
+  // not fail an enrollment whose campaign + leads succeeded. Anything skipped
+  // (env unset) or failed here is recoverable via the reconcile endpoint and by
+  // the next campaign's provisioning.
+  let webhook: EnsureWebhookResult | undefined;
+  try {
+    webhook = await ensureMedjobsCampaignWebhook(campaignId);
+    if (!webhook.ok && webhook.status !== "skipped") {
+      console.warn(
+        `[smartlead-bridge] webhook registration for campaign ${campaignId} failed: ${webhook.error ?? "unknown"}`,
+      );
+    }
+  } catch (e) {
+    console.warn(
+      `[smartlead-bridge] webhook registration threw for campaign ${campaignId}:`,
+      e instanceof Error ? e.message : e,
+    );
+  }
+
+  return { campaign_id: campaignId, errors, webhook };
 }
 
 /**
- * Finalize a freshly provisioned campaign: set schedule, then leave it PAUSED.
- * NEVER START. Called after leads are pushed (the validated order).
+ * True when SMARTLEAD_AUTO_START_CAMPAIGNS opts into auto-starting campaigns.
+ * Default OFF: with the flag unset, finalizeCampaign leaves campaigns PAUSED —
+ * the original warmup/reputation guardrail (§8.1). Accepts "true"/"1" (any case).
+ */
+function autoStartEnabled(): boolean {
+  const v = (process.env.SMARTLEAD_AUTO_START_CAMPAIGNS ?? "").trim().toLowerCase();
+  return v === "true" || v === "1";
+}
+
+/**
+ * Finalize a freshly provisioned campaign: set schedule, then set status.
+ *
+ * Status is gated by SMARTLEAD_AUTO_START_CAMPAIGNS (§8.1 "blunter alternative"):
+ *   - unset / false → PAUSED (default; a human starts it after warmup sign-off)
+ *   - true          → START (campaign goes live the instant leads are enrolled)
+ *
+ * Called after leads are pushed (the validated order). WARNING: with the flag on,
+ * a campaign can start before its mailbox pool is warm — the warmup check in
+ * resolveMailboxPool only produces warnings, it does not block START.
  */
 async function finalizeCampaign(
   campaignId: number,
@@ -890,7 +1004,8 @@ async function finalizeCampaign(
   const errors: StageError[] = [];
   const sched = await setCampaignSchedule(campaignId, schedule);
   if (!sched.ok) errors.push({ stage: "setCampaignSchedule", message: sched.error ?? "schedule failed" });
-  const status = await setCampaignStatus(campaignId, "PAUSED");
+  const desiredStatus = autoStartEnabled() ? "START" : "PAUSED";
+  const status = await setCampaignStatus(campaignId, desiredStatus);
   if (!status.ok) errors.push({ stage: "setCampaignStatus", message: status.error ?? "status failed" });
   return errors;
 }
@@ -898,8 +1013,9 @@ async function finalizeCampaign(
 /**
  * Orchestrate a PAUSED Smartlead campaign from a batch of CRM rows.
  *
- * - NEVER calls START — there is no "START" literal in this module. A human
- *   starts the campaign in the Smartlead UI after warmup + Logan sign-off (§8).
+ * - Status is gated by SMARTLEAD_AUTO_START_CAMPAIGNS (default off → PAUSED, a
+ *   human starts it after warmup + sign-off; on → auto-START on enrollment). See
+ *   finalizeCampaign and §8.1.
  * - Does NOT write back to the CRM — that's the schedule_sequence integration
  *   (G4 single-writer).
  * - Aggregates errors into the report instead of throwing, so a partial
@@ -976,7 +1092,7 @@ export async function launchCampaign(input: LaunchInput): Promise<LaunchReport> 
   }
   report.enrolled_outreach_ids.push(...successfulRowIds);
 
-  // 6. Schedule + leave PAUSED (validated order: after leads).
+  // 6. Schedule + set status per SMARTLEAD_AUTO_START_CAMPAIGNS (validated order: after leads).
   report.errors.push(...(await finalizeCampaign(campaignId, input.schedule ?? defaultSchedule())));
 
   report.ok = report.errors.length === 0;
@@ -988,10 +1104,12 @@ export interface EnrollInput {
   campus: CampusContext;
   /** Used only when no campus campaign exists yet (this row is the first). */
   campaignName: string;
-  /** The campus's existing Smartlead campaign id, looked up by the caller from
-   *  a sibling row's `research_data.smartlead.campaign_id` (approach b). When
-   *  present, the lead is added to it; when absent, a new campaign is provisioned. */
-  existingCampaignId?: number;
+  /** The campus's existing Smartlead campaign id(s) for this audience, looked up
+   *  by the caller from sibling rows' `research_data.smartlead.campaign_id`. The
+   *  lead is added to the first one that STILL EXISTS in Smartlead; a fresh
+   *  campaign is provisioned only when the list is empty or every candidate was
+   *  deleted (all 404). */
+  existingCampaignIds?: number[];
   cadenceKey?: CadenceKey;
   senderEmails?: string[];
   adminFirstName?: string;
@@ -1011,13 +1129,43 @@ export interface EnrollResult {
 }
 
 /**
+ * Add leads to the first candidate campaign that STILL EXISTS in Smartlead.
+ * Tries each id in order:
+ *   - success → returns that campaign id (the live one to reuse).
+ *   - 404 (campaign was deleted) → moves on to the next candidate.
+ *   - any other error → stops and returns it (not a "deleted" case; retrying
+ *     other campaigns could double-add).
+ * Returns `campaignId: null` (no error) when the list is empty or every
+ * candidate is gone — the caller then provisions a fresh campaign. This is what
+ * makes reuse correct: one live campaign per (campus, audience), never a
+ * duplicate spawned just because a stale id was listed first.
+ */
+async function addLeadsToExistingCampaign(
+  campaignIds: number[],
+  leads: SmartleadLead[],
+): Promise<{ campaignId: number | null; error?: string }> {
+  for (const id of campaignIds) {
+    const added = await addLeads(id, leads);
+    if (added.ok) return { campaignId: id };
+    if (added.status !== 404) {
+      return { campaignId: null, error: added.error ?? "addLeads failed" };
+    }
+    console.warn(
+      `[smartlead-bridge] campaign ${id} not found (404) — trying next candidate / will provision fresh`,
+    );
+  }
+  return { campaignId: null };
+}
+
+/**
  * Enroll ONE CRM row into its campus's Smartlead campaign — the per-row path
- * the `schedule_sequence` integration drives. If `existingCampaignId` is given
- * (a sibling row already created the campus campaign), the lead is appended to
- * it; otherwise this row is the first and a new PAUSED campaign is provisioned.
+ * the `schedule_sequence` integration drives. If `existingCampaignIds` are given
+ * (sibling rows already created the campus campaign), the lead is appended to the
+ * first that still exists; otherwise a new PAUSED campaign is provisioned.
  *
- * Like `launchCampaign`: never STARTs, never writes the CRM (the caller writes
- * the linkage + touchpoint through route.ts, G4), aggregates errors.
+ * Like `launchCampaign`: status follows SMARTLEAD_AUTO_START_CAMPAIGNS (default
+ * PAUSED), never writes the CRM (the caller writes the linkage + touchpoint
+ * through route.ts, G4), aggregates errors.
  */
 export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<EnrollResult> {
   const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
@@ -1036,20 +1184,26 @@ export async function enrollRowIntoCampusCampaign(input: EnrollInput): Promise<E
   }
   const leads = fanned.map((f) => f.lead);
 
-  // Existing campus campaign → just append these leads.
-  if (input.existingCampaignId) {
-    result.campaign_id = input.existingCampaignId;
-    const added = await addLeads(input.existingCampaignId, leads);
-    if (!added.ok) {
-      result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+  // Reuse the campus's LIVE campaign for this audience. Add to the first
+  // candidate that still exists; only if the list is empty or every candidate
+  // was deleted (all 404) do we provision a fresh one below.
+  const existingIds = input.existingCampaignIds ?? [];
+  if (existingIds.length > 0) {
+    const reuse = await addLeadsToExistingCampaign(existingIds, leads);
+    if (reuse.error) {
+      result.errors.push({ stage: "addLeads", message: reuse.error });
       return result;
     }
-    result.enrolled = true;
-    result.ok = true;
-    return result;
+    if (reuse.campaignId != null) {
+      result.campaign_id = reuse.campaignId;
+      result.enrolled = true;
+      result.ok = true;
+      return result;
+    }
+    // every candidate was deleted → fall through to provision a fresh one
   }
 
-  // First row for this campus → provision a new PAUSED campaign.
+  // No live campus campaign for this audience → provision a new PAUSED campaign.
   const mb = await resolveMailboxPool(input.senderEmails);
   result.mailbox_warnings = mb.pool.warnings;
   if (!mb.ok) {
@@ -1084,13 +1238,17 @@ export interface ActivationEnrollInput {
   campus: CampusContext;
   /** Used only when no campus ACTIVATION campaign exists yet. */
   campaignName: string;
-  /** The campus's existing activation campaign id (from a sibling row's
-   *  research_data.smartlead_activation.campaign_id). Append to it when set;
-   *  provision a new PAUSED activation campaign when absent. */
-  existingCampaignId?: number;
+  /** The campus's existing activation campaign id(s) (from sibling rows'
+   *  research_data.smartlead_activation.campaign_id). The lead is added to the
+   *  first one that still exists; a fresh campaign is provisioned only when the
+   *  list is empty or every candidate was deleted. */
+  existingCampaignIds?: number[];
   /** Partner (stakeholder) rows get the Recruitment Partner Portal link as
    *  their welcome_url; providers get the provider magic link (DF-3b). */
   is_partner?: boolean;
+  /** Row's real stakeholder type — drives per-type partner activation/welcome
+   *  copy (advisor vs dept_head vs student_org). */
+  stakeholder_type?: StakeholderType | null;
   /** Which single-lead email cadence to enroll into. Defaults to the
    *  "activation" sequence; the partner-welcome nurture passes
    *  "partner_welcome". Both are single-lead, separate-per-campus campaigns. */
@@ -1118,10 +1276,10 @@ export interface ActivationEnrollInput {
  *   - The lead's welcome_url carries `?a=1` so the magic link auto-opens Terms.
  *   - Uses the `activation` sequence (canonical activation templates).
  *
- * Same safety as the cold path: never STARTs (campaign left PAUSED for a human
- * to start in Smartlead), never writes the CRM (caller persists the linkage),
- * aggregates errors. Inert when SMARTLEAD_API_KEY is unset (addLeads/create
- * return ok:false).
+ * Same path as the cold flow: status follows SMARTLEAD_AUTO_START_CAMPAIGNS
+ * (default PAUSED for a human to start in Smartlead), never writes the CRM
+ * (caller persists the linkage), aggregates errors. Inert when SMARTLEAD_API_KEY
+ * is unset (addLeads/create return ok:false).
  */
 export async function enrollActivationLead(input: ActivationEnrollInput): Promise<EnrollResult> {
   const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
@@ -1169,20 +1327,27 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
     },
   };
 
-  // Existing campus activation campaign → just append this lead.
-  if (input.existingCampaignId) {
-    result.campaign_id = input.existingCampaignId;
-    const added = await addLeads(input.existingCampaignId, [lead]);
-    if (!added.ok) {
-      result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+  // Reuse the campus's LIVE activation campaign. Add to the first candidate
+  // that still exists; only if the list is empty or every candidate was deleted
+  // (all 404) do we provision a fresh one below.
+  const existingIds = input.existingCampaignIds ?? [];
+  if (existingIds.length > 0) {
+    const reuse = await addLeadsToExistingCampaign(existingIds, [lead]);
+    if (reuse.error) {
+      result.errors.push({ stage: "addLeads", message: reuse.error });
       return result;
     }
-    result.enrolled = true;
-    result.ok = true;
-    return result;
+    if (reuse.campaignId != null) {
+      result.campaign_id = reuse.campaignId;
+      result.enrolled = true;
+      result.ok = true;
+      return result;
+    }
+    // every candidate was deleted → fall through to provision a fresh one
   }
 
-  // First activation for this campus → provision a new PAUSED activation campaign.
+  // No live activation campaign for this campus (or all were deleted) →
+  // provision a new PAUSED activation campaign.
   const mb = await resolveMailboxPool(input.senderEmails);
   result.mailbox_warnings = mb.pool.warnings;
   if (!mb.ok) {
@@ -1193,6 +1358,7 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
     adminFirstName: input.adminFirstName,
     campusSlug: input.campus.slug ?? null,
     isPartner: input.is_partner ?? false,
+    stakeholderType: input.stakeholder_type ?? null,
   });
   const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
   result.errors.push(...prov.errors);
@@ -1209,5 +1375,205 @@ export async function enrollActivationLead(input: ActivationEnrollInput): Promis
 
   result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
   result.ok = result.errors.length === 0;
+  return result;
+}
+
+// ── Custom cadence (admin-composed, per-reply) ───────────────────────────
+
+export interface CustomEmailStep {
+  /** Days after launch this email sends (0 = the first send slot). */
+  day: number;
+  subject: string;
+  body: string;
+}
+
+/**
+ * Render an admin-typed email body to Smartlead HTML. UNLIKE the template path
+ * (toSmartleadHtml) this runs NO token substitution — the text is sent verbatim
+ * — but it DOES append the standard signature so custom emails stay consistent.
+ * The signature's Calendly link carries {{outreach_id}}, so the enrolled lead
+ * must set that custom field (enrollCustomCadence does).
+ */
+function toCustomSmartleadHtml(
+  body: string,
+  campusSlug: string | null,
+  pdfAudience: "provider" | "student",
+  programLandingUrl: string,
+): string {
+  const pdfUrl = campusSlug
+    ? `https://olera.care/api/medjobs/program-pdf?university=${campusSlug}&audience=${pdfAudience}`
+    : PROGRAM_URL;
+  return bodyToHtml(body) + composeSmartleadFooterHtml(pdfUrl, programLandingUrl);
+}
+
+/**
+ * Build a Smartlead sequence from admin-typed email steps. Delays are relative
+ * to the previous EMAIL step (Smartlead's model), so the FIRST email's delay is
+ * its OWN day number — a cadence whose first email is Day 2 (a Day-0 call comes
+ * first) sends on Day 2, not immediately. Calls are CRM tasks, never in this
+ * sequence, so they don't affect email timing.
+ */
+export function buildCustomEmailSequence(
+  emailSteps: CustomEmailStep[],
+  opts: { campusSlug?: string | null; isPartner?: boolean; stakeholderType?: StakeholderType | null } = {},
+): SmartleadSequenceStep[] {
+  const sorted = [...emailSteps].sort((a, b) => a.day - b.day);
+  const pdfAudience: "provider" | "student" = opts.isPartner ? "student" : "provider";
+  const programLandingUrl = opts.isPartner
+    ? partnerLandingUrl(opts.stakeholderType ?? "student_org")
+    : PROGRAM_URL;
+  const steps: SmartleadSequenceStep[] = [];
+  let prevDay = 0;
+  let seq = 0;
+  for (const s of sorted) {
+    seq += 1;
+    const delay = seq === 1 ? s.day : s.day - prevDay;
+    steps.push({
+      seq_number: seq,
+      seq_delay_details: { delay_in_days: Math.max(0, delay) },
+      subject: s.subject,
+      email_body: toCustomSmartleadHtml(s.body, opts.campusSlug ?? null, pdfAudience, programLandingUrl),
+    });
+    prevDay = s.day;
+  }
+  return steps;
+}
+
+export interface CustomCadenceEnrollInput {
+  outreach_id: string;
+  organizationName: string;
+  campus: CampusContext;
+  campaignName: string;
+  emailSteps: CustomEmailStep[];
+  recipient: { email: string; first_name?: string | null; last_name?: string | null; contact_id?: string | null };
+  is_partner?: boolean;
+  stakeholder_type?: StakeholderType | null;
+  senderEmails?: string[];
+  schedule?: Record<string, unknown>;
+}
+
+/**
+ * Enroll ONE contact into a BESPOKE custom-cadence campaign. Always provisions a
+ * NEW campaign (the free-text sequence is unique to this reply, so it can't be
+ * shared like the outreach/activation campaigns). The lead carries the
+ * outreach_id custom field so the signature's Calendly link resolves. The new
+ * campaign auto-registers the reply webhook (provisionCampaign). Best-effort +
+ * inert when SMARTLEAD_API_KEY is unset.
+ */
+export async function enrollCustomCadence(input: CustomCadenceEnrollInput): Promise<EnrollResult> {
+  const result: EnrollResult = { ok: false, created: false, enrolled: false, mailbox_warnings: [], errors: [] };
+
+  const email = input.recipient.email?.trim();
+  if (!email) {
+    result.skipped_reason = "no_email";
+    return result;
+  }
+  if (input.emailSteps.length === 0) {
+    result.errors.push({ stage: "build", message: "no email steps" });
+    return result;
+  }
+
+  const firstName = input.recipient.first_name?.trim() || "";
+  const lead: SmartleadLead = {
+    email,
+    first_name: firstName,
+    company_name: input.organizationName,
+    custom_fields: {
+      campus: input.campus.name,
+      catchment_city: input.campus.city ?? "",
+      outreach_id: input.outreach_id,
+      recipient_kind: firstName ? "named" : "general",
+      contact_id: input.recipient.contact_id ?? "",
+    },
+  };
+
+  const mb = await resolveMailboxPool(input.senderEmails);
+  result.mailbox_warnings = mb.pool.warnings;
+  if (!mb.ok) {
+    result.errors.push({ stage: "resolveMailboxPool", message: mb.error ?? "no mailboxes" });
+    return result;
+  }
+  const steps = buildCustomEmailSequence(input.emailSteps, {
+    campusSlug: input.campus.slug ?? null,
+    isPartner: input.is_partner ?? false,
+    stakeholderType: input.stakeholder_type ?? null,
+  });
+  const prov = await provisionCampaign(input.campaignName, mb.pool.ids, steps);
+  result.errors.push(...prov.errors);
+  if (!prov.campaign_id) return result;
+  result.campaign_id = prov.campaign_id;
+  result.created = true;
+
+  const added = await addLeads(prov.campaign_id, [lead]);
+  if (!added.ok) {
+    result.errors.push({ stage: "addLeads", message: added.error ?? "addLeads failed" });
+    return result;
+  }
+  result.enrolled = true;
+
+  result.errors.push(...(await finalizeCampaign(prov.campaign_id, input.schedule ?? defaultSchedule())));
+  result.ok = result.errors.length === 0;
+  return result;
+}
+
+// ── Stop drips on conversion ─────────────────────────────────────────────
+
+export interface PauseDripsResult {
+  /** Lead/campaign pairs successfully paused. */
+  paused: number;
+  /** Pairs we attempted (campaign_id × email). */
+  attempted: number;
+  errors: string[];
+}
+
+/**
+ * Pause a contact's drip across one or more Smartlead campaigns on conversion.
+ *
+ * When a row converts to Client / Partner we cancel the CRM tasks, but the cold
+ * + activation EMAILS drip from Smartlead campaigns, which only auto-pause on a
+ * detected reply. A conversion made on a call (no reply) would otherwise keep
+ * emailing a now-converted contact. This resolves each email to its Smartlead
+ * lead id once, then pauses that lead in each campaign it might still be in.
+ *
+ * Best-effort by design: never throws, and is inert when SMARTLEAD_API_KEY is
+ * unset (the underlying calls return ok:false). The caller does not fail the
+ * conversion on a pause error.
+ */
+export async function pauseLeadDrips(
+  targets: Array<{ campaignId: number; email: string }>,
+): Promise<PauseDripsResult> {
+  const result: PauseDripsResult = { paused: 0, attempted: 0, errors: [] };
+
+  // Dedup (campaign, email) pairs and resolve each email → lead id once.
+  const seen = new Set<string>();
+  const leadIdByEmail = new Map<string, number | null>();
+
+  for (const { campaignId, email } of targets) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!campaignId || !normalizedEmail) continue;
+    const key = `${campaignId}::${normalizedEmail}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.attempted += 1;
+
+    let leadId = leadIdByEmail.get(normalizedEmail);
+    if (leadId === undefined) {
+      const lookup = await getLeadByEmail(normalizedEmail);
+      leadId = lookup.ok ? (lookup.data?.id ?? null) : null;
+      if (!lookup.ok) {
+        result.errors.push(`lookup ${normalizedEmail}: ${lookup.error}`);
+      }
+      leadIdByEmail.set(normalizedEmail, leadId);
+    }
+    if (leadId == null) continue; // not found / not configured — skip quietly
+
+    const paused = await pauseLeadInCampaign(campaignId, leadId);
+    if (paused.ok) {
+      result.paused += 1;
+    } else {
+      result.errors.push(`pause ${normalizedEmail}@${campaignId}: ${paused.error}`);
+    }
+  }
+
   return result;
 }

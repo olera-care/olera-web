@@ -119,7 +119,7 @@ function one<T>(p: ProfileJoin<T>): T | undefined {
 
 // Workflow-based tab filters (legacy)
 type WorkflowState = "needs_attention" | "awaiting_provider" | "awaiting_family" | "connected" | "stuck";
-type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "needs_email" | "declined";
+type TabFilter = "all" | WorkflowState | EngagementLevel | FamilyEngagementLevel | "needs_email" | "delivery_issues" | "declined" | "admin_not_interested" | "archived";
 
 // Email issue types for the "Needs Email" tab
 type EmailIssueType = "no_email" | "failed" | "invalid" | null;
@@ -139,12 +139,15 @@ interface WorkflowCounts {
 // Engagement-based tab counts (new system)
 interface EngagementCounts {
   all: number;
-  new: number;
+  awaiting: number; // Renamed from "new" - provider hasn't engaged, automation still working
   viewed: number;
   connected: number;
   needs_follow_up: number;
-  needs_email: number; // Combined: no email, delivery failed, or invalid email
-  declined: number; // Provider archived with decline reasons
+  needs_email: number; // Provider has no email on file
+  delivery_issues: number; // Email bounced, failed, or invalid - can try override
+  declined: number; // Provider archived with decline reasons (via portal)
+  admin_not_interested: number; // Admin marked provider as not interested (soft rejection)
+  archived: number; // Admin-archived providers - no emails sent
 }
 
 // Family engagement-based tab counts (family perspective)
@@ -172,19 +175,18 @@ interface FunnelStats {
 }
 
 // Provider action breakdown stats
+// Tracks: viewed, copied phone, copied email, messaged, declined
 interface ProviderActions {
   viewed: number;
   copiedPhone: number;
   copiedEmail: number;
-  clickedPhone: number;
-  clickedEmail: number;
-  continuedToInbox: number;
+  messaged: number;
+  declined: number;
   // Rates as percentage of viewed
   copiedPhoneRate: number;
   copiedEmailRate: number;
-  clickedPhoneRate: number;
-  clickedEmailRate: number;
-  continuedToInboxRate: number;
+  messagedRate: number;
+  declinedRate: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -205,6 +207,7 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("date_to");
     const limit = Math.min(Number(searchParams.get("limit")) || 50, 200);
     const offset = Number(searchParams.get("offset")) || 0;
+    const countOnly = searchParams.get("count_only") === "true";
 
     const db = getServiceClient();
 
@@ -230,7 +233,7 @@ export async function GET(request: NextRequest) {
           to_profile_id,
           from_profile:business_profiles!connections_from_profile_id_fkey(
             id, display_name, slug, source_provider_id, email, phone, image_url, is_active,
-            website, address, city, state, description, care_types, metadata
+            website, address, city, state, description, care_types, metadata, account_id, verification_state
           ),
           to_profile:business_profiles!connections_to_profile_id_fkey(
             id, display_name, type, email, phone, image_url, city, description, care_types, metadata
@@ -310,6 +313,8 @@ export async function GET(request: NextRequest) {
             is_active: provider?.is_active !== false,
             city: provider?.city ?? null,
             state: provider?.state ?? null,
+            isAccountClaimed: !!(provider as Record<string, unknown>)?.account_id,
+            verificationState: (provider as Record<string, unknown>)?.verification_state as string | null ?? null,
           },
           messagePreview,
           replyMessage,
@@ -385,13 +390,17 @@ export async function GET(request: NextRequest) {
         ),
         to_profile:business_profiles!connections_to_profile_id_fkey(
           id, display_name, slug, source_provider_id, email, phone, image_url, is_active,
-          website, address, city, state, description, care_types, metadata
+          website, address, city, state, description, care_types, metadata, account_id, verification_state
         )
       `)
       .eq("type", "inquiry")
       .order("created_at", { ascending: false })
-      .limit(FETCH_CAP)
-      .not("metadata", "cs", JSON.stringify({ archived: true }));
+      .limit(FETCH_CAP);
+
+    // NOTE: We do NOT exclude archived connections at query level.
+    // All connections are fetched, then filtered in-memory so that:
+    // - engagementCounts.archived can be computed for all tabs
+    // - The correct connections are shown per tab
     if (dateFrom) q = q.gte("created_at", dateFrom);
     if (dateTo) q = q.lte("created_at", dateTo);
 
@@ -408,10 +417,18 @@ export async function GET(request: NextRequest) {
     // Collect unique source_provider_ids that need email lookup from iOS table
     // Use Set to deduplicate (same provider may appear in multiple connections)
     const uniqueSourceIds = new Set<string>();
+    // Also collect source_provider_ids for INACTIVE providers to get deletion info
+    const inactiveProviderSourceIds = new Set<string>();
     for (const r of rows ?? []) {
       const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
-      if (provider?.source_provider_id && !provider?.email?.trim()) {
-        uniqueSourceIds.add(provider.source_provider_id);
+      if (provider?.source_provider_id) {
+        if (!provider?.email?.trim()) {
+          uniqueSourceIds.add(provider.source_provider_id);
+        }
+        // Track inactive providers for deletion info lookup
+        if (provider.is_active === false) {
+          inactiveProviderSourceIds.add(provider.source_provider_id);
+        }
       }
     }
 
@@ -437,6 +454,37 @@ export async function GET(request: NextRequest) {
         if (trimmedEmail) {
           providerEmailFallback.set(ios.provider_id, trimmedEmail);
         }
+      }
+    }
+
+    // Fetch deletion info from olera-providers for INACTIVE providers
+    // This tells us WHO deleted the provider (admin vs provider request)
+    type DeletionInfo = {
+      deleted: boolean;
+      deletedAt: string | null;
+      deletionReason: "data_sweep" | "provider_request" | "duplicate" | "out_of_scope" | "other" | null;
+    };
+    const providerDeletionInfo = new Map<string, DeletionInfo>();
+
+    if (inactiveProviderSourceIds.size > 0) {
+      const sourceIds = Array.from(inactiveProviderSourceIds);
+      // Query olera-providers INCLUDING deleted ones (no .not("deleted", "is", true))
+      const { data: iosProviders, error: iosError } = await db
+        .from("olera-providers")
+        .select("provider_id, deleted, deleted_at, deletion_reason")
+        .in("provider_id", sourceIds);
+
+      if (iosError) {
+        console.error("[connections] olera-providers deletion info lookup failed:", iosError);
+        // Continue with empty map - we'll show "Unknown" for these
+      }
+
+      for (const ios of iosProviders ?? []) {
+        providerDeletionInfo.set(ios.provider_id, {
+          deleted: ios.deleted === true,
+          deletedAt: ios.deleted_at as string | null,
+          deletionReason: ios.deletion_reason as DeletionInfo["deletionReason"],
+        });
       }
     }
 
@@ -486,15 +534,23 @@ export async function GET(request: NextRequest) {
       const responded = !!providerMsg;
 
       // Check metadata for explicit connection signals from provider
+      // archiveReason = valid provider decline reason (not_a_fit, not_accepting_clients, etc.)
+      // This distinguishes provider-declined (Declined tab) from admin-archived (Archived tab)
       const archiveReason = parseArchiveReason(meta.archive_reason);
-      // Check both lead_archived (new) and archived (old) for backward compatibility
-      // Only treat archived as lead archive if it has an archive_reason (indicating it's a passed lead, not inbox archive)
-      const hasArchiveReason = !!archiveReason;
-      const archived = meta.lead_archived === true || (meta.archived === true && hasArchiveReason);
+      // rawArchiveReason = the actual free-text reason entered (for admin archive display)
+      // This preserves whatever text was typed, even if not a predefined reason
+      const rawArchiveReason = typeof meta.archive_reason === "string" ? meta.archive_reason : null;
+      // archived = true if provider declined OR admin archived from leads page
+      // - Provider decline: archived=true + valid archiveReason → Declined tab
+      // - Admin archive: archived=true + no valid archiveReason → Archived tab
+      const archived = meta.lead_archived === true || meta.archived === true;
       const archivedAt = meta.archived_at as string | undefined;
 
       // Extract admin override (manually marked status)
       const adminOverride = meta.admin_override ? parseAdminOverride(meta.admin_override) : null;
+
+      // Family self-reported that provider got back to them (ground-truth connection signal)
+      const familyConfirmed = meta.family_confirmed === true;
 
       // Check if family has replied AFTER provider's response
       // This determines if we need to nudge the family
@@ -586,6 +642,7 @@ export async function GET(request: NextRequest) {
       // Determine workflow state
       // Logic: Check if stuck first, then determine waiting state
       const providerIsActive = provider?.is_active !== false;
+      const isProviderInactive = !providerIsActive;
       const providerNudgedRecently = providerNudgedAt
         ? now - new Date(providerNudgedAt).getTime() < SEVEN_DAYS_MS
         : false;
@@ -597,8 +654,10 @@ export async function GET(request: NextRequest) {
       let workflowState: WorkflowState | null = null;
       let waitingOn: "provider" | "family" | null = null;
 
-      if (!providerIsActive) {
-        workflowState = null; // Inactive providers excluded
+      if (isProviderInactive) {
+        // Inactive providers get a default state so they're not filtered out
+        // They'll be shown in the Archived tab with "Provider Inactive" indicator
+        workflowState = "awaiting_provider";
       } else if (familyRepliedAfterProvider) {
         // Both parties engaged - truly connected
         workflowState = "connected";
@@ -624,6 +683,10 @@ export async function GET(request: NextRequest) {
           workflowState = "needs_attention"; // Ready to nudge provider
         }
       }
+
+      // Check if provider is admin-archived (different from provider declining individual leads)
+      const providerMeta = (provider?.metadata as Record<string, unknown>) ?? {};
+      const isProviderArchived = providerMeta.admin_archived === true;
 
       return {
         id: r.id,
@@ -653,6 +716,9 @@ export async function GET(request: NextRequest) {
           is_active: providerIsActive,
           completeness: providerCompleteness,
           activityKey: provider?.slug || provider?.source_provider_id || provider?.id || null,
+          isAccountClaimed: !!(provider as Record<string, unknown>)?.account_id,
+          // Verification state for claimed providers (null if not claimed)
+          verificationState: (provider as Record<string, unknown>)?.verification_state as string | null ?? null,
         },
         messagePreview,
         responded,
@@ -671,25 +737,85 @@ export async function GET(request: NextRequest) {
         // Archive state (provider archived in their portal)
         archived,
         archiveReason,
+        // Raw archive reason (free-text from leads page, for display in Archived tab)
+        rawArchiveReason,
         archivedAt,
         // Admin override for manual status marking
         adminOverride,
+        // Family self-reported provider got back to them
+        familyConfirmed,
         // For engagement-based "Needs Call" tab
         needsCall: meta.followup_stopped_reason === "needs_call" || meta.needs_call === true,
         // When Day 0 email was sent (for staleness calculation)
         // Providers who got email added later start fresh from that date
         sequenceStartAt: (meta.email_sent_at as string) || null,
+        // Email sequence progress (0-3, where 3 = sequence complete)
+        followupStage: (meta.followup_stage as number) ?? null,
+        // Why sequence stopped (connected, responded, needs_call, etc.)
+        followupStoppedReason: (meta.followup_stopped_reason as string) ?? null,
+        // Admin-archived provider (different from individual lead declined)
+        isProviderArchived,
+        // Provider is inactive (deleted account, removed, etc.) - shows in Archived tab
+        isProviderInactive,
+        // Inactive provider info - shows who deleted them (admin vs provider themselves)
+        inactiveProviderInfo: isProviderInactive ? (() => {
+          // Check business_profiles.metadata for self-deletion flag
+          const selfDeleted = providerMeta.deleted_by_account_deletion === true;
+
+          // Check olera-providers for deletion info (if we have source_provider_id)
+          const iosDeletion = provider?.source_provider_id
+            ? providerDeletionInfo.get(provider.source_provider_id)
+            : null;
+
+          // Determine deletion source:
+          // 1. Self-deleted: metadata.deleted_by_account_deletion = true
+          // 2. Provider requested (via admin): olera-providers.deletion_reason = "provider_request"
+          // 3. Admin deleted: olera-providers.deleted = true with other reasons
+          // 4. Unknown: none of the above
+          let deletionSource: "self" | "provider_request" | "admin" | "unknown" = "unknown";
+
+          if (selfDeleted) {
+            deletionSource = "self";
+          } else if (iosDeletion?.deleted && iosDeletion.deletionReason === "provider_request") {
+            deletionSource = "provider_request";
+          } else if (iosDeletion?.deleted) {
+            // Deleted in olera-providers (may or may not have specific reason)
+            deletionSource = "admin";
+          }
+
+          return {
+            deletionSource,
+            deletionReason: iosDeletion?.deletionReason ?? null,
+            deletedAt: iosDeletion?.deletedAt ?? null,
+          };
+        })() : null,
+        // Archive info for display in UI
+        providerArchiveInfo: isProviderArchived ? {
+          reason: providerMeta.admin_archived_reason as string | null,
+          archivedBy: providerMeta.admin_archived_by as string | null,
+          archivedAt: providerMeta.admin_archived_at as string | null,
+          notes: providerMeta.admin_archived_notes as string | null,
+        } : null,
+        // Admin hidden flag - hides from admin UI without affecting anything else
+        adminHidden: meta.admin_hidden === true,
+        // "No contact found" tag - team searched but couldn't find contact info
+        // Tagged connections sink to bottom of Needs Email tab
+        noContactFound: meta.no_contact_found === true,
+        noContactFoundAt: (meta.no_contact_found_at as string) || null,
       };
     });
 
-    // Search filter (family or provider name) — applied to the full set.
+    // Filter out admin-hidden connections FIRST - they don't appear anywhere in admin UI
+    const visible = all.filter(c => !c.adminHidden);
+
+    // Search filter (family or provider name) — applied to the visible set.
     const searched = search
-      ? all.filter(
+      ? visible.filter(
           (c) =>
             (c.family.display_name || "").toLowerCase().includes(search) ||
             (c.provider.display_name || "").toLowerCase().includes(search)
         )
-      : all;
+      : visible;
 
     // Build provider keys for engagement lookup
     const allProviderKeys = [...new Set(
@@ -738,17 +864,6 @@ export async function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(10000);
 
-      // Build a map of provider_id -> connection_ids for multi-lead email handling
-      const providerToConnections = new Map<string, string[]>();
-      for (const c of searched) {
-        const providerKey = c.provider.activityKey;
-        if (!providerKey) continue;
-        if (!providerToConnections.has(providerKey)) {
-          providerToConnections.set(providerKey, []);
-        }
-        providerToConnections.get(providerKey)!.push(c.id);
-      }
-
       for (const ev of actEvents ?? []) {
         const meta = ev.metadata as Record<string, unknown> | null;
         // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)
@@ -759,22 +874,7 @@ export async function GET(request: NextRequest) {
           const eng = connectionEngagement.get(connectionId);
           if (!eng) {
             // Connection not in our current view (likely filtered out by date range or limit)
-            // If this is a lead_opened event, treat it as a provider-wide signal
-            // (fallback to multi-lead behavior for old connections)
-            if (ev.event_type === "lead_opened" && ev.provider_id) {
-              const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
-              for (const connId of connectionIds) {
-                const e = connectionEngagement.get(connId);
-                if (e) {
-                  e.lead_opened = true;
-                  if (!e.lastActivityAt || (ev.created_at && ev.created_at > e.lastActivityAt)) {
-                    e.lastActivityAt = ev.created_at;
-                  }
-                }
-              }
-            } else {
-              // Non-lead_opened event for connection not in view - skip it
-            }
+            // Skip this event - we only trust connection-specific events for connections in view
             continue;
           }
 
@@ -798,61 +898,10 @@ export async function GET(request: NextRequest) {
             eng.lastActivityAt = ev.created_at;
           }
         }
-        // Handle provider-wide events (multi-lead emails with no specific connection_id)
-        // When provider clicks a multi-lead email and lands on inbox, mark ALL their connections as viewed
-        else if (ev.event_type === "lead_opened" && ev.provider_id) {
-          const connectionIds = providerToConnections.get(ev.provider_id) ?? [];
-          for (const connId of connectionIds) {
-            const eng = connectionEngagement.get(connId);
-            if (eng) {
-              eng.lead_opened = true;
-              // Track activity time for all connections
-              if (!eng.lastActivityAt || (ev.created_at && ev.created_at > eng.lastActivityAt)) {
-                eng.lastActivityAt = ev.created_at;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Query provider actions with metadata for detailed breakdown
-    // Simplified: viewed (opened drawer), copied phone (connected), copied email (connected)
-    let actionViewedCount = 0;
-    let actionCopiedPhoneCount = 0;
-    let actionCopiedEmailCount = 0;
-
-    if (allProviderKeys.length > 0) {
-      let actionQuery = db
-        .from("provider_activity")
-        .select("event_type, metadata")
-        .in("provider_id", allProviderKeys)
-        .in("event_type", ["lead_opened", "phone_clicked", "email_link_clicked", "contact_revealed"]);
-
-      // Apply date filters to match the connections date range
-      if (dateFrom) actionQuery = actionQuery.gte("created_at", dateFrom);
-      if (dateTo) actionQuery = actionQuery.lte("created_at", dateTo);
-
-      const { data: actionEvents } = await actionQuery.limit(10000);
-
-      for (const ev of actionEvents ?? []) {
-        if (ev.event_type === "lead_opened") {
-          actionViewedCount++;
-        } else if (ev.event_type === "phone_clicked") {
-          // Copying phone = connecting
-          actionCopiedPhoneCount++;
-        } else if (ev.event_type === "email_link_clicked") {
-          // Copying email = connecting
-          actionCopiedEmailCount++;
-        } else if (ev.event_type === "contact_revealed") {
-          // Legacy event (pre-simplification): still count for historical data
-          const meta = ev.metadata as Record<string, unknown> | null;
-          if (meta?.contact_type === "phone") {
-            actionCopiedPhoneCount++;
-          } else {
-            actionCopiedEmailCount++;
-          }
-        }
+        // Events without connection_id are ignored for lead_opened
+        // A provider landing on /provider/connections without opening a specific lead
+        // should NOT mark any leads as "viewed" - that's inflated data.
+        // Only connection-specific lead_opened events (with connection_id) count.
       }
     }
 
@@ -863,60 +912,117 @@ export async function GET(request: NextRequest) {
     // retry after a bounce should clear the failed status
     const connectionIdsInView = new Set(searched.map(c => c.id));
     const connectionsWithDeliveryFailure = new Set<string>();
+    const connectionsWithSuccessfulDelivery = new Set<string>();
+    // Also track by recipient email (catches emails without connection_id like cron reminders)
+    const recipientsWithDeliveryFailure = new Set<string>();
+    const recipientsWithSuccessfulDelivery = new Set<string>();
 
-    if (connectionIdsInView.size > 0) {
+    // Collect provider emails early so we can filter the email_log query
+    const providerEmailsInView: string[] = [];
+    for (const c of searched) {
+      const email = c.provider.email?.trim().toLowerCase();
+      if (email) providerEmailsInView.push(email);
+    }
+
+    if (connectionIdsInView.size > 0 && providerEmailsInView.length > 0) {
       // Scope query to the date range we're viewing (or last 90 days if no filter)
       const fallbackDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
       const queryDateFrom = dateFrom || fallbackDate;
 
-      // Query email_log for ALL provider emails (not just failed) to find most recent status
-      // We need to check if the MOST RECENT email for each connection failed
-      const { data: providerEmails } = await db
+      // Query email_log for provider emails, then filter in memory by lowercase recipient
+      // We don't filter by recipient in the query to avoid case-sensitivity issues
+      // (email_log stores recipients with original case, but we normalize to lowercase)
+      // Use a high limit since we filter in memory anyway
+      const { data: rawEmailLogEntries } = await db
         .from("email_log")
-        .select("metadata, status, bounced_at, created_at")
+        .select("metadata, status, bounced_at, created_at, recipient")
         .eq("recipient_type", "provider")
         .gte("created_at", queryDateFrom)
         .order("created_at", { ascending: false })
-        .limit(5000);
+        .limit(10000);
+
+      // Filter to only emails for providers we're displaying (using lowercase comparison)
+      const providerEmailSet = new Set(providerEmailsInView); // already lowercase
+      const emailLogEntries = (rawEmailLogEntries ?? []).filter(e => {
+        const recipient = (e.recipient as string | null)?.toLowerCase().trim();
+        return recipient && providerEmailSet.has(recipient);
+      });
 
       // Track the most recent email per connection
       // Key: connection_id, Value: { isFailed: boolean, timestamp: string }
       const mostRecentEmailPerConnection = new Map<string, { isFailed: boolean; timestamp: string }>();
 
-      for (const email of providerEmails ?? []) {
+      // Also track by recipient email address (catches emails without connection_id)
+      // Key: recipient email (lowercase), Value: { isFailed: boolean, timestamp: string }
+      const mostRecentEmailPerRecipient = new Map<string, { isFailed: boolean; timestamp: string }>();
+
+      for (const email of emailLogEntries ?? []) {
         const meta = email.metadata as Record<string, unknown> | null;
-        const connId = meta?.connection_id as string | undefined;
-        if (!connId || !connectionIdsInView.has(connId)) continue;
-
-        const existing = mostRecentEmailPerConnection.get(connId);
         const emailTime = email.created_at as string;
+        const isFailed = email.status === "failed" || email.bounced_at != null;
+        const recipient = (email.recipient as string | null)?.toLowerCase().trim();
 
-        // Only process if this is more recent than what we've seen (or first occurrence)
-        if (!existing || emailTime > existing.timestamp) {
-          const isFailed = email.status === "failed" || email.bounced_at != null;
-          mostRecentEmailPerConnection.set(connId, { isFailed, timestamp: emailTime });
+        // Track by recipient email address (catches ALL emails including those without connection_id)
+        if (recipient) {
+          const existing = mostRecentEmailPerRecipient.get(recipient);
+          if (!existing || emailTime > existing.timestamp) {
+            mostRecentEmailPerRecipient.set(recipient, { isFailed, timestamp: emailTime });
+          }
+        }
+
+        // Also track by connection_id for more precise per-connection tracking
+        // Support both formats:
+        // - connection_id: "abc" (single lead emails)
+        // - connection_ids: ["abc", "def"] (multi-lead cron emails)
+        const singleConnId = meta?.connection_id as string | undefined;
+        const multiConnIds = meta?.connection_ids as string[] | undefined;
+
+        const connIds: string[] = [];
+        if (singleConnId) connIds.push(singleConnId);
+        if (Array.isArray(multiConnIds)) connIds.push(...multiConnIds);
+
+        // Update status for each connection in this email
+        for (const connId of connIds) {
+          if (!connectionIdsInView.has(connId)) continue;
+
+          const existing = mostRecentEmailPerConnection.get(connId);
+
+          // Only process if this is more recent than what we've seen (or first occurrence)
+          if (!existing || emailTime > existing.timestamp) {
+            mostRecentEmailPerConnection.set(connId, { isFailed, timestamp: emailTime });
+          }
         }
       }
 
-      // Only mark connections where the MOST RECENT email failed
+      // Track connections based on most recent email status
+      // - connectionsWithDeliveryFailure: most recent email FAILED
+      // - connectionsWithSuccessfulDelivery: most recent email SUCCEEDED (delivered/opened/clicked)
       for (const [connId, { isFailed }] of mostRecentEmailPerConnection) {
         if (isFailed) {
           connectionsWithDeliveryFailure.add(connId);
+        } else {
+          connectionsWithSuccessfulDelivery.add(connId);
+        }
+      }
+
+      // Also track failures by recipient email (for emails without connection_id)
+      // Key: recipient email, Value: true if most recent email failed
+      for (const [recipient, { isFailed }] of mostRecentEmailPerRecipient) {
+        if (isFailed) {
+          recipientsWithDeliveryFailure.add(recipient);
+        } else {
+          recipientsWithSuccessfulDelivery.add(recipient);
         }
       }
     }
 
     // Query for invalid/undeliverable emails (verified by ZeroBounce)
-    // Collect all provider emails and check against email_verifications table
-    const providerEmails = new Set<string>();
-    for (const c of searched) {
-      const email = c.provider.email?.trim();
-      if (email) providerEmails.add(email);
-    }
+    // Reuse providerEmailsInView from earlier (already lowercase and trimmed)
+    const providerEmailAddresses = new Set(providerEmailsInView);
 
     const invalidEmailSet = new Set<string>();
-    if (providerEmails.size > 0) {
-      const emailArray = Array.from(providerEmails);
+    if (providerEmailAddresses.size > 0) {
+      const emailArray = Array.from(providerEmailAddresses);
       // Batch query in chunks of 500 (Supabase IN clause limit)
       for (let i = 0; i < emailArray.length; i += 500) {
         const { data: verifs } = await db
@@ -925,7 +1031,28 @@ export async function GET(request: NextRequest) {
           .in("email", emailArray.slice(i, i + 500))
           .eq("status", "invalid");
         for (const v of verifs ?? []) {
-          invalidEmailSet.add(v.email as string);
+          // Normalize to lowercase for case-insensitive matching
+          invalidEmailSet.add((v.email as string).toLowerCase());
+        }
+      }
+    }
+
+    // Human-trust allowlist (email_overrides): addresses an admin explicitly
+    // overrode/trusted (e.g. "Save anyway" after phoning the provider). At send
+    // time these already bypass ZeroBounce + suppression (lib/email.ts). Mirror
+    // that here so a manual override STICKS — without this, the classifier below
+    // re-derives "invalid"/"failed" from stale ZeroBounce/email_log data every
+    // load and bounces the provider back to Needs Email / Delivery Issues.
+    const trustedEmailSet = new Set<string>();
+    if (providerEmailAddresses.size > 0) {
+      const lowerEmails = Array.from(providerEmailAddresses).map((e) => e.toLowerCase());
+      for (let i = 0; i < lowerEmails.length; i += 500) {
+        const { data: trusted } = await db
+          .from("email_overrides")
+          .select("email")
+          .in("email", lowerEmails.slice(i, i + 500));
+        for (const t of trusted ?? []) {
+          trustedEmailSet.add((t.email as string).toLowerCase());
         }
       }
     }
@@ -943,12 +1070,15 @@ export async function GET(request: NextRequest) {
     // Engagement-based counts (new system)
     const engagementCounts: EngagementCounts = {
       all: 0,
-      new: 0,
+      awaiting: 0,
       viewed: 0,
       connected: 0,
       needs_follow_up: 0,
       needs_email: 0,
+      delivery_issues: 0,
       declined: 0,
+      admin_not_interested: 0,
+      archived: 0,
     };
 
     // Family engagement-based counts (family perspective)
@@ -965,10 +1095,27 @@ export async function GET(request: NextRequest) {
     let providerViewedCount = 0;
     let respondedCount = 0;
     let connectedCount = 0;
+    // Provider action counts (per-connection, not raw events)
+    let copiedPhoneCount = 0;
+    let copiedEmailCount = 0;
+    let declinedCount = 0;
 
     // Calculate engagement level for each connection and store it
     const connectionEngagementLevels = new Map<string, EngagementLevel>();
     const connectionFamilyEngagementLevels = new Map<string, FamilyEngagementLevel>();
+    // Store computed badge data during engagement level calculation
+    // This ensures badge data uses the SAME computed values as tab placement
+    const connectionBadgeData = new Map<string, {
+      email_clicked: boolean;
+      lead_opened: boolean;
+      contact_revealed: boolean;
+      phone_copied: boolean;
+      email_copied: boolean;
+      phone_clicked: boolean;
+      email_link_clicked: boolean;
+      continue_in_inbox: boolean;
+      family_confirmed: boolean;
+    }>();
 
     for (const c of searched) {
       // Get engagement data for THIS SPECIFIC CONNECTION (not provider-wide)
@@ -991,24 +1138,49 @@ export async function GET(request: NextRequest) {
       const adminMarkedViewed = c.adminOverride?.status === "viewed";
       const adminMarkedConnected = c.adminOverride?.status === "connected";
 
+      // Only count lead_opened if provider has claimed their account
+      // Unclaimed providers can view leads via magic link but shouldn't be in "Viewed" tab
+      // because they haven't committed to the platform yet
+      const providerIsClaimed = c.provider.isAccountClaimed === true;
+      const effectiveLeadOpened = providerIsClaimed && (eng?.lead_opened ?? false);
+
       const engagementData: EngagementData = {
         emailClicked: eng?.email_clicked ?? false,
-        leadOpened: eng?.lead_opened ?? false,
+        leadOpened: effectiveLeadOpened,
         contactRevealed: eng?.contact_revealed ?? false,
         phoneClicked: eng?.phone_clicked ?? false,
         emailLinkClicked: eng?.email_link_clicked ?? false,
         continueInInbox: eng?.continue_in_inbox ?? false,
         providerMessaged: c.responded,
+        familyConfirmed: c.familyConfirmed,
         adminMarkedViewed,
         adminMarkedConnected,
         lastActivityAt: combinedLastActivity,
         needsCall: c.needsCall,
         // When Day 0 email was sent - providers who got email added later start fresh
         sequenceStartAt: c.sequenceStartAt,
+        // Email sequence progress for sequence-based escalation
+        followupStage: c.followupStage,
+        followupStoppedReason: c.followupStoppedReason,
       };
 
       const engResult = getEngagementLevel(engagementData, c.created_at, now);
       connectionEngagementLevels.set(c.id, engResult.level);
+
+      // Store badge data using the SAME computed values as engagement level
+      // This ensures badge displays match tab placement
+      // CRITICAL: lead_opened uses effectiveLeadOpened (respects providerIsClaimed check)
+      connectionBadgeData.set(c.id, {
+        email_clicked: eng?.email_clicked ?? false,
+        lead_opened: engagementData.leadOpened,  // Use effectiveLeadOpened, not raw eng.lead_opened
+        contact_revealed: eng?.contact_revealed ?? false,
+        phone_copied: eng?.phone_copied ?? false,
+        email_copied: eng?.email_copied ?? false,
+        phone_clicked: eng?.phone_clicked ?? false,
+        email_link_clicked: eng?.email_link_clicked ?? false,
+        continue_in_inbox: eng?.continue_in_inbox ?? false,
+        family_confirmed: c.familyConfirmed,
+      });
 
       // Calculate family engagement level for this connection
       const familyEngagementData: FamilyEngagementData = {
@@ -1031,14 +1203,10 @@ export async function GET(request: NextRequest) {
         workflowCounts[c.workflowState]++;
 
         // Count engagement levels (provider perspective)
-        // Declined archives go to "Declined" tab; corrupted archives go to "All" tab only
         const isDeclinedArchive = c.archived && c.archiveReason;
 
-        // "All" count: include everything except properly declined archives
-        // (corrupted archives appear in "All" tab so count them there)
-        if (!isDeclinedArchive) {
-          engagementCounts.all++;
-        }
+        // "All" count: include everything (all tabs combined)
+        engagementCounts.all++;
 
         // Determine email issue type FIRST (needed for engagement level counting)
         // Combines: no email, delivery failed, or invalid email
@@ -1047,39 +1215,119 @@ export async function GET(request: NextRequest) {
 
         if (!providerEmail) {
           emailIssueType = "no_email";
+        } else if (trustedEmailSet.has(providerEmail.toLowerCase())) {
+          // Admin-trusted override (email_overrides). Mirror send-side semantics:
+          // bypass BOTH the verification verdict and the delivery-failure
+          // heuristics so the provider stays out of needs_email/delivery_issues
+          // after a manual override. Leave emailIssueType null.
+          emailIssueType = null;
         } else if (connectionsWithDeliveryFailure.has(c.id)) {
+          // Connection-specific email failed
           emailIssueType = "failed";
-        } else if (invalidEmailSet.has(providerEmail)) {
-          emailIssueType = "invalid";
+        } else {
+          // Check recipient-level failures (catches emails without connection_id like cron reminders)
+          const recipientKey = providerEmail.toLowerCase();
+          const recipientHasFailure = recipientsWithDeliveryFailure.has(recipientKey);
+          const recipientHasSuccess = recipientsWithSuccessfulDelivery.has(recipientKey);
+          const connectionHasSuccess = connectionsWithSuccessfulDelivery.has(c.id);
+
+          if (recipientHasFailure && !recipientHasSuccess && !connectionHasSuccess) {
+            // Recipient's most recent email failed, and no recent success at any level
+            emailIssueType = "failed";
+          } else if (invalidEmailSet.has(recipientKey) && !connectionHasSuccess && !recipientHasSuccess) {
+            // Only mark as "invalid" if ZeroBounce says invalid AND recent emails aren't working
+            // If recent emails were delivered/opened/clicked, the email is clearly working
+            // (ZeroBounce verification may be stale or was a false positive)
+            // NOTE: Uses recipientKey (lowercase) for case-insensitive matching
+            emailIssueType = "invalid";
+          }
         }
 
         // Store the issue type on the connection for filtering/display
         (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType = emailIssueType;
 
-        // Engagement level counts (new, viewed, connected, needs_follow_up):
-        // Exclude ALL archived - matches list filtering which uses !c.archived
-        // CRITICAL: Exclude connections with email issues - they go to "Needs Email" tab exclusively
-        if (!c.archived && !emailIssueType) {
+        // Surface whether the current email is on the human-trust allowlist so the
+        // UI can show a "Trusted" state (the override stuck) instead of a warning.
+        (c as typeof c & { emailTrusted: boolean }).emailTrusted =
+          !!providerEmail && trustedEmailSet.has(providerEmail.toLowerCase());
+
+        // Archive classification:
+        // - "Archived" tab: admin-archived provider OR connection archived without provider decline reason
+        //   OR provider inactive (deleted account, removed, etc.)
+        // - "Declined" tab: provider explicitly declined (has decline reason like "not_a_fit")
+        const isAdminArchived = c.isProviderArchived;
+
+        // Connection-level archive without provider decline reason = admin archived on leads page
+        // Connection-level archive WITH provider decline reason = provider declined in their portal
+        const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+        const isProviderDeclined = c.archived && !!c.archiveReason;
+
+        // Archived tab: provider-level OR connection-level admin archive OR provider inactive
+        const belongsToArchivedTab = isAdminArchived || isConnectionArchivedByAdmin || c.isProviderInactive;
+
+        // Count archived connections (both provider-level and connection-level admin archives)
+        if (belongsToArchivedTab) {
+          engagementCounts.archived++;
+        }
+        // Engagement level counts (awaiting, viewed, connected, needs_follow_up):
+        // Exclude all archived types, declined, and admin_not_interested - they go to their own tabs
+        //
+        // ENGAGEMENT PRIORITY: If provider has VIEWED or CONNECTED, they go to engagement tab
+        // even if they have email issues. Providers can come in through different channels
+        // (magic links, direct login, etc.) - once engaged, email status is secondary.
+        //
+        // Only "Needs Email" for connections with email issues AND no engagement (awaiting/needs_follow_up)
+        const isAdminNotInterested = c.adminOverride?.status === "not_interested";
+        const hasProviderEngagement = engResult.level === "viewed" || engResult.level === "connected";
+        const emailIssueButEngaged = emailIssueType && hasProviderEngagement;
+        const isProviderClaimed = c.provider.isAccountClaimed === true;
+
+        // Delivery Issues is a "quarantine" - ALL connections with failed/invalid emails go there
+        // regardless of engagement level or claimed status. Once fixed, they return to their journey.
+        const hasDeliveryIssue = emailIssueType === "failed" || emailIssueType === "invalid";
+
+        // Count in engagement tab if: not archived/inactive AND no delivery issue AND one of:
+        // - No email issue at all, OR
+        // - Has no_email but is claimed (can't add email, stays in engagement), OR
+        // - Has no_email but is engaged (already connected somehow)
+        const hasNoEmailIssue = emailIssueType === "no_email";
+        const noEmailButClaimed = hasNoEmailIssue && isProviderClaimed;
+        const noEmailButEngaged = hasNoEmailIssue && hasProviderEngagement;
+        if (!belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested && !hasDeliveryIssue && (!emailIssueType || noEmailButClaimed || noEmailButEngaged)) {
           engagementCounts[engResult.level]++;
         }
 
-        // Only count non-archived connections in needs_email (consistent with other tabs)
-        // Archived/declined leads shouldn't appear in "Needs Email" - they go to "Declined" tab
-        if (emailIssueType && !c.archived) {
+        // Count in Delivery Issues if: failed/invalid email (regardless of engagement or claimed)
+        // This is the single place to fix ALL email delivery problems
+        if (hasDeliveryIssue && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
+          engagementCounts.delivery_issues++;
+        }
+
+        // Count in Needs Email if: no_email AND unclaimed AND not engaged
+        // (Claimed providers with no_email stay in engagement tabs since we can't add email)
+        // (Engaged providers with no_email stay in engagement tabs since they're reachable somehow)
+        if (hasNoEmailIssue && !isProviderClaimed && !hasProviderEngagement && !belongsToArchivedTab && !isProviderDeclined && !isAdminNotInterested) {
           engagementCounts.needs_email++;
         }
 
-        // Count declined (provider archived with decline reasons)
-        if (isDeclinedArchive) {
+        // Count declined (provider explicitly declined with reason)
+        // Exclude admin-archived and inactive - they go to "Archived" tab exclusively
+        if (isProviderDeclined && !isAdminArchived && !c.isProviderInactive) {
           engagementCounts.declined++;
         }
 
-        // Count family engagement levels
-        // Exclude declined archives from "all" count (consistent with provider perspective)
-        if (!isDeclinedArchive) {
-          familyEngagementCounts.all++;
+        // Count admin "not interested" (soft rejection by admin)
+        // These are NOT archived, just have admin_override with status "not_interested"
+        // Exclude provider-level archived and inactive - those stay in "Archived" tab
+        if (c.adminOverride?.status === "not_interested" && !c.isProviderArchived && !c.isProviderInactive) {
+          engagementCounts.admin_not_interested++;
         }
-        familyEngagementCounts[familyEngResult.level]++;
+
+        // Count family engagement levels (exclude archived/inactive - they don't appear in family tabs)
+        if (!belongsToArchivedTab && !isProviderDeclined) {
+          familyEngagementCounts.all++;
+          familyEngagementCounts[familyEngResult.level]++;
+        }
 
         // Funnel stats (based on provider engagement)
         // Viewed = opened lead drawer
@@ -1087,6 +1335,11 @@ export async function GET(request: NextRequest) {
         // Count as responded if provider sent a message
         if (c.responded) respondedCount++;
         if (c.familyRepliedAfterProvider) connectedCount++;
+        // Provider action counts (per-connection)
+        if (eng?.phone_copied || eng?.phone_clicked) copiedPhoneCount++;
+        if (eng?.email_copied || eng?.email_link_clicked) copiedEmailCount++;
+        // Declined = provider explicitly declined (has archive reason, not admin-archived)
+        if (isProviderDeclined && !isAdminArchived) declinedCount++;
       }
     }
 
@@ -1102,55 +1355,107 @@ export async function GET(request: NextRequest) {
       connectedRate: totalActive > 0 ? Math.round((connectedCount / totalActive) * 100) : 0,
     };
 
-    // Provider action breakdown - rates as percentage of viewed
+    // Provider action breakdown - per-connection counts, rates as percentage of viewed
+    // Uses connection-level metrics (not raw events) for consistency with Connection Funnel
     const providerActions: ProviderActions = {
-      viewed: actionViewedCount,
-      copiedPhone: actionCopiedPhoneCount,
-      copiedEmail: actionCopiedEmailCount,
-      clickedPhone: actionCopiedPhoneCount, // Same as copied (simplified)
-      clickedEmail: actionCopiedEmailCount, // Same as copied (simplified)
-      continuedToInbox: 0, // No longer tracked
-      copiedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
-      copiedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
-      clickedPhoneRate: actionViewedCount > 0 ? Math.round((actionCopiedPhoneCount / actionViewedCount) * 100) : 0,
-      clickedEmailRate: actionViewedCount > 0 ? Math.round((actionCopiedEmailCount / actionViewedCount) * 100) : 0,
-      continuedToInboxRate: 0, // No longer tracked
+      viewed: providerViewedCount,
+      copiedPhone: copiedPhoneCount,
+      copiedEmail: copiedEmailCount,
+      messaged: respondedCount, // Actual messages sent, not just "clicked inbox"
+      declined: declinedCount, // Provider explicitly declined the lead
+      copiedPhoneRate: providerViewedCount > 0 ? Math.round((copiedPhoneCount / providerViewedCount) * 100) : 0,
+      copiedEmailRate: providerViewedCount > 0 ? Math.round((copiedEmailCount / providerViewedCount) * 100) : 0,
+      messagedRate: providerViewedCount > 0 ? Math.round((respondedCount / providerViewedCount) * 100) : 0,
+      declinedRate: providerViewedCount > 0 ? Math.round((declinedCount / providerViewedCount) * 100) : 0,
     };
+
+    // Early return for count_only mode — skip filtering/pagination, just return counts
+    if (countOnly) {
+      return NextResponse.json({
+        total: engagementCounts.all,
+        engagementCounts,
+        familyEngagementCounts,
+        funnelStats,
+        providerActions,
+      });
+    }
 
     // Filtering by workflow state or engagement level
     let list = searched.filter(c => c.workflowState !== null); // Exclude inactive providers
 
-    // For "all" tab: exclude archived connections (they go to "Declined" tab)
-    // Exception: Corrupted archives (archived=true but archiveReason=null) appear in "All" tab so admins can see/fix them
-    if (responseFilter === "all") {
-      list = list.filter(c => !c.archived || !c.archiveReason);
-    }
+    // "All" tab: no additional filtering - shows everything (all tabs combined)
 
     // Check if filter is an engagement level (provider or family)
-    const providerEngagementLevels: EngagementLevel[] = ["new", "viewed", "connected", "needs_follow_up"];
+    const providerEngagementLevels: EngagementLevel[] = ["awaiting", "viewed", "connected", "needs_follow_up"];
     const familyEngagementLevels: FamilyEngagementLevel[] = ["new", "awaiting", "connected", "stuck", "needs_call"];
 
     if (responseFilter !== "all") {
-      // Special filter: needs_email (provider perspective only)
-      // Combines: no email, delivery failed, or invalid email
-      // Exclude archived connections (they go to "Declined" tab)
-      if (responseFilter === "needs_email" && perspective === "provider") {
-        list = list.filter((c) => (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType !== null && !c.archived);
-      }
-      // Special filter: declined (provider archived with decline reasons)
-      else if (responseFilter === "declined" && perspective === "provider") {
+      // Special filter: archived
+      // Shows: provider-level admin-archived OR connection-level admin-archived (from leads page)
+      // OR provider inactive (deleted account, removed, etc.)
+      // Connection archived WITHOUT reason = admin archived on leads page
+      // Connection archived WITH reason = provider declined (goes to Declined tab instead)
+      if (responseFilter === "archived" && perspective === "provider") {
         list = list.filter((c) => {
-          // Provider archived with a decline reason
-          // BUT: exclude if admin manually verified as connected (admin override > provider archive)
-          return c.archived &&
-                 c.archiveReason &&
-                 c.adminOverride?.status !== "connected";
+          const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+          return c.isProviderArchived || isConnectionArchivedByAdmin || c.isProviderInactive;
         });
+      }
+      // Special filter: needs_email (provider perspective only)
+      // Only providers with NO email on file
+      // Exclude if provider has ENGAGED (viewed/connected) - they go to engagement tab
+      // Exclude CLAIMED providers - we can't change their email anyway (it's locked)
+      else if (responseFilter === "needs_email" && perspective === "provider") {
+        list = list.filter((c) => {
+          const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+          const isProviderDeclined = c.archived && !!c.archiveReason;
+          const isAdminNotInterested = c.adminOverride?.status === "not_interested";
+          const engLevel = connectionEngagementLevels.get(c.id);
+          const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
+          const isProviderClaimed = c.provider.isAccountClaimed === true;
+          const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+          return emailIssue === "no_email" &&
+            !hasProviderEngagement &&
+            !isProviderClaimed &&
+            !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
+        });
+      }
+      // Special filter: delivery_issues (provider perspective only)
+      // ALL connections with failed/invalid email go here - regardless of engagement or claimed status
+      // This is the single "quarantine" to fix email problems. Once fixed, they return to their journey.
+      else if (responseFilter === "delivery_issues" && perspective === "provider") {
+        list = list.filter((c) => {
+          const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+          const isProviderDeclined = c.archived && !!c.archiveReason;
+          const isAdminNotInterested = c.adminOverride?.status === "not_interested";
+          const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+          // failed or invalid - includes ALL providers regardless of engagement or claimed status
+          return (emailIssue === "failed" || emailIssue === "invalid") &&
+            !c.isProviderArchived && !c.isProviderInactive && !isConnectionArchivedByAdmin && !isProviderDeclined && !isAdminNotInterested;
+        });
+      }
+      // Special filter: declined (provider explicitly declined with reason)
+      // Exclude admin-archived providers and inactive providers (they go to "Archived" tab)
+      else if (responseFilter === "declined" && perspective === "provider") {
+        list = list.filter((c) => c.archived && c.archiveReason && !c.isProviderArchived && !c.isProviderInactive);
+      }
+      // Special filter: admin_not_interested (admin marked as not interested - soft rejection)
+      // These are NOT archived, provider can still see/engage with the lead
+      // Exclude provider-level archived and inactive providers - those stay in "Archived" tab
+      else if (responseFilter === "admin_not_interested" && perspective === "provider") {
+        list = list.filter((c) => c.adminOverride?.status === "not_interested" && !c.isProviderArchived && !c.isProviderInactive);
       } else if (perspective === "family") {
         // Family perspective - filter by family engagement level
+        // Exclude inactive/archived providers - these are dead connections
         const isFamilyEngagementFilter = familyEngagementLevels.includes(responseFilter as FamilyEngagementLevel);
         if (isFamilyEngagementFilter) {
-          list = list.filter((c) => connectionFamilyEngagementLevels.get(c.id) === responseFilter);
+          list = list.filter((c) => {
+            const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+            return connectionFamilyEngagementLevels.get(c.id) === responseFilter &&
+              !c.isProviderArchived &&
+              !c.isProviderInactive &&
+              !isConnectionArchivedByAdmin;
+          });
         } else {
           // Filter by workflow state (legacy)
           list = list.filter((c) => c.workflowState === responseFilter);
@@ -1159,14 +1464,36 @@ export async function GET(request: NextRequest) {
         // Provider perspective - filter by provider engagement level
         const isEngagementFilter = providerEngagementLevels.includes(responseFilter as EngagementLevel);
         if (isEngagementFilter) {
-          // All engagement-level tabs (new, viewed, connected, needs_follow_up):
-          // - Exclude archived (those go to "Declined" tab)
-          // - Exclude connections with email issues (those go to "Needs Email" tab exclusively)
-          list = list.filter((c) =>
-            connectionEngagementLevels.get(c.id) === responseFilter &&
-            !c.archived &&
-            !(c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType
-          );
+          // All engagement-level tabs (awaiting, viewed, connected, needs_follow_up):
+          // - Exclude all archived types (provider-level, connection-level admin, provider declined)
+          // - Exclude admin "not interested" (they have their own tab)
+          // - Exclude failed/invalid emails → they go to Delivery Issues (quarantine)
+          //
+          // Connections with no_email stay here if claimed or engaged (can't fix, but reachable)
+          list = list.filter((c) => {
+            const isConnectionArchivedByAdmin = c.archived && !c.archiveReason;
+            const isProviderDeclined = c.archived && !!c.archiveReason;
+            const isAdminNotInterested = c.adminOverride?.status === "not_interested";
+            const engLevel = connectionEngagementLevels.get(c.id);
+            const hasProviderEngagement = engLevel === "viewed" || engLevel === "connected";
+            const emailIssue = (c as typeof c & { emailIssueType: EmailIssueType }).emailIssueType;
+            const isProviderClaimed = c.provider.isAccountClaimed === true;
+
+            // Delivery issues (failed/invalid) go to Delivery Issues tab - exclude them here
+            const hasDeliveryIssue = emailIssue === "failed" || emailIssue === "invalid";
+            // no_email is okay if claimed or engaged (can't fix, but connection exists)
+            const hasNoEmailIssue = emailIssue === "no_email";
+            const noEmailButOk = hasNoEmailIssue && (isProviderClaimed || hasProviderEngagement);
+
+            return engLevel === responseFilter &&
+              !c.isProviderArchived &&
+              !c.isProviderInactive &&
+              !isConnectionArchivedByAdmin &&
+              !isProviderDeclined &&
+              !isAdminNotInterested &&
+              !hasDeliveryIssue &&
+              (!emailIssue || noEmailButOk);
+          });
         } else {
           // Filter by workflow state (legacy)
           list = list.filter((c) => c.workflowState === responseFilter);
@@ -1176,6 +1503,7 @@ export async function GET(request: NextRequest) {
 
     // Sort by most recent first
     // For "declined" tab: sort by archive date (most recently declined first)
+    // For "needs_email" tab: untagged first, then tagged (both groups sorted by date)
     // For other tabs: sort by creation date (most recent inquiry first)
     list.sort((a, b) => {
       if (responseFilter === "declined") {
@@ -1185,6 +1513,16 @@ export async function GET(request: NextRequest) {
         const aTime = aDate && !isNaN(aDate.getTime()) ? aDate.getTime() : 0;
         const bTime = bDate && !isNaN(bDate.getTime()) ? bDate.getTime() : 0;
         return bTime - aTime; // Most recently archived first
+      } else if (responseFilter === "needs_email") {
+        // For Needs Email: untagged connections first, tagged sink to bottom
+        // Within each group, sort by date (most recent first)
+        const aTagged = a.noContactFound ? 1 : 0;
+        const bTagged = b.noContactFound ? 1 : 0;
+        if (aTagged !== bTagged) return aTagged - bTagged; // Untagged (0) before tagged (1)
+        // Same tag status: sort by date
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime; // Most recent first
       } else {
         const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
         const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -1206,21 +1544,13 @@ export async function GET(request: NextRequest) {
     });
 
     // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
-    // This shows engagement specific to each connection, not aggregated across all provider's connections.
-    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean }> = {};
+    // Use pre-computed values from connectionBadgeData (computed during engagement level calculation)
+    // This ensures badge data matches tab placement - both use the same computed values
+    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean; family_confirmed: boolean }> = {};
     for (const c of pageRaw) {
-      const eng = connectionEngagement.get(c.id);
-      if (eng) {
-        engagement[c.id] = {
-          email_clicked: eng.email_clicked,
-          lead_opened: eng.lead_opened,
-          contact_revealed: eng.contact_revealed,
-          phone_copied: eng.phone_copied,
-          email_copied: eng.email_copied,
-          phone_clicked: eng.phone_clicked,
-          email_link_clicked: eng.email_link_clicked,
-          continue_in_inbox: eng.continue_in_inbox,
-        };
+      const badge = connectionBadgeData.get(c.id);
+      if (badge) {
+        engagement[c.id] = badge;
       }
     }
 

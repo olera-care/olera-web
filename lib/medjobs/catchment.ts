@@ -21,6 +21,16 @@ import {
 import { getServiceClient } from "@/lib/admin";
 import { getClientStatus, type ProviderMetadata } from "@/lib/medjobs/clients";
 
+// Stable sort sentinel for providers whose olera-providers.created_at is
+// null (common for bulk-imported directory rows). A wall-clock fallback
+// (new Date()) is recomputed on every request, so those prospects
+// re-timestamp on each silent refresh and shuffle to the top of the
+// created_at-desc Prospects sort — opening any card triggers a refresh,
+// which made the whole list reorder in the background. The epoch sentinel
+// is deterministic: unknown-age providers sort to the bottom in a stable
+// order and never churn.
+const UNKNOWN_CREATED_AT = new Date(0).toISOString();
+
 export type CampusStage =
   | "provider_prospecting"   // no client in catchment yet — work providers
   | "stakeholder_prospecting" // ≥1 client in catchment, but research_complete=false
@@ -193,7 +203,7 @@ export async function getProviderProspectsInCatchment(slug: string) {
       // Providers from olera-providers are not clients (no metadata)
       metadata: null as ProviderMetadata | null,
       is_active: true,
-      created_at: p.created_at ?? new Date().toISOString(),
+      created_at: p.created_at ?? UNKNOWN_CREATED_AT,
     }));
 }
 

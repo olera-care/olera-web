@@ -28,7 +28,6 @@ import {
 } from "@/lib/student-outreach/types";
 import {
   cleanOrgName,
-  formatDueDate,
   formatLongDate,
   formatRelative,
   formatShortRelative,
@@ -41,7 +40,6 @@ import type {
   TabKey,
 } from "@/lib/student-outreach/tab-config";
 import { STAGE_DISPLAY, type Stage } from "@/lib/medjobs/stage";
-import { smartleadInboxUrl } from "@/lib/medjobs/smartlead-inbox";
 
 // ── RowCard ──────────────────────────────────────────────────────────────
 
@@ -170,7 +168,10 @@ export function StakeholderCard({
   // card emerald so admin SEES where the work landed. Transitions
   // fade as the recentlyMoved flag clears.
   const movedBg = recentlyMoved ? "bg-primary-50" : "bg-white";
-  const cardClass = `cursor-pointer rounded-lg border ${borderClass} ${movedBg} px-4 py-3 transition-colors duration-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`;
+  // Transition ONLY the background (the recently-moved emerald flash fades
+  // gently). The unread border must flip instantly — animating it over
+  // 500ms is what made un-bolding a read card visibly "drag".
+  const cardClass = `cursor-pointer rounded-lg border ${borderClass} ${movedBg} px-4 py-3 transition-[background-color] duration-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500`;
   // Subtitle label: kind label (Provider / Advisor / etc.) — fallback
   // to the legacy stakeholder_type lookup if kind is missing on older
   // rows that haven't been hydrated yet.
@@ -413,9 +414,13 @@ export function PrimaryAction({
 export function OverflowMenu({
   items,
   onStopOutreach,
+  onArchive,
 }: {
   items: OverflowItem[];
   onStopOutreach: (reason: StopOutreachReason) => Promise<void>;
+  /** Whole-prospect Archive — rendered as its own item, separate from the
+   *  Stop-outreach picker. Omitted for already-archived rows. */
+  onArchive?: () => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const [showReasons, setShowReasons] = useState(false);
@@ -485,6 +490,11 @@ export function OverflowMenu({
                 </MenuItem>
               ))}
               {items.length > 0 && <div className="my-1 border-t border-gray-100" />}
+              {onArchive && (
+                <MenuItem onClick={() => { void onArchive(); close(); }}>
+                  Archive
+                </MenuItem>
+              )}
               <MenuItem onClick={() => setShowReasons(true)} danger>
                 Stop outreach…
               </MenuItem>
@@ -578,7 +588,13 @@ export function buildUniversalOverflow(cb: RowCardCallbacks): ReactNode {
   if (cb.onSeeLogHistory) {
     items.push({ label: "See log history", onClick: cb.onSeeLogHistory });
   }
-  return <OverflowMenu items={items} onStopOutreach={cb.onStopOutreach} />;
+  return (
+    <OverflowMenu
+      items={items}
+      onStopOutreach={cb.onStopOutreach}
+      onArchive={cb.onArchive}
+    />
+  );
 }
 
 export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): RowSlots {
@@ -595,11 +611,21 @@ export function buildRowSlots(tab: TabKey, row: TabRow, cb: RowCardCallbacks): R
   // v9 final: pill removed from row cards. The pill restated entity-
   // type / tab default (every Prospects row showed "Prospect", every
   // Replies row showed "In Outreach") without telling the admin what
-  // to do next. The footnote already carries action-oriented copy
-  // ("Ready to launch outreach", "Reply 2d ago", "Call due Tue 3pm")
-  // which is the better operational signal. StagePill export stays
-  // for use inside the drawer's NextStepCard / status headers, but
-  // row cards run without it.
+  // to do next. StagePill export stays for use inside the drawer's
+  // NextStepCard / status headers, but row cards run without it.
+  //
+  // v11: the third line is standardized to a single "Last activity" stamp
+  // across EVERY tab — one consistent line, one consistent card height. The
+  // per-tab footnote each slot builder computes above is intentionally
+  // overridden here; the richer status detail (next step, reply state,
+  // meeting time, closed reason) still lives in the drawer.
+  slots.footnote = (
+    <p className="mt-0.5 text-[11px] text-gray-400">
+      {row.last_activity_at
+        ? `Last activity ${formatRelative(row.last_activity_at)}`
+        : "No activity yet"}
+    </p>
+  );
   return slots;
 }
 
@@ -629,28 +655,13 @@ function researchSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
 }
 
 function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
-  // The Calls tab emits one TabRow per pending call task. Footnote primes the
-  // admin on the call's intent; the phone link dials; clicking the card opens
-  // the drawer (script + Interested / Not interested / Couldn't reach).
-  const cadenceDay = row.due_call_task?.cadence_day ?? null;
-  const purposeHint = purposeHintForCadenceDay(cadenceDay);
-  const footnoteLines: ReactNode[] = [];
-  if (purposeHint) {
-    footnoteLines.push(
-      <p key="purpose" className="mt-0.5 text-[11px] italic text-gray-500">
-        {purposeHint}
-      </p>,
-    );
-  }
-  if (row.due_call_task) {
-    footnoteLines.push(
-      <p key="due" className="text-[11px] text-gray-400">
-        {formatDueDate(row.due_call_task.due_at)}
-      </p>,
-    );
-  }
+  // The Calls tab emits one TabRow per pending call task. The card is kept
+  // deliberately minimal — org name, contact/site line, and the phone link.
+  // The due date lives in the section header (one section per calendar date),
+  // so no per-card cadence-day label or "in Nd" countdown is needed. The call
+  // script + Interested / Not interested / Couldn't reach live in the drawer.
   return {
-    footnote: footnoteLines.length > 0 ? <>{footnoteLines}</> : null,
+    footnote: null,
     headlineAccessory: row.primary_contact_phone ? (
       <a
         href={`tel:${row.primary_contact_phone}`}
@@ -663,22 +674,6 @@ function callsSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ) : undefined,
     overflowMenu: buildUniversalOverflow(cb),
   };
-}
-
-/** v10 Bullet 7: purpose hint by cadence day. The hint primes the admin
- *  on the call's intent without opening the drawer. Locked in the Pass A
- *  strategy depth output. */
-function purposeHintForCadenceDay(day: number | null): string | null {
-  switch (day) {
-    case 3:
-      return "\"Did you get our email Monday?\"";
-    case 5:
-      return "\"Anything I can help with? Want me to set up a quick call with Dr. DuBose?\"";
-    case 7:
-      return "\"Last touch — better person at your org to reach about caregiver hiring?\"";
-    default:
-      return null;
-  }
 }
 
 function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
@@ -700,13 +695,6 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
       <p className="mt-0.5 text-[11px] text-gray-500">{line}</p>
     ) : null;
   };
-  // v10 Bullet 9 (2026-06-04): Smartlead inbox deep-link as headline
-  // accessory. Opens the master inbox at this row's thread context so
-  // admin doesn't have to find the thread manually. Only shown when
-  // the row has Smartlead linkage (post-bridge enrollment). Reused
-  // across replies states (engaged / needs_followup / wants_meeting)
-  // where admin would want to read the actual thread before logging.
-  const inboxLink = renderSmartleadInboxLink(row.smartlead_linkage);
   switch (state) {
     case "mid_cadence":
       return {
@@ -716,13 +704,11 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     case "engaged":
       return {
         footnote: buildFootnote("Reply received — open to review"),
-        headlineAccessory: inboxLink,
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "wants_meeting":
       return {
         footnote: buildFootnote("Wants to meet"),
-        headlineAccessory: inboxLink,
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "booked":
@@ -739,7 +725,6 @@ function repliesSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
         footnote: row.followup_notes ? (
           <ExpandableNote text={row.followup_notes} />
         ) : buildFootnote("Meeting completed — follow-up needed"),
-        headlineAccessory: inboxLink,
         overflowMenu: buildUniversalOverflow(cb),
       };
     case "awaiting_callback": {
@@ -824,40 +809,6 @@ function allSlots(row: TabRow, cb: RowCardCallbacks): RowSlots {
     ) : null,
     overflowMenu: buildUniversalOverflow(cb),
   };
-}
-
-// ── v10 Bullet 9 (2026-06-04): Smartlead inbox deep-link ──────────────────
-
-/**
- * "Reply via Smartlead inbox →" deep-link button. Reads the row's
- * smartlead_linkage (written by the queue endpoint from research_data.
- * smartlead.{lead_id, campaign_id}) and constructs an `app.smartlead.ai`
- * master-inbox URL scoped to the thread.
- *
- * Fallback: when lead_id is missing (legacy row pre-bridge), the link
- * points at the master inbox root and the admin finds the thread
- * manually. Better than no affordance at all.
- *
- * Verify the URL convention live during Bullet 9 build (logged in
- * plans/medjobs-known-issues.md).
- */
-function renderSmartleadInboxLink(
-  linkage: TabRow["smartlead_linkage"],
-): ReactNode {
-  const url = smartleadInboxUrl(linkage);
-  if (!url) return null;
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(e) => e.stopPropagation()}
-      title="Open this thread in the Smartlead master inbox to read or reply."
-      className="shrink-0 rounded-md border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-700 hover:bg-gray-50"
-    >
-      ↗ Smartlead inbox
-    </a>
-  );
 }
 
 // Inbox URL construction lives in lib/medjobs/smartlead-inbox.ts so the

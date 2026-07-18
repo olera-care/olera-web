@@ -1,0 +1,401 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+
+/**
+ * POST /api/admin/providers/[id]/archive
+ *
+ * Archives or unarchives a provider at the admin level.
+ * When archived:
+ * - All their connections appear in "Archived" tab
+ * - No emails sent to them (followup sequences, nudges, digests)
+ * - New leads automatically go to Archived tab
+ * - Family still gets their emails
+ * - Provider profile stays live for SEO
+ *
+ * Body: { action: "archive" | "unarchive", reason?: string, notes?: string }
+ * Returns: { success, provider_id, admin_archived, connections_affected }
+ */
+
+const VALID_ARCHIVE_REASONS = [
+  "provider_requested_no_emails",
+  "inactive",
+  "inactive_multiple_attempts",
+  "uninterested_provider",
+  "fax_only",
+  "duplicate",
+  "out_of_business",
+  "invalid_provider",
+  "wrong_contact_info",
+  "relocated",
+  "compliance_issue",
+  "merged",
+  "other",
+] as const;
+
+const VALID_UNARCHIVE_REASONS = [
+  "archived_in_error",
+  "provider_now_interested",
+  "provider_now_wants_contact",
+  "business_confirmed_operating",
+  "provider_verified_valid",
+  "not_a_duplicate",
+  "provider_existence_verified",
+  "provider_now_responsive",
+  "email_obtained",
+  "new_contact_info_obtained",
+  "compliance_resolved",
+  "not_merged",
+  "other",
+] as const;
+
+type ArchiveReason = (typeof VALID_ARCHIVE_REASONS)[number];
+type UnarchiveReason = (typeof VALID_UNARCHIVE_REASONS)[number];
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Admin auth check
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const admin = await getAdminUser(user.id);
+    if (!admin) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const { id: providerId } = await params;
+
+    if (!providerId) {
+      return NextResponse.json(
+        { error: "Provider ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Parse body
+    let body: { action?: string; reason?: string; notes?: string };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const { action, reason, notes } = body;
+
+    if (action !== "archive" && action !== "unarchive") {
+      return NextResponse.json(
+        { error: "action must be 'archive' or 'unarchive'" },
+        { status: 400 }
+      );
+    }
+
+    const db = getServiceClient();
+
+    // Fetch provider's business_profiles row
+    const { data: provider, error: fetchError } = await db
+      .from("business_profiles")
+      .select("id, display_name, metadata")
+      .eq("id", providerId)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("[archive-provider] Fetch error:", fetchError);
+      return NextResponse.json(
+        { error: "Failed to fetch provider" },
+        { status: 500 }
+      );
+    }
+
+    if (!provider) {
+      return NextResponse.json(
+        { error: "Provider not found" },
+        { status: 404 }
+      );
+    }
+
+    const meta = (provider.metadata as Record<string, unknown>) ?? {};
+    const now = new Date().toISOString();
+
+    if (action === "archive") {
+      // Validate reason is provided
+      if (!reason) {
+        return NextResponse.json(
+          { error: "Reason is required for archiving" },
+          { status: 400 }
+        );
+      }
+
+      if (!VALID_ARCHIVE_REASONS.includes(reason as ArchiveReason)) {
+        return NextResponse.json(
+          { error: `Invalid reason. Must be one of: ${VALID_ARCHIVE_REASONS.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      // Require notes for "other" reason
+      if (reason === "other" && !notes?.trim()) {
+        return NextResponse.json(
+          { error: "Notes are required when reason is 'other'" },
+          { status: 400 }
+        );
+      }
+
+      // Update provider metadata
+      const updatedMeta = {
+        ...meta,
+        admin_archived: true,
+        admin_archived_at: now,
+        admin_archived_by: user.email,
+        admin_archived_reason: reason,
+        admin_archived_notes: notes?.trim() || null,
+      };
+
+      const { error: updateError } = await db
+        .from("business_profiles")
+        .update({ metadata: updatedMeta, updated_at: now })
+        .eq("id", providerId);
+
+      if (updateError) {
+        console.error("[archive-provider] Update error:", updateError);
+        return NextResponse.json(
+          { error: "Failed to archive provider" },
+          { status: 500 }
+        );
+      }
+
+      // Stop all active followup sequences for this provider's connections
+      // Find all connections where this provider is to_profile_id
+      const { data: connections, error: connectionsError } = await db
+        .from("connections")
+        .select("id, metadata")
+        .eq("to_profile_id", providerId)
+        .eq("type", "inquiry");
+
+      if (connectionsError) {
+        console.error("[archive-provider] Connections fetch error:", connectionsError);
+        // Non-fatal - provider is archived, connections can be updated later
+      }
+
+      let connectionsAffected = 0;
+
+      if (connections && connections.length > 0) {
+        for (const conn of connections) {
+          const connMeta = (conn.metadata as Record<string, unknown>) ?? {};
+
+          // Only stop sequences that aren't already stopped
+          if (!connMeta.followup_stopped_at) {
+            const updatedConnMeta = {
+              ...connMeta,
+              followup_stopped_at: now,
+              followup_stopped_reason: "provider_admin_archived",
+            };
+
+            const { error: connUpdateError } = await db
+              .from("connections")
+              .update({ metadata: updatedConnMeta })
+              .eq("id", conn.id);
+
+            if (connUpdateError) {
+              console.error(
+                `[archive-provider] Failed to stop sequence for connection ${conn.id}:`,
+                connUpdateError
+              );
+            } else {
+              connectionsAffected++;
+            }
+          }
+        }
+      }
+
+      console.log(
+        `[archive-provider] Archived provider ${providerId} (${provider.display_name}), stopped ${connectionsAffected} followup sequences`
+      );
+
+      return NextResponse.json({
+        success: true,
+        provider_id: providerId,
+        provider_name: provider.display_name,
+        admin_archived: true,
+        connections_affected: connectionsAffected,
+        archived_at: now,
+        archived_by: user.email,
+        reason,
+        notes: notes?.trim() || null,
+      });
+    } else {
+      // Unarchive - validate reason is provided
+      if (!reason) {
+        return NextResponse.json(
+          { error: "Reason is required for unarchiving" },
+          { status: 400 }
+        );
+      }
+
+      if (!VALID_UNARCHIVE_REASONS.includes(reason as UnarchiveReason)) {
+        return NextResponse.json(
+          { error: `Invalid reason. Must be one of: ${VALID_UNARCHIVE_REASONS.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      // Require notes for "other" reason
+      if (reason === "other" && !notes?.trim()) {
+        return NextResponse.json(
+          { error: "Notes are required when reason is 'other'" },
+          { status: 400 }
+        );
+      }
+
+      const updatedMeta = { ...meta };
+      delete updatedMeta.admin_archived;
+      delete updatedMeta.admin_archived_at;
+      delete updatedMeta.admin_archived_by;
+      delete updatedMeta.admin_archived_reason;
+      delete updatedMeta.admin_archived_notes;
+      // Add unarchive tracking
+      updatedMeta.admin_unarchived_at = now;
+      updatedMeta.admin_unarchived_by = user.email;
+      updatedMeta.admin_unarchived_reason = reason;
+      updatedMeta.admin_unarchived_notes = notes?.trim() || null;
+
+      const { error: updateError } = await db
+        .from("business_profiles")
+        .update({ metadata: updatedMeta, updated_at: now })
+        .eq("id", providerId);
+
+      if (updateError) {
+        console.error("[archive-provider] Unarchive error:", updateError);
+        return NextResponse.json(
+          { error: "Failed to unarchive provider" },
+          { status: 500 }
+        );
+      }
+
+      // Also remove from archived_question_providers to sync with Questions page
+      // Get provider slug and source_provider_id for variant lookup
+      const { data: providerFull } = await db
+        .from("business_profiles")
+        .select("slug, source_provider_id")
+        .eq("id", providerId)
+        .maybeSingle();
+
+      if (providerFull) {
+        const variantSet = new Set<string>([providerId]);
+        if (providerFull.slug) variantSet.add(providerFull.slug);
+        if (providerFull.source_provider_id) variantSet.add(providerFull.source_provider_id);
+        const variants = Array.from(variantSet);
+
+        const { error: deleteError } = await db
+          .from("archived_question_providers")
+          .delete()
+          .in("provider_id", variants);
+
+        if (deleteError) {
+          console.error("[archive-provider] Failed to remove from archived_question_providers:", deleteError);
+          // Non-fatal - provider is unarchived, Q&A sync can be fixed manually
+        } else {
+          console.log(`[archive-provider] Removed ${variants.join(", ")} from archived_question_providers`);
+        }
+      }
+
+      // Clear the followup_stopped_reason for connections that were stopped due to archiving
+      // This allows sequences to potentially resume
+      const { data: connections, error: connectionsError } = await db
+        .from("connections")
+        .select("id, metadata")
+        .eq("to_profile_id", providerId)
+        .eq("type", "inquiry");
+
+      if (connectionsError) {
+        console.error("[archive-provider] Connections fetch error:", connectionsError);
+      }
+
+      let connectionsAffected = 0;
+
+      if (connections && connections.length > 0) {
+        for (const conn of connections) {
+          const connMeta = (conn.metadata as Record<string, unknown>) ?? {};
+
+          // Only clear if stopped due to admin archiving
+          if (connMeta.followup_stopped_reason === "provider_admin_archived") {
+            const updatedConnMeta = { ...connMeta };
+            delete updatedConnMeta.followup_stopped_at;
+            delete updatedConnMeta.followup_stopped_reason;
+
+            const { error: connUpdateError } = await db
+              .from("connections")
+              .update({ metadata: updatedConnMeta })
+              .eq("id", conn.id);
+
+            if (connUpdateError) {
+              console.error(
+                `[archive-provider] Failed to clear stop for connection ${conn.id}:`,
+                connUpdateError
+              );
+            } else {
+              connectionsAffected++;
+            }
+          }
+        }
+      }
+
+      // Sync with Provider Outreach: update tracking to "not_contacted" if archived there
+      // This ensures bidirectional sync - unarchiving from Connections also unarchives from Provider Outreach
+      const oleraProviderId = providerFull?.source_provider_id;
+      let outreachSynced = false;
+
+      if (oleraProviderId) {
+        const { data: trackingRow } = await db
+          .from("provider_outreach_tracking")
+          .select("id, stage")
+          .eq("provider_id", oleraProviderId)
+          .maybeSingle();
+
+        if (trackingRow && (trackingRow.stage === "archived" || trackingRow.stage === "not_interested")) {
+          const { error: trackingUpdateErr } = await db
+            .from("provider_outreach_tracking")
+            .update({
+              stage: "not_contacted",
+              stage_changed_at: now,
+              notes: `${reason}${notes?.trim() ? ` - ${notes.trim()}` : ""} (unarchived from Connections)`
+            })
+            .eq("id", trackingRow.id);
+
+          if (trackingUpdateErr) {
+            console.error("[archive-provider] Failed to update provider_outreach_tracking:", trackingUpdateErr);
+          } else {
+            outreachSynced = true;
+            console.log(`[archive-provider] Updated provider_outreach_tracking for ${oleraProviderId} to not_contacted`);
+          }
+        }
+      }
+
+      console.log(
+        `[archive-provider] Unarchived provider ${providerId} (${provider.display_name}), resumed ${connectionsAffected} followup sequences${outreachSynced ? ", synced to Provider Outreach" : ""}`
+      );
+
+      return NextResponse.json({
+        success: true,
+        provider_id: providerId,
+        provider_name: provider.display_name,
+        admin_archived: false,
+        connections_affected: connectionsAffected,
+        outreach_synced: outreachSynced,
+        unarchived_at: now,
+        unarchived_by: user.email,
+        reason,
+        notes: notes?.trim() || null,
+      });
+    }
+  } catch (err) {
+    console.error("[archive-provider] Fatal error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

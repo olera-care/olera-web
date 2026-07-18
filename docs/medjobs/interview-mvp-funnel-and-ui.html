@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedJobs Interview-Scheduling MVP — Funnel & UI Sketches</title>
+<style>
+  :root{
+    --ink:#1f2328; --muted:#6b7280; --line:#c7ccd1; --bg:#f6f7f8;
+    --accent:#199087; --amber:#b78103; --red:#c0392b; --paper:#fff;
+    --soft:#eef1f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45;padding:32px 18px 80px}
+  .wrap{max-width:1100px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:20px;margin:44px 0 6px;border-bottom:2px solid var(--ink);padding-bottom:6px}
+  h3{font-size:15px;margin:22px 0 10px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  p.lede{color:var(--muted);margin:0 0 8px;max-width:760px}
+  .pill{display:inline-block;border:1px solid var(--line);background:var(--paper);border-radius:999px;
+    padding:2px 10px;font-size:12px;color:var(--muted);margin-right:6px}
+  .terminal{border-color:var(--accent);color:var(--accent);font-weight:600}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 8px}
+
+  /* funnel */
+  .funnel{display:grid;grid-template-columns:1fr 70px 1fr;gap:0;align-items:start;margin-top:18px}
+  .col{display:flex;flex-direction:column;gap:0}
+  .colhead{font-weight:700;text-align:center;padding:8px;border:2px solid var(--ink);background:var(--paper);border-radius:10px;margin-bottom:6px}
+  .stage{position:relative;border:1.5px dashed var(--line);background:var(--paper);border-radius:12px;
+    padding:10px 12px;margin:0 6px 0;width:auto}
+  .stage .num{position:absolute;left:-10px;top:-10px;width:24px;height:24px;border-radius:50%;
+    background:var(--ink);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .stage b{display:block;font-size:14px}
+  .stage .surface{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--accent);margin-top:2px;word-break:break-all}
+  .stage .conv{font-size:12px;color:var(--muted);margin-top:4px}
+  .stage .risk{font-size:12px;color:var(--red);margin-top:3px}
+  .arrow{height:18px;display:flex;align-items:center;justify-content:center;color:var(--line)}
+  .arrow::after{content:"▼";font-size:12px}
+  .spineCol{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:120px}
+  .converge{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--muted);letter-spacing:.06em}
+  .mergebox{border:2px solid var(--accent);background:#eaf6f4;border-radius:14px;padding:14px 16px;text-align:center;margin:18px auto 0;max-width:680px}
+  .mergebox b{color:var(--accent);font-size:15px}
+  .mergebox .surface{font-family:ui-monospace,monospace;font-size:11px;color:var(--accent)}
+  .termbox{border:2.5px solid var(--accent);background:var(--accent);color:#fff;border-radius:14px;padding:14px 16px;text-align:center;margin:14px auto 0;max-width:680px}
+  .deferred{border:1.5px dashed var(--line);background:repeating-linear-gradient(45deg,#fafafa,#fafafa 8px,#f1f1f1 8px,#f1f1f1 16px);
+    border-radius:12px;padding:12px 16px;margin:14px auto 0;max-width:680px;color:var(--muted);text-align:center}
+
+  table.metrics{border-collapse:collapse;width:100%;margin-top:10px;background:var(--paper)}
+  table.metrics th,table.metrics td{border:1px solid var(--line);padding:8px 10px;font-size:13px;text-align:left;vertical-align:top}
+  table.metrics th{background:var(--soft)}
+
+  /* wireframes */
+  .frames{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px;margin-top:14px}
+  .frame{border:2px solid var(--ink);border-radius:14px;background:var(--paper);overflow:hidden;display:flex;flex-direction:column}
+  .frame .cap{background:var(--ink);color:#fff;font-size:12px;padding:6px 12px;display:flex;justify-content:space-between;align-items:center}
+  .frame .cap .route{font-family:ui-monospace,monospace;opacity:.85;font-size:11px}
+  .frame .body{padding:14px;flex:1}
+  .wf-row{display:flex;gap:8px;margin-bottom:8px}
+  .box{border:1.5px dashed var(--line);border-radius:8px;background:#fcfcfc}
+  .avatar{width:42px;height:42px;border-radius:50%;border:1.5px dashed var(--line);background:#f0f0f0;flex:none;
+    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px}
+  .line{height:9px;border-radius:5px;background:#e9ebec}
+  .line.sm{height:7px}
+  .line.w40{width:40%}.line.w60{width:60%}.line.w80{width:80%}.line.w100{width:100%}.line.w25{width:25%}
+  .btn{display:inline-block;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:600;text-align:center}
+  .btn.primary{background:var(--ink);color:#fff}
+  .btn.accent{background:var(--accent);color:#fff}
+  .btn.ghost{border:1.5px solid var(--line);color:var(--muted);background:#fff}
+  .btn.full{display:block;width:100%}
+  .card{border:1.5px dashed var(--line);border-radius:10px;padding:10px;background:#fcfcfc}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .cell{aspect-ratio:1/1;border:1px solid #e3e6e8;border-radius:5px;font-size:9px;color:var(--muted);padding:3px;position:relative}
+  .chip{font-size:8px;border-radius:3px;padding:1px 3px;margin-top:2px;display:block;overflow:hidden}
+  .chip.c{background:#d6f0ec;color:#0c6f66}
+  .chip.p{background:#fbecc8;color:#8a6400}
+  .tag{display:inline-block;font-size:10px;border-radius:999px;padding:1px 8px;border:1px solid var(--line);color:var(--muted)}
+  .tag.amber{background:#fbecc8;border-color:#e7cf93;color:#8a6400}
+  .tag.green{background:#d6f0ec;border-color:#a9ddd5;color:#0c6f66}
+  .pillbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .pillbtn{border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;font-size:11px;color:var(--muted)}
+  .pillbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .email{border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+  .email .ehead{background:#f3f4f5;padding:8px 10px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line)}
+  .email .ebody{padding:12px}
+  .ics{border:1.5px solid var(--accent);border-radius:8px;background:#eaf6f4;padding:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:#0c6f66}
+  .ann{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic}
+  .hidden-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .hidden-card{border:1.5px dashed var(--line);border-radius:10px;padding:10px 12px;background:repeating-linear-gradient(45deg,#fafafa,#fafafa 8px,#f1f1f1 8px,#f1f1f1 16px);min-width:200px}
+  .hidden-card b{display:block;font-size:13px;text-decoration:line-through;color:var(--muted)}
+  .hidden-card span{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace}
+  .note{border-left:3px solid var(--amber);background:#fdf6e3;padding:8px 12px;font-size:13px;margin-top:12px;border-radius:0 8px 8px 0}
+  @media(max-width:760px){.funnel{grid-template-columns:1fr}.spineCol{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>MedJobs — Interview-Scheduling MVP</h1>
+  <p class="lede">Funnel analysis + low-fidelity UI sketches for alignment. Scope: standardize on the existing
+  (Gen&nbsp;1) interview-scheduling system, open the loop (no paywall) for MVP, and hide the post-job / inbox (Gen&nbsp;2) surfaces.</p>
+  <div class="legend">
+    <span class="pill terminal">Terminal state = confirmed interview + calendar invite (.ics) on BOTH calendars</span>
+    <span class="pill">Deferred: offer→placement→hire, CRM reconciliation</span>
+  </div>
+
+  <h2>Part 1 — Funnel Analysis</h2>
+  <p class="lede">Two funnels (provider acquisition is admin-CRM-fed; both sides self-serve from sign-in onward)
+  converging on one shared object — the <code>interviews</code> table. The terminal-positive event is a
+  <b>confirmed</b> interview, which fires dual calendar invites.</p>
+
+  <div class="funnel">
+    <!-- PROVIDER -->
+    <div class="col">
+      <div class="colhead">PROVIDER funnel</div>
+      <div class="stage"><span class="num">1</span><b>Reached / lands</b>
+        <span class="surface">outreach CRM (cold) · /for-providers</span>
+        <span class="conv">▸ conv: arrives at MedJobs</span></div>
+      <div class="arrow"></div>
+      <div class="stage"><span class="num">2</span><b>Sign in / claim profile</b>
+        <span class="surface">Supabase auth · magic link</span>
+        <span class="conv">▸ conv: authenticated org profile</span></div>
+      <div class="arrow"></div>
+      <div class="stage"><span class="num">3</span><b>Browse candidates</b>
+        <span class="surface">/medjobs/candidates</span>
+        <span class="conv">▸ conv: opens a candidate</span></div>
+      <div class="arrow"></div>
+      <div class="stage"><span class="num">4</span><b>Schedule interview (CTA)</b>
+        <span class="surface">ScheduleInterviewModal</span>
+        <span class="conv">▸ conv: interview <i>proposed</i></span>
+        <span class="risk">friction: T&C capture gap · (paywall removed for MVP)</span></div>
+    </div>
+
+    <!-- SPINE -->
+    <div class="spineCol">
+      <div class="converge">converge → interviews table</div>
+    </div>
+
+    <!-- STUDENT -->
+    <div class="col">
+      <div class="colhead">STUDENT funnel</div>
+      <div class="stage"><span class="num">A</span><b>Reached (campus distribution)</b>
+        <span class="surface">partner channels · /medjobs/families</span>
+        <span class="conv">▸ conv: lands on board</span></div>
+      <div class="arrow"></div>
+      <div class="stage"><span class="num">B</span><b>Eligibility screener → account</b>
+        <span class="surface">StudentEligibilityModal · OTP</span>
+        <span class="conv">▸ conv: student profile created</span></div>
+      <div class="arrow"></div>
+      <div class="stage"><span class="num">C</span><b>Build profile → discoverable</b>
+        <span class="surface">/portal/medjobs · candidates/[slug]</span>
+        <span class="conv">▸ conv: profile complete</span>
+        <span class="risk">friction: two browse entries (families vs jobs)</span></div>
+      <div class="arrow"></div>
+      <div class="stage"><span class="num">D</span><b>Request interview / receive invite</b>
+        <span class="surface">ScheduleInterviewModal · email</span>
+        <span class="conv">▸ conv: interview <i>proposed</i></span></div>
+    </div>
+  </div>
+
+  <div class="mergebox">
+    <b>⇣ CONVERGENCE — <code>interviews</code> row (status: proposed)</b><br>
+    <span class="surface">POST /api/medjobs/interviews — bidirectional · emails the other party (interviewProposedEmail)</span>
+  </div>
+  <div class="arrow"></div>
+  <div class="mergebox" style="background:#fff8e8;border-color:#e7cf93">
+    <b style="color:#8a6400">Other party reviews → Confirm / Decline / propose alt time</b><br>
+    <span class="surface" style="color:#8a6400">PATCH /api/medjobs/interviews · InterviewCalendar detail modal</span>
+  </div>
+  <div class="arrow"></div>
+  <div class="termbox">
+    ★ TERMINAL (MVP) — status: <b>confirmed</b><br>
+    <span style="font-size:12px;opacity:.9">.ics calendar invite emailed to BOTH · appears on both InterviewCalendars (interviewConfirmedEmail)</span>
+  </div>
+  <div class="arrow"></div>
+  <div class="deferred">
+    ▼ DEFERRED (post-MVP): Offer to hire → Placement accept (placements / InternshipAgreementModal) →
+    hire tracking → CRM reconciliation (write-back to make_client / Partner Prospects)
+  </div>
+
+  <h3>Metrics to instrument (loop health)</h3>
+  <table class="metrics">
+    <tr><th>Step</th><th>Event</th><th>Why it matters</th></tr>
+    <tr><td>Provider 3→4</td><td>candidate_viewed → interview_proposed</td><td>Is browse converting to outreach?</td></tr>
+    <tr><td>Student B→C</td><td>screener_started → profile_complete</td><td>Supply readiness / discoverability</td></tr>
+    <tr><td>Converge→Terminal</td><td><b>proposed → confirmed rate</b></td><td><b>The core loop-health metric</b></td></tr>
+    <tr><td>Terminal</td><td>ics_sent (both) / calendar_added</td><td>Did the invite actually land?</td></tr>
+  </table>
+
+  <div class="note"><b>Open friction question for MVP:</b> Gen 1 also holds an interview as
+  <code>is_pending_verification</code> until the provider verifies — the student isn't notified until then.
+  "Open the loop" could also mean bypassing this hold so the student is notified immediately. Flagging so we decide it explicitly.</div>
+
+  <h2>Part 2 — UI Sketches</h2>
+  <p class="lede">Low-fidelity wireframes of every surface in the MVP loop. These reflect the existing Gen 1
+  components (hardened + consolidated), not new designs.</p>
+
+  <div class="frames">
+
+    <!-- 1. Provider browse candidates -->
+    <div class="frame">
+      <div class="cap"><span>① Provider · Browse candidates</span><span class="route">/medjobs/candidates</span></div>
+      <div class="body">
+        <div class="wf-row"><div class="line w40" style="height:14px"></div></div>
+        <div class="pillbtns" style="margin-bottom:10px">
+          <span class="pillbtn on">All</span><span class="pillbtn">Pre-Med</span><span class="pillbtn">Nursing</span><span class="pillbtn">Near campus</span>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="wf-row"><div class="avatar">img</div><div style="flex:1"><div class="line w80"></div><div class="line sm w60" style="margin-top:5px"></div></div></div>
+            <div class="line sm w100" style="margin-top:8px"></div>
+            <div class="line sm w60" style="margin-top:5px"></div>
+            <div class="btn accent full" style="margin-top:10px">Schedule interview</div>
+          </div>
+          <div class="card">
+            <div class="wf-row"><div class="avatar">img</div><div style="flex:1"><div class="line w80"></div><div class="line sm w40" style="margin-top:5px"></div></div></div>
+            <div class="line sm w100" style="margin-top:8px"></div>
+            <div class="line sm w60" style="margin-top:5px"></div>
+            <div class="btn accent full" style="margin-top:10px">Schedule interview</div>
+          </div>
+        </div>
+        <div class="ann">Single CTA. The old "Post a Job" button on candidate detail is replaced by this.</div>
+      </div>
+    </div>
+
+    <!-- 2. ScheduleInterviewModal -->
+    <div class="frame">
+      <div class="cap"><span>② Schedule interview (modal)</span><span class="route">ScheduleInterviewModal</span></div>
+      <div class="body">
+        <div class="line w60" style="height:13px;margin-bottom:3px"></div>
+        <div class="ann" style="margin-top:0">"Schedule an interview" (provider) / "Request an interview" (student)</div>
+        <h3 style="margin:12px 0 6px">Format</h3>
+        <div class="pillbtns"><span class="pillbtn on">Video</span><span class="pillbtn">Phone</span><span class="pillbtn">In person</span></div>
+        <div class="grid2" style="margin-top:12px">
+          <div><div class="line sm w40" style="margin-bottom:5px"></div><div class="box" style="height:38px"></div><div class="ann" style="margin-top:3px">Date ▾</div></div>
+          <div><div class="line sm w40" style="margin-bottom:5px"></div><div class="box" style="height:38px"></div><div class="ann" style="margin-top:3px">Time ▾</div></div>
+        </div>
+        <div class="ann" style="margin-top:10px">＋ Offer another time (alt slot)</div>
+        <div class="line sm w40" style="margin:12px 0 5px"></div>
+        <div class="box" style="height:42px"></div><div class="ann" style="margin-top:3px">Notes (optional)</div>
+        <div class="btn primary full" style="margin-top:14px">Invite ▸ / Request interview ▸</div>
+      </div>
+    </div>
+
+    <!-- 3. Email proposed -->
+    <div class="frame">
+      <div class="cap"><span>③ Email · interview proposed</span><span class="route">interviewProposedEmail</span></div>
+      <div class="body">
+        <div class="email">
+          <div class="ehead">Subject: Interview request from [Name]</div>
+          <div class="ebody">
+            <div class="line w80"></div><div class="line sm w100" style="margin-top:8px"></div>
+            <div class="card" style="margin-top:10px">
+              <div class="line sm w60"></div>
+              <div class="line sm w40" style="margin-top:6px"></div>
+              <div class="line sm w40" style="margin-top:6px"></div>
+            </div>
+            <div class="btn accent full" style="margin-top:12px">View &amp; respond</div>
+            <div class="ann">Student → portal link · Provider → magic-link auto-sign-in</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Provider interview calendar + detail -->
+    <div class="frame">
+      <div class="cap"><span>④ Provider · Interviews calendar</span><span class="route">/provider/caregivers</span></div>
+      <div class="body">
+        <div class="wf-row" style="justify-content:space-between;align-items:center">
+          <div class="line w40" style="height:12px"></div><span class="tag">‹ June 2026 ›</span>
+        </div>
+        <div class="grid7" style="margin-top:8px">
+          <div class="cell">9</div><div class="cell">10</div>
+          <div class="cell">11<span class="chip p">2p · pend</span></div>
+          <div class="cell">12</div>
+          <div class="cell">13<span class="chip c">3p · conf</span></div>
+          <div class="cell">14</div><div class="cell">15</div>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <div class="wf-row"><div class="avatar">img</div><div style="flex:1">
+            <div class="line w60"></div><span class="tag amber" style="margin-top:6px">Pending</span></div></div>
+          <div class="line sm w80" style="margin-top:8px"></div>
+          <div class="grid2" style="margin-top:10px">
+            <div class="btn accent">Confirm interview</div><div class="btn ghost">Decline</div>
+          </div>
+          <div class="ann">Detail modal. Confirm → fires .ics to both. (Offer-to-hire shown only post-confirm; deferred.)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Email confirmed + ics -->
+    <div class="frame">
+      <div class="cap"><span>⑤ Email · confirmed (both parties)</span><span class="route">interviewConfirmedEmail</span></div>
+      <div class="body">
+        <div class="email">
+          <div class="ehead">Subject: Interview confirmed with [Name]</div>
+          <div class="ebody">
+            <div class="line w80"></div>
+            <div class="card" style="margin-top:10px">
+              <div class="line sm w60"></div><div class="line sm w40" style="margin-top:6px"></div>
+              <div class="line sm w40" style="margin-top:6px"></div>
+            </div>
+            <div class="ics" style="margin-top:12px">📅 interview.ics — add to calendar (organizer + attendee)</div>
+            <div class="btn accent full" style="margin-top:12px">View details</div>
+            <div class="ann">★ This is the terminal deliverable — both sides get the same .ics.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Student interview calendar -->
+    <div class="frame">
+      <div class="cap"><span>⑥ Student · Interviews calendar</span><span class="route">/portal/medjobs/interviews</span></div>
+      <div class="body">
+        <div class="wf-row" style="justify-content:space-between;align-items:center">
+          <div class="line w40" style="height:12px"></div><span class="tag">‹ June 2026 ›</span>
+        </div>
+        <div class="grid7" style="margin-top:8px">
+          <div class="cell">9</div><div class="cell">10</div><div class="cell">11</div>
+          <div class="cell">12<span class="chip p">2p · pend</span></div>
+          <div class="cell">13<span class="chip c">3p · conf</span></div>
+          <div class="cell">14</div><div class="cell">15</div>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <div class="wf-row"><div class="avatar">org</div><div style="flex:1">
+            <div class="line w60"></div><span class="tag green" style="margin-top:6px">Confirmed</span></div></div>
+          <div class="line sm w80" style="margin-top:8px"></div>
+          <div class="ann">Received invites: Confirm / Decline. Student-initiated: shows as pending until provider confirms.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <h3>Hidden in MVP (feature-flagged off, code retained)</h3>
+  <div class="hidden-list">
+    <div class="hidden-card"><b>Post a Job</b><span>JobPostingBuilder · /medjobs/jobs</span></div>
+    <div class="hidden-card"><b>Hire board</b><span>HireCaregiversBoard · /provider/medjobs/candidates</span></div>
+    <div class="hidden-card"><b>Inbox</b><span>/medjobs/inbox · connections table</span></div>
+  </div>
+
+</div>
+</body>
+</html>

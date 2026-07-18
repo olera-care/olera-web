@@ -7,6 +7,13 @@ import {
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
+import { shouldIndexBenefitsProgram } from "@/lib/benefits/program-content-quality";
+import {
+  countActiveProviders,
+  getActiveProviderGeoByCategory,
+  getActiveProvidersForSitemapShard,
+  getActiveClaimedProviderSlugs,
+} from "@/lib/providers";
 
 const SITE_URL = "https://olera.care";
 
@@ -52,12 +59,7 @@ export async function generateSitemaps() {
     const supabase = await getSupabaseClient();
     if (!supabase) return [{ id: 0 }];
 
-    const { count } = await supabase
-      .from("olera-providers")
-      .select("provider_id", { count: "exact", head: true })
-      .or("deleted.is.null,deleted.eq.false");
-
-    const providerCount = count ?? 0;
+    const providerCount = await countActiveProviders(supabase);
     const providerShards = Math.ceil(providerCount / PROVIDER_BATCH_SIZE);
 
     return Array.from({ length: 1 + providerShards }, (_, i) => ({ id: i }));
@@ -121,6 +123,7 @@ export default async function sitemap({
           // would emit 404s for any state whose legacy IDs don't match pipeline IDs.
           const drafts = pipelineDrafts[state.abbreviation]?.programs || [];
           for (const draft of drafts) {
+            if (!shouldIndexBenefitsProgram(draft)) continue;
             const programUrl = `/benefits/${state.id}/${draft.id}`;
             entries.push({
               url: `${SITE_URL}${programUrl}`,
@@ -172,13 +175,10 @@ export default async function sitemap({
               priority: 0.8,
             });
 
-            const { data: geoCombos } = await supabase
-              .from("olera-providers")
-              .select("state, city")
-              .eq("provider_category", cat.dbValue)
-              .or("deleted.is.null,deleted.eq.false")
-              .not("state", "is", null)
-              .not("city", "is", null);
+            const geoCombos = await getActiveProviderGeoByCategory(
+              supabase,
+              cat.dbValue
+            );
 
             if (geoCombos) {
               const stateSet = new Set<string>();
@@ -227,68 +227,43 @@ export default async function sitemap({
     if (supabase) {
       // Honest <lastmod>: emit when the provider's description was last
       // (re)written (migration 082's description_updated_at), falling back to
-      // cleansed_at / created_at. The migration may not be applied yet on every
-      // environment (the DB has no migration tracker; cf. hero_image_url in 003)
-      // — probe once and degrade to the minimal select + a coarse lastmod if the
-      // freshness columns aren't there.
-      let providerSelect = "provider_id, slug, description_updated_at, cleansed_at, created_at";
-      {
-        const probe = await supabase.from("olera-providers").select(providerSelect).limit(1);
-        if (probe.error) providerSelect = "provider_id, slug";
-      }
+      // cleansed_at / created_at. The freshness-column probe + degrade lives in
+      // the front-door reader.
       const lastmodOf = (p: Record<string, any>): Date => {
         const ts = (p.description_updated_at || p.cleansed_at || p.created_at) as string | undefined;
         return ts ? new Date(ts) : new Date();
       };
 
-      // Paginate in batches of 1000 (Supabase default row limit)
-      const PAGE_SIZE = 1_000;
       const shardStart = providerShard * PROVIDER_BATCH_SIZE;
-      let fetched = 0;
-      while (fetched < PROVIDER_BATCH_SIZE) {
-        const from = shardStart + fetched;
-        const to = from + PAGE_SIZE - 1;
-        const { data } = await supabase
-          .from("olera-providers")
-          .select(providerSelect)
-          .or("deleted.is.null,deleted.eq.false")
-          .range(from, to);
-        const providers = data as Array<Record<string, any>> | null;
-        if (!providers || providers.length === 0) break;
-        for (const provider of providers) {
-          entries.push({
-            url: `${SITE_URL}/provider/${provider.slug || provider.provider_id}`,
-            lastModified: lastmodOf(provider),
-            changeFrequency: "weekly",
-            priority: 0.7,
-          });
-        }
-        if (providers.length < PAGE_SIZE) break;
-        fetched += providers.length;
+      const providers = await getActiveProvidersForSitemapShard(
+        supabase,
+        shardStart,
+        PROVIDER_BATCH_SIZE
+      );
+      for (const provider of providers) {
+        entries.push({
+          url: `${SITE_URL}/provider/${provider.slug || provider.provider_id}`,
+          lastModified: lastmodOf(provider),
+          changeFrequency: "weekly",
+          priority: 0.7,
+        });
       }
 
       // Include claimed business_profiles in first provider shard only
       if (providerShard === 0) {
         try {
-          const { data: claimedProfiles } = await supabase
-            .from("business_profiles")
-            .select("slug")
-            .in("type", ["organization", "caregiver"])
-            .eq("is_active", true);
-
-          if (claimedProfiles) {
-            const existingSlugs = new Set(
-              entries.map((e) => e.url.split("/provider/")[1])
-            );
-            for (const profile of claimedProfiles) {
-              if (!existingSlugs.has(profile.slug)) {
-                entries.push({
-                  url: `${SITE_URL}/provider/${profile.slug}`,
-                  lastModified: new Date(),
-                  changeFrequency: "weekly",
-                  priority: 0.7,
-                });
-              }
+          const claimedSlugs = await getActiveClaimedProviderSlugs(supabase);
+          const existingSlugs = new Set(
+            entries.map((e) => e.url.split("/provider/")[1])
+          );
+          for (const slug of claimedSlugs) {
+            if (!existingSlugs.has(slug as string)) {
+              entries.push({
+                url: `${SITE_URL}/provider/${slug}`,
+                lastModified: new Date(),
+                changeFrequency: "weekly",
+                priority: 0.7,
+              });
             }
           }
         } catch (err) {

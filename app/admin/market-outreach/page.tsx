@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useToast } from "@/components/admin/Toast";
 
 type OutreachStatus = "to_contact" | "contacted" | "responded" | "referring" | "dismissed";
 type QueueStage = "all" | "not_started" | "started" | "momentum" | "stale";
@@ -128,6 +129,50 @@ export default function AdminMarketOutreachPage() {
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<QueueStage>("all");
   const [search, setSearch] = useState("");
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const toast = useToast();
+
+  const handleDelete = async (provider: QueueProvider) => {
+    const profileId = provider.profile_id ?? provider.key;
+    if (!confirm(`Remove all outreach data for "${provider.name}"?\n\nThis will delete their outreach records and market view history.`)) {
+      return;
+    }
+
+    setDeleting(profileId);
+    try {
+      const res = await fetch("/api/admin/market-outreach", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_id: profileId }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Failed to delete");
+      }
+      // Remove from local state and recalculate totals
+      setData((prev) => {
+        if (!prev) return prev;
+        const providers = prev.providers.filter((p) => p.key !== provider.key);
+        return {
+          ...prev,
+          providers,
+          totals: {
+            viewed: providers.filter((p) => !!p.viewed_at).length,
+            not_started: providers.filter((p) => p.stage === "not_started").length,
+            started: providers.filter((p) => p.stage === "started").length,
+            momentum: providers.filter((p) => p.stage === "momentum").length,
+            stale: providers.filter((p) => p.stage === "stale").length,
+            worked: providers.filter((p) => p.worked_targets > 0).length,
+            referring: providers.filter((p) => p.status_counts.referring > 0).length,
+          },
+        };
+      });
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Failed to delete", { variant: "error" });
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -177,9 +222,9 @@ export default function AdminMarketOutreachPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Market Outreach Queue</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Referrals</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Providers who saw Your Market, worked referral targets, or need an operator nudge.
+          Providers who saw Growth, worked referral targets, or need an operator nudge.
         </p>
       </div>
 
@@ -190,7 +235,7 @@ export default function AdminMarketOutreachPage() {
       )}
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatCard label="Viewed market" value={loading ? "-" : data?.totals.viewed ?? 0} />
+        <StatCard label="Viewed growth" value={loading ? "-" : data?.totals.viewed ?? 0} />
         <StatCard label="Not started" value={loading ? "-" : data?.totals.not_started ?? 0} tone="amber" />
         <StatCard label="Started" value={loading ? "-" : data?.totals.started ?? 0} tone="blue" />
         <StatCard label="Responded/referring" value={loading ? "-" : data?.totals.momentum ?? 0} tone="emerald" />
@@ -235,7 +280,7 @@ export default function AdminMarketOutreachPage() {
           <div className="p-8 text-center text-gray-400">Loading...</div>
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">
-            {search || stage !== "all" ? "No providers match this queue filter" : "No market outreach activity yet"}
+            {search || stage !== "all" ? "No providers match this queue filter" : "No growth outreach activity yet"}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -288,7 +333,7 @@ export default function AdminMarketOutreachPage() {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">Viewed market, no target work yet</span>
+                          <span className="text-xs text-gray-400">Viewed growth, no target work yet</span>
                         )}
                       </td>
                       <td className="px-4 py-4 text-right text-xs text-gray-500">
@@ -306,8 +351,16 @@ export default function AdminMarketOutreachPage() {
                             Outreach activity
                           </Link>
                           <Link href={viewedHref} className="text-xs font-medium text-gray-600 hover:text-gray-900">
-                            Market views
+                            Growth views
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(provider)}
+                            disabled={deleting === (provider.profile_id ?? provider.key)}
+                            className="text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
+                          >
+                            {deleting === (provider.profile_id ?? provider.key) ? "Removing..." : "Remove"}
+                          </button>
                         </div>
                       </td>
                     </tr>

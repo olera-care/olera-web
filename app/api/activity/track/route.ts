@@ -31,8 +31,26 @@ const PROVIDER_EVENT_TYPES = [
   "matches_card_clicked",     // Provider clicks a family card
   "matches_message_generated", // Provider clicks AI generate button
   "matches_outreach_sent",    // Provider sends outreach message
-  "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw "Your Market"
+  "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw the managed-ads pitch
   "market_outreach_status_updated", // Provider updated a referral target in "Your Market"
+  // Managed Ads funnel + Your Market (migration 105)
+  "managed_ads_pitch_viewed",  // Provider saw a managed-ads pitch surface
+  "managed_ads_cta_clicked",   // Provider tapped a CTA toward /provider/boost
+  "managed_ads_boost_viewed",  // Provider viewed the managed-ads page
+  "managed_ads_step_viewed",   // Provider reached a step in the apply flow (metadata.step, migration 130)
+  "managed_ads_requested",     // Provider submitted a managed-ads campaign request
+  "your_market_viewed",        // Provider viewed the Your Market diagnostic
+  "your_market_playbook_clicked", // Provider tapped a Your Market playbook step
+  // Review SMS demand signal
+  "review_no_email_signal",    // Provider clicked "I only have their phone number" on reviews
+  // Ad pitch touchpoint tracking (separate from managed_ads funnel)
+  "ads_touchpoint_viewed",     // Provider saw an ad pitch touchpoint (nudge/banner)
+  "ads_touchpoint_clicked",    // Provider clicked a touchpoint CTA
+  "ads_touchpoint_dismissed",  // Provider dismissed a touchpoint
+  // Mobile nav variant A/B test
+  "mobile_nav_variant_impression", // Provider mobile nav rendered with variant
+  "nav_families_clicked",          // Provider clicked Find Families (mobile nav)
+  "nav_hire_clicked",              // Provider clicked Hire Caregivers (mobile nav)
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -52,6 +70,7 @@ const FAMILY_EVENT_TYPES = [
   "outreach_request_submitted",
   "qa_email_capture_impression",
   "question_email_enriched",
+  "connection_outcome_reported", // Family one-click self-report: did the provider respond? (migration 115)
 ] as const;
 
 // Anonymous events are care-seeker-driven but lack a known profile_id.
@@ -76,6 +95,7 @@ const ANONYMOUS_EVENT_TYPES = [
   //   _save_all     — secondary save action (logged-in flow)
   "multi_provider_viewed",
   "multi_provider_card_shown",
+  "multi_provider_engaged",
   "multi_provider_asked",
   "multi_provider_skipped",
   "multi_provider_converted",
@@ -92,6 +112,11 @@ const ANONYMOUS_EVENT_TYPES = [
   // Go Live step (step 7) — profile publication from enrichment flow
   "enrichment_profile_published",  // User clicked "Go live" in enrichment flow
   "enrichment_go_live_skipped",    // User clicked "Maybe later" in enrichment flow
+  // Benefits enrichment events (3-step flow on program pages)
+  "benefits_enrichment_started",       // User entered benefits enrichment flow (after email submit)
+  "benefits_enrichment_step_completed", // User completed a specific step (metadata.step: 1-3)
+  "benefits_enrichment_step_skipped",  // User skipped a specific step
+  "benefits_enrichment_completed",     // User finished all 3 steps (answered or skipped)
 ] as const;
 
 function getServiceDb() {
@@ -107,6 +132,27 @@ function classifyUserAgent(ua: string | null): "mobile" | "tablet" | "desktop" |
   if (/Mobile|iPhone|Android/i.test(ua)) return "mobile";
   if (/Mozilla|Chrome|Safari|Firefox|Edg/i.test(ua)) return "desktop";
   return "other";
+}
+
+async function markEmailClicked(
+  db: NonNullable<ReturnType<typeof getServiceDb>>,
+  emailLogId: unknown,
+) {
+  if (typeof emailLogId !== "string" || !emailLogId) return;
+  try {
+    const clickedAt = new Date().toISOString();
+    await db
+      .from("email_log")
+      .update({
+        first_clicked_at: clickedAt,
+        last_event_type: "clicked",
+        last_event_at: clickedAt,
+      })
+      .eq("id", emailLogId)
+      .is("first_clicked_at", null);
+  } catch (err) {
+    console.error("[activity/track] Failed to stamp email click:", err);
+  }
 }
 
 /**
@@ -282,6 +328,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      if (event_type === "email_click") {
+        await markEmailClicked(db, email_log_id);
+      }
+
       // Send Slack alert for save nudge → signup conversions
       if (event_type === "save_nudge_converted") {
         try {
@@ -319,13 +369,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Enrich provider events with device classification
+    const userAgent = request.headers.get("user-agent");
+    const enrichedProviderMetadata = {
+      ...(metadata || {}),
+      ua_class: classifyUserAgent(userAgent),
+    };
+
     const { error } = await db.from("provider_activity").insert({
       provider_id,
       profile_id: profile_id || null,
       event_type,
       email_log_id: email_log_id || null,
       email_type: email_type || null,
-      metadata: metadata || {},
+      metadata: enrichedProviderMetadata,
     });
 
     if (error) {
@@ -334,6 +391,29 @@ export async function POST(request: NextRequest) {
         { error: "Failed to log activity" },
         { status: 500 }
       );
+    }
+
+    if (event_type === "email_click") {
+      await markEmailClicked(db, email_log_id);
+    }
+
+    // Auto-unarchive connection on provider engagement events
+    // Non-blocking: activity already logged, don't fail if unarchive fails
+    const UNARCHIVE_TRIGGER_EVENTS = ["lead_opened", "phone_clicked", "email_link_clicked", "continue_in_inbox"];
+    const meta = (metadata as Record<string, unknown>) || {};
+    const connectionId = meta.connection_id as string | undefined;
+
+    if (UNARCHIVE_TRIGGER_EVENTS.includes(event_type) && connectionId) {
+      try {
+        const { autoRestoreConnection } = await import("@/lib/connection-archive");
+        const result = await autoRestoreConnection(db, connectionId, event_type);
+        if (result.restored) {
+          console.log(`[activity/track] Auto-restored connection ${connectionId} on ${event_type} (${result.action})`);
+        }
+      } catch (err) {
+        // Non-critical - activity already logged
+        console.error("[activity/track] Auto-restore failed:", err);
+      }
     }
 
     // Send Slack alert for one-click token access (observability for PII exposure)
@@ -480,6 +560,120 @@ export async function POST(request: NextRequest) {
           city: (meta.city as string) || null,
           state: (meta.state as string) || null,
           email: (meta.email as string) || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // ── Managed Ads funnel + Your Market (migration 105) ──
+    // Provider display fields ride in metadata from the client (same pattern as
+    // market_diagnostic_viewed_no_leads). managed_ads_requested is NOT pinged
+    // here — the request route already fires slackAdBoostRequested; this event
+    // is only for the Activity Center.
+    if (event_type === "managed_ads_cta_clicked") {
+      try {
+        const meta = (metadata as Record<string, unknown>) || {};
+        // Hero-origin clicks already ping via slackHeroCtaClicked (provider_picker_clicked
+        // {source:hero}); skip the duplicate here. The event still records for the
+        // unified managed-ads funnel.
+        if (meta.source !== "hero") {
+          const { sendSlackAlert, slackManagedAdsCtaClicked } = await import("@/lib/slack");
+          const alert = slackManagedAdsCtaClicked({
+            providerName: (meta.provider_name as string) || provider_id,
+            providerSlug: provider_id,
+            source: (meta.source as string) || "unknown",
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        }
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    if (event_type === "managed_ads_boost_viewed") {
+      try {
+        const { sendSlackAlert, slackBoostViewed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackBoostViewed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          state: (meta.state as string) || "unknown",
+          completeness: typeof meta.completeness === "number" ? meta.completeness : null,
+          city: (meta.city as string) || null,
+          region: (meta.region as string) || null,
+          localDemand: typeof meta.local_demand === "number" ? meta.local_demand : null,
+          demandScope: (meta.demand_scope as string) || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    if (event_type === "your_market_viewed") {
+      try {
+        const { sendSlackAlert, slackYourMarketViewed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackYourMarketViewed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          covered: meta.covered === false ? false : true,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    if (event_type === "your_market_playbook_clicked") {
+      try {
+        const { sendSlackAlert, slackYourMarketPlaybookClicked } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackYourMarketPlaybookClicked({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          item: (meta.item as string) || "unknown",
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // 👀 Provider opened Find Families. Pinged on every visit (TJ's call —
+    // impressions matter at our scale; "showed up and bounced" is signal).
+    if (event_type === "matches_page_viewed") {
+      try {
+        const { sendSlackAlert, slackMatchesPageViewed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackMatchesPageViewed({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          tab: (meta.tab as string) || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // 📨 Provider sent outreach to a family — the Find Families conversion.
+    if (event_type === "matches_outreach_sent") {
+      try {
+        const { sendSlackAlert, slackMatchesOutreachSent } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, unknown>) || {};
+        const alert = slackMatchesOutreachSent({
+          providerName: (meta.provider_name as string) || provider_id,
+          providerSlug: provider_id,
+          city: (meta.city as string) || null,
+          state: (meta.state as string) || null,
+          usedAi: meta.used_ai === true,
         });
         await sendSlackAlert(alert.text, alert.blocks);
       } catch {

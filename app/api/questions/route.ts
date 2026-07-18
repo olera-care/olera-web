@@ -123,16 +123,118 @@ export async function POST(request: NextRequest) {
       askerUserId = null;
     }
 
+    // Q&A-scoped provider archive: if this provider was archived from the admin
+    // Questions queue, auto-archive the incoming question so it never enters the
+    // queue (and skip the provider notification below). Keyed by the literal
+    // provider_id submitted — see migration 114_archived_question_providers.sql.
+    const { data: qSuppression } = await db
+      .from("archived_question_providers")
+      .select("provider_id")
+      .eq("provider_id", provider_id)
+      .maybeSingle();
+    const providerQuestionsArchived = !!qSuppression;
+
+    // Check if provider is marked "not interested" (soft reject from admin).
+    // If any existing question for this provider has the flag, mark this one too.
+    // The question still enters the queue but goes to "Not Interested" tab.
+    let providerNotInterested = false;
+    if (!providerQuestionsArchived) {
+      const { data: existingMarked } = await db
+        .from("provider_questions")
+        .select("id")
+        .eq("provider_id", provider_id)
+        .contains("metadata", { provider_not_interested: true })
+        .limit(1);
+      providerNotInterested = (existingMarked?.length ?? 0) > 0;
+    }
+
+    // Resolve business_profile_id BEFORE inserting the question
+    // This ensures we have a proper foreign key reference for direct lookups
+    let businessProfileId: string | null = null;
+    try {
+      // Strategy 1: Direct slug match on business_profiles
+      const { data: bpBySlug } = await db
+        .from("business_profiles")
+        .select("id")
+        .eq("slug", provider_id)
+        .maybeSingle();
+      if (bpBySlug?.id) {
+        businessProfileId = bpBySlug.id;
+      } else {
+        // Strategy 2a: Via olera-providers.slug linkage (safe parameterized query)
+        let iosProviderId: string | null = null;
+        const { data: iosBySlug } = await db
+          .from("olera-providers")
+          .select("provider_id")
+          .eq("slug", provider_id)
+          .not("deleted", "is", true)
+          .maybeSingle();
+        if (iosBySlug?.provider_id) {
+          iosProviderId = iosBySlug.provider_id;
+        } else {
+          // Strategy 2b: Via olera-providers.provider_id (legacy alphanumeric IDs)
+          const { data: iosByProviderId } = await db
+            .from("olera-providers")
+            .select("provider_id")
+            .eq("provider_id", provider_id)
+            .not("deleted", "is", true)
+            .maybeSingle();
+          if (iosByProviderId?.provider_id) {
+            iosProviderId = iosByProviderId.provider_id;
+          }
+        }
+
+        // Strategy 3: Reverse-match auto-generated slugs
+        // For iOS providers with slug=NULL, the page generates a slug on-the-fly
+        // via generateProviderSlug(name, state). We need to find those matches.
+        if (!iosProviderId) {
+          const slugParts = provider_id.split("-");
+          const namePrefix = slugParts.slice(0, 3).join("-");
+          const { data: candidates } = await db
+            .from("olera-providers")
+            .select("provider_id, provider_name, state")
+            .not("deleted", "is", true)
+            .is("slug", null)
+            .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+            .limit(20);
+          if (candidates) {
+            for (const c of candidates) {
+              if (generateProviderSlug(c.provider_name, c.state) === provider_id) {
+                iosProviderId = c.provider_id;
+                break;
+              }
+            }
+          }
+        }
+
+        // Look up linked business_profile via source_provider_id
+        if (iosProviderId) {
+          const { data: linkedBp } = await db
+            .from("business_profiles")
+            .select("id")
+            .eq("source_provider_id", iosProviderId)
+            .maybeSingle();
+          if (linkedBp?.id) {
+            businessProfileId = linkedBp.id;
+          }
+        }
+      }
+    } catch (bpLookupErr) {
+      console.error("business_profile_id lookup failed (non-fatal):", bpLookupErr);
+    }
+
     const { data: newQuestion, error } = await db
       .from("provider_questions")
       .insert({
         provider_id,
+        business_profile_id: businessProfileId,
         question: question.trim(),
         asker_name: askerName,
         asker_email: askerEmail,
         asker_user_id: askerUserId,
-        status: "pending",
-        is_public: true,
+        status: providerQuestionsArchived ? "archived" : "pending",
+        is_public: !providerQuestionsArchived,
+        metadata: providerNotInterested ? { provider_not_interested: true } : null,
       })
       .select("id, question, asker_name, status, created_at")
       .single();
@@ -142,20 +244,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
 
-    // Log family engagement event (fire-and-forget, authenticated users only)
-    if (askerProfileId) {
-      db.from("seeker_activity").insert({
-        profile_id: askerProfileId,
-        event_type: "question_asked",
-        related_provider_id: provider_id,
-        metadata: {
-          question_id: newQuestion.id,
-          question_preview: question.trim().substring(0, 100),
-        },
-      }).then(({ error: actErr }: { error: { message: string } | null }) => {
-        if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
-      });
-    }
+    // Log family engagement event (fire-and-forget, ALL questions including
+    // guests). Guests have no profile yet, so profile_id is null — same pattern
+    // as other guest seeker_activity events (save_nudge_*, qa_email_capture_*).
+    // Gating this on askerProfileId previously dropped ~96% of asks (the vast
+    // majority are guests), making the admin "Asking questions" metric read ~0.
+    db.from("seeker_activity").insert({
+      profile_id: askerProfileId,
+      event_type: "question_asked",
+      related_provider_id: provider_id,
+      metadata: {
+        question_id: newQuestion.id,
+        question_preview: question.trim().substring(0, 100),
+        is_guest: !user,
+      },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
+    });
 
     // Log provider-side activity (fire-and-forget, ALL questions including guests)
     db.from("provider_activity").insert({
@@ -176,14 +281,14 @@ export async function POST(request: NextRequest) {
     // Provider detail pages generate ephemeral slugs via generateProviderSlug()
     // for iOS providers with slug=null, so the stored provider_id may not match
     // any persisted slug in either table.
-    let resolvedProvider: { id: string; display_name: string; email: string | null; slug: string | null; source_provider_id: string | null } | null = null;
+    let resolvedProvider: { id: string; display_name: string; email: string | null; slug: string | null; source_provider_id: string | null; metadata: Record<string, unknown> | null } | null = null;
     let resolvedIos: { provider_id: string; email: string | null; provider_name: string | null } | null = null;
 
     try {
       // Strategy 1: business_profiles by slug
       resolvedProvider = await db
         .from("business_profiles")
-        .select("id, display_name, email, slug, source_provider_id")
+        .select("id, display_name, email, slug, source_provider_id, metadata")
         .eq("slug", provider_id)
         .maybeSingle()
         .then(r => r.data);
@@ -234,7 +339,7 @@ export async function POST(request: NextRequest) {
         if (resolvedIos) {
           resolvedProvider = await db
             .from("business_profiles")
-            .select("id, display_name, email, slug, source_provider_id")
+            .select("id, display_name, email, slug, source_provider_id, metadata")
             .eq("source_provider_id", resolvedIos.provider_id)
             .maybeSingle()
             .then(r => r.data);
@@ -295,7 +400,11 @@ export async function POST(request: NextRequest) {
       const providerPageUrl = `${siteUrl}/provider/${provider_id}`;
 
       // 1. Email the provider about the new question (if they have an email)
-      if (pEmail) {
+      // Skip if provider is admin-archived, Q&A-archived, or marked "not interested" (no question emails sent).
+      const isProviderArchived =
+        resolvedProvider?.metadata?.admin_archived === true || providerQuestionsArchived;
+      const shouldSkipEmail = isProviderArchived || providerNotInterested;
+      if (pEmail && !shouldSkipEmail) {
         const providerSlug = resolvedProvider?.slug || provider_id;
         let providerUrl: string;
         try {
@@ -317,6 +426,16 @@ export async function POST(request: NextRequest) {
           question: question.trim(),
           variant: qaVariant,
         });
+
+        const qEmailLogId = await reserveEmailLogId({
+          to: pEmail,
+          subject: qaInbox.subject,
+          emailType: "question_received",
+          recipientType: "provider",
+          providerId: providerIdForLogs,
+          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
+        });
+
         const qSendResult = await sendEmail({
           to: pEmail,
           subject: qaInbox.subject,
@@ -324,7 +443,7 @@ export async function POST(request: NextRequest) {
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
-            providerUrl,
+            providerUrl: appendTrackingParams(providerUrl, qEmailLogId),
             providerSlug: provider_id,
             preheader: qaInbox.preheader,
           }),
@@ -332,6 +451,7 @@ export async function POST(request: NextRequest) {
           recipientType: 'provider',
           providerId: providerIdForLogs,
           recipientProfileId: providerIdForLogs,
+          emailLogId: qEmailLogId ?? undefined,
           metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
         // If the provider's on-file address is undeliverable, the send path
@@ -345,8 +465,10 @@ export async function POST(request: NextRequest) {
             .update({ metadata: { needs_provider_email: true, email_dead: true } })
             .eq("id", newQuestion.id);
         }
-      } else if (newQuestion?.id) {
-        // No provider email — flag for admin "Needs Email" tab
+      } else if (newQuestion?.id && !providerQuestionsArchived && !providerNotInterested) {
+        // No provider email — flag for admin "Needs Email" tab. Skipped for
+        // Q&A-archived providers and not-interested providers: their questions
+        // are intentionally out of the normal queue.
         await db
           .from("provider_questions")
           .update({ metadata: { needs_provider_email: true } })
@@ -685,7 +807,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "You can only edit your own questions" }, { status: 403 });
     }
 
-    if (existing.status === "answered" || existing.answer) {
+    if (existing.status === "answered" || existing.status === "approved" || existing.answer) {
       return NextResponse.json({ error: "Cannot edit a question that has been answered" }, { status: 400 });
     }
 

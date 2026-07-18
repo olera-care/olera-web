@@ -6,6 +6,13 @@ import {
   isProviderCategory,
   type ProviderCategoryKey,
 } from "@/lib/activity/provider-categories";
+import {
+  SEEKER_CATEGORIES,
+  SEEKER_ALL_EVENT_TYPES,
+  eventTypesForSeekerCategory,
+  isSeekerCategory,
+  type SeekerCategoryKey,
+} from "@/lib/activity/seeker-categories";
 
 // The Providers tab answers "what are providers DOING on the platform?" — so it
 // must show only events a provider's own session performed. The provider_activity
@@ -53,6 +60,17 @@ const PROVIDER_ACTION_EVENT_TYPES = [
   "matches_outreach_sent",
   "market_diagnostic_viewed_no_leads",
   "market_outreach_status_updated",
+  // Managed Ads funnel + Your Market (migration 105)
+  "managed_ads_pitch_viewed",
+  "managed_ads_cta_clicked",
+  "managed_ads_boost_viewed",
+  "managed_ads_requested",
+  "your_market_viewed",
+  "your_market_playbook_clicked",
+  // Ad pitch touchpoint tracking
+  "ads_touchpoint_viewed",
+  "ads_touchpoint_clicked",
+  "ads_touchpoint_dismissed",
 ];
 
 /**
@@ -111,12 +129,14 @@ export async function GET(request: NextRequest) {
     const eventType = searchParams.get("event_type") || searchParams.get("email_type");
     const categoryParam = searchParams.get("category");
     const category = isProviderCategory(categoryParam) ? categoryParam : null;
-    // Drill-down: isolate one exact provider action (e.g. provider_profile_edited)
-    // within a category. Validated against the allowlist so it can't smuggle in a
-    // care-seeker event type.
+    const seekerCategory = isSeekerCategory(categoryParam) ? categoryParam : null;
+    // Drill-down: isolate one exact action within a category. Validated against
+    // the relevant allowlist so it can't smuggle in an out-of-scope event type.
     const eventParam = searchParams.get("event");
     const exactEvent =
       eventParam && PROVIDER_ACTION_EVENT_TYPES.includes(eventParam) ? eventParam : null;
+    const seekerExactEvent =
+      eventParam && SEEKER_ALL_EVENT_TYPES.includes(eventParam) ? eventParam : null;
     const days = parseInt(searchParams.get("days") || "30", 10);
     const search = searchParams.get("search")?.trim() || "";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
@@ -133,10 +153,14 @@ export async function GET(request: NextRequest) {
     const opts = { eventType, sinceISO, search, limit, offset, countOnly };
 
     if (actor === "families") {
-      if (view === "people" || view === "families") {
-        return handleFamiliesPeopleView(db, opts);
+      if (view === "summary") {
+        return handleSeekerSummary(db, sinceISO, seekerCategory);
       }
-      return handleFamiliesFeedView(db, opts);
+      const familyOpts = { ...opts, category: seekerCategory, exactEvent: seekerExactEvent };
+      if (view === "people" || view === "families") {
+        return handleFamiliesPeopleView(db, familyOpts);
+      }
+      return handleFamiliesFeedView(db, familyOpts);
     }
 
     // Orientation summary — per-category counts, or per-event counts when a
@@ -526,18 +550,40 @@ async function handleProvidersView(db: any, opts: {
       .select("provider_id, provider_name, provider_category, city, state, slug")
       .in("provider_id", providerIds);
 
-    // Check which ones are claimed
-    const { data: claimedProfiles } = await db
-      .from("business_profiles")
-      .select("source_provider_id, slug, display_name, category, city, state, claim_state")
-      .in("source_provider_id", providerIds)
-      .eq("claim_state", "claimed");
+    // Check which ones are claimed — query by both source_provider_id AND slug
+    // since activity provider_id can be either format (after the slug backfill).
+    // A provider is considered "claimed" if:
+    //   1. claim_state = 'claimed' (formal claim completed), OR
+    //   2. account_id IS NOT NULL (user is linked, even if claim process incomplete)
+    // This ensures active providers (signing in, opening leads) show as claimed.
+    const [{ data: profilesBySourceId }, { data: profilesBySlug }] = await Promise.all([
+      db
+        .from("business_profiles")
+        .select("source_provider_id, slug, claim_state, account_id")
+        .in("source_provider_id", providerIds),
+      db
+        .from("business_profiles")
+        .select("source_provider_id, slug, claim_state, account_id")
+        .in("slug", providerIds),
+    ]);
 
-    const claimedSet = new Set(
-      (claimedProfiles || []).map(
-        (bp: { source_provider_id: string }) => bp.source_provider_id
-      )
-    );
+    // Build a set containing all identifiers (both source_provider_id and slug)
+    // that belong to claimed profiles, so lookups work regardless of ID format
+    const claimedSet = new Set<string>();
+    for (const bp of profilesBySourceId || []) {
+      const isClaimed = bp.claim_state === "claimed" || bp.account_id != null;
+      if (isClaimed) {
+        if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
+        if (bp.slug) claimedSet.add(bp.slug);
+      }
+    }
+    for (const bp of profilesBySlug || []) {
+      const isClaimed = bp.claim_state === "claimed" || bp.account_id != null;
+      if (isClaimed) {
+        if (bp.source_provider_id) claimedSet.add(bp.source_provider_id);
+        if (bp.slug) claimedSet.add(bp.slug);
+      }
+    }
 
     if (providers) {
       for (const p of providers) {
@@ -547,7 +593,7 @@ async function handleProvidersView(db: any, opts: {
           city: p.city,
           state: p.state,
           slug: p.slug,
-          claimed: claimedSet.has(p.provider_id),
+          claimed: claimedSet.has(p.provider_id) || claimedSet.has(p.slug),
         };
       }
     }
@@ -568,7 +614,7 @@ async function handleProvidersView(db: any, opts: {
             city: p.city,
             state: p.state,
             slug: p.slug,
-            claimed: claimedSet.has(p.provider_id),
+            claimed: claimedSet.has(p.provider_id) || claimedSet.has(p.slug),
           };
         }
       }
@@ -578,7 +624,7 @@ async function handleProvidersView(db: any, opts: {
     if (stillMissingIds.length > 0) {
       const { data: bps } = await db
         .from("business_profiles")
-        .select("slug, display_name, category, city, state, claim_state")
+        .select("slug, display_name, category, city, state, claim_state, account_id")
         .in("slug", stillMissingIds);
 
       if (bps) {
@@ -589,7 +635,7 @@ async function handleProvidersView(db: any, opts: {
             city: bp.city,
             state: bp.state,
             slug: bp.slug,
-            claimed: bp.claim_state === "claimed",
+            claimed: bp.claim_state === "claimed" || bp.account_id != null,
           };
         }
       }
@@ -702,6 +748,8 @@ export async function DELETE(request: NextRequest) {
 
 interface FamilyOpts {
   eventType: string | null;
+  category?: SeekerCategoryKey | null;
+  exactEvent?: string | null;
   sinceISO: string;
   search: string;
   limit: number;
@@ -709,9 +757,51 @@ interface FamilyOpts {
   countOnly: boolean;
 }
 
+/**
+ * Per-category counts for the Families orientation strip (mirrors
+ * handleProviderSummary). With a category, returns per-event counts for the
+ * drill-down row. Total is all seeker_activity in the window — families has no
+ * allowlist (the table is purely care-seeker events), so this matches the feed.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleSeekerSummary(db: any, sinceISO: string, category: SeekerCategoryKey | null) {
+  if (category) {
+    const types = eventTypesForSeekerCategory(category);
+    const events = await Promise.all(
+      types.map(async (et) => {
+        const { count } = await db
+          .from("seeker_activity")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", sinceISO)
+          .eq("event_type", et);
+        return { event_type: et, count: count || 0 };
+      })
+    );
+    return NextResponse.json({ category, events });
+  }
+
+  const counts = await Promise.all(
+    SEEKER_CATEGORIES.map(async (cat) => {
+      const { count } = await db
+        .from("seeker_activity")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", sinceISO)
+        .in("event_type", cat.eventTypes);
+      return { key: cat.key, count: count || 0 };
+    })
+  );
+
+  const { count: total } = await db
+    .from("seeker_activity")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", sinceISO);
+
+  return NextResponse.json({ categories: counts, total: total || 0 });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
-  const { eventType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { eventType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
 
   // If searching, find matching family profile IDs first
   let searchProfileIds: string[] | null = null;
@@ -736,7 +826,12 @@ async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
     .gte("created_at", sinceISO)
     .order("created_at", { ascending: false });
 
-  if (eventType) {
+  // Drill-down exact event > category bucket > legacy single event_type.
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
+    query = query.in("event_type", eventTypesForSeekerCategory(category));
+  } else if (eventType) {
     query = query.eq("event_type", eventType);
   }
   if (searchProfileIds) {
@@ -806,7 +901,7 @@ async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
-  const { eventType, sinceISO, search, limit, offset, countOnly } = opts;
+  const { eventType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
 
   let query = db
     .from("seeker_activity")
@@ -814,7 +909,11 @@ async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
     .gte("created_at", sinceISO)
     .order("created_at", { ascending: false });
 
-  if (eventType) {
+  if (exactEvent) {
+    query = query.eq("event_type", exactEvent);
+  } else if (category) {
+    query = query.in("event_type", eventTypesForSeekerCategory(category));
+  } else if (eventType) {
     query = query.eq("event_type", eventType);
   }
 

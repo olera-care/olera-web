@@ -1,0 +1,563 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { FAMILY_NUDGE_EMAIL_TYPES } from "@/lib/email-governance";
+import { type ConnectionLike } from "@/lib/connection-temperature";
+import { computeFamilyOutcome, tallyFamilyOutcomes, type FamilyOutcome } from "@/lib/family-comms/outcome";
+
+/**
+ * Family Comms learn-signals — the first-principles family-engagement +
+ * email-observability surface behind /admin/family-comms.
+ *
+ * The question it answers: how do families move through our funnel, and how is
+ * every family email performing (deliver → open → click → convert), so we can
+ * iterate on copy/CTAs by data instead of vibes. The compare-led flywheel
+ * (project_family_help_cascade) is the spine; the cutover lens is secondary.
+ *
+ * All metrics read from data we already capture — no new instrumentation:
+ *   - email_log               → per-type sent/delivered/opened/clicked/bounced
+ *                               (Resend webhooks denormalize first_*_at columns)
+ *   - seeker_activity         → conversions: connection_outcome_reported,
+ *                               compare_cta_converted, guide_cta_converted,
+ *                               benefits_started/completed, profile_published
+ *
+ * GET-only, admin-guarded, browser-triggerable (the WAF blocks curl).
+ * Query: ?date_from=ISO&date_to=ISO  (default: last 30 days).
+ */
+
+export const maxDuration = 60;
+
+const DAY = 24 * 60 * 60 * 1000;
+const WEEK = 7 * DAY;
+const TREND_WEEKS = 8;
+
+// The cutover anchor — when family-comms-coordinator took over the 6 inquiry
+// crons (cron_config flip, no deploy). Used only by the secondary cutover lens.
+const CUTOVER_ANCHOR_ISO = "2026-06-24T00:00:00.000Z";
+
+// Conversion events we read out of seeker_activity, in funnel order.
+const CONVERSION_EVENTS = [
+  "connection_outcome_reported", // outcome-check answered (the sensor)
+  "compare_cta_converted", // saved a compared alternative provider
+  "guide_cta_converted", // saved a guide
+  "benefits_started", // opened the /benefits/finder quiz
+  "benefits_completed", // finished the quiz
+  "profile_published", // WENT LIVE — the North Star proxy
+] as const;
+
+// Human labels for the family email types (fallback = the raw type).
+// Display names read as the family's journey, not internal codenames — the
+// day prefix makes the cascade's order self-evident once the table groups by
+// journey (2026-07-04 UX pass: group by journey / explain zeros / row polish).
+const TYPE_LABELS: Record<string, string> = {
+  family_outcome_check: "Day 2 · Did the provider get back to you?",
+  family_archetype: "Day 3 · Where are you in all this? (archetype)",
+  archetype_intro: "Archetype intro — one-time campaign",
+  paying_for_care: "Day 3 · Paying for care + self-sort (retired)",
+  family_provider_silent: "Day 4 · Provider quiet → other options",
+  family_provider_silent_guidance: "Day 4 · Provider quiet → cost help (thin market)",
+  family_never_engaged: "Day 5 · No reply yet → options + cost help",
+  provider_still_silent: "Day 7 · Provider still silent → trust recovery",
+  day_10_awaiting: "Day 10 · Provider replied, family stalled",
+  orientation_intro: "Orientation intro — one-time campaign",
+  family_reach_out_nudge: "A provider reached out — reply reminder",
+  stale_conversation: "Conversation went quiet — both sides",
+  matches_nudge: "Matches sitting inactive",
+  post_connection_followup: "30 days after connecting — how did it go?",
+  family_nudge: "Complete your profile → sharper matches",
+  completion_nudge_1: "Profile completion 1 · day 0",
+  completion_nudge_2: "Profile completion 2 · day 2",
+  completion_nudge_3: "Profile completion 3 · day 6",
+  completion_nudge_4: "Profile completion 4 · day 13",
+  completion_maintenance: "Profile completion · monthly check-in",
+  publish_nudge_1: "Publish your profile 1 · day 0",
+  publish_nudge_2: "Publish your profile 2 · day 2",
+  publish_nudge_3: "Publish your profile 3 · day 6",
+  publish_nudge_4: "Publish your profile 4 · day 13",
+  publish_maintenance: "Publish · monthly check-in",
+  monthly_recommendations: "Monthly provider picks",
+  inactivity_reengagement: "Quiet for 30 days — re-engagement",
+  go_live_reminder: "Go-live reminder (retired Jul 4)",
+  dormant_reengagement: "Dormant re-engagement (legacy)",
+};
+
+// The compare-bearing rungs — the ones whose body carries alternative-provider
+// cards, so a /provider/ click on them is a "compare click".
+const COMPARE_BEARING = new Set([
+  "family_provider_silent",
+  "family_never_engaged",
+  "day_10_awaiting",
+]);
+
+// ── Per-family OUTCOME (Phase 0) ─────────────────────────────────────────────
+// The outcome distribution is a rolling snapshot of the recent funnel, NOT the
+// email date-range: a family that connected two months ago is still connected.
+// We classify every family that inquired in this lookback (bounds the query and
+// gives a meaningful denominator). Independent of the date picker by design —
+// noted in the UI.
+const OUTCOME_LOOKBACK_DAYS = 90;
+// seeker_activity events that mean the family engaged the GUIDANCE journey
+// (compare alternatives / saved a guide / benefits quiz) — the "guided" signal.
+const GUIDANCE_EVENTS = [
+  "compare_cta_converted",
+  "guide_cta_converted",
+  "benefits_started",
+  "benefits_completed",
+] as const;
+
+interface EmailRow {
+  email_type: string;
+  created_at: string;
+  status: string | null;
+  delivered_at: string | null;
+  first_opened_at: string | null;
+  first_clicked_at: string | null;
+  bounced_at: string | null;
+  complained_at: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
+// The thin-market Guidance branch reuses the family_never_engaged email TYPE
+// (governed, no new type), but is a distinct rung. Split it into its own
+// performance row via the coordinator_rung stamped on email_log.metadata, so the
+// Guidance send never hides inside the never-engaged compare numbers.
+const GUIDANCE_RUNG = "provider_silent_guidance";
+const GUIDANCE_PERF_TYPE = "family_provider_silent_guidance";
+function effectiveEmailType(r: EmailRow): string {
+  if (r.email_type === "family_never_engaged" && r.metadata?.coordinator_rung === GUIDANCE_RUNG) {
+    return GUIDANCE_PERF_TYPE;
+  }
+  return r.email_type;
+}
+
+interface ActivityRow {
+  event_type: string;
+  created_at: string;
+  metadata: Record<string, unknown> | null;
+}
+
+function rate(numer: number, denom: number): number {
+  return denom > 0 ? numer / denom : 0;
+}
+
+/** Index of the trailing 7-day bucket [0..TREND_WEEKS-1] for `ts`, relative to `end`. */
+function weekBucket(ts: number, end: number): number {
+  const ago = end - ts;
+  if (ago < 0) return -1;
+  const idx = TREND_WEEKS - 1 - Math.floor(ago / WEEK);
+  return idx >= 0 && idx < TREND_WEEKS ? idx : -1;
+}
+
+export async function GET(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  const admin = await getAdminUser(user.id);
+  if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+  const db = getServiceClient();
+  const now = Date.now();
+
+  // ── Window ────────────────────────────────────────────────────────────
+  const dateFrom = request.nextUrl.searchParams.get("date_from");
+  const dateTo = request.nextUrl.searchParams.get("date_to");
+  const fromMs = dateFrom ? Date.parse(dateFrom) : now - 30 * DAY;
+  const toMs = dateTo ? Date.parse(dateTo) : now;
+  const fromISO = new Date(fromMs).toISOString();
+  const toISO = new Date(toMs).toISOString();
+
+  // Trend needs 8 weeks; fetch from the earlier of (window start, 8 weeks ago).
+  const trendEnd = toMs;
+  const trendStart = trendEnd - TREND_WEEKS * WEEK;
+  const fetchStartMs = Math.min(fromMs, trendStart);
+  const familyTypes = Array.from(FAMILY_NUDGE_EMAIL_TYPES);
+
+  // ── email_log (one pass covers both window stats and the trend) ─────────
+  // Scope to recipient_type='family'. Some FAMILY_NUDGE_EMAIL_TYPES are also
+  // emitted to providers (dormant_reengagement is 100% provider; stale_conversation
+  // is a dual-sided nudge sent to BOTH provider and family). Filtering on type
+  // alone counted those provider sends as family email, inflating the dashboard
+  // and mislabeling provider emails as "best-performing family" copy. The family
+  // type-list still narrows the scan; recipient_type makes it honest.
+  const { data: emailData, error: emailErr } = await db
+    .from("email_log")
+    .select(
+      "email_type, created_at, status, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, metadata",
+    )
+    .in("email_type", familyTypes)
+    .eq("recipient_type", "family")
+    .gte("created_at", new Date(fetchStartMs).toISOString())
+    .lte("created_at", toISO)
+    .limit(100000);
+  if (emailErr) {
+    console.error("[family-comms-analytics] email_log query failed:", emailErr);
+    return NextResponse.json({ error: "email_log query failed" }, { status: 500 });
+  }
+  const emails = (emailData || []) as EmailRow[];
+
+  // ── seeker_activity conversions in the window ───────────────────────────
+  const { data: actData, error: actErr } = await db
+    .from("seeker_activity")
+    .select("event_type, created_at, metadata")
+    .in("event_type", CONVERSION_EVENTS as unknown as string[])
+    .gte("created_at", new Date(trendStart).toISOString())
+    .lte("created_at", toISO)
+    .limit(100000);
+  if (actErr) {
+    console.error("[family-comms-analytics] seeker_activity query failed:", actErr);
+    return NextResponse.json({ error: "seeker_activity query failed" }, { status: 500 });
+  }
+  const acts = (actData || []) as ActivityRow[];
+
+  // ── One-tap intro requests in the window (B2) ───────────────────────────
+  // The clearest signal that the curated shortlist drove ACTION: a family tapped
+  // "Introduce me" on a compare card, creating a real inquiry. Tagged
+  // source=one_tap_intro on the connection_sent activity event (distinct from the
+  // normal form-based inquiry). This is the connection-driver metric B2 exists for.
+  const { count: introRequestedCount, error: introErr } = await db
+    .from("seeker_activity")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", "connection_sent")
+    .eq("metadata->>source", "one_tap_intro")
+    .gte("created_at", fromISO)
+    .lte("created_at", toISO);
+  if (introErr) console.error("[family-comms-analytics] intro-requested query failed:", introErr);
+  const introRequested = introRequestedCount ?? 0;
+
+  // ── Per-type email performance (window) + per-type weekly send trend ────
+  type Perf = {
+    type: string;
+    label: string;
+    sent: number;
+    delivered: number;
+    opened: number;
+    clicked: number;
+    bounced: number;
+    complained: number;
+    weeklySends: number[];
+    /** Opens per send-week cohort — the client renders open-RATE trend
+     *  (weeklyOpens[i] / weeklySends[i]), which shows an email decaying
+     *  before the window aggregate moves. */
+    weeklyOpens: number[];
+    compareBearing: boolean;
+  };
+  const perfByType = new Map<string, Perf>();
+  const ensure = (t: string): Perf => {
+    let p = perfByType.get(t);
+    if (!p) {
+      p = {
+        type: t,
+        label: TYPE_LABELS[t] || t,
+        sent: 0,
+        delivered: 0,
+        opened: 0,
+        clicked: 0,
+        bounced: 0,
+        complained: 0,
+        weeklySends: new Array(TREND_WEEKS).fill(0),
+        weeklyOpens: new Array(TREND_WEEKS).fill(0),
+        compareBearing: COMPARE_BEARING.has(t),
+      };
+      perfByType.set(t, p);
+    }
+    return p;
+  };
+
+  // Seed a row for every governed family type up front — otherwise a rung that
+  // hasn't fired yet (e.g. paying_for_care right after deploy) is invisible on
+  // this dashboard until its first real send, which reads as "not integrated".
+  for (const t of familyTypes) ensure(t);
+
+  const totals = { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
+  let compareSends = 0;
+  let compareSendsOpened = 0;
+  let compareSendsClicked = 0;
+
+  for (const r of emails) {
+    const ts = Date.parse(r.created_at);
+    const inWindow = ts >= fromMs && ts <= toMs;
+    const effType = effectiveEmailType(r);
+    const p = ensure(effType);
+
+    // Only REAL sends count anywhere. failed rows never went out, and
+    // pending/reserved rows are cap-skip reservations awaiting a retry —
+    // counting them inflated SENT and, worse, diluted the open-rate trend
+    // denominator (failed/pending rows can never open). The campaign's
+    // transient-skip batches would have grown this class on Monday.
+    if (r.status === "failed" || r.status === "pending" || r.status === "reserved" || r.status === "skipped") continue;
+
+    // weekly send trend (independent of the window)
+    const wb = weekBucket(ts, trendEnd);
+    if (wb >= 0) {
+      p.weeklySends[wb] += 1;
+      if (r.first_opened_at) p.weeklyOpens[wb] += 1;
+    }
+
+    if (!inWindow) continue;
+
+    p.sent += 1;
+    totals.sent += 1;
+    if (r.delivered_at) { p.delivered += 1; totals.delivered += 1; }
+    if (r.first_opened_at) { p.opened += 1; totals.opened += 1; }
+    if (r.first_clicked_at) { p.clicked += 1; totals.clicked += 1; }
+    if (r.bounced_at) { p.bounced += 1; totals.bounced += 1; }
+    if (r.complained_at) { p.complained += 1; totals.complained += 1; }
+
+    if (COMPARE_BEARING.has(effType)) {
+      compareSends += 1;
+      if (r.first_opened_at) compareSendsOpened += 1;
+      if (r.first_clicked_at) compareSendsClicked += 1;
+    }
+  }
+
+  const emailPerformance = Array.from(perfByType.values())
+    .map((p) => ({
+      ...p,
+      deliveryRate: rate(p.delivered, p.sent),
+      openRate: rate(p.opened, p.delivered || p.sent),
+      clickRate: rate(p.clicked, p.opened || p.sent),
+      bounceRate: rate(p.bounced, p.sent),
+    }))
+    // Governed types always render (a rung that hasn't fired yet — e.g. a
+    // freshly deployed one — must be visible at 0, not hidden). Pseudo-rows
+    // like the rung-split guidance row only render once they have data.
+    .filter((p) => FAMILY_NUDGE_EMAIL_TYPES.has(p.type) || p.sent > 0 || p.weeklySends.some((n) => n > 0))
+    .sort((a, b) => b.sent - a.sent);
+
+  // ── Conversions (window) from seeker_activity ───────────────────────────
+  const inWin = (r: ActivityRow) => {
+    const ts = Date.parse(r.created_at);
+    return ts >= fromMs && ts <= toMs;
+  };
+  const winActs = acts.filter(inWin);
+
+  const sensor = { sent: 0, answered: 0, yes: 0, no: 0, notYet: 0, responseRate: 0, yesRate: 0 };
+  // outcome-check sends in window = the sensor denominator
+  sensor.sent = perfByType.get("family_outcome_check")?.sent ?? 0;
+  for (const r of winActs) {
+    if (r.event_type !== "connection_outcome_reported") continue;
+    sensor.answered += 1;
+    const v = (r.metadata?.value as string | undefined) || "";
+    if (v === "yes") sensor.yes += 1;
+    else if (v === "no") sensor.no += 1;
+    else if (v === "not_yet") sensor.notYet += 1;
+  }
+  sensor.responseRate = rate(sensor.answered, sensor.sent);
+  sensor.yesRate = rate(sensor.yes, sensor.answered);
+
+  const count = (ev: string) => winActs.filter((r) => r.event_type === ev).length;
+
+  // Guidance-journey instrumentation (orientation layer). All from profile
+  // stamps (metadata.quiz_answers / guidance_events / financial_path) rather
+  // than seeker_activity — a new event_type there needs a CHECK migration, and
+  // the profile stamp is the source of truth the matcher reads anyway. Few
+  // rows; window-filter in JS on each stamp's timestamp.
+  let quizAnswers = 0;
+  const quizByQuestion: Record<string, number> = {};
+  let briefViews = 0;
+  let stepsExpanded = 0;
+  const pathDistribution: Record<string, number> = { a: 0, b: 0, c: 0 };
+  // Self-sorts by SOURCE email (windowed, from guidance_events src stamps):
+  // which door produced the tap — the campaign, the day-3 rung, the cascade.
+  const sortsBySource: Record<string, { a: number; b: number; c: number }> = {};
+  // Archetype self-sort (the first-touch signal) — windowed tap counts per
+  // scenario, the mirror of the outcome-check sensor. This distribution is what
+  // drives the cadence decision (crisis fast, overwhelmed calm).
+  const archetypeByAnswer: Record<string, number> = { overwhelmed: 0, avoiding: 0, urgent: 0 };
+  {
+    const { data: gRows } = await db
+      .from("business_profiles")
+      .select("quiz_answers:metadata->quiz_answers, guidance_events:metadata->guidance_events, financial_path:metadata->>financial_path")
+      .eq("type", "family")
+      .or("metadata->quiz_answers.not.is.null,metadata->guidance_events.not.is.null,metadata->>financial_path.not.is.null")
+      .limit(4000);
+    type GRow = {
+      quiz_answers: Record<string, { at?: string }> | null;
+      guidance_events: { t?: string; at?: string; ref?: string; answer?: string; src?: string }[] | null;
+      financial_path: string | null;
+    };
+    const inWindow = (at?: string) => {
+      const ts = at ? new Date(at).getTime() : NaN;
+      return !isNaN(ts) && ts >= fromMs && ts <= toMs;
+    };
+    for (const r of (gRows as GRow[] | null) || []) {
+      for (const [q, entry] of Object.entries(r.quiz_answers || {})) {
+        if (inWindow(entry?.at)) {
+          quizAnswers += 1;
+          quizByQuestion[q] = (quizByQuestion[q] || 0) + 1;
+        }
+      }
+      for (const ev of r.guidance_events || []) {
+        if (!inWindow(ev?.at)) continue;
+        if (ev.t === "brief_viewed") briefViews += 1;
+        else if (ev.t === "step_expanded") stepsExpanded += 1;
+        else if (ev.t === "quiz_answered" && ev.ref === "path" && (ev.answer === "a" || ev.answer === "b" || ev.answer === "c")) {
+          const key = ev.src || "on_site";
+          const bucket = (sortsBySource[key] = sortsBySource[key] || { a: 0, b: 0, c: 0 });
+          bucket[ev.answer] += 1;
+        } else if (ev.t === "quiz_answered" && ev.ref === "archetype" && ev.answer && ev.answer in archetypeByAnswer) {
+          archetypeByAnswer[ev.answer] += 1;
+        }
+      }
+      // Path distribution is a CURRENT-STATE snapshot (how the sorted
+      // population splits), not a windowed count — that's the strategy signal.
+      if (r.financial_path === "a" || r.financial_path === "b" || r.financial_path === "c") {
+        pathDistribution[r.financial_path] += 1;
+      }
+    }
+  }
+
+  // Archetype sensor — sent from the two archetype email types, answered +
+  // distribution from the windowed taps above. Mirrors the outcome-check sensor.
+  const archetypeAnswered = archetypeByAnswer.overwhelmed + archetypeByAnswer.avoiding + archetypeByAnswer.urgent;
+  const archetypeSent =
+    (perfByType.get("family_archetype")?.sent ?? 0) + (perfByType.get("archetype_intro")?.sent ?? 0);
+  const archetypeSensor = {
+    sent: archetypeSent,
+    answered: archetypeAnswered,
+    overwhelmed: archetypeByAnswer.overwhelmed,
+    avoiding: archetypeByAnswer.avoiding,
+    urgent: archetypeByAnswer.urgent,
+    answerRate: rate(archetypeAnswered, archetypeSent),
+  };
+
+  const conversions = {
+    compareSaved: count("compare_cta_converted"),
+    guideSaved: count("guide_cta_converted"),
+    benefitsStarted: count("benefits_started"),
+    benefitsCompleted: count("benefits_completed"),
+    published: count("profile_published"),
+    quizAnswers,
+  };
+
+  const guidance = {
+    quizAnswers,
+    quizByQuestion,
+    briefViews,
+    stepsExpanded,
+    pathDistribution,
+    sortsBySource,
+  };
+
+  // ── Flywheel funnel (family-level, window) ──────────────────────────────
+  // Honest framing surfaced in the UI: emailed/opened/clicked are exact per-send
+  // email metrics; the later steps are window totals of the action, not strictly
+  // attributed to a specific send (no per-family join in v1).
+  const funnel = {
+    emailed: totals.sent,
+    opened: totals.opened,
+    clicked: totals.clicked,
+    introRequested,
+    answered: sensor.answered,
+    engaged: conversions.compareSaved + conversions.guideSaved,
+    benefitsStarted: conversions.benefitsStarted,
+    benefitsCompleted: conversions.benefitsCompleted,
+    published: conversions.published,
+  };
+
+  // ── Secondary: cutover lens (weekly sends + weekly go-lives, 8 wk) ───────
+  const sendsWeekly = new Array(TREND_WEEKS).fill(0);
+  for (const r of emails) {
+    if (r.status === "failed" || r.status === "pending" || r.status === "reserved" || r.status === "skipped") continue;
+    const wb = weekBucket(Date.parse(r.created_at), trendEnd);
+    if (wb >= 0) sendsWeekly[wb] += 1;
+  }
+  const goLivesWeekly = new Array(TREND_WEEKS).fill(0);
+  for (const r of acts) {
+    if (r.event_type !== "profile_published") continue;
+    const wb = weekBucket(Date.parse(r.created_at), trendEnd);
+    if (wb >= 0) goLivesWeekly[wb] += 1;
+  }
+  const anchorMs = Date.parse(CUTOVER_ANCHOR_ISO);
+  const weekStartsISO = new Array(TREND_WEEKS)
+    .fill(0)
+    .map((_, i) => new Date(trendEnd - (TREND_WEEKS - 1 - i) * WEEK).toISOString());
+  const cutoverWeekIndex = weekStartsISO.findIndex((iso) => Date.parse(iso) >= anchorMs);
+
+  // ── Per-family OUTCOME distribution (Phase 0) ───────────────────────────
+  // "We measure sends, not outcomes" — the fix. For every family that inquired
+  // in the lookback, derive connected / active / guided / stalled from signals
+  // we already have (connection threads + self-report + guidance activity).
+  const outcomeStartISO = new Date(now - OUTCOME_LOOKBACK_DAYS * DAY).toISOString();
+  const outcomes = { total: 0, connected: 0, active: 0, guided: 0, stalled: 0, lookbackDays: OUTCOME_LOOKBACK_DAYS };
+  {
+    // Inquiry connections drive the population; group by the family (from_profile_id).
+    const { data: connData, error: connErr } = await db
+      .from("connections")
+      .select("id, status, created_at, from_profile_id, to_profile_id, metadata")
+      .eq("type", "inquiry")
+      .gte("created_at", outcomeStartISO)
+      .lte("created_at", toISO)
+      .limit(20000);
+    if (connErr) {
+      // Non-load-bearing: the outcome panel is additive. On failure, leave the
+      // distribution empty rather than fail the whole dashboard.
+      console.error("[family-comms-analytics] connections query failed (outcome panel off):", connErr);
+    } else {
+      // Which families engaged the guidance journey in the lookback → the
+      // "guided" signal. One narrow read, keyed by family profile_id.
+      const guidedFamilies = new Set<string>();
+      const { data: guideActs, error: guideErr } = await db
+        .from("seeker_activity")
+        .select("profile_id")
+        .in("event_type", GUIDANCE_EVENTS as unknown as string[])
+        .gte("created_at", outcomeStartISO)
+        .lte("created_at", toISO)
+        .limit(100000);
+      if (guideErr) {
+        console.error("[family-comms-analytics] guidance-activity query failed (guided undercounted):", guideErr);
+      } else {
+        for (const r of (guideActs as { profile_id: string | null }[]) || []) {
+          if (r.profile_id) guidedFamilies.add(r.profile_id);
+        }
+      }
+
+      const byFamily = new Map<string, ConnectionLike[]>();
+      for (const r of (connData as unknown as ConnectionLike[]) || []) {
+        const fid = r.from_profile_id;
+        if (!fid) continue;
+        const list = byFamily.get(fid);
+        if (list) list.push(r);
+        else byFamily.set(fid, [r]);
+      }
+
+      const perFamily: FamilyOutcome[] = [];
+      for (const [familyId, inquiries] of byFamily) {
+        perFamily.push(
+          computeFamilyOutcome({ inquiries, guidanceEngaged: guidedFamilies.has(familyId) }, now),
+        );
+      }
+      const tally = tallyFamilyOutcomes(perFamily);
+      outcomes.total = perFamily.length;
+      outcomes.connected = tally.connected;
+      outcomes.active = tally.active;
+      outcomes.guided = tally.guided;
+      outcomes.stalled = tally.stalled;
+    }
+  }
+
+  return NextResponse.json({
+    range: { from: fromISO, to: toISO },
+    generatedAt: new Date(now).toISOString(),
+    totals,
+    compareClick: {
+      sends: compareSends,
+      opened: compareSendsOpened,
+      clicked: compareSendsClicked,
+      openRate: rate(compareSendsOpened, compareSends),
+      clickRate: rate(compareSendsClicked, compareSendsOpened || compareSends),
+    },
+    emailPerformance,
+    funnel,
+    sensor,
+    archetypeSensor,
+    conversions,
+    guidance,
+    outcomes,
+    cutover: {
+      anchor: CUTOVER_ANCHOR_ISO,
+      cutoverWeekIndex, // which trend bucket the flip falls in (-1 if outside)
+      weekStartsISO,
+      sendsWeekly,
+      goLivesWeekly,
+    },
+  });
+}

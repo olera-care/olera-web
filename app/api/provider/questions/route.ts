@@ -80,7 +80,8 @@ export async function GET(request: NextRequest) {
     if (status === "pending") {
       query = query.eq("status", "pending");
     } else if (status === "answered") {
-      query = query.eq("status", "answered");
+      // "answered" includes both manually answered and AI-approved questions
+      query = query.in("status", ["answered", "approved"]);
     }
     // "all" returns everything
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useToast } from "@/components/admin/Toast";
 import { allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
 import { pipelineData, type PipelineComparison, type PipelineStateSummary } from "@/data/pipeline-summary";
 import { pipelineDrafts, type PipelineDraft, type PipelineStateOverview } from "@/data/pipeline-drafts";
@@ -148,6 +149,7 @@ function DraftReviewPanel({
     return "";
   });
   const [submitting, setSubmitting] = useState(false);
+  const toast = useToast();
 
   const fetchReviews = useCallback(async () => {
     if (allReviews) return; // skip if parent provides reviews
@@ -176,7 +178,7 @@ function DraftReviewPanel({
     // Remember name
     localStorage.setItem("olera-reviewer", reviewer.trim());
     try {
-      await fetch("/api/admin/draft-reviews", {
+      const res = await fetch("/api/admin/draft-reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -187,10 +189,18 @@ function DraftReviewPanel({
           reviewedBy: reviewer.trim(),
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      // Only clear the comment / refresh on confirmed success — a failed
+      // POST previously looked identical to success.
       setComment("");
       if (onReviewAdded) onReviewAdded();
       else await fetchReviews();
-    } catch { /* silent */ }
+    } catch (e) {
+      toast(`Failed to save review: ${e instanceof Error ? e.message : e}`, { variant: "error" });
+    }
     setSubmitting(false);
   };
 
@@ -335,7 +345,7 @@ function DraftPreview({ draft, stateId, allReviews, onReviewAdded }: { draft: Pi
 
           {/* Income table */}
           {draft.structuredEligibility.incomeTable && draft.structuredEligibility.incomeTable.length > 0 && (
-            <div className="mt-3 overflow-hidden rounded-lg border border-gray-200">
+            <div className="mt-3 overflow-x-auto rounded-lg border border-gray-200">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-gray-50">

@@ -19,6 +19,7 @@ import type {
   AwaitingCallbackKind,
   RepliesState,
 } from "@/lib/student-outreach/types";
+import { CADENCE_END_DAY } from "@/lib/student-outreach/cadence";
 
 export const STALE_DAYS = 4;
 
@@ -44,6 +45,100 @@ export interface DerivedState {
   last_activity_at: string | null;
 }
 
+// ── Post-outreach sequence cutoff ─────────────────────────────────────────
+// When a reply to one cadence triggers a NEW cadence (activation today; custom
+// sequences later), the reply that triggered it belongs to the finished phase.
+// `currentSequenceStartedAt` marks the boundary — replies before it are
+// consumed, so the row reads "awaiting reply to the new cadence" everywhere
+// (tab, card, drawer), the moment the new cadence launches (not when its first
+// email sends). Forward-structured: add a launch reason here and every surface
+// picks it up.
+export const SEQUENCE_LAUNCH_REASONS = [
+  "activation_launched",
+  // Admin-composed custom cadence launched from the reply drawer.
+  "custom_sequence_launched",
+  // "OOO reply — restart last cadence" resumes the current cadence; it counts as
+  // a fresh start so the OOO auto-reply before it is consumed and the row goes
+  // back to "awaiting reply."
+  "cadence_restarted",
+] as const;
+export const SEQUENCE_STOP_REASONS = ["activation_stopped", "outreach_stopped"] as const;
+
+type ReasonTouchpoint = {
+  touchpoint_type: string;
+  payload: unknown;
+  created_at: string;
+};
+
+/** Newest `note_added` timestamp among `launchReasons` that hasn't since been
+ *  superseded by one among `stopReasons`, or null. Order-independent. */
+function runningSequenceStartedAt(
+  touchpoints: ReadonlyArray<ReasonTouchpoint>,
+  launchReasons: readonly string[],
+  stopReasons: readonly string[],
+): string | null {
+  const reasonOf = (p: unknown): string | null => {
+    if (p && typeof p === "object" && "reason" in p) {
+      const r = (p as Record<string, unknown>).reason;
+      return typeof r === "string" ? r : null;
+    }
+    return null;
+  };
+  const latestFor = (reasons: readonly string[]): string | null => {
+    let latest: string | null = null;
+    for (const tp of touchpoints) {
+      if (tp.touchpoint_type !== "note_added") continue;
+      const r = reasonOf(tp.payload);
+      if (r != null && reasons.includes(r) && (latest === null || tp.created_at > latest)) {
+        latest = tp.created_at;
+      }
+    }
+    return latest;
+  };
+  const launchedAt = latestFor(launchReasons);
+  if (!launchedAt) return null;
+  const stoppedAt = latestFor(stopReasons);
+  return !stoppedAt || stoppedAt < launchedAt ? launchedAt : null;
+}
+
+/**
+ * The moment the CURRENT post-outreach sequence started (any launch reason), or
+ * null when none is running. The cutoff for "which reply counts."
+ */
+export function currentSequenceStartedAt(
+  touchpoints: ReadonlyArray<ReasonTouchpoint>,
+): string | null {
+  return runningSequenceStartedAt(touchpoints, SEQUENCE_LAUNCH_REASONS, SEQUENCE_STOP_REASONS);
+}
+
+/**
+ * Does the row have an EMAIL reply to the CURRENT cadence — an `email_replied`
+ * touchpoint newer than the cadence cutoff? Shared by the Emails/Follow-up split
+ * (queue route) and the drawer's stage derivation so a fresh reply consistently
+ * keeps the row in Emails "They replied" and out of Follow-up. Non-email
+ * engagements (contact form, IG DM) are deliberately excluded.
+ */
+export function hasEmailReplyToCurrentCadence(
+  touchpoints: ReadonlyArray<ReasonTouchpoint & { touchpoint_type: string }>,
+): boolean {
+  const cutoff = currentSequenceStartedAt(touchpoints);
+  return touchpoints.some(
+    (t) => t.touchpoint_type === "email_replied" && (cutoff == null || t.created_at > cutoff),
+  );
+}
+
+/**
+ * Whether the ACTIVATION cadence specifically is running. Stays
+ * activation-specific (only the "activation_launched" marker) so that when
+ * custom sequences ship, "activation running" doesn't fire for them — the
+ * general cutoff above still covers every sequence.
+ */
+export function activationSequenceRunning(
+  touchpoints: ReadonlyArray<ReasonTouchpoint>,
+): boolean {
+  return runningSequenceStartedAt(touchpoints, ["activation_launched"], SEQUENCE_STOP_REASONS) != null;
+}
+
 /**
  * Single source of truth for per-row state derivation. Walks touchpoints
  * DESC and picks the first event in each category. Newer events
@@ -54,6 +149,10 @@ export interface DerivedState {
  * call_connected without awaiting_callback clears the state.
  */
 export function deriveStateFromTouchpoints(touchpoints: TouchpointRow[]): DerivedState {
+  // Boundary of the current cadence: a reply from before the newest sequence
+  // launch belongs to the finished phase and no longer counts as "the reply."
+  const seqStartedAt = currentSequenceStartedAt(touchpoints);
+
   let meeting_state: DerivedState["meeting_state"] = "none";
   let meeting_at: string | null = null;
   let meetingDecided = false;
@@ -115,7 +214,13 @@ export function deriveStateFromTouchpoints(touchpoints: TouchpointRow[]): Derive
     // touchpoint is no longer generated (handleResumeOutreach was dropped
     // along with the manual "Try again" affordance).
 
-    if (isReply && last_reply_at === null) last_reply_at = tp.created_at;
+    if (
+      isReply &&
+      last_reply_at === null &&
+      (seqStartedAt === null || tp.created_at > seqStartedAt)
+    ) {
+      last_reply_at = tp.created_at;
+    }
 
     if (!callbackResolved && (isReply || isConnectedNoCallback)) {
       callbackResolved = true;
@@ -178,6 +283,84 @@ export function deriveRepliesState(
   }
 
   return "mid_cadence";
+}
+
+// ── Follow-up tab: "cadence finished" detection ───────────────────────────
+// A prospect whose latest cadence has run its course with no meeting booked
+// belongs in the Follow-up tab (re-engage or archive), not cluttering Emails.
+//
+// Smartlead owns the EMAIL schedule, so a mid-drip row has no pending CRM task
+// telling us "another email is coming." A fixed time-grace would guess wrong on
+// long inter-email gaps. Instead we anchor on the cadence's KNOWN length: the
+// row was enrolled/launched at a marker touchpoint, and each cadence runs a
+// known number of days. "Finished" = that whole window (last email day + a
+// reply window) has elapsed AND no calls are left AND no meeting. A row can't
+// reach Follow-up until every email has had time to send.
+export const REPLY_WINDOW_DAYS = 3;
+
+// note_added reasons that anchor "when the current cadence started". The newest
+// one wins (a later activation/custom launch supersedes the cold enrollment).
+const CADENCE_ANCHOR_REASONS = new Set([
+  "smartlead_enrolled",
+  "activation_launched",
+  "custom_sequence_launched",
+  "cadence_restarted",
+]);
+
+/**
+ * When the current cadence's whole schedule has elapsed, in epoch ms — the
+ * point past which no more emails are coming. Anchors on the newest cadence
+ * marker + the cadence length (CADENCE_END_DAY for cold/activation; the custom
+ * cadence's own stored `ends_after_days`), plus a reply window. Null when no
+ * marker exists (can't tell → treat as not finished, i.e. keep in Emails).
+ */
+export function currentCadenceEndMs(
+  touchpoints: ReadonlyArray<ReasonTouchpoint>,
+  replyWindowDays: number = REPLY_WINDOW_DAYS,
+): number | null {
+  let bestAt: string | null = null;
+  let bestReason: string | null = null;
+  let bestPayload: Record<string, unknown> | null = null;
+  for (const t of touchpoints) {
+    if (t.touchpoint_type !== "note_added") continue;
+    const p = (t.payload ?? null) as Record<string, unknown> | null;
+    const reason = p && typeof p.reason === "string" ? p.reason : null;
+    if (reason && CADENCE_ANCHOR_REASONS.has(reason) && (bestAt === null || t.created_at > bestAt)) {
+      bestAt = t.created_at;
+      bestReason = reason;
+      bestPayload = p;
+    }
+  }
+  if (bestAt === null) return null;
+  const startMs = new Date(bestAt).getTime();
+  if (Number.isNaN(startMs)) return null;
+  let lastEmailDay = CADENCE_END_DAY;
+  if (bestReason === "custom_sequence_launched") {
+    const d = bestPayload && typeof bestPayload.ends_after_days === "number" ? bestPayload.ends_after_days : null;
+    if (d != null && d >= 0) lastEmailDay = d;
+  }
+  return startMs + (lastEmailDay + replyWindowDays) * 86_400_000;
+}
+
+/**
+ * Has the row's current cadence FINISHED with no meeting? True when there's no
+ * meeting, an email actually went out, nothing is still queued (no pending
+ * email-send or follow-up-call task), and the cadence's whole window has
+ * elapsed (`cadenceEndMs`). Whether the prospect replied is handled by the
+ * caller (a fresh reply outranks this — it stays in Emails "They replied").
+ */
+export function isCadenceComplete(
+  state: DerivedState,
+  hasPendingEmail: boolean,
+  hasPendingCall: boolean,
+  cadenceEndMs: number | null,
+  now: number = Date.now(),
+): boolean {
+  if (state.meeting_state !== "none") return false;
+  if (!state.last_email_sent_at) return false;
+  if (hasPendingEmail || hasPendingCall) return false;
+  if (cadenceEndMs == null) return false;
+  return now >= cadenceEndMs;
 }
 
 /**

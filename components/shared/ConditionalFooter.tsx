@@ -3,15 +3,18 @@
 import { usePathname } from "next/navigation";
 import Footer from "./Footer";
 import SimpleFooter from "./SimpleFooter";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 /**
  * Renders the appropriate footer based on page context:
  *  - Inbox views: no footer
- *  - Hub / account pages: simple legal-only footer
+ *  - Hub / account pages: simple legal-only footer (desktop only for providers)
  *  - Marketing / public pages: full footer
  */
 export default function ConditionalFooter() {
   const pathname = usePathname();
+  const { activeProfile } = useAuth();
+  const isProvider = activeProfile?.type === "organization";
 
   // Admin, inbox, onboarding, claim wizard, removal request, match detail, MedJobs
   // forms, and unsubscribe confirmations — no footer. These are terminal/utility
@@ -31,10 +34,22 @@ export default function ConditionalFooter() {
     return null;
   }
 
-  // Hub / account pages — simple footer (legal bar only)
+  // Logged-in providers get SimpleFooter on desktop only.
+  // On mobile, footer is hidden for all variants - screen real estate is tight
+  // and support/legal links can be accessed via settings.
+  if (isProvider) {
+    return (
+      <div className="hidden lg:block">
+        <SimpleFooter />
+      </div>
+    );
+  }
+
+  // Hub / account pages for non-providers — simple footer (legal bar only)
   if (
     pathname.startsWith("/portal") ||
-    pathname.startsWith("/provider")
+    pathname.startsWith("/provider") ||
+    pathname.startsWith("/account")
   ) {
     return <SimpleFooter />;
   }

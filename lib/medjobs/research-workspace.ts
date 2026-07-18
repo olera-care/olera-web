@@ -62,6 +62,19 @@ export interface WorkspaceOffice {
   verified?: boolean;
   /** No email found — kept as a phone "call" lead, out of the email funnel. */
   call_only?: boolean;
+  /** Set once this office has been materialized into a prospect
+   *  (student_outreach row). Locks it from re-generation so a returning user
+   *  can't create duplicate prospects, and drives the "✓ In In-Basket" badge. */
+  outreach_id?: string | null;
+  generated_at?: string | null;
+  // ── Department-head (person-shaped) fields ──────────────────────────────
+  // For the dept_head subtype the "office" IS a department and the prospect is
+  // ONE person (the chair). `name` is the department; these carry the chair,
+  // and email/phone above are the chair's direct contact.
+  /** The department chair/head/dean's full name. */
+  person_name?: string | null;
+  /** The chair's title/role as shown (e.g. "Department Chair", "Dean"). */
+  person_title?: string | null;
 }
 
 export interface SearchState {
@@ -77,10 +90,17 @@ export interface WorkspaceState {
   offices: WorkspaceOffice[];
   advisors: WorkspaceAdvisor[];
   generated_at: string | null;
+  /** Un-kept AI link suggestions, persisted so a mid-triage break doesn't lose
+   *  them (Task 4). Cleared as the admin keeps/discards each. */
+  suggested?: WorkspaceLink[];
+  /** Last step the admin was on for this subtype, so reopening resumes there
+   *  instead of snapping back to "links". Stored as a plain string (the Step
+   *  union lives in the workspace component). */
+  last_step?: string;
 }
 
 export function emptyWorkspace(): WorkspaceState {
-  return { links: [], searches: [], offices: [], advisors: [], generated_at: null };
+  return { links: [], searches: [], offices: [], advisors: [], generated_at: null, suggested: [] };
 }
 
 export function wsId(): string {
@@ -111,6 +131,8 @@ export function readWorkspace(partnerResearch: unknown, subtype: PartnerSubtype)
     offices: Array.isArray(cur.offices) ? (cur.offices as WorkspaceOffice[]) : [],
     advisors: Array.isArray(cur.advisors) ? (cur.advisors as WorkspaceAdvisor[]) : [],
     generated_at: typeof cur.generated_at === "string" ? cur.generated_at : null,
+    suggested: Array.isArray(cur.suggested) ? (cur.suggested as WorkspaceLink[]) : [],
+    last_step: typeof cur.last_step === "string" ? cur.last_step : undefined,
   };
 }
 
@@ -142,14 +164,22 @@ export function predefinedSearches(subtype: PartnerSubtype, uni: string): Search
   }
   if (subtype === "dept_head") {
     return [
-      { key: "dept_bio", label: `Google: ${uni} biology department contact`, url: g(`${uni} biology department contact`), ran: false },
-      { key: "dept_chem", label: `Google: ${uni} chemistry department contact`, url: g(`${uni} chemistry department contact`), ran: false },
-      { key: "dept_health", label: `Google: ${uni} public health / kinesiology department contact`, url: g(`${uni} public health kinesiology department contact`), ran: false },
+      { key: "dept_bio", label: `Google: ${uni} biology department chair`, url: g(`${uni} biology department chair`), ran: false },
+      { key: "dept_chem", label: `Google: ${uni} chemistry department chair`, url: g(`${uni} chemistry department chair`), ran: false },
+      { key: "dept_kin", label: `Google: ${uni} kinesiology OR exercise science department chair`, url: g(`${uni} kinesiology OR exercise science department chair`), ran: false },
+      { key: "dept_pubh", label: `Google: ${uni} public health department chair`, url: g(`${uni} public health department chair`), ran: false },
+      { key: "dept_nursing", label: `Google: ${uni} nursing dean`, url: g(`${uni} nursing dean`), ran: false },
+      { key: "dept_hsci", label: `Google: ${uni} health sciences dean`, url: g(`${uni} health sciences dean`), ran: false },
+      { key: "dept_biomed", label: `Google: ${uni} biomedical sciences department head`, url: g(`${uni} biomedical sciences department head`), ran: false },
     ];
   }
   return [
-    { key: "org_premed", label: `Google: ${uni} pre-med society contact`, url: g(`${uni} pre-med society contact`), ran: false },
-    { key: "org_dir", label: `Google: ${uni} student organizations directory pre-health`, url: g(`${uni} student organizations directory pre-health`), ran: false },
+    { key: "org_premed", label: `Google: pre-medical student organizations ${uni}`, url: g(`pre-medical student organizations ${uni}`), ran: false },
+    { key: "org_prenursing", label: `Google: pre-nursing student organizations ${uni}`, url: g(`pre-nursing student organizations ${uni}`), ran: false },
+    { key: "org_prepa", label: `Google: pre-PA student organizations ${uni}`, url: g(`pre-PA student organizations ${uni}`), ran: false },
+    { key: "org_prept", label: `Google: pre-PT student organizations ${uni}`, url: g(`pre-PT student organizations ${uni}`), ran: false },
+    { key: "org_pubh", label: `Google: public health student organizations ${uni}`, url: g(`public health student organizations ${uni}`), ran: false },
+    { key: "org_geriatrics", label: `Google: geriatrics student organizations ${uni}`, url: g(`geriatrics student organizations ${uni}`), ran: false },
   ];
 }
 

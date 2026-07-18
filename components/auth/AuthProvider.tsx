@@ -84,7 +84,7 @@ interface AuthContextValue extends AuthState {
   /** Close the unified auth modal */
   closeUnifiedAuth: () => void;
   signOut: (onComplete?: () => void) => Promise<void>;
-  refreshAccountData: (overrideUserId?: string) => Promise<void>;
+  refreshAccountData: (overrideUserId?: string, overrideUser?: AuthState["user"]) => Promise<void>;
   switchProfile: (profileId: string) => void;
 }
 
@@ -414,12 +414,31 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                 ? `/welcome?next=${encodeURIComponent(redirectTo)}`
                 : redirectTo;
 
-              // Redirect to destination
-              // Use window.location for a hard redirect to ensure navigation completes
-              // (router.replace can be interrupted by React re-renders)
-              console.log("[olera] Redirecting to:", finalDestination);
-              window.location.replace(finalDestination);
-              return; // Exit init - we're redirecting
+              // Redirect to destination.
+              // MedJobs magic-link landings ALREADY arrive on their
+              // destination (the candidate board) — the only reason for the
+              // historical hard redirect was to drop the ?next= param. A
+              // window.location.replace back to the same page forces a full
+              // document reload, which is the visible "double load / flash"
+              // jank on arrival. When the destination is the page we're already
+              // on, clean the URL in place and fall through to the normal
+              // session + account load so the board (and the eligibility
+              // screener) render without a reload. The SIGNED_IN listener stays
+              // guarded by initHandlingRef, so falling through does not trigger
+              // a duplicate fetchAccountData.
+              const destUrl = new URL(finalDestination, window.location.origin);
+              const samePage =
+                onMedjobs && destUrl.pathname === window.location.pathname;
+              if (samePage) {
+                window.history.replaceState(null, "", finalDestination);
+                // fall through — no return, no reload
+              } else {
+                // Use window.location for a hard redirect to ensure navigation
+                // completes (router.replace can be interrupted by re-renders).
+                console.log("[olera] Redirecting to:", finalDestination);
+                window.location.replace(finalDestination);
+                return; // Exit init - we're redirecting
+              }
             }
           }
         } catch (err) {
@@ -893,7 +912,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
    * authentication (before React state has updated the ref).
    * Updates cache on success. Clears fetchError on success.
    */
-  const refreshAccountData = useCallback(async (overrideUserId?: string) => {
+  const refreshAccountData = useCallback(async (
+    overrideUserId?: string,
+    overrideUser?: AuthState["user"],
+  ) => {
     const userId = overrideUserId || userIdRef.current;
     if (!userId) return;
 
@@ -907,6 +929,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         cacheAuthData(userId, data);
         setState((prev) => ({
           ...prev,
+          // Set `user` atomically with `account` when the caller supplies it
+          // (immediately after sign-in). Auth gates key on `user`, but `user`
+          // is otherwise only set by the async SIGNED_IN event — which lands a
+          // beat AFTER this awaited prewarm sets `account`. That gap is the
+          // post-sign-in "Sign in required" flash: account loaded, user still
+          // null. Setting both together closes it for every sign-in method.
+          user: overrideUser ?? prev.user,
           account: data.account,
           activeProfile: data.activeProfile,
           profiles: data.profiles,

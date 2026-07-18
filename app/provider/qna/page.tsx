@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
@@ -9,6 +10,8 @@ import { useProviderVerification } from "@/lib/hooks/useProviderVerification";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import { useVerificationModal } from "@/lib/hooks/useVerificationModal";
 import Pagination from "@/components/ui/Pagination";
+import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
+import { useHasActiveBoostRequest } from "@/hooks/useHasActiveBoostRequest";
 
 // ── Types ──
 
@@ -20,7 +23,7 @@ interface Question {
   question: string;
   asker_name: string;
   created_at: string;
-  status: "pending" | "answered";
+  status: "pending" | "answered" | "approved";
   answer?: string;
   answered_at?: string;
   is_public?: boolean;
@@ -577,7 +580,7 @@ function BottomSheet({
 
 // ── Empty States ──
 
-function EmptyState({ filter, hasAnyPublished }: { filter: TabFilter; hasAnyPublished: boolean }) {
+function EmptyState({ filter, hasAnyPublished, hasActiveBoostRequest }: { filter: TabFilter; hasAnyPublished: boolean; hasActiveBoostRequest?: boolean }) {
   // For pending tab: distinguish between "no questions at all" vs "all caught up"
   if (filter === "pending") {
     if (hasAnyPublished) {
@@ -610,8 +613,18 @@ function EmptyState({ filter, hasAnyPublished }: { filter: TabFilter; hasAnyPubl
         />
         <h3 className="text-[17px] font-display font-bold text-gray-900 mb-2">No questions yet</h3>
         <p className="text-[15px] text-gray-500 max-w-sm leading-relaxed">
-          When families ask questions about your services, they&apos;ll appear here.
+          {hasActiveBoostRequest
+            ? "When families ask questions about your services, they'll appear here."
+            : "Get more families to your page and the questions will follow."}
         </p>
+        {!hasActiveBoostRequest && (
+          <Link
+            href="/provider/boost"
+            className="mt-6 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            See how
+          </Link>
+        )}
       </div>
     );
   }
@@ -688,6 +701,11 @@ export default function ProviderQnAPage() {
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"reply" | "edit">("reply");
+
+  // Ads nudge state — shown once per session after answering a question
+  const [showAdsNudge, setShowAdsNudge] = useState(false);
+  const adsNudgeDismissedRef = useRef(false);
+  const hasActiveBoostRequest = useHasActiveBoostRequest();
 
   // Verification state
   const { isVerified } = useProviderVerification();
@@ -787,9 +805,11 @@ export default function ProviderQnAPage() {
   }, [fetchQuestions]);
 
   const filteredQuestions = useMemo(() => {
-    // Map "published" tab to "answered" status
-    const statusToMatch = activeFilter === "published" ? "answered" : "pending";
-    return questions.filter((q) => q.status === statusToMatch);
+    // Map "published" tab to "answered" or "approved" status
+    if (activeFilter === "published") {
+      return questions.filter((q) => q.status === "answered" || q.status === "approved");
+    }
+    return questions.filter((q) => q.status === "pending");
   }, [activeFilter, questions]);
 
   // Pagination
@@ -813,7 +833,7 @@ export default function ProviderQnAPage() {
 
   const counts = useMemo(() => ({
     pending: questions.filter((q) => q.status === "pending").length,
-    published: questions.filter((q) => q.status === "answered").length,
+    published: questions.filter((q) => q.status === "answered" || q.status === "approved").length,
   }), [questions]);
 
   // Handle marking a question as read
@@ -870,6 +890,12 @@ export default function ProviderQnAPage() {
 
         // Auto-switch to Published tab after successful answer
         setActiveFilter("published");
+
+        // Show ads nudge once per session after answering
+        if (!adsNudgeDismissedRef.current) {
+          setShowAdsNudge(true);
+        }
+
         return true;
       } catch (err) {
         console.error("Failed to publish answer:", err);
@@ -913,6 +939,11 @@ export default function ProviderQnAPage() {
 
       // Auto-switch to Published tab after successful answer
       setActiveFilter("published");
+
+      // Show ads nudge once per session after answering
+      if (!adsNudgeDismissedRef.current) {
+        setShowAdsNudge(true);
+      }
     } catch (err) {
       console.error("Failed to publish answer:", err);
       alert("Failed to publish answer. Please try again.");
@@ -991,6 +1022,20 @@ export default function ProviderQnAPage() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Ads nudge — shown once per session after answering a question */}
+        {showAdsNudge && providerProfile?.slug && (
+          <ContextualAdsNudge
+            context="question"
+            providerSlug={providerProfile.slug}
+            providerName={providerProfile.display_name}
+            hasActiveBoostRequest={hasActiveBoostRequest === true}
+            onDismiss={() => {
+              setShowAdsNudge(false);
+              adsNudgeDismissedRef.current = true;
+            }}
+          />
+        )}
+
         {error ? (
           <div className="text-center py-16">
             <p className="text-[15px] text-red-600">{error}</p>
@@ -1038,7 +1083,7 @@ export default function ProviderQnAPage() {
             )}
           </>
         ) : (
-          <EmptyState filter={activeFilter} hasAnyPublished={counts.published > 0} />
+          <EmptyState filter={activeFilter} hasAnyPublished={counts.published > 0} hasActiveBoostRequest={hasActiveBoostRequest === true} />
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob, isEmailJob } from "@/lib/crons/registry";
+import { variantsForCron } from "@/lib/email-samples";
 
 /**
  * GET /api/admin/automations/[id]
@@ -29,13 +30,15 @@ function isoWeek(d: Date): string {
 const VARIANT_LABELS: Record<string, string> = {
   family_question: "Family question",
   leads: "Leads recap",
+  find_families: "Find Families",
+  managed_ads: "Managed ads",
   referral_teaser: "Referral teaser",
   market_rank: "Market rank",
   weekly_digest: "Weekly digest",
   completion: "Completion nudge",
   cold_rank: "Cold rank note",
 };
-const VARIANT_ORDER = ["family_question", "leads", "referral_teaser", "market_rank", "weekly_digest", "completion", "cold_rank"];
+const VARIANT_ORDER = ["family_question", "leads", "find_families", "managed_ads", "referral_teaser", "market_rank", "weekly_digest", "completion", "cold_rank"];
 
 // ── Per-variant downstream CONVERSION ──
 // Each variant maps to the one provider_activity event that means "this email worked".
@@ -47,6 +50,8 @@ const VARIANT_ORDER = ["family_question", "leads", "referral_teaser", "market_ra
 const CONVERSION_EVENT: Record<string, string> = {
   family_question: "question_responded",
   leads: "lead_opened",
+  find_families: "matches_outreach_sent",
+  managed_ads: "managed_ads_boost_viewed",
   referral_teaser: "market_outreach_status_updated",
   market_rank: "market_outreach_status_updated",
   completion: "profile_published",
@@ -56,6 +61,8 @@ const CONVERSION_EVENT: Record<string, string> = {
 const CONVERSION_LABEL: Record<string, string> = {
   family_question: "Answered",
   leads: "Lead opened",
+  find_families: "Reached out",
+  managed_ads: "Viewed managed ads",
   referral_teaser: "Worked market",
   market_rank: "Worked market",
   completion: "Profile published",
@@ -147,12 +154,14 @@ function classifyVariant(subject: string | null, metadata: Record<string, unknow
   if (mv === "weekly_digest" && metadata?.ledWithRank === true) {
     return { variant: "market_rank", ledWithRank: true };
   }
-  if (mv === "family_question" || mv === "leads" || mv === "referral_teaser" || mv === "market_rank" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
+  if (mv === "family_question" || mv === "leads" || mv === "find_families" || mv === "managed_ads" || mv === "referral_teaser" || mv === "market_rank" || mv === "weekly_digest" || mv === "cold_rank" || mv === "completion") {
     return { variant: mv, ledWithRank: metadata?.ledWithRank === true };
   }
   const s = subject ?? "";
   if (/^A family has a question/i.test(s)) return { variant: "family_question", ledWithRank: false };
   if (/reached out about .+ this week$/i.test(s)) return { variant: "leads", ledWithRank: false };
+  if (/near you (is|are) looking for care$/i.test(s)) return { variant: "find_families", ledWithRank: false };
+  if (/searched for care .+ this week$/i.test(s) || /you're not reaching yet$/i.test(s)) return { variant: "managed_ads", ledWithRank: false };
   if (/^Families in .+ rank you/i.test(s)) return { variant: "cold_rank", ledWithRank: true };
   if (/^See what families see on /i.test(s)) return { variant: "completion", ledWithRank: false };
   if (/^\d+ (.+-area places families may ask (about care|who to call)|.+ teams families may ask about care|local teams families may ask about care|referral sources near )/i.test(s) || /^See (who families may ask|the referral map) /i.test(s)) return { variant: "referral_teaser", ledWithRank: true };
@@ -171,6 +180,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const windowDays = ALLOWED_WINDOWS.includes(daysParam) ? daysParam : 30;
   const job = getCronJob(id);
   if (!job) return NextResponse.json({ error: "Unknown automation" }, { status: 404 });
+  const samplePreviewTypes = variantsForCron(id).map((v) => ({
+    id: v.id,
+    label: v.label,
+    subject: v.subject,
+    emailType: v.emailType,
+  }));
+  const sampleLabelByEmailType = new Map(samplePreviewTypes.map((v) => [v.emailType, v.label]));
 
   const db = getServiceClient();
   const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
@@ -211,8 +227,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   let rollup30d: { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number } | null = null;
   let trend: Array<{ week: string; sent: number; delivered: number; opened: number; clicked: number }> = [];
   const previewTypes: string[] = [];
-  // Per-variant rollup (only meaningful when a job's one email_type fans out into templates, like
-  // the weekly digest). `variants[].split` carries the rank-led vs plain breakdown for weekly_digest.
+  // Per-variant/type rollup. The weekly digest fans one email_type into several content variants;
+  // multi-email jobs like Ad Boost fan one automation into several email_type values.
+  // `variants[].split` carries the rank-led vs plain breakdown for weekly_digest.
   // `converted`/`convRate`/`convEvent`/`convLabel` carry the downstream-conversion attribution.
   type VariantOut = VStat & {
     key: string; label: string; split?: { withRank: VStat; plain: VStat };
@@ -227,6 +244,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const wkWithRank = emptyVStat();
     const wkPlain = emptyVStat();
     const isDigestJob = id === "weekly-provider-digest";
+    const shouldBreakDownByEmailType = !isDigestJob && (job.emailTypes.length > 1 || samplePreviewTypes.length > 1);
     try {
       // Fetch the wider of (rollup window, trend window) so a short window (7d) doesn't starve the
       // fixed 4-week trend. The rollup + variants then gate to `since` per-row; the trend to trendSince.
@@ -258,15 +276,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           if (e.first_clicked_at) w.clicked += 1;
           weekMap.set(wk, w);
         }
-        // Variant breakdown — only the weekly digest fans one email_type into multiple templates,
-        // so classifyVariant's digest-specific patterns only make sense there. For any other job
-        // the subjects wouldn't match and would all collapse into a bogus "weekly_digest" bucket.
         if (inWindow && isDigestJob) {
           const { variant, ledWithRank } = classifyVariant(e.subject, e.metadata);
           (vAgg[variant] ??= emptyVStat());
           accVStat(vAgg[variant], e);
           (vSends[variant] ??= []).push({ providerId: e.provider_id, sentAt: Date.parse(e.created_at), delivered: !!e.delivered_at });
           if (variant === "weekly_digest") accVStat(ledWithRank ? wkWithRank : wkPlain, e);
+        } else if (inWindow && shouldBreakDownByEmailType) {
+          (vAgg[e.email_type] ??= emptyVStat());
+          accVStat(vAgg[e.email_type], e);
         }
         if (inWindow && e.html_body && !seenPreviewTypes.has(e.email_type)) seenPreviewTypes.add(e.email_type);
       }
@@ -319,6 +337,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             convLabel: CONVERSION_LABEL[k],
           };
         });
+      } else if (shouldBreakDownByEmailType) {
+        variants = job.emailTypes.map((emailType) => {
+          const stat = vAgg[emailType] ?? emptyVStat();
+          return {
+            key: emailType,
+            label: sampleLabelByEmailType.get(emailType) ?? emailType,
+            ...stat,
+          };
+        });
       }
     } catch {
       rollup30d = null;
@@ -337,6 +364,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     trend,
     variants,
     previewTypes,
+    samplePreviewTypes,
     runs,
     windowDays,
   });

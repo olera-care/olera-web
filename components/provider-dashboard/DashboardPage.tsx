@@ -8,6 +8,7 @@ import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { useProviderDashboardV2Data } from "@/hooks/useProviderDashboardV2Data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useGuidedOnboarding } from "@/hooks/useGuidedOnboarding";
+import { useMobileNavVariant } from "@/hooks/use-mobile-nav-variant";
 import {
   calculateProfileCompleteness,
   type ExtendedMetadata,
@@ -22,7 +23,10 @@ import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
+import HireCaregiversCard from "./HireCaregiversCard";
 import VerificationStatusCard from "./VerificationStatusCard";
+import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
+import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -32,6 +36,7 @@ import EditAboutModal from "./edit-modals/EditAboutModal";
 import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
 import EditOwnerModal from "./edit-modals/EditOwnerModal";
+import EditHireCaregiversModal from "./edit-modals/EditHireCaregiversModal";
 import DashboardHero, { type HeroAction } from "./v2/DashboardHero";
 import DashboardHeroSkeleton from "./v2/DashboardHeroSkeleton";
 import FamilyViewPreview from "./FamilyViewPreview";
@@ -48,14 +53,24 @@ const EDITABLE_SECTIONS: readonly SectionId[] = [
   "pricing",
   "payment",
   "owner",
+  "hire_caregivers",
 ];
 
 export default function DashboardPage() {
+  // The business_profile is the canonical, hydrated provider record (the
+  // directory row is copied in at claim time), so read it directly.
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
   const { user, refreshAccountData } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+  // Capture ?from=qa-success on the very first render, before the
+  // dashboard_arrival effect below strips it. Passed to DashboardContent (which
+  // mounts only after profile loads, potentially after the strip) so the
+  // post-answer ads nudge survives regardless of that timing.
+  const [cameFromQaSuccess] = useState(
+    () => searchParams.get("from") === "qa-success",
+  );
 
   // Passing user?.id makes the hook refetch when auth resolves — covers the
   // first-load-401 race where the session cookie lands after mount.
@@ -64,20 +79,48 @@ export default function DashboardPage() {
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
 
-  // Arrival tracking: when the dashboard mounts with `?from=qa-success`, the
-  // provider just answered a question on /provider/[slug]/onboard and was
-  // auto-redirected here. Fire one dashboard_arrival event so the admin Q&A
-  // funnel can measure whether the redirect mechanic is working separately
-  // from whether the dashboard hero successfully nudges them into action
-  // (the existing edited_profile column tracks the latter). Strip the param
-  // so reloads don't replay; ref-guarded so a re-render doesn't double-fire.
+  // Arrival tracking: fires once per session for Device Breakdown analytics.
+  // Uses sessionStorage to dedupe across page navigations (consistent with how
+  // mobile_nav_variant_impression dedupes via Navbar's persistent ref).
+  // When `?from=` param is present, that source is captured; otherwise "direct".
+  // Strip the ?from= param after capturing so reloads don't replay.
   const firedArrival = useRef(false);
   useEffect(() => {
     if (firedArrival.current) return;
     if (!profile) return;
-    const fromParam = searchParams.get("from");
-    if (!fromParam) return;
+
+    // Session-level deduplication: only fire once per browser session per provider.
+    // Wrapped in try-catch because sessionStorage throws in Safari private mode.
+    const sessionKey = `dashboard_arrival_${profile.slug}`;
+    let alreadyFired = false;
+    try {
+      alreadyFired = typeof window !== "undefined" && !!sessionStorage.getItem(sessionKey);
+    } catch {
+      // sessionStorage unavailable - fall back to ref-only deduplication
+    }
+
+    if (alreadyFired) {
+      firedArrival.current = true;
+      // Still strip ?from= if present, even if we don't fire
+      const fromParam = searchParams.get("from");
+      if (fromParam) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("from");
+        router.replace(url.pathname + (url.search ? url.search : ""));
+      }
+      return;
+    }
+
     firedArrival.current = true;
+    try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(sessionKey, "1");
+      }
+    } catch {
+      // sessionStorage unavailable - ref deduplication still works for this page session
+    }
+
+    const fromParam = searchParams.get("from");
     fetch("/api/activity/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -87,14 +130,18 @@ export default function DashboardPage() {
         actor_type: "provider",
         provider_id: profile.slug,
         event_type: "dashboard_arrival",
-        metadata: { source: fromParam },
+        metadata: { source: fromParam || "direct" },
       }),
     }).catch(() => {
       /* fire-and-forget */
     });
-    const url = new URL(window.location.href);
-    url.searchParams.delete("from");
-    router.replace(url.pathname + (url.search ? url.search : ""));
+
+    // Strip ?from= param if present
+    if (fromParam) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("from");
+      router.replace(url.pathname + (url.search ? url.search : ""));
+    }
   }, [profile, searchParams, router]);
 
   // Deep-link to a specific edit modal: a `?edit=<section>` link (the
@@ -198,6 +245,7 @@ export default function DashboardPage() {
       refreshAccountData={refreshAccountData}
       userEmail={user?.email}
       v2Data={v2.data}
+      cameFromQaSuccess={cameFromQaSuccess}
     />
   );
 }
@@ -214,6 +262,7 @@ function DashboardContent({
   refreshAccountData,
   userEmail,
   v2Data,
+  cameFromQaSuccess,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;
@@ -224,8 +273,10 @@ function DashboardContent({
   refreshAccountData: () => Promise<void>;
   userEmail?: string;
   v2Data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data | null;
+  cameFromQaSuccess: boolean;
 }) {
   const guided = useGuidedOnboarding(completeness);
+  const mobileNavVariant = useMobileNavVariant();
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   // Mirrors the hero's chosen next-action so the mobile sticky bar shows the
@@ -236,13 +287,23 @@ function DashboardContent({
   // a gap opens that section's editor right over the preview.
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Track which section was being edited when verification was triggered
-  const [pendingEditSection, setPendingEditSection] = useState<SectionId | null>(null);
+  // Post-edit Managed Ads nudge: shown once per session after a profile save.
+  // Suppressed when the hero already resolved to the managed-ads banner this
+  // visit, so the two managed-ads prompts never stack on one screen.
+  const [showEditNudge, setShowEditNudge] = useState(false);
+  const editNudgeShownRef = useRef(false);
+  const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
+  // Just-answered-a-question moment: mirror the /provider/qna ContextualAdsNudge
+  // for providers who answered via the onboard card and were redirected here with
+  // ?from=qa-success (the unclaimed cohort the Q&A email targets — they never hit
+  // /provider/qna, so this is the only place they can get the post-answer pitch).
+  // cameFromQaSuccess is captured by the parent before it strips the param.
+  const [showQaNudge, setShowQaNudge] = useState(cameFromQaSuccess);
 
-  // Verification modal state (using the new hook)
+  // Verification modal state (for the verification feature, not edit gating)
   const {
     isOpen: isVerificationModalOpen,
-    open: openVerificationModalRaw,
+    open: openVerificationModal,
     close: closeVerificationModal,
     handleSubmit: handleVerificationSubmit,
     handleDismiss: handleVerificationDismiss,
@@ -251,29 +312,8 @@ function DashboardContent({
     onVerified: async () => {
       // Refresh profile data to get updated verification state
       await refreshAccountData();
-      // Re-open the edit modal that was pending verification
-      if (pendingEditSection) {
-        setEditingSection(pendingEditSection);
-        setPendingEditSection(null);
-      }
-    },
-    onDismissed: () => {
-      // Clear pending section if user dismisses verification
-      setPendingEditSection(null);
     },
   });
-
-  // Guard: only allow opening modal if profile is loaded
-  // Also close the edit modal first to avoid modal stacking
-  const handleOpenVerificationModal = useCallback(() => {
-    if (!profile.id) return;
-    // Store the current editing section so we can re-open it after verification
-    if (editingSection) {
-      setPendingEditSection(editingSection);
-      setEditingSection(null); // Close edit modal first
-    }
-    openVerificationModalRaw();
-  }, [profile.id, openVerificationModalRaw, editingSection, setEditingSection]);
 
   const handleEdit = useCallback(
     (sectionId: SectionId) => setEditingSection(sectionId),
@@ -289,18 +329,30 @@ function DashboardContent({
 
   const handleSaved = useCallback(async () => {
     await refreshAccountData();
+    let finishedEditing = false;
     if (guided.isGuidedActive && editingSection) {
       const next = guided.getNextSection(editingSection);
       if (next) {
         setEditingSection(next);
       } else {
+        // Guided run fully complete — that's a finish too.
         setEditingSection(null);
         guided.stopGuided();
+        finishedEditing = true;
       }
     } else {
       setEditingSection(null);
+      finishedEditing = true;
     }
-  }, [refreshAccountData, guided, editingSection, setEditingSection]);
+    // Just-polished-my-page moment: surface the Managed Ads nudge once per
+    // session. Editing is the one in-app action the engaged minority takes, so
+    // it's the earned, high-intent time to pitch getting the page seen — vs an
+    // always-on sidebar fixture.
+    if (finishedEditing && !editNudgeShownRef.current && !previewMode) {
+      editNudgeShownRef.current = true;
+      setShowEditNudge(true);
+    }
+  }, [refreshAccountData, guided, editingSection, setEditingSection, previewMode]);
 
   const handleGuidedBack = useCallback(() => {
     if (editingSection) {
@@ -311,13 +363,8 @@ function DashboardContent({
     }
   }, [editingSection, guided, setEditingSection]);
 
-  // Check verification status for edit gating
+  // Verification state for status display (VerificationStatusCard)
   const verificationState = profile.verification_state as string | null;
-  const profileMeta = profile.metadata as { badge_approved?: boolean } | null;
-  const isVerified =
-    profileMeta?.badge_approved === true ||
-    verificationState === "verified" ||
-    verificationState === "not_required";
 
   // Shared modal props
   const modalProps = {
@@ -331,9 +378,6 @@ function DashboardContent({
     onGuidedBack: editingSection && guided.getPrevSection(editingSection)
       ? handleGuidedBack
       : undefined,
-    // Verification gating for profile edits
-    isVerified,
-    onVerifyClick: handleOpenVerificationModal,
   };
 
   return (
@@ -423,11 +467,47 @@ function DashboardContent({
                 onOpenSection={setEditingSection}
                 providerSlug={profile.slug}
                 onHeroAction={setHeroAction}
+                onBannerResolved={setHeroBannerId}
+                hasActiveBoostRequest={v2Data.hasActiveBoostRequest}
               />
             </div>
           ) : (
             <DashboardHeroSkeleton
               firstName={deriveFirstName(profile.display_name)}
+            />
+          )}
+
+          {/* Post-edit Managed Ads nudge — fires once per session after a save,
+              not as an always-on card. The earned, high-intent moment. Hidden
+              when the hero already resolved to the managed-ads banner, so the
+              pitch never doubles on one screen. */}
+          {showEditNudge && heroBannerId !== "managed_ads" && !v2Data?.hasActiveBoostRequest && (
+            <PostEditAdsNudge
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+              onDismiss={() => setShowEditNudge(false)}
+            />
+          )}
+
+          {/* Post-answer Managed Ads nudge — the additive "Great response. Want
+              more families reaching out?" strip, mirrored from /provider/qna so
+              onboard-flow answerers (redirected here with ?from=qa-success) get
+              the same high-intent pitch.
+              Gated on heroBannerId being RESOLVED (truthy) and non-ads: unlike
+              PostEditAdsNudge (which fires after a save, once the hero has long
+              settled), this nudge starts visible at mount, when heroBannerId is
+              still null. Waiting for it to resolve avoids a flash-then-disappear
+              (and a double pitch impression) for cold providers whose hero lands
+              on managed-ads. Net intent: show the nudge only when the hero is
+              occupied by something else; stay silent when the hero already pitches
+              ads or the provider already has a boost request. */}
+          {showQaNudge && !previewMode && !!heroBannerId && heroBannerId !== "managed_ads" && !v2Data?.hasActiveBoostRequest && (
+            <ContextualAdsNudge
+              context="question"
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+              hasActiveBoostRequest={v2Data?.hasActiveBoostRequest}
+              onDismiss={() => setShowQaNudge(false)}
             />
           )}
 
@@ -448,7 +528,7 @@ function DashboardContent({
             const shouldShowMobileBadgeCard = !m?.badge_approved && (!hasSubmission || wasRejected);
             return shouldShowMobileBadgeCard ? (
               <div className="lg:hidden">
-                <MobileBadgeRequestCard onRequestBadge={() => handleOpenVerificationModal()} wasRejected={wasRejected} />
+                <MobileBadgeRequestCard onRequestBadge={() => openVerificationModal()} wasRejected={wasRejected} />
               </div>
             ) : null;
           })()}
@@ -459,6 +539,21 @@ function DashboardContent({
               <LeftColumnActivityCard
                 activities={v2Data.recentActivity}
                 onSeeAll={() => setShowActivityModal(true)}
+              />
+            </div>
+          )}
+
+          {/* Questions engagement (mobile only) — the desktop copy lives in the
+              sticky sidebar; on phones the sidebar is hidden, so surface it here
+              in the flow. Top hairline separates it from the activity block. */}
+          {v2Data && v2Data.questions.received > 0 && (
+            <div
+              className="lg:hidden"
+              style={{ animation: "card-enter 0.25s ease-out both", animationDelay: "90ms" }}
+            >
+              <QuestionsCard
+                questions={v2Data.questions}
+                className="border-t border-gray-100 pt-4"
               />
             </div>
           )}
@@ -474,7 +569,7 @@ function DashboardContent({
               profile={profile}
               completionPercent={sectionPercent("overview")}
               onEdit={() => handleEdit("overview")}
-              onVerifyClick={() => handleOpenVerificationModal()}
+              onVerifyClick={openVerificationModal}
               slug={profile.slug}
             />,
             <GalleryCard
@@ -519,6 +614,11 @@ function DashboardContent({
               metadata={meta}
               onEdit={() => handleEdit("owner")}
             />,
+            <HireCaregiversCard
+              key="hire_caregivers"
+              metadata={meta}
+              onEdit={() => handleEdit("hire_caregivers")}
+            />,
             <NotificationPreferencesCard key="notifications" profileSlug={profile.slug} profileMetadata={meta} />,
           ].map((card, i) => (
             <div
@@ -552,11 +652,21 @@ function DashboardContent({
               />
             )}
 
+            {/* Questions engagement — persistent count + click-through to the
+                answer flow. Only when they've ever received one (no empty card).
+                Hairline separates it from the bare stats block above. */}
+            {v2Data && (v2Data.questions?.received ?? 0) > 0 && (
+              <QuestionsCard
+                questions={v2Data.questions}
+                className="border-t border-gray-100 pt-4"
+              />
+            )}
+
             {/* Badge request card - shown if form not submitted or was rejected */}
             <VerificationStatusCard
               metadata={profile.metadata as { verification_submission?: { name: string; role: string; phone?: string | null; submitted_at: string }; badge_approved?: boolean; badge_rejected?: boolean } | null}
               verificationState={verificationState}
-              onRequestVerification={handleOpenVerificationModal}
+              onRequestVerification={openVerificationModal}
             />
 
             {/* Profile completeness - collapsible (expanded for new providers < 30%) */}
@@ -570,8 +680,11 @@ function DashboardContent({
       </div>
       )}
 
-      {/* Spacer so the last card clears the fixed mobile action bar. */}
-      {!previewMode && heroAction && <div className="lg:hidden h-20" aria-hidden />}
+      {/* Spacer so the last card clears the fixed mobile action bar.
+          Not needed when bottom tabs are active (layout handles spacing). */}
+      {!previewMode && heroAction && mobileNavVariant !== "bottom_tabs" && (
+        <div className="lg:hidden h-20" aria-hidden />
+      )}
 
       {/* Edit Modals */}
       {editingSection === "overview" && <EditOverviewModal {...modalProps} />}
@@ -582,6 +695,7 @@ function DashboardContent({
       {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
       {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
       {editingSection === "owner" && <EditOwnerModal {...modalProps} />}
+      {editingSection === "hire_caregivers" && <EditHireCaregiversModal {...modalProps} />}
 
       {/* Verification Modal */}
       <VerificationMethodModal
@@ -604,8 +718,9 @@ function DashboardContent({
 
       {/* Sticky mobile action bar — keeps the hero's chosen next-action in
           thumb reach across the whole scroll (Airbnb Reserve / Wise Send /
-          Robinhood Buy). Hidden in preview and when the tier carries no CTA. */}
-      {!previewMode && heroAction && (
+          Robinhood Buy). Hidden in preview, when bottom tabs are active
+          (they replace this bar), and when the tier carries no CTA. */}
+      {!previewMode && heroAction && mobileNavVariant !== "bottom_tabs" && (
         <MobileActionBar action={heroAction} onOpenSection={setEditingSection} />
       )}
 
@@ -1340,6 +1455,77 @@ function StatsOnlyCard({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Persistent Questions card. Surfaces lifetime question engagement and the
+ * action number (unanswered) at a glance, with a click-through to the existing
+ * answer flow (/provider/qna). Only rendered when the provider has ever
+ * received a question — no empty "0 questions" card for the majority who
+ * haven't, matching the activity card's `length > 0` gate.
+ *
+ * Bare block (no card chrome) to sit cleanly beside the equally-bare
+ * StatsOnlyCard in the desktop sidebar and among the chromeless mobile flow.
+ * The hero already surfaces unanswered as its Priority-2 banner, but that's a
+ * single rotating slot — when a fresher lead wins the hero, questions fall off
+ * it entirely. This card keeps the count persistently in reach.
+ */
+function QuestionsCard({
+  questions,
+  className = "",
+}: {
+  questions: { received: number; answered: number; unanswered: number };
+  className?: string;
+}) {
+  const { received, answered, unanswered } = questions;
+  const hasUnanswered = unanswered > 0;
+
+  return (
+    <div className={`space-y-3 ${className}`}>
+      <div className="flex items-baseline justify-between">
+        <h3 className="text-base font-display font-bold text-gray-900">
+          Questions
+        </h3>
+        <span className="text-xs text-gray-400 tabular-nums">
+          {received} asked
+        </span>
+      </div>
+
+      {hasUnanswered ? (
+        <div className="space-y-1">
+          <p className="font-display text-[32px] font-semibold text-gray-900 leading-none tabular-nums tracking-tight">
+            {unanswered}
+          </p>
+          <p className="text-sm text-gray-500">
+            {unanswered === 1 ? "question" : "questions"} waiting for your reply
+          </p>
+          <Link
+            href="/provider/qna"
+            className="inline-block text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            Answer now →
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <p className="font-display text-[20px] font-semibold text-gray-900 leading-tight">
+            All caught up
+          </p>
+          <p className="text-sm text-gray-500">
+            {answered === received
+              ? `You've answered all ${received === 1 ? "your question" : `${received} questions`}`
+              : `You've answered ${answered} of ${received}`}
+          </p>
+          <Link
+            href="/provider/qna"
+            className="inline-block text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            View questions →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

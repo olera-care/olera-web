@@ -58,6 +58,24 @@ export interface ProgramPdfConfig {
   pricing: { headline: string; body: string };
   /** Bottom CTA line ("Schedule a call · Learn more"). */
   ctaLabel: string;
+
+  // ── Audience variants (student-facing flyer vs provider brochure) ──
+  // The renderer reads the fields below with PROVIDER defaults when omitted,
+  // so the existing provider config needs no changes. The student config sets
+  // them to flip every audience-specific label.
+  /** Who this config addresses. Drives the registry lookup + filename; the
+   *  renderer keys off the header/subtitle fields below. Defaults to "provider". */
+  audience?: "provider" | "student";
+  /** Subtitle under the title. Provider default:
+   *  "Pre-nursing and pre-medical student staffing pipeline for home care agencies". */
+  subtitle?: string;
+  /** Top-right university tagline. Provider default: "Pre-health staffing pipeline". */
+  universityTagLine?: string;
+  /** Section headers. Provider defaults: "Why agencies participate" / "How it
+   *  works" / "Student vetting" / "Participation & pricing". */
+  sectionHeaders?: { benefits: string; steps: string; vetting: string; pricing: string };
+  /** PDF metadata subject. Provider default: "Provider outreach packet". */
+  documentSubject?: string;
 }
 
 export const TEXAS_AM: ProgramPdfConfig = {
@@ -68,50 +86,42 @@ export const TEXAS_AM: ProgramPdfConfig = {
   universityAccent: "#500000", // Aggie maroon
   ctaUrl: "https://olera.care/medjobs/providers",
   heroHeadline:
-    "Local Texas A&M pre-health students ready to supplement your caregiver workforce.",
+    "Vetted Texas A&M pre-health student caregivers for the recurring shifts you can't fill.",
   heroSubhead:
-    "Olera connects pre-nursing and pre-medical students from Texas A&M with home care agencies for paid caregiving experience. Students get the clinical hours and recommendation letters that strengthen their applications to medical, PA, and nursing school. Agencies get reliable, motivated staffing support from a local university talent pool.",
-  // v9.1 Graize 05.13 audit (Item 12): two benefit cards retitled
-  // to better fit the program's actual value to operators + clients.
-  // "Local Aggie talent pipeline" -> "Local evergreen talent pipeline"
-  // makes the perennial-semester point without university-specific
-  // jargon, and reads cleaner. "Pathway to long-term hires" framed
-  // the program as a recruiting funnel; the bigger win is the client-
-  // experience uplift from motivated pre-health caregivers — so it
-  // reframes as "Caregivers your clients remember".
+    "Olera recruits and vets pre-nursing and pre-medical students from Texas A&M and matches them to your agency as caregivers. They want supervised hours, mentorship, and recommendation letters for health school, so they commit to a semester of recurring availability and take the work seriously. You get reliable coverage for the shifts that are hardest to staff in the Bryan/College Station area. Browse and interview for free — you pay only when you hire.",
   benefits: [
     {
-      title: "Fill vacant shifts and PRN gaps",
-      body: "Reliable student caregivers supplement your team for nights, weekends, and short-notice coverage.",
+      title: "Cover your hardest shifts",
+      body: "Students commit to a semester of recurring availability: reliable coverage for nights, weekends, and standing schedules.",
     },
     {
-      title: "Motivated by experience, not just pay",
-      body: "Students prioritize clinical hours, mentorship, and recommendation letters that support their applications.",
+      title: "Motivated by more than pay",
+      body: "They're after clinical hours, mentorship, and recommendation letters, so they show up and take the work seriously.",
     },
     {
-      title: "Local evergreen talent pipeline",
+      title: "Local, and back every term",
       body: "Pre-nursing and pre-medical students from the Bryan/College Station area, available semester after semester.",
     },
     {
       title: "Caregivers your clients remember",
-      body: "Intergenerational connection and high-quality engagement from future nurses and physicians who care about the work.",
+      body: "Engaged, capable future nurses and physicians who care about the people they look after.",
     },
   ],
   steps: [
-    "Create your account on the program portal.",
-    "Review and acknowledge participation terms.",
-    "Receive screened pre-health student referrals.",
-    "Interview, hire, and onboard the students.",
+    "Create your free account and review candidates.",
+    "Tell us the recurring shifts you need to cover.",
+    "We match a vetted student whose availability fits.",
+    "Interview, hire, and the semester begins.",
   ],
   vetting: [
-    "Screened pre-nursing and pre-medical applicants.",
-    "Committed to healthcare careers; in it for the experience.",
-    "Professionalism and scheduling expectations set up-front.",
-    "Background-check support coordinated with your standard onboarding.",
+    "Screened pre-nursing and pre-medical students.",
+    "Committed to a semester of recurring availability.",
+    "Professionalism and scheduling expectations set up front.",
+    "Background-check support coordinated with your onboarding.",
   ],
   pricing: {
-    headline: "1-month free trial. $50/month afterward. Cancel anytime.",
-    body: "The fee supports student outreach, vetting, and operational management. Unlimited student referrals included.",
+    headline: "Free to browse and interview. $200 once per hire — refunded if they work under 15 hours.",
+    body: "No subscription, no commitment. You pay a one-time $200 only when you hire a student, fully refunded if they work fewer than 15 hours. Olera handles recruiting, vetting, and matching; you run your standard hiring and onboarding as the employer.",
   },
   // v9.1 Graize 05.13 audit (Item 13): shorter CTA so the label
   // doesn't truncate next to the QR code. The QR target URL already

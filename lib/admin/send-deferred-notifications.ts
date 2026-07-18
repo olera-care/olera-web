@@ -26,6 +26,13 @@ interface SendDeferredNotificationsOptions {
   additionalSlugVariants?: string[];
   /** If true, provider has unsubscribed from lead emails */
   leadsUnsubscribed?: boolean;
+  /**
+   * Cap how many QUESTION notifications to send this call (newest first), so a
+   * large backlog can be paced instead of blasting the provider all at once.
+   * Undefined = no cap (send all) — preserves existing add-email behavior.
+   * Leads are not capped.
+   */
+  maxQuestions?: number;
 }
 
 /**
@@ -52,6 +59,7 @@ export async function sendDeferredNotificationsForProvider(
     providerSlug,
     additionalSlugVariants = [],
     leadsUnsubscribed,
+    maxQuestions,
   } = options;
   const db = getServiceClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
@@ -70,6 +78,25 @@ export async function sendDeferredNotificationsForProvider(
     questionEmailsSent: 0,
     leadsSkipped: 0,
   };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 0. Check if provider is admin-archived (skip all notifications)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (profileId) {
+    const { data: providerProfile } = await db
+      .from("business_profiles")
+      .select("metadata")
+      .eq("id", profileId)
+      .maybeSingle();
+
+    const providerMeta = (providerProfile?.metadata as Record<string, unknown>) ?? {};
+    if (providerMeta.admin_archived === true) {
+      console.log(
+        `[send-deferred] Skipping notifications for admin-archived provider ${providerSlug}`
+      );
+      return result;
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // 1. Send deferred LEAD notifications
@@ -264,7 +291,12 @@ export async function sendDeferredNotificationsForProvider(
         // Reset nudge counts for fresh start
         meta.nudge_count = 0;
         meta.nudged_at = null;
-        await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
+        const { error: metaUpdateErr } = await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
+        if (metaUpdateErr) {
+          // Email was sent but metadata not updated - log warning for debugging
+          // This could cause duplicate sends on retry, but we can't unsend the email
+          console.warn(`[send-deferred] Email sent for connection ${conn.id} but metadata update failed:`, metaUpdateErr);
+        }
 
         result.leadEmailsSent++;
       } catch (err) {
@@ -307,12 +339,18 @@ export async function sendDeferredNotificationsForProvider(
 
   // Convert Set to Array for iteration (avoids TypeScript downlevelIteration issues)
   for (const slug of Array.from(slugVariants)) {
-    // Only fetch pending questions (not answered, archived, or rejected)
+    // Stop once we've hit the per-call question cap (paced flush).
+    if (maxQuestions !== undefined && result.questionEmailsSent >= maxQuestions) break;
+
+    // Only fetch pending questions (not answered, archived, or rejected).
+    // Newest first so a paced/capped flush sends the freshest questions —
+    // the ones a family is most likely still waiting on.
     const { data: pendingQuestions } = await db
       .from("provider_questions")
       .select("id, question, asker_name, metadata")
       .eq("provider_id", slug)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
 
     // Filter to only those without email_sent_at and not already processed
     const unnotifiedQuestions = (pendingQuestions ?? []).filter((q) => {
@@ -322,6 +360,8 @@ export async function sendDeferredNotificationsForProvider(
     });
 
     for (const q of unnotifiedQuestions) {
+      // Honor the per-call cap across all slug variants.
+      if (maxQuestions !== undefined && result.questionEmailsSent >= maxQuestions) break;
       try {
         // Re-fetch metadata to check if another process already sent this notification
         const { data: freshQ } = await db
@@ -357,6 +397,7 @@ export async function sendDeferredNotificationsForProvider(
           emailType: "question_received",
           recipientType: "provider",
           providerId: profileId || slug,
+          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
         });
 
         // Generate one-click URL with signed token
@@ -396,7 +437,12 @@ export async function sendDeferredNotificationsForProvider(
         // Mark as sent
         delete meta.needs_provider_email;
         meta.email_sent_at = new Date().toISOString();
-        await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+        const { error: metaUpdateErr } = await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+        if (metaUpdateErr) {
+          // Email was sent but metadata not updated - log warning for debugging
+          // This could cause duplicate sends on retry, but we can't unsend the email
+          console.warn(`[send-deferred] Question email sent for ${q.id} but metadata update failed:`, metaUpdateErr);
+        }
 
         processedQuestionIds.add(q.id);
         result.questionEmailsSent++;

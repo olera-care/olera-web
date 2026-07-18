@@ -36,10 +36,80 @@
  */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { verifyWelcomeToken } from "@/lib/medjobs/welcome-token";
 import { generateUniqueSlug } from "@/lib/slug";
 import { resolveCampusUniversity } from "@/lib/medjobs/campus-university-bridge";
+import {
+  scoreClaimTrust,
+  extractDomainFromWebsite,
+  type ClaimTrustResult,
+} from "@/lib/claim-trust";
+
+/**
+ * Trust-score the recipient's email against the directory listing and return
+ * the claim fields. Mirrors /api/provider/claim-instant: high trust →
+ * verification_state "not_required", else "unverified". Falls back to medium
+ * if scoring throws. Fetches directory name/location/website when the caller
+ * doesn't already have them (the adopt path). Used on the magic-link claim so
+ * a provider who authenticates via MedJobs lands in the SAME claimed +
+ * trust-scored state as a directory self-serve claim.
+ */
+async function computeClaimFields(
+  supabase: SupabaseClient,
+  args: {
+    email: string;
+    oleraProviderId: string | null;
+    name?: string | null;
+    city?: string | null;
+    state?: string | null;
+    website?: string | null;
+  },
+): Promise<{
+  claim_state: "claimed";
+  verification_state: "not_required" | "unverified";
+  claim_trust_level: string;
+  claim_trust_reason: string;
+}> {
+  let { name, city, state, website } = args;
+  if ((name == null || website == null) && args.oleraProviderId) {
+    const { data } = await supabase
+      .from("olera-providers")
+      .select("provider_name, city, state, website")
+      .eq("provider_id", args.oleraProviderId)
+      .maybeSingle();
+    if (data) {
+      const d = data as {
+        provider_name: string | null;
+        city: string | null;
+        state: string | null;
+        website: string | null;
+      };
+      name = name ?? d.provider_name;
+      city = city ?? d.city;
+      state = state ?? d.state;
+      website = website ?? d.website;
+    }
+  }
+  let trust: ClaimTrustResult = { level: "medium", reason: "not_scored" };
+  try {
+    trust = await scoreClaimTrust({
+      email: args.email,
+      providerName: name || "Provider",
+      providerCity: city,
+      providerState: state,
+      providerDomain: extractDomainFromWebsite(website),
+    });
+  } catch {
+    // keep default medium — never block the claim on a scoring failure
+  }
+  return {
+    claim_state: "claimed",
+    verification_state: trust.level === "high" ? "not_required" : "unverified",
+    claim_trust_level: trust.level,
+    claim_trust_reason: trust.reason,
+  };
+}
 
 export async function GET(
   request: Request,
@@ -79,7 +149,14 @@ export async function GET(
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // ── 3. JTI ledger check (one-shot redemption) ────────────────────────
+  // ── 3. JTI ledger check (audit-once, NOT one-shot) ───────────────────
+  // The provider welcome link is MULTI-USE on purpose: Smartlead bakes ONE
+  // welcome_url per lead and reuses it across the whole cold/activation
+  // cadence (3 emails), and a provider may click without finishing the
+  // eligibility screener and need to return from a later email. So we no
+  // longer block a re-visit — we just avoid writing duplicate audit
+  // touchpoints. (Mirrors the partner-portal token's multi-use rationale;
+  // the token is still email-bound + 30-day TTL.)
   const { data: existingRedemption } = await supabase
     .from("student_outreach_touchpoints")
     .select("id")
@@ -88,11 +165,7 @@ export async function GET(
     .filter("payload->>jti", "eq", jti)
     .limit(1)
     .maybeSingle();
-  if (existingRedemption) {
-    const usedUrl = new URL("/medjobs/m/used", request.url);
-    usedUrl.searchParams.set("email", email);
-    return NextResponse.redirect(usedUrl);
-  }
+  const alreadyVisited = !!existingRedemption;
 
   // ── 4. Outreach row + campus context ─────────────────────────────────
   const { data: outreachRowRaw } = await supabase
@@ -172,19 +245,22 @@ export async function GET(
     }
   }
 
-  // ── 7. Establish the provider identity (authed-but-UNCLAIMED) ────────
+  // ── 7. Establish the provider identity (authed + CLAIMED) ────────────
   // The magic-link recipient must land as a PROVIDER, not a generic/family
   // user. We resolve (or create) their provider org profile from the directory
-  // listing, link it to their account, and make it ACTIVE — but we do NOT
-  // claim it (claim_state stays "unclaimed"; the combined Terms acceptance is
-  // what claims it + starts the pilot). If the org is already owned by a
-  // DIFFERENT account → read-only co-tenancy (decision 3): no link, no create.
-  // Canonical key is source_provider_id; provider_business_profile_id is a
-  // legacy fallback for non-directory rows.
+  // listing, link it to their account, make it ACTIVE, and CLAIM it —
+  // claim_state="claimed" means they OWN the listing. This is decoupled from
+  // pilot/Client status (interview_terms_accepted_at via /pilot/activate):
+  // authentication claims the listing; accepting terms makes them a Client.
+  // Trust-scoring sets verification_state, mirroring the directory self-serve
+  // claim so all claim paths produce identical state. If the org is already
+  // owned by a DIFFERENT account → read-only co-tenancy (decision 3): no link,
+  // no claim. Canonical key is source_provider_id; provider_business_profile_id
+  // is a legacy fallback for non-directory rows.
   let businessProfileId: string | null = null;
   let claimConflict = false;
   if (accountId) {
-    let bp: { id: string; account_id: string | null } | null = null;
+    let bp: { id: string; account_id: string | null; claim_state: string | null } | null = null;
     if (oleraProviderId) {
       // Fetch-then-filter so a legacy NULL claim_state row is still found.
       const { data } = await supabase
@@ -202,10 +278,15 @@ export async function GET(
     if (!bp && outreachRow.provider_business_profile_id) {
       const { data } = await supabase
         .from("business_profiles")
-        .select("id, account_id")
+        .select("id, account_id, claim_state")
         .eq("id", outreachRow.provider_business_profile_id)
         .maybeSingle();
-      bp = (data as { id: string; account_id: string | null } | null) ?? null;
+      bp =
+        (data as {
+          id: string;
+          account_id: string | null;
+          claim_state: string | null;
+        } | null) ?? null;
     }
 
     if (bp) {
@@ -215,12 +296,26 @@ export async function GET(
         claimConflict = true;
       } else {
         businessProfileId = bp.id;
-        // Adopt an unowned profile; never touch claim_state here (a previously
-        // claimed profile stays claimed; an unclaimed one stays unclaimed).
-        if (!bpAccountId) {
+        // First authentication = claim. Adopt an unowned profile AND mark it
+        // claimed + trust-scored (mirrors the directory claim). Idempotent:
+        // skip the claim+score when it's already claimed (the welcome link is
+        // multi-use, so a re-click must not re-score or re-claim).
+        const patch: Record<string, unknown> = {};
+        if (!bpAccountId) patch.account_id = accountId;
+        if (bp.claim_state !== "claimed") {
+          Object.assign(
+            patch,
+            await computeClaimFields(supabase, {
+              email,
+              oleraProviderId,
+              name: outreachRow.organization_name,
+            }),
+          );
+        }
+        if (Object.keys(patch).length > 0) {
           await supabase
             .from("business_profiles")
-            .update({ account_id: accountId })
+            .update(patch)
             .eq("id", bp.id);
         }
       }
@@ -245,6 +340,18 @@ export async function GET(
         };
         const displayName = o.provider_name || outreachRow.organization_name || "Provider";
         const slug = await generateUniqueSlug(supabase, displayName, o.city || "", o.state || "");
+        // First authentication = claim. Create the profile CLAIMED (owned) with
+        // verification_state from trust-scoring — mirrors the directory claim so
+        // every claim path produces identical state. claim_state is decoupled
+        // from pilot/Client status.
+        const claimFields = await computeClaimFields(supabase, {
+          email,
+          oleraProviderId,
+          name: displayName,
+          city: o.city,
+          state: o.state,
+          website: o.website,
+        });
         const { data: newBp } = await supabase
           .from("business_profiles")
           .insert({
@@ -261,8 +368,7 @@ export async function GET(
             zip: o.zipcode != null ? String(o.zipcode) : null,
             source_provider_id: oleraProviderId,
             source: "claimed_from_directory",
-            claim_state: "unclaimed",
-            verification_state: "unverified",
+            ...claimFields,
             is_active: true,
             metadata: {},
           })
@@ -282,42 +388,44 @@ export async function GET(
     }
   }
 
-  // ── 8. Audit touchpoint(s) ───────────────────────────────────────────
-  await supabase.from("student_outreach_touchpoints").insert({
-    outreach_id,
-    contact_id: null,
-    touchpoint_type: "note_added",
-    channel: null,
-    outcome: null,
-    notes: "Magic-link click — provider visited the candidate board.",
-    payload: {
-      reason: "platform_visited",
-      jti,
-      user_id: userId,
-      business_profile_id: businessProfileId,
-      account_id: accountId ?? null,
-      via: "magic_link",
-    },
-    created_by: null,
-  });
-  if (claimConflict) {
+  // ── 8. Audit touchpoint(s) — once per link (first visit only) ────────
+  if (!alreadyVisited) {
     await supabase.from("student_outreach_touchpoints").insert({
       outreach_id,
       contact_id: null,
       touchpoint_type: "note_added",
       channel: null,
       outcome: null,
-      notes:
-        "Magic-link click on org already linked to another account. Read-only co-tenancy until reconciled.",
+      notes: "Magic-link click — provider visited the candidate board.",
       payload: {
-        reason: "claim_conflict",
+        reason: "platform_visited",
         jti,
         user_id: userId,
         business_profile_id: businessProfileId,
-        attempted_account_id: accountId ?? null,
+        account_id: accountId ?? null,
+        via: "magic_link",
       },
       created_by: null,
     });
+    if (claimConflict) {
+      await supabase.from("student_outreach_touchpoints").insert({
+        outreach_id,
+        contact_id: null,
+        touchpoint_type: "note_added",
+        channel: null,
+        outcome: null,
+        notes:
+          "Magic-link click on org already linked to another account. Read-only co-tenancy until reconciled.",
+        payload: {
+          reason: "claim_conflict",
+          jti,
+          user_id: userId,
+          business_profile_id: businessProfileId,
+          attempted_account_id: accountId ?? null,
+        },
+        created_by: null,
+      });
+    }
   }
 
   // ── 9. Generate Supabase magiclink for session establishment ─────────

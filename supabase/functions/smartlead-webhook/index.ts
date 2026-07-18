@@ -76,6 +76,10 @@ const PROMOTE_ON_REPLY = new Set([
   "researched",
   "prospect",
   "no_response_closed",
+  // Late interest on a retired prospect: a reply resurfaces an archived row into
+  // Emails "They replied" (matches the Archive tab's own promise + the Follow-up
+  // workflow's reversibility).
+  "archived",
 ]);
 
 type Kind = "sent" | "open" | "click" | "reply" | "bounce" | "unsubscribe" | "ignore";
@@ -272,11 +276,15 @@ async function resolveRow(
     }
   }
   if (email) {
-    // Match by the lead email stored in either smartlead linkage — cold first,
-    // then activation. Both store the prospect's address as `lead_email`.
+    // Match by the lead email stored in any smartlead linkage — cold, then
+    // activation, then partner-welcome. All three store the prospect's address
+    // as `lead_email`. (Welcome was previously omitted, so welcome-cadence
+    // replies never resolved.)
     for (const path of [
       "research_data->smartlead->>lead_email",
       "research_data->smartlead_activation->>lead_email",
+      "research_data->smartlead_welcome->>lead_email",
+      "research_data->smartlead_custom->>lead_email",
     ]) {
       const { data } = await supabase
         .from("student_outreach")
@@ -290,8 +298,45 @@ async function resolveRow(
         return { id: row.id, status: row.status, research_data: row.research_data ?? null };
       }
     }
+    // Fan-out rows enroll multiple addresses but store only the first as
+    // lead_email; match the reply against the full enrolled-emails array
+    // (stored lowercased) so a reply from any recipient still resolves.
+    const { data: arr } = await supabase
+      .from("student_outreach")
+      .select("id, status, research_data")
+      .filter("research_data->smartlead->lead_emails", "cs", JSON.stringify([email]))
+      .limit(1);
+    const arrRow = (arr ?? [])[0] as
+      | { id: string; status: string; research_data: Record<string, unknown> | null }
+      | undefined;
+    if (arrRow) {
+      return { id: arrRow.id, status: arrRow.status, research_data: arrRow.research_data ?? null };
+    }
   }
   return null;
+}
+
+/** Attribute a no-custom_fields event (reply/bounce/unsubscribe carry no
+ *  contact_id) to the right CRM contact by matching the enrolled lead address
+ *  against the row's Specific Contacts. Returns the named contact's id + role
+ *  when it matches one; null when it's the general contact or unmatched (leave
+ *  the touchpoint attributed to the General Contact). */
+async function resolveContactByEmail(
+  outreachId: string,
+  email: string | undefined,
+): Promise<{ contactId: string; role: string | null } | null> {
+  if (!email) return null;
+  const { data } = await supabase
+    .from("student_outreach_contacts")
+    .select("id, role, title")
+    .eq("outreach_id", outreachId)
+    .ilike("email", email)
+    .limit(1);
+  const c = (data ?? [])[0] as
+    | { id: string; role: string | null; title: string | null }
+    | undefined;
+  if (!c) return null;
+  return { contactId: c.id, role: c.role ?? c.title ?? null };
 }
 
 /** Check whether a touchpoint of `type` already exists for this row with the
@@ -370,6 +415,18 @@ async function handleReply(row: ResolvedRow, extract: LeadExtract) {
     reply_subject: extract.replySubject ?? null,
     from_email: extract.fromEmail ?? extract.email ?? null,
   }, { resetViewedAt: true });
+
+  // They responded — stop any queued CALL cards so we don't ring someone who
+  // already wrote back. One query covers cold AND activation calls (both are
+  // outreach_followup_call). Smartlead already auto-pauses the email drip, and
+  // there are no CRM email-send tasks for Smartlead rows; outreach_email_send is
+  // included only to cover any legacy/non-Smartlead rows.
+  await supabase
+    .from("student_outreach_tasks")
+    .update({ status: "superseded", completed_at: new Date().toISOString() })
+    .eq("outreach_id", row.id)
+    .eq("status", "pending")
+    .in("task_type", ["outreach_followup_call", "outreach_email_send"]);
 
   if (PROMOTE_ON_REPLY.has(row.status)) {
     const patch: Record<string, unknown> = { status: "engaged" };
@@ -598,15 +655,51 @@ Deno.serve(async (req: Request) => {
     if (kind === "ignore") return new Response("ok (ignored)", { status: 200 });
 
     const extract = extractLead(raw, kind);
-    const row = await resolveRow(extract.outreachId, extract.email);
+    let row = await resolveRow(extract.outreachId, extract.email);
+
+    // Reply-resolution fallback (defense in depth). EMAIL_REPLY carries no
+    // custom_fields, so it resolves purely by matching the LEAD address against
+    // stored lead_email(s). If Smartlead's payload doesn't populate the field we
+    // read as the lead (`sl_lead_email`), the primary lookup above misses. On a
+    // reply, though, `from_email` IS the prospect — so retry against it. This is
+    // SAFE because resolveRow only matches known-enrolled addresses (the stored
+    // lead_email paths + the lead_emails array), never an arbitrary mailbox.
+    if (
+      !row &&
+      kind === "reply" &&
+      extract.fromEmail &&
+      extract.fromEmail !== extract.email
+    ) {
+      row = await resolveRow(undefined, extract.fromEmail);
+      if (row) {
+        // Attribute/annotate off the address that actually matched.
+        extract.email = extract.fromEmail;
+      }
+    }
+
     if (!row) {
       console.warn("[smartlead-webhook] could not map event to a row", {
         outreachId: extract.outreachId,
         email: extract.email,
+        fromEmail: extract.fromEmail,
         campaignId: extract.campaignId,
         kind,
       });
       return new Response("ok (unmatched)", { status: 200 });
+    }
+
+    // Reply/bounce/unsubscribe events carry no custom_fields, so contact_id is
+    // null even when a specific Named Contact (e.g. a decision maker on a
+    // provider with no general email) is the one who replied. Attribute the
+    // event to that contact by matching the enrolled lead address, so the
+    // Emails-tab card + timeline show the real recipient, not the org.
+    if (!extract.contactId && extract.email) {
+      const named = await resolveContactByEmail(row.id, extract.email);
+      if (named) {
+        extract.contactId = named.contactId;
+        extract.recipientKind = "named";
+        if (named.role && !extract.role) extract.role = named.role;
+      }
     }
 
     switch (kind) {

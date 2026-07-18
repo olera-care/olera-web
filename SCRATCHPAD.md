@@ -7,6 +7,724 @@
 
 ## Current Focus
 
+### 2026-07-07 — Ad Boost LIVE IN PRODUCTION: rail proven with real money, Hilda email SENT (promotes #1337 + #1339)
+
+The monetization arc closed. Everything from the 07-06/07 entry below is now in prod, plus the day's second act:
+
+**Live-fire test (the $4.65 proof):** TJ ran a real $150 checkout on his own card against prod: wrap-up → Stripe live mode → Edge Function → `plan_status=active` → tier-specific UI, then cancel → `customer.subscription.deleted` → `canceled`. Payment refunded (Stripe kept ~$4.65). It caught, in order: **(1) my Edge Function deploys omitted `--no-verify-jwt`** → ALL Stripe webhooks 401'd for ~1hr incl. MedJobs (memory `feedback_edge_fn_deploy_no_verify_jwt`; recovery = correct redeploy + Stripe dashboard Resend of the missed event); (2) checkout footer ToS/Privacy pointed at old Google Drive PDFs → TJ swapped to olera.care/terms + /privacy in Stripe Public details; (3) webhook endpoint wasn't subscribed to `customer.subscription.updated` → added (deleted was already there, MedJobs cancels never missed); (4) refund ≠ cancel, both needed. **Instrumentation now full:** `SLACK_WEBHOOK_URL` secret set on the edge fn + churn pings added → every signup 💰 / cancel 🛑 / past-due ⚠️ posts to the channel (test ping verified). Test-mode dual-secret support exists but is dormant (`STRIPE_WEBHOOK_SECRET_TEST`, PR #1334) — TJ chose the live-refund path over test-mode env plumbing ("arduous").
+
+**Shipped after the morning log:** #1333 punch pass (TJ: wrap-up read "like a FAFSA form" → value math to one line, cards drop blurbs, promises to label scale, ~110→45 words) + per-tier inquiry estimates on all plan cards; #1334 webhook hardening; **promote #1337** (Phase 2 + all of the above → prod, `b09eb09e`); #1338 **admin revenue ledger** (TJ: "Slack can be missed") — "Ad Boost MRR ($/mo)" card on /admin Overview (`?revenue_only=true` API branch; past_due counts as paying), 💰/⚠️/canceled badges on queue rows, paying+MRR chip in queue header; **promote #1339** (`22d4f1de`). Test seeds fully cleaned (3 fake leads + test campaign deleted; Stripe sub canceled; "Olera Ad Boost Starter" product stays = the real product).
+
+**Hilda email SENT 2026-07-07** (hilda@franchilcare.com, from Apple Mail). Final content beats: 124 impressions / 26 visitors / 3 inquiries / $36.50 all-covered; Starter $150 all-in recommendation; **"Expect 1-5 family inquiries a month"** (floor = published estimate, ceiling = her own pace; her intro "shockingly good" framing sets month-one expectations honestly); direct link https://olera.care/provider/boost (signed-out click = in-place auth modal, lands on the wrap-up). Draft archived in Notion under the Managed Ads SOP, marked SENT. **Her wrap-up is armed in prod** (3 leads ≥ threshold) — if she converts: Slack 💰 + green badge + MRR card ticks to 150.
+
+**Watch/next:** (1) Hilda's reply or conversion; (2) flip Miracle + Impact → live via /admin/ad-boost UI (serving since Jul 6; "Eligible (Limited)" = normal micro-budget); (3) orientation campaign send (600, still gated); (4) Abode wraps Jul 27 = first zero-lead-path or second wrap-up test; (5) family-nudges withCronRun fix (still unbuilt); (6) after 4 campaigns wrap: recalibrate estimate.ts ranges with first-party CPL (~$12 observed vs $80-150 benchmark — published 1-2/mo undersells); (7) parallel-session note: the admin-audit session's "test-account reset" deleted the armed test campaign mid-test — coordinate test seeds across sessions.
+### 2026-07-07 — SMS 10DLC campaign rejection: real root cause found + full evidence package SHIPPED (#1335 staging / hotfix #1336 prod); ticket filed, WAF + sender pool fixed
+
+Campaign CM829094b3db26830863849c2a0d5efa59 rejected a SECOND time (30909 CTA, after the 7/2 /messaging-terms resubmit). Deep diagnosis instead of another blind fix:
+
+- **Real root cause:** the TCR submission claims consent language sits "directly next to the phone field" — but **15 of 17 live `type="tel"` surfaces had NO disclosure**, including connection-card EnrichmentState (the exact flow the submission describes) and every portal profile editor. `SmsConsentDisclosure` only rendered in LeadCaptureForm (superseded) + BenefitsDiscoveryModule. Reviewer also couldn't witness opt-in (fire-first flow, phone on step 2) and the WAF region rule may block non-US reviewers.
+- **Shipped (PR #1335 → staging `558880ee`, cherry-pick hotfix #1336 → main, live+verified):** disclosure under every consumer-facing phone field (EnrichmentState, 4 profile editors, QuickProfileWizard, EditOverviewModal w/ new `audience="provider"` variant, links /messaging-terms); /messaging-terms gained "What Opt-In Looks Like" (2 real consent-flow screenshots, `#what-opt-in-looks-like`) + explicit family/provider opt-in path lists. Deliberately did NOT promote all of staging (Ad Boost Phase 2 un-QA'd) — hotfix content-identical so next promote reconciles.
+- **Ops (all done 2026-07-07):** Twilio support ticket FILED (**# 27975902**) asking for vetting partner's notes + sub-error code (30921 would confirm the WAF theory) — resubmit WAITS on the reply. First reply (boilerplate) ESCALATED the case to Trust & Safety + invited a compliance explanation; our reply (compliance case + the 2 questions, drafted section ⑥ on the Notion Round-3 page) SENT 2026-07-08; Vercel WAF rule `tcr-review-bypass` LIVE at position 1 above "Block Restricted Regions" (paths /messaging-terms, /privacy, /terms **+ /_next/ + /images/** — asset bypass sat BELOW the region challenge, reviewers would've seen broken evidence images); `+12137722970` added to Messaging Service MGec38c… sender pool (was EMPTY — approval alone wouldn't have stopped 30034).
+- **Round-3 paste-ready fields** (ticket text, rewritten message_flow w/ explicit Terms+Privacy URLs per official 30909 docs) → Notion "10DLC Round 3 — Copy/Paste Fields (2026-07-07)" under Product Development.
+- **Gotchas learned:** Twilio Usa2p `date_updated` NEVER bumps — useless for inferring resubmits; editing the SAME campaign does NOT re-charge the vetting fee (delete+recreate does); Vercel firewall UI Save button silently no-ops under CDP automation — use the dashboard-session config API (PATCH `/api/v1/security/firewall/config`, `rules.insert`/`rules.priority`, applies immediately, team slug is `olera` not olera-pro).
+
+**Next up:** (1) Trust & Safety reply on # 27975902 → Edit & resubmit with the Notion Round-3 message_flow (+ fix mid-sentence line breaks in samples); (2) after approval: live test text, then 30034 should stop; (3) top up balance ($7.39) for ongoing sends; (4) accepted risk (TJ): provider inquiry alerts still fall back to directory-scraped olera-providers.phone — revisit if complaints. Memory: `project_sms_10dlc_unregistered`.
+
+### 2026-07-06/07 — Ad Boost MONETIZATION: plan of record + Phase 1 SHIPPED + Phase 2 PR #1329 (Stripe rail + wrap-up moment)
+
+The monetization day. 5 providers signed, Franchil at 3 leads → TJ greenlit designing the money model. Full thinking session (2 design-inspiration agents over his reference folders + competitive research: LSA/Yelp/Thumbtack/APFM/agency norms) produced the **plan of record — Notion "Ad Boost Monetization + Budget-Step UX — Handoff (2026-07-06)"**: free one-time $50 intro (no card, gated on existing verified+70% eligibility), flat ALL-IN outcome-named tiers (Starter $150 / Growth $300 / Scale $600+, margin bundled, NO itemized service fee, NO per-lead), zero-inquiry-month-free guarantee as the risk reversal, and **the wrap-up moment as the ONLY payment ask** (value-event triggered: 3rd lead OR promo-complete email; never the Yelp card-on-file rollover). Memory: `project_adboost_monetization_plan`. Supersedes the old "never write free" rule (updated).
+
+**Phase 1 — MERGED to staging+prod path (PR #1327, squash `5180a7bb`):** tiers renamed w/ per-tier estimates, budget step rebuilt as stacked radio-cards (no pricing table; "Most chosen" outlined chip on Starter replaced the $600 RECOMMENDED banner), per-city outcome math, $0-today/cancel-anytime/zero-inquiry-free trust strip, /managed-ads-terms rewritten (Plans and Payment + Zero-Inquiry Month Guarantee section). Pre-test caught 4 copy stragglers (AdsTab, emails). NOTE: merge incident (branch-delete chained before ruleset-blocked merge auto-closed the PR; recovered via re-push + reopen + --admin) — never chain branch-delete after `gh pr merge`.
+
+**Phase 2 — PR #1329 OPEN on `adboost-phase2`, TJ will test in STAGING:**
+- **Already live in prod:** migration 128 (plan_status/plan_value/stripe ids/subscribed_at on ad_campaign_requests — applied via `supabase db query --linked`, columns verified) + **Edge Function `stripe-webhook` DEPLOYED** (adboost activation + Slack 💰 ping + subscription status sync; MedJobs paths untouched; Vercel route mirrored).
+- Rail: `lib/ad-boost/billing.server.ts` (prices find-or-create by lookup_key `adboost_150_monthly` etc — no dashboard setup, no new env), `POST /api/provider/ad-boost/checkout` (own-campaign, live/ended, 409 on active/past_due).
+- UX: WrapUpMoment (their exact numbers → value math vs $50-150 market leads → "Keep it going" beat → plan cards w/ estimates → **3 checkmarked de-risk promises** → CTA "Nothing is charged until you do" → honest exit "your page stays live either way") + zero-lead NO-ASK path ("another window on us"); PlanActive celebration/steady (?subscribed=true covers webhook lag); components extracted to `components/provider/boost/BoostCampaignViews.tsx` → **admin preview gallery `/admin/ad-boost/preview`** (5 states, checkout stubbed, linked from queue). No-silent-rollover promise planted BEFORE the moment (live view + signup confirm + queued email). Admin detail: read-only Paid plan panel + Stripe deep link.
+- **Pre-test caught + fixed: past_due double-subscribe hole** (dunning sub + re-armed ask = second subscription; now wrapupReady only on null/canceled, checkout 409s past_due, page treats past_due as running). Zero-lead promo-complete email no longer pitches a plan (matches page).
+- **Deploy prereqs (PR body):** (1) enable `customer.subscription.updated` on the Stripe webhook endpoint; (2) confirm Vercel STRIPE_SECRET_KEY mode (local .env.local key is a placeholder — test-mode QA uses 4242 card); (3) optional `supabase secrets set SLACK_WEBHOOK_URL` for edge-fn ping.
+
+**⚠️ TEST SEEDS TO CLEAN after staging test:** request `c42767b1-611d…` ("Ad Boost Queued Test", slug ad-boost-queued-test-tj) flipped to status=live + week 2026-06-29 (was pending_profile/2026-07-20) + **3 seeded `lead_received` provider_activity rows** (`227ebabb…`, `1a6540c9…`, `04441194…`, metadata test_seed:true) → revert row, delete events, cancel any test Stripe subscription.
+
+**Hilda/Franchil wrap-up email DRAFTED** (Notion "Email to Hilda — Franchil campaign wrap-up + plan recommendation (2026-07-06)" under the Managed Ads SOP — was created parentless/invisible, moved; memory `feedback_notion_pages_need_shared_parent`). Final verified numbers: **$36.50 spend / 16 clicks / 124 impressions (Google, campaign Ended Jul 5) → 26 visitors / 3 inquiries (~$12/inquiry)**; admin row updated (was stale $21.14/9). **Gated on Phase 2 in prod** (references the plan picker); one-sentence swap in the notes if sending earlier. ⚠️ Franchil's wrap-up ask arms AUTOMATICALLY in prod (3 leads ≥ threshold) — send her email around the promote.
+
+**Next up:** (1) TJ merge #1329 → **test in staging**: wrap-up on test campaign → Stripe Checkout (confirm TEST MODE badge; if live-mode, stop) → celebration → reload to verify webhook activated plan (+ Slack 💰); (2) the 2 Stripe deploy prereqs; (3) clean test seeds; (4) promote to main + send Hilda email; (5) flip Miracle/Impact → live via /admin/ad-boost UI (both approved + serving since Jul 6; "Eligible (Limited)" = normal micro-budget); (6) still open: orientation campaign send (600), family-nudges withCronRun fix. Watch: Abode wraps Jul 27 (first guarantee test if zero leads); estimate ranges are conservative benchmarks — replace with first-party data after 4 campaigns wrap.
+
+### 2026-07-06→07 — Full admin audit → 3 PRs SHIPPED TO PROD (#1324/#1325/#1326 via promote #1328); sidebar UX PR #1330 open
+
+Audited every admin screen on prod (browser walk via chrome-devtools MCP + 2 parallel code agents + design-taste brief from TJ's inspirations folder). Verdict: no overhaul — make the newest design generation win; DNC's intro copy is the gold standard. Full per-screen notes in the 07-06 session scratchpad (`audit/visual-notes.md`); plan in memory `project-admin-audit-2026-07`.
+
+- **Infra unlock (durable):** Vercel checkpoint hard-rejects automated browsers (Code 21). Fixed with firewall rule `tj-home-bypass` (TJ's IP → Bypass) at the TOP of Custom Rules in **olera-web** project (Olera Pro team — repo docs saying "olera2-web" are stale). Must sit above "Block Restricted Regions" (TJ's VPN IP geolocates SEA → that Challenge rule fires first otherwise). New global skill `/open-dia` encodes browser-driving + recovery recipes; `/qb-hours` also depends on the same MCP.
+- **#1324 retire sweep (−1,873):** deleted matches/outreach/review-requests stubs, broken images page, deletions, market-diagnostic + orphaned APIs; Overview vanity card; registry path fixes. **Demand KEPT per TJ** (de-navved; "By city →" link on Care Seekers). **MedJobs + staffing-outreach fully restored per TJ — Logan's area, standing hands-off rule.** Pre-test caught a real back-nav 404 pre-merge.
+- **#1325 QoL fixes:** overflow-x-auto on 9 table wrappers (removal-requests Approve button was a 4px sliver), Directory defaults to Published, PulseHeader `deltaDirection="up-bad"` + >500% deltas render neutral (Questions showed "up 9329%" green on a backlog), Toast error variant replacing alert()s, Benefits silent-POST fix.
+- **#1326 primitives pilot:** serif AdminPageHeader (Benefits style; 5 pages), StatusBadge canonical tone map (2 pages), useUrlFilterState (Connections/Verification/Questions; Overview's `?filter=needs_email` deep link was dead, now works). **Merge = serif direction APPROVED → next: AdminTable (39 tables/22 files) + ~35-page rollout, MedJobs excluded.**
+- **Promote #1328 → main `88a46814`, deploy green.** Gotcha: first staging deploy of the 3-merge burst failed with an *environmental* Vercel error — local build on the identical SHA passed; empty-commit redeploy went green. Don't treat red Vercel as code failure until reproduced locally. Rode along: #1327 Ad Boost Phase 1 (not ours). Critical-file indicators all intact. Notion: 3 handoff pages + promotion record in Branch Handoff Reports.
+- **#1330 (OPEN, staging):** sidebar naming pass — Manage→**Trust & Safety**, Activity Center→Activity, Market Outreach→**Referrals**, Content→**Articles**, Removal Blocklist→Blocklist (page h1s + mobile label synced) + **Collapse/Expand all** control (per-section localStorage persistence already existed; active section never hides).
+- **Test-account reset for TJ:** deleted the lone `ad_campaign_requests` row on Ad Boost Queued Test (`c42767b1`, guarded by id+slug) so the new Phase-1 pitch flow shows fresh; email markers were columns on that row. Old Aggie campaign seed was already gone.
+
+**Next up:** (1) TJ merges #1330 after preview check; (2) **AdminTable + wide primitives rollout** (greenlit, say go); (3) **HELD for TJ's explicit yes — prod test-data cleanup:** logan+stg-* rows in market-outreach queue, "Ad Boost Queued Test" verification row, "Sunrise Care Demo" review provider; (4) Ad Boost gate: Miracle-Lightstar + Impact flips to live in `/admin/ad-boost` once Google serves; (5) browser MCP crashed late-session (over-aggressive process cleanup) — next session restart restores it; (6) orientation campaign send gate still open (600 candidates, 07-04 entry).
+
+### 2026-07-06 — Family-comms admin UX session: drawer previews + collapse-all + drag-reorder (PR #1321 → staging, awaiting TJ QA)
+
+Three improvements to `/admin/family-comms` in one PR, driven by TJ reviewing the page live:
+
+**1. Preview gap (see next entry for full root-cause).** Six live email types had no drawer preview — registered gallery samples for all six.
+
+**2. Expand/Collapse-all toolbar.** Sections were already individually collapsible; the bulk mechanism (window event) already existed in `CollapsibleSection` for /admin/analytics. Promoted `BulkCollapseToolbar` from analytics-local into the shared component (`components/admin/CollapsibleSection.tsx`), rendered on family-comms.
+
+**3. Drag-and-reorder sections (both admin pages).** TJ: by-type table is his workhorse but sat third; "this might change" → drag, not hardcode. New `components/admin/ReorderableSections.tsx`: wraps a CollapsibleSection stack; hover grip top-right of each header; native HTML5 DnD, NO library. Key design: section identity = the child's existing collapse `storageKey` (read via Children props), so wrapped page JSX is untouched and conditional sections stay stable. Order persists per operator in localStorage (`olera.adminSections.order.<page>`); new sections merge in at natural position. Drag only arms from the grip (header clicks/text selection unaffected); midpoint rule prevents tall-section oscillation. Applied to family-comms AND /admin/analytics (independent storage keys; analytics' hardcoded curation stays the default). Desktop-only (HTML5 DnD ≠ touch) — fine for admin. TJ verified reorder "works perfectly" on preview.
+
+**Next up:** TJ QA the rest of #1321 (previews + collapse-all + analytics regression) → merge to staging. Then the still-open gates: Ad Boost go-live flips (07-05 entry), orientation campaign send, family-nudges withCronRun fix.
+
+### 2026-07-06 (earlier) — Family-comms drawer: preview gap fixed for 6 email types (details)
+
+TJ flagged that some rows in the Email performance by type drawer showed "No template preview / no rationale registered" (e.g. Day 4 thin-market). Root cause: the drawer previews via the Email Gallery registry (`lib/email-samples.ts`), matched on `emailType` — and six live types had no registered sample. The worst was **`family_provider_silent_guidance`, a SYNTHETIC analytics type**: the wire email_type is `family_never_engaged` (reused per governance, no new type), split into its own dashboard row via `metadata.coordinator_rung` — the split exists only in analytics, so no gallery entry could ever match.
+
+**Shipped (PR #1321, one file):** registered samples with who/why rationale for all six — the guidance rung (keyed on the synthetic type deliberately), `provider_still_silent` (Day 7), `completion_maintenance`, `publish_maintenance`, `monthly_recommendations`, `inactivity_reengagement`. Each renders the exact template + params its cron sends (read every send site; subjects cross-checked against real subject logic). Side effect: all six now also appear in the Email Gallery + per-cron automations preview. `go_live_reminder` (retired, template deleted) + `dormant_reengagement` (legacy) intentionally stay preview-less.
+
+**Validation:** tsc 0; all 6 rendered offline via sucrase hook with content spot-checks; no duplicate variant ids (43 total); `resolveFromAddress` fails open on the synthetic type (a throw would have 500'd the whole gallery list); automations preview cron-guard verified against registry ids; check:crons green. Pre-test review found no bugs.
+
+**Known quirk (pre-existing, disclosed):** the synthetic row's "View sent log" link filters email_log by a type never written there (real rows = `family_never_engaged`) → empty log. Fixing means teaching the emails admin about rung metadata; deferred.
+
+### 2026-07-05 (late PM) — BOTH Ad Boost campaigns PUBLISHED in Google Ads via Chrome MCP (first fully browser-driven setup)
+
+Claude drove ads.google.com end-to-end through the chrome-devtools MCP (Claude-managed Chrome window, TJ signed in once as tj@olera.care, account 419-933-1442). Both campaigns published with TJ approving each Publish click:
+
+- **Miracle-Lightstar – Cleveland – Jul 2026** — campaign ID `23998344651`, status Pending review. 12 phrase keywords (13 planned; Google's pre-publish policy check flagged `"home health care cleveland"` under **"Health in personalized advertising"** — removed it rather than request exception; `"home health aide cleveland"` passed fine). 13 headlines + 4 descriptions, path `olera.care/Home-Care/Cleveland`, 20mi radius Cleveland OH presence-only, EN+ES, Max clicks $2.50 cap, $50 total Jul 6→Aug 3.
+- **Impact Home Care – Houston – Jul 2026** — campaign ID `23998367469`, status Pending review. 12 keywords (packet had no "home health care" phrasing → zero policy flags), 13 headlines incl. substantiated "5-Star Rated Home Care", path `olera.care/Home-Care/Houston`, **ZIP 77092 + 20mi** presence-only, same bid/budget/flight.
+- **Post-publish done on both:** AI Max verified OFF (aria-checked=false), 11 job-seeker negatives added at campaign level (jobs/careers/hiring/salary/employment/training/certification/classes/courses/volunteer/free). Skipped Google-tag interstitials (attribution = UTM/provider-page cookie per PR #1239).
+- **Per TJ mid-session: policy audit every asset before finishing** (past denial = URLs/phones/weird stuff in ad text). Scripted check across all headlines+descriptions on both campaigns: no URLs, no phone numbers, no odd symbols/caps, within char limits. Google prefills the ad with an **"Olera.care" headline** (a URL — the exact old denial pattern) and wrong-city descriptions ("Humble TX" for Impact) — always replace all prefills.
+- **Gotchas for next time:** budget step triggers Google "Confirm it's you" re-auth (type CAMPAIGN_TOTAL_BUDGET_INCREASE) — TJ must complete it in the window, then everything saves; Bidding sidebar warning triangle = standard bid-cap advisory, not a blocker; sidebar "Changes failed to save" clears after re-auth.
+
+**Session close-out (same night):**
+- **`/ad-boost-setup` command shipped** (`.claude/commands/ad-boost-setup.md`) — encodes the whole browser-driven flow: screenshot/names → DB prep → Chrome MCP wizard drive → mandatory policy audit → TJ-gated publish → negatives + AI Max verify → TJ handoff checklist. On this branch only until merged.
+- **Pat Starling photo email SENT** (impactcare2@gmail.com, verified via business_profiles + impactcare4u.com; owner confirmed "Pat Rock-Starling" via her site's Owner's Bio + Heights Chamber). Two asks max: photos + we-draft-it owner note. Draft archived in Notion under the Managed Ads SOP.
+- **Legacy Haven nudge SENT** (info@legacyhavensenior.com). Key finding: admin shows `completeness_at_submit` (48%, frozen) but live recompute = **64%** — they fixed photos/description/care-types after submitting. Empty: pricing (12pts), staff screening (8), payments (6); threshold 70, so **pricing OR payments alone promotes them** (auto: daily `ad-boost-profile-reminders` cron or their Boost page visit → Slack ping). Email asks for just those two. Draft in Notion.
+- Apple Mail pastes markdown `**` literally — proofread pasted drafts before sending (caught in both emails).
+
+**Still gated on TJ:** (1) flip both `ad_campaign_requests` rows → live via `/admin/ad-boost` UI once serving starts Jul 6 (auto-sends "campaign is live" email, once-guarded — do NOT flip via DB); (2) watch for Pat's photo reply (upload via admin, confirm one-liner) and possible owner-note yes (bio material in the Notion draft); (3) Legacy Haven: expect auto-promotion to Requested if they act — then `/ad-boost-setup` them ($50 Google intro despite $150/both requested); (4) orientation campaign send gate (600 candidates, 07-04 entry).
+
+### 2026-07-05 (PM) — Ad Boost providers #3 + #4 scheduled: Miracle-Lightstar (Cleveland) + Impact Home Care (Houston); Chrome MCP wired for browser-driven setup
+
+Concierge prep done for the two "Requested" queue rows (both setup week Jul 6), all ops/DB — no repo code. Per the Notion SOP ("SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup"):
+
+- **Both `ad_campaign_requests` rows flipped to `scheduled` in prod** with `channel=google` + tags: **Miracle-Lightstar LLC** (`63651051…`, tag `miracle-lightstar-cleveland-jul26`, $50 intended) and **Impact Home Care and Staffing** (`98a25f84…`, tag `impact-houston-jul26`, **$150/mo intended — highest in queue; still run $50 intro, the $150 is the step-up conversation**). Both requested "both" channels → Google-only at $50 per playbook.
+- **Pre-flight:** Miracle verified + 5 photos ✅. Impact `verification_state=not_required` — confirmed code treats it same as verified everywhere (profile-card.ts:106, resolve.server.ts), leads will deliver. ⚠️ Impact has NO uploaded photos (`metadata.images` empty; WAF blocks scripted page check) — eyeball page before launch, ask Pat Starling for 1-2 photos.
+- **Hygiene:** geocoded Miracle's null lat/lng (41.4188, -81.6843 — organic Find Families matching now works); ZeroBounce: both contact emails **valid** (`zd@miracle-lightstar.co` Zardy Dweh, `impactcare2@gmail.com` Pat Starling). `email_validity` stays `unverified` by design — CHECK constraint only allows delivery outcomes (unverified/delivered/bounced/complained), NOT ZeroBounce results.
+- **New since Abode:** flipping status→live **via the admin UI** auto-sends the "campaign is live" email (route.ts:280, once-guarded via `launched_email_sent_at`). Flip through UI, not DB, or the email never fires. SOP Step 8 (hand-written email) is superseded.
+- **Full campaign packets prepared** (names, tagged Final URLs, keywords, 13 headlines + 4 descriptions each, negatives, $50 total Jul 6→Aug 3 flight): in session transcript. Impact geo = ZIP 77092 + 20mi (NW Houston, not downtown); Impact name contains "Staffing" so job-seeker negatives matter extra; 5-star headline substantiated (5.0★/24 reviews).
+- **Chrome control wired:** `chrome-devtools` MCP added at user scope (`claude mcp add -s user chrome-devtools -- npx -y chrome-devtools-mcp@latest`). Loads on next session start. Note: can't attach to TJ's existing Chrome profile (Chrome ≥136 blocks debugging on default profile) — opens a Claude-managed persistent-profile window, TJ signs into Olera Google account ONCE there.
+
+**Next up:** (1) restart session (`claude --continue`), verify `/mcp` shows chrome-devtools, then drive Google Ads: build Miracle-Lightstar campaign first, TJ approves Publish click, repeat for Impact; (2) after each publish: verify AI Max OFF, add negatives, flip status→live in `/admin/ad-boost` (auto-email); (3) Impact photos ask; (4) orientation campaign send gate still open (600 candidates await TJ, see 07-04 entry).
+
+### 2026-07-04 — Guidance layer SHIPPED TO PRODUCTION (#1297 merged, staging→main via #1298)
+
+Closed out the care-seeker guidance sprint. **PR #1297** (instrumentation: Slack line per one-tap answer, `guidance_events` capped ring on the family profile, `/admin/family-comms` "Guidance journey" section with A/B/C path distribution) QA'd and squash-merged to staging, then **promoted staging→main via PR #1298** (`b36278ab`) — takes #1293 volume fixes, #1294 micro-quiz, #1295 orientation layer, #1296 Questions v2, #1297 live together. Production Vercel deploy green; critical-file indicators all intact.
+
+**QA method (preview was WAF-challenge-blocked for scripted requests):** ran the tap chain against a local dev server on the prod DB with locally-forged HMAC tokens for the Quiz Test Family — quiz tap → `quiz_answered` stamped + 4 programs returned; real `briefUrl` → brief 200 (Texas PACE, checklist + first step) + `brief_viewed` stamped; step beacon → `step_expanded` stamped; spoofed event type and garbage tokens 400. Replicated the summary route's or-filter query against prod: tiles 1/1/1/1, path distribution B=1. Slack leg: `sendSlackAlert` posts confirmed landing in #notifications same-day, so `SLACK_WEBHOOK_URL` is live in prod (guidance pings land there); helper fails safe when unset.
+
+**Cleanup done:** Quiz Test Family seed DELETED from prod (`3280e12a…`, guarded on `metadata.test_seed=true`; zero connections/seeker_activity). It had already received a real `completion_nudge_1` — deletion was overdue. Remote branch `guidance-instrumentation` deleted; Notion handoff page closed (Status=Merged) + promotion record created in Branch Handoff Reports.
+
+**Next up (2026-07-05 verification):** (1) family-nudges fires 18:00 UTC (moved from 15:00 so the 20h coordinator guard works); (2) `byRung.paying_for_care` appears in the 17:00 UTC coordinator summary; (3) zero same-day double-sends query; (4) first real Slack guidance pings in #notifications. **Then next builds:** post-report follow-through rung → profile mirror + completion reframe (direction doc: Notion "Care-Seeker Comms — Guidance Layer Direction (2026-07-03)").
+
+### 2026-07-04 (PM) — "Orientation Everywhere" sprint: self-sort de-duct-taped across the whole guidance layer (WS1 in prod; WS2-5 promoted; CAMPAIGN SEND GATED ON TJ)
+
+TJ's challenge held up: the self-sort shipped as one email to inquiries 72–96h old (~3/day), the pre-sort email led with Medicaid-gated waivers (the exact false-hope failure the orientation revision targets, because the path filter only ran AFTER sorting), and `financial_path` had no downstream consumers. Plan approved (Notion "Orientation Everywhere — Guidance De-Duct-Taping — Handoff (2026-07-04)"), executed same day, five workstreams:
+
+- **WS1 — pre-sort honesty (#1299 → promote #1300, PROD `94493f8c`, 11h before the first-ever rung sends):** `getProgramsForFamily` excludes Medicaid-gated + income-capped programs when `financial_path` unknown (unknown ≠ path C; held Medicaid keeps them; verified ≥3 universal survivors every state so the rung can't go silent); `payingForCareEmail` gets `quiz.leads` — sort card above programs, "a starting point" eyebrow. Also **deactivated a live "Test Program" row in prod `sbf_federal_programs`** that would have ranked once heavyweights were excluded.
+- **WS2+3 — chips everywhere (#1301):** shared `microQuizCardBlock` + `guidanceAskSection`; never-engaged / provider-silent / day-10 templates carry the one-tap ask (never-engaged guide fallback's HERO is the sort card — was the quiz-link button); sorted families get `pathTellBackLine` ("Since you mentioned…") + full-picture link; `benefitsQuizModule` DELETED (param survives only on the completion template); coordinator `guidanceAskFor(eid)` mints chips at R2/R3/R4.
+- **WS4 — finder fills the facts (#1302):** `deriveFinancialPathFromIntake` (Medicaid alreadyHas/applying→C, under1500→C, over6000→A, middle→B, preferNotToSay→nothing) + persists `medicaid_status`/`veteran_status` — never re-ask. All fill-only; explicit tap wins. FamilyMetadata typed.
+- **WS5 — orientation campaign (#1303):** `GET /api/admin/orientation-campaign`, admin-guarded, **DRY BY DEFAULT**; `&mode=send&limit=N` sends governed batches (orientation_intro registered as governed type → daily/weekly caps + DNC kill switch); one-shot stamp; transient skips stay in segment, terminal skips drain it. Creative = payingForCareEmail with past-tense `opening` override, own subject (`orientationIntroSubject`). **Prod dry-run: 600 candidates** (627 w/ 90d inquiry − 25 unsubscribed − 2 connected).
+
+**Validation:** tsc 0 each WS; picker simulated vs prod (TX/VT/no-state × unsorted/Medicaid-held/path-C); 9-case derivation unit table; 7 email states rendered + screenshot-verified headlessly; **5 real Resend samples in tj@findmedjobs.co**; segment replicated read-only vs prod.
+
+**⚠️ THE GATE: nothing has mass-sent.** TJ reviews the 5 samples + dry-run JSON, then fires `/api/admin/orientation-campaign?mode=send&limit=50` in batches from the browser. Family emails all `email_validity=unverified` — watch batch 1 bounce rate before draining 600. **Parked:** family-nudges absorption, recency-curve cadence, report follow-through rung, brief enrichment, Medicaid name-heuristic.
+
+**NEXT-DAY VERIFICATION PASSED (2026-07-05 AM):** (1) coordinator 17:00 Jul 4 ran ok, `byRung.paying_for_care = 12` — the new rung's first real sends, 2 opens within hours; (2) family-nudges fired at its new 18:00 slot (22 sends, publish track); (3) **zero same-day double-sends** across all 144 governed Jul-4 sends — the #1293 fix holds in production; (4) no Slack pings yet = no taps yet (0 clicks on the 12-send cohort so far, normal). Also shipped same morning: by-type table UX (#1313→#1314: journey groups, journey names, honest zeros, open-rate sparklines; TJ picked options 1/3/5 of the UX proposal, explicitly rejected exception-only columns + median anchors as premature) + pre-test catch #1315→#1316 (failed/pending rows excluded from SENT + trend denominators). Execution-verified vs prod: the junk-row skew ran up to **31% on never-engaged** (open-rate trend would have read 16% vs true 24%) — exactly the distortion that would have misread Monday's "which email is the best orientation door" comparison. **Known follow-up (cosmetic, predates sprint): family-nudges cron_runs rows never close — every run since ≥06-27 shows status "running" with empty summary; sends fine, observability only. Fix = make the route return its summary through withCronRun.**
+
+### 2026-07-04 (evening) — Go-live nudge RETIRED + six zombie crons DELETED (PR #1307); email-by-email review with TJ
+
+TJ eyeballed all seven zombie-cron templates (4 sent fresh as `[ZOMBIE-CRON EYEBALL n/4]`, 3 were the morning samples) and ruled: **go-live reminder = retire for sure** (the "Activate Matches" publish-funnel ask — finally executes the locked 06-22 "kill publish funnel" direction); **stuck→completion = retire when the profile mirror ships** (retire-by-replacement, accepted); **outcome check = KEEP** (corrected TJ's assumption "we record outcomes elsewhere" — we don't; the email CREATES the self-report that feeds the R0 stop, the help-cascade switch, and the outcomes panel); **pending reach-out = KEEP**. The 14:00 matches-nudge / 16:00 conversation-stale engines STAY: measured 0 slot-theft incidents in 14d (their mid-thread targets are exactly who the coordinator's active-thread stop defers to), and stale-conversation is the best family email (48% open / 23% click).
+
+**Shipped (#1307 → staging → main):** deleted the 6 superseded cron routes + 5 vercel.json schedules + registry entries (paused since 06-24, `skipped_paused` run history, pure re-arm foot-gun); deleted goLiveReminderEmail template + gallery sample + governance entry + the never-used `/api/admin/nudge-family-publish` route. cron_config pause rows left as audit trail.
+
+**DATA CORRECTION (important for reading the dashboard):** the by-type 30d numbers for go-live (193) and stuck→completion (733) were ~90%+ PRE-cutover zombie sends still inside the trailing window — lead-family-nudge's last real send was 06-23. The coordinator's true R6 volume is ~57/mo. Investigation false-alarmed on "the pause isn't working" before run history (`skipped_paused` since 06-26) and last-send timestamps cleared it.
+
+**Quiz-tap SOURCE ATTRIBUTION shipped same evening (#1309 → promote #1310, prod `b04cc089`), pre-Monday-campaign:** quiz-answer page forwards the chip URL's existing `?eid=` into every answer POST (chained answers inherit it); quiz route does a read-only email_log lookup → `src` (email_type) stamped on guidance_events + quiz_answers; Slack line gains "· via the orientation campaign / day-3 paying-for-care / …"; dashboard Guidance journey gains "Where sorts come from" per-source A/B/C rows. Fail-open: garbage eid → no src, never a wrong fact. QA'd live on a throwaway seed (created + deleted; real eid stamped `family_never_engaged` correctly). Monday's 600-send results now stay cleanly separated from the day-3 rung's.
+
+### 2026-07-01 — Ad Boost request email automation (branch `codex/adboost-request-emails`)
+
+Built provider-facing email automation for Ad Boost requests, replacing the manual Franchil-style first-touch with status-aware sends. New migration `125_ad_boost_request_email_markers.sql` adds queued/requested/promotion sent markers; `lib/ad-boost/notifications.server.ts` reserves the marker before send and clears it if Resend fails/skips; `/api/provider/ad-boost/request` now sends queued vs requested emails on submission and a promotion email when a queued request becomes ready.
+
+Provider copy was iterated in a real inbox (`tj@findmedjobs.co`): no provider-name framing in headlines/preheaders, no vague "as-is" phrasing, TJ-led Ad Boost byline/photo, and explicit readiness language ("your Olera page has enough detail for us to start setting up the campaign"). Email Gallery samples now include `ad_boost_queued`, `ad_boost_requested`, and `ad_boost_ready`.
+
+Validation: `npx --no-install tsc --noEmit`, `git diff --check`, `npm run check:crons`; live Resend samples delivered for the requested email. Test account seeded with Ready/Queued/Promotion profiles on `tj@findmedjobs.co`; active profile was last set to the queued scenario. Next: QA the queued and promotion flows on the PR preview, then merge to staging.
+
+### 2026-07-01 — Franchil Ad Boost follow-up sent; 2-lead pilot signal (docs-only quicksave)
+
+Reviewed current Ad Boost queue + Franchil detail page with TJ. Active queue now shows 4 provider requests: Franchil (live, Jun 22 setup), Abode Home Care (live, Jun 29), Miracle-Lightstar (requested, Jul 6), Legacy Haven (queued at 48% profile completion). Franchil detail currently shows **19 visitors · 2 leads · 11% conversion · 2 families delivered**. Manual spend/click inputs are still blank in admin, so cost/family is not yet computed in the UI; earlier Google number on record was `$11.40 / 5 clicks`, but that needs confirming before quoting cost per family.
+
+Hilda replied to the launch email saying one lead had converted through the campaign and asked to review monthly pricing/budget once the promotional campaign is complete. TJ sent a response that: (1) agreed to send a wrap-up summary after the promo campaign finishes, (2) noted the dashboard now shows 2 family leads from 19 visitors, (3) asked about lead quality and whether the second lead came through clearly, and (4) promised final visitors/leads/spend/cost-per-lead plus a simple next-step budget recommendation after wrap.
+
+**Decision:** Do not push a paid continuation too hard yet; acknowledge her requested timing and use the interim reply to learn whether the leads are real/good-fit. Treat current signal as strong pilot proof that paid search can create family demand, but not yet a validated CAC until spend/clicks and lead quality are reconciled.
+
+**Next up:** enter current Google spend/clicks for Franchil in `/admin/ad-boost`; verify both leads are real/non-duplicate and whether Hilda connected with them; when the promo completes, send Hilda the promised results summary + budget recommendation.
+
+### 2026-06-29 — Question engagement → Find Families campaign tracker + warm redesign (PRs #1241/#1243 merged, #1245 open)
+
+Reframe: provider **questions** are campaign engagement and belong where a provider running ads looks for results (**Find Families**), not only the profile dashboard. Shipped in three PRs.
+
+**1. Questions on the dashboards — PR #1241 → staging, MERGED.** Surfacing existing Q&A metrics, not new infra (the `provider_questions` table, `/provider/qna` answer UI, `/admin/questions` queue all already existed).
+- `app/api/provider/dashboard/route.ts`: new all-time `questions {received, answered, unanswered}` summary, computed from the array it already fetches (no extra query). Counts only *manageable* questions (excludes `rejected`/`archived`) so spam can't inflate "asked" and `received = answered + unanswered` holds.
+- `components/provider-dashboard/DashboardPage.tsx`: `QuestionsCard` (sticky sidebar + mobile flow), only when `received > 0`.
+- `app/admin/page.tsx`: "Questions" total-asked stat card → `/admin/questions`.
+
+**2. Campaign tracker on Find Families — PR #1243 → staging, MERGED.** For a **live**-campaign provider, `/provider/matches` shows a tracker at top: Visitors / Families delivered / Questions (unanswered + CTA), counted **since launch** — same time-window the boost page uses for visitors/leads, **no new UTM plumbing**.
+- `lib/ad-boost/delivered.server.ts`: `getCampaignQuestions` (received + unanswered since launch, same manageable exclusion).
+- `app/api/provider/ad-boost/request/route.ts`: `campaignStats` now carries `questions` (parallel query, live only). `lib/ad-boost/boost-state.ts`: type extended.
+- `app/provider/matches/page.tsx`: fetch boost state; live-campaign provider with no nearby families sees the tracker instead of the (wrong) "get a campaign" pitch.
+- **Dejank (same PR):** module-level matches snapshot so back-nav (answer a question → back) repaints leads instantly instead of a cold skeleton + full re-fetch. Pitch branch holds the skeleton until campaign status is known (no pitch→tracker flash on cold load).
+- Verified live: Franchil tracker = Visitors 17 · Families delivered 1 · Questions 1 (1 unanswered).
+
+**3. Warm hero redesign — PR #1245 → staging, OPEN (awaiting TJ test).** `/design-improvements` punch pass after TJ flagged the tracker as a "lifeless dashboard, no orientation." Studied the inspiration set (Robinhood/Wispr/Perena); chose **warm vanilla / boutique** direction (TJ picked it). Serif "Your campaign is live" hero on a warm vanilla card, eyebrow "Live · day N" reframes zeros as early-days, waiting question elevated to the one teal action, calm "How families reach you 1·2·3" strip fills the void, narrowed/centered (max-w-2xl), `compact` mode for the above-leads placement. All in `app/provider/matches/page.tsx`. No new data — same metrics reshaped to orient.
+
+**Decisions:** questions counted *since launch* (matches the existing tracker, no UTM needed) not strict UTM attribution; #1241 dashboard cards stay the home for non-ads providers; warm-light over dark-hero for the senior-care calm.
+
+**Next up:** (1) TJ test #1245 on preview, then merge to staging. (2) Optionally fold the warm treatment + a Questions cell into the `/provider/boost` tracker for consistency. (3) Promote staging → main once QA'd. (4) **REMOVE TEST SEEDS** on Aggie Home Care (`tj@findmedjobs.co`): live campaign `d7a663e5-24cb-4af0-81e4-75b66039e239` + question `d628f21d-4fef-4a27-b19f-12a15346600e`.
+
+### 2026-06-29 — Second managed-ads provider live: Abode Home Care (concierge ad setup, no repo code)
+
+Set up our **2nd Ad Boost campaign** end to end (Franchil was #1). All ops / external systems, no repo code changed.
+
+**Provider:** Abode Home Care, Merrillville IN (`home_care_agency`), slug `abode-home-care-merrillville-in-y3em`, verified + claimed, 96% complete, $50 intended, requested "both" channels. Contact `kolacooper@abodehomecare.org` (email_validity `unverified`; null `lat/lng`).
+
+**Ops done:**
+- `ad_campaign_requests` row (`0dae57f7…`): `channel=google`, `campaign_tag=abode-merrillville-jun26`, `status` scheduled → **live**, admin_note set. **Google-only at $50** (skip Meta even though "both" requested — splitting $50 buys neither; same call as Franchil).
+- Built + published the **Google Search campaign** (TJ click-by-click): Search-only (Display + Search Partners OFF), **Maximize clicks $2.50 cap**, Merrillville **20mi Presence-only**, **EN+ES**, **AI Max OFF** (protects the URL tag), **$50 campaign-total** budget, flight **Jun 29 → Jul 27**. 12 phrase-match keywords + 11 negatives. Tagged Final URL `…/provider/abode-home-care-merrillville-in-y3em?utm_source=olera_managed&utm_campaign=abode-merrillville-jun26`. In Google policy review (Pending).
+- **Blocker hit + fixed:** phone number in a description = policy block, shows as a generic "Fix your ad" with **no highlighted asset** (confusing). Removed → published clean. AI Max briefly read "on" in Review but confirmed **OFF** in Campaign settings post-publish.
+- Provider email: Gmail draft + Notion copy-paste page ("Email to Kola — Abode Home Care campaign live"). Team update posted to **#ai-product-development**.
+
+**Reusable artifact (the real durable output):** created Notion **"SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup (any provider)"** under Product Development — full generalized click-by-click + keyword/ad/email templates + troubleshooting table + Abode worked example. Append each future provider as a worked example. Memory: `project_managed_ads_setup_sop`.
+
+**Next up:** (1) Confirm "Kola" is her first name → send the Gmail draft. (2) Watch Google flip Pending → Eligible (hours). (3) Optional data hygiene: geocode Abode's null `lat/lng` (breaks organic Find Families matching), ZeroBounce her email before the first lead. (4) Keep the funnel moving — goal is a **new provider signing up every week**.
+
+### 2026-06-28 — Ad Boost (managed ads) attribution fix: count + tag inquiries (PR #1239 → staging, MERGED `d7f55c3d`)
+
+Franchil's first managed-ads lead exposed an attribution bug. Admin "Families delivered" counted only `benefits_completed` (a side quiz the provider page barely surfaces), so a real inquiry read as **0 delivered** while the provider's own `/provider/boost` showed **1 lead** from the same campaign.
+
+**Diagnosis:** a managed ad points at a provider page whose natural conversion is the inquiry CTA (`lead_received`), but that was never UTM-tagged. Only the benefits quiz carried `utm_campaign` (an instrumentation accident, not a product decision). So the ROI counter measured the wrong funnel. Confirmed John Turman's lead fired untagged; no UTM anywhere in his session.
+
+**Shipped (all in #1239):**
+- **Count redefinition** (`lib/ad-boost/delivered.server.ts`): delivered family = campaign-tagged `lead_received` (PRIMARY) OR `benefits_completed` (secondary), deduped within funnel. `listLeadsByCampaign` merges inquiries (care need + state from the connection record, **no PHI**) with benefits. `getCampaignStats` (provider-facing visitors/leads) left untouched, so no provider number moves.
+- **Forward instrumentation** (`lib/ad-boost/managed-utm.ts` + `components/providers/ManagedUtmCapture.tsx` + 5 routes): capture managed UTM once at provider-page load into a first-touch cookie (`olera_mutm`, 6h TTL, `olera_managed` only), read server-side in all 6 `lead_received` emit sites (`connections/request` guest+auth, `compare-save`, `guide-save`, `inline-answer/capture-email`, `create-inquiry`). Cookie rides the same-origin fetches the CTAs already make → covers ~10 callers with **zero client-body edits**.
+- **Backfill (prod, applied separately):** stamped John's existing `lead_received` + connection with `utm_campaign=franchil-killeen-jun26` (+ `attribution_backfill` audit marker) so the redefined count includes the pre-instrumentation lead. Admin now reads **1**, matching the provider view (verified in Vercel preview).
+
+**Pre-test + merge:** count/list verified against live prod data (=1), cookie round-trip unit-tested, all lead fetches confirmed to send the cookie (default credentials), `tsc` 0, content-regression check clean (`[slug]/page.tsx` additive only). Squash-merged.
+
+**Decisions:** delivered = tagged inquiry NOT benefits quiz; cookie over per-caller threading (10+ callers); first-touch + 6h TTL bounds cross-provider bleed (documented limitation, immaterial at pilot).
+
+**Next up:** (1) **prove forward auto-tagging live** (managed UTM link → multi-step inquiry → new `lead_received` carries tag — the deployed "1" is still the backfilled lead); (2) promote staging → main; (3) enter Franchil spend/clicks ($11.40 / 5) so cost-per-family computes (~$11.40); (4) **family-side safety net** — does the [[project_family_help_cascade]] fire for ad-driven leads if the provider ghosts? John is waiting on Hilda; (5) PRs #1224/#1226 touch `[slug]/page.tsx`, need trivial rebase vs the 2-line `ManagedUtmCapture` add. Memory: [[project_ad_boost_attribution]]. Notion: handoff (Branch Handoff Reports, Status=Merged) + "Email to Hilda — first lead" draft.
+
+**Provider comms:** Franchil's first lead (John, home care, Killeen, "as soon as possible") sat **unopened by Hilda 14h+**. TJ sent email + text 2026-06-28, calling within 24h. Open thread = whether she actions it. Hilda: hilda@franchilcare.com / (254) 322-9251.
+
+### 2026-06-28 — Provider Image Strategy #2: licensed stock/fallback library rebuild (branch `claude/stock-image-section-ef6lqj`, NOT yet merged)
+
+Executed the "own our stock & fallback licenses" arm of the Provider Image Strategy (Notion `3845903a…`). The 15 old category-fallback images (`public/images/fallback/`) were inherited from the iOS app with **no documented license** (provenance unknown; SCRATCHPAD even noted a Shutterstock OG image) — exactly the actively-monitored risk the doc flags. Replaced the whole set with a **provably-licensed library + a documented license record + a validation guard.**
+
+**What shipped (all on the branch):**
+- **Library: 39 images**, all license-documented. Sources: **Pexels** (Jsme Mila care-documentary set) + **Unsplash** (Age Cymru / Centre for Ageing Better, CDC, etc.). Both licenses verified clean (free, commercial, no attribution, resize OK).
+- **`public/images/fallback/CREDITS.json`** — the license manifest (per-image source/photographer/photo URL/license + a `sources` block). This IS the strategy's "documented license for every stock image."
+- **`scripts/check-fallback-licenses.js`** — fails if any served image lacks a manifest entry (enforces "license on file"). Passes 39/39.
+- **`docs/stock-image-pipeline.md`** — the process (only-licensed sources → optimize → classify → place → record → wire), incl. the **mandatory resize step** (TJ's ask).
+- **`lib/types/provider.ts`** — `CATEGORY_FALLBACK_POOLS` rewired to the new files (deduped, named arrays per category).
+
+**Pipeline used:** intake to `stock-intake/` via plain `git push` from a local session (GitHub web uploader chokes on ~300 MB; git doesn't) → optimize with **sharp** (1920px, mozjpeg q80, ~3-6 MB → ~150-350 KB) → classify by viewing → curate → place as `{category}-NN.jpg` → manifest → wire pools → remove raw originals (squash-merge keeps the ~300 MB of raw out of `staging` history).
+
+**Curation evolved through TJ redlines (the WHY):**
+- Dedup near-identical photographer *series* (5 hair-grooming frames, repeated kitchen/stairs/bed shots) → distinct scenes only.
+- **Tailored per-category briefs**, not one rule: home care = care being given OR an obvious pro (scrubs), never a lone recipient; AL = vibrant community; memory care = gentle 1:1; nursing = skilled care w/ dignity; IL = active lifestyle (solo OK if vibrant).
+- **Aspirational/polished over documentary** (TJ's call) — this is why most candid Jsme Mila *home-care* shots underperform; the sourced Unsplash scrubs/Age-Cymru images carry that category.
+- **Phased quality pass:** removed the 8 clear "lone recipient / still-life" failures now (they signal isolation — the family's fear — not care); kept candid relationship shots as **temporary filler** to hold rotation until aspirational replacements arrive, then dilute.
+
+**Current per-category state (pool sizes):** home-care 16 (only ~4 truly aspirational — all sourced scrubs; rest filler), assisted-living 6 ✅, nursing-home 7 ✅, memory-care 5 🆗, independent-living 4 ⚠️ (only 1 true IL image), general/default 3. **Biggest gaps: home care (~6-8) + independent living (~4)** — need aspirational, caregiver-present backfill.
+
+**Decisions:** keep-current + add + dilute-over-time (not hard cut); Pexels+Unsplash both clean for our use; squash-merge to staging; benched 3 staff-only Unsplash shots in `stock-intake/` for later.
+
+**Next up:** (1) **TJ sources aspirational backfill** — home care ~6-8 (caregiver+senior, bright, scrubs OK), IL ~4 (active lifestyle: gardening/walking/exercise/social dining) — best from **Age Cymru** ([Unsplash](https://unsplash.com/@age_cymru)) + **Centre for Ageing Better** ([Pexels](https://www.pexels.com/@centre-for-ageing-better-55954677/) · [Unsplash](https://unsplash.com/@ageing_better)); drop in `stock-intake/`, I wire + then dilute the candid filler. (2) Open PR → staging → squash-merge. (3) **Couldn't run `tsc`/`build`** in the cloud container (no `node_modules`) — needs local `npm run build` or Vercel preview before merge. (4) Separate **email** stock set lives on Supabase (`content-images/fallback`, used by `lib/email-samples.ts` + `lib/family-comms/alternatives.ts`) — same unprovable provenance, logical future cleanup. Memory: Notion `3845903a…` (Provider Image Strategy).
+
+### 2026-06-25 (PM) — Family-comms email CREATIVE redesign: full completion sequence + shared design-system, PROMOTED to prod (branch `mighty-carson`, PRs #1213-1216 → staging, #1217 → main)
+
+Phase 3 (redesign the legacy email creative the coordinator/engine renders) continued from R6 `family_nudge`. Redesigned the **whole `completion_nudge_1-4` sequence** (the OLD `family-nudges` engine, day 0/2/6/13) and stood up a **shared email design-system**, then **promoted everything to production** ahead of the next cron sends. SCRATCHPAD logged separately per [[feedback_scratchpad_out_of_code_prs]].
+
+**The four emails (each a distinct angle so the arc isn't repetitive):** nudge_1 empathy+cost ("Care is hard to figure out. Cost is harder." / subject "Want a hand with your care search?") **#1213**; nudge_2 day-2 social proof ("there really are X providers near you", flipped from provider-hunger "looking for families") **#1214**; nudge_3 day-6 payoff ("providers can actually help" — *enables* a reply, doesn't overpromise "you'll hear back") **#1215**; nudge_4 day-13 **photo provider cards** (`compareCardsBlock`, 72px thumb + hairlines, vs the old boxed text cards) **#1216**.
+
+**Design-system (the force-multiplier, #1213):** completion templates return **`{ subject, html }`** via one `completionNudgeSubject()` source → subject can't drift between send-path / preview-drawer / email_log (the exact bug that bit R6). Shared helpers `fieldAskLine` (de-boxed warm ask), `completionProgressLine` (gated ≥50% momentum, no homework-bar), **`humanizeFields`** (maps internal completeness labels → family language: "Payment Methods"→"how you'd like to pay"; prioritizes matching-relevant fields). R6 now consumes these too — **fixed a live R6 bug** that rendered "Photo, Real Name, Phone". Global byline reword "less opaque"→**"easier to understand and compare"** (shared across 13 emails incl. provider digests — resolved one of the two parked decisions).
+
+**Voice locked (TJ redlines):** friend-voice, value-first, NOT slogan/feature-brag ("lotion bottle"), de-boxed, outcome CTAs ("Get better matches"), founder byline. nudge_4 photos use **category stock** via `categoryStockImage` (email-safe direct https — NOT `/_next/image` which WAF-429s blank, see [[feedback_waf_next_image_429]]); chose reliable-stock over sparse-real (directory source always returns cards; claimed-provider source is sparse in small markets).
+
+**Files:** `lib/email-templates.tsx` (creative + new shared helpers + `completionNudgeSubject`), `lib/email-samples.ts` (fixtures → real completeness labels for drawer fidelity; nudge_4 → photo-card fixture), `app/api/cron/family-nudges/route.ts` (nudge_4 maps directory providers → `CompareCardItem` w/ stock images; subject via shared source), `lib/family-comms/alternatives.ts` (`export categoryStockImage`). tsc 0 throughout; each email iterated live in a scratch `.html` preview (push → TJ feels → redline).
+
+**Workflow note:** ship each email as its own squash PR to staging, then `git reset --hard origin/staging` to realign the base — squash-merge + keep-working creates a duplicate-commit conflict otherwise (hit it on nudge_2, #1214). Branch is now even with main AND staging (0/0).
+
+**Next up:** (1) **`never_engaged` (R3)** — weakest rung ~20% open, sensitive moment; NOTE it lives in the **coordinator** rung templates, not the family-nudges engine; (2) `publish_nudge_1-4`; (3) light-touch R2/R4; (4) Track 2 (later): fold the family-nudges engine into the coordinator. **Open caveat:** none of the 5 redesigns observed in a real inbox at volume yet — spot-check a delivered copy after the next sends (~15:00 UTC family-nudges, ~17:00 UTC coordinator). One parked decision remains: named-human From (needs monitored reply inbox). Handoff + promotion report in Notion. Memory: [[project_family_help_cascade]], [[feedback_design_taste]], [[feedback_waf_next_image_429]].
+
+### 2026-06-25 — Cutover first-run verified + Family Comms dashboard: recipient-scoping fix + per-email-type preview drawer (branch `mighty-carson`, PR #1207 → staging)
+
+Three things this session, all on `mighty-carson`. **PR #1207 → staging** (code; SCRATCHPAD logged separately per [[feedback_scratchpad_out_of_code_prs]]).
+
+**1. Verified the coordinator's first production run (the open loop from 06-24).** The `scratchpad/verify-cutover-firstrun.js` named in the handoff was a local file that never got committed — rebuilt the query fresh against `cron_runs` (note: column is `started_at`, NOT `created_at`). Result: **HEALTHY.** Coordinator ran 06-24 17:00 UTC, `status=ok`, `dry_run=false`, **sent=35, send_failed=0**, rung split tied out exactly (lead_complete 26 → `family_nudge`, never_engaged 5, outcome_check 4 — confirmed via the 35 email_log rows stamped to the run id). The 4 paused crons that were *scheduled* to fire logged `skipped_paused`. The 2 "missing" ones are both correct: `lead-family-nudge` is Tue/Fri-only (`0 16 * * 2,5`) so it didn't fire on a Wednesday; `family-day-10-awaiting` has **no `vercel.json` schedule** so it never fires on its own. Preserved engines ran (`provider-still-silent` ok, `family-nudges` active). Cutover held.
+
+**2. Found + fixed a data-correctness bug in `/admin/family-comms`.** The analytics query (`app/api/admin/family-comms-analytics/summary/route.ts`) filtered `email_log` by `email_type` only, never `recipient_type`. Several `FAMILY_NUDGE_EMAIL_TYPES` are emitted to PROVIDERS: **`dormant_reengagement` is 100% provider** (`provider-dormant` cron, 154 provider / 0 family in 30d) and **`stale_conversation` is dual-sided** (93 provider / 131 family). So the dashboard was counting provider mail as family and surfacing a *provider* re-engagement email as the "62% best-performing family copy." Fix = `.eq("recipient_type","family")` (verified 0 of 2,801 family-type rows have null recipient_type → drops nothing legit; flows through totals/per-type/sensor-denominator/funnel/cutover since all derive from the one array). Corrected family-only leaderboard: Pending reach-out 50%, **Stale conversation 49%** (family-only), Publish nudge 2 47%, Completion nudge 1 43%, the `family_nudge` workhorse 36% (884 sent), **Never engaged→compare lowest at 20%** (a key compare rung — top rewrite candidate).
+
+**3. Built the per-email-type preview drawer (TJ's ask: "see the email + why it goes to this group").** Reused the EXISTING render infra — `lib/email-samples.ts` (`EmailVariant.render()` → live template from PII-free fixtures) + `/api/admin/emails/sample?id=…&raw=1` (raw HTML for iframe, same pattern the Email Gallery already uses). Clicking an email-type row now opens a right-side drawer (`max-w-2xl` so the ~600px email fits): **live rendered preview · "Who gets this / Why" rationale · From + Subject · perf strip · variant switcher** (for types with multiple copies, e.g. provider-silent vs declined). Replaces the old "dump to unfiltered `/admin/emails`" link. Files: `app/admin/family-comms/page.tsx` (drawer component + row→button + rename + tooltips), `lib/email-samples.ts` (registered ~12 family types: completion 1-4, publish 1-4, go-live, stale, matches, post-connection — each w/ sample fixtures + `who`/`why`; added `who`/`why` to interface), `app/api/admin/emails/sample/route.ts` (exposes `who`/`why` + `from` via `resolveFromAddress`). Side benefit: those types now render in the Email Gallery too. Also renamed **"Sensor response" → "Reply rate"** (+ funnel "Replied to outcome-check") and added `?` hover tooltips to all six top stat cards. From field uses the live send path's `resolveFromAddress()` (all family mail = `Olera <noreply@olera.care>`). tsc 0 · eslint clean · all 28 variants render · two `/pre-test` passes (caught: drawer was `max-w-xl` → widened to fit email; verified importing `lib/email` into the route can't 500 it — no side-effectful top-level code).
+
+**Next up:** (1) QA #1207 on preview → merge to staging → promote to main; (2) act on the corrected leaderboard — **rewrite `family_never_engaged` copy** (20% open, weakest compare rung); (3) register the remaining maintenance/monthly/inactivity types in the gallery for completeness (not in the current dashboard, so deferred); (4) the original measurement next-ups still stand — preservation baseline (which emails the 86 published seekers got), true per-send attribution (`eid`→`email_log` join), personalization, SMS sensor. Memory: [[project_family_help_cascade]], [[project_email_architecture]].
+
+### 2026-06-24 — Family Comms v2: CUTOVER LIVE ON PROD + measurement surface shipped (branch `mighty-carson`)
+
+The compare-led flywheel is now the active family-comms system in production (main `cb71fc48`). Two things shipped today.
+
+**1. Cutover flipped (DB-only, no deploy).** Via `cron_config` upsert: `family-comms-coordinator` → `enabled=true`; the 6 inquiry originals → `enabled=false` together (`family-outcome-check`, `family-provider-silent`, `family-never-engaged`, `family-day-10-awaiting`, `matches-family-nudge`, `lead-family-nudge`). `family-nudges` (publish/go-live engine, drives the 86 published profiles) left ON — deliberately preserved. `provider-still-silent` left ON intentionally (not in the coordinator's 6; template already reshaped + cap-governed, so no mixed old/new). **Rollback = unpause the 6 + pause coordinator in `cron_config`, no deploy.** Verified all 7 job_ids against `withCronRun` ids before writing (a typo'd job_id silently no-ops).
+
+**2. Measurement surface (`/admin/family-comms`).** New page + `GET /api/admin/family-comms-analytics/summary` (PR #1202→staging, #1203→main, LIVE). First-principles family-engagement + email observability (re-centered per TJ: the spine is "how families move + how every email performs," NOT the cutover). Sections: top-line stats · engagement flywheel funnel · email-performance-by-type table (sent/deliver/open/click/bounce + 8-wk sparklines) · outcome-check sensor (yes/no/not-yet) · downstream conversions · secondary collapsible cutover lens. **Zero new instrumentation** — all from `email_log` + Resend webhook columns (`first_opened_at`/`first_clicked_at`/`bounced_at`) + `seeker_activity` conversions (`connection_outcome_reported`, `compare_cta_converted`, `guide_cta_converted`, `benefits_completed`, `profile_published`=went-live). Files: `app/admin/family-comms/page.tsx`, `app/api/admin/family-comms-analytics/summary/route.ts`, `components/admin/AdminSidebar.tsx` (nav link under Operations). tsc 0 / eslint clean / smoke-tested live (2,716 family emails/90d, 37% open, 78 benefits-completions, 53 go-lives).
+
+**Honesty fixes during pre-test:** dropped `benefits_started` from the funnel spine (under-tracked — 0/90d vs 78 completed, would read as "completed > started"); funnel lower-steps labeled as window totals not per-send attribution (the `eid` param is already on links → join is the v2 of the dashboard).
+
+**OPEN LOOP:** the coordinator has NOT sent a real email yet — first production cycle is **17:00 UTC 2026-06-24** (~it was paused until today's flip). Only run on record is a 06-23 dry-run (527 families → would-send 222; rungs heavily completion-weighted: 211 lead-complete, 8 outcome-check, 2 never-engaged, 1 pending-reach-out; 0 send-failures — brain works). Verify after 17:00 UTC: coordinator ran for real (not dry, sent>0), the 6 paused crons logged `skipped_paused`, `family-nudges` still ran. **Verification script:** `scratchpad/verify-cutover-firstrun.js` (run from `~/Desktop/olera-web`), or eyeball `/admin/automations`.
+
+**Comms:** updated the Notion branch handoff (`3885903a...`) with current state + appended a §7 CEO brief; posted an Esther update to #ai-product-development (reframed away from "nag emails" — she built the originals).
+
+**Next up:** (1) verify the 17:00 UTC first run; (2) preservation baseline (`email_log` → which emails the 86 published seekers got → fold winners into the ladder); (3) true per-send attribution (`eid`→`email_log` join); (4) personalization (rank compare by captured budget/care-needs + close the anon-quiz gap where `save-results` doesn't write `city`/`care_types`); (5) SMS for the one-tap sensor (10DLC/TCPA). Plan with TJ before code. Memory: `project_family_help_cascade`, `project_family_comms_channels`.
+
+### 2026-06-22 — Family Comms Intelligence System: BUILT (v1) + strategy evolved to v2 compare-led flywheel (branch `mighty-carson`, draft PR #1165, NOT live, re-shape pending)
+
+Switched from provider engagement (handed to Esther) to the care-seeker/family side. Esther's "Family Re-engagement: The Intentionality Gap" doc + deep code review + live data pull.
+
+**Diagnosis (live data, 90d):** acquisition booming (738 families, 409 new/30d, 544 inbound inquiries) but the marketplace is one-sided — provider responsiveness is the constraint we can't control or even see (provider opens lead in-app ~20%, in-app responds ~3%, all connections stuck `status='pending'` forever; Find Families "Path B" ~14 reach-outs/quarter = effectively dead). The whole family nudge machine optimizes the wrong verb (publish→get-discovered), a near-dead path.
+
+**Reframe (TJ):** north star isn't binary "connection" — it's "family meaningfully helped." Build an inquiry-triggered HELP CASCADE: connection-first, help-always; assume providers often won't respond; when quiet → other providers → benefits → Olera direct help → never a dead end. Retention = accepted 2nd north star. Headline: replace passive verb ("publish your listing") with active ("we'll introduce you to 3 providers"). Self-report = dating-app "Did you meet?" pattern = ground-truth sensor AND cascade trigger.
+
+**ARCHITECTURE DECISION (the pivot):** don't ship family emails as independent crons. Build a **Family Comms Intelligence System** modeled on the provider weekly-digest. Key realization: registry + withCronRun + email_log/email_events measurement + `/admin/automations` cockpit ALREADY exist and already include families. Only 2 layers missing: (a) **governance cap** for families (extend `sendEmail` chokepoint to `recipientType==='family'` + `FAMILY_NUDGE_EMAIL_TYPES`, transactional exempt, ~3/7d tunable), (b) **Family Comms Coordinator** = one daily cron, pure priority ladder, ONE governed msg/family/cycle, subsumes the 6 family crons as rungs. Ladder = demote-publish + cascade: STOP-if-engaged > outcome-check(self-report) > provider-silent-alternatives > never-engaged > awaiting-match > benefits-intent > completion/publish(lowest).
+
+**BUILT this session on `mighty-carson` (draft PR #1165, type-clean, dry-run-validated, NOTHING LIVE):**
+- **Family governance cap** — `lib/email-governance.ts` (`FAMILY_NUDGE_EMAIL_TYPES` + `FAMILY_NUDGE_WEEKLY_CAP=3` + `isGovernedFamilyNudge`) + `lib/email.ts` sibling gate keyed on recipient email + `recipient_type='family'`, transactional exempt, fail-open, no schema change.
+- **Family Comms Coordinator** — `app/api/cron/family-comms-coordinator/route.ts`: one daily cron, 6-rung ladder, ONE governed email/family/cycle, global stops (unsubscribed / self-reported-yes / active thread). `?dry_run` validated on **515 live families in 5.6s** — sane distribution (lead_complete 208, lead_publish 45, never_engaged 8, outcome_check 6, provider_silent 1, pending_reach_out 1, day_10 **0**; no_rung 227, no_email 0). Lazy email resolution (auth fallback only for matched families).
+- **Plumbing:** `family-nudges` subordinated (stands down 20h after a coordinator send); `findAlternativeProviders` extracted to `lib/family-comms/alternatives.ts`; registered in `registry.ts` + `vercel.json`. Self-report element (prior session) folds in as a rung.
+- Spec: `plans/family-comms-system.md`.
+
+**STRATEGY v2 — compare-led flywheel (locked with TJ this session; supersedes the v1 ladder's priority + copy):** the flywheel = **Complete → Compare → Benefits → loop**. Compare options = HERO (#1, delivered unilaterally via 21k providers). Benefits = CLOSER (#2, don't over-index). Completion = FUEL (#3) but NEVER a naked ask — always "give one detail → better matches" (same action, opposite framing; this is why the dry-run's 208 completion picks were wrong in FRAMING not volume). **Responsiveness = INTERNAL ranking signal ONLY, never a response-time promise** (times are long; promising burns trust — cards compare on care type/price/distance/reviews). Compare destination = existing browse pre-filtered (WATCH: must satisfy click intent on ship). Concierge = flag-don't-build. Cadence = ship now + iterate in days, NO multi-week gate.
+
+**Next up (clean stopping point — pause OK):** the coordinator code still encodes the **v1 ladder**, so the #1 next move is the **compare-led re-shape pass (PLAN WITH TJ before code)** — re-order rungs compare-led, re-frame all copy (completion as value-exchange, strip every response-time claim), point compare CTAs at pre-filtered browse. THEN apply migration 115, THEN plan the cron cutover (pause the 6 originals in `cron_config`, revertible). Notion handoff: "Family Comms System — Handoff (2026-06-22)" (has paste-to-resume block). Memory: `project_family_help_cascade` (has full v2).
+
+### 2026-06-22 — `/test-instructions` command + durable Codex skill (branch `codex/add-test-instructions-command`, PR #1169 → staging)
+
+**Trigger:** TJ created a Claude slash command called `test-instructions` and asked to copy it into this repo, then clarified that it needs to keep working across future Codex sessions instead of only in the current local worktree.
+
+**Built:** copied `.claude/commands/test-instructions.md` verbatim from the Claude worktrees; added `.agents/skills/test-instructions/SKILL.md` as the repo-local Codex wrapper; added an `AGENTS.md` trigger line so future repo sessions route manual QA requests to the skill.
+
+**Durability fix:** also installed a user-level fallback at `/Users/tfalohun/.agents/skills/test-instructions/` with a bundled `command.md`, so `/test-instructions` works even before PR #1169 is merged. The repo command remains canonical once merged.
+
+**Validation:** copied command hash matches the Claude source; staged diff contains only `AGENTS.md`, the repo skill wrapper, and the command file. Vercel for PR #1169 is green. Manual use was exercised by producing test instructions for the Benefits noindex PR #1166.
+
+**NEXT:** merge PR #1169 to staging so the repo-local command/skill is available to future worktrees without relying on the user-level fallback.
+
+### 2026-06-22 — Franchil Google Ads account cleanup + keyword fix (no code; concierge walkthrough in Google Ads UI)
+
+TJ shared the Google Ads dashboard ("the interface is a mess") for the live Franchil campaign. Translated the cluttered account into plain English and walked him click-by-click through three fixes. **All done in the Google Ads UI — no repo changes.**
+
+**Diagnosis (the account was confusing for real reasons):**
+- **Date-filter trap:** dashboard was pinned to **Nov 15 – Dec 12, 2025** — ~6 months *before* Franchil launched (flight Jun 22 → Jul 5, 2026). So Franchil showed 0/$0 not because it was dead but because the window predated it. The "440 clicks / $0.96 CPC" headline = stale account totals from that dead window.
+- **Franchil is approved & live:** status **"Eligible (Limited)"** — passed policy review (no longer "under review"), valid "Ad group 1", $50 total cap, Search-only all correct. The "Limited" qualifier was **"Missing enough relevant keywords."**
+- **Account clutter:** 10 campaigns total — 5 Removed (dead), 2 Paused, + **two old Display campaigns still LIVE at ~$10/day combined** ("Website traffic-Display-[May 2]" $9 + "April 2023" $1) quietly spending on non-Franchil. The "1 campaign with no ad groups" warning was NOT Franchil.
+
+**Fixes TJ executed (guided):**
+1. **Date range** → changed off the Nov–Dec 2025 window so live data is visible.
+2. **Paused the two old Display campaigns** → stops ~$10/day leak on unrelated old campaigns.
+3. **Added 15 keywords** to Franchil (8 → 21 total). Pasted phrase-match list (Killeen + Harker Heights + Copperas Cove + service terms + "near me"). Google policy-flagged 2 health-condition terms (`dementia care at home`, `alzheimer's home care`) under "Health in personalized advertising" — dropped them rather than request exception. Result: 3 already **Eligible** (`home care killeen`, `in home care killeen tx`, `home health aide killeen`), ~6 Pending/Under review (clears in hours), many **"Low search volume"** (dormant, not errors — Killeen is just a small market; they auto-activate if volume appears). "Missing relevant keywords" throttle should clear.
+
+**Key insight surfaced:** in a market this small, reach is carried by a **handful of broad eligible terms**, not the geo long-tail (most hyper-specific phrases are low-volume/dormant). Fine for a $50 test. **Watch:** if the campaign under-spends by Jul 5, the lever is flipping 1–2 eligible keywords to **broad match** — don't do it preemptively.
+
+**Next up (unchanged + 1 new):**
+- **#4 Google conversion tracking** — still NOT set up (account-wide "Conversion tracking setup is incomplete" banner). This is the Google-side mirror of last session's app-side attribution work; without it Maximize-clicks optimizes for clicks not leads, and Google sees zero conversions. Bigger lift (wire a Google conversion action to fire on `connection_sent`/`lead_received`). Deferred — TJ to decide whether to do now or after a few days of run data.
+- Phase 2 (from 6/21): multi-provider UTM attribution on `connection_sent`, backfill Franchil null lat/lng, conversion-rate estimate in budget step.
+
+### 2026-06-21 — Franchil managed-ads activation: real campaign performance to provider + admin (branch `smart-hopper`, PRs #1161/#1163 → SHIPPED TO PROD)
+
+> **UPDATE (PM):** Shipped to prod (#1161 → staging, #1163 staging→main, main `f5a85d05`). **Google Search campaign published live** with TJ (click-by-click): Search-only (Display + partners off), $50 total-budget cap, Killeen 20mi, EN+ES, 8 phrase-match keywords + 9 negatives, tagged Final URL, Maximize-clicks $2.50 cap — now in Google policy review. Tracking is wired end-to-end (provider `/provider/boost` panel + admin `/admin/ad-boost` parity). **Phase 2 queued as 3 Web App board tasks:** (1) clean multi-provider UTM attribution on `connection_sent` [P2], (2) backfill Franchil null lat/lng [P2], (3) conversion-rate estimate in budget step [P3]. Only open item: ads flip from "under review" → "Eligible" (Google's call). Comms: team update posted to #ai-product-development (high-level, no jargon — "first managed-ads campaign, $50 start, trackable"); campaign-live email to Hilda drafted in Notion (under the handoff page) with the `olera.care/provider/boost` link + honest "$50 = a window not a faucet" framing — TJ to verify the boost panel renders for her, then send.
+
+First real provider through Find Families → Managed Ads (Franchil LLC, Killeen TX) needed her ads live by 6/22 + a self-serve view of visits + conversions. Deep investigation reframed the whole problem before any code.
+
+**Key findings (the "aha"s):**
+- **Attribution was wired to the wrong event.** The Ad Boost "delivered" count reads `benefits_completed` (UTM-tagged) — but the live provider page rarely shows the benefits flow. The page runs TWO live A/B systems: intake variant (`empathic` 60% benefits / `outreach` 20% / `qa_email_capture` 20%) + CTA variant (`legacy` 100%). The **real conversion is the legacy CTA** (`lead_received` / `connection_sent`), which carries **no UTM** and was never counted. Admin CTA funnel confirms it: legacy CTA 3936 impressions → 81–88 leads/wk (~2%). So `delivered` would show "0 forever" while real leads arrive.
+- **The $422 in Google Ads is historical/paused, not live spend** (account banner: "none of your ads are running"). No live waste — wire + optimize before re-enabling.
+- **Lead delivery to Hilda verified GREEN:** awaited email (ZeroBounce `valid`), SMS, unconditional `/provider/connections` visibility, full contact (she's verified). Not suppressed; `leads_unsubscribed` unset.
+
+**Built (PR #1161, code-clean tsc, validated vs real data — 8 page-views→5 deduped sessions):**
+- `getCampaignStats()` in `lib/ad-boost/delivered.server.ts` — real **Visitors** (session-deduped `page_view`) + **Leads** (`lead_received`) on the provider's page since launch. Reads `provider_activity`; **does NOT touch `/api/connections/request`** (the critical leads route).
+- Provider self-serve panel: `CampaignInMotion` (`/provider/boost`) now shows Visitors / Leads / Conversion (capped 100%, honest empty state).
+- Admin parity: "What the provider sees" panel on `/admin/ad-boost/[id]` — identical numbers via the same reader.
+- Single-provider attribution by approximation (her ~0 organic baseline) — no UTM refactor needed for one provider; that's the multi-provider Phase 2.
+
+**Ops done:** Franchil campaign row flipped `status=live`, `campaign_tag=franchil-killeen-jun26`, `channel=google`. Ad-ops package handed to TJ (UTM URL `…/provider/franchil-llc-killeen-tx-o4iq?utm_source=olera_managed&utm_campaign=franchil-killeen-jun26`, Killeen-radius keywords, copy). Decision: **$50 intro on Google Search only** (skip Meta at this budget).
+
+**Decisions:** measure-then-optimize (no bespoke landing page); attribution fix is the real lever, arm-pinning + UTM-threading deferred to Phase 2 (touches the critical leads route — not under a deadline); concierge-manual ad setup stays (no Google/Meta API).
+
+**Next up:** (1) Merge #1161 → staging → QA on `staging-olera2-web.vercel.app` → promote to main (panel is NOT live in prod until deployed; only the DB row is flipped). (2) TJ enables the Google campaign at the tagged URL. (3) Phase 2: thread UTM into `connection_sent`/`question_asked` + extend `delivered.server.ts` to count `connection_sent` (clean multi-provider attribution); backfill Franchil's null `lat/lng` (breaks organic Find Families matching). (4) Conversion-rate-as-expectation in the budget step (~2% impression→lead, cold-traffic caveat). Notion handoff: `Managed Ads — Franchil campaign activation` (needs rewrite with corrected CTA-not-benefits architecture).
+
+### 2026-06-21 — Email arc wrap-up: Ticket 2 promoted, Loops retired, architecture documented (all in prod)
+
+Closed the email/Questions arc end-to-end. Everything below is **in production**.
+
+**Shipped to prod:**
+- **Ticket 2 promoted** (#1154 → #1157) — provider-level "Archive provider" on `/admin/questions` is live.
+- **Loops RETIRED** (#1158 → #1159) — `LOOPS_ENABLED` flag in `lib/loops.ts` defaults off; app pushes no events/contacts to Loops. TJ paused all Loops campaigns dashboard-side same day. Resend is now the single email system. Kills double-sends + `oleracare.com` complaint/ToS exposure.
+- **`/test-instructions`** (#1155) + scratchpad (#1156) promoted.
+
+**Investigation (no code, informed decisions):**
+- **"Separate Resend accounts?" → NO.** Only benefit is suspension blast-radius isolation, already mitigated: verification holds rates, true cold is off Resend (Smartlead), cockpit surfaces trouble at half the limit. Confirmed via Resend dashboard: ONE account ("olera Pro"), two verified root domains (`olera.care` + `oleracare.com`).
+- **Loops audit:** every active Loops trigger had a Resend twin already sending; Loops' own lifecycle groups (Onboarding/Retention/Reengagement) were empty. Loops was stale duplicates → safe to retire.
+- **Deliverability instrumentation is LIVE** (the May "0%/blind" note was stale): Resend webhook → `email_events` → `/admin/automations` cockpit vs `lib/email-thresholds.ts`. 30-day: **bounce 1.99%, complaint 0.0433%** — under hard lines, near yellow.
+
+**Decisions:** Loops retired (not just paused — code-gated too); no separate Resend account; role-address `effectiveStatus` handling documented as canonical.
+
+**Comms + docs:** Slack note to #ai-product-development (Graize/Cess/Esther) with the go-forward rule (Archive=disinterest, not REMOVE; email issues = add/override real address). Notion handoff fully rewritten as the journey record + role-email reference. New memory `project_email_architecture.md` (current canonical) + reframed `project_email_deliverability.md` as history.
+
+**Open tail (small):** (1) Step 2 lane split — `PROVIDER_NOTIFY_FROM`/`oleracare.com` already live but same Resend account (no account isolation); weekly-digest carve-out in `lib/email.ts` is load-bearing, don't remove. (2) `new_verification (import)` Loops campaign (~5,331 cold sends) now dark — move to Smartlead if it's a recurring funnel. (3) optional flush-endpoint throttle (~4/sec).
+
+### 2026-06-20 — Ticket 2: provider-level archive for Questions queue + `/test-instructions` command (PR #1154 merged→staging; PR #1155 open)
+
+**Trigger:** The email-hygiene thread's original ask ("Ticket 2"). The QA team (Graize/Cess) kept re-clearing new questions for providers they'd decided to stop working — a treadmill. Per-question archive existed; provider-level did not, and the submission path only skipped the *email* for `admin_archived` providers (still inserted a `pending` row), so the queue refilled.
+
+**Shipped — #1154 (merged to staging, QA'd, NOT yet on main):**
+- New `archived_question_providers` table (migration 114), keyed by literal `provider_id` — covers olera-providers-only providers (no metadata column). **Q&A-scoped:** does NOT touch `admin_archived`, so nudges/leads/connections untouched. Reversible.
+- `app/api/admin/questions/archive-provider/route.ts` (POST+GET): resolves id variants, upserts suppression rows, bulk-archives existing open questions (metadata merged, not clobbered), audit-logs; `?unarchive=1` reverses.
+- `app/api/questions/route.ts`: pre-insert suppression lookup → archived providers' new questions land `status=archived, is_public=false`, no email/needs-email flag. **Fails open** if table absent.
+- `app/admin/questions/page.tsx`: per-provider "Archive provider" action + confirmation modal.
+
+**Shipped — #1155 (open):** `/test-instructions` command — manual-QA-checklist generator, the human-facing complement to `/pre-test`. Lives BOTH global (`~/.claude/skills/test-instructions/SKILL.md`) and in-repo (`.claude/commands/test-instructions.md`, team-shared).
+
+**Validation:** tsc 0; live service-role probe of the new table (SELECT/UPSERT/maybeSingle/DELETE) passed; migration 029 confirms `archived` in the status CHECK; **migration 114 applied to the shared Supabase**. End-to-end QA on staging: bulk-clear verified via UI + DB (3 sample questions → archived); suppression row armed. Sample data seeded then fully cleaned up.
+
+**Decisions:** Q&A-scoped archive (not full `admin_archived`) — chosen for blast radius (QA clearing their queue must not sever a live provider's lead pipeline) and because olera-providers has no metadata column to hang a flag on. `/test-instructions` placed globally AND in-repo per TJ. Two intentional non-bugs: archived providers' askers still get the "submitted" confirmation; internal Slack "question asked" alert still fires (only the provider *email* is suppressed).
+
+**Next up:**
+- Merge #1155 to staging (awaiting TJ go).
+- `/promote-to-main` to ship #1154 (+#1155 if merged) to production (awaiting TJ go).
+- **Step 2 — lane split** (`PROVIDER_NOTIFY_FROM`): verify the cousin domain is a separate Resend reputation unit before flipping it on. The weekly-digest carve-out in the send gate depends on this staying OFF until verified — do not remove that carve-out first.
+
+### 2026-06-19 — `/design-improvements` on auth modal + mobile nav drawer (PRs #1141, #1142)
+
+**Trigger:** TJ ran `/design-improvements` on two surfaces back-to-back, starting from screenshots.
+
+**Auth modal — sign-in "Welcome back" (PR #1141, branch `upbeat-jemison`):** punch-only pass on `components/auth/UnifiedAuthModal.tsx`.
+- Bumped step titles `text-xl` → `text-[26px]` tight-leading so the title is the focal point (the edge-aligned back/X chrome had been reading as the header).
+- Demoted "Email me a code instead" from `text-primary-600` (teal) → `text-gray-600` so only the Sign In button owns the accent.
+- Inserted the existing "or" divider between Sign In and the passkey button so passkey reads as a fallback, not a co-equal CTA.
+- `/pre-test`: clean (presentation-only, zero type surface).
+
+**Mobile nav drawer — logged-out (PR #1142, branch `mobile-nav-drawer-polish`):** punch + mobilize on the `Navbar.tsx` `lg:hidden` full-screen menu. **Iterated 4×** against TJ screenshots. Final state:
+- Labels `text-xl font-semibold`; Caregiver Support icon mortarboard → book-open (it links to the articles hub); footer secondaries `gray-500` → `gray-700 font-medium`; `active:` tap feedback on rows + CTAs; `max-w-md` centered column on tablet.
+- **Reverted two missed attempts:** (1) vertical-centering the nav (`my-auto`) — looked like a marooned text island; (2) per-row hairline dividers — fragmented the list AND the one under "Find Care" cut it off from its own subcategories. Final = top-anchored, single original group divider before "For Providers."
+
+**Decision / lesson:** A **nav list** is the Apple-Settings pattern (top-anchored, hairline rows) — NOT an empty-state hero (centered illustration + headline + CTA, à la Airbnb/Robinhood). Don't vertically center a bare list of links. Burned 3 iterations learning TJ's taste on this screen; went restrained after.
+
+**Open item:** the thin gray nav icons still read as weak. Options floated to TJ: drop entirely (typographic menu) / strengthen / keep receding behind bold labels. Awaiting his call — did NOT change unprompted.
+
+**Run-env note:** worktree has no `node_modules`; could not run tsc/build locally. All changes are className/SVG-path/JSX only (zero type surface); Vercel preview build is the compile check. SCRATCHPAD updated off fresh `staging` per [[feedback_scratchpad_out_of_code_prs]].
+
+**NEXT:** TJ verifies both PRs on their Vercel preview links (sign-in modal for #1141; logged-out hamburger for #1142). Decide the nav-icon direction. Then merge.
+
+### 2026-06-18 — De-"host" copy + MedJobs admin reorg + flyer floor (branch `claude/keen-mendel-6i8iW`)
+
+**Trigger:** Logan — (1) "host" was vestigial internship language; students are now in a regular paid placement where the family/agency is the employer. (2) Simplify the MedJobs admin sidebar and split the dual-purpose Prospects surface by audience. (3) The "no student flyer configured" launch blocker.
+
+**Shipped on branch (6 chunks, each tsc + lint clean):**
+- **De-host pass:** "host" → "employer" (formal) / "the family or agency" (warm) across agreements, emails, UI; renamed agreement PDFs → `employer-agreement(-sample).pdf` (regenerated); `HOST_AGREEMENT_URL` → `EMPLOYER_AGREEMENT_URL`; "Offer to host" → "Offer to hire". (Earlier commit set.)
+- **Chunk 1 — flyer floor:** `GENERIC_PROVIDER` brochure + `resolveProgramPdfConfig` fallback; program-pdf route serves generic on a miss; `requireProgramPdf` + preflight modal honor the floor (red block → soft "standard flyer" note); Resend attachment renders generic when no campus config. Removes the launch-blocking flyer error.
+- **Chunk 2 (collapsed):** no new metric split needed — `prospects_added` is already partner-only; provider prospects are virtual/no-history (count-only). Subtype breakdown handled in the Operations summary endpoint.
+- **Chunk 3 — In Basket audience queues:** new `providers` + `partner_book` tabs fold each audience's prospecting + active work (sectioned); server-composed `counts.providers`/`counts.partner_book`; per-section card-slot dispatch; old keys retained for dedicated pages/queue/deep links. **Needs browser QA.**
+- **Chunk 4 — Operations hub:** `/admin/medjobs/operations` with Pipeline/Activity/Roster tiles (headline + delta + sparkline + View all). New `operations-summary` endpoint (provider count + partner subtype breakdowns); clients/candidates counts reused from their endpoints to avoid drift.
+- **Chunk 5 — sidebar:** collapsed to In Basket · Sites · Operations · Logs.
+- **Plan + pre-build risk review:** `plans/medjobs-nav-operations-flyer-plan.md`.
+
+**Validation:** `npx tsc --noEmit` clean; eslint clean on all 31 changed files. `next build` blocked only by sandbox Google-Fonts fetch (env, unrelated).
+
+**QA next (before promote):** Click-test the In Basket Providers/Partners tabs (both sections render, counts/bolding/auto-pivot correct, drawers open, slot actions right per section); Operations tiles load + links land on the right pages; launch outreach for a campus with no config and confirm the standard flyer attaches/links (no block).
+
+### 2026-06-18 — Managed ads conversion + A/B test (branch `codex/managed-ads-conversion`)
+
+**Trigger:** TJ wanted to move providers from impressions to real managed-ads signups, then previewed the copy and asked for a sharper testable path. Later asked to adopt the richer design critique slash-command wrapper from the staging repo.
+
+**Shipped on branch:**
+- Reframed managed ads across provider surfaces around a clearer external-ads promise: ads run on Google/Meta/local channels, families land on the provider's Olera page, provider picks timing/budget.
+- Added local-demand context to `/provider/boost` and managed-ads tracking/Slack metadata; fixed the category namespace issue in `app/api/provider/ad-boost/request/route.ts`.
+- Added provider-level managed-ads pitch A/B test instrumentation: `direct_reach` vs `local_plan`, deterministic assignment, event metadata, variant copy helpers, admin allocation controls, and Analytics funnel card (`Shown -> Clicked -> Viewed Plan -> Requested`).
+- Added migration `supabase/migrations/111_managed_ads_pitch_variant_experiment.sql` to seed `managed_ads_pitch_variant` 50/50 and register `managed_ads_pitch_viewed` while preserving existing provider-event CHECK values.
+- Sharpened the `local_plan` variant after preview feedback: headline now reads "Send local families straight to your page" with body copy that says exactly what happens.
+- Added `.agents/skills/design-improvements/SKILL.md` so Codex can invoke the richer `/design-improvements` Claude command workflow; also copied it to the user-level skills folder.
+
+**Validation:** `npx --no-install tsc --noEmit` and `git diff --check` passed during build. Re-run once more in quicksave before PR. No cron/automation code changed.
+
+**QA next:** Apply migration 111, then preview `/provider/boost?preview_managed_ads=direct_reach` and `/provider/boost?preview_managed_ads=local_plan`; verify `/admin/analytics` Managed Ads Variants allocation/funnel; click through dashboard/Find Families nudges and confirm `managed_ads_pitch_viewed`, click, boost-view, and request events carry variant + market metadata.
+
+### 2026-06-18 — Fix post-sign-in "Sign in required" flash + close 2 stale Notion cards (`/dejank` → `/pre-test`, branch `eager-newton`, PR #1114 → staging)
+
+**Trigger:** TJ reported jank signing into the provider portal — after sign-in he'd first see the "Sign in required" gate, then the real Profile page after a refresh (sometimes auto-refreshing). Plus two "validate before building" passes on Notion cards.
+
+**Main fix (`/dejank`, PR #1114):** classic state-setter race.
+- **Root cause:** every sign-in path does `await refreshAccountData(userId)` then navigates, but `refreshAccountData` set `account` + `isLoading:false` and **never set `user`**. `user` was set *only* by the async `SIGNED_IN` event handler. When `SIGNED_IN` landed after navigation, the gate (`app/provider/layout.tsx:65`, and `RoleGate`) saw account-loaded-but-user-null → rendered "Sign in required" until the event fired and re-rendered (the perceived "auto-refresh").
+- **Fix:** set `user` atomically with `account`. `refreshAccountData(userId, overrideUser?)` now sets both in one `setState`; the 3 modal sign-in methods (password/passkey/OTP) pass the verified user via a new `toAuthUser()` helper. No-arg callers preserve `prev.user` (background refreshes unaffected). Fixes all sign-in methods + `RoleGate` at once. OAuth/magic-link were already fine (full reload re-bootstraps via `init()`).
+- **Files:** `components/auth/AuthProvider.tsx`, `components/auth/UnifiedAuthModal.tsx` (+34/−5).
+- **`/pre-test`:** clean — traced both version-counter interleavings between `refreshAccountData` and the `SIGNED_IN` handler; no flash in either (worst case = correct brief spinner). Confirmed `createClient()` is a singleton (the assumption the fix rests on). tsc clean.
+
+**Two Notion cards validated + CLOSED (no build):**
+1. **Email pre-verification cron + cold-lane suppression** — already shipped in PR #1096 (staging+main, same day card was filed). Pulled bounce data from `email_log`: account-wide **3.40%/60d, falling to 1.91%/7d** (under Resend's 4%); `oleracare.com` 3.08%→0/178 post-deploy; `question_received` 7.99%→0/20 post. Lever 4 (TTL re-verify) not warranted. CAVEAT: post-deploy window ~1d, weekly digest burst not yet fired — re-check after next digest.
+2. **Add ISR to benefits routes** — closed as won't-do/mis-scoped. Benefits content is committed TS (`pipeline-drafts.ts`/`waiver-library.ts`), not a runtime store, so "edit content → rebuild one page" is unachievable with ISR alone (every fix triggers a full rebuild regardless). Real (narrower) win = lazy SSG to cap build time at ~2,400 pages, premature until build time is a measured problem. Reopen trigger noted on card.
+
+**Run-env note:** worktree had no `node_modules`; symlinked from `~/Desktop/olera-web` (+ `.env.local`) to run tsc against current files instead of copying into the stale Desktop checkout. SCRATCHPAD updated off fresh staging (this branch) per `feedback_scratchpad_out_of_code_prs`.
+
+**NEXT:** TJ to sign in as a provider on the PR #1114 preview to confirm the flash is gone (not yet exercised on a live deploy). Then merge #1114. After next weekly digest fires, re-check `email_log` bounce by lane to confirm the deliverability fix held under burst load.
+
+### 2026-06-18 — Organic-traffic explainer for marketing team (no code; analysis + Slack memo + memory)
+
+**Trigger:** Logan asked "other reasons behind the increase in our traffic." TJ wanted a thorough, code-grounded analysis to relay to the team.
+
+**Method:** Fanned out 4 parallel agents over the codebase + git history, then dug into the repo's GSC exports directly (`docs/https___olera.care_-Coverage-Drilldown-2026-05-19/Chart.csv`, `docs/SEO Reports/.../Performance-on-Search-2026-03-27/`, and the `-2026-03-08/` Pages/Queries CSVs). Verified claims against real data instead of asserting.
+
+**Key findings (data-grounded):**
+- **Recovery, not pure growth:** the fast 4-wk climb is mostly the Vercel WAF region-block fix (403'd Googlebot ~Apr 9→mid-May) + `/review/*` noindex (PR #771, ~55% of the "crawled not indexed" bucket). Bucket doubled 31K→66K Apr 9→May 14, tracking city-pipeline thin-page growth.
+- **Benefits/insurance editorial is the organic engine.** March GSC top non-brand pages = Logan's VA-caregiver-assessment (399 clicks, pos 4.9) + BCBS-caregiver (238, pos 3.6). Chantel's TX benefits cluster (published Mar 30–May 26, so NOT in the repo's March exports — her real numbers live only in the live `/seo` thread) extends the proven shape; 640-page Senior Benefits Finder = breadth.
+- **Provider directory is an organic non-entity:** not 1 page in top 50; head terms ~pos 40. The 21K description rewrite was a wash because at pos ~40 CTR is ranking-bound, not copy-bound.
+
+**Forward direction captured (TJ, this session):** next technical-cleanup focus pivots to provider pages — category-tailored first-principles rebuild FIRST, then drive UGC completion (owner section, about, photos). Sequencing deliberate: page first so UGC lands on a page built to perform. Saved to memory `project_provider_page_seo_optimization` (+ index).
+
+**Shipped:** memo posted to **#marketing-team** (cc Chantel + Logan) via `/slack-notes`. Iterated heavily with TJ on framing — killed the "correcting our prior mistakes" spine, rebalanced so benefits content is a bright-spot-to-lean-into (not a pivot), fixed attribution (VA/BCBS = Logan's, not Chantel's).
+
+**NEXT (open, both quick GSC pulls):** (1) clicks 28d-before-Apr-9 vs latest-28d to confirm *above* baseline vs merely recovered; (2) Chantel's six TX URLs' current clicks/impressions to quantify her contribution (offered to post a follow-up in-thread once TJ supplies them).
+
+### 2026-06-18 — Benefits program page: single layout spine (`/design-improvements` → `/punch`, branch `sparky-noether`, PR #1109 → staging)
+
+**Trigger:** TJ ran `/design-improvements` on a desktop full-page capture of `/benefits/texas/star-plus-medicaid-hcbs`. Phase 1 diagnosis surfaced 4 findings; TJ picked **#1, the layout spine alignment** to execute via `/punch`.
+
+**Root cause:** On `xl` benefit pages the hero (`max-w-2xl mx-auto`, centers in full viewport) and the body+rail (separate `xl:max-w-[84rem]` flex, content centered in a ~60rem `flex-1`) hung off **three different centering axes**. The H1 and body left edges didn't match, and the sticky "Could you qualify?" card floated with a ~12rem dead gulf beside the content.
+
+**Fix (`components/waiver-library/ProgramPageV3.tsx`, +13/−5, 4 surgical `xl:`-gated edits):**
+1. Container `xl:max-w-[84rem] gap-12` → `[69rem] gap-10` — `flex-1` now lands at the readable ~41.5rem so content *fills* its column (no gulf, no inter-section wander).
+2. Hero wrapped in the same two-column frame + a `21rem` reserved rail column (only when `showBenefitsCTA`), so the H1 shares the body's left gutter.
+3. Section nav (`SectionNav` got a `hasRail` prop) gets the same frame — full-width sticky bar preserved, pills shift to the content gutter.
+4. All gated on `showBenefitsCTA` + `xl:` — resource/navigator (no-rail) pages stay viewport-centered; below-xl is byte-identical to before.
+
+**Verified:** `/pre-test` traced all 4 breakpoint×rail states — hero/body/nav/card share one left gutter in the rail case (math: both `flex-1` text-left = `container_left + 4rem`), viewport-centered in the no-rail case, original below xl. tsc clean (0). Key alignment math holds to the pixel because hero `flex-1` carries `px-6 lg:px-8` matching the body section gutter, and both `flex-1`s are the same width.
+
+**Disclosed tradeoff (not a bug):** the `max-w-5xl` service-area map clamps to the column on xl-rail pages → tighter 2-up grid. But `draftToWaiverProgram` (page.tsx) never maps `serviceAreas`, so draft-based pages (e.g. TX STAR+PLUS) render no map at all; only rarer waiver-library base programs are affected.
+
+**NEXT:** TJ to eyeball the Vercel preview at **≥1280px** (xl breakpoint — won't show on mobile), confirm one clean column, then merge #1109. Remaining `/design-improvements` findings if he wants more: #2 elevate the conversion card, #3 de-template "What's covered" (both `/punch`), #4 mobile container discipline (`/mobilize`, needs a 375px shot).
+
+### 2026-06-17 — Design slash-command family: improve `/ui-critique` + add `/design-improvements` master (branch `graceful-mcclintock`)
+
+**Trigger:** TJ compared `/ui-critique` against `/punch` and asked where it could improve, then to fold in `/mobilize`, then to build a master command stringing them together.
+
+**Changes (`.claude/commands/`, tooling — no product code):**
+- **`ui-critique.md` (modified):** grafted `/punch`'s mandatory inspiration-folder study + anti-anchor rule (was a static brand-name prose list, no real frames); added a "Read the component" section (screenshot shows one state, code shows all — empty/loading/error); added a **Mobile/Responsive lens** (375px, tap targets, container discipline) that hands off to `/mobilize` instead of duplicating its 7 lenses; fixed positioning (diagnoses-not-builds, routes to `/punch` or `/mobilize`); killed the hardcoded "they mentioned having ideas" line.
+- **`design-improvements.md` (NEW):** master orchestrator. **Reads each sub-command file at runtime** (DRY — doesn't duplicate their logic, so it never goes stale). Pipeline `ui-critique → punch → mobilize → dejank → verify` (order deliberate: shape→mobile→motion). Phase 2 triages findings into lanes + asks TJ for scope before executing; honors each sub's own confirmation gates; verify once at the end via Vercel preview.
+
+**Command family now:** `/ui-critique` (diagnose, no build) → `/punch` (boldness/copy), `/mobilize` (mobile, waits), `/dejank` (motion). `/design-improvements` conducts all four.
+
+**`/pre-test`:** caught 1 real bug — `design-improvements` claimed "all four share the same inspiration folder + anti-anchor rule"; verified false (dejank is a console/state-tracing motion tool, reads no folder; mobilize has no formal anti-anchor rule + uses a 2nd folder). Scoped the claim to the 3 aesthetic lanes. Fixed. Inspiration folder + all 4 command paths confirmed on disk.
+
+**NEXT:** none required — self-contained tooling change. PR to staging.
+
+### 2026-06-17 — Author byline on all weekly-digest variants (branch `good-pasteur`, PR #1093 → staging)
+
+**Trigger:** TJ noticed the "About the Author" trust byline (photo + "Olera is built by Dr. Logan DuBose … and TJ Falohun …") shipped on only some weekly-digest variants. Audit → game plan → build.
+
+**Audit:** byline on **3 of 8** variants as **three drifting copies** — `managed_ads` (inline), `referral_teaser` (`referralTeaserTrustBlock`, richer "Why Olera maps this"), `cold_rank_note` (deliberate Logan-only CRO sig). One copy had a wrong WAF-blocked `olera.care/images` photo URL. **5 bare:** `family_question`, `leads_recap`, `market_rank_digest`, `weekly_digest_plain`, `completion_nudge`.
+
+**Built (`lib/email-templates.tsx`):** new `authorBylineBlock({topBorder?,heading?,tail?})` helper = one source of truth (Supabase-hosted photo — olera.care/images is WAF-challenged in email). Added to all 5 bare variants; refactored `managed_ads` + `referral_teaser` onto it; left `cold_rank_note` alone. `/pre-test` = clean (balanced HTML all 3 shapes, 0 tsc errors, no signature changes). Commit `dc91d3a7`, **PR #1093 → staging**.
+
+**NEXT (in progress):** move outbound weekly-digest sends **off `olera.care`** to a cousin domain to protect the crown-jewel domain from bounce/reputation damage — auditing send-from wiring + path forward. See [[project_email_deliverability]] (three-tier domains; provider-notify domain split shipped via PR #860, env-gated).
+
+### 2026-06-17 — June 16 mega-meeting → per-team brief in Notion (no code)
+
+Read the **full transcript** (not just the auto-summary) of the June 16 "Careshifts (Chantel Workflow Integration) & Olera Product Development Meeting" and split it into 3 copy-paste team chunks (metrics + summary + action items): **(1) CareShifts** (Chantel onboarding to staging/main cadence; ~50–60% reusable from MedJobs; Approach A student/internship pipeline vs B recruit-10-vetted-caregivers fork), **(2) Eng & Ops** (provider email bouncing on leads/Daily Digest; claimed-provider email-change-overrides-verification security hole, editing temp-disabled; first-ever paying customer re-engaged), **(3) Marketing/SEO** (4-wk WoW organic uptrend, provider pages 90%/benefits #2/blogs punch above weight; Instagram CTA → move to FB ads; editorial = Cess audits→Logan rewrites; provider-page UGC/category levers **deferred 2–4wk** until MVPs stabilize). Notion brief: `3825903a-0ffe-8182-9f92-c39617e1f01b` (child of meeting note `3815903a-0ffe-8019-…`). Name fix: transcript "Seth"→**Cess**, "Gracie/Greasy"→**Graize**. TJ distributed chunks to #marketing-team + #ai-product-development. No repo changes.
+
+### 2026-06-16 — First managed-ads conversion (Franchil) + Ad Boost admin overhaul (branch `adboost-admin-delete`, PR #1073)
+
+**Trigger:** Franchil LLC (Killeen TX home-care, self-serve signup 6/11, 95% complete, 0 organic leads) became the **first real managed-ads concierge conversion** — submitted a Google+Meta request, setup week 6/22. Sparked two threads.
+
+**Thread 1 — Franchil outreach + terms (PR #1072, MERGED to staging; TJ promoted staging→main separately).**
+- Drafted the outreach email to Hilda Boiwo → **Notion page** under "Olera Pro 2.0 / monetization exploration" (`3815903a…`). Iterations: dropped "you're our first" framing (reads as untested), reframed $50 as no-risk "to get you started," **killed the meeting ask** → one-reply "go" close ($50 starter run needs no budget decision; budget convo deferred to after results).
+- **New hosted T&C page `/managed-ads-terms`** (`app/managed-ads-terms/page.tsx`, noindex, reuses `LegalPageLayout`) — email links to it instead of pasting terms inline. Covers: claimed+consenting only, campaigns on Olera's own accounts→own page, **no guaranteed results**, leads stay provider's/no commission, cancel anytime, TX law. Pressure-tested the legal model (own-page + consent = clean; counsel sign-off + fee-vs-at-cost decision flagged before scaling).
+
+**Thread 2 — Ad Boost admin queue rebuilt (PR #1073, branch `adboost-admin-delete`, NOT yet merged).** Files: `app/admin/ad-boost/page.tsx` (list), `app/admin/ad-boost/[id]/page.tsx` (NEW detail), `app/api/admin/ad-boost/route.ts`, `components/admin/AdBoostShared.tsx` (NEW shared), `lib/ad-boost/delivered.server.ts`, migrations 108+109.
+- **Delete + soft-delete/archive.** Hard delete (test scrub) + reversible archive (`deleted_at`) for real providers. Active/Archived tabs w/ counts. Migration **108** (`deleted_at`) — APPLIED.
+- **List redesigned** from sloppy stacked form-cards → dense 3-column triage table (Provider · Status · Setup week + Archive/Delete), fixed-width cols (fixed an `auto`-last-column misalignment bug), sorted by setup week asc, channel as subline tag, inline edit removed. Date formatting unified + local-parse fix (UTC off-by-one).
+- **Per-campaign detail page** (provider name → `/admin/ad-boost/[id]`): Campaign setup (status/channel/setup-week/tag/note + UTM URL), **Leads** (real benefits_completed families attributed by utm_campaign, no PHI — care need/state/date), **Performance** (delivered + manual spend/clicks entry → cost-per-family computed; migration **109** `ad_spend_cents`/`ad_clicks` — APPLIED), Manage (archive/delete). Header "View provider record" → `/admin/directory/[providerId]` (admin record w/ comms timeline), not bare public page.
+- **`/code-review` (high effort, 8 angles): clean** — no reachable correctness bugs. Survivors all low: optional race-guard on detail fetch (practically unreachable), `Number.isFinite` spend hardening (devtools-only), duplicated archive/delete handlers (could be a hook). tsc clean throughout.
+
+**Thread 2 update (PM) — all merged + a reconcile.** `/pr-merge` landed **#1073** (Ad Boost rework) and **#1076** to staging. **#1056** (`fix-boost-gallery-completeness`, a parallel session) came up for merge but was 68 commits behind and diverged on the now-rewritten `page.tsx`+`route.ts` with a redundant admin-delete → **reconciled**: cherry-picked only its still-current completeness work (`scoreGallery` 3-photos→100, `scorePricing` decision-not-a-wall, eligibility remaining-impact sort, EditPricingModal copy) into **#1076** off fresh staging; **#1056 CLOSED**. Skipped the 2 optional hardenings (review was clean). Migrations 108+109 applied. Notion PR-merge reports filed for #1073/#1076/#1056-reconcile.
+
+**Thread 1 update (PM) — Franchil email fully scrubbed + ready to send.** Worked the outreach email line-by-line with TJ (Notion `3815903a…`, "Email — ready to copy" block). Key honesty/voice fixes: **killed the `$50 → "bring in your first lead"` overpromise** (cost math: home-care lead ~$80–150; $50 ≈ ~1 at best, contradicts terms §5 "no guaranteed results" + the #1075 budget-step copy) → reframed $50 as "get live + families seeing your page"; **dropped "one of the most complete we've seen / nothing to fix"** (unsubstantiated + her photos are okay-not-great) → "in good shape, can launch as-is" + soft post-launch "stronger photos" nudge (page photos = ad creative); **dropped the "reply 'go'" CTA** (she already requested it — don't re-ask consent) → confirmation tone; **clarified budget roles** ("you set the spend, we run the campaign", not vague "we'll set the budget"); **removed all em dashes** (AI tell); dropped the fixed "live by June 22" date → "within a few days". Subject: **"Getting Franchil's campaign live"** (TJ's pick over my options). Solo TJ sig (dropped two-founder bio). **Terms link is on main/prod but render NOT machine-confirmed (WAF/429) — TJ to eyeball `olera.care/managed-ads-terms` in browser before sending.**
+
+**NEXT:** TJ sends the Franchil email (after browser-checking the terms link), then builds the actual Google+Meta $50 campaign (concierge v1, manual). **#1075 `managed-ads-budget-step` MERGED** (parallel session, 10:29 UTC) — migration collision resolved by renumber **108→110** (`110_ad_campaign_budget.sql`, adds `intended_monthly_budget` column), rebased onto the rewritten admin files. Verify migration 110 is applied to the shared DB (108+109 were applied this session; 110 likely applied by the other session — confirm). Other opens: per-channel (Google-vs-Meta) Performance split; connection-request leads (need utm-on-event check); counsel sign-off + fee-vs-at-cost decision before scaling; suggested-to-skip detail-page hardenings (race guard + isFinite) if ever revisited.
+
+### 2026-06-14 — Provider outreach reframed to host-site / eligibility-screener funnel (branch `claude/keen-mendel-6i8iW`)
+
+**Context:** Long design session (with Logan) reworking the MedJobs **provider funnel** around a lightweight **eligibility screener** as the single converging CTA, an **internship/host-site** framing, a **two-tier terms** model (free non-circumvention "interview terms" = existing `interview_terms_accepted_at` / `PilotTermsModal`, before any interview; paid internship agreement at good-fit), **coarse coverage buckets + PRN** for matching, **term-scoped** availability with finals re-plans, and a **pay-once, guaranteed-until-threshold-hours** fee. Funnel is being designed step-by-step ("inch by inch") before any build.
+
+**Locked + shipped this session — provider outreach copy rewritten in the new voice:**
+- **`lib/student-outreach/templates.ts`** — `providerIntroEmail` (Day 0), `providerFollowupEmail` (Day 3), `providerFinalEmail` (Day 7): new host-site/eligibility copy, bullet list (vetted+PRN / predictable+attestation / lower-cost+experience / evergreen pipeline), subjects aligned to `Host {campus} student caregivers this fall (pilot)`. Activation cadence (`activationIntroEmail/Nudge/Final`, **non-partner branches only**) re-pointed from "get set up → candidate board" to "check your eligibility" + Dr. DuBose call. Legacy `callScript()` Day-0 over-promise ("reliable coverage") removed.
+- **`lib/student-outreach/sequencer.ts`** — `defaultCallScriptForDay` + `defaultCallTipsForDay`: provider call-day keys realigned **0/1 → 3/5** (actual v10 call days), new host-site/eligibility talk tracks; activation check-in call re-pointed to the eligibility check.
+- CTA links: `[check your eligibility]` → `{welcome_url}` (magic-link/authed entry, future screener), `[see our website]` → `{program_url}`. No em dashes. `tsc --noEmit` clean.
+
+**DO NOT FORGET — follow-ups before/at build (Logan flagged):**
+1. **Smartlead campaigns** must be updated with this new copy + CTA. Not live-sending to providers yet, so a dead eligibility link is fine for now — but the campaigns are the source of live sends and must be synced.
+2. **Outreach + activation sequence launch UI** (PreFlight snapshots / launch screen) needs to reflect the new email snapshots + call scripts.
+3. **Cold send pipeline must populate `{welcome_url}` for cold provider sends** — today only the activation path builds a welcome token; cold used `{program_url}`. Until wired, `[check your eligibility]` falls back to `PROGRAM_URL` (acceptable pre-launch).
+4. **The eligibility screener itself (the `{welcome_url}` destination) is the next build (funnel step "S2").** Today the magic link lands on `/medjobs/candidates` with `WelcomeBanner` → `PilotTermsModal`. Plan inserts the screener before the board; screener end-state writes `interview_terms_accepted_at` (reuse existing flag; honors D15/D16, no new enums/actions per G1–G3).
+5. **PDF one-pager** (`lib/program-pdf/configs/texas-am.ts`) still has older "recurring shifts" framing — reframe later; for now it lives in the email signature.
+6. **Single-body-link policy deviation:** emails now carry two body links (eligibility + website) vs the documented one-link-in-body / program-in-signature policy (templates.ts:111). Approved by Logan; revisit if deliverability needs it.
+
+**Full build plan (durable source of truth):** the end-to-end provider funnel — Loops 1 (cold→eligibility→board), 2 (browse→interview), 2b (re-activation), 3 (offer→accept→confirm) — is now written up in **`docs/medjobs/PROVIDER_FUNNEL_BUILD_PLAN.md`**: every flag, screen, reuse/adapt/build, the dual-pay (authorize-at-offer/capture-at-confirm) model, the `placements`-table + Stripe schema decisions flagged for approval, discipline/deferred checks, and a 5-phase build sequence.
+
+### 2026-06-15 — Real email complaint/bounce rate in admin (branch `complaint-rate-instrumentation`, off staging, PR'd→staging)
+
+Closed the Notion card "Fix complaint-rate instrumentation (reads 0.00% = blind, not healthy)". **/explore reframed the premise:** the complaint path is NOT blind. The Resend webhook (`supabase/functions/resend-webhook/index.ts`) handles `email.complained` correctly and writes `email_events` + `email_log.complained_at` in real time (`received_at` ~2s after `occurred_at`; 53,623 events captured). The real gap was **display**: no percentage was computed anywhere — admin showed only raw counts, which read as a healthy "0.00%" by absence. **The actual number is uncomfortable:** complaint rate **0.041%** (over the 0.04% warn line, ~half Resend's 0.08% suspension line), riding there for weeks unseen on the crown-jewel account.
+
+**Built (PR, `/admin/automations` = email cockpit):** account-wide Complaint rate (30d) + Bounce rate (30d) as colored % StatCards, replacing the combined raw-count card. Numerator = **`email_events`** distinct webhook events (Resend's own count, =4 complaints) — NOT `email_log.complained_at` (=12, inflated). Denominators match Resend's defs: complaint = /delivered, bounce = /sent. Colors: yellow at half-threshold (0.04% / 2%), red at AUP line (0.08% / 4%); both currently yellow. Thresholds extracted to dependency-free `lib/email-thresholds.ts` (client can import w/o pulling in Resend); `lib/email.ts` re-exports. Plan at `plans/complaint-rate-instrumentation-plan.md`.
+
+**The 4-vs-12 discrepancy — investigated, BENIGN.** `email_events` complained=4, `email_log.complained_at`=12; the gap is 8 rows for one provider (`rdoyle@rlcommunities.com`), identical sub-second timestamp, zero `email_events` complained (but 60 other events — webhook healthy for them). No code writes `complained_at` except the webhook → these are **manual/out-of-band suppressions** (flagged by direct DB edit). So `email_events` = Resend-counted (canonical), `email_log.complained_at` = superset incl. manual flags. No lost webhook events. **Filed Notion follow-up card** (P3, Backend, Owner TJ): "Reconcile email_events vs email_log complaint counts" — decision = accept divergence as by-design vs add provenance flag. **TJ wants both cards closed together.**
+
+**Pre-test (/pre-test) caught 2 real bugs, both fixed:** (1) 🟡 bounce rate divided by `delivered` — but bounced mail is by definition not delivered → overstated ~17% (3.14% vs correct 2.68%); switched to /sent to match Resend's 4% math. (2) 🟢 skeleton showed 5 cards/5-col vs the real 6/6-col → load reflow; matched it. tsc clean (0 errors; ran `npm ci` in the worktree — had no node_modules). Numbers verified by replaying the route's exact queries against live DB.
+
+**NOT browser-tested** (admin-auth-gated) — verified data + computation, not render. Staging QA: load `/admin/automations`, eyeball the two rate cards.
+
+### 2026-06-15 (PM) — Find Families digest rung + managed-ads email overhaul (branch `find-families-digest-rung`, PR #1052 → staging, built off staging AFTER #1051 landed)
+
+Started as an audit ("are Find Families emails in the digest tracker?"), became a build. Commits through `69b463bf`, all pushed, tsc clean (node_modules symlinked from keen-stonebraker for tsc).
+
+**1. Find Families digest rung.** New `find_families` cascade variant gated on a real active published care-seeker within ~50mi (haversine, same catchment as `/provider/matches`). New `providerFindFamiliesDigestEmail` (no PHI — town + care need only), one-click `matches` magic link → `/provider/matches` (added "matches" portal action in claim-tokens + onboard). **Expansion:** also enrolls claimed providers (account_id) within ~50mi of any published seeker into the pool on the seeker signal alone (box-query per seeker + haversine refine). Logs `seekerEnrolled`/`findFamiliesSent`. Tracker wired (`find_families` in automations variant maps, conversion=`matches_outreach_sent`) + `weekly_analytics_digest`/`matches_encouragement` added to `/admin/emails` dropdown. **Latent bug fixed:** `managed_ads` was missing from `classifyVariant`'s metadata allowlist (would misclassify as weekly_digest).
+
+**2. Managed-ads email rewritten diagnosis-led** (`providerManagedAdsEmail`). Was offer-led ("we run targeted ads on your behalf" + platform logos = broker-pitch shape). Now: leads with a TRUE local-demand number — `localDemand` (unique provider-page viewers in city+category this week, from provider_page_view_stats), **floored at ≥5** so a thin "1 family" never undersells; qualitative fallback below. Softened per 6.5/10 feedback: dropped accusatory "your page usually isn't one of them," reframed "we run ads" → **"We're testing a simple way to help local agencies show up earlier… you fund a small local campaign, Olera runs it, and shows you exactly what happened"**; stacked anti-broker lines (added "No bidding against other agencies for the same family"). Subject demand-led + distinct from find_families; classifier regex + preview sample updated. Signature swapped to the **two-founder bio** (Logan + TJ, NIH SBIR + biomed eng, "less opaque") per TJ — reused from the referral-teaser email.
+
+**3. Move 2 — per-provider staggered rotation** (`providerAdsRotationPhase`, salted "ads:" so it doesn't correlate with the weekday bucket). Was a GLOBAL `floor(now/WEEK)%3` flip → whole cohort went dark together 1 week in 3 (killed continuous measurement + arbitrary Thursday boundary). Now ~1/3 of the eligible cohort is in an off-week at any moment, staggered; variant always live for most, each provider still gets a ~1-in-3 break.
+
+**Decisions made (strategy):**
+- **Managed Ads is PAID** — providers fund their own ad budget, Olera does NOT subsidize. Email says paid but does NOT name a price. NEVER write "free"/"nothing to buy" copy (that's the cold-rank line). See memory `project_managed_ads_positioning`.
+- **Don't gate the email audience by completeness** (TJ corrected my first instinct) — it's the top-of-funnel magnet; gating to ≥70% kills growth. Instead **segment the DESTINATION**, not the audience.
+- **Digest is signal-gated** (page views/clicks/questions/leads/rank-eligible/nearby-seeker) — it reaches the warm-ish semi-engaged, NOT truly-cold "never heard of us" providers. Cold acquisition is a separate channel (Smartlead / cold_rank); the demand-hook message can be repurposed there.
+- Verified the **question recency decay** system (PR #997, 2026-06-09) for TJ: fresh question (≤30d) leads, stale demotes → falls to next real signal or goes quiet, quarterly resurface. Screenshot still 92% family_question because the 30-day window mostly predates the 6-day-old fix + fresh questions legitimately lead.
+
+**Timing facts (for the live send):** cron fires 13:00 UTC (9 AM ET) Mon–Fri. New copy only goes out today if #1052 is merged to main before the fire. Total daily send ≈360 (unchanged by Move 2). managed_ads slice: ~230–300 under old global rotation (today was ads-ON), ~150–200 under new per-provider rotation. Exact count = browser dry-run (`?dry_run=true`; staging=new code, prod=old).
+
+**NEXT (decided, NOT built):** the keystone — **demand-breakdown landing with state-aware routing** on `/provider/boost`: lead with the local-demand breakdown, then route by provider state — unclaimed→claim, claimed-incomplete→"here's what's missing to run ads" (the completion-urge path), complete→set up campaign. This makes broad-sending tasteful AND unlocks the concrete "See the {city} breakdown →" CTA (CTA held at "See how it works" until the page can honestly deliver a breakdown). Offered to spec a focused plan OR build just the claimed-incomplete slice first — TJ to pick. Also still open: trigger a staging dry-run to confirm seekerEnrolled/findFamiliesSent before live; merge #1052.
+
+### 2026-06-14 — Provider funnel instrumentation + Managed Ads in the banner/digest system (branch `provider-funnel-instrumentation`, off staging, NOT yet PR'd→ now PR'd)
+
+Built on top of the merged IA rework (PR #1050). Three layers this session:
+
+**1. Funnel instrumentation** (mirrors the old Find Families measurement: event → provider_activity → Activity Center + Slack). Migration `105_managed_ads_and_your_market_events.sql` adds 5 event types (managed_ads_cta_clicked/boost_viewed/requested, your_market_viewed, your_market_playbook_clicked) — **APPLIED to Supabase (probed the live CHECK, all accepted)**. Shared `lib/analytics/track-provider-event.ts` (keepalive). Wired into 6 surfaces (BoostCard, ManagedAdsPitch, ManagedAdsCTA, boost page, /provider/market, playbook). 4 new Slack builders. Relabeled `market_diagnostic_viewed_no_leads` → "Saw the managed-ads pitch"; new Activity Center "Growth" category. Allowlist synced across migration/app(`PROVIDER_EVENT_TYPES`)/admin(`PROVIDER_ACTION_EVENT_TYPES`)/categories/labels.
+
+**2. Hero banner integration** (`DashboardHero.tsx` `resolveHook`): for the empty-handed ~99% (no leads/questions/nearby family), Managed Ads is now the **primary fallback** (the one lever that generates demand), shown regardless of completeness — the 70% gate on /provider/boost turns ads-desire into a completion pull. Completion + market-intel rotate in (~1/3 visits); ≥10-views+gap still leads with completion. Hero ads click fires managed_ads_cta_clicked{source:hero} (Slack dedup'd).
+
+**3. Weekly digest variant** (`providerManagedAdsEmail` + the cron): leads the no-leads cohort with the managed-ads email (action="ads" magic link → /provider/boost). Priority: question→leads→cold_rank→MANAGED ADS→completion→market_rank→weekly. Weekly rotation (~2 of 3 weeks) to avoid olera.care fatigue. Registered in admin automations (label/order/conversion=managed_ads_boost_viewed) + the **email-preview picker** (Admin→Automations→digest job→"Managed ads"). Telemetry: added managedAdsCount; fixed completionCount to count off `variant` not URL presence.
+
+**Copy (final, after deep iteration with TJ):** banners DIRECT action, don't pitch Olera. Winner = **"Reach families already searching for care."** + "We run the ads on Google, Facebook & Nextdoor and send them straight to your page — nothing for you to set up." + **"Get started"** CTA. Applied to all 3 surfaces.
+
+**Test setup:** moved test account **Aggie Home Care** (`db312b06…`) College Station,TX → **Boise, ID** (0 nearby families) so the managed-ads hero banner shows. Reversible — original: College Station, TX (30.5852, -96.2959). It has 0 connections/questions, so nothing deleted. (Shared prod instance — restore when done testing.)
+
+**Pre-test:** ran twice, caught + fixed 2 telemetry bugs (digest completionCount miscount; missing managed_ads in buildBannerPreviews) + a Slack-copy relabel. Full tsc clean (symlinked node_modules). **NOT browser/email-tested** — preview the email via the admin picker + dry-run the digest (this week is managed-ads-active).
+
+**Next:** browser QA on staging-preview (hero banner on Aggie/Boise, the event→Activity Center "Growth"+Slack loop, /provider/market, digest dry-run + email preview). Restore Aggie to College Station after. Then merge to staging.
+
+### 2026-06-15 — Same branch: restraint, standing-order, boost redesign, /punch de-anchor, Find Families Slack, dejank, completion-as-boosters, inline edit (commits through `07281840`, PR #1051)
+
+Continuation of the managed-ads work, layering UX/design polish:
+
+**Restraint — sidebar card → post-edit nudge.** Removed the always-on `BoostCard` from the dashboard (felt "upgrade now"); deleted the component. Added `components/provider/PostEditAdsNudge.tsx` — fires **once per session after a profile save** (the earned, high-intent moment; ~50 real editors), wired via `DashboardPage` `handleSaved`. Suppressed when the hero already resolved to the managed_ads banner (added `onBannerResolved` callback to `DashboardHero`) so the pitch never doubles on one screen. New `source:post_edit` Slack label.
+
+**Standing-order flow (key product change).** Boost page no longer slams a 70% door. Migration **`106_ad_campaign_pending_profile.sql`** adds `pending_profile` to the status CHECK — **APPLIED + probed (pending_profile/requested accepted, bogus rejected)**. POST: drops the 403; <70% queues as `pending_profile` (quiet, concierge NOT paged), ≥70% inserts `requested` + pings. GET: auto-promotes `pending_profile`→`requested` + pings concierge (`launchReady`) the moment they cross 70% (re-checked on every boost load — profile saves are client-direct, no server hook; GET is the promotion point). New `PendingProfile` state ("your campaign is queued · 1 step to launch") replaces the dead-end CompletenessGate; everyone can pick week+channel (the "taste") regardless of completeness. Admin badge/dropdown/VALID_STATUSES updated.
+
+**Boost apply-page redesign.** Replaced stacked pitch→form sections with a **two-column transactional split** (chosen treatment: **white, two-column, teal accent — Airbnb Confirm-and-pay-leaning, NOT Perena cream**). Left = action spine (headline→week→channel→black CTA); right = **live "Your campaign" summary** (`CampaignSummary`) that fills in as they pick + value props compressed to scannable label-scale. Mobile: stacks, one-line live confirmation above CTA.
+
+**Real brand logos** in `PlatformMarquee` (Google 4-color / FB / IG gradient / Nextdoor / YouTube / X) — local SVGs in `public/images/platform-logos/` (vectorlogo.zone), `<img>` on white chips, no CDN dep. Hero subline readability bump (`warm-100/70`→`/90` + text-shadow). Boost hero image swapped to a unique seniors photo (earlier).
+
+**Snappiness.** Boost page no longer full-page-skeletons on load — hero+pickers paint instantly; only CTA (disabled) + summary status wait on `ready`. **In-app nav is snappy; cold/magic-link entry still hits the shared `/provider` layout auth spinner** (untouched — shared across all hub routes; offered the surgical fix, not yet done).
+
+**`/punch` de-anchored (meta).** TJ flagged it over-anchored on Perena/warm-cream. Went through ALL 109 inspiration frames across 9 folders (incl. new Grok/OpenAI/DayOne/Duolingo). Rewrote `.claude/commands/punch.md`: reads the folder fresh each run, contradiction table (each app's ground/composition/accent/headline), explicit anti-anchor rule, **dark called out as a first-class/common mobile treatment**, app-agnostic DNA separated from per-screen surface choice. Docs-only.
+
+**Pre-test (twice):** caught + fixed font inconsistency (boost headline font-serif→font-display brand match) and a sticky summary-card height jump (reserved `min-h-[2.5rem]`). tsc clean throughout (one-tsc-at-a-time discipline — see new memory + postmortem; a gated-on-tsc commit pipeline silently never pushed when concurrent tsc runs starved each other).
+
+**Find Families instrumentation verified + Slack added (`cea1454f`).** TJ "didn't see what I expected" on preview. Audited all 6 layers (client fire → app allowlist → DB CHECK → Slack conditional+builder → admin allowlist → Activity Center category/label) — ALL wired; live DB query proved the full funnel fires (TJ's own aggie preview test recorded). Root cause of "didn't see": `sendSlackAlert` gates on `process.env.SLACK_WEBHOOK_URL`, which Vercel scopes per-env — **preview likely lacks it** (events still write to DB + Activity Center; just no Slack). Separately: `matches_page_viewed` etc. had NO Slack by design. Per TJ ("don't worry about spam; impressions are the data at tens of providers"), added Slack for **`matches_page_viewed`** (every Find Families visit — "showed up and bounced" is signal) + **`matches_outreach_sent`** (conversion; AI-vs-manual; family kept to opaque id, no PHI). Added provider_name/city/state metadata at the call sites. No migration (event types already existed).
+
+**Dejank boost transitions (`6cc0f3b5`).** The "Get Started → snap snap" = the page rendered the apply form optimistically before the fetch, then snapped to PendingProfile/CampaignInMotion for anyone with a request (aggie has `pending_profile`). Fix: hold ONE calm loader until the fetch resolves (never render a guessed sub-view) + a per-session in-memory prefetch cache (`lib/ad-boost/boost-state.ts`) warmed by Find Families mount + the dashboard managed-ads hero, so the common in-app nav initializes from cache and paints the correct page on the first frame. Cold load → loader. Removed the optimistic `ready` shimmer plumbing + dead BoostSkeleton.
+
+**Completion score = controllable; reviews/response = boosters (`624c92c5`, decided via AskUserQuestion).** Reviews was a weighted section scoring 0 when absent → showed as a required to-do + dragged the score. Circular dependency (need families to earn reviews; ads bring families) + asymmetry (response_rate already N/A'd when absent, reviews didn't). Redefined the ONE `calculateProfileCompleteness` so `overall`/`sections` = the 7 self-completable sections (achievable to 100); reviews + response_rate move to a non-gating `boosters` field. System-wide (dashboard meter, hero, onboarding, ad gate). **Effect: scores RISE for low-review providers** (intended). `AdBoostEligibility` exposes `boosters`; removed `WEIGHT_REVIEWS`/`WEIGHT_RESPONSE_RATE`.
+
+**Inline section editing on the boost page (`07281840`, decided via AskUserQuestion).** "Next: Gallery" was a full route change → whole dashboard load → modal, no return (the "snaps me out" jank). New reusable hook `hooks/useProfileSectionEditor.tsx` packages the dashboard edit modals + the verification gate (no loophole, no DashboardPage refactor); the boost page opens editors INLINE; on save → refresh profile + refetch boost state (list updates in place, auto-promotes if they cross 70%). PendingProfile section buttons → inline open; added the "Boost your results" carrot (reviews/response as carrots, not requirements).
+
+**Perf — Find Families load (`15430ab2`).** TJ: "load from Get families banner → Find Families feels 2018." `/provider/matches` gated the whole page on `loading` until 4 fetches finished (families+connections parallel, THEN inactive-profiles, THEN reach-out-counts). Banner already navigates via `<Link>` (chunk prefetched), so cost was the data. Fix: paint as soon as families+connections resolve; run inactive-profiles + reach-out-counts in the BACKGROUND (inactive append via setFamilies(prev); counts default to 0 per card). Critical path: 4 round-trips → 1 parallel pair. **Awaiting TJ's feel-check.** Next levers if still slow: prefetch families+connections on the dashboard banner (boost-state pattern), or geo-scope the families query (currently fetches the WHOLE active-families table + full metadata, filters nearby client-side).
+
+**Gallery scoring bug (`adc8e8ac`).** TJ: boost page said "add gallery photos" while he already has images. Real inconsistency: dashboard score + live page backfill `metadata.images` from iOS `provider_images`/logo (via useProviderDashboardData), but `eligibility.server` scored gallery from RAW metadata.images → gate counted an emptier gallery than what's displayed. Fix: eligibility.server backfills the same effective images before scoring (extended its existing olera-providers query). Boost gate now scores the gallery families actually see. `scoreGallery` wants 8 imgs for 100% (5-7=75, 3-4=50) — **legibility offered, not built**: "what's left" rows still show abstract "% done" with no "add N more" lever; TJ to decide if we add per-section hints.
+
+**Pre-test fix (`97ad34d6`).** Inline editor fed raw profile.metadata; dashboard feeds enriched (gallery iOS backfill) → inline Gallery editor would've shown an emptier gallery than the dashboard. Now uses useProviderDashboardData (same enriched source).
+
+**Next:** browser QA on preview — (1) Find Families Slack (confirm SLACK_WEBHOOK_URL scope for Preview, or verify on prod); (2) boost flow eligible→"Ready to launch", sub-70→"Queue my campaign"→PendingProfile, cross-70-then-revisit→auto-promote→CampaignInMotion; (3) inline section edit (open Gallery on the queued page, save, list updates in place, no dashboard jump); (4) confirm Reviews is gone from "what's left" + boosters carrot shows + gallery no longer falsely flagged; (5) **TJ feel-check the Find Families load speed**. Restore Aggie → College Station. Decide: cold-entry layout-spinner fix, Find Families prefetch/geo-scope, per-section legibility hints. Re-share boost screenshots for a deeper week/channel polish. Then merge #1051 → staging.
+
+**Watch:** completion-score change is system-wide → the dashboard completeness meter % rises for providers with few/no reviews (intended). Gallery backfill means iOS-scraped images now count toward gallery completion (already true on the dashboard; boost now matches).
+
+### 2026-06-13 — Provider Paid Ad Boost (Managed Lead-Gen, concierge v1) — PLANNED
+
+Explored + planned TJ's "Sri Lanka" idea: Olera runs paid **external** ads (Google/Meta) on a provider's behalf → families land on the provider's Door B intake. Providers pay. Profile must clear a completeness threshold first; "select next week" = concierge setup window. Exploration killed the two objections: external ads make their own demand (no empty-theater) and we never touch internal browse ranking (no collision with the resolved no-pay-to-win-rank decision). Dropped the "not enough families" scarcity message at TJ's direction.
+
+Plan: **`plans/provider-paid-ad-boost-plan.md`**. Concierge v1 = thin request→schedule→measure rails, NOT an ad-platform integration. Payment out-of-band (Stripe inert). Reuses: `calculateProfileCompleteness` (`lib/profile-completeness.ts:217`), Door B `BenefitsDiscoveryModule`, `connections/request`, `seeker_activity`, `lib/analytics/referrer`. Existing `app/provider/pro/page.tsx` promises off-strategy "Priority Search Placement" (internal rank) — must reframe to external ads. This is the paid evolution of the Comfort Keepers lead-gen ask + the market-diagnostic engine.
+
+**Decisions locked (TJ 2026-06-13):** threshold 70% · dedicated `ad_campaign_requests` table · provider-facing ROI (build it) · provider-agnostic (no CK hardcoding).
+
+**Phase 1 backend SHIPPED (typechecked clean, uncommitted):**
+- `lib/ad-boost/eligibility.ts` — pure evaluator (`evaluateAdBoostEligibility`, `AD_BOOST_THRESHOLD=70`, missing-sections sorted by weight w/ edit deep-links).
+- `lib/ad-boost/eligibility.server.ts` — authoritative loader; resolves provider profile + assembles reviews/response-rate like the dashboard endpoint, returns eligibility.
+- `supabase/migrations/104_ad_campaign_requests.sql` — TEXT+CHECK status, RLS service-role-only. **NOT YET APPLIED — ops step.**
+- `app/api/provider/ad-boost/request/route.ts` — POST (server-gated at 70%, validates setup week, blocks dup open requests, inserts, awaits Slack) + GET (eligibility + latest request).
+- `slackAdBoostRequested` builder in `lib/slack.ts`.
+
+Typecheck note: worktree has no node_modules; tsc was run by copying files into ~/Desktop/olera-web (then cleaned up). No ad-boost/slack errors.
+
+**Phase 1 UI SHIPPED:** new `app/provider/boost/page.tsx` (TJ chose a dedicated page; `/provider/pro` left as-is, its off-strategy "Priority Search Placement" copy NOT touched per his call). Three states — gate (<70%, missing sections deep-linked), apply (≥70%, next-4-Mondays picker + Google/Meta/Both channel + submit), in-motion (open request). Reads authoritative state from GET /api/provider/ad-boost/request. Typechecked clean.
+
+**PHASE 1 COMPLETE + LIVE-READY.**
+- Migration 104 APPLIED to Supabase (TJ, 2026-06-13).
+- Entry point wired: `components/provider-dashboard/BoostCard.tsx` — completeness-aware CTA on the dashboard left column (mobile+desktop, hidden in preview). TJ chose dashboard CTA over global nav.
+- `/provider/boost` registered in `app/provider/layout.tsx` HUB_ROUTES (auth-gated).
+
+**Phase 1 committed:** `3e9e6953`.
+
+**PHASE 2 COMPLETE (committed next):**
+- Admin queue: `app/admin/ad-boost/page.tsx` + `app/api/admin/ad-boost/route.ts` (GET list + POST status/tag/note edits, auto campaign_tag=id on go-live). Linked in AdminSidebar (Operations → Ad Boost). Per-row copy-ready UTM landing URL.
+- Attribution: CORRECTION — Door B → `/api/benefits/save-results` (not connections/request = Door A). Wired UTM via `lib/ad-boost/utm.ts` (`readUtmParams` reads window.location.search, no Suspense) → both BenefitsDiscoveryModule variants pass utmSource/utmCampaign → save-results persists into the `benefits_completed` seeker_activity metadata. Same event Phase 3 ROI reads. Limitation: same-page capture only (no first-touch persistence).
+
+**PHASE 3 COMPLETE (committed next):** `lib/ad-boost/delivered.server.ts` counts benefits_completed seeker_activity scoped to utm_source=olera_managed, grouped by utm_campaign. Admin queue shows "N delivered" pill per request; provider /provider/boost in-motion state shows "N families reached out so far" (live + delivered>0) linking to leads; provider GET returns `delivered`.
+
+**ALL 3 PHASES DONE.** Phase 1 `3e9e6953`, Phase 2 `c4780660`, Phase 3 = next commit.
+
+**Remaining before merge:** (1) browser QA click-through (typecheck only so far; client components can throw at runtime); (2) Pro-page "Priority Search Placement" copy still promises internal pay-to-rank — TJ deferred the fix, but it now contradicts the live ads product; (3) PR to staging. Optional polish: sessionStorage first-touch UTM persistence (currently same-page capture only).
+
+### 2026-06-14 — Provider IA rework: Find Families (leads) vs Your Market (intel) [commit 4a076858]
+
+Reorganized the overloaded `/provider/matches` (which forked gated market-intel vs ungated marketplace via the marketGate flag). Plan: `plans/provider-find-families-ia-rework-plan.md`. Decisions (TJ): no-leads FF = managed-ads pitch; managed ads lives in FF (boost = deeper setup); has-leads = nearby ~50mi → cards + slim "even more" banner below; ship to everyone, retire flag; tab name = "Your Market" (city dynamic in header).
+
+Built: new `/provider/market` route (lifted FindFamiliesMarketView) + "Your Market" nav tab; matches rewritten to two states (nearbySeekers>0 → marketplace + banner; else → ManagedAdsPitch); marketGate fork removed from matches (flag KEPT — AnalyticsTeaserCard still uses it); no-leads tracking event de-flagged + preserved (same name, no migration); extracted shared `ManagedAdsPitch` (hero+marquee+pillars, used by boost + no-leads FF) and `ManagedAdsCTA` (banner/empty, `tone` prop); registered /provider/market + /provider/boost in layout HUB_ROUTES + both Navbar provider-nav booleans.
+
+Verification: symlinked ~/Desktop/olera-web/node_modules into the worktree → full `tsc` clean except 4 known baseline missing-deps (@vercel/functions, @react-pdf/renderer, qrcode — newer than Desktop's install). NOT browser-tested yet. Next: /pre-test + QA the preview (FF two states, /provider/market, nav highlight, boost pitch parity).
+### 2026-06-12 (PM) — GA4 ghost spam: measurement ID rotated + shipped to prod, old stream deleted (CLOSED)
+
+GA4 realtime was showing ~90-110 "active users" vs the real 20-30 US baseline. Diagnosis: **ghost spam** — bots sending fake hits directly to Google's collect endpoint using our public measurement ID (`G-ZLP95NWSZW`). Never touched olera.care/Vercel, so the WAF couldn't block it. Telltales: nonexistent page paths (`/about-usda/news/blog`, `/cars/used-cars/all-india`), active users with 0 views, 94 session_starts vs ~24 page_views, Ghana/India-heavy country mix while the WAF challenges that traffic at the edge.
+
+**Fix shipped same night:** rotated to a fresh GA4 web data stream **G-XX0KRLT4FE** ("olera.care web v2", same property). One-line swap in `app/layout.tsx:17` (only occurrence in repo) — PR #1047 → staging, promoted to main via #1048 (also carried #1045 admin connections + #1046 email-lock revert). Verified prod serves the new tag (view-source), verified clean stream separation via a Realtime "Stream name" comparison (new stream = 2 real users, legit pages only), then TJ **deleted the old data stream** — the step that actually drops the spam. Logan notified via DM.
+
+**Why rotation works / caveats:** spam targets the harvested ID; streams in a property share reports, so deleting the old stream is mandatory, not optional. New ID is also public in page source — if spam returns, the durable fix is server-side tagging (first-party proxy), deliberately deferred. **GA data before 2026-06-13 is inflated** — add a Country=US comparison when reading historical windows. Gotcha for next time: when creating a replacement stream, GA's "Set up a Google tag" dialog defaults to reusing the existing on-site tag (would carry the spam over) — always pick "Install manually". Full detail in memory `project_ga4_ghost_spam_rotation` + Notion PR Merge Reports (#1047, #1048).
+
+**Decision (don't relitigate):** did NOT touch the Vercel "Block Restricted Regions" WAF rule — it wasn't the leak, it allowlists team countries, and it carries the verified-bot Bypass from the May Googlebot-403 incident.
+
 ### 2026-06-12 — Provider value loop: referral teaser digest + proactive market warming (PR #1040 → staging, OPEN)
 
 Built the next provider-engagement loop around "Your Market" / referral-source curiosity, inside the existing weekly provider digest instead of a standalone blast. The thesis: providers will rarely do referral work cold, but a specific local map of hospitals / rehab / senior-resource teams gives them a juicier reason to return, and can later become the sticky loop/paywall surface.
@@ -52,6 +770,16 @@ Two threads, neither touching the codebase (DNS + Notion + memory only — `git 
 **2. olera.care human-send email auth FIXED (Notion P2 → Done, live-verified).** Manual Gmail sends from @olera.care (TJ/Logan/Graize) were landing in spam — mail-tester 4/10, driven entirely by a −6 SPF/DKIM/DMARC auth fail. Two root causes, both fixed in Cloudflare DNS + Google Admin: (a) duplicate root SPF (Google + leftover Squarespace = RFC-7208 PermError) → merged to one `v=spf1 include:_spf.google.com include:squarespace-mail.com ~all`, deleted the standalone Squarespace record; (b) no Google DKIM → published the Workspace 2048-bit key at `google._domainkey` (Cloudflare auto-split the 408-char value, correct) + clicked Start Authentication. Re-test **10/10**, "properly authenticated" green. Resend transactional path verified unaffected throughout (own `resend._domainkey` + `send.olera.care` envelope SPF — the broken root SPF never touched it). → memory `project_email_deliverability` updated; Slack-noted to #ai-product-development.
 
 **Next up:** remaining open P1 work = connect-two-sides remnants (email-quality badge, lead-outcome cron, `connection_succeeded` event) + the overdue SBF V3 keep/kill decision (variant's been live at ~60% — pull the funnel and call it). Squarespace SPF include can be trimmed later if olera.care no longer sends via Squarespace.
+
+### 2026-06-17 — Admin overview provider count: show live listings, not raw table total (branch `codex/admin-provider-live-count`)
+
+**What:** Fixed the admin Overview "Provider Directory" stat after DB analysis showed `olera-providers` has 115,598 total rows but only ~74,139 active/live listings; the rest are soft-deleted data-sweep cleanup rows. The card was misleading because it fetched `/api/admin/directory?tab=all&count_only=true`, which intentionally includes deleted rows.
+
+**Change:** `app/admin/page.tsx` now fetches `/api/admin/directory?tab=published&count_only=true` and renames the card subtitle from "Total providers" to **"Live listings"**. This reuses the existing directory API's published scope (`deleted IS NULL OR false`) instead of changing API semantics for other screens.
+
+**Verification:** Static sanity check clean. `npm run lint` could not run in this worktree because `node_modules` is missing (`next: command not found`).
+
+**Next up:** Push/open PR, let preview/staging confirm the card shows the ~74k live count, then merge/deploy.
 
 ### 2026-06-10 — Editorial freshness: /caregiver-support/ decay audit + byline refresh-date emphasis (branch `modest-nobel`)
 
@@ -142,7 +870,6 @@ The arc TJ set out on — distribute provider emails through the week + learn ra
 **Decisions:** completion is claimed-only (warm; keeps cold volume off the crown jewel); preview reuses public-page section pieces, NOT the public server component (SEO/CTA-router/reverted-mobile-nav-500 traps); mobile = no card-in-card, dividers do the work; rank stays Google-pure (never inflated by completion).
 
 **Next up:** (1) **T1 is THE open thread** — merge #967 (clean+inert) AND do the oleracare.com ops (NOT done; TJ-only dashboard/DNS work; the WAF blocks the assistant from the cron) — or reconsider the domain (oleracare.com mixes with Loops; seniorlistings.net is cleaner). Until the ops are done, `question_received` still bounces 7.2% on the crown jewel. (2) Completion carrot is otherwise live end-to-end on staging (Ph1 #978 + Ph2 preview #984) — NOT yet promoted to main. (3) Follow-ups: heavier preview sections, "see your page" link from the completion email, dedicated dormant-claimer audience source, non-answerer diagnose-then-respond system (data now legible via the resolver). Variant-stamp + admin variant-visibility already shipped to staging in TJ's parallel branch (#982).
-
 
 ### 2026-06-09 — Remove "Submissions by Entry Source" from admin analytics (branch `noble-mendel`, PR open)
 
@@ -2677,6 +3404,36 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Session Log
 
+### 2026-07-10 — Q&A provider email open/click tracking fix
+
+Investigated why Admin Analytics showed `question_received` provider emails at
+508 sent / 463 delivered / 0 opened / 0 clicked while weekly digest tracking
+worked. Found live Q&A sends did not reserve an `email_log.id` before rendering
+links, and Resend open/click tracking was not enough to trust the Q&A bucket.
+Built first-party tracking: all `sendEmail` payloads now include an Olera open
+pixel keyed to `email_log.id`; `/api/activity/track` stamps
+`first_clicked_at` on `email_click`; live Q&A sends reserve the log row and add
+`ref=email&eid=...`; deferred Q&A sends preserve A/B metadata. Pre-test caught
+and fixed admin preview false-opens by storing clean HTML in `html_body` while
+only the outgoing payload gets the pixel. Validation: `npx --no-install tsc
+--noEmit` passes. Branch: `codex/fix-qa-email-tracking`; code commit:
+`e4c9ebee`.
+
+### 2026-07-02 — Find Families / Ad Boost email lifecycle + admin visibility
+
+Built the provider-facing Find Families managed-ads email lifecycle on branch
+`codex/adboost-lead-email`: request received/queued, launch-ready promotion,
+campaign launched, campaign-attributed lead delivered, early traction, promo
+complete, and queued-profile reminder. Added migrations `126` and `127` for
+idempotent send markers; TJ ran `127` in Supabase after the reminder work.
+Added Admin → Automations visibility with an `Ad Boost emails` event monitor
+and `Ad Boost profile reminders` scheduled cron, including sample chips and
+per-email-type sent/delivered/open/click/bounce rows. Validation passed:
+`npx --no-install tsc --noEmit`, `npm run check:crons`, `git diff --check`,
+and Ad Boost sample render smoke test. Pre-test found/fixed reminder preference
+threading (`recipientProfileId`). Next: QA Vercel preview, then merge PR to
+`staging` when TJ approves.
+
 ### 2026-06-11 (PM) — seniorlistings.net cold-domain warm-up stood up; Resend rotation pool closed
 
 Built then closed the Resend sticky sender-pool rotation (#1023, `lib/email.ts` `resolveSender`, env-gated, unit-tested) after TJ reframed `seniorlistings.net` to the Smartlead cold lane (warm-only, not a Resend secondary). Then stood the domain up end-to-end (infra only, no repo code): Google Workspace + GoDaddy DNS (MX/SPF/DMARC/DKIM all authenticated) + Smartlead connect (cleared the Domain-Wide-Delegation + "app blocked"/App-Access-Trusted hurdles) + warm-up started 2026-06-11 (seasoned ~early-July). No code merged (rotation parked). Detail in Current Focus + memory `project_email_deliverability`.
@@ -2744,4 +3501,3 @@ Built the "Both, conversion first" task off the #982 digest dashboard. Planned t
 - `.claude/commands/data-sweep.md` — slash command for sweep #2+
 - `docs/data-sweep-runbook.md` — operational details (regex, prompts, cost, change log)
 - `docs/provider-category-definitions.md` — source of truth for the 6 categories
-

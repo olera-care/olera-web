@@ -262,42 +262,47 @@ function MagicLinkHandler() {
           // Non-blocking — tracking failure should never affect auth flow
         }
 
-        // Track lead_opened for providers landing on connections/inbox page
-        // This catches magic-link flows from stale_conversation, unread_reminder, etc.
-        // that bypass /api/claim-lead
+        // Track lead_opened for providers landing on specific lead pages
+        // IMPORTANT: Only track when there's a specific connection_id in the URL.
+        // Landing on /provider/connections without a connection_id should NOT count
+        // as "viewed" - that happens when provider actually opens a lead drawer.
         try {
           const nextUrl = new URL(next, window.location.origin);
           const dest = nextUrl.pathname;
 
-          // Check if destination is provider connections page
-          const isProviderConnections = dest === "/provider/connections";
-          // Check if destination is provider inbox (role=provider in query)
-          const isProviderInbox = dest === "/portal/inbox" &&
-            nextUrl.searchParams.get("role") === "provider";
-          // Check if destination is provider onboard with lead/message action
-          const isOnboardLead = dest.match(/^\/provider\/[^/]+\/onboard/) &&
-            ["lead", "message"].includes(nextUrl.searchParams.get("action") || "");
+          // Extract connection_id from URL params - required for tracking
+          const connectionId = nextUrl.searchParams.get("id") ||
+            nextUrl.searchParams.get("actionId") ||
+            null;
 
-          if (isProviderConnections || isProviderInbox || isOnboardLead) {
-            // Extract connection_id from URL params
-            const connectionId = nextUrl.searchParams.get("id") ||
-              nextUrl.searchParams.get("actionId") ||
-              null;
+          // Only track lead_opened if we have a specific connection_id
+          // Without it, we'd mark ALL provider's leads as "viewed" which is incorrect
+          if (connectionId) {
+            // Check if destination is provider connections page with specific lead
+            const isProviderConnections = dest === "/provider/connections";
+            // Check if destination is provider inbox (role=provider in query)
+            const isProviderInbox = dest === "/portal/inbox" &&
+              nextUrl.searchParams.get("role") === "provider";
+            // Check if destination is provider onboard with lead/message action
+            const isOnboardLead = dest.match(/^\/provider\/[^/]+\/onboard/) &&
+              ["lead", "message"].includes(nextUrl.searchParams.get("action") || "");
 
-            // Use server-side endpoint to track lead_opened
-            // This endpoint gets the provider profile from the authenticated session
-            fetch("/api/activity/track-lead-opened", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                connection_id: connectionId,
-                source: "magic_link",
-                destination: next,
-              }),
-              keepalive: true,
-            }).catch(() => {});
+            if (isProviderConnections || isProviderInbox || isOnboardLead) {
+              // Use server-side endpoint to track lead_opened
+              // This endpoint gets the provider profile from the authenticated session
+              fetch("/api/activity/track-lead-opened", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  connection_id: connectionId,
+                  source: "magic_link",
+                  destination: next,
+                }),
+                keepalive: true,
+              }).catch(() => {});
 
-            console.log("[magic-link] Tracking lead_opened for connection:", connectionId);
+              console.log("[magic-link] Tracking lead_opened for connection:", connectionId);
+            }
           }
         } catch {
           // Non-blocking — tracking failure should never affect auth flow

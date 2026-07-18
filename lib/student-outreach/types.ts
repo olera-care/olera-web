@@ -18,7 +18,11 @@ export type Status =
   | "no_response_closed"
   | "do_not_contact"
   | "wrong_contact"
-  | "redirected";
+  | "redirected"
+  // Whole-prospect "Archive" — halts the running cadence and parks the row.
+  // Distinct from the other closed statuses in that it is explicitly meant to
+  // be reopened later (the campus page shows it as an "Archived" tag).
+  | "archived";
 
 /**
  * Legacy values still accepted by the DB CHECK constraint but no longer
@@ -39,6 +43,31 @@ export type DistributionEvidence =
   | "explicit_verbal"
   | "observed_external"
   | "self_reported";
+
+// ── Department-Head partnership documentation ────────────────────────────
+// Dept heads convert differently from other partners: the terminal step is
+// NOT a portal hand-off but a documented decision about whether (and how) we
+// may reach the department's professors. Captured at mark-partner time.
+export type DeptHeadConfirmedVia = "verbal" | "email" | "meeting" | "other";
+export type ProfessorPermission = "yes" | "no" | "not_yet" | "unclear";
+export type DeptHeadNextStep =
+  | "email_professors"
+  | "will_forward"
+  | "will_introduce"
+  | "need_followup"
+  | "do_not_contact_yet"
+  | "other";
+
+export interface DeptHeadPartnership {
+  /** How the partnership was confirmed. */
+  confirmed_via: DeptHeadConfirmedVia;
+  /** Whether we may contact professors in this department. */
+  professor_permission: ProfessorPermission;
+  /** The agreed next step for (eventual) professor outreach. */
+  next_step: DeptHeadNextStep;
+  /** Free-text scope / context. */
+  notes: string;
+}
 
 export type PartnerHealth = "healthy" | "at_risk" | "dormant";
 
@@ -170,6 +199,10 @@ export interface ResearchData {
     email_unavailable?: boolean;
     address_unavailable?: boolean;
   };
+  /** Social channels (Instagram / Discord / GroupMe …) surfaced by the AI for
+   *  an organization (mainly student orgs). Set at Generate; read-only in the
+   *  drawer. */
+  socials?: { platform: string; url: string }[];
   /** v9.x single Decision Maker slot — the named person on the team admin
    *  identified as the right recipient (owner, hiring manager, etc.). Stored
    *  here (not in `student_outreach_contacts`) so the Pre-Flight UI surfaces
@@ -204,8 +237,16 @@ export interface ResearchData {
    *  mirrors the fan-out for fast lookup without re-querying Smartlead. */
   smartlead?: {
     campaign_id: number;
+    /** Primary resolvable address for reply/bounce webhooks (which carry no
+     *  custom_fields). The General Contact email when present, else the first
+     *  enrolled named/decision-maker email — so a provider with no general
+     *  email is still resolvable by the address that replied. */
     lead_email: string | null;
     enrolled_at: string;
+    /** Every email enrolled for this row (General Contact + each Named
+     *  Contact). The reply/bounce webhook matches the replier against this
+     *  list so DM-only providers resolve to the row. */
+    lead_emails?: string[];
     /** v9.x Named-Contact fan-out: contact_ids of Specific Contacts that
      *  were enrolled alongside the General Contact. Empty array (or
      *  undefined for rows enrolled before fan-out shipped) means General
@@ -239,6 +280,18 @@ export interface ResearchData {
     campaign_id: number;
     lead_email: string | null;
     enrolled_at: string;
+  };
+  /** Custom cadence Smartlead linkage — a bespoke, one-lead campaign the admin
+   *  composed by hand from the reply drawer (free-text emails + timed calls).
+   *  Holds the LATEST custom cadence (enough for reply-matching + "resume last
+   *  cadence"); prior custom campaigns aren't retained. Set by
+   *  handleLaunchCustomCadence. */
+  smartlead_custom?: {
+    campaign_id: number;
+    lead_email: string | null;
+    enrolled_at: string;
+    /** Admin-provided name, shown as the drawer headline ("Awaiting reply to …"). */
+    name?: string | null;
   };
 }
 
@@ -461,6 +514,19 @@ export interface TabRow extends OutreachRow {
   due_call_recipients: string[];
   /** v8 Replies tab only: which state card to render. Null otherwise. */
   replies_state: RepliesState | null;
+  /** Emails/Archive tab only: true when the row has an actual EMAIL reply to the
+   *  current cadence (an email_replied touchpoint after the cadence cutoff) — i.e.
+   *  the drawer's reply box has something to show. Drives the "They replied"
+   *  section split so non-email engagements (contact form, IG DM) don't surface
+   *  there with an empty reply box. Null on other tabs. */
+  has_email_reply?: boolean | null;
+  /** True when this row's cadence finished with no meeting (Follow-up tab). Set
+   *  on rows served by the follow-up tab; drives the "Follow-up" stage pill.
+   *  Null/absent elsewhere. */
+  cadence_complete?: boolean | null;
+  /** Follow-up card summary — one line of "what happened" (last email age,
+   *  whether they replied, which cadence finished). Null off the Follow-up tab. */
+  followup_summary?: string | null;
   /** v8: when the awaiting-callback state began (for "N days ago" copy). */
   awaiting_callback_at: string | null;
   /** v8: voicemail vs. they-said-they'd-call-back. */
@@ -529,8 +595,15 @@ export interface TabCounts {
   partners: number;
   archive: number;
   all: number;
+  /** Prospects whose cadence finished with no meeting (Follow-up tab). */
+  followup?: number;
   clients?: number;
   campuses?: number;
+  // Audience queues — server-composed totals for the In Basket primary bar.
+  // providers   = virtual provider prospects + clients-with-task
+  // partner_book = partner prospects + research cards + active-partners-with-task
+  providers?: number;
+  partner_book?: number;
   // v9.0 Phase 5: legacy menu-tab keys retained on the type so
   // callers indexing by TabKey type-check, even though these tabs
   // are no longer rendered in In Basket (their content moved to
@@ -561,8 +634,12 @@ export interface TabUnreadCounts {
   partners: number;
   archive: number;
   all: number;
+  /** Prospects whose cadence finished with no meeting (Follow-up tab). */
+  followup?: number;
   clients?: number;
   campuses?: number;
+  providers?: number;
+  partner_book?: number;
   outbound?: number;
   emails_sent?: number;
   signups?: number;
@@ -611,6 +688,11 @@ export interface DrawerContext {
     display_name: string | null;
     city: string | null;
     state: string | null;
+    /** Ownership/claim signals for the pre-flight lock. owned = account_id
+     *  present → MedJobs never edits this provider's directory content. */
+    account_id: string | null;
+    claim_state: string | null;
+    verification_state: string | null;
     metadata: Record<string, unknown> | null;
     // v9 SnapshotCard mirror fields — admin sees the directory at a glance
     // without leaving the drawer. Live-page link uses the slug.
@@ -727,6 +809,7 @@ export const STATUS_LABELS: Record<Status | LegacyStatus, string> = {
   do_not_contact: "Do Not Contact",
   wrong_contact: "Wrong Contact",
   redirected: "Redirected",
+  archived: "Archived",
   // Legacy — only present on un-migrated historical rows.
   agreed: "Partner",
   distributed: "Partner",
@@ -772,6 +855,7 @@ export function statusGroup(status: Status | LegacyStatus): StatusGroup {
     case "do_not_contact":
     case "wrong_contact":
     case "redirected":
+    case "archived":
       return "closed";
   }
 }
@@ -796,6 +880,7 @@ export const CLOSED_STATUSES: Status[] = [
   "do_not_contact",
   "wrong_contact",
   "redirected",
+  "archived",
 ];
 
 /** Stages from which "Mark as Partner" should be visible as a CTA. */

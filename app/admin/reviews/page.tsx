@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
+import CollapsibleSection from "@/components/admin/CollapsibleSection";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 // ── Types ──
 
-type MainTab = "all" | "flagged" | "removed";
+type MainTab = "all" | "flagged" | "removed" | "providers";
 
 interface AdminReview {
   id: string;
@@ -67,6 +69,13 @@ interface ReviewStats {
 
 // ── Main Page Component ──
 
+interface NoEmailSignal {
+  provider_id: string;
+  provider_name: string;
+  signal_count: number;
+  last_signal_at: string;
+}
+
 export default function AdminReviewsPage() {
   const [mainTab, setMainTab] = useState<MainTab>("all");
   const [flaggedCount, setFlaggedCount] = useState(0);
@@ -79,6 +88,15 @@ export default function AdminReviewsPage() {
     customFrom: "",
     customTo: "",
   });
+
+  // No-email signals state
+  const [noEmailSignals, setNoEmailSignals] = useState<NoEmailSignal[]>([]);
+  const [noEmailSignalsLoading, setNoEmailSignalsLoading] = useState(true);
+  const [noEmailSignalsError, setNoEmailSignalsError] = useState(false);
+  const [noEmailSignalsCount, setNoEmailSignalsCount] = useState(0); // unique providers count
+  const [pendingDeleteSignal, setPendingDeleteSignal] = useState<NoEmailSignal | null>(null);
+  const [deletingSignal, setDeletingSignal] = useState<string | null>(null);
+  const [deleteSignalError, setDeleteSignalError] = useState<string | null>(null);
 
   // Track stats version to trigger child refreshes
   const [statsVersion, setStatsVersion] = useState(0);
@@ -122,6 +140,62 @@ export default function AdminReviewsPage() {
     fetchStats();
   }, [fetchStats]);
 
+  // Fetch no-email signals
+  const fetchNoEmailSignals = useCallback(async () => {
+    setNoEmailSignalsLoading(true);
+    setNoEmailSignalsError(false);
+    try {
+      const res = await fetch("/api/admin/review-signals");
+      if (res.ok) {
+        const data = await res.json();
+        setNoEmailSignals(data.signals || []);
+        setNoEmailSignalsCount(data.unique_providers || 0);
+      } else {
+        setNoEmailSignalsError(true);
+      }
+    } catch {
+      setNoEmailSignalsError(true);
+    } finally {
+      setNoEmailSignalsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNoEmailSignals();
+  }, [fetchNoEmailSignals]);
+
+  // Delete a no-email signal entry
+  const handleDeleteSignal = useCallback(async () => {
+    if (!pendingDeleteSignal) return;
+
+    setDeletingSignal(pendingDeleteSignal.provider_id);
+    setDeleteSignalError(null);
+
+    try {
+      const res = await fetch("/api/admin/review-signals", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId: pendingDeleteSignal.provider_id }),
+      });
+
+      if (res.ok) {
+        // Remove from local state
+        setNoEmailSignals((prev) =>
+          prev.filter((s) => s.provider_id !== pendingDeleteSignal.provider_id)
+        );
+        setNoEmailSignalsCount((c) => Math.max(0, c - 1));
+        setPendingDeleteSignal(null);
+      } else {
+        const data = await res.json();
+        setDeleteSignalError(data.error || "Failed to delete signals");
+      }
+    } catch {
+      setDeleteSignalError("Failed to delete signals. Please try again.");
+    } finally {
+      setDeletingSignal(null);
+    }
+  }, [pendingDeleteSignal]);
+
   // Callback for child components to trigger stats refresh
   const onStatsChange = useCallback(() => {
     fetchStats();
@@ -132,29 +206,28 @@ export default function AdminReviewsPage() {
     { label: "All Reviews", value: "all" },
     { label: "Flagged", value: "flagged", badge: flaggedCount },
     { label: "Removed", value: "removed", badge: removedCount > 0 ? removedCount : undefined },
+    { label: "Providers Requesting", value: "providers", badge: stats?.providers_requesting || undefined },
   ];
 
   return (
     <div>
       {/* Header with search and date range */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Reviews</h1>
-          <p className="text-lg text-gray-600 mt-1">
-            Manage reviews across all sources.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Search reviews..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <DateRangePopover value={dateRange} onChange={setDateRange} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Reviews"
+        description="Manage reviews across all sources."
+        actions={
+          <>
+            <input
+              type="text"
+              placeholder="Search reviews..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-64 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <DateRangePopover value={dateRange} onChange={setDateRange} />
+          </>
+        }
+      />
 
       {/* Stats row */}
       {statsError ? (
@@ -186,6 +259,139 @@ export default function AdminReviewsPage() {
             <p className="text-2xl font-bold text-violet-600">
               {stats ? stats.providers_requesting.toLocaleString() : "-"}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* No Email Signals Section */}
+      <CollapsibleSection
+        title={`No Email Signals${noEmailSignalsCount > 0 ? ` (${noEmailSignalsCount} provider${noEmailSignalsCount === 1 ? "" : "s"})` : ""}`}
+        storageKey="admin-reviews-no-email-signals"
+        defaultCollapsed={true}
+        loading={noEmailSignalsLoading}
+      >
+        {noEmailSignalsError ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            Failed to load signals. <button onClick={fetchNoEmailSignals} className="underline">Retry</button>
+          </div>
+        ) : noEmailSignals.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">No signals yet. Providers who click "I only have their phone number" will appear here.</p>
+          </div>
+        ) : (
+          <>
+            <div className="rounded-lg bg-teal-50 border border-teal-100 px-4 py-3 mb-4">
+              <p className="text-sm text-teal-800">
+                <strong>SMS demand signals</strong> — Providers who indicated their client only has a phone number.
+                This data helps prioritize SMS review request support.
+              </p>
+            </div>
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Clicks</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Signal</th>
+                    <th className="w-12"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {noEmailSignals.map((signal) => (
+                    <tr key={signal.provider_id} className="group hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <a
+                          href={`/provider/${signal.provider_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-medium text-primary-600 hover:underline"
+                        >
+                          {signal.provider_name}
+                        </a>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-semibold text-gray-900">
+                          {signal.signal_count}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                        {formatRelativeTime(signal.last_signal_at)}
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <button
+                          onClick={() => setPendingDeleteSignal(signal)}
+                          disabled={deletingSignal === signal.provider_id}
+                          className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                          title="Delete signal records"
+                        >
+                          {deletingSignal === signal.provider_id ? (
+                            <span className="text-xs">...</span>
+                          ) : (
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+      </CollapsibleSection>
+
+      {/* Delete Signal Confirmation Modal */}
+      {pendingDeleteSignal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">
+              Delete signal records?
+            </h3>
+            <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Provider</dt>
+                <dd className="text-gray-900">{pendingDeleteSignal.provider_name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-gray-400">Signals</dt>
+                <dd className="text-gray-900">{pendingDeleteSignal.signal_count} click{pendingDeleteSignal.signal_count === 1 ? "" : "s"}</dd>
+              </div>
+            </dl>
+            <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
+              This will delete all "no email" signal records for this provider. This cannot be undone.
+            </p>
+            {deleteSignalError && (
+              <p className="text-[12px] text-red-600 mb-3">{deleteSignalError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDeleteSignal(null);
+                  setDeleteSignalError(null);
+                }}
+                disabled={deletingSignal === pendingDeleteSignal.provider_id}
+                className="text-xs font-medium text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSignal}
+                disabled={deletingSignal === pendingDeleteSignal.provider_id}
+                className="text-xs font-medium text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-md disabled:opacity-50"
+              >
+                {deletingSignal === pendingDeleteSignal.provider_id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -241,6 +447,14 @@ export default function AdminReviewsPage() {
           onStatsChange={onStatsChange}
           dateRange={dateRange}
           key={`removed-${statsVersion}`}
+        />
+      )}
+      {mainTab === "providers" && (
+        <ProvidersRequestingTab
+          search={search}
+          dateRange={dateRange}
+          onStatsChange={onStatsChange}
+          key={`providers-${statsVersion}`}
         />
       )}
     </div>
@@ -1154,6 +1368,247 @@ function RemovedTab({ onCountChange, onStatsChange, dateRange }: RemovedTabProps
   );
 }
 
+// ── Providers Requesting Tab ──
+
+interface ProviderEngagement {
+  id: string;
+  display_name: string;
+  slug: string;
+  requests_sent: number;
+  requests_this_month: number;
+  olera_reviews_count: number;
+  google_connected: boolean;
+  last_request_at: string | null;
+}
+
+interface ProvidersRequestingTabProps {
+  search: string;
+  dateRange: DateRangeValue;
+  onStatsChange: () => void;
+}
+
+const PAGE_SIZE = 20;
+
+function ProvidersRequestingTab({ search, dateRange, onStatsChange }: ProvidersRequestingTabProps) {
+  const [providers, setProviders] = useState<ProviderEngagement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchProviders = useCallback(async (loadMore = false) => {
+    if (loadMore) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setProviders([]);
+    }
+    setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) params.set("from_date", resolved.from);
+      if (resolved.to) params.set("to_date", resolved.to);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      params.set("limit", String(PAGE_SIZE));
+      if (loadMore) params.set("offset", String(providers.length));
+
+      const res = await fetch(`/api/admin/review-requests?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        const newProviders = data.providers ?? [];
+        if (loadMore) {
+          setProviders(prev => [...prev, ...newProviders]);
+        } else {
+          setProviders(newProviders);
+        }
+        setTotal(data.total ?? 0);
+        setHasMore(newProviders.length === PAGE_SIZE);
+      } else {
+        setError("Failed to load providers. Please try again.");
+      }
+    } catch {
+      setError("Failed to load providers. Please check your connection.");
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [debouncedSearch, dateRange, providers.length]);
+
+  useEffect(() => {
+    fetchProviders(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, dateRange]);
+
+  const handleDelete = useCallback(async (providerId: string, providerName: string) => {
+    if (!confirm(`Delete all review request records for "${providerName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeleting(providerId);
+    try {
+      const res = await fetch("/api/admin/review-requests", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId }),
+      });
+
+      if (res.ok) {
+        // Remove from local state
+        setProviders(prev => prev.filter(p => p.id !== providerId));
+        setTotal(prev => prev - 1);
+        // Refresh stats cards at top of page
+        onStatsChange();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to delete records");
+      }
+    } catch {
+      setError("Failed to delete records. Please try again.");
+    } finally {
+      setDeleting(null);
+    }
+  }, [onStatsChange]);
+
+  return (
+    <div>
+      <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3 mb-6">
+        <p className="text-sm text-violet-800">
+          <strong>Provider review request activity</strong> — See which providers are requesting reviews
+          and track their cumulative request counts and received reviews.
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-lg text-gray-500">Loading...</div>
+        </div>
+      ) : providers.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+          <p className="text-gray-500">
+            {search ? "No providers found matching your search." : "No providers have requested reviews yet."}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Total Requests Sent</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">This Month</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Guest Reviews</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Google Connected</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Last Request</th>
+                  <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {providers.map((provider) => (
+                  <tr key={provider.id} className="group hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <a
+                        href={`/provider/${provider.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-primary-600 hover:underline"
+                      >
+                        {provider.display_name}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {provider.requests_sent}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600">
+                        {provider.requests_this_month}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={[
+                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        provider.olera_reviews_count > 0
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-600",
+                      ].join(" ")}>
+                        {provider.olera_reviews_count}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {provider.google_connected ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                          Connected
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">No</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                      {provider.last_request_at
+                        ? new Date(provider.last_request_at).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleDelete(provider.id, provider.display_name)}
+                        disabled={deleting === provider.id}
+                        className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                        title="Delete review request records"
+                      >
+                        {deleting === provider.id ? (
+                          <span className="text-xs">Deleting...</span>
+                        ) : (
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Load more / pagination info */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {providers.length} of {total} providers
+            </p>
+            {hasMore && (
+              <button
+                onClick={() => fetchProviders(true)}
+                disabled={loadingMore}
+                className="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
+              >
+                {loadingMore ? "Loading..." : "Load more"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Helper Components ──
 
 function SourceBadge({ source }: { source: "v1.0" | "family" | "guest" }) {
@@ -1191,4 +1646,20 @@ function formatSlug(slug: string): string {
   return slug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { resolveOutreachSearchIds } from "@/lib/student-outreach/search";
 
 /**
  * GET /api/admin/medjobs/partners
@@ -11,7 +12,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *
  * Query params:
  *   campus=<slug>           → filter to one campus
- *   search=<str>            → ilike on organization_name
+ *   search=<str>            → matches org name, on-row research emails, or
+ *                             any active contact's name/email (shared resolver)
  *   limit=<n>               → max rows (default 100, max 500)
  *   with_pending_task=true  → narrow to active partners with ≥1
  *                             pending student_outreach_task. Used by
@@ -35,6 +37,14 @@ export async function GET(request: NextRequest) {
     const withPendingTask = searchParams.get("with_pending_task") === "true";
 
     const db = getServiceClient();
+
+    // v10 liberalized search: resolve matching outreach IDs across org name,
+    // on-row research emails, and named-contact name/email (shared resolver),
+    // then intersect via .in("id", …) below. `[]` = searched, matched nothing.
+    const searchIds = search ? await resolveOutreachSearchIds(db, search) : null;
+    if (searchIds && searchIds.length === 0) {
+      return NextResponse.json({ rows: [], total: 0 });
+    }
 
     // v9.0 Phase 7 Commit P: when with_pending_task=true, narrow the
     // result set to active_partner outreach with ≥1 pending task.
@@ -65,7 +75,9 @@ export async function GET(request: NextRequest) {
     if (partnersWithPendingTask) {
       q = q.in("id", Array.from(partnersWithPendingTask));
     }
-    if (search) q = q.ilike("organization_name", `%${search}%`);
+    // Two `.in("id", …)` filters AND together (intersection) at PostgREST, so
+    // a task-narrowed + searched query returns rows satisfying both.
+    if (searchIds) q = q.in("id", searchIds);
 
     if (campusSlug) {
       const { data: campus } = await db

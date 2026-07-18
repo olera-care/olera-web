@@ -71,7 +71,7 @@ interface FollowupMetadata {
   followup_sent_at?: string | null;
   followup_sent_by?: string;
   followup_stopped_at?: string | null;
-  followup_stopped_reason?: "connected" | "responded" | "admin_marked_connected" | null;
+  followup_stopped_reason?: "connected" | "responded" | "admin_marked_connected" | "family_confirmed" | null;
   thread?: ThreadMessage[];
 }
 
@@ -208,6 +208,7 @@ export async function GET(request: NextRequest) {
         nudge_cap: 0, // Frequency gate held this stage — provider over the weekly nudge budget
         admin_marked_connected: 0, // Admin verified provider connected off-platform
         provider_archived: 0, // Provider archived lead in their portal (not a fit, not taking clients, etc.)
+        admin_archived_provider: 0, // Admin archived the provider (no emails to them)
       },
       dry_run: dryRun,
     };
@@ -229,7 +230,7 @@ export async function GET(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types, metadata),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city, metadata)
       `
       )
       .eq("type", "inquiry")
@@ -365,9 +366,9 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if sequence was already stopped for a REAL connection
-      // Skip if stopped for actual connection ("connected", "responded") or admin verification
+      // Skip if stopped for actual connection ("connected", "responded"), admin verification, or family confirmation
       const stopReason = meta.followup_stopped_reason;
-      const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "admin_marked_connected";
+      const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "admin_marked_connected" || stopReason === "family_confirmed";
       if (meta.followup_stopped_at && isRealStop) {
         counts.skipped++;
         counts.skipReasons.sequence_stopped++;
@@ -384,7 +385,8 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if provider archived this lead in their portal
-      const isArchived = meta.archived === true;
+      // Check BOTH flags: `archived` (inbox/admin) and `lead_archived` (provider decline)
+      const isArchived = meta.archived === true || meta.lead_archived === true;
       if (isArchived) {
         // Provider explicitly archived - respect their decision and stop sequence
         // Archive state alone is sufficient (don't require valid reason for robustness)
@@ -394,6 +396,14 @@ export async function GET(request: NextRequest) {
         }
         counts.skipped++;
         counts.skipReasons.provider_archived = (counts.skipReasons.provider_archived || 0) + 1;
+        continue;
+      }
+
+      // Check if provider is admin-archived (no emails sent to them)
+      const toProfileMeta = (toProfile?.metadata as Record<string, unknown>) ?? {};
+      if (toProfileMeta.admin_archived === true) {
+        counts.skipped++;
+        counts.skipReasons.admin_archived_provider = (counts.skipReasons.admin_archived_provider || 0) + 1;
         continue;
       }
 

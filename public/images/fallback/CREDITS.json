@@ -134,6 +134,83 @@
       "added": "2026-06-27"
     },
     {
+      "file": "home-health-1.jpg",
+      "category": "home-health",
+      "source": "Pexels",
+      "photographer": "Kampus Production",
+      "photo_id": "7551675",
+      "source_url": "https://www.pexels.com/photo/7551675/",
+      "photographer_url": "https://www.pexels.com/@kampus/",
+      "license": "Pexels License",
+      "added": "2026-07-19"
+    },
+    {
+      "file": "home-health-2.jpg",
+      "category": "home-health",
+      "source": "Pexels",
+      "photographer": "cottonbro studio",
+      "photo_id": "7086577",
+      "source_url": "https://www.pexels.com/photo/7086577/",
+      "photographer_url": "https://www.pexels.com/@cottonbro/",
+      "license": "Pexels License",
+      "added": "2026-07-19"
+    },
+    {
+      "file": "home-health-3.jpg",
+      "category": "home-health",
+      "source": "Pexels",
+      "photographer": "Liliana Drew",
+      "photo_id": "9462341",
+      "source_url": "https://www.pexels.com/photo/9462341/",
+      "photographer_url": "https://www.pexels.com/@liliana-drew/",
+      "license": "Pexels License",
+      "added": "2026-07-19"
+    },
+    {
+      "file": "home-health-4.jpg",
+      "category": "home-health",
+      "source": "Pexels",
+      "photographer": "Liliana Drew",
+      "photo_id": "9462613",
+      "source_url": "https://www.pexels.com/photo/9462613/",
+      "photographer_url": "https://www.pexels.com/@liliana-drew/",
+      "license": "Pexels License",
+      "added": "2026-07-19"
+    },
+    {
+      "file": "home-health-5.jpg",
+      "category": "home-health",
+      "source": "Pexels",
+      "photographer": "Jsme Mila",
+      "photo_id": "29372734",
+      "source_url": "https://www.pexels.com/photo/29372734/",
+      "photographer_url": "https://www.pexels.com/@jsme-mila-523821574/",
+      "license": "Pexels License",
+      "added": "2026-07-19"
+    },
+    {
+      "file": "home-health-6.jpg",
+      "category": "home-health",
+      "source": "Pexels",
+      "photographer": "Jsme Mila",
+      "photo_id": "18429570",
+      "source_url": "https://www.pexels.com/photo/18429570/",
+      "photographer_url": "https://www.pexels.com/@jsme-mila-523821574/",
+      "license": "Pexels License",
+      "added": "2026-07-19"
+    },
+    {
+      "file": "home-health-7.jpg",
+      "category": "home-health",
+      "source": "Pexels",
+      "photographer": "Jsme Mila",
+      "photo_id": "18459193",
+      "source_url": "https://www.pexels.com/photo/18459193/",
+      "photographer_url": "https://www.pexels.com/@jsme-mila-523821574/",
+      "license": "Pexels License",
+      "added": "2026-07-19"
+    },
+    {
       "file": "assisted-living-01.jpg",
       "category": "assisted-living",
       "source": "Pexels",

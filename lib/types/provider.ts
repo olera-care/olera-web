@@ -207,9 +207,13 @@ const CATEGORY_FALLBACK_POOLS: Record<string, string[]> = {
     "/images/fallback/home-care-3.jpg",
   ],
   "Home Health Care": [
-    "/images/fallback/home-care-1.jpg",
-    "/images/fallback/home-care-2.jpg",
-    "/images/fallback/home-care-3.jpg",
+    "/images/fallback/home-health-1.jpg",
+    "/images/fallback/home-health-2.jpg",
+    "/images/fallback/home-health-3.jpg",
+    "/images/fallback/home-health-4.jpg",
+    "/images/fallback/home-health-5.jpg",
+    "/images/fallback/home-health-6.jpg",
+    "/images/fallback/home-health-7.jpg",
   ],
   "Assisted Living": [
     "/images/fallback/assisted-living-1.jpg",
@@ -607,4 +611,3 @@ export function mockToCardFormat(p: any): ProviderCardData {
     description: p.description as string | undefined,
   };
 }
-

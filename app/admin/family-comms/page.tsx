@@ -60,6 +60,21 @@ interface Summary {
   cutover: { anchor: string; cutoverWeekIndex: number; weekStartsISO: string[]; sendsWeekly: number[]; goLivesWeekly: number[] };
 }
 
+interface SmsSummary {
+  configured: boolean;
+  range?: { from: string; to: string };
+  generatedAt?: string;
+  senderLast4?: string;
+  totals?: { total: number; delivered: number; undelivered: number; failed: number; sentUnconfirmed: number; inFlight: number };
+  deliveredRate?: number;
+  buckets?: { registration: number; badNumber: number; optOut: number; filtered: number; other: number };
+  byError?: { code: number; label: string; count: number }[];
+  recent?: { ts: string | null; toLast4: string; status: string; errorCode: number | null; errorLabel: string | null }[];
+  daily?: { date: string; sent: number; delivered: number; undelivered: number; failed: number }[];
+  truncated?: boolean;
+  error?: string;
+}
+
 const pct = (n: number) => `${(n * 100).toFixed(n >= 0.0995 ? 0 : 1)}%`;
 const num = (n: number) => n.toLocaleString();
 
@@ -399,6 +414,124 @@ function OutcomePanel({ oc }: { oc: NonNullable<Summary["outcomes"]> }) {
   );
 }
 
+// ── SMS delivery health ─────────────────────────────────────────────────────
+// The sibling to email deliverability. Source is Twilio (the real carrier
+// status), NOT email_log — the log's "sent" only means Twilio accepted the API
+// call, which read green even while carriers silently dropped ~80% pre-10DLC.
+// Covers ALL outbound SMS from our A2P number: family reply-alerts + provider
+// new-inquiry alerts (one number, one campaign, one delivery story).
+function smsStatusChip(status: string) {
+  if (status === "delivered") return "bg-emerald-50 text-emerald-700";
+  if (status === "undelivered" || status === "failed") return "bg-rose-50 text-rose-700";
+  if (status === "sent") return "bg-amber-50 text-amber-700";
+  return "bg-gray-100 text-gray-500";
+}
+
+function SmsDeliveryPanel({ sms, loading, error }: { sms: SmsSummary | null; loading: boolean; error: string | null }) {
+  if (loading && !sms) return <p className="text-sm text-gray-400">Loading Twilio delivery data…</p>;
+  if (error) return <p className="text-sm text-rose-600">Failed to load SMS delivery: {error}</p>;
+  if (sms && sms.configured === false) return <p className="text-sm text-gray-400">Twilio isn&rsquo;t configured in this environment, so there&rsquo;s no SMS delivery data to show.</p>;
+  if (sms?.error) return <p className="text-sm text-rose-600">Twilio query failed: {sms.error}</p>;
+  if (!sms || !sms.totals) return <p className="text-sm text-gray-400">No SMS delivery data.</p>;
+
+  const t = sms.totals;
+  const b = sms.buckets || { registration: 0, badNumber: 0, optOut: 0, filtered: 0, other: 0 };
+  const terminal = t.delivered + t.undelivered + t.failed;
+  const segs = [
+    { key: "delivered", label: "Delivered", value: t.delivered, bar: "bg-emerald-500", text: "text-emerald-700", note: "landed on the handset" },
+    { key: "badNumber", label: "Bad number", value: b.badNumber, bar: "bg-amber-400", text: "text-amber-700", note: "landline / disconnected — data quality" },
+    { key: "registration", label: "Unregistered", value: b.registration, bar: "bg-rose-500", text: "text-rose-700", note: "pre-10DLC drops — should be 0 now" },
+    { key: "optOut", label: "Opted out", value: b.optOut, bar: "bg-violet-400", text: "text-violet-700", note: "recipient sent STOP" },
+    { key: "filtered", label: "Filtered", value: b.filtered, bar: "bg-orange-400", text: "text-orange-700", note: "carrier spam filter" },
+    { key: "other", label: "Other", value: b.other, bar: "bg-stone-400", text: "text-stone-500", note: "other failures" },
+  ].filter((s) => s.key === "delivered" || s.value > 0);
+  const share = (v: number) => (terminal > 0 ? v / terminal : 0);
+  const sentSeries = (sms.daily || []).map((d) => d.sent);
+
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <Stat label="Texts sent" value={num(t.total)} sub={t.inFlight + t.sentUnconfirmed > 0 ? `${num(t.inFlight + t.sentUnconfirmed)} in flight / unconfirmed` : "in this window"} info="Every outbound SMS from our A2P sender number in this window — family reply-alerts and provider new-inquiry alerts combined. Pulled live from Twilio." />
+        <Stat label="Delivered rate" value={terminal > 0 ? pct(sms.deliveredRate || 0) : "—"} sub={`${num(t.delivered)} of ${num(terminal)} confirmed`} accent info="Share of texts with a confirmed carrier outcome that were delivered. Denominator excludes in-flight/unconfirmed sends. This is the number 10DLC approval was meant to move (was ~20%, should now be near 100% minus bad numbers)." />
+        <Stat label="Failed / undelivered" value={num(t.undelivered + t.failed)} sub={b.badNumber > 0 ? `${num(b.badNumber)} bad numbers` : "carrier outcomes"} info="Texts the carrier rejected. Most are 'bad number' (landline/disconnected) — a data-quality issue with directory-scraped phones, not a delivery-system problem." />
+        <Stat label="Unregistered (30034)" value={num(b.registration)} sub={b.registration > 0 ? "pre-10DLC — investigate" : "cleared by 10DLC ✓"} info="The pre-approval failure mode: carrier dropped the text because the number wasn't on an approved A2P 10DLC campaign. Should be 0 now that the campaign is approved (2026-07-15). Anything above 0 means a send is bypassing the registered sender." />
+      </div>
+
+      {terminal > 0 && (
+        <>
+          <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100 mb-3">
+            {segs.map((s) => (
+              <div key={s.key} className={s.bar} style={{ width: `${share(s.value) * 100}%` }} title={`${s.label}: ${num(s.value)}`} />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+            {segs.map((s) => (
+              <div key={s.key} className="flex items-start gap-1.5">
+                <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${s.bar}`} />
+                <div className="min-w-0">
+                  <div className={`text-sm font-semibold tabular-nums ${s.text}`}>{num(s.value)} <span className="text-[11px] font-normal text-gray-400">{terminal > 0 ? pct(share(s.value)) : ""}</span></div>
+                  <div className="text-[11px] leading-tight text-gray-500">{s.label} · {s.note}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent sends — the live tail, with real carrier status */}
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Recent sends</span>
+            {sentSeries.some((v) => v > 0) && <Sparkline points={sentSeries} />}
+          </div>
+          {sms.recent && sms.recent.length > 0 ? (
+            <div className="divide-y divide-gray-100 rounded-lg border border-gray-100">
+              {sms.recent.slice(0, 12).map((r, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-1.5 text-[12px]">
+                  <span className="w-28 shrink-0 text-gray-400 tabular-nums">{r.ts ? new Date(r.ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—"}</span>
+                  <span className="w-16 shrink-0 font-mono text-gray-500">••{r.toLast4}</span>
+                  <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${smsStatusChip(r.status)}`}>{r.status}</span>
+                  <span className="truncate text-gray-400">{r.errorLabel || ""}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-gray-400">No texts sent in this window.</p>
+          )}
+        </div>
+
+        {/* Error breakdown — whose fault, not just which code */}
+        <div>
+          <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-gray-400">Why texts failed</span>
+          {sms.byError && sms.byError.length > 0 ? (
+            <div className="space-y-1.5">
+              {sms.byError.map((e) => (
+                <div key={e.code} className="flex items-center gap-3 text-[13px]">
+                  <span className="flex-1 truncate text-gray-600">{e.label}</span>
+                  <span className="font-mono text-[11px] text-gray-400">{e.code}</span>
+                  <span className="w-8 text-right font-semibold tabular-nums text-gray-800">{num(e.count)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-gray-400">No failures in this window — every confirmed text delivered. 🎉</p>
+          )}
+        </div>
+      </div>
+
+      <p className="mt-4 text-[11px] text-gray-400 leading-relaxed">
+        Live from Twilio (sender ••{sms.senderLast4}) — the real carrier status, not the app&rsquo;s
+        &ldquo;sent&rdquo; log, which only means Twilio accepted the request.
+        <span className="font-medium text-rose-700"> Unregistered (30034)</span> = the pre-10DLC failure, cleared when the A2P
+        campaign approved on 2026-07-15. <span className="font-medium text-amber-700">Bad number</span> = the destination is a
+        landline or disconnected line (directory-scraped provider phones), which no delivery fix can help. In-flight/unconfirmed
+        sends are excluded from the delivered rate.{sms.truncated ? " Showing the most recent 2,000 sends — window may be truncated." : ""}
+      </p>
+    </>
+  );
+}
+
 /** Horizontal funnel step with a width bar relative to the top of the funnel. */
 function FunnelStep({ label, value, base, note }: { label: string; value: number; base: number; note?: string }) {
   const w = base > 0 ? Math.max(2, (value / base) * 100) : 0;
@@ -429,6 +562,9 @@ export default function FamilyCommsAnalyticsPage() {
   const [variants, setVariants] = useState<VariantMeta[] | null>(null);
   const [variantsLoading, setVariantsLoading] = useState(true);
   const [quietOpen, setQuietOpen] = useState<Record<string, boolean>>({});
+  const [sms, setSms] = useState<SmsSummary | null>(null);
+  const [smsLoading, setSmsLoading] = useState(true);
+  const [smsError, setSmsError] = useState<string | null>(null);
 
   // Variant metadata (who/why + render ids) — fetched once for the drawer.
   useEffect(() => {
@@ -451,6 +587,22 @@ export default function FamilyCommsAnalyticsPage() {
       .then((d: Summary) => setData(d))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+  }, [range]);
+
+  // SMS delivery health fetched independently — Twilio latency (or a Twilio
+  // hiccup) must never block the email dashboard from rendering.
+  useEffect(() => {
+    setSmsLoading(true);
+    setSmsError(null);
+    const { from, to } = resolveRange(range);
+    const params = new URLSearchParams();
+    if (from) params.set("date_from", from);
+    if (to) params.set("date_to", to);
+    fetch(`/api/admin/family-comms-analytics/sms?${params.toString()}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d: SmsSummary) => setSms(d))
+      .catch((e) => setSmsError(e.message))
+      .finally(() => setSmsLoading(false));
   }, [range]);
 
   const f = data?.funnel;
@@ -665,6 +817,13 @@ export default function FamilyCommsAnalyticsPage() {
               all from Resend webhook events. The trend is each week&rsquo;s open rate (gaps = weeks with no sends). The
               <span className="font-medium text-teal-700"> compare</span> tag marks rungs whose body carries alternative-provider cards.
             </p>
+          </CollapsibleSection>
+
+          {/* SMS delivery — the sibling channel to email. Source is Twilio's real
+              carrier status (not the email_log "sent"), so it tells the honest
+              deliverability story the 10DLC approval was about. */}
+          <CollapsibleSection title="Text message delivery (SMS)" storageKey="fc.sms" defaultCollapsed={false}>
+            <SmsDeliveryPanel sms={sms} loading={smsLoading} error={smsError} />
           </CollapsibleSection>
 
           {/* Sensor detail */}

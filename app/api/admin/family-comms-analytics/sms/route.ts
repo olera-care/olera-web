@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import twilio from "twilio";
 import { getAuthUser, getAdminUser } from "@/lib/admin";
+import { createTwilioClient } from "@/lib/twilio";
 
 /**
  * SMS delivery health — the deliverability truth behind the "Text message
@@ -25,6 +25,11 @@ import { getAuthUser, getAdminUser } from "@/lib/admin";
 export const maxDuration = 30;
 
 const DAY = 24 * 60 * 60 * 1000;
+
+// The A2P 10DLC campaign approved on 2026-07-15. A 30034 ("unregistered")
+// failure BEFORE this is expected history; one AFTER means a send is bypassing
+// the registered sender and is a live problem. The panel flags only the latter.
+const A2P_APPROVAL_MS = Date.parse("2026-07-15T00:00:00Z");
 
 // Human labels for the Twilio SMS error codes we actually see, plus the ones
 // worth naming if they show up. https://www.twilio.com/docs/api/errors
@@ -70,10 +75,9 @@ export async function GET(request: NextRequest) {
   const admin = await getAdminUser(user.id);
   if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_FROM_NUMBER;
-  if (!sid || !token || !from) {
+  const client = createTwilioClient();
+  if (!client || !from) {
     // Not an error — the panel renders a "not configured" empty state.
     return NextResponse.json({ configured: false });
   }
@@ -84,7 +88,6 @@ export async function GET(request: NextRequest) {
   const fromMs = dateFrom ? Date.parse(dateFrom) : now - 30 * DAY;
   const toMs = dateTo ? Date.parse(dateTo) : now;
 
-  const client = twilio(sid, token);
   const LIMIT = 2000;
   let messages;
   try {
@@ -103,6 +106,10 @@ export async function GET(request: NextRequest) {
   // ── Aggregate ─────────────────────────────────────────────────────────────
   let delivered = 0, undelivered = 0, failed = 0, sentUnconfirmed = 0, inFlight = 0;
   const buckets = { registration: 0, badNumber: 0, optOut: 0, filtered: 0, other: 0 };
+  // 30034 drops that happened AFTER the 10DLC approval — the actionable count.
+  // Historical (pre-approval) 30034s stay in buckets.registration but must not
+  // read as a live problem, so the panel flags on this instead.
+  let registrationSinceApproval = 0;
   const byErrorMap = new Map<number, number>();
   const daily = new Map<string, { sent: number; delivered: number; undelivered: number; failed: number }>();
 
@@ -156,6 +163,7 @@ export async function GET(request: NextRequest) {
     if ((status === "undelivered" || status === "failed") && code != null) {
       byErrorMap.set(code, (byErrorMap.get(code) || 0) + 1);
       buckets[BUCKET_OF[code] || "other"]++;
+      if (code === 30034 && when && when.getTime() >= A2P_APPROVAL_MS) registrationSinceApproval++;
     } else if (status === "undelivered" || status === "failed") {
       buckets.other++;
     }
@@ -187,6 +195,7 @@ export async function GET(request: NextRequest) {
     },
     deliveredRate,
     buckets,
+    registrationSinceApproval,
     byError,
     recent,
     daily: dailyArr,

@@ -68,6 +68,7 @@ interface SmsSummary {
   totals?: { total: number; delivered: number; undelivered: number; failed: number; sentUnconfirmed: number; inFlight: number };
   deliveredRate?: number;
   buckets?: { registration: number; badNumber: number; optOut: number; filtered: number; other: number };
+  registrationSinceApproval?: number;
   byError?: { code: number; label: string; count: number }[];
   recent?: { ts: string | null; toLast4: string; status: string; errorCode: number | null; errorLabel: string | null }[];
   daily?: { date: string; sent: number; delivered: number; undelivered: number; failed: number }[];
@@ -436,6 +437,7 @@ function SmsDeliveryPanel({ sms, loading, error }: { sms: SmsSummary | null; loa
 
   const t = sms.totals;
   const b = sms.buckets || { registration: 0, badNumber: 0, optOut: 0, filtered: 0, other: 0 };
+  const regSince = sms.registrationSinceApproval ?? 0;
   const terminal = t.delivered + t.undelivered + t.failed;
   const segs = [
     { key: "delivered", label: "Delivered", value: t.delivered, bar: "bg-emerald-500", text: "text-emerald-700", note: "landed on the handset" },
@@ -454,7 +456,7 @@ function SmsDeliveryPanel({ sms, loading, error }: { sms: SmsSummary | null; loa
         <Stat label="Texts sent" value={num(t.total)} sub={t.inFlight + t.sentUnconfirmed > 0 ? `${num(t.inFlight + t.sentUnconfirmed)} in flight / unconfirmed` : "in this window"} info="Every outbound SMS from our A2P sender number in this window — family reply-alerts and provider new-inquiry alerts combined. Pulled live from Twilio." />
         <Stat label="Delivered rate" value={terminal > 0 ? pct(sms.deliveredRate || 0) : "—"} sub={`${num(t.delivered)} of ${num(terminal)} confirmed`} accent info="Share of texts with a confirmed carrier outcome that were delivered. Denominator excludes in-flight/unconfirmed sends. This is the number 10DLC approval was meant to move (was ~20%, should now be near 100% minus bad numbers)." />
         <Stat label="Failed / undelivered" value={num(t.undelivered + t.failed)} sub={b.badNumber > 0 ? `${num(b.badNumber)} bad numbers` : "carrier outcomes"} info="Texts the carrier rejected. Most are 'bad number' (landline/disconnected) — a data-quality issue with directory-scraped phones, not a delivery-system problem." />
-        <Stat label="Unregistered (30034)" value={num(b.registration)} sub={b.registration > 0 ? "pre-10DLC — investigate" : "cleared by 10DLC ✓"} info="The pre-approval failure mode: carrier dropped the text because the number wasn't on an approved A2P 10DLC campaign. Should be 0 now that the campaign is approved (2026-07-15). Anything above 0 means a send is bypassing the registered sender." />
+        <Stat label="Unregistered (30034)" value={num(regSince)} sub={regSince > 0 ? "since 10DLC approval — investigate" : b.registration > 0 ? `0 new · ${num(b.registration)} historical (pre-7/15) ✓` : "cleared by 10DLC ✓"} info="The pre-approval failure mode: carrier dropped the text because the number wasn't on an approved A2P 10DLC campaign. This tile counts only drops AFTER the campaign approved (2026-07-15) — those are the actionable ones. Pre-approval drops are expected history and don't count here. Anything above 0 means a send is bypassing the registered sender." />
       </div>
 
       {terminal > 0 && (

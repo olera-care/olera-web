@@ -5,12 +5,32 @@ import { isPhoneDoNotContact } from "./do-not-contact";
 
 let twilioClient: twilio.Twilio | null = null;
 
+/**
+ * Build a Twilio REST client from env, for OUTBOUND calls (send SMS, read
+ * balance/messages). Prefers a scoped API key (TWILIO_API_KEY_SID +
+ * TWILIO_API_KEY_SECRET) so a flagged/leaked sending credential can be revoked
+ * on its own without rotating the account auth token and taking the whole
+ * account down; falls back to the account SID + auth token when no API key is
+ * configured, so an environment that hasn't been given the key still works.
+ *
+ * NOTE: inbound webhook signature validation still uses TWILIO_AUTH_TOKEN
+ * directly (Twilio signs webhooks with the account auth token, never an API
+ * key) — see app/api/sms/webhook + app/api/whatsapp/webhook. Don't migrate those.
+ */
+export function createTwilioClient(): twilio.Twilio | null {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  if (!accountSid) return null;
+  const apiKeySid = process.env.TWILIO_API_KEY_SID;
+  const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
+  if (apiKeySid && apiKeySecret) return twilio(apiKeySid, apiKeySecret, { accountSid });
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  if (authToken) return twilio(accountSid, authToken);
+  return null;
+}
+
 function getTwilio(): twilio.Twilio | null {
   if (twilioClient) return twilioClient;
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token) return null;
-  twilioClient = twilio(sid, token);
+  twilioClient = createTwilioClient();
   return twilioClient;
 }
 

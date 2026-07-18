@@ -26,6 +26,7 @@ import OwnerCard from "./OwnerCard";
 import HireCaregiversCard from "./HireCaregiversCard";
 import VerificationStatusCard from "./VerificationStatusCard";
 import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
+import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -63,6 +64,13 @@ export default function DashboardPage() {
   const { user, refreshAccountData } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+  // Capture ?from=qa-success on the very first render, before the
+  // dashboard_arrival effect below strips it. Passed to DashboardContent (which
+  // mounts only after profile loads, potentially after the strip) so the
+  // post-answer ads nudge survives regardless of that timing.
+  const [cameFromQaSuccess] = useState(
+    () => searchParams.get("from") === "qa-success",
+  );
 
   // Passing user?.id makes the hook refetch when auth resolves — covers the
   // first-load-401 race where the session cookie lands after mount.
@@ -237,6 +245,7 @@ export default function DashboardPage() {
       refreshAccountData={refreshAccountData}
       userEmail={user?.email}
       v2Data={v2.data}
+      cameFromQaSuccess={cameFromQaSuccess}
     />
   );
 }
@@ -253,6 +262,7 @@ function DashboardContent({
   refreshAccountData,
   userEmail,
   v2Data,
+  cameFromQaSuccess,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;
@@ -263,6 +273,7 @@ function DashboardContent({
   refreshAccountData: () => Promise<void>;
   userEmail?: string;
   v2Data: import("@/hooks/useProviderDashboardV2Data").ProviderDashboardV2Data | null;
+  cameFromQaSuccess: boolean;
 }) {
   const guided = useGuidedOnboarding(completeness);
   const mobileNavVariant = useMobileNavVariant();
@@ -282,6 +293,12 @@ function DashboardContent({
   const [showEditNudge, setShowEditNudge] = useState(false);
   const editNudgeShownRef = useRef(false);
   const [heroBannerId, setHeroBannerId] = useState<string | null>(null);
+  // Just-answered-a-question moment: mirror the /provider/qna ContextualAdsNudge
+  // for providers who answered via the onboard card and were redirected here with
+  // ?from=qa-success (the unclaimed cohort the Q&A email targets — they never hit
+  // /provider/qna, so this is the only place they can get the post-answer pitch).
+  // cameFromQaSuccess is captured by the parent before it strips the param.
+  const [showQaNudge, setShowQaNudge] = useState(cameFromQaSuccess);
 
   // Verification modal state (for the verification feature, not edit gating)
   const {
@@ -469,6 +486,28 @@ function DashboardContent({
               providerSlug={profile.slug}
               providerName={profile.display_name}
               onDismiss={() => setShowEditNudge(false)}
+            />
+          )}
+
+          {/* Post-answer Managed Ads nudge — the additive "Great response. Want
+              more families reaching out?" strip, mirrored from /provider/qna so
+              onboard-flow answerers (redirected here with ?from=qa-success) get
+              the same high-intent pitch.
+              Gated on heroBannerId being RESOLVED (truthy) and non-ads: unlike
+              PostEditAdsNudge (which fires after a save, once the hero has long
+              settled), this nudge starts visible at mount, when heroBannerId is
+              still null. Waiting for it to resolve avoids a flash-then-disappear
+              (and a double pitch impression) for cold providers whose hero lands
+              on managed-ads. Net intent: show the nudge only when the hero is
+              occupied by something else; stay silent when the hero already pitches
+              ads or the provider already has a boost request. */}
+          {showQaNudge && !previewMode && !!heroBannerId && heroBannerId !== "managed_ads" && !v2Data?.hasActiveBoostRequest && (
+            <ContextualAdsNudge
+              context="question"
+              providerSlug={profile.slug}
+              providerName={profile.display_name}
+              hasActiveBoostRequest={v2Data?.hasActiveBoostRequest}
+              onDismiss={() => setShowQaNudge(false)}
             />
           )}
 

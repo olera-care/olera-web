@@ -9,6 +9,7 @@ import DateRangePopover, {
 } from "@/components/admin/DateRangePopover";
 import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
 import ReorderableSections from "@/components/admin/ReorderableSections";
+import SmsMessagesPanel from "@/components/admin/SmsMessagesPanel";
 
 /**
  * /admin/family-comms — the family-engagement + email-observability surface.
@@ -826,6 +827,13 @@ export default function FamilyCommsAnalyticsPage() {
               deliverability story the 10DLC approval was about. */}
           <CollapsibleSection title="Text message delivery (SMS)" storageKey="fc.sms" defaultCollapsed={false}>
             <SmsDeliveryPanel sms={sms} loading={smsLoading} error={smsError} />
+          </CollapsibleSection>
+
+          {/* SMS messages — the texting sibling of the email previews above.
+              Rendered from the live templates (lib/sms/templates.ts), so what
+              you preview is exactly what sends. */}
+          <CollapsibleSection title="SMS messages — what we send" storageKey="fc.smsMessages" defaultCollapsed={false}>
+            <SmsMessagesPanel senderLast4={sms?.senderLast4} />
           </CollapsibleSection>
 
           {/* Sensor detail */}

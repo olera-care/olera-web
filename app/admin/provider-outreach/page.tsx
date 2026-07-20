@@ -1045,6 +1045,10 @@ export default function ProviderOutreachPage() {
   const [stateActionsMenu, setStateActionsMenu] = useState<string | null>(null);
   const [stateActionLoading, setStateActionLoading] = useState<string | null>(null);
 
+  // Delete state confirmation modal
+  const [stateToDelete, setStateToDelete] = useState<{ code: string; name: string } | null>(null);
+  const [deletingState, setDeletingState] = useState(false);
+
   // State selector dropdown in header
   const [showStateSelector, setShowStateSelector] = useState(false);
 
@@ -1498,13 +1502,17 @@ export default function ProviderOutreachPage() {
     }
   };
 
-  // Handle deleting a state
-  const handleDeleteState = async (stateCode: string, stateName: string) => {
-    setStateActionsMenu(null); // Close menu before showing confirm dialog
-    if (!confirm(`Remove ${stateName} from active states? This won't delete any provider data.`)) {
-      return;
-    }
-    setStateActionLoading(stateCode);
+  // Handle deleting a state - shows confirmation modal
+  const handleDeleteState = (stateCode: string, stateName: string) => {
+    setStateActionsMenu(null); // Close menu before showing modal
+    setStateToDelete({ code: stateCode, name: stateName });
+  };
+
+  // Actually perform the deletion after confirmation
+  const confirmDeleteState = async () => {
+    if (!stateToDelete) return;
+    const { code: stateCode, name: stateName } = stateToDelete;
+    setDeletingState(true);
     try {
       const res = await fetch(`/api/admin/provider-outreach/states/${stateCode}`, {
         method: "DELETE",
@@ -1520,11 +1528,12 @@ export default function ProviderOutreachPage() {
         setSelectedState("");
       }
       showToast(data.message || `${stateName} removed`, "success");
+      setStateToDelete(null);
     } catch (err) {
       console.error("Failed to delete state:", err);
       showToast(err instanceof Error ? err.message : "Failed to remove state", "error");
     } finally {
-      setStateActionLoading(null);
+      setDeletingState(false);
     }
   };
 
@@ -3019,6 +3028,60 @@ export default function ProviderOutreachPage() {
                 className="w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete State Confirmation Modal */}
+      {stateToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => !deletingState && setStateToDelete(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-5">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Remove {stateToDelete.name}?</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    This will remove the state from your active list. Provider data will not be deleted.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-4 bg-gray-50 flex gap-3 justify-end">
+              <button
+                onClick={() => setStateToDelete(null)}
+                disabled={deletingState}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteState}
+                disabled={deletingState}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {deletingState && (
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                )}
+                Remove State
               </button>
             </div>
           </div>

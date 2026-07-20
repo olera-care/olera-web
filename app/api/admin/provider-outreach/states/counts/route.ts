@@ -22,11 +22,11 @@ export async function GET() {
     const db = getServiceClient();
 
     // Get provider counts grouped by state
-    // Only count non-deleted providers
+    // Only count non-deleted providers (deleted IS NOT TRUE matches both NULL and false)
     const { data, error } = await db
       .from("olera-providers")
       .select("state")
-      .eq("deleted", false);
+      .or("deleted.is.null,deleted.eq.false");
 
     if (error) {
       console.error("[provider-outreach/states/counts] Query error:", error);

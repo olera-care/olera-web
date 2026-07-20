@@ -1041,6 +1041,7 @@ export default function ProviderOutreachPage() {
   const [addingState, setAddingState] = useState<string | null>(null);
   const [stateCounts, setStateCounts] = useState<Record<string, number>>({});
   const [loadingStateCounts, setLoadingStateCounts] = useState(false);
+  const [stateCountsError, setStateCountsError] = useState(false);
 
   // State actions menu (for refresh, status change, delete)
   const [stateActionsMenu, setStateActionsMenu] = useState<string | null>(null);
@@ -1288,6 +1289,7 @@ export default function ProviderOutreachPage() {
 
     const fetchStateCounts = async () => {
       setLoadingStateCounts(true);
+      setStateCountsError(false);
       try {
         const res = await fetch("/api/admin/provider-outreach/states/counts");
         if (res.ok) {
@@ -1297,9 +1299,12 @@ export default function ProviderOutreachPage() {
             countsMap[item.state_code] = item.provider_count;
           }
           setStateCounts(countsMap);
+        } else {
+          setStateCountsError(true);
         }
       } catch (err) {
         console.error("Failed to fetch state counts:", err);
+        setStateCountsError(true);
       } finally {
         setLoadingStateCounts(false);
       }
@@ -2962,8 +2967,12 @@ export default function ProviderOutreachPage() {
                     (s.label.toLowerCase().includes(addStateSearch.toLowerCase()) ||
                       s.value.toLowerCase().includes(addStateSearch.toLowerCase()))
                 )
-                  // Sort by provider count descending (most providers first)
-                  .sort((a, b) => (stateCounts[b.value] || 0) - (stateCounts[a.value] || 0));
+                  // Sort by provider count descending if we have counts, otherwise alphabetically
+                  .sort((a, b) =>
+                    stateCountsError
+                      ? a.label.localeCompare(b.label)
+                      : (stateCounts[b.value] || 0) - (stateCounts[a.value] || 0)
+                  );
 
                 if (availableStates.length === 0) {
                   return (
@@ -2976,7 +2985,8 @@ export default function ProviderOutreachPage() {
                 }
 
                 return availableStates.map((usState) => {
-                  const count = stateCounts[usState.value] || 0;
+                  const count = stateCounts[usState.value];
+                  const hasCount = !stateCountsError && count !== undefined;
                   return (
                     <button
                       key={usState.value}
@@ -2988,9 +2998,11 @@ export default function ProviderOutreachPage() {
                         <span className="text-sm font-medium text-gray-900">
                           {usState.label}
                         </span>
-                        <span className="text-xs text-gray-400">
-                          {count.toLocaleString()} provider{count !== 1 ? "s" : ""}
-                        </span>
+                        {hasCount && (
+                          <span className="text-xs text-gray-400">
+                            {count.toLocaleString()} provider{count !== 1 ? "s" : ""}
+                          </span>
+                        )}
                       </div>
                       {addingState === usState.value ? (
                         <svg className="animate-spin h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24">

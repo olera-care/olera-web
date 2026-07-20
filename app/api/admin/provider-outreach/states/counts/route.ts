@@ -7,6 +7,8 @@ import { US_STATES } from "@/lib/us-states";
  *
  * Returns provider counts for all US states.
  * Used by the Add State modal to show how many providers are in each state.
+ *
+ * Uses Supabase's count feature per state for accuracy (vs fetching all rows).
  */
 export async function GET() {
   try {
@@ -21,34 +23,28 @@ export async function GET() {
 
     const db = getServiceClient();
 
-    // Get provider counts grouped by state
-    // Only count non-deleted providers (deleted IS NOT TRUE matches both NULL and false)
-    // Note: Supabase defaults to 1000 rows, so we must set a high limit to get all providers
-    const { data, error } = await db
-      .from("olera-providers")
-      .select("state")
-      .or("deleted.is.null,deleted.eq.false")
-      .limit(200000);
+    // Query count for each state in parallel using Supabase's count feature
+    // This is more reliable than fetching all rows and counting client-side
+    const countPromises = US_STATES.map(async (s) => {
+      const { count, error } = await db
+        .from("olera-providers")
+        .select("provider_id", { count: "exact", head: true })
+        .eq("state", s.value)
+        .or("deleted.is.null,deleted.eq.false");
 
-    if (error) {
-      console.error("[provider-outreach/states/counts] Query error:", error);
-      return NextResponse.json({ error: "Failed to fetch counts" }, { status: 500 });
-    }
-
-    // Count providers per state
-    const countsByState: Record<string, number> = {};
-    for (const row of data ?? []) {
-      if (row.state) {
-        countsByState[row.state] = (countsByState[row.state] || 0) + 1;
+      if (error) {
+        console.error(`[provider-outreach/states/counts] Error counting ${s.value}:`, error);
+        return { state_code: s.value, state_name: s.label, provider_count: 0 };
       }
-    }
 
-    // Build response with all US states
-    const counts = US_STATES.map((s) => ({
-      state_code: s.value,
-      state_name: s.label,
-      provider_count: countsByState[s.value] || 0,
-    }));
+      return {
+        state_code: s.value,
+        state_name: s.label,
+        provider_count: count || 0,
+      };
+    });
+
+    const counts = await Promise.all(countPromises);
 
     // Sort by provider count descending (most providers first)
     counts.sort((a, b) => b.provider_count - a.provider_count);

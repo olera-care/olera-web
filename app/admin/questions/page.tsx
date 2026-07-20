@@ -1101,6 +1101,7 @@ export default function AdminQuestionsPage() {
           const tabCount = tab.value === "unanswered" ? tabCounts.pending
             : tab.value === "needs_email" ? tabCounts.needs_email
             : tab.value === "delivery_issues" ? tabCounts.delivery_issues
+            : tab.value === "no_contact" ? tabCounts.no_contact
             : tab.value === "not_interested" ? tabCounts.not_interested
             : tab.value === "archived" ? tabCounts.archived
             : tab.value === "answered" ? tabCounts.answered

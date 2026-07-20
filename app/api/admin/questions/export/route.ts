@@ -8,7 +8,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
  * By default exports "needs_email" questions with provider contact info.
  *
  * Query params:
- *   tab - "needs_email" (default), "delivery_issues", "unanswered", "answered", "archived", "all"
+ *   tab - "needs_email" (default), "delivery_issues", "no_contact", "not_interested", "unanswered", "answered", "archived", "all"
  *   date_from - ISO date (inclusive)
  *   date_to - ISO date (exclusive)
  *   search - filter by provider name
@@ -96,9 +96,18 @@ export async function GET(request: NextRequest) {
         query = query.contains("metadata", { needs_provider_email: true });
         // Exclude email_dead - those belong in delivery_issues
         query = (query as any).not("metadata", "cs", '{"email_dead":true}');
+        // Exclude not_interested and no_contact - they have their own tabs
+        query = (query as any).not("metadata", "cs", '{"provider_not_interested":true}');
+        query = (query as any).not("metadata", "cs", '{"provider_no_contact":true}');
         query = query.neq("status", "archived").neq("status", "rejected");
       } else if (tab === "delivery_issues") {
         query = query.contains("metadata", { email_dead: true });
+        // Exclude not_interested and no_contact - they have their own tabs
+        query = (query as any).not("metadata", "cs", '{"provider_not_interested":true}');
+        query = (query as any).not("metadata", "cs", '{"provider_no_contact":true}');
+        query = query.neq("status", "archived").neq("status", "rejected");
+      } else if (tab === "no_contact") {
+        query = query.contains("metadata", { provider_no_contact: true });
         query = query.neq("status", "archived").neq("status", "rejected");
       } else if (tab === "not_interested") {
         query = query.contains("metadata", { provider_not_interested: true });
@@ -139,6 +148,7 @@ export async function GET(request: NextRequest) {
         const meta = q.metadata as Record<string, unknown> | null;
         if (meta?.email_dead === true) return false;
         if (meta?.provider_not_interested === true) return false;
+        if (meta?.provider_no_contact === true) return false;
         if (meta?.needs_provider_email === true) return false;
         return true;
       });

@@ -1697,6 +1697,7 @@ export default function ProviderOutreachPage() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  setStateActionsMenu(null); // Close actions menu when opening state selector
                   setShowStateSelector(!showStateSelector);
                 }}
                 className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
@@ -1801,6 +1802,7 @@ export default function ProviderOutreachPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    setShowStateSelector(false); // Close state selector when opening actions menu
                     setStateActionsMenu(stateActionsMenu === selectedState ? null : selectedState);
                   }}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

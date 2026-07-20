@@ -1767,6 +1767,17 @@ export default function ProviderOutreachPage() {
                     </>
                   )}
 
+                  {/* Loading indicator */}
+                  {loadingActiveStates && (
+                    <div className="px-3 py-4 text-center text-gray-400">
+                      <svg className="animate-spin h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      <span className="text-xs">Loading...</span>
+                    </div>
+                  )}
+
                   {/* Add State button */}
                   <button
                     onClick={() => {
@@ -1783,6 +1794,93 @@ export default function ProviderOutreachPage() {
                 </div>
               )}
             </div>
+
+            {/* State actions menu (when a state is selected) */}
+            {selectedState && (
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStateActionsMenu(stateActionsMenu === selectedState ? null : selectedState);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="State actions"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                  </svg>
+                </button>
+
+                {/* Actions dropdown */}
+                {stateActionsMenu === selectedState && (
+                  <div
+                    className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-30 py-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => handleRefreshStateStats(selectedState)}
+                      disabled={stateActionLoading === selectedState}
+                      className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {stateActionLoading === selectedState ? (
+                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      )}
+                      Refresh Stats
+                    </button>
+                    <div className="border-t border-gray-100 my-1" />
+                    {(() => {
+                      const currentState = activeStates.find(s => s.state_code === selectedState);
+                      if (!currentState) return null;
+                      return (
+                        <>
+                          {currentState.status !== "active" && (
+                            <button
+                              onClick={() => handleUpdateStateStatus(selectedState, "active")}
+                              className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              Mark Active
+                            </button>
+                          )}
+                          {currentState.status !== "paused" && (
+                            <button
+                              onClick={() => handleUpdateStateStatus(selectedState, "paused")}
+                              className="w-full px-3 py-2 text-left text-sm text-amber-600 hover:bg-gray-50"
+                            >
+                              Mark Paused
+                            </button>
+                          )}
+                          {currentState.status !== "completed" && (
+                            <button
+                              onClick={() => handleUpdateStateStatus(selectedState, "completed")}
+                              className="w-full px-3 py-2 text-left text-sm text-emerald-600 hover:bg-gray-50"
+                            >
+                              Mark Completed
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
+                    <div className="border-t border-gray-100 my-1" />
+                    <button
+                      onClick={() => {
+                        const stateName = activeStates.find(s => s.state_code === selectedState)?.state_name || selectedState;
+                        handleDeleteState(selectedState, stateName);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Remove State
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         }
       />

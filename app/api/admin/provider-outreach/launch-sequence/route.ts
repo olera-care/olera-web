@@ -79,10 +79,11 @@ export async function POST(request: NextRequest) {
     const db = getServiceClient();
 
     // Fetch provider data
+    // Note: provider_ids are the provider_id column values, not slugs
     const { data: providers, error: fetchError } = await db
       .from("olera-providers")
-      .select("slug, name, email, city, state, category")
-      .in("slug", provider_ids);
+      .select("provider_id, slug, provider_name, email, city, state, provider_category")
+      .in("provider_id", provider_ids);
 
     if (fetchError) {
       console.error("Failed to fetch providers:", fetchError);
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     let invalidCount = 0;
 
     for (const providerId of provider_ids) {
-      const provider = providers?.find((p) => p.slug === providerId);
+      const provider = providers?.find((p) => p.provider_id === providerId);
 
       if (!provider) {
         previews.push({
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
 
       // Validate provider has required data
       const validation = validateProviderForOutreach({
-        name: provider.name,
+        name: provider.provider_name,
         email: provider.email,
         city: provider.city,
         state: provider.state,
@@ -128,11 +129,11 @@ export async function POST(request: NextRequest) {
       if (!validation.valid) {
         previews.push({
           provider_id: providerId,
-          provider_name: provider.name || providerId,
+          provider_name: provider.provider_name || providerId,
           email: provider.email,
           city: provider.city,
           state: provider.state,
-          category: provider.category,
+          category: provider.provider_category,
           valid: false,
           errors: validation.errors,
           emails: [],
@@ -143,10 +144,10 @@ export async function POST(request: NextRequest) {
 
       // Build context and render emails
       const context = buildContextFromProvider({
-        name: provider.name,
+        name: provider.provider_name,
         city: provider.city,
         state: provider.state,
-        category: provider.category,
+        category: provider.provider_category,
         slug: provider.slug,
       });
 
@@ -164,11 +165,11 @@ export async function POST(request: NextRequest) {
 
       previews.push({
         provider_id: providerId,
-        provider_name: provider.name,
+        provider_name: provider.provider_name,
         email: provider.email,
         city: provider.city,
         state: provider.state,
-        category: provider.category,
+        category: provider.provider_category,
         valid: true,
         errors: [],
         emails,

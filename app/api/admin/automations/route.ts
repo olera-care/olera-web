@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { CRON_REGISTRY, isEmailJob } from "@/lib/crons/registry";
+import { CRON_REGISTRY, jobChannels } from "@/lib/crons/registry";
 
 /**
  * GET /api/admin/automations  — powers the /admin/automations cockpit:
@@ -39,6 +39,8 @@ interface ConfigRow {
 }
 interface EmailLogRow {
   email_type: string;
+  channel: string | null;
+  status: string | null;
   delivered_at: string | null;
   first_opened_at: string | null;
   first_clicked_at: string | null;
@@ -88,15 +90,25 @@ export async function GET() {
   }
 
   // ── 30-day email rollup by email_type ──
+  // SMS sends share email_log under the same email_type values (channel='sms'),
+  // so split by channel: texts must never count as emails (they'd dilute open
+  // rates — a text can't "open") and vice versa.
   const byType = new Map<string, Rollup>();
+  const smsSentByType = new Map<string, number>();
   try {
     const { data } = await db
       .from("email_log")
-      .select("email_type, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at")
+      .select("email_type, channel, status, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at")
       .gte("created_at", since)
       .limit(200000);
     for (const e of (data ?? []) as EmailLogRow[]) {
       const t = e.email_type || "unknown";
+      if (e.channel === "sms") {
+        // status='failed' = Twilio rejected the API call — never left the building.
+        // Same filter the reactive-alerts daily throttle uses.
+        if (e.status !== "failed") smsSentByType.set(t, (smsSentByType.get(t) ?? 0) + 1);
+        continue;
+      }
       const b = byType.get(t) ?? emptyRollup();
       b.sent += 1;
       if (e.delivered_at) b.delivered += 1;
@@ -138,6 +150,11 @@ export async function GET() {
     const cfg = configByJob.get(job.id);
     const pausedActive = !!cfg && cfg.enabled === false && (!cfg.paused_until || new Date(cfg.paused_until).getTime() > now);
 
+    let smsRollup: { sent: number } | null = null;
+    if (job.smsTypes && job.smsTypes.length > 0) {
+      smsRollup = { sent: job.smsTypes.reduce((n, t) => n + (smsSentByType.get(t) ?? 0), 0) };
+    }
+
     let rollup: Rollup | null = null;
     if (job.emailTypes.length > 0) {
       rollup = emptyRollup();
@@ -168,15 +185,17 @@ export async function GET() {
       humanSchedule: job.humanSchedule,
       path: job.path,
       emailTypes: job.emailTypes,
+      channels: jobChannels(job),
       successSignal: job.successSignal ?? null,
       relatedAdminPath: job.relatedAdminPath ?? null,
-      isEmail: isEmailJob(job),
+      isEmail: jobChannels(job).includes("email"),
       paused: pausedActive,
       pause: pausedActive ? { reason: cfg!.paused_reason, by: cfg!.paused_by, at: cfg!.paused_at, until: cfg!.paused_until } : null,
       lastRun,
       runs30d: runs?.count ?? 0,
       errors30d: runs?.errors ?? 0,
       rollup30d: rollup,
+      smsRollup30d: smsRollup,
     };
   });
 

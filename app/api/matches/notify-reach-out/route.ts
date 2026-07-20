@@ -6,6 +6,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { providerReachOutEmail, providerReachOutConfirmationEmail } from "@/lib/email-templates";
 import { sendSlackAlert } from "@/lib/slack";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
+import { providerReachOutSms } from "@/lib/sms/templates";
 
 /**
  * POST /api/matches/notify-reach-out
@@ -172,7 +173,7 @@ export async function POST(request: Request) {
         state: family.state,
         phoneValidity: family.phone_validity,
         emailType: "provider_reach_out",
-        body: `Olera: ${providerDisplayName} in ${providerCity} reached out about your care needs. Read & reply: ${smsUrl}`,
+        body: providerReachOutSms({ providerName: providerDisplayName, providerCity, url: smsUrl }),
       });
     } catch (smsErr) {
       console.error("[notify-reach-out] Reactive SMS failed:", smsErr);

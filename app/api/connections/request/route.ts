@@ -7,6 +7,7 @@ import { connectionRequestEmail, connectionSentEmail, careReportEmail, firstLead
 import { getPricingForProviderSync, formatPricingRange, getFundingOptions } from "@/lib/pricing-ranges";
 import { sendSlackAlert, slackNewLead, slackMissingEmail, slackLeadCaptureConverted, slackLegacyConnectConverted } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { newInquirySms } from "@/lib/sms/templates";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { startSeekerConversation } from "@/lib/whatsapp-conversation";
 import { sendLoopsEvent } from "@/lib/loops";
@@ -917,7 +918,7 @@ async function handleGuestConnection({
       if (normalized) {
         await sendSMS({
           to: normalized,
-          body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
+          body: newInquirySms({ familyName: firstName, url: `${getSiteUrl()}/provider/connections` }),
           recipientProfileId: toProfileId,
           notificationType: "new_leads",
         });
@@ -2036,7 +2037,7 @@ export async function POST(request: Request) {
         if (normalized) {
           const result = await sendSMS({
             to: normalized,
-            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
+            body: newInquirySms({ familyName: firstName, url: `${getSiteUrl()}/provider/connections` }),
             recipientProfileId: toProfileId,
             notificationType: "new_leads",
           });

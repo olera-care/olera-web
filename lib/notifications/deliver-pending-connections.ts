@@ -8,6 +8,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { pendingInquirySms } from "@/lib/sms/templates";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { sendSlackAlert, slackNewLead } from "@/lib/slack";
 import { getSiteUrl } from "@/lib/site-url";
@@ -195,7 +196,7 @@ async function notifyRecipient(
       if (normalized) {
         await sendSMS({
           to: normalized,
-          body: `New inquiry on Olera from ${providerName}. View and respond: ${siteUrl}/portal/inbox`,
+          body: pendingInquirySms({ fromName: providerName, url: `${siteUrl}/portal/inbox` }),
           recipientProfileId: connection.to_profile_id,
           notificationType: "new_leads",
         });

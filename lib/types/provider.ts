@@ -230,6 +230,16 @@ const HOME_CARE_POOL = [
   "/images/fallback/home-care-18.jpg",
 ];
 
+const HOME_HEALTH_POOL = [
+  "/images/fallback/home-health-1.jpg",
+  "/images/fallback/home-health-2.jpg",
+  "/images/fallback/home-health-3.jpg",
+  "/images/fallback/home-health-4.jpg",
+  "/images/fallback/home-health-5.jpg",
+  "/images/fallback/home-health-6.jpg",
+  "/images/fallback/home-health-7.jpg",
+];
+
 const ASSISTED_LIVING_POOL = [
   "/images/fallback/assisted-living-01.jpg",
   "/images/fallback/assisted-living-02.jpg",
@@ -277,7 +287,7 @@ const INDEPENDENT_LIVING_POOL = [
 
 const CATEGORY_FALLBACK_POOLS: Record<string, string[]> = {
   "Home Care (Non-medical)": HOME_CARE_POOL,
-  "Home Health Care": HOME_CARE_POOL,
+  "Home Health Care": HOME_HEALTH_POOL,
   "Assisted Living": ASSISTED_LIVING_POOL,
   "Memory Care": MEMORY_CARE_POOL,
   "Independent Living": INDEPENDENT_LIVING_POOL,
@@ -642,4 +652,3 @@ export function mockToCardFormat(p: any): ProviderCardData {
     description: p.description as string | undefined,
   };
 }
-

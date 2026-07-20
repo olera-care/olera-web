@@ -38,6 +38,7 @@ interface Job {
   humanSchedule: string;
   path: string;
   emailTypes: string[];
+  channels: Array<"email" | "sms">;
   successSignal: string | null;
   relatedAdminPath: string | null;
   isEmail: boolean;
@@ -47,6 +48,7 @@ interface Job {
   runs30d: number;
   errors30d: number;
   rollup30d: Rollup | null;
+  smsRollup30d: { sent: number } | null;
 }
 interface ApiResponse {
   windowDays: number;
@@ -106,7 +108,7 @@ function jobHasErr(j: Job): boolean {
 }
 
 const COLLAPSE_KEY = "automations:collapsed";
-type Filter = "all" | "email" | "errored" | "paused";
+type Filter = "all" | "email" | "text" | "errored" | "paused";
 
 function Chevron({ open }: { open: boolean }) {
   return (
@@ -216,7 +218,8 @@ export default function AutomationsPage() {
 
   const matches = useCallback(
     (j: Job): boolean => {
-      if (filter === "email" && !j.isEmail) return false;
+      if (filter === "email" && !j.channels.includes("email")) return false;
+      if (filter === "text" && !j.channels.includes("sms")) return false;
       if (filter === "errored" && !jobHasErr(j)) return false;
       if (filter === "paused" && !j.paused) return false;
       if (q.trim()) {
@@ -250,7 +253,7 @@ export default function AutomationsPage() {
   return (
     <div className="max-w-5xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Automations</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Email and Text Automations</h1>
         <button disabled={loading} onClick={load} className={ghostBtn}>{loading && data ? "Refreshing…" : "Refresh"}</button>
       </div>
 
@@ -289,9 +292,9 @@ export default function AutomationsPage() {
           {/* filter */}
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter automations…" className="w-56 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:outline-none" />
-            {(["all", "email", "errored", "paused"] as Filter[]).map((f) => (
+            {(["all", "email", "text", "errored", "paused"] as Filter[]).map((f) => (
               <button key={f} onClick={() => setFilter(f)} className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${filter === f ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                {f === "all" ? "All" : f === "email" ? "Email" : f === "errored" ? "Errored" : "Paused"}
+                {f === "all" ? "All" : f === "email" ? "Email" : f === "text" ? "Text" : f === "errored" ? "Errored" : "Paused"}
               </button>
             ))}
             <div className="ml-auto flex items-center gap-2 text-xs text-gray-400">
@@ -328,6 +331,7 @@ export default function AutomationsPage() {
                                 {job.paused && <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200">Paused</span>}
                                 {!job.paused && jobHasErr(job) && <span className="rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-inset ring-red-200">Errors</span>}
                                 <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">{FN_LABEL[job.fn]}</span>
+                                {job.channels.includes("sms") && <span className="rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">text</span>}
                                 <span className="text-xs text-gray-400">{job.humanSchedule}</span>
                               </div>
                               <div className="mt-0.5 truncate text-xs text-gray-400" title={job.lastRun ? `Last run: ${runResult(job.lastRun.summary) || job.lastRun.status}${job.lastRun.error ? ` — ${job.lastRun.error}` : ""}` : undefined}>
@@ -344,6 +348,13 @@ export default function AutomationsPage() {
                                 ) : job.lastRun && runResult(job.lastRun.summary) ? (
                                   <><span className="text-gray-300"> · </span>{runResult(job.lastRun.summary)}</>
                                 ) : null}
+                                {job.smsRollup30d && job.smsRollup30d.sent > 0 && (
+                                  <>
+                                    <span className="text-gray-300"> · </span>
+                                    <span className="tabular-nums text-gray-500">{job.smsRollup30d.sent.toLocaleString()}</span> texts sent
+                                    <span className="text-gray-300"> · 30d</span>
+                                  </>
+                                )}
                               </div>
                             </div>
                             <div className="flex shrink-0 items-center gap-2">

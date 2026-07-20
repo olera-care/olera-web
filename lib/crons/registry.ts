@@ -38,6 +38,17 @@ export interface CronJob {
   path: string;
   /** email_log.email_type value(s) this job sends, for the 30-day rollup. Empty for non-email jobs. */
   emailTypes: string[];
+  /**
+   * Outbound channels. Absent → derived: send jobs are email, refresh/maintenance
+   * are none. Set explicitly on SMS automations (and future multi-channel ones).
+   */
+  channels?: Array<"email" | "sms">;
+  /**
+   * email_log.email_type values this job's TEXTS log under (channel='sms'), for
+   * the SMS sent-count rollup. Absent when the call site sends without logging —
+   * Twilio (the Family Comms delivery panel) is then the only record.
+   */
+  smsTypes?: string[];
   /** What "working" looks like beyond raw sends — the server-confirmed action downstream. Descriptive for now. */
   successSignal?: string;
   /** Related admin queue/surface for this automation, if any. */
@@ -47,6 +58,11 @@ export interface CronJob {
 /** Email jobs are everything except data refreshes and pure maintenance. */
 export function isEmailJob(job: CronJob): boolean {
   return job.fn !== "refresh" && job.fn !== "maintenance";
+}
+
+/** Outbound channels for a job — explicit `channels` wins; otherwise send jobs are email-only. */
+export function jobChannels(job: CronJob): Array<"email" | "sms"> {
+  return job.channels ?? (isEmailJob(job) ? ["email"] : []);
 }
 
 export const CRON_REGISTRY: CronJob[] = [
@@ -122,6 +138,23 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal:
       "Provider completes setup, sees campaign progress, opens campaign-attributed leads, or replies to the promo wrap-up.",
     relatedAdminPath: "/admin/ad-boost",
+  },
+  {
+    id: "provider-lead-alert-texts",
+    name: "Provider lead-alert texts",
+    description:
+      "Speed-to-lead SMS to providers: a new care inquiry (guest and signed-in paths), a pending inquiry released to their inbox, or a MedJobs student application. Respects the provider's new_leads notification preference. Not logged to email_log — Twilio (the Family Comms delivery panel) is the record; directory-scraped fallback numbers account for most 'bad number' failures there.",
+    recipientCohort:
+      "Providers with a phone on file (business profile, falling back to the directory-scraped number) receiving a fresh family inquiry or student application.",
+    audience: "Providers",
+    fn: "event",
+    schedule: "event-triggered",
+    humanSchedule: "Event-triggered by new inquiries, pending-inquiry releases, and MedJobs applications",
+    path: "/admin/family-comms",
+    emailTypes: [],
+    channels: ["sms"],
+    successSignal: "The provider opens the inquiry and responds while the family is still actively searching.",
+    relatedAdminPath: "/admin/family-comms",
   },
   {
     id: "provider-welcome",
@@ -284,8 +317,43 @@ export const CRON_REGISTRY: CronJob[] = [
     humanSchedule: "Hourly, on the hour",
     path: "/api/cron/sms-queue-flush",
     emailTypes: [],
+    channels: ["sms"],
     successSignal: "Held reply-alert texts deliver at a civil hour without re-texting opted-out families.",
     relatedAdminPath: "/admin/family-comms",
+  },
+  {
+    id: "family-reply-alert-texts",
+    name: "Family reply-alert texts",
+    description:
+      "Reactive Tier-1 SMS: texts the family the moment a provider reaches out about their care request or accepts their inquiry. Transactional (the family started the thread) so cap-exempt; sends landing outside the recipient's 8am–8pm window queue for the SMS queue flush cron.",
+    recipientCohort:
+      "Families with a usable phone whose inquiry just got a provider reply. Skipped on opt-out (STOP), no phone, or past the 6-texts/day safety cap.",
+    audience: "Care seekers",
+    fn: "event",
+    schedule: "event-triggered",
+    humanSchedule: "Event-triggered by provider reach-outs and inquiry accepts",
+    path: "/admin/family-comms",
+    emailTypes: [],
+    channels: ["sms"],
+    smsTypes: ["provider_reach_out", "connection_response"],
+    successSignal: "The family opens the inbox link and replies while the provider is still engaged.",
+    relatedAdminPath: "/admin/family-comms",
+  },
+  {
+    id: "benefits-results-texts",
+    name: "Benefits results texts",
+    description:
+      "Fires alongside the results email when a new family finishes the benefits quiz with a phone on file: a match-count text with their magic results link, or the honest \"saved, still looking\" zero-state. Their first text from us, so it carries Reply STOP. Not logged to email_log — Twilio (the Family Comms delivery panel) is the record.",
+    recipientCohort: "New families who completed the benefits quiz and provided a phone (V3 phone-as-optional flow).",
+    audience: "Care seekers",
+    fn: "event",
+    schedule: "event-triggered",
+    humanSchedule: "Event-triggered by benefits quiz completion",
+    path: "/admin/family-comms",
+    emailTypes: [],
+    channels: ["sms"],
+    successSignal: "The family opens their results link and starts a program brief or provider search.",
+    relatedAdminPath: "/admin/benefits",
   },
   {
     id: "matches-unread",
@@ -400,6 +468,21 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/daily-digest",
     emailTypes: ["daily_digest"],
     relatedAdminPath: "/admin/analytics",
+  },
+  {
+    id: "transactional-texts",
+    name: "Verification & keyword texts",
+    description:
+      "Utility SMS: the claim-flow phone-verification code (provider chose 'text me a code') and the TCPA HELP/INFO auto-reply from the inbound webhook. Compliance plumbing, not comms — the HELP copy is what carriers and 10DLC reviewers see as our help message.",
+    recipientCohort: "Providers mid-claim who picked SMS verification; anyone who texts HELP or INFO to our number.",
+    audience: "Internal",
+    fn: "event",
+    schedule: "event-triggered",
+    humanSchedule: "Event-triggered by claim verification and inbound HELP keywords",
+    path: "/admin/family-comms",
+    emailTypes: [],
+    channels: ["sms"],
+    relatedAdminPath: "/admin/verification",
   },
 
   // ── Data & maintenance ─────────────────────────────────────────────

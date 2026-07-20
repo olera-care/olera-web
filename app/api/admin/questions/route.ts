@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const providerId = searchParams.get("provider_id");
     const needsEmail = searchParams.get("needs_email") === "true";
     const deliveryIssues = searchParams.get("delivery_issues") === "true";
+    const noContact = searchParams.get("no_contact") === "true";
     const notInterested = searchParams.get("not_interested") === "true";
     const unanswered = searchParams.get("unanswered") === "true";
     const countOnly = searchParams.get("count_only") === "true";
@@ -46,10 +47,11 @@ export async function GET(request: NextRequest) {
         return q;
       };
 
-      const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
+      const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, noContactQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
         applyDateFilters(db.from("provider_questions").select("provider_id, metadata").eq("status", "pending")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_no_contact: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
         applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
         applyDateFilters(db.from("provider_questions").select("provider_id").eq("status", "archived")).limit(50000),
         applyDateFilters(db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"])).limit(50000),
@@ -67,6 +69,7 @@ export async function GET(request: NextRequest) {
             const meta = q.metadata as Record<string, unknown> | null;
             if (meta?.email_dead === true) return false;
             if (meta?.provider_not_interested === true) return false;
+            if (meta?.provider_no_contact === true) return false;
             if (meta?.needs_provider_email === true) return false;
             return true;
           })
@@ -78,6 +81,7 @@ export async function GET(request: NextRequest) {
         pending: truePendingProviders.size,
         needs_email: countUniqueProviders(needsEmailQuestions.data),
         delivery_issues: countUniqueProviders(deliveryIssuesQuestions.data),
+        no_contact: countUniqueProviders(noContactQuestions.data),
         not_interested: countUniqueProviders(notInterestedQuestions.data),
         archived: countUniqueProviders(archivedQuestions.data),
         answered: countUniqueProviders(answeredQuestions.data),
@@ -907,6 +911,99 @@ export async function GET(request: NextRequest) {
         is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
         verification_state: providerVerificationState[q.provider_id] || null,
         provider_email_history: providerEmailHistory[q.provider_id] || [],
+      }));
+
+      return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
+    }
+
+    // For no_contact, show questions where provider is tagged as no contact
+    // This is purely organizational - providers where admin couldn't find contact info
+    if (noContact) {
+      let noContactQuery = db
+        .from("provider_questions")
+        .select("*")
+        .contains("metadata", { provider_no_contact: true })
+        .neq("status", "archived")
+        .neq("status", "rejected")
+        .order("created_at", { ascending: false })
+        .limit(10000);
+
+      if (searchSlugs) {
+        if (searchSlugs.length === 0) return NextResponse.json({ questions: [], count: 0 });
+        noContactQuery = (noContactQuery as any).in("provider_id", searchSlugs);
+      }
+      if (dateFrom) noContactQuery = (noContactQuery as any).gte("created_at", dateFrom);
+      if (dateTo) noContactQuery = (noContactQuery as any).lt("created_at", dateTo);
+
+      const { data: allNoContactQuestions, error: noContactError } = await noContactQuery;
+      if (noContactError) {
+        console.error("Admin questions fetch error:", noContactError);
+        return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
+      }
+
+      // Apply provider-based pagination (paginate by provider, not question)
+      const { questions, providerCount: count } = paginateByProvider(
+        allNoContactQuestions ?? [],
+        offset,
+        limit
+      );
+
+      // Enrich with provider data (same pattern as other tabs)
+      const slugs = [...new Set(questions.map((q) => q.provider_id).filter(Boolean))];
+      let providerNames: Record<string, string> = {};
+      let providerEditorIds: Record<string, string> = {};
+      let providerEmails: Record<string, string> = {};
+      let providerPhones: Record<string, string> = {};
+      let providerClaimStatus: Record<string, boolean> = {};
+      let providerVerificationState: Record<string, string> = {};
+      if (slugs.length > 0) {
+        const { data: bpProviders } = await db
+          .from("business_profiles")
+          .select("slug, display_name, source_provider_id, email, phone, account_id, verification_state, metadata")
+          .in("slug", slugs);
+        providerNames = Object.fromEntries(
+          (bpProviders ?? []).map((p) => [p.slug, p.display_name])
+        );
+        providerEditorIds = Object.fromEntries(
+          (bpProviders ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
+        );
+        for (const p of bpProviders ?? []) {
+          if (p.slug && p.email) providerEmails[p.slug] = p.email;
+          if (p.slug && p.phone) providerPhones[p.slug] = p.phone;
+        }
+        for (const p of bpProviders ?? []) {
+          if (p.slug) {
+            providerClaimStatus[p.slug] = !!p.account_id;
+            providerVerificationState[p.slug] = (p.verification_state as string) || "unverified";
+          }
+        }
+
+        // Fallback to olera-providers for missing names
+        const missingFromSlugLookup = slugs.filter((s) => !providerNames[s]);
+        if (missingFromSlugLookup.length > 0) {
+          const { data: iosProviders } = await db
+            .from("olera-providers")
+            .select("slug, provider_id, provider_name, email, phone")
+            .in("slug", missingFromSlugLookup)
+            .not("deleted", "is", true);
+          for (const p of iosProviders ?? []) {
+            if (p.slug && p.provider_name && !providerNames[p.slug]) providerNames[p.slug] = p.provider_name;
+            if (p.slug && p.provider_id && !providerEditorIds[p.slug]) providerEditorIds[p.slug] = p.provider_id;
+            if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
+            if (p.slug && p.phone && !providerPhones[p.slug]) providerPhones[p.slug] = p.phone;
+          }
+        }
+      }
+
+      const enriched = questions.map((q) => ({
+        ...q,
+        provider_name: providerNames[q.provider_id] || null,
+        provider_editor_id: providerEditorIds[q.provider_id] || null,
+        provider_email: providerEmails[q.provider_id] || null,
+        provider_phone: providerPhones[q.provider_id] || null,
+        is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
+        verification_state: providerVerificationState[q.provider_id] || null,
+        provider_email_history: [],
       }));
 
       return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });

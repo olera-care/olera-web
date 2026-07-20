@@ -1748,14 +1748,17 @@ export default function ProviderOutreachPage() {
                     {(() => {
                       const currentState = activeStates.find(s => s.state_code === selectedState);
                       if (!currentState) return null;
+                      if (currentState.status === "completed") {
+                        return (
+                          <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        );
+                      }
                       return (
                         <span
                           className={`w-2 h-2 rounded-full ${
-                            currentState.status === "completed"
-                              ? "bg-emerald-500"
-                              : currentState.status === "paused"
-                              ? "bg-amber-500"
-                              : "bg-green-500"
+                            currentState.status === "paused" ? "bg-amber-500" : "bg-green-500"
                           }`}
                         />
                       );
@@ -1785,9 +1788,6 @@ export default function ProviderOutreachPage() {
                       <div className="overflow-y-auto max-h-64">
                         {activeStates.map((state) => {
                           const isSelected = selectedState === state.state_code;
-                          const progress = state.total_providers > 0
-                            ? Math.round((state.claimed / state.total_providers) * 100)
-                            : 0;
                           return (
                             <button
                               key={state.state_code}
@@ -1805,23 +1805,26 @@ export default function ProviderOutreachPage() {
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
                                 )}
-                                {/* Status indicator dot */}
-                                <span
-                                  className={`w-2 h-2 rounded-full ${
-                                    state.status === "completed"
-                                      ? "bg-emerald-500"
-                                      : state.status === "paused"
-                                      ? "bg-amber-500"
-                                      : "bg-green-500"
-                                  }`}
-                                  title={state.status === "completed" ? "Completed" : state.status === "paused" ? "Paused" : "Active"}
-                                />
+                                {/* Status indicator */}
+                                {state.status === "completed" ? (
+                                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20" title="Completed">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                ) : (
+                                  <span
+                                    className={`w-2 h-2 rounded-full ${
+                                      state.status === "paused" ? "bg-amber-500" : "bg-green-500"
+                                    }`}
+                                    title={state.status === "paused" ? "Paused" : "Active"}
+                                  />
+                                )}
                                 <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>
                                   {state.state_name}
                                 </span>
                                 <span className="text-xs text-gray-400">({state.state_code})</span>
                               </div>
-                              <span className="text-xs text-gray-400">{progress}%</span>
+                              {/* Show provider count instead of confusing percentage */}
+                              <span className="text-xs text-gray-400">{state.total_providers.toLocaleString()}</span>
                             </button>
                           );
                         })}

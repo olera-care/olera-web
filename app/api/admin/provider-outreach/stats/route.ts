@@ -5,13 +5,13 @@ import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
 /**
  * GET /api/admin/provider-outreach/stats
  *
- * Returns stats for the PulseHeader on the Provider Outreach page.
+ * Returns stats for the Provider Outreach page.
  *
  * Default metric: "claimed" — providers who claimed their account in the period.
  * This is the success metric for the outreach funnel.
  *
  * Query params:
- *   - state (required): State to filter by
+ *   - state: State to filter by (required for all metrics EXCEPT "claimed")
  *   - metric (optional): "claimed" | "in_sequence" | "funnel" (default: "claimed")
  *   - date_from (ISO, inclusive). Omit for all-time.
  *   - date_to (ISO, exclusive).
@@ -36,8 +36,9 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
 
-    if (!state) {
-      return NextResponse.json({ error: "State parameter is required" }, { status: 400 });
+    // State is required for all metrics except "claimed" (which is always global)
+    if (!state && metric !== "claimed") {
+      return NextResponse.json({ error: "State parameter is required for this metric" }, { status: 400 });
     }
 
     const db = getServiceClient();
@@ -49,21 +50,23 @@ export async function GET(request: NextRequest) {
     const queryStart = priorFrom ?? from ?? null;
 
     if (metric === "funnel") {
-      // Multi-series funnel breakdown
-      return await buildFunnelResponse(db, state, { from, to, priorFrom, queryStart });
+      // Multi-series funnel breakdown (state is guaranteed non-null by earlier check)
+      return await buildFunnelResponse(db, state!, { from, to, priorFrom, queryStart });
     }
 
     // Single metric response
     let timestamps: Date[];
 
     if (metric === "claimed") {
-      timestamps = await fetchClaimedTimestamps(db, state, queryStart, to);
+      // Claimed is global - state param is ignored
+      timestamps = await fetchClaimedTimestamps(db, queryStart, to);
     } else if (metric === "in_sequence") {
-      timestamps = await fetchStageTimestamps(db, state, "in_sequence", queryStart, to);
+      // State is guaranteed non-null by earlier check
+      timestamps = await fetchStageTimestamps(db, state!, "in_sequence", queryStart, to);
     } else if (metric === "needs_call") {
-      timestamps = await fetchStageTimestamps(db, state, "needs_call", queryStart, to);
+      timestamps = await fetchStageTimestamps(db, state!, "needs_call", queryStart, to);
     } else if (metric === "called") {
-      timestamps = await fetchStageTimestamps(db, state, "called", queryStart, to);
+      timestamps = await fetchStageTimestamps(db, state!, "called", queryStart, to);
     } else {
       return NextResponse.json({ error: `Unknown metric: ${metric}` }, { status: 400 });
     }
@@ -102,61 +105,39 @@ export async function GET(request: NextRequest) {
 type DB = ReturnType<typeof getServiceClient>;
 
 /**
- * Fetch claimed timestamps for providers in a state.
- * Uses claimed_at from provider_outreach_tracking (accurate) with fallback
- * to business_profiles timestamps (less accurate but covers older claims).
+ * Fetch claimed timestamps for ALL providers across all states.
+ * Uses business_profiles.created_at as the claim timestamp.
+ * This is the source of truth for claimed providers (has account_id linked).
+ *
+ * This is always global - no state filtering.
  */
 async function fetchClaimedTimestamps(
   db: DB,
-  state: string,
   queryStart: Date | null,
   to: Date
 ): Promise<Date[]> {
-  // Primary source: provider_outreach_tracking.claimed_at (accurate)
-  let trackingQuery = db
-    .from("provider_outreach_tracking")
-    .select("claimed_at")
-    .eq("state", state)
-    .eq("stage", "claimed")
-    .not("claimed_at", "is", null)
-    .order("claimed_at", { ascending: true });
+  // Query business_profiles with account_id (actual claimed providers)
+  // Use created_at as the claim timestamp
+  let query = db
+    .from("business_profiles")
+    .select("created_at")
+    .not("account_id", "is", null)
+    .not("source_provider_id", "is", null)
+    .order("created_at", { ascending: true });
 
-  if (queryStart) trackingQuery = trackingQuery.gte("claimed_at", queryStart.toISOString());
-  if (to) trackingQuery = trackingQuery.lt("claimed_at", to.toISOString());
+  if (queryStart) query = query.gte("created_at", queryStart.toISOString());
+  if (to) query = query.lt("created_at", to.toISOString());
 
-  const { data: trackingRows, error: trackingError } = await trackingQuery;
+  const { data: rows, error } = await query;
 
-  if (trackingError) {
-    console.error("[provider-outreach/stats] Tracking claimed_at query error:", trackingError);
+  if (error) {
+    console.error("[provider-outreach/stats] business_profiles query error:", error);
+    return [];
   }
 
-  const timestamps: Date[] = (trackingRows || [])
-    .map((r) => new Date(r.claimed_at))
+  return (rows || [])
+    .map((r) => new Date(r.created_at))
     .filter((t) => !isNaN(t.getTime()));
-
-  // Fallback: For claimed providers without claimed_at (older records before migration),
-  // use stage_changed_at from tracking as approximation
-  let fallbackQuery = db
-    .from("provider_outreach_tracking")
-    .select("stage_changed_at")
-    .eq("state", state)
-    .eq("stage", "claimed")
-    .is("claimed_at", null)
-    .order("stage_changed_at", { ascending: true });
-
-  if (queryStart) fallbackQuery = fallbackQuery.gte("stage_changed_at", queryStart.toISOString());
-  if (to) fallbackQuery = fallbackQuery.lt("stage_changed_at", to.toISOString());
-
-  const { data: fallbackRows } = await fallbackQuery;
-
-  for (const r of fallbackRows || []) {
-    const t = new Date(r.stage_changed_at);
-    if (!isNaN(t.getTime())) {
-      timestamps.push(t);
-    }
-  }
-
-  return timestamps.sort((a, b) => a.getTime() - b.getTime());
 }
 
 /**
@@ -266,7 +247,7 @@ async function buildFunnelResponse(
     fetchStageTimestamps(db, state, "in_sequence", queryStart, to),
     fetchStageTimestamps(db, state, "needs_call", queryStart, to),
     fetchStageTimestamps(db, state, "called", queryStart, to),
-    fetchClaimedTimestamps(db, state, queryStart, to),
+    fetchClaimedTimestamps(db, queryStart, to),
   ]);
 
   const inRange = (t: Date) => (from ? t >= from : true) && (to ? t < to : true);

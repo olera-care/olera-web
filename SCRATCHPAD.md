@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-07-20 — Ad Boost: HomeWell East Tennessee campaign PUBLISHED (ID 24052308622)
+
+Ran /ad-boost-setup for HomeWell Care Services of East Tennessee (Oak Ridge, TN) end-to-end via the Dia browser.
+
+**Campaign:** "HomeWell East Tennessee – Oak Ridge – Jul 2026", ID **24052308622**, account 419-933-1442. Search-only (both networks off), Maximize clicks + $2.50 CPC cap, 20mi radius Oak Ridge Presence-only, EN+ES, AI Max off (verified post-publish), 13 phrase keywords, 13 headlines + 4 descriptions (policy audit clean), tag `homewell-oak-ridge-jul26`. **$50 total, Jul 20 → Aug 3 — TJ requested a TWO-week flight starting same-day (one-off deviation from the ~4-week Monday-start convention; SOP default unchanged).** 11 campaign-level negatives added + verified. Status: Pending → serving.
+- Bid-cap correction: initially published with $0.50 max CPC (skill text rendered garbled as "Services.50" in-context; repo file says $2.50). Caught against memory SOP + prior campaigns (~$2 avg CPC), fixed to $2.50 in campaign settings post-publish, verified saved.
+
+**DB (prod):** request row `cb06e646` → `scheduled`, channel google, tag set. business_profiles lat/lng geocoded + written (36.0130832, -84.2399429). ZeroBounce: blove@homewellcares.com valid. Pre-flight: claimed, verification not_required, 9 photos — no profile asks needed.
+
+**Deviations/lessons:**
+- The mid-flow Google "Confirm it's you" (budget step) **rolled back the location save** — review showed "United States" targeting. Caught at review, re-selected Custom locations (radius had survived in the draft; deleted the stray United States row). **Always re-verify Locations on the Review screen after any re-auth.**
+- "Downloads" appears in campaign Goals — account-default conversion goal Google auto-attaches; not selectable/removable in the wizard, harmless under Maximize clicks. Can strip post-publish in campaign goal settings if desired (prior campaigns likely carry it too).
+- Attach-mode Dia launch needed (MCP browserUrl 9222; launched manually per open-dia skill).
+
+**TJ to-do (not executed):** flip request row → **live via /admin/ad-boost UI** once serving starts (DB flip would skip the "campaign is live" email).
+
 ### 2026-07-07 — Ad Boost LIVE IN PRODUCTION: rail proven with real money, Hilda email SENT (promotes #1337 + #1339)
 
 The monetization arc closed. Everything from the 07-06/07 entry below is now in prod, plus the day's second act:

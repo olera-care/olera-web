@@ -1039,6 +1039,8 @@ export default function ProviderOutreachPage() {
   const [showAddStateModal, setShowAddStateModal] = useState(false);
   const [addStateSearch, setAddStateSearch] = useState("");
   const [addingState, setAddingState] = useState<string | null>(null);
+  const [stateCounts, setStateCounts] = useState<Record<string, number>>({});
+  const [loadingStateCounts, setLoadingStateCounts] = useState(false);
 
   // State actions menu (for refresh, status change, delete)
   const [stateActionsMenu, setStateActionsMenu] = useState<string | null>(null);
@@ -1279,6 +1281,32 @@ export default function ProviderOutreachPage() {
   useEffect(() => {
     fetchActiveStates();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Effect: fetch provider counts when Add State modal opens
+  useEffect(() => {
+    if (!showAddStateModal) return;
+
+    const fetchStateCounts = async () => {
+      setLoadingStateCounts(true);
+      try {
+        const res = await fetch("/api/admin/provider-outreach/states/counts");
+        if (res.ok) {
+          const data = await res.json();
+          const countsMap: Record<string, number> = {};
+          for (const item of data.counts || []) {
+            countsMap[item.state_code] = item.provider_count;
+          }
+          setStateCounts(countsMap);
+        }
+      } catch (err) {
+        console.error("Failed to fetch state counts:", err);
+      } finally {
+        setLoadingStateCounts(false);
+      }
+    };
+
+    fetchStateCounts();
+  }, [showAddStateModal]);
 
   // Effect: close dropdowns when clicking outside
   useEffect(() => {
@@ -1709,9 +1737,29 @@ export default function ProviderOutreachPage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
-                {selectedState
-                  ? US_STATES.find((s) => s.value === selectedState)?.label || selectedState
-                  : "Select State"}
+                {selectedState ? (
+                  <>
+                    {/* Status indicator dot */}
+                    {(() => {
+                      const currentState = activeStates.find(s => s.state_code === selectedState);
+                      if (!currentState) return null;
+                      return (
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            currentState.status === "completed"
+                              ? "bg-emerald-500"
+                              : currentState.status === "paused"
+                              ? "bg-amber-500"
+                              : "bg-green-500"
+                          }`}
+                        />
+                      );
+                    })()}
+                    {US_STATES.find((s) => s.value === selectedState)?.label || selectedState}
+                  </>
+                ) : (
+                  "Select State"
+                )}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -1752,12 +1800,21 @@ export default function ProviderOutreachPage() {
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
                                 )}
+                                {/* Status indicator dot */}
+                                <span
+                                  className={`w-2 h-2 rounded-full ${
+                                    state.status === "completed"
+                                      ? "bg-emerald-500"
+                                      : state.status === "paused"
+                                      ? "bg-amber-500"
+                                      : "bg-green-500"
+                                  }`}
+                                  title={state.status === "completed" ? "Completed" : state.status === "paused" ? "Paused" : "Active"}
+                                />
                                 <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>
                                   {state.state_name}
                                 </span>
                                 <span className="text-xs text-gray-400">({state.state_code})</span>
-                                {state.status === "completed" && <span className="text-xs text-emerald-600">✓</span>}
-                                {state.status === "paused" && <span className="text-xs text-amber-600">⏸</span>}
                               </div>
                               <span className="text-xs text-gray-400">{progress}%</span>
                             </button>
@@ -2890,14 +2947,23 @@ export default function ProviderOutreachPage() {
 
             {/* State List */}
             <div className="flex-1 overflow-y-auto px-2 py-2">
-              {(() => {
+              {loadingStateCounts ? (
+                <div className="flex items-center justify-center py-8">
+                  <svg className="animate-spin h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                </div>
+              ) : (() => {
                 const addedCodes = new Set(activeStates.map((s) => s.state_code));
                 const availableStates = US_STATES.filter(
                   (s) =>
                     !addedCodes.has(s.value) &&
                     (s.label.toLowerCase().includes(addStateSearch.toLowerCase()) ||
                       s.value.toLowerCase().includes(addStateSearch.toLowerCase()))
-                );
+                )
+                  // Sort by provider count descending (most providers first)
+                  .sort((a, b) => (stateCounts[b.value] || 0) - (stateCounts[a.value] || 0));
 
                 if (availableStates.length === 0) {
                   return (
@@ -2909,33 +2975,36 @@ export default function ProviderOutreachPage() {
                   );
                 }
 
-                return availableStates.map((usState) => (
-                  <button
-                    key={usState.value}
-                    onClick={() => handleAddState(usState.value)}
-                    disabled={addingState !== null}
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-gray-900">
-                        {usState.label}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {usState.value}
-                      </span>
-                    </div>
-                    {addingState === usState.value ? (
-                      <svg className="animate-spin h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    )}
-                  </button>
-                ));
+                return availableStates.map((usState) => {
+                  const count = stateCounts[usState.value] || 0;
+                  return (
+                    <button
+                      key={usState.value}
+                      onClick={() => handleAddState(usState.value)}
+                      disabled={addingState !== null}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-900">
+                          {usState.label}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {count.toLocaleString()} provider{count !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      {addingState === usState.value ? (
+                        <svg className="animate-spin h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      )}
+                    </button>
+                  );
+                });
               })()}
             </div>
 

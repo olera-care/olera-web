@@ -102,61 +102,40 @@ export async function GET(request: NextRequest) {
 type DB = ReturnType<typeof getServiceClient>;
 
 /**
- * Fetch claimed timestamps for providers in a state.
- * Uses claimed_at from provider_outreach_tracking (accurate) with fallback
- * to business_profiles timestamps (less accurate but covers older claims).
+ * Fetch claimed timestamps for ALL providers across all states.
+ * Uses business_profiles.created_at as the claim timestamp.
+ * This is the source of truth for claimed providers (has account_id linked).
+ *
+ * Note: state parameter is ignored - we count ALL claimed providers globally.
  */
 async function fetchClaimedTimestamps(
   db: DB,
-  state: string,
+  _state: string, // Ignored - we count all states
   queryStart: Date | null,
   to: Date
 ): Promise<Date[]> {
-  // Primary source: provider_outreach_tracking.claimed_at (accurate)
-  let trackingQuery = db
-    .from("provider_outreach_tracking")
-    .select("claimed_at")
-    .eq("state", state)
-    .eq("stage", "claimed")
-    .not("claimed_at", "is", null)
-    .order("claimed_at", { ascending: true });
+  // Query business_profiles with account_id (actual claimed providers)
+  // Use created_at as the claim timestamp
+  let query = db
+    .from("business_profiles")
+    .select("created_at")
+    .not("account_id", "is", null)
+    .not("source_provider_id", "is", null)
+    .order("created_at", { ascending: true });
 
-  if (queryStart) trackingQuery = trackingQuery.gte("claimed_at", queryStart.toISOString());
-  if (to) trackingQuery = trackingQuery.lt("claimed_at", to.toISOString());
+  if (queryStart) query = query.gte("created_at", queryStart.toISOString());
+  if (to) query = query.lt("created_at", to.toISOString());
 
-  const { data: trackingRows, error: trackingError } = await trackingQuery;
+  const { data: rows, error } = await query;
 
-  if (trackingError) {
-    console.error("[provider-outreach/stats] Tracking claimed_at query error:", trackingError);
+  if (error) {
+    console.error("[provider-outreach/stats] business_profiles query error:", error);
+    return [];
   }
 
-  const timestamps: Date[] = (trackingRows || [])
-    .map((r) => new Date(r.claimed_at))
+  return (rows || [])
+    .map((r) => new Date(r.created_at))
     .filter((t) => !isNaN(t.getTime()));
-
-  // Fallback: For claimed providers without claimed_at (older records before migration),
-  // use stage_changed_at from tracking as approximation
-  let fallbackQuery = db
-    .from("provider_outreach_tracking")
-    .select("stage_changed_at")
-    .eq("state", state)
-    .eq("stage", "claimed")
-    .is("claimed_at", null)
-    .order("stage_changed_at", { ascending: true });
-
-  if (queryStart) fallbackQuery = fallbackQuery.gte("stage_changed_at", queryStart.toISOString());
-  if (to) fallbackQuery = fallbackQuery.lt("stage_changed_at", to.toISOString());
-
-  const { data: fallbackRows } = await fallbackQuery;
-
-  for (const r of fallbackRows || []) {
-    const t = new Date(r.stage_changed_at);
-    if (!isNaN(t.getTime())) {
-      timestamps.push(t);
-    }
-  }
-
-  return timestamps.sort((a, b) => a.getTime() - b.getTime());
 }
 
 /**

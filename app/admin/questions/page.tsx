@@ -46,11 +46,12 @@ interface Question {
   provider_email_history?: EmailLogEntry[];
 }
 
-type TabValue = "unanswered" | "needs_email" | "delivery_issues" | "not_interested" | "answered" | "archived" | "";
+type TabValue = "unanswered" | "needs_email" | "delivery_issues" | "no_contact" | "not_interested" | "answered" | "archived" | "";
 
 const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
   { label: "Needs Email", value: "needs_email", showCount: true },
   { label: "Delivery Issues", value: "delivery_issues", showCount: true },
+  { label: "No Contact", value: "no_contact", showCount: true },
   { label: "Unanswered", value: "unanswered", showCount: true },
   { label: "Answered", value: "answered", showCount: true },
   { label: "Not Interested", value: "not_interested", showCount: true },
@@ -694,7 +695,7 @@ export default function AdminQuestionsPage() {
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
   const [range, setRange] = useState<DateRangeValue>({ preset: "all", customFrom: "", customTo: "" });
-  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; not_interested: number; archived: number; answered: number; all: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, not_interested: 0, archived: 0, answered: 0, all: 0 });
+  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; no_contact: number; not_interested: number; archived: number; answered: number; all: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, no_contact: 0, not_interested: 0, archived: 0, answered: 0, all: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [archiveProviderTarget, setArchiveProviderTarget] = useState<{ providerId: string; providerName: string } | null>(null);
@@ -706,6 +707,7 @@ export default function AdminQuestionsPage() {
   const [notInterestedTarget, setNotInterestedTarget] = useState<{ providerId: string; providerName: string; isMarked: boolean } | null>(null);
   const [notInterestedReason, setNotInterestedReason] = useState("");
   const [notInterestedNotes, setNotInterestedNotes] = useState("");
+  const [noContactTarget, setNoContactTarget] = useState<{ providerId: string; providerName: string; isMarked: boolean } | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -731,6 +733,7 @@ export default function AdminQuestionsPage() {
       // Map tab value for export
       if (activeTab === "needs_email") params.set("tab", "needs_email");
       else if (activeTab === "delivery_issues") params.set("tab", "delivery_issues");
+      else if (activeTab === "no_contact") params.set("tab", "no_contact");
       else if (activeTab === "not_interested") params.set("tab", "not_interested");
       else if (activeTab === "unanswered") params.set("tab", "unanswered");
       else if (activeTab === "answered") params.set("tab", "answered");
@@ -778,6 +781,8 @@ export default function AdminQuestionsPage() {
         params.set("needs_email", "true");
       } else if (activeTab === "delivery_issues") {
         params.set("delivery_issues", "true");
+      } else if (activeTab === "no_contact") {
+        params.set("no_contact", "true");
       } else if (activeTab === "not_interested") {
         params.set("not_interested", "true");
       } else if (activeTab === "unanswered") {
@@ -978,6 +983,26 @@ export default function AdminQuestionsPage() {
     }
   };
 
+  const handleMarkNoContact = async (providerId: string, unmark: boolean) => {
+    setActionLoading(`nocontact:${providerId}`);
+    try {
+      const res = await fetch("/api/admin/questions/mark-no-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, unmark }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setNoContactTarget(null);
+      showToast(data.message || (unmark ? "Provider unmarked" : "Provider marked as no contact"));
+      await fetchQuestions();
+    } catch {
+      showToast(unmark ? "Failed to unmark provider" : "Failed to mark provider", "error");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleDeleteProvider = async (providerId: string, providerName: string) => {
     setActionLoading(`delete:${providerId}`);
     try {
@@ -1137,6 +1162,15 @@ export default function AdminQuestionsPage() {
               </div>
               <p className="text-sm text-gray-400">No providers marked as not interested</p>
             </div>
+          ) : activeTab === "no_contact" ? (
+            <div className="space-y-3">
+              <div className="w-10 h-10 mx-auto rounded-full bg-gray-50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-400">No providers tagged as no contact</p>
+            </div>
           ) : (
             <p className="text-sm text-gray-400">
               No {activeTab === "unanswered" ? "unanswered" : activeTab || ""} questions
@@ -1162,6 +1196,7 @@ export default function AdminQuestionsPage() {
             // Show "needs email" state if no email OR if email is dead (needs replacement)
             const groupNeedsEmail = hasNoEmail || emailIsDead;
             const isProviderNotInterested = providerQuestions.some((q) => q.metadata?.provider_not_interested === true);
+            const isProviderNoContact = providerQuestions.some((q) => q.metadata?.provider_no_contact === true);
             const isProviderArchived = firstQ.provider_archive_info != null;
 
             return (
@@ -1210,6 +1245,13 @@ export default function AdminQuestionsPage() {
                     {isProviderNotInterested && (
                       <span className="px-1.5 py-0.5 text-xs font-medium bg-orange-50 text-orange-600 rounded flex-shrink-0">
                         Not Interested
+                      </span>
+                    )}
+
+                    {/* No Contact badge */}
+                    {isProviderNoContact && (
+                      <span className="px-1.5 py-0.5 text-xs font-medium bg-purple-50 text-purple-600 rounded flex-shrink-0">
+                        No Contact
                       </span>
                     )}
 
@@ -1478,7 +1520,7 @@ export default function AdminQuestionsPage() {
                           Archive Provider (stop future questions)
                         </button>
                       ) : (
-                        // Non-archived tabs: show Archive and Not Interested buttons
+                        // Non-archived tabs: show Archive, Not Interested, and No Contact buttons
                         <>
                           <button
                             onClick={() => {
@@ -1506,6 +1548,20 @@ export default function AdminQuestionsPage() {
                           >
                             {isProviderNotInterested ? "Unmark Not Interested" : "Mark Not Interested"}
                           </button>
+                          {/* No Contact button - show in needs_email, delivery_issues, or no_contact tabs, or if already marked */}
+                          {(activeTab === "needs_email" || activeTab === "delivery_issues" || activeTab === "no_contact" || isProviderNoContact) && (
+                            <button
+                              onClick={() => setNoContactTarget({ providerId, providerName: providerLabel, isMarked: isProviderNoContact })}
+                              disabled={actionLoading === `nocontact:${providerId}`}
+                              className={`px-3 py-1.5 text-xs font-medium border rounded-lg transition disabled:opacity-50 ${
+                                isProviderNoContact
+                                  ? "text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50"
+                                  : "text-gray-600 hover:text-purple-700 border-gray-200 hover:bg-white"
+                              }`}
+                            >
+                              {isProviderNoContact ? "Unmark No Contact" : "Tag as No Contact"}
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -1591,12 +1647,13 @@ export default function AdminQuestionsPage() {
               const providerCount = groupQuestionsByProvider(questions).size;
               const totalProviders = activeTab === "needs_email" ? tabCounts.needs_email
                 : activeTab === "delivery_issues" ? tabCounts.delivery_issues
+                : activeTab === "no_contact" ? tabCounts.no_contact
                 : activeTab === "not_interested" ? tabCounts.not_interested
                 : activeTab === "unanswered" ? tabCounts.pending
                 : activeTab === "archived" ? tabCounts.archived
                 : activeTab === "answered" ? tabCounts.answered
                 : tabCounts.all;
-              const label = activeTab === "needs_email" ? "needing email" : activeTab === "delivery_issues" ? "with delivery issues" : activeTab === "not_interested" ? "not interested" : activeTab === "unanswered" ? "unanswered" : activeTab === "archived" ? "archived" : "total";
+              const label = activeTab === "needs_email" ? "needing email" : activeTab === "delivery_issues" ? "with delivery issues" : activeTab === "no_contact" ? "with no contact" : activeTab === "not_interested" ? "not interested" : activeTab === "unanswered" ? "unanswered" : activeTab === "archived" ? "archived" : "total";
               // Show multi-page format if pagination exists (based on question count)
               if (count > PAGE_SIZE) {
                 return `${providerCount} providers on this page · ${totalProviders} providers ${label}`;
@@ -1836,6 +1893,51 @@ export default function AdminQuestionsPage() {
                 {actionLoading === `notinterested:${notInterestedTarget.providerId}`
                   ? (notInterestedTarget.isMarked ? "Unmarking..." : "Marking...")
                   : (notInterestedTarget.isMarked ? "Unmark" : "Mark Not Interested")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark No Contact dialog */}
+      {noContactTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {noContactTarget.isMarked ? "Unmark No Contact" : "Tag as No Contact"}
+            </h3>
+            {noContactTarget.isMarked ? (
+              <p className="mt-2 text-sm text-gray-600">
+                Unmark <span className="font-medium text-gray-900">{noContactTarget.providerName}</span> as
+                no contact. Their questions will return to the appropriate tab (Needs Email or Delivery Issues).
+              </p>
+            ) : (
+              <p className="mt-2 text-sm text-gray-600">
+                Tag <span className="font-medium text-gray-900">{noContactTarget.providerName}</span> as
+                no contact. Questions will move to the No Contact tab. This is purely organizational and
+                does not affect the provider. You can untag them later if contact info is found.
+              </p>
+            )}
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setNoContactTarget(null)}
+                disabled={actionLoading === `nocontact:${noContactTarget.providerId}`}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleMarkNoContact(noContactTarget.providerId, noContactTarget.isMarked)}
+                disabled={actionLoading === `nocontact:${noContactTarget.providerId}`}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${
+                  noContactTarget.isMarked
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-purple-600 hover:bg-purple-700"
+                }`}
+              >
+                {actionLoading === `nocontact:${noContactTarget.providerId}`
+                  ? (noContactTarget.isMarked ? "Unmarking..." : "Tagging...")
+                  : (noContactTarget.isMarked ? "Unmark" : "Tag as No Contact")}
               </button>
             </div>
           </div>

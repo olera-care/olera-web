@@ -41,7 +41,7 @@ export default function PulseHeader({
 }: {
   title: string;
   kpiSuffix: string;
-  statsPath: string;
+  statsPath?: string;
   range: DateRangeValue;
   onRangeChange: (next: DateRangeValue) => void;
   /** Optional inline actions rendered between the title and the date
@@ -57,6 +57,13 @@ export default function PulseHeader({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Skip fetch if no statsPath provided
+    if (!statsPath) {
+      setStats(null);
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
     const { from, to } = resolveRange(range);

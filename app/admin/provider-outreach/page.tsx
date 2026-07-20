@@ -1043,6 +1043,7 @@ export default function ProviderOutreachPage() {
         templateKey: string;
         subject: string;
         bodyPreview: string;
+        html: string;
       }>;
     }>;
     cadence: Array<{
@@ -1057,6 +1058,9 @@ export default function ProviderOutreachPage() {
     };
   } | null>(null);
   const [sequencePreviewLoading, setSequencePreviewLoading] = useState(false);
+  // For batch preview: which provider to show and which email day
+  const [previewProviderId, setPreviewProviderId] = useState<string | null>(null);
+  const [previewDay, setPreviewDay] = useState<number>(0);
 
   // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
@@ -1133,6 +1137,12 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const data = await res.json();
         setSequencePreviewData(data);
+        // Set initial preview provider to first valid one
+        const firstValid = data.providers?.find((p: { valid: boolean }) => p.valid);
+        if (firstValid) {
+          setPreviewProviderId(firstValid.provider_id);
+        }
+        setPreviewDay(0); // Start with Day 0 (intro email)
       } else {
         console.error("Failed to fetch sequence preview");
         setSequencePreviewData(null);
@@ -2205,6 +2215,8 @@ export default function ProviderOutreachPage() {
           onClick={actionLoading ? undefined : () => {
             setShowSequenceConfirm(false);
             setSequencePreviewData(null);
+            setPreviewProviderId(null);
+            setPreviewDay(0);
           }}
         >
           <div
@@ -2289,41 +2301,90 @@ export default function ProviderOutreachPage() {
                 </button>
 
                 {showSequencePreview && (
-                  <div className="mt-3 space-y-3">
+                  <div className="mt-3 space-y-4">
                     {sequencePreviewLoading ? (
                       <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 text-center text-sm text-gray-500">
                         Loading email previews...
                       </div>
                     ) : sequencePreviewData?.cadence ? (
-                      sequencePreviewData.cadence.map((step, idx) => {
-                        // Get a sample email preview from the first valid provider
-                        const sampleProvider = sequencePreviewData.providers.find(p => p.valid);
-                        const sampleEmail = sampleProvider?.emails.find(e => e.day === step.day);
-
-                        return (
-                          <div key={step.day} className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">
-                                Day {step.day}
-                              </span>
-                              <span className="text-xs text-gray-400">
-                                {step.day === 0 ? "Immediate" : `+${step.day} days`}
-                              </span>
-                            </div>
-                            <p className="text-sm font-medium text-gray-800">{step.description}</p>
-                            {sampleEmail && (
-                              <>
-                                <p className="text-xs text-gray-600 mt-2">
-                                  <span className="font-medium">Subject:</span> {sampleEmail.subject}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                                  {sampleEmail.bodyPreview}
-                                </p>
-                              </>
-                            )}
+                      <>
+                        {/* Provider selector for batch preview */}
+                        {sequencePreviewData.providers.filter(p => p.valid).length > 1 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">Preview for:</span>
+                            <select
+                              value={previewProviderId || ""}
+                              onChange={(e) => setPreviewProviderId(e.target.value)}
+                              className="text-sm border border-gray-200 rounded-md px-2 py-1 bg-white"
+                            >
+                              {sequencePreviewData.providers.filter(p => p.valid).map((p) => (
+                                <option key={p.provider_id} value={p.provider_id}>
+                                  {p.provider_name}
+                                </option>
+                              ))}
+                            </select>
                           </div>
-                        );
-                      })
+                        )}
+
+                        {/* Day selector tabs */}
+                        <div className="flex gap-2 border-b border-gray-200">
+                          {sequencePreviewData.cadence.map((step) => (
+                            <button
+                              key={step.day}
+                              onClick={() => setPreviewDay(step.day)}
+                              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                                previewDay === step.day
+                                  ? "border-primary-600 text-primary-600"
+                                  : "border-transparent text-gray-500 hover:text-gray-700"
+                              }`}
+                            >
+                              Day {step.day}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Email preview */}
+                        {(() => {
+                          const selectedProvider = sequencePreviewData.providers.find(
+                            p => p.provider_id === previewProviderId && p.valid
+                          ) || sequencePreviewData.providers.find(p => p.valid);
+                          const selectedEmail = selectedProvider?.emails.find(e => e.day === previewDay);
+                          const stepInfo = sequencePreviewData.cadence.find(c => c.day === previewDay);
+
+                          if (!selectedEmail) return (
+                            <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 text-center text-sm text-gray-500">
+                              No email preview available
+                            </div>
+                          );
+
+                          return (
+                            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                              {/* Email header */}
+                              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">
+                                    {stepInfo?.description || `Day ${previewDay}`}
+                                  </span>
+                                  <span className="text-xs text-gray-400">
+                                    {previewDay === 0 ? "Sent immediately" : `Sent ${previewDay} days after start`}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 space-y-0.5">
+                                  <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
+                                  <p><span className="font-medium text-gray-600">From:</span> TJ Falohun &lt;tj@olera.care&gt;</p>
+                                  <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
+                                </div>
+                              </div>
+                              {/* Email body - rendered HTML */}
+                              <div
+                                className="p-4 text-sm"
+                                style={{ maxHeight: "300px", overflowY: "auto" }}
+                                dangerouslySetInnerHTML={{ __html: selectedEmail.html }}
+                              />
+                            </div>
+                          );
+                        })()}
+                      </>
                     ) : (
                       // Fallback for when preview data is not available
                       <>
@@ -2365,6 +2426,8 @@ export default function ProviderOutreachPage() {
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setPreviewProviderId(null);
+                  setPreviewDay(0);
                 }}
                 disabled={actionLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2381,6 +2444,8 @@ export default function ProviderOutreachPage() {
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setPreviewProviderId(null);
+                  setPreviewDay(0);
                 }}
                 disabled={actionLoading || sequencePreviewLoading || (sequencePreviewData?.summary.valid === 0)}
                 className="px-5 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

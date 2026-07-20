@@ -44,6 +44,7 @@ interface ProviderPreview {
     templateKey: ProviderOutreachTemplateKey;
     subject: string;
     bodyPreview: string; // First 200 chars of plain text body
+    html: string; // Full rendered HTML for preview
   }>;
 }
 
@@ -160,6 +161,7 @@ export async function POST(request: NextRequest) {
           templateKey: step.templateKey,
           subject: rendered.subject,
           bodyPreview: rendered.text.substring(0, 200) + "...",
+          html: rendered.html,
         });
       }
 

@@ -23,10 +23,12 @@ export async function GET() {
 
     // Get provider counts grouped by state
     // Only count non-deleted providers (deleted IS NOT TRUE matches both NULL and false)
+    // Note: Supabase defaults to 1000 rows, so we must set a high limit to get all providers
     const { data, error } = await db
       .from("olera-providers")
       .select("state")
-      .or("deleted.is.null,deleted.eq.false");
+      .or("deleted.is.null,deleted.eq.false")
+      .limit(200000);
 
     if (error) {
       console.error("[provider-outreach/states/counts] Query error:", error);

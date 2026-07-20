@@ -1040,6 +1040,10 @@ export default function ProviderOutreachPage() {
   const [addStateSearch, setAddStateSearch] = useState("");
   const [addingState, setAddingState] = useState<string | null>(null);
 
+  // State actions menu (for refresh, status change, delete)
+  const [stateActionsMenu, setStateActionsMenu] = useState<string | null>(null);
+  const [stateActionLoading, setStateActionLoading] = useState<string | null>(null);
+
   // Action modal state
   const [actionModalProvider, setActionModalProvider] = useState<OutreachProvider | null>(null);
   const [selectedAction, setSelectedAction] = useState<"called" | "archived" | "hidden" | "unhide" | null>(null);
@@ -1273,6 +1277,14 @@ export default function ProviderOutreachPage() {
     fetchActiveStates();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Effect: close state actions menu when clicking outside
+  useEffect(() => {
+    if (!stateActionsMenu) return;
+    const handleClickOutside = () => setStateActionsMenu(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [stateActionsMenu]);
+
   // Effect: fetch cities when state changes (for not_contacted tab, when not searching)
   useEffect(() => {
     if (stage === "not_contacted" && !debouncedSearch) {
@@ -1352,6 +1364,91 @@ export default function ProviderOutreachPage() {
       showToast(err instanceof Error ? err.message : "Failed to add state", "error");
     } finally {
       setAddingState(null);
+    }
+  };
+
+  // Handle refreshing stats for a state
+  const handleRefreshStateStats = async (stateCode: string) => {
+    setStateActionLoading(stateCode);
+    setStateActionsMenu(null);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/states/${stateCode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "refresh_stats" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to refresh stats");
+      }
+      // Update the state in our local list
+      setActiveStates((prev) =>
+        prev.map((s) => (s.state_code === stateCode ? { ...s, ...data.state } : s))
+      );
+      showToast(`Stats refreshed for ${data.state?.state_name || stateCode}`, "success");
+    } catch (err) {
+      console.error("Failed to refresh stats:", err);
+      showToast(err instanceof Error ? err.message : "Failed to refresh stats", "error");
+    } finally {
+      setStateActionLoading(null);
+    }
+  };
+
+  // Handle updating state status (active/paused/completed)
+  const handleUpdateStateStatus = async (stateCode: string, newStatus: "active" | "paused" | "completed") => {
+    setStateActionLoading(stateCode);
+    setStateActionsMenu(null);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/states/${stateCode}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update status");
+      }
+      // Update the state in our local list
+      setActiveStates((prev) =>
+        prev.map((s) => (s.state_code === stateCode ? { ...s, ...data.state } : s))
+      );
+      const statusLabels = { active: "Active", paused: "Paused", completed: "Completed" };
+      showToast(`${data.state?.state_name || stateCode} marked as ${statusLabels[newStatus]}`, "success");
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      showToast(err instanceof Error ? err.message : "Failed to update status", "error");
+    } finally {
+      setStateActionLoading(null);
+    }
+  };
+
+  // Handle deleting a state
+  const handleDeleteState = async (stateCode: string, stateName: string) => {
+    if (!confirm(`Remove ${stateName} from active states? This won't delete any provider data.`)) {
+      return;
+    }
+    setStateActionLoading(stateCode);
+    setStateActionsMenu(null);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/states/${stateCode}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to remove state");
+      }
+      // Remove from local list
+      setActiveStates((prev) => prev.filter((s) => s.state_code !== stateCode));
+      // If this was the selected state, clear selection
+      if (selectedState === stateCode) {
+        setSelectedState("");
+      }
+      showToast(data.message || `${stateName} removed`, "success");
+    } catch (err) {
+      console.error("Failed to delete state:", err);
+      showToast(err instanceof Error ? err.message : "Failed to remove state", "error");
+    } finally {
+      setStateActionLoading(null);
     }
   };
 
@@ -1637,7 +1734,7 @@ export default function ProviderOutreachPage() {
               </svg>
             </div>
             <p className="text-sm text-gray-600 mb-1">No states added yet</p>
-            <p className="text-xs text-gray-400">Click "Add State" to start working on a state</p>
+            <p className="text-xs text-gray-400">Click &quot;Add State&quot; to start working on a state</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -1646,29 +1743,108 @@ export default function ProviderOutreachPage() {
                 ? Math.round((state.claimed / state.total_providers) * 100)
                 : 0;
               const isSelected = selectedState === state.state_code;
+              const isLoading = stateActionLoading === state.state_code;
+              const isMenuOpen = stateActionsMenu === state.state_code;
 
               return (
-                <button
+                <div
                   key={state.state_code}
-                  onClick={() => setSelectedState(state.state_code)}
-                  title={state.state_name}
-                  className={`relative p-3 rounded-lg border text-left transition-all ${
+                  className={`relative p-3 rounded-lg border text-left transition-all cursor-pointer ${
                     isSelected
                       ? "border-primary-500 bg-primary-50 ring-1 ring-primary-500"
                       : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
-                  }`}
+                  } ${isLoading ? "opacity-60" : ""}`}
+                  onClick={() => setSelectedState(state.state_code)}
+                  title={state.state_name}
                 >
+                  {/* Loading overlay */}
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg z-10">
+                      <svg className="animate-spin h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Header with state code and menu */}
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-sm font-semibold ${isSelected ? "text-primary-700" : "text-gray-900"}`}>
                       {state.state_code}
                     </span>
-                    {state.status === "completed" && (
-                      <span className="text-xs text-emerald-600">✓</span>
-                    )}
-                    {state.status === "paused" && (
-                      <span className="text-xs text-amber-600">⏸</span>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {state.status === "completed" && (
+                        <span className="text-xs text-emerald-600">✓</span>
+                      )}
+                      {state.status === "paused" && (
+                        <span className="text-xs text-amber-600">⏸</span>
+                      )}
+                      {/* Actions menu button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStateActionsMenu(isMenuOpen ? null : state.state_code);
+                        }}
+                        className="p-0.5 rounded hover:bg-gray-200/50 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Actions"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Actions dropdown */}
+                  {isMenuOpen && (
+                    <div
+                      className="absolute right-2 top-8 z-20 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => handleRefreshStateStats(state.state_code)}
+                        className="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Refresh Stats
+                      </button>
+                      <div className="border-t border-gray-100 my-1" />
+                      {state.status !== "active" && (
+                        <button
+                          onClick={() => handleUpdateStateStatus(state.state_code, "active")}
+                          className="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          Mark Active
+                        </button>
+                      )}
+                      {state.status !== "paused" && (
+                        <button
+                          onClick={() => handleUpdateStateStatus(state.state_code, "paused")}
+                          className="w-full px-3 py-1.5 text-left text-sm text-amber-600 hover:bg-gray-50"
+                        >
+                          Mark Paused
+                        </button>
+                      )}
+                      {state.status !== "completed" && (
+                        <button
+                          onClick={() => handleUpdateStateStatus(state.state_code, "completed")}
+                          className="w-full px-3 py-1.5 text-left text-sm text-emerald-600 hover:bg-gray-50"
+                        >
+                          Mark Completed
+                        </button>
+                      )}
+                      <div className="border-t border-gray-100 my-1" />
+                      <button
+                        onClick={() => handleDeleteState(state.state_code, state.state_name)}
+                        className="w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-red-50"
+                      >
+                        Remove State
+                      </button>
+                    </div>
+                  )}
+
                   <div className="text-xs text-gray-500 mb-2">
                     {state.total_providers.toLocaleString()} providers
                   </div>
@@ -1682,7 +1858,7 @@ export default function ProviderOutreachPage() {
                   <div className="mt-1 text-[10px] text-gray-400">
                     {state.claimed} claimed ({progress}%)
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import { US_STATES } from "@/lib/us-states";
-import Select from "@/components/ui/Select";
 import PulseHeader from "@/components/admin/PulseHeader";
 import { type DateRangeValue } from "@/components/admin/DateRangePopover";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
@@ -114,6 +113,23 @@ interface OutreachProvider {
   notes: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+}
+
+interface ActiveState {
+  id: string;
+  state_code: string;
+  state_name: string;
+  status: "active" | "paused" | "completed";
+  added_at: string;
+  total_providers: number;
+  not_contacted: number;
+  in_sequence: number;
+  needs_call: number;
+  called: number;
+  claimed: number;
+  archived: number;
+  hidden: number;
+  stats_refreshed_at: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -964,8 +980,13 @@ function CityRow({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProviderOutreachPage() {
-  // State filter
-  const [selectedState, setSelectedState] = useState<string>("AL");
+  // Active states (new "Add State" workflow)
+  const [activeStates, setActiveStates] = useState<ActiveState[]>([]);
+  const [loadingActiveStates, setLoadingActiveStates] = useState(true);
+  const totalUsStates = US_STATES.length; // Constant, not state
+
+  // Selected state (from active states or fallback)
+  const [selectedState, setSelectedState] = useState<string>("");
 
   // Date range for PulseHeader
   const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
@@ -1013,6 +1034,11 @@ export default function ProviderOutreachPage() {
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  // Add State modal state
+  const [showAddStateModal, setShowAddStateModal] = useState(false);
+  const [addStateSearch, setAddStateSearch] = useState("");
+  const [addingState, setAddingState] = useState<string | null>(null);
 
   // Action modal state
   const [actionModalProvider, setActionModalProvider] = useState<OutreachProvider | null>(null);
@@ -1155,6 +1181,30 @@ export default function ProviderOutreachPage() {
     }
   }, []);
 
+  // Fetch active states
+  const fetchActiveStates = useCallback(async () => {
+    setLoadingActiveStates(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/states");
+      if (res.ok) {
+        const data = await res.json();
+        setActiveStates(data.states || []);
+        // Auto-select first state if none selected (prefer active, then any)
+        if (!selectedState && data.states?.length > 0) {
+          const firstActive = data.states.find((s: ActiveState) => s.status === "active");
+          const firstState = firstActive || data.states[0];
+          if (firstState) {
+            setSelectedState(firstState.state_code);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch active states:", err);
+    } finally {
+      setLoadingActiveStates(false);
+    }
+  }, [selectedState]);
+
   // Fetch cities for not_contacted stage
   const fetchCities = useCallback(async () => {
     if (!selectedState) return;
@@ -1218,6 +1268,11 @@ export default function ProviderOutreachPage() {
     };
   }, [search]);
 
+  // Effect: fetch active states on mount
+  useEffect(() => {
+    fetchActiveStates();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Effect: fetch cities when state changes (for not_contacted tab, when not searching)
   useEffect(() => {
     if (stage === "not_contacted" && !debouncedSearch) {
@@ -1269,6 +1324,35 @@ export default function ProviderOutreachPage() {
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // Handle adding a state
+  const handleAddState = async (stateCode: string) => {
+    setAddingState(stateCode);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/states", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state_code: stateCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to add state");
+      }
+      // Refresh active states list
+      await fetchActiveStates();
+      // Select the newly added state
+      setSelectedState(stateCode);
+      // Close modal and reset
+      setShowAddStateModal(false);
+      setAddStateSearch("");
+      showToast(`${data.state?.state_name || stateCode} added to active states`, "success");
+    } catch (err) {
+      console.error("Failed to add state:", err);
+      showToast(err instanceof Error ? err.message : "Failed to add state", "error");
+    } finally {
+      setAddingState(null);
+    }
   };
 
   // Toggle city expansion
@@ -1462,144 +1546,233 @@ export default function ProviderOutreachPage() {
       <PulseHeader
         title="Provider Cold Outreach"
         kpiSuffix="claimed"
-        statsPath={`/api/admin/provider-outreach/stats?state=${selectedState}&metric=funnel`}
+        statsPath={selectedState ? `/api/admin/provider-outreach/stats?state=${selectedState}&metric=funnel` : undefined}
         range={range}
         onRangeChange={setRange}
         actions={
           <div className="flex items-center gap-3">
-            {/* Search input */}
-            <div className="relative w-64">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search providers..."
-                className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-              {search && (
-                <button
-                  onClick={() => {
-                    setSearch("");
-                    setDebouncedSearch("");
-                  }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            {/* Search input - only enabled when a state is selected */}
+            {selectedState && (
+              <div className="relative w-64">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {/* State picker */}
-            <div className="w-44">
-              <Select
-                value={selectedState}
-                onChange={setSelectedState}
-                options={US_STATES.map((s) => ({
-                  value: s.value,
-                  label: `${s.label} (${s.value})`,
-                }))}
-                searchable
-                searchPlaceholder="Search states..."
-                size="sm"
-              />
-            </div>
+                  <path
+                    fillRule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search providers..."
+                  className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+                {search && (
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setDebouncedSearch("");
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+            {/* Selected state indicator */}
+            {selectedState && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">
+                  {US_STATES.find((s) => s.value === selectedState)?.label || selectedState}
+                </span>
+                <span className="text-xs text-gray-500">({selectedState})</span>
+              </div>
+            )}
           </div>
         }
       />
 
-      {/* Stage Tabs - underlined style like Questions page */}
-      <div className="flex gap-1 mb-6 border-b border-gray-100">
-        {tabs.map((tab) => (
+      {/* Active States Section */}
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-semibold text-gray-900">Active States</h3>
+            <span className="text-xs text-gray-500">
+              {activeStates.length}/{totalUsStates} states added
+            </span>
+          </div>
           <button
-            key={tab.value}
-            onClick={() => setStage(tab.value)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              stage === tab.value
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-400 hover:text-gray-600"
-            }`}
+            onClick={() => setShowAddStateModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
           >
-            {tab.label}
-            {tab.count > 0 && (
-              <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
-                {tab.count}
-              </span>
-            )}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add State
           </button>
-        ))}
-      </div>
+        </div>
 
-      {/* Collapsible Funnel Stats */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setStatsExpanded(!statsExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span>Outreach Funnel</span>
-        </button>
+        {loadingActiveStates ? (
+          <div className="flex items-center justify-center py-8 text-gray-400">
+            <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            Loading states...
+          </div>
+        ) : activeStates.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-400 mb-2">
+              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">No states added yet</p>
+            <p className="text-xs text-gray-400">Click "Add State" to start working on a state</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {activeStates.map((state) => {
+              const progress = state.total_providers > 0
+                ? Math.round((state.claimed / state.total_providers) * 100)
+                : 0;
+              const isSelected = selectedState === state.state_code;
 
-        {statsExpanded && (
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <FunnelStat
-              label="In Sequence"
-              value={stageCounts.in_sequence}
-              subtitle="actively receiving emails"
-            />
-            <FunnelStat
-              label="Needs Call"
-              value={stageCounts.needs_call}
-              subtitle="sequence complete"
-            />
-            <FunnelStat
-              label="Called"
-              value={stageCounts.called}
-              subtitle="awaiting response"
-            />
-            <FunnelStat
-              label="Claimed"
-              value={stageCounts.claimed}
-              highlight
-              subtitle="success"
-            />
-            <FunnelStat
-              label="Claim Rate"
-              value={
-                stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed > 0
-                  ? Math.round(
-                      (stageCounts.claimed /
-                        (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed)) *
-                        100
-                    )
-                  : 0
-              }
-              format="percent"
-              subtitle="of providers who entered sequence"
-            />
+              return (
+                <button
+                  key={state.state_code}
+                  onClick={() => setSelectedState(state.state_code)}
+                  title={state.state_name}
+                  className={`relative p-3 rounded-lg border text-left transition-all ${
+                    isSelected
+                      ? "border-primary-500 bg-primary-50 ring-1 ring-primary-500"
+                      : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-sm font-semibold ${isSelected ? "text-primary-700" : "text-gray-900"}`}>
+                      {state.state_code}
+                    </span>
+                    {state.status === "completed" && (
+                      <span className="text-xs text-emerald-600">✓</span>
+                    )}
+                    {state.status === "paused" && (
+                      <span className="text-xs text-amber-600">⏸</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500 mb-2">
+                    {state.total_providers.toLocaleString()} providers
+                  </div>
+                  {/* Progress bar */}
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 text-[10px] text-gray-400">
+                    {state.claimed} claimed ({progress}%)
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* Stage Tabs - only show when a state is selected */}
+      {selectedState && (
+        <div className="flex gap-1 mb-6 border-b border-gray-100">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setStage(tab.value)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                stage === tab.value
+                  ? "border-gray-900 text-gray-900"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Collapsible Funnel Stats - only show when a state is selected */}
+      {selectedState && (
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => setStatsExpanded(!statsExpanded)}
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <svg
+              className={`w-4 h-4 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            <span>Outreach Funnel</span>
+          </button>
+
+          {statsExpanded && (
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <FunnelStat
+                label="In Sequence"
+                value={stageCounts.in_sequence}
+                subtitle="actively receiving emails"
+              />
+              <FunnelStat
+                label="Needs Call"
+                value={stageCounts.needs_call}
+                subtitle="sequence complete"
+              />
+              <FunnelStat
+                label="Called"
+                value={stageCounts.called}
+                subtitle="awaiting response"
+              />
+              <FunnelStat
+                label="Claimed"
+                value={stageCounts.claimed}
+                highlight
+                subtitle="success"
+              />
+              <FunnelStat
+                label="Claim Rate"
+                value={
+                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed > 0
+                    ? Math.round(
+                        (stageCounts.claimed /
+                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed)) *
+                          100
+                      )
+                    : 0
+                }
+                format="percent"
+                subtitle="of providers who entered sequence"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Action Bar (when items selected) - hidden during search since providers may be from different stages */}
       {selectedProviders.size > 0 && !isSearchResult && (
@@ -1656,7 +1829,37 @@ export default function ProviderOutreachPage() {
 
       {/* Content - Search results (flat list) or City-grouped view */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        {isSearchResult ? (
+        {!selectedState ? (
+          // No state selected - prompt user to add/select a state
+          <div className="p-12 text-center">
+            <div className="text-gray-400 mb-3">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No state selected</h3>
+            {activeStates.length === 0 ? (
+              <>
+                <p className="text-sm text-gray-500 mb-4">
+                  Add a state to start working on provider outreach
+                </p>
+                <button
+                  onClick={() => setShowAddStateModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Your First State
+                </button>
+              </>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Select a state from the Active States section above
+              </p>
+            )}
+          </div>
+        ) : isSearchResult ? (
           // Search results: flat list with stage badges
           <>
             <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
@@ -2451,6 +2654,120 @@ export default function ProviderOutreachPage() {
                 className="px-5 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {actionLoading ? "Starting..." : sequencePreviewLoading ? "Loading..." : "Start Sequence"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add State Modal */}
+      {showAddStateModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => {
+            setShowAddStateModal(false);
+            setAddStateSearch("");
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 shrink-0">
+              <h3 className="text-lg font-semibold text-gray-900">Add State</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Select a state to start outreach work
+              </p>
+            </div>
+
+            {/* Search */}
+            <div className="px-6 py-3 border-b border-gray-100 shrink-0">
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={addStateSearch}
+                  onChange={(e) => setAddStateSearch(e.target.value)}
+                  placeholder="Search states..."
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* State List */}
+            <div className="flex-1 overflow-y-auto px-2 py-2">
+              {(() => {
+                const addedCodes = new Set(activeStates.map((s) => s.state_code));
+                const availableStates = US_STATES.filter(
+                  (s) =>
+                    !addedCodes.has(s.value) &&
+                    (s.label.toLowerCase().includes(addStateSearch.toLowerCase()) ||
+                      s.value.toLowerCase().includes(addStateSearch.toLowerCase()))
+                );
+
+                if (availableStates.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      {addedCodes.size === US_STATES.length
+                        ? "All states have been added"
+                        : "No matching states found"}
+                    </div>
+                  );
+                }
+
+                return availableStates.map((usState) => (
+                  <button
+                    key={usState.value}
+                    onClick={() => handleAddState(usState.value)}
+                    disabled={addingState !== null}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-900">
+                        {usState.label}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {usState.value}
+                      </span>
+                    </div>
+                    {addingState === usState.value ? (
+                      <svg className="animate-spin h-4 w-4 text-primary-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    )}
+                  </button>
+                ));
+              })()}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 shrink-0 bg-gray-50">
+              <button
+                onClick={() => {
+                  setShowAddStateModal(false);
+                  setAddStateSearch("");
+                }}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>

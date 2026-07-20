@@ -3,8 +3,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import { US_STATES } from "@/lib/us-states";
-import PulseHeader from "@/components/admin/PulseHeader";
-import { type DateRangeValue } from "@/components/admin/DateRangePopover";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 
@@ -988,9 +986,6 @@ export default function ProviderOutreachPage() {
   // Selected state (from active states or fallback)
   const [selectedState, setSelectedState] = useState<string>("");
 
-  // Date range for PulseHeader
-  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
-
   // Stage tab
   const [stage, setStage] = useState<OutreachStage>("not_contacted");
 
@@ -1031,6 +1026,9 @@ export default function ProviderOutreachPage() {
 
   // Stats section expanded state
   const [statsExpanded, setStatsExpanded] = useState(false);
+
+  // Global claimed count (fetched separately, not derived from active states)
+  const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -1147,6 +1145,29 @@ export default function ProviderOutreachPage() {
     { value: "data_issue_resolved", label: "Data issue resolved" },
     { value: "other", label: "Other" },
   ];
+
+  // Global stats computed from activeStates
+  const globalStats = useMemo(() => {
+    const codes = activeStates.map(s => s.state_code);
+    // Truncate state list after 5 to avoid overflow
+    const statesList = codes.length <= 5
+      ? codes.join(" · ")
+      : `${codes.slice(0, 5).join(" · ")} +${codes.length - 5} more`;
+
+    const stats = {
+      totalStates: activeStates.length,
+      statesList,
+      totalProviders: 0,
+      inSequence: 0,
+      needsCall: 0,
+    };
+    for (const state of activeStates) {
+      stats.totalProviders += state.total_providers;
+      stats.inSequence += state.in_sequence;
+      stats.needsCall += state.needs_call;
+    }
+    return stats;
+  }, [activeStates]);
 
   // Close action modal and reset state
   const closeActionModal = () => {
@@ -1282,6 +1303,22 @@ export default function ProviderOutreachPage() {
   useEffect(() => {
     fetchActiveStates();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Effect: fetch global claimed count on mount (truly global, not filtered by active states)
+  useEffect(() => {
+    const fetchGlobalClaimed = async () => {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/stats?metric=claimed");
+        if (res.ok) {
+          const data = await res.json();
+          setGlobalClaimedCount(data.total ?? 0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch global claimed count:", err);
+      }
+    };
+    fetchGlobalClaimed();
+  }, []);
 
   // Effect: fetch provider counts when Add State modal opens
   useEffect(() => {
@@ -1678,14 +1715,10 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
-      {/* PulseHeader with funnel metrics */}
-      <PulseHeader
-        title="Provider Cold Outreach"
-        kpiSuffix="claimed"
-        statsPath={selectedState ? `/api/admin/provider-outreach/stats?state=${selectedState}&metric=funnel` : undefined}
-        range={range}
-        onRangeChange={setRange}
-        actions={
+      {/* Page Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold text-gray-900">Provider Cold Outreach</h1>
           <div className="flex items-center gap-3">
             {/* Search input - only enabled when a state is selected */}
             {selectedState && (
@@ -1730,7 +1763,7 @@ export default function ProviderOutreachPage() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setStateActionsMenu(null); // Close actions menu when opening state selector
+                  setStateActionsMenu(null);
                   setShowStateSelector(!showStateSelector);
                 }}
                 className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
@@ -1744,7 +1777,6 @@ export default function ProviderOutreachPage() {
                 </svg>
                 {selectedState ? (
                   <>
-                    {/* Status indicator dot */}
                     {(() => {
                       const currentState = activeStates.find(s => s.state_code === selectedState);
                       if (!currentState) return null;
@@ -1756,11 +1788,7 @@ export default function ProviderOutreachPage() {
                         );
                       }
                       return (
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            currentState.status === "paused" ? "bg-amber-500" : "bg-green-500"
-                          }`}
-                        />
+                        <span className={`w-2 h-2 rounded-full ${currentState.status === "paused" ? "bg-amber-500" : "bg-green-500"}`} />
                       );
                     })()}
                     {US_STATES.find((s) => s.value === selectedState)?.label || selectedState}
@@ -1773,13 +1801,11 @@ export default function ProviderOutreachPage() {
                 </svg>
               </button>
 
-              {/* State selector dropdown */}
               {showStateSelector && (
                 <div
                   className="absolute right-0 top-full mt-1 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-30 max-h-96 overflow-hidden flex flex-col"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {/* Existing states */}
                   {activeStates.length > 0 && (
                     <>
                       <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
@@ -1795,9 +1821,7 @@ export default function ProviderOutreachPage() {
                                 setSelectedState(state.state_code);
                                 setShowStateSelector(false);
                               }}
-                              className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${
-                                isSelected ? "bg-primary-50" : ""
-                              }`}
+                              className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${isSelected ? "bg-primary-50" : ""}`}
                             >
                               <div className="flex items-center gap-2">
                                 {isSelected && (
@@ -1805,25 +1829,16 @@ export default function ProviderOutreachPage() {
                                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                   </svg>
                                 )}
-                                {/* Status indicator */}
                                 {state.status === "completed" ? (
                                   <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                   </svg>
                                 ) : (
-                                  <span
-                                    className={`w-2 h-2 rounded-full ${
-                                      state.status === "paused" ? "bg-amber-500" : "bg-green-500"
-                                    }`}
-                                    title={state.status === "paused" ? "Paused" : "Active"}
-                                  />
+                                  <span className={`w-2 h-2 rounded-full ${state.status === "paused" ? "bg-amber-500" : "bg-green-500"}`} />
                                 )}
-                                <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>
-                                  {state.state_name}
-                                </span>
+                                <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>{state.state_name}</span>
                                 <span className="text-xs text-gray-400">({state.state_code})</span>
                               </div>
-                              {/* Show provider count instead of confusing percentage */}
                               <span className="text-xs text-gray-400">{state.total_providers.toLocaleString()}</span>
                             </button>
                           );
@@ -1832,8 +1847,6 @@ export default function ProviderOutreachPage() {
                       <div className="border-t border-gray-100" />
                     </>
                   )}
-
-                  {/* Loading indicator */}
                   {loadingActiveStates && (
                     <div className="px-3 py-4 text-center text-gray-400">
                       <svg className="animate-spin h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24">
@@ -1843,8 +1856,6 @@ export default function ProviderOutreachPage() {
                       <span className="text-xs">Loading...</span>
                     </div>
                   )}
-
-                  {/* Add State button */}
                   <button
                     onClick={() => {
                       setShowStateSelector(false);
@@ -1861,13 +1872,12 @@ export default function ProviderOutreachPage() {
               )}
             </div>
 
-            {/* State actions menu (when a state is selected) */}
             {selectedState && (
               <div className="relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowStateSelector(false); // Close state selector when opening actions menu
+                    setShowStateSelector(false);
                     setStateActionsMenu(stateActionsMenu === selectedState ? null : selectedState);
                   }}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1877,27 +1887,13 @@ export default function ProviderOutreachPage() {
                     <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                   </svg>
                 </button>
-
-                {/* Actions dropdown */}
                 {stateActionsMenu === selectedState && (
-                  <div
-                    className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-30 py-1"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => handleRefreshStateStats(selectedState)}
-                      disabled={stateActionLoading === selectedState}
-                      className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
-                    >
+                  <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-30 py-1" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => handleRefreshStateStats(selectedState)} disabled={stateActionLoading === selectedState} className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50">
                       {stateActionLoading === selectedState ? (
-                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
+                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
                       ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                       )}
                       Refresh Stats
                     </button>
@@ -1907,50 +1903,40 @@ export default function ProviderOutreachPage() {
                       if (!currentState) return null;
                       return (
                         <>
-                          {currentState.status !== "active" && (
-                            <button
-                              onClick={() => handleUpdateStateStatus(selectedState, "active")}
-                              className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                            >
-                              Mark Active
-                            </button>
-                          )}
-                          {currentState.status !== "paused" && (
-                            <button
-                              onClick={() => handleUpdateStateStatus(selectedState, "paused")}
-                              className="w-full px-3 py-2 text-left text-sm text-amber-600 hover:bg-gray-50"
-                            >
-                              Mark Paused
-                            </button>
-                          )}
-                          {currentState.status !== "completed" && (
-                            <button
-                              onClick={() => handleUpdateStateStatus(selectedState, "completed")}
-                              className="w-full px-3 py-2 text-left text-sm text-emerald-600 hover:bg-gray-50"
-                            >
-                              Mark Completed
-                            </button>
-                          )}
+                          {currentState.status !== "active" && <button onClick={() => handleUpdateStateStatus(selectedState, "active")} className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">Mark Active</button>}
+                          {currentState.status !== "paused" && <button onClick={() => handleUpdateStateStatus(selectedState, "paused")} className="w-full px-3 py-2 text-left text-sm text-amber-600 hover:bg-gray-50">Mark Paused</button>}
+                          {currentState.status !== "completed" && <button onClick={() => handleUpdateStateStatus(selectedState, "completed")} className="w-full px-3 py-2 text-left text-sm text-emerald-600 hover:bg-gray-50">Mark Completed</button>}
                         </>
                       );
                     })()}
                     <div className="border-t border-gray-100 my-1" />
-                    <button
-                      onClick={() => {
-                        const stateName = activeStates.find(s => s.state_code === selectedState)?.state_name || selectedState;
-                        handleDeleteState(selectedState, stateName);
-                      }}
-                      className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                    >
-                      Remove State
-                    </button>
+                    <button onClick={() => { const stateName = activeStates.find(s => s.state_code === selectedState)?.state_name || selectedState; handleDeleteState(selectedState, stateName); }} className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50">Remove State</button>
                   </div>
                 )}
               </div>
             )}
           </div>
-        }
-      />
+        </div>
+
+        {/* Stat Boxes */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Number of states you've added for outreach work">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active States</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalStates}</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">{globalStats.statesList || "No states added"}</p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Total providers across all active states">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Providers</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalProviders.toLocaleString()}</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">across active states</p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers who have claimed their profile (all states)">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Claimed</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{globalClaimedCount !== null ? globalClaimedCount.toLocaleString() : "—"}</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">all states, all time</p>
+          </div>
+        </div>
+      </div>
 
       {/* Stage Tabs - only show when a state is selected */}
       {selectedState && (

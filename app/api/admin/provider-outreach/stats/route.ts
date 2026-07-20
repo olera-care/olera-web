@@ -5,13 +5,13 @@ import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
 /**
  * GET /api/admin/provider-outreach/stats
  *
- * Returns stats for the PulseHeader on the Provider Outreach page.
+ * Returns stats for the Provider Outreach page.
  *
  * Default metric: "claimed" — providers who claimed their account in the period.
  * This is the success metric for the outreach funnel.
  *
  * Query params:
- *   - state (required): State to filter by
+ *   - state: State to filter by (required for all metrics EXCEPT "claimed")
  *   - metric (optional): "claimed" | "in_sequence" | "funnel" (default: "claimed")
  *   - date_from (ISO, inclusive). Omit for all-time.
  *   - date_to (ISO, exclusive).
@@ -36,8 +36,9 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
 
-    if (!state) {
-      return NextResponse.json({ error: "State parameter is required" }, { status: 400 });
+    // State is required for all metrics except "claimed" (which is always global)
+    if (!state && metric !== "claimed") {
+      return NextResponse.json({ error: "State parameter is required for this metric" }, { status: 400 });
     }
 
     const db = getServiceClient();

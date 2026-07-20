@@ -50,21 +50,23 @@ export async function GET(request: NextRequest) {
     const queryStart = priorFrom ?? from ?? null;
 
     if (metric === "funnel") {
-      // Multi-series funnel breakdown
-      return await buildFunnelResponse(db, state, { from, to, priorFrom, queryStart });
+      // Multi-series funnel breakdown (state is guaranteed non-null by earlier check)
+      return await buildFunnelResponse(db, state!, { from, to, priorFrom, queryStart });
     }
 
     // Single metric response
     let timestamps: Date[];
 
     if (metric === "claimed") {
-      timestamps = await fetchClaimedTimestamps(db, state, queryStart, to);
+      // Claimed is global - state param is ignored
+      timestamps = await fetchClaimedTimestamps(db, queryStart, to);
     } else if (metric === "in_sequence") {
-      timestamps = await fetchStageTimestamps(db, state, "in_sequence", queryStart, to);
+      // State is guaranteed non-null by earlier check
+      timestamps = await fetchStageTimestamps(db, state!, "in_sequence", queryStart, to);
     } else if (metric === "needs_call") {
-      timestamps = await fetchStageTimestamps(db, state, "needs_call", queryStart, to);
+      timestamps = await fetchStageTimestamps(db, state!, "needs_call", queryStart, to);
     } else if (metric === "called") {
-      timestamps = await fetchStageTimestamps(db, state, "called", queryStart, to);
+      timestamps = await fetchStageTimestamps(db, state!, "called", queryStart, to);
     } else {
       return NextResponse.json({ error: `Unknown metric: ${metric}` }, { status: 400 });
     }
@@ -107,11 +109,10 @@ type DB = ReturnType<typeof getServiceClient>;
  * Uses business_profiles.created_at as the claim timestamp.
  * This is the source of truth for claimed providers (has account_id linked).
  *
- * Note: state parameter is ignored - we count ALL claimed providers globally.
+ * This is always global - no state filtering.
  */
 async function fetchClaimedTimestamps(
   db: DB,
-  _state: string, // Ignored - we count all states
   queryStart: Date | null,
   to: Date
 ): Promise<Date[]> {
@@ -246,7 +247,7 @@ async function buildFunnelResponse(
     fetchStageTimestamps(db, state, "in_sequence", queryStart, to),
     fetchStageTimestamps(db, state, "needs_call", queryStart, to),
     fetchStageTimestamps(db, state, "called", queryStart, to),
-    fetchClaimedTimestamps(db, state, queryStart, to),
+    fetchClaimedTimestamps(db, queryStart, to),
   ]);
 
   const inRange = (t: Date) => (from ? t >= from : true) && (to ? t < to : true);

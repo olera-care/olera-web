@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { getCronJob, isEmailJob } from "@/lib/crons/registry";
+import { getCronJob, jobChannels } from "@/lib/crons/registry";
 import { variantsForCron } from "@/lib/email-samples";
 
 /**
@@ -76,7 +76,7 @@ const MARKET_OUTREACH_CONVERSION_STATUSES = new Set(["contacted", "responded", "
 const ATTRIBUTION_DAYS = 14;
 
 type VRow = {
-  email_type: string; created_at: string; delivered_at: string | null; first_opened_at: string | null;
+  email_type: string; channel: string | null; created_at: string; delivered_at: string | null; first_opened_at: string | null;
   first_clicked_at: string | null; bounced_at: string | null; complained_at: string | null;
   html_body: string | null; metadata: Record<string, unknown> | null; subject: string | null;
   provider_id: string | null;
@@ -251,13 +251,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       const fetchSince = since < trendSince ? since : trendSince;
       const { data } = await db
         .from("email_log")
-        .select("email_type, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body, metadata, subject, provider_id")
+        .select("email_type, channel, created_at, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at, html_body, metadata, subject, provider_id")
         .in("email_type", job.emailTypes)
         .gte("created_at", fetchSince)
         .order("created_at", { ascending: false })
         .limit(100000);
       const seenPreviewTypes = new Set<string>();
       for (const e of (data ?? []) as VRow[]) {
+        // SMS shares email_log under the same email_type values — texts must not
+        // count as emails (they never open/click; they'd dilute every rate here).
+        if (e.channel === "sms") continue;
         const inWindow = e.created_at >= since;
         if (inWindow) {
           rollup30d.sent += 1;
@@ -353,10 +356,28 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     trend = [...weekMap.entries()].map(([week, v]) => ({ week, ...v })).sort((a, b) => a.week.localeCompare(b.week));
   }
 
+  // ── SMS sent count (windowed) for text automations whose sends log to email_log ──
+  let smsSent: number | null = null;
+  if (job.smsTypes && job.smsTypes.length > 0) {
+    try {
+      const { count } = await db
+        .from("email_log")
+        .select("id", { count: "exact", head: true })
+        .eq("channel", "sms")
+        .eq("status", "sent")
+        .in("email_type", job.smsTypes)
+        .gte("created_at", since);
+      smsSent = count ?? 0;
+    } catch {
+      /* fail soft */
+    }
+  }
+
   return NextResponse.json({
     job: {
       ...job,
-      isEmail: isEmailJob(job),
+      channels: jobChannels(job),
+      isEmail: jobChannels(job).includes("email"),
     },
     paused,
     pause,
@@ -365,6 +386,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     variants,
     previewTypes,
     samplePreviewTypes,
+    smsSent,
     runs,
     windowDays,
   });

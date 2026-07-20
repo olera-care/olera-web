@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { SMS_VARIANTS, SMS_GROUP_ORDER, smsSegmentInfo, type SmsVariant } from "@/lib/sms-samples";
+import SmsPhonePreview from "@/components/admin/SmsPhonePreview";
 
 /**
  * "SMS messages — what we send" panel for /admin/family-comms: the texting
@@ -18,39 +19,6 @@ const AUDIENCE_CHIP: Record<SmsVariant["audience"], string> = {
   family: "bg-teal-50 text-teal-700",
   provider: "bg-sky-50 text-sky-700",
 };
-
-/** Highlight URLs the way a phone's SMS app auto-links them. */
-function BodyWithLinks({ body }: { body: string }) {
-  const parts = body.split(/(https?:\/\/\S+|olera\.care\/\S+)/g);
-  return (
-    <>
-      {parts.map((p, i) =>
-        /^(https?:\/\/|olera\.care\/)/.test(p) ? (
-          <span key={i} className="break-all text-sky-600 underline decoration-sky-300">{p}</span>
-        ) : (
-          <span key={i}>{p}</span>
-        ),
-      )}
-    </>
-  );
-}
-
-function PhonePreview({ body, senderLast4 }: { body: string; senderLast4?: string | null }) {
-  return (
-    <div className="mx-auto w-full max-w-[320px] rounded-[2rem] border border-gray-200 bg-white px-4 pb-7 pt-5 shadow-sm">
-      <div className="mb-3 text-center">
-        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-[13px] font-semibold text-white">O</div>
-        <div className="mt-1 text-[11px] text-gray-500">Olera{senderLast4 ? ` · ••${senderLast4}` : ""}</div>
-      </div>
-      <div className="mb-2 text-center text-[10px] text-gray-400">Text Message</div>
-      <div className="flex justify-start">
-        <div className="max-w-[88%] rounded-2xl rounded-bl-md bg-gray-100 px-3.5 py-2.5 text-[14px] leading-snug text-gray-900">
-          <BodyWithLinks body={body} />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function SmsTypeDrawer({
   variant,
@@ -115,7 +83,7 @@ function SmsTypeDrawer({
           {/* Preview */}
           <div className="border-b border-gray-100 px-5 py-4">
             <div className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Message preview</div>
-            <PhonePreview body={body} senderLast4={senderLast4} />
+            <SmsPhonePreview body={body} senderLast4={senderLast4} />
             <p className="mt-3 text-center text-[11px] tabular-nums text-gray-400">
               {seg.chars} chars · {seg.segments} segment{seg.segments === 1 ? "" : "s"} · {seg.encoding}
               {seg.segments > 1 ? " — billed per segment" : ""}

@@ -6,6 +6,8 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type React
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { useToast } from "@/components/admin/Toast";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
+import { smsVariantsForCron } from "@/lib/sms-samples";
+import SmsSamplesBlock from "@/components/admin/SmsSamplesBlock";
 
 interface Rollup {
   sent: number;
@@ -54,6 +56,8 @@ interface DetailResponse {
     humanSchedule: string;
     path: string;
     emailTypes: string[];
+    channels: Array<"email" | "sms">;
+    smsTypes?: string[];
     successSignal: string | null;
     relatedAdminPath: string | null;
     isEmail: boolean;
@@ -65,6 +69,7 @@ interface DetailResponse {
   variants: VariantRow[];
   previewTypes: string[];
   samplePreviewTypes: SamplePreviewType[];
+  smsSent: number | null;
   runs: RunRow[];
   windowDays: number;
 }
@@ -489,6 +494,9 @@ export default function AutomationDetailPage() {
                 <span>{data.job.audience}</span>
                 <span className="text-gray-300">·</span>
                 <span className="rounded-md bg-gray-100/70 px-2 py-0.5 text-[11px] font-medium text-gray-500 ring-1 ring-inset ring-gray-200/60">{data.job.fn}</span>
+                {data.job.channels.includes("sms") && (
+                  <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700 ring-1 ring-inset ring-sky-200/60">text</span>
+                )}
                 <span className="text-gray-300">·</span>
                 {/* Keep the meta line scannable — just the cadence; the verbose schedule lives in Details. */}
                 <span>{data.job.humanSchedule.split(",")[0]}</span>
@@ -543,6 +551,12 @@ export default function AutomationDetailPage() {
                 <div className="text-gray-600">
                   <span className="text-gray-400">Email types</span>{" "}
                   {data.job.emailTypes.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
+                </div>
+              )}
+              {(data.job.smsTypes?.length ?? 0) > 0 && (
+                <div className="text-gray-600">
+                  <span className="text-gray-400">Text types</span>{" "}
+                  {data.job.smsTypes!.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
                 </div>
               )}
               <div className="text-gray-600"><span className="text-gray-400">Schedule</span><br />{data.job.humanSchedule}</div>
@@ -729,7 +743,13 @@ export default function AutomationDetailPage() {
                 </>
               ) : (
                 <div className="rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-6 text-center text-sm text-gray-400">
-                  {data.job.isEmail ? "Sends email via a helper whose email_type isn't mapped in the registry yet — no rollup." : `${data.job.fn === "refresh" ? "Data refresh" : "Maintenance"} job — nothing to chart. See the Runs tab.`}
+                  {data.job.channels.includes("sms")
+                    ? data.smsSent != null
+                      ? <><span className="font-semibold text-gray-600">{data.smsSent.toLocaleString()}</span> texts sent in the last {data.windowDays} days. Carrier delivery lives on the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link>; samples below.</>
+                      : <>Text automation — sends aren&rsquo;t logged per-type, so Twilio (the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link>) is the delivery record. Samples below.</>
+                    : data.job.isEmail
+                      ? "Sends email via a helper whose email_type isn't mapped in the registry yet — no rollup."
+                      : `${data.job.fn === "refresh" ? "Data refresh" : "Maintenance"} job — nothing to chart. See the Runs tab.`}
                 </div>
               )}
 
@@ -797,6 +817,13 @@ export default function AutomationDetailPage() {
                   </div>
                 );
               })()}
+
+              {/* Text samples — rendered client-side from the live SMS templates (lib/sms-samples.ts). */}
+              {(() => {
+                const smsVariants = smsVariantsForCron(data.job.id);
+                if (smsVariants.length === 0) return null;
+                return <SmsSamplesBlock variants={smsVariants} />;
+              })()}
             </div>
           )}
 
@@ -804,7 +831,11 @@ export default function AutomationDetailPage() {
           {tab === "recipients" && (
             <div className="mt-5">
               {!data.job.isEmail ? (
-                <div className="rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-6 text-center text-sm text-gray-400">This automation doesn&rsquo;t send email — nothing to list.</div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-6 text-center text-sm text-gray-400">
+                  {data.job.channels.includes("sms")
+                    ? <>Text sends aren&rsquo;t listed per-recipient here yet — the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link> has the live Twilio tail.</>
+                    : <>This automation doesn&rsquo;t send email — nothing to list.</>}
+                </div>
               ) : (
                 <div className="overflow-hidden rounded-xl border border-gray-200">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">

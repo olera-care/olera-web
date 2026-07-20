@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { verificationCodeEmail } from "@/lib/email-templates";
 import { sendSMS, normalizeUSPhone, maskPhone } from "@/lib/twilio";
+import { verificationCodeSms } from "@/lib/sms/templates";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -171,7 +172,7 @@ export async function POST(request: Request) {
       const phone = normalizeUSPhone(provider.phone!)!;
       const { success, error: smsErr } = await sendSMS({
         to: phone,
-        body: `Your Olera verification code is: ${code}. It expires in 10 minutes.`,
+        body: verificationCodeSms(code),
       });
 
       if (!success) {

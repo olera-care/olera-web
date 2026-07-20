@@ -7,6 +7,7 @@ import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
+import { connectionResponseSms } from "@/lib/sms/templates";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -205,7 +206,7 @@ export async function POST(request: Request) {
                   state: initiatorBp?.state,
                   phoneValidity: initiatorBp?.phone_validity,
                   emailType: "connection_response",
-                  body: `Olera: ${responderName} responded to your care inquiry. Read & reply: ${smsUrl}`,
+                  body: connectionResponseSms({ providerName: responderName, url: smsUrl }),
                 });
               } catch (smsErr) {
                 console.error(`[manage] reactive SMS failed:`, smsErr);

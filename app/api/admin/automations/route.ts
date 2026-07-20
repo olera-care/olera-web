@@ -40,6 +40,7 @@ interface ConfigRow {
 interface EmailLogRow {
   email_type: string;
   channel: string | null;
+  status: string | null;
   delivered_at: string | null;
   first_opened_at: string | null;
   first_clicked_at: string | null;
@@ -97,13 +98,15 @@ export async function GET() {
   try {
     const { data } = await db
       .from("email_log")
-      .select("email_type, channel, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at")
+      .select("email_type, channel, status, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at")
       .gte("created_at", since)
       .limit(200000);
     for (const e of (data ?? []) as EmailLogRow[]) {
       const t = e.email_type || "unknown";
       if (e.channel === "sms") {
-        smsSentByType.set(t, (smsSentByType.get(t) ?? 0) + 1);
+        // status='failed' = Twilio rejected the API call — never left the building.
+        // Same filter the reactive-alerts daily throttle uses.
+        if (e.status !== "failed") smsSentByType.set(t, (smsSentByType.get(t) ?? 0) + 1);
         continue;
       }
       const b = byType.get(t) ?? emptyRollup();

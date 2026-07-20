@@ -364,6 +364,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         .from("email_log")
         .select("id", { count: "exact", head: true })
         .eq("channel", "sms")
+        .eq("status", "sent")
         .in("email_type", job.smsTypes)
         .gte("created_at", since);
       smsSent = count ?? 0;

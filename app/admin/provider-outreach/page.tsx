@@ -1424,11 +1424,11 @@ export default function ProviderOutreachPage() {
 
   // Handle deleting a state
   const handleDeleteState = async (stateCode: string, stateName: string) => {
+    setStateActionsMenu(null); // Close menu before showing confirm dialog
     if (!confirm(`Remove ${stateName} from active states? This won't delete any provider data.`)) {
       return;
     }
     setStateActionLoading(stateCode);
-    setStateActionsMenu(null);
     try {
       const res = await fetch(`/api/admin/provider-outreach/states/${stateCode}`, {
         method: "DELETE",

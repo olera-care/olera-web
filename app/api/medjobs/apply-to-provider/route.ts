@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { applicationReceivedEmail, applicationSentEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsApplication } from "@/lib/slack";
 import { sendSMS } from "@/lib/twilio";
+import { medjobsApplicationSms } from "@/lib/sms/templates";
 import { getTrackLabel } from "@/lib/medjobs-helpers";
 import type { StudentMetadata } from "@/lib/types";
 
@@ -158,7 +159,11 @@ export async function POST(req: NextRequest) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
         await sendSMS({
           to: providerProfile.phone,
-          body: `New MedJobs application from ${studentProfile.display_name} (${studentMeta.university || "student"}). View: ${siteUrl}/medjobs/candidates/${studentProfile.slug}`,
+          body: medjobsApplicationSms({
+            studentName: studentProfile.display_name,
+            university: studentMeta.university,
+            url: `${siteUrl}/medjobs/candidates/${studentProfile.slug}`,
+          }),
         });
       } catch (err) {
         console.error("[medjobs/apply-to-provider] sms error:", err);

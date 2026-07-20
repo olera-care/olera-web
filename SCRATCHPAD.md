@@ -22,6 +22,16 @@ Ran /ad-boost-setup for HomeWell Care Services of East Tennessee (Oak Ridge, TN)
 - Attach-mode Dia launch needed (MCP browserUrl 9222; launched manually per open-dia skill).
 
 **TJ to-do (not executed):** flip request row → **live via /admin/ad-boost UI** once serving starts (DB flip would skip the "campaign is live" email).
+### 2026-07-19 — SMS message previews on Family Comms admin (PR #1375 OPEN → staging)
+
+TJ: "we can preview emails — would be nice to preview SMS." Built the texting sibling of the email preview system:
+
+- **Root problem:** SMS had no registry at all — 9 distinct bodies built inline at call sites (reach-out alert, connection response, new-inquiry ×2, pending delivery, benefits ×2, MedJobs application, claim code, HELP auto-reply), with the provider "new inquiry" copy drifted into two variants across three files. Any preview would have drifted from reality.
+- **Shipped (branch `nice-williams`, PR #1375):** `lib/sms/templates.ts` (every body extracted, copy-identical refactor of all 9 call sites — preserved both new-inquiry variants as `newInquirySms`/`pendingInquirySms`, did NOT silently unify copy); `lib/sms-samples.ts` (SmsVariant registry mirroring email-samples.ts — renders from the LIVE templates with PII-free fixtures, same Maria/Evergreen cast, + GSM-7/UCS-2 segment calculator); `components/admin/SmsMessagesPanel.tsx` (grouped rows + drawer: trigger/who/why, phone-bubble preview w/ auto-linked URLs + sender ••last4, char/segment cost, send gates — quiet hours, 6/day cap, STOP). Wired below the delivery panel on /admin/family-comms (`fc.smsMessages`). No API route — bodies are pure strings, direct client import.
+- **Validation:** tsc 0; all 9 variants rendered offline, every one a single GSM-7 segment; call-site diff reviewed line-by-line (caught a missed second site in connections/request — different indentation defeated replace-all).
+- **Known gap (disclosed in drawer):** most provider-facing sends pass no `emailType` → never reach email_log; Twilio is their only record. Fixing = threading emailType through those call sites; deferred.
+
+**Next up:** (1) TJ QA on preview deploy (/admin/family-comms → "SMS messages — what we send" → click rows) → /pr-merge #1375; (2) still-open threads from 07-07: 10DLC Trust & Safety reply (ticket # 27975902) → resubmit; Ad Boost flips (Miracle + Impact → live); Abode wraps ~Jul 27; orientation campaign send (600, gated); AdminTable rollout (greenlit, unstarted); family-nudges withCronRun fix.
 
 ### 2026-07-07 — Ad Boost LIVE IN PRODUCTION: rail proven with real money, Hilda email SENT (promotes #1337 + #1339)
 

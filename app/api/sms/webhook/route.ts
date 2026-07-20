@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
 import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone } from "@/lib/twilio";
+import { smsHelpReply } from "@/lib/sms/templates";
 
 /**
  * POST /api/sms/webhook
@@ -28,8 +29,7 @@ const OPT_OUT_KEYWORDS = new Set(["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "E
 const OPT_IN_KEYWORDS = new Set(["START", "UNSTOP", "YES"]);
 const HELP_KEYWORDS = new Set(["HELP", "INFO"]);
 
-const HELP_REPLY =
-  "Olera: We text care-search updates and provider replies. Reply STOP to opt out. Help: olera.care/contact";
+const HELP_REPLY = smsHelpReply();
 
 function getServiceDb() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

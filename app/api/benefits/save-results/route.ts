@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient as createSSRServerClient } from "@supabase/ssr";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { benefitsResultsSms } from "@/lib/sms/templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
@@ -849,13 +850,11 @@ export async function POST(req: Request) {
   // (160-char SMS budget caps how much personalization we can fit).
   if (isNewUser && normalizedPhone && benefitsToken) {
     (async () => {
-      const programWord = matchCount === 1 ? "program" : "programs";
-      const familyPhrase = relationshipFamilyPhrase(relationship);
-      const url = `${siteUrl}/m/${benefitsToken}`;
-      const body =
-        matchCount > 0
-          ? `Olera: We found ${matchCount} care benefit ${programWord} for ${familyPhrase}. View: ${url} Reply STOP to opt out.`
-          : `Olera: Your care benefit search is saved. We'll keep looking. View: ${url} Reply STOP to opt out.`;
+      const body = benefitsResultsSms({
+        matchCount,
+        familyPhrase: relationshipFamilyPhrase(relationship),
+        url: `${siteUrl}/m/${benefitsToken}`,
+      });
       const result = await sendSMS({ to: normalizedPhone, body });
       if (!result.success) {
         console.error("[save-results] SMS send failed:", result.error);

@@ -37,6 +37,8 @@ export interface SmsVariant {
   emailType: string | null;
   /** What fires it, in plain terms — most SMS are event-driven, not cron-driven. */
   trigger: string;
+  /** Automations-registry id that owns this text (for the per-job preview), mirroring EmailVariant.cron. */
+  cron?: string;
   /** Who receives this — the eligibility, in plain terms. */
   who?: string;
   /** Why we send it — the intent behind the copy. */
@@ -71,6 +73,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   // ─────────────── Family · Reply alerts (Tier 1 reactive) ───────────────
   {
     id: "sms_provider_reach_out",
+    cron: "family-reply-alert-texts",
     audience: "family",
     group: "Family · Reply alerts",
     label: "Provider reached out",
@@ -88,6 +91,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   },
   {
     id: "sms_connection_response",
+    cron: "family-reply-alert-texts",
     audience: "family",
     group: "Family · Reply alerts",
     label: "Provider responded to inquiry",
@@ -106,6 +110,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   // ─────────────── Provider · New lead alerts ───────────────
   {
     id: "sms_new_inquiry",
+    cron: "provider-lead-alert-texts",
     audience: "provider",
     group: "Provider · Lead alerts",
     label: "New care inquiry",
@@ -123,6 +128,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   },
   {
     id: "sms_pending_inquiry",
+    cron: "provider-lead-alert-texts",
     audience: "provider",
     group: "Provider · Lead alerts",
     label: "Pending inquiry delivered",
@@ -135,6 +141,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   },
   {
     id: "sms_medjobs_application",
+    cron: "provider-lead-alert-texts",
     audience: "provider",
     group: "Provider · Lead alerts",
     label: "New MedJobs application",
@@ -153,6 +160,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   // ─────────────── Family · Benefits results ───────────────
   {
     id: "sms_benefits_match",
+    cron: "benefits-results-texts",
     audience: "family",
     group: "Family · Benefits results",
     label: "Benefits results — matches found",
@@ -165,6 +173,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   },
   {
     id: "sms_benefits_saved",
+    cron: "benefits-results-texts",
     audience: "family",
     group: "Family · Benefits results",
     label: "Benefits results — saved, no match yet",
@@ -179,6 +188,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   // ─────────────── Transactional & auto-replies ───────────────
   {
     id: "sms_claim_code",
+    cron: "transactional-texts",
     audience: "provider",
     group: "Transactional & auto-replies",
     label: "Claim verification code",
@@ -190,6 +200,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
   },
   {
     id: "sms_help_reply",
+    cron: "transactional-texts",
     audience: "family",
     group: "Transactional & auto-replies",
     label: "HELP auto-reply",
@@ -200,6 +211,18 @@ export const SMS_VARIANTS: SmsVariant[] = [
     render: () => smsHelpReply(),
   },
 ];
+
+/** Some automations deliver texts owned by another entry (the queue flush drains
+ *  the reply alerts) — alias them so their detail page previews the same bodies. */
+const SMS_CRON_ALIASES: Record<string, string> = {
+  "sms-queue-flush": "family-reply-alert-texts",
+};
+
+/** Texts sent by a given automations-registry id (for the per-job preview). */
+export function smsVariantsForCron(cronId: string): SmsVariant[] {
+  const target = SMS_CRON_ALIASES[cronId] ?? cronId;
+  return SMS_VARIANTS.filter((v) => v.cron === target);
+}
 
 /** Display order for panel groups. */
 export const SMS_GROUP_ORDER = [

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { readManagedUtmFromRequest, managedUtmMetadata } from "@/lib/ad-boost/managed-utm";
 import { sendAdBoostLeadDeliveredEmail } from "@/lib/ad-boost/lead-notifications.server";
 
@@ -229,6 +230,7 @@ export async function POST(request: Request) {
 
     // Use slug (URL-canonical) so this row aggregates with page_view rows
     // for the same provider. Fall back to provider_id only if slug is null.
+    await markAdsLeadConversion();
     void recordProviderEvent({
       provider_id: provider.slug || providerId,
       event_type: "lead_received",

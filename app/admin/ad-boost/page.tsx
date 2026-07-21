@@ -264,11 +264,20 @@ const PRE_LAUNCH_STATUSES = new Set(["pending_profile", "requested", "scheduled"
 function LeadsCell({ request }: { request: CampaignRequest }) {
   const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
   const leads = request.delivered ?? 0;
+  const landings = request.ad_landings ?? 0;
 
   return (
     <div className={`text-sm tabular-nums ${preLaunch ? "text-gray-300" : "text-gray-600"}`}>
       <span className="sm:hidden font-normal text-gray-400">Leads: </span>
       {preLaunch ? "—" : leads}
+      {/* Delivery signal: ad clicks that landed on the page. A live campaign
+          with 0 landings after a day or two is stalled at Google, not
+          unconverting — surface that here instead of a silent zero. */}
+      {!preLaunch && landings > 0 && (
+        <span className="block text-[11px] leading-tight text-gray-400">
+          {landings} click{landings === 1 ? "" : "s"}
+        </span>
+      )}
     </div>
   );
 }

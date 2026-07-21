@@ -79,6 +79,47 @@ export async function countDeliveredByCampaign(
 }
 
 /**
+ * Count managed-ad clicks that actually LANDED, per campaign: session-deduped
+ * `page_view` events tagged `utm_source=olera_managed`. ViewTracker stamps the
+ * landing UTM onto page_view metadata, so this is the delivery half of the
+ * funnel (did the ad's clicks reach the page?) next to the conversion half
+ * (`countDeliveredByCampaign`). A stalled campaign shows up here within a day
+ * instead of two silent weeks of zero leads.
+ *
+ * Only counts events from after the instrumentation shipped — older campaigns
+ * read low, which is fine: this is a live delivery signal, not history.
+ */
+export async function countAdLandingsByCampaign(
+  db: ReturnType<typeof getServiceClient>,
+  tags: string[],
+): Promise<Record<string, number>> {
+  const result: Record<string, number> = {};
+  const wanted = tags.filter((t): t is string => !!t);
+  if (wanted.length === 0) return result;
+  const wantedSet = new Set(wanted);
+  const sessionsByTag: Record<string, Set<string>> = {};
+  for (const t of wanted) sessionsByTag[t] = new Set();
+
+  const { data } = await db
+    .from("provider_activity")
+    .select("metadata")
+    .eq("event_type", "page_view")
+    .filter("metadata->>utm_source", "eq", "olera_managed")
+    .limit(50000);
+  for (const row of (data ?? []) as Array<{
+    metadata: { utm_campaign?: string; session_id?: string } | null;
+  }>) {
+    const tag = row.metadata?.utm_campaign;
+    if (tag && wantedSet.has(tag)) {
+      sessionsByTag[tag].add(row.metadata?.session_id || JSON.stringify(row.metadata));
+    }
+  }
+
+  for (const t of wanted) result[t] = sessionsByTag[t].size;
+  return result;
+}
+
+/**
  * Real campaign performance for the provider-facing live panel: how many people
  * visited this provider's page and how many converted into leads since the
  * campaign launched.

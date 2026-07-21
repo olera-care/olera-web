@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { countDeliveredByCampaign, listLeadsByCampaign, getCampaignStats } from "@/lib/ad-boost/delivered.server";
+import { countDeliveredByCampaign, countAdLandingsByCampaign, listLeadsByCampaign, getCampaignStats } from "@/lib/ad-boost/delivered.server";
 import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notifications.server";
 
 /**
@@ -125,11 +125,15 @@ export async function GET(request: NextRequest) {
   const tags = requests.map(
     (r: { id: string; campaign_tag: string | null }) => r.campaign_tag || r.id,
   );
-  const delivered = await countDeliveredByCampaign(db, tags);
+  const [delivered, adLandings] = await Promise.all([
+    countDeliveredByCampaign(db, tags),
+    countAdLandingsByCampaign(db, tags),
+  ]);
 
   const withRoi = requests.map((r: { id: string; campaign_tag: string | null }) => ({
     ...r,
     delivered: delivered[r.campaign_tag || r.id] ?? 0,
+    ad_landings: adLandings[r.campaign_tag || r.id] ?? 0,
   }));
 
   // Tab counts (active vs archived) so both tabs show a number regardless of

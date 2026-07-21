@@ -117,11 +117,13 @@ export interface OutreachProvider {
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
+  // Whether email has been manually overridden/trusted (from email_overrides table)
+  is_email_overridden?: boolean;
 }
 
 /**
- * Enrich providers with email verification status from email_verifications table.
- * Only enriches providers that have an email address.
+ * Enrich providers with email verification status and override status.
+ * Queries both email_verifications and email_overrides tables.
  */
 async function enrichWithEmailVerification(
   db: ReturnType<typeof getServiceClient>,
@@ -134,24 +136,29 @@ async function enrichWithEmailVerification(
 
   if (emails.length === 0) return providers;
 
-  // Fetch verification statuses
-  const { data: verifications } = await db
-    .from("email_verifications")
-    .select("email, status")
-    .in("email", emails);
+  // Fetch verification statuses and overrides in parallel
+  const [{ data: verifications }, { data: overrides }] = await Promise.all([
+    db.from("email_verifications").select("email, status").in("email", emails),
+    db.from("email_overrides").select("email").in("email", emails),
+  ]);
 
-  if (!verifications || verifications.length === 0) return providers;
-
-  // Build lookup map
+  // Build lookup maps
   const statusMap = new Map(
-    verifications.map((v) => [v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown"])
+    (verifications || []).map((v) => [v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown"])
+  );
+  const overrideSet = new Set(
+    (overrides || []).map((o) => o.email.toLowerCase())
   );
 
   // Enrich providers
-  return providers.map((p) => ({
-    ...p,
-    email_verification_status: p.email ? statusMap.get(p.email.toLowerCase().trim()) ?? null : null,
-  }));
+  return providers.map((p) => {
+    const emailKey = p.email?.toLowerCase().trim();
+    return {
+      ...p,
+      email_verification_status: emailKey ? statusMap.get(emailKey) ?? null : null,
+      is_email_overridden: emailKey ? overrideSet.has(emailKey) : false,
+    };
+  });
 }
 
 /**

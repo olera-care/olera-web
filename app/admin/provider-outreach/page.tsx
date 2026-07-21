@@ -140,6 +140,8 @@ interface OutreachProvider {
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
+  // Whether email has been manually overridden/trusted
+  is_email_overridden?: boolean;
 }
 
 interface ActiveState {
@@ -211,6 +213,7 @@ function ProviderContactEditor({
   phone,
   onEmailUpdate,
   emailVerificationStatus,
+  isEmailOverridden,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -222,6 +225,8 @@ function ProviderContactEditor({
   onEmailUpdate?: (newEmail: string) => void;
   /** Pre-fetched email verification status from database */
   emailVerificationStatus?: "valid" | "invalid" | "risky" | "unknown" | null;
+  /** Whether email has been manually overridden/trusted */
+  isEmailOverridden?: boolean;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -245,6 +250,12 @@ function ProviderContactEditor({
   // Trust score state
   const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
   const [trustScoreReason, setTrustScoreReason] = useState("");
+
+  // Email override state (for one-click trust action)
+  const [isOverriding, setIsOverriding] = useState(false);
+  const [locallyOverridden, setLocallyOverridden] = useState(false);
+  // Combine database state (prop) with local action state
+  const isOverridden = isEmailOverridden || locallyOverridden;
 
   // Cleanup debounce timeout on unmount
   useEffect(() => {
@@ -452,6 +463,32 @@ function ProviderContactEditor({
     }
   }
 
+  // One-click override for risky/invalid emails
+  async function handleOverride() {
+    if (!email || isOverriding) return;
+
+    setIsOverriding(true);
+    try {
+      const res = await fetch("/api/admin/email-override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          providerSlug: providerSlug || providerId,
+          reason: "admin",
+        }),
+      });
+
+      if (res.ok) {
+        setLocallyOverridden(true);
+      }
+    } catch {
+      // Silent fail - button will remain visible for retry
+    } finally {
+      setIsOverriding(false);
+    }
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
       <div className="flex items-center gap-1.5">
@@ -549,12 +586,34 @@ function ProviderContactEditor({
           // Display mode: show email + verification badge + Edit button
           <>
             <span className="text-sm text-gray-700">{email}</span>
-            {/* Show pre-fetched verification status from database */}
-            {emailVerificationStatus && emailVerificationStatus !== "valid" && (
-              <EmailVerificationBadge
-                status={emailVerificationStatus}
-              />
-            )}
+            {/* Email verification status and override */}
+            {isOverridden ? (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+                Trusted
+              </span>
+            ) : emailVerificationStatus && emailVerificationStatus !== "valid" ? (
+              <>
+                <EmailVerificationBadge status={emailVerificationStatus} />
+                {/* One-click trust button for risky/invalid emails */}
+                {(emailVerificationStatus === "risky" || emailVerificationStatus === "invalid") && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOverride();
+                    }}
+                    disabled={isOverriding}
+                    className="shrink-0 px-2 py-0.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded transition disabled:opacity-50"
+                    title="Mark this email as trusted"
+                  >
+                    {isOverriding ? "..." : "Trust"}
+                  </button>
+                )}
+              </>
+            ) : null}
             {saved && (
               <span className="text-xs text-emerald-600 flex items-center gap-0.5">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -946,6 +1005,7 @@ function CityRow({
                             phone={provider.phone}
                             onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
                             emailVerificationStatus={provider.email_verification_status}
+                            isEmailOverridden={provider.is_email_overridden}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (

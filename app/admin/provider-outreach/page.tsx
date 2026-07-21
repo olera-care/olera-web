@@ -695,18 +695,9 @@ function CityRow({
 
   // Auto email lookup when city is expanded
   useEffect(() => {
-    console.log("[AutoLookup] Effect triggered", {
-      city: city.city,
-      isExpanded,
-      loadingProviders,
-      cityProvidersCount: cityProviders.length,
-      providersWithoutEmail: cityProviders.filter((p) => !p.email).length,
-    });
-
     if (!isExpanded || loadingProviders) {
       // City collapsed or still loading - mark as cancelled to ignore pending results
       lookupCancelledRef.current = true;
-      console.log("[AutoLookup] Early return - not expanded or loading", { isExpanded, loadingProviders });
       return;
     }
 
@@ -718,14 +709,6 @@ function CityRow({
       (p) => !p.email && !lookupAttemptedRef.current.has(p.provider_id) && !lookingUpEmails.has(p.provider_id)
     );
 
-    console.log("[AutoLookup] Providers to lookup", {
-      total: cityProviders.length,
-      withoutEmail: cityProviders.filter((p) => !p.email).length,
-      alreadyAttempted: Array.from(lookupAttemptedRef.current),
-      currentlyLooking: Array.from(lookingUpEmails),
-      toProcess: providersToLookup.length,
-    });
-
     if (providersToLookup.length === 0) return;
 
     // Mark these as attempted so we don't retry on re-render
@@ -735,7 +718,6 @@ function CityRow({
     const lookupEmail = async (provider: OutreachProvider) => {
       if (lookupCancelledRef.current) return;
 
-      console.log("[AutoLookup] Starting lookup for", provider.provider_id, provider.provider_name);
       setLookingUpEmails((prev) => new Set(prev).add(provider.provider_id));
 
       try {
@@ -744,7 +726,6 @@ function CityRow({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ provider_id: provider.provider_id }),
         });
-        console.log("[AutoLookup] Response for", provider.provider_id, { status: res.status });
 
         // Check if cancelled before processing result
         if (lookupCancelledRef.current) return;

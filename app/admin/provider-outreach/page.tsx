@@ -1315,7 +1315,7 @@ function FollowUpProviderRow({
         </div>
 
         {/* Phone */}
-        <div className="w-36 shrink-0">
+        <div className="w-32 shrink-0">
           {provider.phone ? (
             <a
               href={`tel:${provider.phone.replace(/\D/g, "")}`}
@@ -1326,6 +1326,21 @@ function FollowUpProviderRow({
             </a>
           ) : (
             <span className="text-sm text-gray-400">No phone</span>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="w-44 shrink-0 truncate">
+          {provider.email ? (
+            <a
+              href={`mailto:${provider.email}`}
+              className="text-sm text-gray-600 hover:text-primary-600 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {provider.email}
+            </a>
+          ) : (
+            <span className="text-sm text-gray-400">No email</span>
           )}
         </div>
 

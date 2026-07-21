@@ -6,6 +6,7 @@ import AuthProvider from "@/components/auth/AuthProvider";
 import { SavedProvidersProvider } from "@/hooks/use-saved-providers";
 import { SavedProgramsProvider } from "@/hooks/use-saved-programs";
 import LayoutShell from "./LayoutShell";
+import { AdsConversionPing } from "@/components/analytics/AdsConversionPing";
 
 const dmSerifDisplay = DM_Serif_Display({
   weight: "400",
@@ -15,6 +16,9 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 const GA_MEASUREMENT_ID = "G-XX0KRLT4FE";
+// Google Ads account tag — captures gclid on ad landings so AdsConversionPing's
+// conversion events can be attributed to the click.
+const ADS_CONVERSION_ID = "AW-10943251086";
 
 export const metadata: Metadata = {
   title: {
@@ -132,6 +136,7 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '${GA_MEASUREMENT_ID}');
+            gtag('config', '${ADS_CONVERSION_ID}');
           `}
         </Script>
 
@@ -147,6 +152,7 @@ export default function RootLayout({
           <SavedProvidersProvider>
             <SavedProgramsProvider>
               <LayoutShell>{children}</LayoutShell>
+              <AdsConversionPing />
             </SavedProgramsProvider>
           </SavedProvidersProvider>
         </AuthProvider>

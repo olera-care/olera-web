@@ -15,6 +15,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { syncIntentToProfile, recipientMap, timelineMap, careTypeMap } from "@/lib/sync-intent-to-profile";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { readManagedUtmFromRequest, managedUtmMetadata, type ManagedUtm } from "@/lib/ad-boost/managed-utm";
 import { sendAdBoostLeadDeliveredEmail } from "@/lib/ad-boost/lead-notifications.server";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
@@ -697,6 +698,7 @@ async function handleGuestConnection({
     if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
   });
 
+  await markAdsLeadConversion();
   void recordProviderEvent({
     // Slug, not internal id — keeps row aggregatable with page_view (URL slug).
     provider_id: providerSlug || providerId,
@@ -1764,6 +1766,7 @@ export async function POST(request: Request) {
       if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
     });
 
+    await markAdsLeadConversion();
     void recordProviderEvent({
       // Slug, not internal id — keeps row aggregatable with page_view (URL slug).
       provider_id: providerSlug || providerId,

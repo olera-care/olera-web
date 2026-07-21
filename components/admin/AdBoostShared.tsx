@@ -31,6 +31,10 @@ export interface CampaignRequest {
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;
   subscribed_at?: string | null;
+  /** Ad clicks that landed: session-deduped page_views tagged with this
+   *  campaign's managed UTM. The delivery half of the funnel next to
+   *  `delivered` (conversions). */
+  ad_landings?: number;
   /** Families delivered so far (campaign-attributed conversions across the
    *  inquiry + benefits funnels). Attached by the list + detail API branches. */
   delivered?: number;

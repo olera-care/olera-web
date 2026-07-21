@@ -9,6 +9,7 @@ import { generateUniqueSlugFromName } from "@/lib/slug";
 import { generateProviderSlug } from "@/lib/slugify";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { readManagedUtmFromRequest, managedUtmMetadata } from "@/lib/ad-boost/managed-utm";
 import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
@@ -375,6 +376,7 @@ export async function POST(req: Request) {
   // Fire lead_received so Q&A conversions show in admin analytics alongside
   // CTA and Lead Capture conversions. The variant (multi_provider / multi_provider_v2)
   // is stored as entry_point for attribution.
+  await markAdsLeadConversion();
   void recordProviderEvent({
     provider_id: providerId,
     event_type: "lead_received",

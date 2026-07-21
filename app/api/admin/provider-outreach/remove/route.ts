@@ -53,13 +53,16 @@ export async function POST(request: NextRequest) {
     const oldStage = tracking.stage;
 
     // Log the removal event BEFORE deleting (so we have the provider_id reference)
+    // Use "stage_changed" type since "removed_from_outreach" isn't in the CHECK constraint
     const { error: touchpointError } = await db
       .from("provider_outreach_touchpoints")
       .insert({
         provider_id,
-        touchpoint_type: "removed_from_outreach",
+        touchpoint_type: "stage_changed",
         details: {
           old_stage: oldStage,
+          new_stage: null,
+          removed_from_outreach: true,
           city: tracking.city,
           state: tracking.state,
         },

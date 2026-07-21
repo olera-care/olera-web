@@ -2008,11 +2008,11 @@ export default function ProviderOutreachPage() {
         }));
       }
 
-      showToast(`Removed ${pendingRemoval.providerName} from outreach`);
+      showToast(`Removed ${pendingRemoval.providerName} from outreach`, "success");
       setPendingRemoval(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to remove provider";
-      showToast(message);
+      showToast(message, "error");
     } finally {
       setRemovingProvider(false);
     }

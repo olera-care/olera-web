@@ -51,7 +51,7 @@ async function batchedInQuery<T>(
 /**
  * Outreach stages and their properties
  *
- * UI tabs: Needs Email | Ready | In Sequence | Follow Up | Re-Engage | Called | Claimed | Archived
+ * UI tabs: Needs Email | Ready | In Sequence | Follow Up | Re-Engage | Claimed | Archived
  *
  * "Needs Email" and "Ready" are filtered views of "not_contacted" (based on email presence)
  * "Follow Up" is the UI label for "needs_call" stage
@@ -62,16 +62,14 @@ export const OUTREACH_STAGES = [
   "in_sequence",
   "needs_call",  // UI: "Follow Up"
   "re_engage",   // New stage for re-engagement
-  "called",
   "claimed",
   "archived",
 ] as const;
 
 export type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
-// Called is terminal for our outreach effort (ball is in provider's court)
-// Claimed and Archived are also terminal
-export const TERMINAL_STAGES: OutreachStage[] = ["called", "claimed", "archived"];
+// Claimed and Archived are terminal stages
+export const TERMINAL_STAGES: OutreachStage[] = ["claimed", "archived"];
 
 interface ProviderRow {
   provider_id: string;
@@ -807,7 +805,6 @@ async function searchProviders(
  * Key logic:
  * - "claimed" count = actual claimed providers (from business_profiles with account_id)
  * - Active stages (in_sequence, needs_call) = tracking count MINUS those who have since claimed
- * - "called" = terminal for our outreach (ball in provider's court), count MINUS those who claimed
  * - "archived" = tracking count + system-wide archived (admin_archived = true in business_profiles)
  * - "not_contacted" = total providers - claimed - tracked - system-archived
  */
@@ -826,7 +823,6 @@ async function getStageCounts(
     in_sequence: 0,
     needs_call: 0,
     re_engage: 0,
-    called: 0,
     claimed: 0,
     archived: 0,
     // Additional email-based counts

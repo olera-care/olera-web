@@ -16,7 +16,6 @@ const OUTREACH_STAGES = [
   "in_sequence",
   "needs_call",
   "re_engage",
-  "called",
   "claimed",
   "archived",
 ] as const;
@@ -32,7 +31,6 @@ const UI_TABS: UITab[] = [
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
-  "called",
   "claimed",
   "archived",
 ];
@@ -43,7 +41,6 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Re-Engage",
-  called: "Called",
   claimed: "Claimed",
   archived: "Archived",
 };
@@ -54,14 +51,12 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Re-Engage",
-  called: "Called",
   claimed: "Claimed",
   archived: "Archived",
 };
 
-// Called is terminal for our outreach effort (ball is in provider's court)
-// Claimed and Archived are also terminal
-const TERMINAL_STAGES: OutreachStage[] = ["called", "claimed", "archived"];
+// Claimed and Archived are terminal stages
+const TERMINAL_STAGES: OutreachStage[] = ["claimed", "archived"];
 
 interface CityStats {
   city: string;
@@ -155,7 +150,6 @@ interface ActiveState {
   in_sequence: number;
   needs_call: number;
   re_engage: number;
-  called: number;
   claimed: number;
   archived: number;
   stats_refreshed_at: string | null;
@@ -1087,7 +1081,6 @@ export default function ProviderOutreachPage() {
     in_sequence: 0,
     needs_call: 0,
     re_engage: 0,
-    called: 0,
     claimed: 0,
     archived: 0,
     needs_email: 0,
@@ -1133,7 +1126,7 @@ export default function ProviderOutreachPage() {
 
   // Action modal state
   const [actionModalProvider, setActionModalProvider] = useState<OutreachProvider | null>(null);
-  const [selectedAction, setSelectedAction] = useState<"called" | "archived" | "unhide" | null>(null);
+  const [selectedAction, setSelectedAction] = useState<"archived" | "unhide" | null>(null);
   const [actionReason, setActionReason] = useState("");
   const [actionNotes, setActionNotes] = useState("");
   // Unarchive preview state
@@ -1472,7 +1465,6 @@ export default function ProviderOutreachPage() {
         in_sequence: 0,
         needs_call: 0,
         re_engage: 0,
-        called: 0,
         claimed: 0,
         archived: 0,
         needs_email: 0,
@@ -1689,7 +1681,7 @@ export default function ProviderOutreachPage() {
   // If requiresReasonValidation is true, reason is required (archive/unarchive actions)
   const handleQuickAction = async (
     providerId: string,
-    action: "not_contacted" | "called" | "archived",
+    action: "not_contacted" | "archived",
     reason?: string | null,
     notes?: string | null,
     requiresReasonValidation?: boolean
@@ -1708,7 +1700,7 @@ export default function ProviderOutreachPage() {
       });
 
       if (res.ok) {
-        const actionLabel = action === "not_contacted" ? "Restored" : action === "called" ? "Called" : "Archived";
+        const actionLabel = action === "not_contacted" ? "Restored" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
 
         // Refresh data
@@ -1752,26 +1744,17 @@ export default function ProviderOutreachPage() {
       case "in_sequence":
         return [
           { stage: "needs_call", label: "Move to Follow Up", color: "bg-amber-600 hover:bg-amber-700" },
-          { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
       case "needs_call":  // Follow Up
         return [
           { stage: "re_engage", label: "Move to Re-Engage", color: "bg-blue-600 hover:bg-blue-700" },
-          { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
       case "re_engage":
         return [
           { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700" },
-          { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
-        ];
-      case "called":
-        // Called is terminal for outreach - we've done our part
-        // Only allow going back in case of error
-        return [
-          { stage: "needs_call", label: "Back to Follow Up", color: "bg-amber-600 hover:bg-amber-700" },
         ];
       default:
         // Terminal stages (archived, claimed) - allow moving back to not_contacted
@@ -2076,14 +2059,9 @@ export default function ProviderOutreachPage() {
                 subtitle="actively receiving emails"
               />
               <FunnelStat
-                label="Needs Call"
+                label="Follow Up"
                 value={stageCounts.needs_call}
                 subtitle="sequence complete"
-              />
-              <FunnelStat
-                label="Called"
-                value={stageCounts.called}
-                subtitle="awaiting response"
               />
               <FunnelStat
                 label="Claimed"
@@ -2094,10 +2072,10 @@ export default function ProviderOutreachPage() {
               <FunnelStat
                 label="Claim Rate"
                 value={
-                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed > 0
+                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed > 0
                     ? Math.round(
                         (stageCounts.claimed /
-                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed)) *
+                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed)) *
                           100
                       )
                     : 0
@@ -2234,7 +2212,6 @@ export default function ProviderOutreachPage() {
                         provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
                         provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
                         provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
-                        provider.stage === "called" ? "bg-purple-100 text-purple-700" :
                         provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
                         "bg-gray-100 text-gray-600"
                       }`}>
@@ -2425,26 +2402,6 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Mark as Called - show for active stages that haven't been called yet */}
-                {["not_contacted", "in_sequence", "needs_call", "re_engage"].includes(actionModalProvider.stage) && (
-                  <button
-                    onClick={() => setSelectedAction("called")}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-purple-500 mt-0.5">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="font-medium text-gray-900">Mark as Called</p>
-                        <p className="text-xs text-gray-500">We called them - ball is in their court</p>
-                      </div>
-                    </div>
-                  </button>
-                )}
-
                 {/* Archive - only show if NOT already archived */}
                 {actionModalProvider.stage !== "archived" && (
                   <button
@@ -2590,59 +2547,52 @@ export default function ProviderOutreachPage() {
                   <>
                     {/* Action description */}
                     <div className={`p-3 rounded-lg ${
-                      selectedAction === "called" ? "bg-purple-50 border border-purple-200" :
                       selectedAction === "archived" ? "bg-amber-50 border border-amber-200" :
                       selectedAction === "unhide" ? "bg-emerald-50 border border-emerald-200" :
                       "bg-gray-50 border border-gray-200"
                     }`}>
                       <p className="text-sm font-medium text-gray-900">
-                        {selectedAction === "called" ? "Mark as Called" :
-                         selectedAction === "archived" ? "Archive Provider" :
+                        {selectedAction === "archived" ? "Archive Provider" :
                          selectedAction === "unhide" ? "Unarchive Provider" :
                          "Unknown Action"}
                       </p>
                       <p className="text-xs text-gray-600 mt-0.5">
-                        {selectedAction === "called" ? "Provider will be moved to Called tab. We've done our part - ball is in their court." :
-                         selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
+                        {selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
                          selectedAction === "unhide" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
                          ""}
                       </p>
                     </div>
 
-                    {/* Reason dropdown - not needed for "called" */}
-                    {selectedAction !== "called" && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Reason
-                        </label>
-                        <select
-                          value={actionReason}
-                          onChange={(e) => setActionReason(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                        >
-                          <option value="">Select a reason...</option>
-                          {(selectedAction === "archived" ? ARCHIVE_REASONS : UNARCHIVE_REASONS).map((reason) => (
-                            <option key={reason.value} value={reason.value}>{reason.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                    {/* Reason dropdown */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Reason
+                      </label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {(selectedAction === "archived" ? ARCHIVE_REASONS : UNARCHIVE_REASONS).map((reason) => (
+                          <option key={reason.value} value={reason.value}>{reason.label}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                    {/* Notes textarea - not needed for "called" */}
-                    {selectedAction !== "called" && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Notes <span className="text-gray-400 font-normal">{actionReason === "other" ? "(required)" : "(optional)"}</span>
-                        </label>
-                        <textarea
-                          value={actionNotes}
-                          onChange={(e) => setActionNotes(e.target.value)}
-                          placeholder="Add any additional context..."
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
-                        />
-                      </div>
-                    )}
+                    {/* Notes textarea */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Notes <span className="text-gray-400 font-normal">{actionReason === "other" ? "(required)" : "(optional)"}</span>
+                      </label>
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Add any additional context..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                      />
+                    </div>
                   </>
                 )}
               </div>
@@ -2660,11 +2610,8 @@ export default function ProviderOutreachPage() {
               {selectedAction && !(selectedAction === "unhide" && !unarchivePreviewConfirmed) && (
                 <button
                   onClick={async () => {
-                    // "called" doesn't require a reason
-                    if (selectedAction !== "called") {
-                      if (!actionReason) return;
-                      if (actionReason === "other" && !actionNotes.trim()) return;
-                    }
+                    if (!actionReason) return;
+                    if (actionReason === "other" && !actionNotes.trim()) return;
                     // Map "unhide" to "not_contacted" stage
                     const stageToSet = selectedAction === "unhide" ? "not_contacted" : selectedAction;
                     // Detect if this is an unarchive scenario (moving from archived to not_contacted)
@@ -2680,11 +2627,10 @@ export default function ProviderOutreachPage() {
                   }}
                   disabled={
                     actionLoading ||
-                    (selectedAction !== "called" && !actionReason) ||
-                    (selectedAction !== "called" && actionReason === "other" && !actionNotes.trim())
+                    !actionReason ||
+                    (actionReason === "other" && !actionNotes.trim())
                   }
                   className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    selectedAction === "called" ? "bg-purple-600 hover:bg-purple-700" :
                     selectedAction === "archived" ? "bg-amber-600 hover:bg-amber-700" :
                     selectedAction === "unhide" ? "bg-emerald-600 hover:bg-emerald-700" :
                     "bg-gray-600 hover:bg-gray-700"

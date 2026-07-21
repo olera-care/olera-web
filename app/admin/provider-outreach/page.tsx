@@ -1439,7 +1439,7 @@ function FollowUpProviderRow({
                 onClick={() => handleStageMove("not_contacted")}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Not Contacted
+                Ready
               </button>
               <button
                 onClick={() => handleStageMove("in_sequence")}

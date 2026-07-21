@@ -2179,11 +2179,8 @@ export default function ProviderOutreachPage() {
           { stage: "needs_call", label: "Move to Follow Up", color: "bg-amber-600 hover:bg-amber-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
-      case "needs_call":  // Follow Up
-        return [
-          { stage: "re_engage", label: "Move to Re-Engage", color: "bg-blue-600 hover:bg-blue-700" },
-          { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
-        ];
+      case "needs_call":  // Follow Up - no bulk actions, use individual outcome buttons instead
+        return [];
       case "re_engage":
         return [
           { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700" },

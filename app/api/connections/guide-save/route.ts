@@ -6,6 +6,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { recordProviderEvent } from "@/lib/analytics/provider-events";
+import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { readManagedUtmFromRequest, managedUtmMetadata } from "@/lib/ad-boost/managed-utm";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
 
@@ -490,6 +491,7 @@ export async function POST(request: Request) {
         isNewConnection = true;
 
         // Record analytics
+        await markAdsLeadConversion();
         void recordProviderEvent({
           provider_id: provider.slug,
           event_type: "lead_received",

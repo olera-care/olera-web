@@ -138,6 +138,8 @@ interface OutreachProvider {
   notes: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  // Email verification status from email_verifications table
+  email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
 }
 
 interface ActiveState {
@@ -208,6 +210,7 @@ function ProviderContactEditor({
   emailFoundUrl,
   phone,
   onEmailUpdate,
+  emailVerificationStatus,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -217,6 +220,8 @@ function ProviderContactEditor({
   emailFoundUrl?: string | null;
   phone: string | null;
   onEmailUpdate?: (newEmail: string) => void;
+  /** Pre-fetched email verification status from database */
+  emailVerificationStatus?: "valid" | "invalid" | "risky" | "unknown" | null;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -544,6 +549,12 @@ function ProviderContactEditor({
           // Display mode: show email + verification badge + Edit button
           <>
             <span className="text-sm text-gray-700">{email}</span>
+            {/* Show pre-fetched verification status from database */}
+            {emailVerificationStatus && emailVerificationStatus !== "valid" && (
+              <EmailVerificationBadge
+                status={emailVerificationStatus}
+              />
+            )}
             {saved && (
               <span className="text-xs text-emerald-600 flex items-center gap-0.5">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -934,6 +945,7 @@ function CityRow({
                             emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
                             phone={provider.phone}
                             onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
+                            emailVerificationStatus={provider.email_verification_status}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (

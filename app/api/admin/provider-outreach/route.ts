@@ -115,6 +115,43 @@ export interface OutreachProvider {
   notes: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  // Email verification status from email_verifications table
+  email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
+}
+
+/**
+ * Enrich providers with email verification status from email_verifications table.
+ * Only enriches providers that have an email address.
+ */
+async function enrichWithEmailVerification(
+  db: ReturnType<typeof getServiceClient>,
+  providers: OutreachProvider[]
+): Promise<OutreachProvider[]> {
+  // Get all unique emails (lowercase, trimmed)
+  const emails = providers
+    .map((p) => p.email?.toLowerCase().trim())
+    .filter((e): e is string => !!e);
+
+  if (emails.length === 0) return providers;
+
+  // Fetch verification statuses
+  const { data: verifications } = await db
+    .from("email_verifications")
+    .select("email, status")
+    .in("email", emails);
+
+  if (!verifications || verifications.length === 0) return providers;
+
+  // Build lookup map
+  const statusMap = new Map(
+    verifications.map((v) => [v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown"])
+  );
+
+  // Enrich providers
+  return providers.map((p) => ({
+    ...p,
+    email_verification_status: p.email ? statusMap.get(p.email.toLowerCase().trim()) ?? null : null,
+  }));
 }
 
 /**
@@ -171,20 +208,23 @@ export async function GET(request: NextRequest) {
     // If search is provided, search across ALL stages and return flat results
     if (search) {
       const searchResults = await searchProviders(db, state, search);
-      return NextResponse.json({ providers: searchResults, stage_counts: stageCounts, is_search: true });
+      const enriched = await enrichWithEmailVerification(db, searchResults);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, is_search: true });
     }
 
     if (stage === "not_contacted") {
       // Special case: providers NOT in tracking OR with stage = not_contacted
       // email_filter allows splitting into "Needs Email" and "Ready" tabs
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
-      return NextResponse.json({ providers, stage_counts: stageCounts });
+      const enriched = await enrichWithEmailVerification(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
     }
 
     if (stage === "claimed") {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
-      return NextResponse.json({ providers, stage_counts: stageCounts });
+      const enriched = await enrichWithEmailVerification(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
     }
 
     // For ALL non-claimed stages: query tracking but exclude providers who have since claimed
@@ -197,7 +237,8 @@ export async function GET(request: NextRequest) {
     // When querying "archived", use special function that merges tracking + system-wide archived
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
-      return NextResponse.json({ providers, stage_counts: stageCounts });
+      const enriched = await enrichWithEmailVerification(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
     }
 
     // For other stages: query tracking but exclude providers who have since claimed
@@ -269,7 +310,8 @@ export async function GET(request: NextRequest) {
       .filter((p): p is OutreachProvider => p !== null)
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
-    return NextResponse.json({ providers, stage_counts: stageCounts });
+    const enriched = await enrichWithEmailVerification(db, providers);
+    return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
     return NextResponse.json(

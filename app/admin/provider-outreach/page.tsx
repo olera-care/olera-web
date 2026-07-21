@@ -131,6 +131,10 @@ interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
+  // Follow-up queue fields
+  due_date: string | null;
+  resend_count: number;
+  no_answer_count: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -1036,6 +1040,460 @@ function CityRow({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Follow Up Queue Component (Due Date Grouped)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface FollowUpQueueProps {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onOutcomeRecorded: (providerId: string, stageChanged: boolean) => void;
+  onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
+}
+
+// Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
+// Uses UTC to match server/database which also use UTC, ensuring consistent comparisons
+function getTodayISO(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+// Helper: calculate days difference from today
+function getDaysDiff(dateStr: string | null): number {
+  if (!dateStr) return 0;
+  const today = new Date(getTodayISO());
+  const dueDate = new Date(dateStr);
+  const diffTime = dueDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Helper: format due date badge
+function formatDueDateBadge(dateStr: string | null): { text: string; className: string } {
+  if (!dateStr) {
+    // Legacy record without due_date - show as due today since it needs attention
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  }
+
+  const daysDiff = getDaysDiff(dateStr);
+
+  if (daysDiff < 0) {
+    const daysOverdue = Math.abs(daysDiff);
+    return {
+      text: daysOverdue === 1 ? "1 day overdue" : `${daysOverdue} days overdue`,
+      className: "bg-red-100 text-red-700",
+    };
+  } else if (daysDiff === 0) {
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  } else if (daysDiff === 1) {
+    return { text: "Tomorrow", className: "bg-blue-100 text-blue-700" };
+  } else {
+    return { text: `In ${daysDiff} days`, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+// Expandable provider row for Follow Up queue
+function FollowUpProviderRow({
+  provider,
+  isExpanded,
+  onToggle,
+  onOutcomeRecorded,
+  onProviderUpdated,
+}: {
+  provider: OutreachProvider;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onOutcomeRecorded: (stageChanged: boolean) => void;
+  onProviderUpdated: (updates: Partial<OutreachProvider>) => void;
+}) {
+  const [submitting, setSubmitting] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+  const [callbackDate, setCallbackDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const dueBadge = formatDueDateBadge(provider.due_date);
+
+  const handleOutcome = async (outcome: string) => {
+    setSubmitting(outcome);
+    setError(null);
+
+    try {
+      const body: Record<string, unknown> = {
+        provider_id: provider.provider_id,
+        outcome,
+      };
+      if (notes.trim()) {
+        body.notes = notes.trim();
+      }
+      if (outcome === "schedule_callback" && callbackDate) {
+        body.callback_date = callbackDate;
+      }
+
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update local state or notify parent
+        if (data.stage_changed) {
+          onOutcomeRecorded(true);
+        } else {
+          // Update provider in place with new counts/due_date
+          onProviderUpdated({
+            due_date: data.new_due_date ?? provider.due_date,
+            resend_count: data.resend_count ?? provider.resend_count,
+            no_answer_count: data.no_answer_count ?? provider.no_answer_count,
+          });
+          onOutcomeRecorded(false);
+        }
+        // Reset form
+        setNotes("");
+        setCallbackDate("");
+        setShowDatePicker(false);
+      } else {
+        const errData = await res.json();
+        setError(errData.error || "Failed to record outcome");
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
+  const resendDisabled = provider.resend_count >= 2;
+  const noAnswerWarning = provider.no_answer_count === 2;
+
+  return (
+    <div className="border-b border-gray-100 last:border-b-0">
+      {/* Collapsed Row */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+      >
+        {/* Expand Chevron */}
+        <div className="w-5 shrink-0">
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+          </svg>
+        </div>
+
+        {/* Provider Name */}
+        <div className="flex-1 min-w-0">
+          <Link
+            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+            className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {provider.provider_name}
+          </Link>
+          {provider.provider_category && (
+            <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
+          )}
+        </div>
+
+        {/* Phone */}
+        <div className="w-36 shrink-0">
+          {provider.phone ? (
+            <a
+              href={`tel:${provider.phone.replace(/\D/g, "")}`}
+              className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {formatPhone(provider.phone)}
+            </a>
+          ) : (
+            <span className="text-sm text-gray-400">No phone</span>
+          )}
+        </div>
+
+        {/* Due Date Badge */}
+        <div className="w-32 shrink-0">
+          <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${dueBadge.className}`}>
+            {dueBadge.text}
+          </span>
+        </div>
+
+        {/* Counters (subtle) */}
+        <div className="w-20 shrink-0 text-xs text-gray-400">
+          {provider.resend_count > 0 && <span className="mr-2">R:{provider.resend_count}</span>}
+          {provider.no_answer_count > 0 && <span>NA:{provider.no_answer_count}</span>}
+        </div>
+      </div>
+
+      {/* Expanded: Outcome Buttons */}
+      {isExpanded && (
+        <div className="bg-gray-50/50 border-t border-gray-100 px-5 py-4">
+          {error && (
+            <div className="mb-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Date Picker for Schedule Callback */}
+          {showDatePicker && (
+            <div className="mb-4 flex items-center gap-3">
+              <label className="text-sm text-gray-600">Callback date:</label>
+              <input
+                type="date"
+                value={callbackDate}
+                onChange={(e) => setCallbackDate(e.target.value)}
+                min={getTodayISO()}
+                className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <button
+                onClick={() => {
+                  if (callbackDate) {
+                    handleOutcome("schedule_callback");
+                  }
+                }}
+                disabled={!callbackDate || submitting !== null}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting === "schedule_callback" ? "..." : "Confirm"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowDatePicker(false);
+                  setCallbackDate("");
+                }}
+                className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {/* Outcome Buttons - 2x3 Grid */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {/* Claimed on call */}
+            <button
+              onClick={() => handleOutcome("claimed_on_call")}
+              disabled={submitting !== null}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {submitting === "claimed_on_call" ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              Claimed on call
+            </button>
+
+            {/* Resend link */}
+            <button
+              onClick={() => handleOutcome("resend_link")}
+              disabled={submitting !== null || resendDisabled}
+              title={resendDisabled ? "Resend limit reached (2 max)" : undefined}
+              className={`flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
+                resendDisabled
+                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              }`}
+            >
+              {submitting === "resend_link" ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              )}
+              Resend link {resendDisabled && "(max)"}
+            </button>
+
+            {/* Schedule callback */}
+            <button
+              onClick={() => setShowDatePicker(true)}
+              disabled={submitting !== null || showDatePicker}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Schedule callback
+            </button>
+
+            {/* No answer */}
+            <button
+              onClick={() => handleOutcome("no_answer")}
+              disabled={submitting !== null}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {submitting === "no_answer" ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 2.5l5 5m0-5l-5 5" />
+                </svg>
+              )}
+              No answer
+              {noAnswerWarning && <span className="text-xs">(→ Re-Engage)</span>}
+            </button>
+
+            {/* Wrong contact */}
+            <button
+              onClick={() => handleOutcome("wrong_contact")}
+              disabled={submitting !== null}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {submitting === "wrong_contact" ? (
+                <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-600 rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+              )}
+              Wrong contact
+            </button>
+
+            {/* Not interested */}
+            <button
+              onClick={() => handleOutcome("not_interested")}
+              disabled={submitting !== null}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {submitting === "not_interested" ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              Not interested
+            </button>
+          </div>
+
+          {/* Notes field */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Notes (optional)</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add call notes..."
+              rows={2}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated }: FollowUpQueueProps) {
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
+
+  // Group providers by due date sections
+  const today = getTodayISO();
+
+  // Note: Providers with null due_date are legacy records that entered needs_call
+  // before the migration. Treat them as "Due Today" since they need attention.
+  const overdue = providers.filter((p) => p.due_date && p.due_date < today);
+  const dueToday = providers.filter((p) => !p.due_date || p.due_date === today);
+  const upcoming = providers.filter((p) => p.due_date && p.due_date > today);
+
+  // Sort each group by due_date ASC (oldest first)
+  const sortByDueDate = (a: OutreachProvider, b: OutreachProvider) => {
+    if (!a.due_date && !b.due_date) return 0;
+    if (!a.due_date) return 1;
+    if (!b.due_date) return -1;
+    return a.due_date.localeCompare(b.due_date);
+  };
+
+  overdue.sort(sortByDueDate);
+  dueToday.sort(sortByDueDate);
+  upcoming.sort(sortByDueDate);
+
+  const toggleProvider = (providerId: string) => {
+    setExpandedProviders((prev) => {
+      const next = new Set(prev);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (providers.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-gray-500">No providers in Follow Up queue</p>
+      </div>
+    );
+  }
+
+  const renderSection = (
+    title: string,
+    items: OutreachProvider[],
+    headerClassName: string
+  ) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-2 last:mb-0">
+        <div className={`px-5 py-2 text-xs font-semibold uppercase tracking-wide ${headerClassName}`}>
+          {title} ({items.length})
+        </div>
+        {items.map((provider) => (
+          <FollowUpProviderRow
+            key={provider.provider_id}
+            provider={provider}
+            isExpanded={expandedProviders.has(provider.provider_id)}
+            onToggle={() => toggleProvider(provider.provider_id)}
+            onOutcomeRecorded={(stageChanged) => {
+              if (stageChanged) {
+                // Remove from expanded since it's leaving the queue
+                setExpandedProviders((prev) => {
+                  const next = new Set(prev);
+                  next.delete(provider.provider_id);
+                  return next;
+                });
+              }
+              onOutcomeRecorded(provider.provider_id, stageChanged);
+            }}
+            onProviderUpdated={(updates) => onProviderUpdated(provider.provider_id, updates)}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {renderSection("Overdue", overdue, "bg-red-50 text-red-700 border-b border-red-100")}
+      {renderSection("Due Today", dueToday, "bg-amber-50 text-amber-700 border-b border-amber-100")}
+      {renderSection("Upcoming", upcoming, "bg-gray-50 text-gray-600 border-b border-gray-100")}
     </div>
   );
 }
@@ -2247,6 +2705,33 @@ export default function ProviderOutreachPage() {
               </div>
             )}
           </>
+        ) : activeTab === "needs_call" ? (
+          // Follow Up tab: due-date grouped queue view
+          <FollowUpQueue
+            providers={providers}
+            loading={loadingProviders}
+            onOutcomeRecorded={(providerId, stageChanged) => {
+              if (stageChanged) {
+                // Provider left the queue - remove from local state
+                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                // Optimistically decrement needs_call count
+                setStageCounts((prev) => ({
+                  ...prev,
+                  needs_call: Math.max(0, prev.needs_call - 1),
+                }));
+              }
+              // Refresh to get updated counts
+              fetchProviders();
+            }}
+            onProviderUpdated={(providerId, updates) => {
+              // Update provider in place (new due_date, counters, etc.)
+              setProviders((prev) =>
+                prev.map((p) =>
+                  p.provider_id === providerId ? { ...p, ...updates } : p
+                )
+              );
+            }}
+          />
         ) : (
           // Normal city-grouped view
           <>

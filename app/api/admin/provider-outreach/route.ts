@@ -94,6 +94,10 @@ interface TrackingRow {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  // Follow-up queue fields
+  due_date: string | null;
+  resend_count: number;
+  no_answer_count: number;
 }
 
 export interface OutreachProvider {
@@ -111,6 +115,10 @@ export interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
+  // Follow-up queue fields
+  due_date: string | null;
+  resend_count: number;
+  no_answer_count: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -310,6 +318,10 @@ export async function GET(request: NextRequest) {
           stage: t.stage as OutreachStage,
           stage_changed_at: t.stage_changed_at,
           notes: t.notes,
+          // Follow-up queue fields
+          due_date: t.due_date,
+          resend_count: t.resend_count ?? 0,
+          no_answer_count: t.no_answer_count ?? 0,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -355,7 +367,7 @@ async function getNotContactedProviders(
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
   const { data: trackedInState } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count")
     .eq("state", state);
 
   const trackedProviderIds = new Set(
@@ -412,6 +424,10 @@ async function getNotContactedProviders(
         stage: "not_contacted" as OutreachStage,
         stage_changed_at: tracking?.stage_changed_at ?? null,
         notes: tracking?.notes ?? null,
+        // Follow-up queue fields (not applicable for not_contacted)
+        due_date: null,
+        resend_count: 0,
+        no_answer_count: 0,
       };
     });
 
@@ -500,6 +516,10 @@ async function getClaimedProviders(
         stage: "claimed" as OutreachStage,
         stage_changed_at: claimInfo?.timestamp || null,
         notes: null,
+        // Follow-up queue fields (not applicable for claimed)
+        due_date: null,
+        resend_count: 0,
+        no_answer_count: 0,
         verification_state: claimInfo?.verification_state || null,
       };
     })
@@ -575,6 +595,10 @@ async function getArchivedProviders(
         stage: "archived" as OutreachStage,
         stage_changed_at: t.stage_changed_at,
         notes: t.notes,
+        // Follow-up queue fields (not applicable for archived)
+        due_date: null,
+        resend_count: 0,
+        no_answer_count: 0,
       });
     }
   }
@@ -657,6 +681,10 @@ async function getArchivedProviders(
           stage: "archived" as OutreachStage,
           stage_changed_at: archivedAt,
           notes,
+          // Follow-up queue fields (not applicable for archived)
+          due_date: null,
+          resend_count: 0,
+          no_answer_count: 0,
         });
       }
     }
@@ -718,7 +746,7 @@ async function searchProviders(
   // Get tracking data for all matched providers
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count")
     .in("provider_id", providerIds);
 
   const trackingMap = new Map(
@@ -789,6 +817,10 @@ async function searchProviders(
       stage,
       stage_changed_at: stageChangedAt,
       notes,
+      // Follow-up queue fields (from tracking if available)
+      due_date: tracking?.due_date ?? null,
+      resend_count: tracking?.resend_count ?? 0,
+      no_answer_count: tracking?.no_answer_count ?? 0,
       verification_state: claimInfo?.verification_state || null,
     };
   });

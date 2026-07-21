@@ -663,6 +663,7 @@ interface CityRowProps {
   onSelectAllInCity: (providerIds: string[]) => void;
   onEmailSaved: (providerId: string, newEmail: string) => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
+  onRemoveProvider: (provider: OutreachProvider) => void;
 }
 
 function CityRow({
@@ -677,6 +678,7 @@ function CityRow({
   onSelectAllInCity,
   onEmailSaved,
   onOpenActionModal,
+  onRemoveProvider,
 }: CityRowProps) {
   // Auto email lookup state
   const [lookingUpEmails, setLookingUpEmails] = useState<Set<string>>(new Set());
@@ -1033,6 +1035,21 @@ function CityRow({
                         </svg>
                       </button>
                     )}
+
+                    {/* Remove from outreach (trash icon) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveProvider(provider);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
+                      title="Remove from outreach"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -1054,6 +1071,7 @@ interface FollowUpQueueProps {
   onOutcomeRecorded: (providerId: string, stageChanged: boolean) => void;
   onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
   onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
+  onRemoveProvider: (provider: OutreachProvider) => void;
 }
 
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
@@ -1103,6 +1121,7 @@ function FollowUpProviderRow({
   onOutcomeRecorded,
   onProviderUpdated,
   onStageChange,
+  onRemoveProvider,
 }: {
   provider: OutreachProvider;
   isExpanded: boolean;
@@ -1110,6 +1129,7 @@ function FollowUpProviderRow({
   onOutcomeRecorded: (stageChanged: boolean) => void;
   onProviderUpdated: (updates: Partial<OutreachProvider>) => void;
   onStageChange: (newStage: OutreachStage) => Promise<void>;
+  onRemoveProvider: () => void;
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -1437,6 +1457,21 @@ function FollowUpProviderRow({
             </div>
           )}
         </div>
+
+        {/* Remove from outreach (trash icon) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemoveProvider();
+          }}
+          className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500 shrink-0"
+          title="Remove from outreach"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
       </div>
 
       {/* Expanded: Outcome Buttons */}
@@ -1626,7 +1661,7 @@ function FollowUpProviderRow({
   );
 }
 
-function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange }: FollowUpQueueProps) {
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
   // Group providers by due date sections
@@ -1716,6 +1751,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
                 return next;
               });
             }}
+            onRemoveProvider={() => onRemoveProvider(provider)}
           />
         ))}
       </div>
@@ -1828,6 +1864,14 @@ export default function ProviderOutreachPage() {
   } | null>(null);
   const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
 
+  // Remove from outreach confirmation state
+  const [pendingRemoval, setPendingRemoval] = useState<{
+    providerId: string;
+    providerName: string;
+    stage: string;
+  } | null>(null);
+  const [removingProvider, setRemovingProvider] = useState(false);
+
   // Sequence confirmation modal state
   const [showSequenceConfirm, setShowSequenceConfirm] = useState(false);
   const [sequenceConfirmProviders, setSequenceConfirmProviders] = useState<OutreachProvider[]>([]);
@@ -1930,6 +1974,48 @@ export default function ProviderOutreachPage() {
     setActionNotes("");
     setUnarchivePreview(null);
     setUnarchivePreviewConfirmed(false);
+  };
+
+  // Remove provider from outreach (delete tracking row, not the provider itself)
+  const handleRemoveFromOutreach = async () => {
+    if (!pendingRemoval) return;
+
+    setRemovingProvider(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: pendingRemoval.providerId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to remove provider");
+      }
+
+      // Remove from local state
+      setProviders((prev) => prev.filter((p) => p.provider_id !== pendingRemoval.providerId));
+
+      // Update stage counts
+      const oldStage = pendingRemoval.stage as OutreachStage;
+      if (oldStage === "not_contacted") {
+        // Could be in needs_email or ready - refresh cities
+        fetchCities();
+      } else {
+        setStageCounts((prev) => ({
+          ...prev,
+          [oldStage]: Math.max(0, (prev[oldStage] || 0) - 1),
+        }));
+      }
+
+      showToast(`Removed ${pendingRemoval.providerName} from outreach`);
+      setPendingRemoval(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to remove provider";
+      showToast(message);
+    } finally {
+      setRemovingProvider(false);
+    }
   };
 
   // Fetch sequence preview from launch-sequence API
@@ -2907,7 +2993,7 @@ export default function ProviderOutreachPage() {
                       </span>
                     </div>
                     {/* Actions - hide for claimed only (archived can be unarchived) */}
-                    <div className="w-10">
+                    <div className="w-10 flex items-center gap-1">
                       {!["claimed"].includes(provider.stage) && (
                         <button
                           type="button"
@@ -2923,6 +3009,24 @@ export default function ProviderOutreachPage() {
                           </svg>
                         </button>
                       )}
+                      {/* Remove from outreach (trash icon) */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPendingRemoval({
+                            providerId: provider.provider_id,
+                            providerName: provider.provider_name,
+                            stage: provider.stage,
+                          });
+                        }}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
+                        title="Remove from outreach"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -2985,6 +3089,13 @@ export default function ProviderOutreachPage() {
               }));
               // Refresh to sync
               fetchProviders();
+            }}
+            onRemoveProvider={(provider) => {
+              setPendingRemoval({
+                providerId: provider.provider_id,
+                providerName: provider.provider_name,
+                stage: provider.stage,
+              });
             }}
           />
         ) : (
@@ -3066,6 +3177,13 @@ export default function ProviderOutreachPage() {
                         }
                       }}
                       onOpenActionModal={setActionModalProvider}
+                      onRemoveProvider={(provider) => {
+                        setPendingRemoval({
+                          providerId: provider.provider_id,
+                          providerName: provider.provider_name,
+                          stage: provider.stage,
+                        });
+                      }}
                     />
                   ))}
                 </div>
@@ -3814,6 +3932,45 @@ export default function ProviderOutreachPage() {
                   </svg>
                 )}
                 Remove State
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove from outreach confirmation dialog */}
+      {pendingRemoval && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Remove from outreach</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Are you sure you want to remove this provider from the outreach system?
+            </p>
+            <div className="mt-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800">
+                <strong>Note:</strong> This only removes them from outreach tracking. Their provider profile and directory listing will remain unchanged.
+              </p>
+            </div>
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-900">{pendingRemoval.providerName}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Current stage: {STAGE_LABELS[pendingRemoval.stage as OutreachStage] || pendingRemoval.stage}
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setPendingRemoval(null)}
+                disabled={removingProvider}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveFromOutreach}
+                disabled={removingProvider}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {removingProvider ? "Removing..." : "Remove"}
               </button>
             </div>
           </div>

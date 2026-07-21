@@ -610,8 +610,6 @@ function CityRow({
   onEmailSaved,
   onOpenActionModal,
 }: CityRowProps) {
-  const [emailFilter, setEmailFilter] = useState<"all" | "with" | "without">("all");
-
   // Auto email lookup state
   const [lookingUpEmails, setLookingUpEmails] = useState<Set<string>>(new Set());
   const [foundEmails, setFoundEmails] = useState<Map<string, { email: string; source: string | null; foundUrl: string | null }>>(new Map());
@@ -729,13 +727,8 @@ function CityRow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isExpanded, loadingProviders, cityProviders]);
 
-  const filteredProviders =
-    emailFilter === "with" ? cityProviders.filter((p) => p.email && p.email.trim()) :
-    emailFilter === "without" ? cityProviders.filter((p) => !p.email || !p.email.trim()) :
-    cityProviders;
-
-  const allSelected = filteredProviders.length > 0 && filteredProviders.every((p) => selectedProviders.has(p.provider_id));
-  const someSelected = filteredProviders.some((p) => selectedProviders.has(p.provider_id)) && !allSelected;
+  const allSelected = cityProviders.length > 0 && cityProviders.every((p) => selectedProviders.has(p.provider_id));
+  const someSelected = cityProviders.some((p) => selectedProviders.has(p.provider_id)) && !allSelected;
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -814,48 +807,26 @@ function CityRow({
                     }}
                     onChange={() => {
                       if (allSelected) {
-                        filteredProviders.forEach((p) => {
+                        cityProviders.forEach((p) => {
                           if (selectedProviders.has(p.provider_id)) {
                             onToggleProvider(p.provider_id);
                           }
                         });
                       } else {
-                        onSelectAllInCity(filteredProviders.map((p) => p.provider_id));
+                        onSelectAllInCity(cityProviders.map((p) => p.provider_id));
                       }
                     }}
                     className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-xs text-gray-500">
-                    Select all {filteredProviders.length}
+                    Select all {cityProviders.length}
                   </span>
-                </label>
-
-                {/* Show only with email */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={emailFilter === "with"}
-                    onChange={(e) => setEmailFilter(e.target.checked ? "with" : "all")}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-xs text-gray-500">Show only with email</span>
-                </label>
-
-                {/* Show only without email */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={emailFilter === "without"}
-                    onChange={(e) => setEmailFilter(e.target.checked ? "without" : "all")}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-xs text-gray-500">Show only without email</span>
                 </label>
               </div>
 
               {/* Provider Cards */}
               <div className="divide-y divide-gray-100">
-                {filteredProviders.map((provider) => (
+                {cityProviders.map((provider) => (
                   <div key={provider.provider_id} className="group px-5 py-3 pl-10 flex items-center gap-3 hover:bg-white transition-colors">
                     <input
                       type="checkbox"
@@ -995,13 +966,6 @@ function CityRow({
                   </div>
                 ))}
               </div>
-
-              {/* Show count if filtered */}
-              {emailFilter !== "all" && filteredProviders.length < cityProviders.length && (
-                <div className="px-5 py-2 text-xs text-gray-400 border-t border-gray-100">
-                  Showing {filteredProviders.length} of {cityProviders.length} providers
-                </div>
-              )}
             </>
           )}
         </div>

@@ -2344,12 +2344,24 @@ export default function ProviderOutreachPage() {
                       onToggleProvider={toggleProvider}
                       onSelectAllInCity={selectAllInCity}
                       onEmailSaved={(providerId, newEmail) => {
-                        // Update local providers state immediately
-                        setProviders((prev) =>
-                          prev.map((p) =>
-                            p.provider_id === providerId ? { ...p, email: newEmail } : p
-                          )
-                        );
+                        // Update local providers state
+                        // On "Needs Email" tab, remove the provider (it now has email, belongs in "Ready")
+                        // On other tabs, just update the email field
+                        if (activeTab === "needs_email") {
+                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                          // Optimistically update tab counts: needs_email -1, ready +1
+                          setStageCounts((prev) => ({
+                            ...prev,
+                            needs_email: Math.max(0, prev.needs_email - 1),
+                            ready: prev.ready + 1,
+                          }));
+                        } else {
+                          setProviders((prev) =>
+                            prev.map((p) =>
+                              p.provider_id === providerId ? { ...p, email: newEmail } : p
+                            )
+                          );
+                        }
                         // Refresh cities to update counts (for needs_email/ready tabs)
                         if (isNotContactedTab(activeTab)) {
                           fetchCities();

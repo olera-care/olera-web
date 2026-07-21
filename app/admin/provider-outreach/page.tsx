@@ -1113,8 +1113,111 @@ function FollowUpProviderRow({
   const [callbackDate, setCallbackDate] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
+  const resendDisabled = provider.resend_count >= 2;
+  const noAnswerWarning = provider.no_answer_count === 2;
+
+  // Confirmation modal content for each outcome
+  const getConfirmationContent = (outcome: string) => {
+    switch (outcome) {
+      case "claimed_on_call":
+        return {
+          title: "Mark as Claimed",
+          description: "This provider successfully claimed their profile during the call.",
+          details: [
+            "Provider will be moved to the Claimed stage",
+            "They will no longer appear in the Follow Up queue",
+            "This is a success outcome"
+          ],
+          confirmLabel: "Yes, mark as claimed",
+          confirmClass: "bg-emerald-600 hover:bg-emerald-700 text-white",
+        };
+      case "resend_link":
+        return {
+          title: "Resend Claim Link",
+          description: "The provider requested to receive the claim link again.",
+          details: [
+            "Provider will stay in the Follow Up queue",
+            `Due date will be pushed to ${addDaysFormatted(3)}`,
+            `This is resend #${provider.resend_count + 1} of 2 allowed`,
+          ],
+          confirmLabel: "Yes, resend link",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+        };
+      case "schedule_callback":
+        return {
+          title: "Schedule Callback",
+          description: "Set a specific date to call this provider back.",
+          details: [
+            "Provider will stay in the Follow Up queue",
+            `Due date will be set to ${callbackDate || "(select a date)"}`,
+            "They will appear in the appropriate section based on that date",
+          ],
+          confirmLabel: "Confirm callback",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+        };
+      case "no_answer":
+        if (noAnswerWarning) {
+          return {
+            title: "No Answer (3rd Attempt)",
+            description: "This is the third time the provider didn't answer.",
+            details: [
+              "Provider will be moved to the Re-Engage stage",
+              "They will no longer appear in the Follow Up queue",
+              "Consider re-engaging via email sequence later",
+            ],
+            confirmLabel: "Yes, move to Re-Engage",
+            confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
+          };
+        }
+        return {
+          title: "No Answer",
+          description: "The provider did not answer the call.",
+          details: [
+            "Provider will stay in the Follow Up queue",
+            `Due date will be pushed to ${addDaysFormatted(2)}`,
+            `This is attempt #${provider.no_answer_count + 1} of 3 before moving to Re-Engage`,
+          ],
+          confirmLabel: "Yes, mark as no answer",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+        };
+      case "wrong_contact":
+        return {
+          title: "Wrong Contact Info",
+          description: "The contact information for this provider is incorrect.",
+          details: [
+            "Provider will be moved back to Not Contacted",
+            "Their email will be cleared from the system",
+            "You'll need to find correct contact info before re-engaging",
+          ],
+          confirmLabel: "Yes, clear contact info",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+        };
+      case "not_interested":
+        return {
+          title: "Not Interested",
+          description: "The provider explicitly declined to claim their profile.",
+          details: [
+            "Provider will be moved to the Archived stage",
+            "They will no longer receive any outreach",
+            "This action can be reversed from the Archived tab if needed",
+          ],
+          confirmLabel: "Yes, archive provider",
+          confirmClass: "bg-red-600 hover:bg-red-700 text-white",
+        };
+      default:
+        return null;
+    }
+  };
+
+  // Helper to format date for display
+  function addDaysFormatted(days: number): string {
+    const result = new Date();
+    result.setDate(result.getDate() + days);
+    return result.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  }
 
   const handleOutcome = async (outcome: string) => {
     setSubmitting(outcome);
@@ -1164,11 +1267,11 @@ function FollowUpProviderRow({
       setError("Network error");
     } finally {
       setSubmitting(null);
+      setPendingOutcome(null);
     }
   };
 
-  const resendDisabled = provider.resend_count >= 2;
-  const noAnswerWarning = provider.no_answer_count === 2;
+  const confirmationContent = pendingOutcome ? getConfirmationContent(pendingOutcome) : null;
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -1263,13 +1366,13 @@ function FollowUpProviderRow({
               <button
                 onClick={() => {
                   if (callbackDate) {
-                    handleOutcome("schedule_callback");
+                    setPendingOutcome("schedule_callback");
                   }
                 }}
                 disabled={!callbackDate || submitting !== null}
-                className="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting === "schedule_callback" ? "..." : "Confirm"}
+                Confirm date
               </button>
               <button
                 onClick={() => {
@@ -1287,19 +1390,16 @@ function FollowUpProviderRow({
           <div className="flex flex-wrap gap-2 mb-4">
             {/* Claimed on call */}
             <button
-              onClick={() => handleOutcome("claimed_on_call")}
+              onClick={() => setPendingOutcome("claimed_on_call")}
               disabled={submitting !== null}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {submitting === "claimed_on_call" ? (
-                <span className="w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              ) : null}
               Claimed on call
             </button>
 
             {/* Resend link */}
             <button
-              onClick={() => handleOutcome("resend_link")}
+              onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
               title={resendDisabled ? "Resend limit reached (2 max)" : undefined}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
@@ -1308,9 +1408,6 @@ function FollowUpProviderRow({
                   : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
               }`}
             >
-              {submitting === "resend_link" ? (
-                <span className="w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              ) : null}
               Resend link{resendDisabled && " (max)"}
             </button>
 
@@ -1325,37 +1422,28 @@ function FollowUpProviderRow({
 
             {/* No answer */}
             <button
-              onClick={() => handleOutcome("no_answer")}
+              onClick={() => setPendingOutcome("no_answer")}
               disabled={submitting !== null}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {submitting === "no_answer" ? (
-                <span className="w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              ) : null}
               No answer{noAnswerWarning && " (→ Re-Engage)"}
             </button>
 
             {/* Wrong contact */}
             <button
-              onClick={() => handleOutcome("wrong_contact")}
+              onClick={() => setPendingOutcome("wrong_contact")}
               disabled={submitting !== null}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {submitting === "wrong_contact" ? (
-                <span className="w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              ) : null}
               Wrong contact
             </button>
 
             {/* Not interested */}
             <button
-              onClick={() => handleOutcome("not_interested")}
+              onClick={() => setPendingOutcome("not_interested")}
               disabled={submitting !== null}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-full hover:border-red-300 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {submitting === "not_interested" ? (
-                <span className="w-3 h-3 border-2 border-red-200 border-t-red-500 rounded-full animate-spin" />
-              ) : null}
               Not interested
             </button>
           </div>
@@ -1371,6 +1459,71 @@ function FollowUpProviderRow({
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
           </div>
+
+          {/* Confirmation Modal */}
+          {pendingOutcome && confirmationContent && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+              <div
+                className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
+                </div>
+
+                {/* Content */}
+                <div className="px-5 py-4">
+                  <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
+
+                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                    <ul className="space-y-1.5">
+                      {confirmationContent.details.map((detail, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {notes.trim() && (
+                    <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
+                      <p className="text-sm text-blue-800">{notes.trim()}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+                  <button
+                    onClick={() => setPendingOutcome(null)}
+                    disabled={submitting !== null}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleOutcome(pendingOutcome)}
+                    disabled={submitting !== null}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
+                  >
+                    {submitting ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Processing...
+                      </span>
+                    ) : (
+                      confirmationContent.confirmLabel
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

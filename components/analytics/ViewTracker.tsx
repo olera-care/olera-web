@@ -26,6 +26,15 @@ export function ViewTracker({ providerId }: ViewTrackerProps) {
     const referrer = typeof document !== "undefined" ? document.referrer : "";
     const path = typeof window !== "undefined" ? window.location.pathname : "";
 
+    // Landing UTM (paid/campaign traffic) — lets admin separate ad-driven
+    // sessions from organic per campaign. Same metadata keys the lead_received
+    // attribution uses, so one query joins both.
+    const sp = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search : "",
+    );
+    const utm_source = sp.get("utm_source") || undefined;
+    const utm_campaign = sp.get("utm_campaign") || undefined;
+
     fetch("/api/activity/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -34,7 +43,12 @@ export function ViewTracker({ providerId }: ViewTrackerProps) {
         event_type: "page_view",
         related_provider_id: providerId,
         session_id,
-        metadata: { referrer, path },
+        metadata: {
+          referrer,
+          path,
+          ...(utm_source ? { utm_source } : {}),
+          ...(utm_campaign ? { utm_campaign } : {}),
+        },
       }),
       keepalive: true,
     }).catch(() => {

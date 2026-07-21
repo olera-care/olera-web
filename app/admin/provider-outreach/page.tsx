@@ -1053,6 +1053,7 @@ interface FollowUpQueueProps {
   loading: boolean;
   onOutcomeRecorded: (providerId: string, stageChanged: boolean) => void;
   onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
+  onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
 }
 
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
@@ -1101,12 +1102,14 @@ function FollowUpProviderRow({
   onToggle,
   onOutcomeRecorded,
   onProviderUpdated,
+  onStageChange,
 }: {
   provider: OutreachProvider;
   isExpanded: boolean;
   onToggle: () => void;
   onOutcomeRecorded: (stageChanged: boolean) => void;
   onProviderUpdated: (updates: Partial<OutreachProvider>) => void;
+  onStageChange: (newStage: OutreachStage) => Promise<void>;
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -1114,6 +1117,9 @@ function FollowUpProviderRow({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [stageChangeLoading, setStageChangeLoading] = useState(false);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= 2;
@@ -1273,6 +1279,31 @@ function FollowUpProviderRow({
 
   const confirmationContent = pendingOutcome ? getConfirmationContent(pendingOutcome) : null;
 
+  // Close action menu when clicking outside
+  useEffect(() => {
+    if (!showActionMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setShowActionMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showActionMenu]);
+
+  // Handle stage change from action menu
+  const handleStageMove = async (newStage: OutreachStage) => {
+    setStageChangeLoading(true);
+    setShowActionMenu(false);
+    try {
+      await onStageChange(newStage);
+    } catch {
+      setError("Failed to move provider");
+    } finally {
+      setStageChangeLoading(false);
+    }
+  };
+
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       {/* Collapsed Row */}
@@ -1280,7 +1311,7 @@ function FollowUpProviderRow({
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
-        className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+        className="group flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
         onClick={onToggle}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -1355,6 +1386,62 @@ function FollowUpProviderRow({
         <div className="w-20 shrink-0 text-xs text-gray-400">
           {provider.resend_count > 0 && <span className="mr-2">R:{provider.resend_count}</span>}
           {provider.no_answer_count > 0 && <span>NA:{provider.no_answer_count}</span>}
+        </div>
+
+        {/* Actions menu (three dots) */}
+        <div className="relative shrink-0" ref={actionMenuRef}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActionMenu(!showActionMenu);
+            }}
+            disabled={stageChangeLoading}
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600 disabled:opacity-50"
+            title="More actions"
+          >
+            {stageChangeLoading ? (
+              <span className="block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+              </svg>
+            )}
+          </button>
+
+          {/* Dropdown menu */}
+          {showActionMenu && (
+            <div className="absolute right-0 top-full mt-1 z-20 w-48 py-1 bg-white rounded-lg shadow-lg border border-gray-200">
+              <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
+                Move to stage
+              </div>
+              <button
+                onClick={() => handleStageMove("not_contacted")}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Not Contacted
+              </button>
+              <button
+                onClick={() => handleStageMove("in_sequence")}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                In Sequence
+              </button>
+              <button
+                onClick={() => handleStageMove("re_engage")}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Re-Engage
+              </button>
+              <div className="my-1 border-t border-gray-100" />
+              <button
+                onClick={() => handleStageMove("archived")}
+                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Archive
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1545,7 +1632,7 @@ function FollowUpProviderRow({
   );
 }
 
-function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated }: FollowUpQueueProps) {
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
   // Group providers by due date sections
@@ -1626,6 +1713,15 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
               onOutcomeRecorded(provider.provider_id, stageChanged);
             }}
             onProviderUpdated={(updates) => onProviderUpdated(provider.provider_id, updates)}
+            onStageChange={async (newStage) => {
+              await onStageChange(provider.provider_id, newStage);
+              // Remove from expanded since provider is leaving the queue
+              setExpandedProviders((prev) => {
+                const next = new Set(prev);
+                next.delete(provider.provider_id);
+                return next;
+              });
+            }}
           />
         ))}
       </div>
@@ -2870,6 +2966,31 @@ export default function ProviderOutreachPage() {
                   p.provider_id === providerId ? { ...p, ...updates } : p
                 )
               );
+            }}
+            onStageChange={async (providerId, newStage) => {
+              // Call update-stage API directly
+              const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  provider_ids: [providerId],
+                  stage: newStage,
+                }),
+              });
+              if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "Failed to update stage");
+              }
+              // Remove from local state (provider left Follow Up)
+              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+              // Update stage counts
+              setStageCounts((prev) => ({
+                ...prev,
+                needs_call: Math.max(0, prev.needs_call - 1),
+                [newStage]: (prev[newStage] || 0) + 1,
+              }));
+              // Refresh to sync
+              fetchProviders();
             }}
           />
         ) : (

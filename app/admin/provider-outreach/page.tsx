@@ -1433,13 +1433,7 @@ function FollowUpProviderRow({
               >
                 Re-Engage
               </button>
-              <div className="my-1 border-t border-gray-100" />
-              <button
-                onClick={() => handleStageMove("archived")}
-                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-              >
-                Archive
-              </button>
+              {/* Archive requires a reason - use "Not interested" button instead */}
             </div>
           )}
         </div>

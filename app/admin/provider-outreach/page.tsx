@@ -2916,7 +2916,7 @@ export default function ProviderOutreachPage() {
       )}
 
       {/* Content - Search results (flat list) or City-grouped view */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200">
         {!selectedState ? (
           // No state selected - prompt user to select a state from the header
           <div className="p-12 text-center">

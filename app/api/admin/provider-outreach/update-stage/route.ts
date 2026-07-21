@@ -270,6 +270,64 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ── Log stage_changed touchpoints ──
+    // Record permanent event history for all providers whose stage changed
+    const touchpointRows: Array<{
+      provider_id: string;
+      touchpoint_type: "stage_changed";
+      details: { old_stage: string; new_stage: string; reason?: string; notes?: string };
+      admin_user_id: string;
+      created_at: string;
+    }> = [];
+
+    // Providers that had existing tracking rows (stage change from old to new)
+    for (const item of toUpdate) {
+      // Only log if stage actually changed
+      if (item.oldStage === stage) continue;
+      touchpointRows.push({
+        provider_id: item.provider_id,
+        touchpoint_type: "stage_changed",
+        details: {
+          old_stage: item.oldStage,
+          new_stage: stage,
+          ...(reason && { reason }),
+          ...(notes?.trim() && { notes: notes.trim() }),
+        },
+        admin_user_id: adminUser.id,
+        created_at: nowIso,
+      });
+    }
+
+    // Providers that were newly inserted (implicit stage change from not_contacted)
+    // Only log if actually changing to a different stage
+    if (stage !== "not_contacted") {
+      for (const item of toInsert) {
+        touchpointRows.push({
+          provider_id: item.provider_id,
+          touchpoint_type: "stage_changed",
+          details: {
+            old_stage: "not_contacted",
+            new_stage: stage,
+            ...(reason && { reason }),
+            ...(notes?.trim() && { notes: notes.trim() }),
+          },
+          admin_user_id: adminUser.id,
+          created_at: nowIso,
+        });
+      }
+    }
+
+    if (touchpointRows.length > 0) {
+      const { error: touchpointError } = await db
+        .from("provider_outreach_touchpoints")
+        .insert(touchpointRows);
+
+      if (touchpointError) {
+        // Non-fatal: log but don't fail the request (tracking update already succeeded)
+        console.error("[provider-outreach/update-stage] Touchpoint insert error:", touchpointError);
+      }
+    }
+
     // ── Archive Sync: Sync with system-wide archive ──
     let connectionsAffected = 0;
     let businessProfilesUpdated = 0;

@@ -1152,7 +1152,7 @@ function FollowUpProviderRow({
           description: "Set a specific date to call this provider back.",
           details: [
             "Provider will stay in the Follow Up queue",
-            `Due date will be set to ${callbackDate || "(select a date)"}`,
+            `Due date will be set to ${callbackDate ? new Date(callbackDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "(select a date)"}`,
             "They will appear in the appropriate section based on that date",
           ],
           confirmLabel: "Confirm callback",

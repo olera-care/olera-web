@@ -10,26 +10,53 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Database stages
 const OUTREACH_STAGES = [
   "not_contacted",
   "in_sequence",
   "needs_call",
+  "re_engage",
   "called",
   "claimed",
   "archived",
-  "hidden",
 ] as const;
 
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
-const STAGE_LABELS: Record<OutreachStage, string> = {
-  not_contacted: "Not Contacted",
+// UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
+type UITab = "needs_email" | "ready" | Exclude<OutreachStage, "not_contacted">;
+
+const UI_TABS: UITab[] = [
+  "needs_email",
+  "ready",
+  "in_sequence",
+  "needs_call",  // Displayed as "Follow Up"
+  "re_engage",
+  "called",
+  "claimed",
+  "archived",
+];
+
+const UI_TAB_LABELS: Record<UITab, string> = {
+  needs_email: "Needs Email",
+  ready: "Ready",
   in_sequence: "In Sequence",
-  needs_call: "Needs Call",
+  needs_call: "Follow Up",
+  re_engage: "Re-Engage",
   called: "Called",
   claimed: "Claimed",
   archived: "Archived",
-  hidden: "Hidden",
+};
+
+// Database stage labels (for search results showing provider's actual stage)
+const STAGE_LABELS: Record<OutreachStage, string> = {
+  not_contacted: "Not Contacted",
+  in_sequence: "In Sequence",
+  needs_call: "Follow Up",
+  re_engage: "Re-Engage",
+  called: "Called",
+  claimed: "Claimed",
+  archived: "Archived",
 };
 
 // Called is terminal for our outreach effort (ball is in provider's court)
@@ -123,16 +150,32 @@ interface ActiveState {
   not_contacted: number;
   in_sequence: number;
   needs_call: number;
+  re_engage: number;
   called: number;
   claimed: number;
   archived: number;
-  hidden: number;
   stats_refreshed_at: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Map UI tab to API parameters (stage + optional email_filter)
+function getApiParamsForTab(tab: UITab): { stage: OutreachStage; emailFilter?: "needs_email" | "has_email" } {
+  if (tab === "needs_email") {
+    return { stage: "not_contacted", emailFilter: "needs_email" };
+  }
+  if (tab === "ready") {
+    return { stage: "not_contacted", emailFilter: "has_email" };
+  }
+  return { stage: tab as OutreachStage };
+}
+
+// Check if a UI tab represents the "not_contacted" stage (needs_email or ready)
+function isNotContactedTab(tab: UITab): boolean {
+  return tab === "needs_email" || tab === "ready";
+}
 
 function timeAgo(isoDate: string | undefined | null): string {
   if (!isoDate) return "—";
@@ -542,7 +585,7 @@ function ProviderContactEditor({
 
 interface CityRowProps {
   city: CityStats;
-  stage: OutreachStage;
+  activeTab: UITab;
   isExpanded: boolean;
   onToggle: () => void;
   providers: OutreachProvider[];
@@ -556,7 +599,7 @@ interface CityRowProps {
 
 function CityRow({
   city,
-  stage,
+  activeTab,
   isExpanded,
   onToggle,
   providers,
@@ -726,26 +769,20 @@ function CityRow({
           <span className="font-medium text-gray-900">{city.city}</span>
         </div>
 
-        {/* Stats - different display based on stage */}
+        {/* Stats - show count relevant to the active tab */}
         <div className="flex items-center gap-6 text-sm">
-          {stage === "not_contacted" ? (
-            // Not contacted: show ready/needs email breakdown
-            <>
-              <div className="text-center">
-                <span className="font-semibold text-gray-900 tabular-nums">{city.total}</span>
-                <span className="text-gray-400 ml-1">total</span>
-              </div>
-              <div className="text-center">
-                <span className="font-semibold text-emerald-600 tabular-nums">{city.has_email}</span>
-                <span className="text-gray-400 ml-1">ready</span>
-              </div>
-              <div className="text-center">
-                <span className="font-semibold text-amber-600 tabular-nums">{city.needs_email}</span>
-                <span className="text-gray-400 ml-1">needs email</span>
-              </div>
-            </>
+          {activeTab === "needs_email" ? (
+            <div className="text-center">
+              <span className="font-semibold text-amber-600 tabular-nums">{city.needs_email}</span>
+              <span className="text-gray-400 ml-1">{city.needs_email === 1 ? "provider" : "providers"}</span>
+            </div>
+          ) : activeTab === "ready" ? (
+            <div className="text-center">
+              <span className="font-semibold text-emerald-600 tabular-nums">{city.has_email}</span>
+              <span className="text-gray-400 ml-1">{city.has_email === 1 ? "provider" : "providers"}</span>
+            </div>
           ) : (
-            // Other stages: just show count
+            // Other stages: show total count
             <div className="text-center">
               <span className="font-semibold text-gray-900 tabular-nums">{city.total}</span>
               <span className="text-gray-400 ml-1">{city.total === 1 ? "provider" : "providers"}</span>
@@ -938,8 +975,8 @@ function CityRow({
                     </div>
 
                     {/* Actions button - ellipsis icon, opens modal */}
-                    {/* Show for all stages except claimed (archived can be unarchived) */}
-                    {stage !== "claimed" && (
+                    {/* Show for all tabs except claimed (archived can be unarchived) */}
+                    {activeTab !== "claimed" && (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -986,8 +1023,8 @@ export default function ProviderOutreachPage() {
   // Selected state (from active states or fallback)
   const [selectedState, setSelectedState] = useState<string>("");
 
-  // Stage tab
-  const [stage, setStage] = useState<OutreachStage>("not_contacted");
+  // Active UI tab (needs_email and ready are filtered views of not_contacted)
+  const [activeTab, setActiveTab] = useState<UITab>("needs_email");
 
   // Search
   const [search, setSearch] = useState("");
@@ -995,7 +1032,7 @@ export default function ProviderOutreachPage() {
   const [isSearchResult, setIsSearchResult] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Cities data (for not_contacted tab)
+  // Cities data (for needs_email and ready tabs)
   const [cities, setCities] = useState<CityStats[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
@@ -1004,15 +1041,21 @@ export default function ProviderOutreachPage() {
   const [providers, setProviders] = useState<OutreachProvider[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
 
-  // Stage counts
-  const [stageCounts, setStageCounts] = useState<Record<OutreachStage, number>>({
+  // Stage counts (includes needs_email and ready for UI tabs)
+  interface TabCounts extends Record<OutreachStage, number> {
+    needs_email: number;
+    ready: number;
+  }
+  const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
     in_sequence: 0,
     needs_call: 0,
+    re_engage: 0,
     called: 0,
     claimed: 0,
     archived: 0,
-    hidden: 0,
+    needs_email: 0,
+    ready: 0,
   });
 
   // Expanded cities (for not_contacted tab)
@@ -1054,7 +1097,7 @@ export default function ProviderOutreachPage() {
 
   // Action modal state
   const [actionModalProvider, setActionModalProvider] = useState<OutreachProvider | null>(null);
-  const [selectedAction, setSelectedAction] = useState<"called" | "archived" | "hidden" | "unhide" | null>(null);
+  const [selectedAction, setSelectedAction] = useState<"called" | "archived" | "unhide" | null>(null);
   const [actionReason, setActionReason] = useState("");
   const [actionNotes, setActionNotes] = useState("");
   // Unarchive preview state
@@ -1118,13 +1161,6 @@ export default function ProviderOutreachPage() {
     { value: "other", label: "Other" },
   ];
 
-  const HIDE_REASONS = [
-    { value: "test_account", label: "Test account" },
-    { value: "duplicate", label: "Duplicate entry" },
-    { value: "data_quality", label: "Data quality issue" },
-    { value: "other", label: "Other" },
-  ];
-
   // Standardized unarchive reasons - direct positive inverses of each archive reason
   const UNARCHIVE_REASONS = [
     { value: "archived_in_error", label: "Mistakenly archived" },
@@ -1142,13 +1178,6 @@ export default function ProviderOutreachPage() {
     { value: "other", label: "Other" },
   ];
 
-  // Keep legacy UNHIDE_REASONS for hidden -> not_contacted transition
-  const UNHIDE_REASONS = [
-    { value: "ready_for_outreach", label: "Ready for outreach" },
-    { value: "hidden_in_error", label: "Hidden in error" },
-    { value: "data_issue_resolved", label: "Data issue resolved" },
-    { value: "other", label: "Other" },
-  ];
 
   // Global stats computed from activeStates
   const globalStats = useMemo(() => {
@@ -1259,16 +1288,19 @@ export default function ProviderOutreachPage() {
     }
   }, [selectedState]);
 
-  // Fetch providers for current stage/state (or search)
+  // Fetch providers for current tab/state (or search)
   const fetchProviders = useCallback(async (city?: string, searchTerm?: string) => {
     if (!selectedState) return;
     setLoadingProviders(true);
 
     try {
+      // Map UI tab to API parameters
+      const { stage, emailFilter } = getApiParamsForTab(activeTab);
       const params = new URLSearchParams({
         state: selectedState,
         stage,
       });
+      if (emailFilter) params.set("email_filter", emailFilter);
       if (city) params.set("city", city);
       if (searchTerm) params.set("search", searchTerm);
 
@@ -1286,7 +1318,7 @@ export default function ProviderOutreachPage() {
     } finally {
       setLoadingProviders(false);
     }
-  }, [selectedState, stage]);
+  }, [selectedState, activeTab]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -1365,35 +1397,35 @@ export default function ProviderOutreachPage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [stateActionsMenu, showStateSelector]);
 
-  // Effect: fetch cities when state changes (for not_contacted tab, when not searching)
+  // Effect: fetch cities when state changes (for needs_email/ready tabs, when not searching)
   useEffect(() => {
-    if (stage === "not_contacted" && !debouncedSearch) {
+    if (isNotContactedTab(activeTab) && !debouncedSearch) {
       fetchCities();
     }
-  }, [selectedState, stage, debouncedSearch, fetchCities]);
+  }, [selectedState, activeTab, debouncedSearch, fetchCities]);
 
-  // Effect: fetch providers and stage counts when state/stage/search changes
+  // Effect: fetch providers and stage counts when state/tab/search changes
   useEffect(() => {
     if (selectedState) {
       fetchProviders(undefined, debouncedSearch || undefined);
     }
-  }, [selectedState, stage, debouncedSearch, fetchProviders]);
+  }, [selectedState, activeTab, debouncedSearch, fetchProviders]);
 
   // Effect: fetch providers when a city is expanded (only when not searching)
   useEffect(() => {
-    if (stage === "not_contacted" && expandedCities.size > 0 && !debouncedSearch) {
+    if (isNotContactedTab(activeTab) && expandedCities.size > 0 && !debouncedSearch) {
       fetchProviders();
     }
-  }, [expandedCities, stage, debouncedSearch, fetchProviders]);
+  }, [expandedCities, activeTab, debouncedSearch, fetchProviders]);
 
-  // Clear selection, providers, and stage counts when stage/state/search changes
+  // Clear selection, providers, and stage counts when tab/state/search changes
   useEffect(() => {
     setSelectedProviders(new Set());
     setExpandedCities(new Set());
     setProviders([]);
-    // Clear stage counts when STATE changes (not stage) to avoid showing stale data
-    // Stage counts are state-level, so changing stage within same state keeps counts
-  }, [stage, selectedState, debouncedSearch]);
+    // Clear stage counts when STATE changes (not tab) to avoid showing stale data
+    // Stage counts are state-level, so changing tab within same state keeps counts
+  }, [activeTab, selectedState, debouncedSearch]);
 
   // Separate effect to clear stage counts only when state changes
   const prevStateRef = useRef(selectedState);
@@ -1403,10 +1435,12 @@ export default function ProviderOutreachPage() {
         not_contacted: 0,
         in_sequence: 0,
         needs_call: 0,
+        re_engage: 0,
         called: 0,
         claimed: 0,
         archived: 0,
-        hidden: 0,
+        needs_email: 0,
+        ready: 0,
       });
       prevStateRef.current = selectedState;
     }
@@ -1591,11 +1625,13 @@ export default function ProviderOutreachPage() {
 
       if (res.ok) {
         const data = await res.json();
-        showToast(`Moved ${data.updated + data.created} provider(s) to ${STAGE_LABELS[newStage]}`, "success");
+        // Use UI_TAB_LABELS for the target stage display
+        const stageLabel = UI_TAB_LABELS[newStage as UITab] || newStage;
+        showToast(`Moved ${data.updated + data.created} provider(s) to ${stageLabel}`, "success");
         setSelectedProviders(new Set());
 
         // Refresh data
-        if (stage === "not_contacted") {
+        if (isNotContactedTab(activeTab)) {
           fetchCities();
           fetchProviders();
         } else {
@@ -1617,7 +1653,7 @@ export default function ProviderOutreachPage() {
   // If requiresReasonValidation is true, reason is required (archive/unarchive actions)
   const handleQuickAction = async (
     providerId: string,
-    action: "not_contacted" | "called" | "archived" | "hidden",
+    action: "not_contacted" | "called" | "archived",
     reason?: string | null,
     notes?: string | null,
     requiresReasonValidation?: boolean
@@ -1636,11 +1672,11 @@ export default function ProviderOutreachPage() {
       });
 
       if (res.ok) {
-        const actionLabel = action === "not_contacted" ? "Unhidden" : action === "called" ? "Called" : action === "hidden" ? "Hidden" : "Archived";
+        const actionLabel = action === "not_contacted" ? "Restored" : action === "called" ? "Called" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
 
         // Refresh data
-        if (stage === "not_contacted") {
+        if (isNotContactedTab(activeTab)) {
           fetchCities();
           fetchProviders();
         } else {
@@ -1664,24 +1700,34 @@ export default function ProviderOutreachPage() {
   );
   const selectedWithEmailCount = selectedProvidersWithEmail.length;
 
-  // Available actions based on current stage
+  // Available actions based on current tab
   // Note: "Mark Claimed" is NOT included because Claimed auto-syncs from business_profiles
   // Note: Archive removed from bulk actions - use individual provider modal instead
   const getAvailableActions = (): { stage: OutreachStage; label: string; color: string; requiresEmail?: boolean }[] => {
-    switch (stage) {
-      case "not_contacted":
-        // Only "Move to In Sequence" - requires email
+    switch (activeTab) {
+      case "needs_email":
+        // Providers without email - can only add email (no bulk actions)
+        return [];
+      case "ready":
+        // Providers with email - can move to sequence
         return [
           { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700", requiresEmail: true },
         ];
       case "in_sequence":
         return [
-          { stage: "needs_call", label: "Needs Call", color: "bg-amber-600 hover:bg-amber-700" },
+          { stage: "needs_call", label: "Move to Follow Up", color: "bg-amber-600 hover:bg-amber-700" },
           { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
-      case "needs_call":
+      case "needs_call":  // Follow Up
         return [
+          { stage: "re_engage", label: "Move to Re-Engage", color: "bg-blue-600 hover:bg-blue-700" },
+          { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
+          { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
+        ];
+      case "re_engage":
+        return [
+          { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700" },
           { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
@@ -1689,12 +1735,7 @@ export default function ProviderOutreachPage() {
         // Called is terminal for outreach - we've done our part
         // Only allow going back in case of error
         return [
-          { stage: "needs_call", label: "Back to Needs Call", color: "bg-amber-600 hover:bg-amber-700" },
-        ];
-      case "hidden":
-        // Hidden is NOT terminal - can unhide
-        return [
-          { stage: "not_contacted", label: "Unhide", color: "bg-blue-600 hover:bg-blue-700" },
+          { stage: "needs_call", label: "Back to Follow Up", color: "bg-amber-600 hover:bg-amber-700" },
         ];
       default:
         // Terminal stages (archived, claimed) - allow moving back to not_contacted
@@ -1704,11 +1745,12 @@ export default function ProviderOutreachPage() {
     }
   };
 
-  const tabs = OUTREACH_STAGES.map((s) => ({
-    value: s,
-    label: STAGE_LABELS[s],
-    count: stageCounts[s],
-    isTerminal: TERMINAL_STAGES.includes(s),
+  // Build tabs from UI_TABS with correct counts
+  const tabs = UI_TABS.map((tab) => ({
+    value: tab,
+    label: UI_TAB_LABELS[tab],
+    count: stageCounts[tab] ?? 0,
+    isTerminal: TERMINAL_STAGES.includes(tab as OutreachStage),
   }));
 
   return (
@@ -1949,13 +1991,13 @@ export default function ProviderOutreachPage() {
 
       {/* Stage Tabs - only show when a state is selected */}
       {selectedState && (
-        <div className="flex gap-1 mb-6 border-b border-gray-100">
+        <div className="flex gap-1 mb-6 border-b border-gray-100 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.value}
-              onClick={() => setStage(tab.value)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                stage === tab.value
+              onClick={() => setActiveTab(tab.value)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === tab.value
                   ? "border-gray-900 text-gray-900"
                   : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
@@ -2155,9 +2197,9 @@ export default function ProviderOutreachPage() {
                         provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
                         provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
                         provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
+                        provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
                         provider.stage === "called" ? "bg-purple-100 text-purple-700" :
                         provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
-                        provider.stage === "hidden" ? "bg-gray-100 text-gray-500" :
                         "bg-gray-100 text-gray-600"
                       }`}>
                         {STAGE_LABELS[provider.stage]}
@@ -2203,12 +2245,18 @@ export default function ProviderOutreachPage() {
             </div>
 
             {(() => {
-              // For not_contacted, use the cities API data; for other stages, compute from providers
-              const displayCities = stage === "not_contacted" ? cities : computeCityStatsFromProviders(providers);
-              const isLoading = stage === "not_contacted" ? loadingCities : loadingProviders;
-              const emptyMessage = stage === "not_contacted"
-                ? `No unclaimed providers in ${selectedState}`
-                : `No providers in ${STAGE_LABELS[stage]}`;
+              // For needs_email/ready tabs, use the cities API data; for other stages, compute from providers
+              // Filter to only show cities with providers for the active tab
+              let displayCities = isNotContactedTab(activeTab) ? cities : computeCityStatsFromProviders(providers);
+              if (activeTab === "needs_email") {
+                displayCities = displayCities.filter((c) => c.needs_email > 0);
+              } else if (activeTab === "ready") {
+                displayCities = displayCities.filter((c) => c.has_email > 0);
+              }
+              const isLoading = isNotContactedTab(activeTab) ? loadingCities : loadingProviders;
+              const emptyMessage = isNotContactedTab(activeTab)
+                ? `No ${activeTab === "needs_email" ? "providers needing email" : "ready providers"} in ${selectedState}`
+                : `No providers in ${UI_TAB_LABELS[activeTab]}`;
 
               if (isLoading) {
                 return (
@@ -2232,7 +2280,7 @@ export default function ProviderOutreachPage() {
                     <CityRow
                       key={city.city}
                       city={city}
-                      stage={stage}
+                      activeTab={activeTab}
                       isExpanded={expandedCities.has(city.city)}
                       onToggle={() => toggleCity(city.city)}
                       providers={providers}
@@ -2247,8 +2295,8 @@ export default function ProviderOutreachPage() {
                             p.provider_id === providerId ? { ...p, email: newEmail } : p
                           )
                         );
-                        // Refresh cities to update counts (for not_contacted)
-                        if (stage === "not_contacted") {
+                        // Refresh cities to update counts (for needs_email/ready tabs)
+                        if (isNotContactedTab(activeTab)) {
                           fetchCities();
                         }
                       }}
@@ -2263,7 +2311,7 @@ export default function ProviderOutreachPage() {
       </div>
 
       {/* Summary */}
-      {stage === "not_contacted" && !loadingCities && !isSearchResult && (
+      {isNotContactedTab(activeTab) && !loadingCities && !isSearchResult && (
         <div className="mt-4 text-sm text-gray-500">
           {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
         </div>
@@ -2329,29 +2377,8 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Unhide - only show if provider is currently hidden */}
-                {actionModalProvider.stage === "hidden" && (
-                  <button
-                    onClick={() => setSelectedAction("unhide")}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-blue-500 mt-0.5">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="font-medium text-gray-900">Unhide</p>
-                        <p className="text-xs text-gray-500">Return to Not Contacted for outreach</p>
-                      </div>
-                    </div>
-                  </button>
-                )}
-
                 {/* Mark as Called - show for active stages that haven't been called yet */}
-                {["not_contacted", "in_sequence", "needs_call"].includes(actionModalProvider.stage) && (
+                {["not_contacted", "in_sequence", "needs_call", "re_engage"].includes(actionModalProvider.stage) && (
                   <button
                     onClick={() => setSelectedAction("called")}
                     className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors"
@@ -2390,25 +2417,6 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Hide - only show if provider is NOT already hidden or archived */}
-                {actionModalProvider.stage !== "hidden" && actionModalProvider.stage !== "archived" && (
-                  <button
-                    onClick={() => setSelectedAction("hidden")}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-gray-400 mt-0.5">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="font-medium text-gray-900">Hide</p>
-                        <p className="text-xs text-gray-500">Skip for this sequence (test accounts)</p>
-                      </div>
-                    </div>
-                  </button>
-                )}
               </div>
             )}
 
@@ -2420,7 +2428,7 @@ export default function ProviderOutreachPage() {
                   onClick={() => {
                     // If we're in the preview step (unarchive not yet confirmed), go back to action selection
                     // If we're in the reason step (preview confirmed), go back to preview step
-                    if (selectedAction === "unhide" && actionModalProvider?.stage === "archived" && unarchivePreviewConfirmed) {
+                    if (selectedAction === "unhide" && unarchivePreviewConfirmed) {
                       setUnarchivePreviewConfirmed(false);
                       setActionReason("");
                       setActionNotes("");
@@ -2437,11 +2445,11 @@ export default function ProviderOutreachPage() {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
-                  {selectedAction === "unhide" && actionModalProvider?.stage === "archived" && unarchivePreviewConfirmed ? "Back to Preview" : "Back"}
+                  {selectedAction === "unhide" && unarchivePreviewConfirmed ? "Back to Preview" : "Back"}
                 </button>
 
                 {/* Unarchive Preview Step - show impact before reason selection */}
-                {selectedAction === "unhide" && actionModalProvider?.stage === "archived" && !unarchivePreviewConfirmed && (
+                {selectedAction === "unhide" && !unarchivePreviewConfirmed && (
                   <div className="space-y-4">
                     <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
                       <p className="text-sm font-medium text-gray-900">Unarchive Provider</p>
@@ -2530,29 +2538,26 @@ export default function ProviderOutreachPage() {
                 )}
 
                 {/* Standard confirmation flow - show for non-unarchive actions OR after unarchive preview is confirmed */}
-                {(selectedAction !== "unhide" || actionModalProvider?.stage !== "archived" || unarchivePreviewConfirmed) && (
+                {(selectedAction !== "unhide" || unarchivePreviewConfirmed) && (
                   <>
                     {/* Action description */}
                     <div className={`p-3 rounded-lg ${
                       selectedAction === "called" ? "bg-purple-50 border border-purple-200" :
                       selectedAction === "archived" ? "bg-amber-50 border border-amber-200" :
-                      selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-50 border border-emerald-200" :
-                      selectedAction === "unhide" ? "bg-blue-50 border border-blue-200" :
+                      selectedAction === "unhide" ? "bg-emerald-50 border border-emerald-200" :
                       "bg-gray-50 border border-gray-200"
                     }`}>
                       <p className="text-sm font-medium text-gray-900">
                         {selectedAction === "called" ? "Mark as Called" :
                          selectedAction === "archived" ? "Archive Provider" :
-                         selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Unarchive Provider" :
-                         selectedAction === "unhide" ? "Unhide Provider" :
-                         "Hide Provider"}
+                         selectedAction === "unhide" ? "Unarchive Provider" :
+                         "Unknown Action"}
                       </p>
                       <p className="text-xs text-gray-600 mt-0.5">
                         {selectedAction === "called" ? "Provider will be moved to Called tab. We've done our part - ball is in their court." :
                          selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
-                         selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
-                         selectedAction === "unhide" ? "Provider will return to Not Contacted and be available for outreach." :
-                         "Provider will be hidden from this sequence but can be unhidden later."}
+                         selectedAction === "unhide" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
+                         ""}
                       </p>
                     </div>
 
@@ -2568,13 +2573,7 @@ export default function ProviderOutreachPage() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                         >
                           <option value="">Select a reason...</option>
-                          {(selectedAction === "archived" ? ARCHIVE_REASONS :
-                            selectedAction === "unhide" ? (
-                              // If provider was archived, use UNARCHIVE_REASONS; otherwise UNHIDE_REASONS
-                              actionModalProvider?.stage === "archived" ? UNARCHIVE_REASONS : UNHIDE_REASONS
-                            ) :
-                            HIDE_REASONS
-                          ).map((reason) => (
+                          {(selectedAction === "archived" ? ARCHIVE_REASONS : UNARCHIVE_REASONS).map((reason) => (
                             <option key={reason.value} value={reason.value}>{reason.label}</option>
                           ))}
                         </select>
@@ -2610,7 +2609,7 @@ export default function ProviderOutreachPage() {
                 Cancel
               </button>
               {/* Show Confirm button only when not in unarchive preview step */}
-              {selectedAction && !(selectedAction === "unhide" && actionModalProvider?.stage === "archived" && !unarchivePreviewConfirmed) && (
+              {selectedAction && !(selectedAction === "unhide" && !unarchivePreviewConfirmed) && (
                 <button
                   onClick={async () => {
                     // "called" doesn't require a reason
@@ -2621,7 +2620,7 @@ export default function ProviderOutreachPage() {
                     // Map "unhide" to "not_contacted" stage
                     const stageToSet = selectedAction === "unhide" ? "not_contacted" : selectedAction;
                     // Detect if this is an unarchive scenario (moving from archived to not_contacted)
-                    const isUnarchiving = actionModalProvider.stage === "archived" && stageToSet === "not_contacted";
+                    const isUnarchiving = selectedAction === "unhide";
                     await handleQuickAction(
                       actionModalProvider.provider_id,
                       stageToSet,
@@ -2639,8 +2638,7 @@ export default function ProviderOutreachPage() {
                   className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     selectedAction === "called" ? "bg-purple-600 hover:bg-purple-700" :
                     selectedAction === "archived" ? "bg-amber-600 hover:bg-amber-700" :
-                    selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-600 hover:bg-emerald-700" :
-                    selectedAction === "unhide" ? "bg-blue-600 hover:bg-blue-700" :
+                    selectedAction === "unhide" ? "bg-emerald-600 hover:bg-emerald-700" :
                     "bg-gray-600 hover:bg-gray-700"
                   }`}
                 >

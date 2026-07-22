@@ -427,6 +427,80 @@ async function handle(params: {
     }
   }
 
+  // Sync to MedJobs: if provider has a student_outreach row, update status
+  if (businessProfileId) {
+    const { data: medjobsRow } = await db
+      .from("student_outreach")
+      .select("id, status")
+      .eq("provider_business_profile_id", businessProfileId)
+      .eq("kind", "provider")
+      .maybeSingle();
+
+    if (medjobsRow && !["not_interested", "do_not_contact", "archived"].includes(medjobsRow.status)) {
+      await db
+        .from("student_outreach")
+        .update({
+          status: "not_interested",
+          status_changed_at: nowIso,
+          last_edited_at: nowIso,
+        })
+        .eq("id", medjobsRow.id);
+
+      // Log touchpoint in MedJobs
+      await db.from("student_outreach_touchpoints").insert({
+        outreach_id: medjobsRow.id,
+        touchpoint_type: "stage_change",
+        payload: {
+          from: medjobsRow.status,
+          to: "not_interested",
+          source: "questions_archive_sync",
+          reason,
+        },
+        created_by: adminUserId,
+        created_at: nowIso,
+      });
+    }
+  }
+
+  // Sync to Provider Outreach: if provider has a tracking row, update stage to archived
+  const oleraProviderId = oleraProviderData?.provider_id || (businessProfileId ?
+    (await db.from("business_profiles").select("source_provider_id").eq("id", businessProfileId).single()).data?.source_provider_id
+    : null);
+
+  if (oleraProviderId) {
+    const { data: trackingRow } = await db
+      .from("provider_outreach_tracking")
+      .select("id, stage")
+      .eq("provider_id", oleraProviderId)
+      .maybeSingle();
+
+    if (trackingRow && trackingRow.stage !== "archived" && trackingRow.stage !== "claimed") {
+      await db
+        .from("provider_outreach_tracking")
+        .update({
+          stage: "archived",
+          stage_changed_at: nowIso,
+          notes: `Archived via Questions (reason: ${reason})`,
+          updated_at: nowIso,
+        })
+        .eq("id", trackingRow.id);
+
+      // Log touchpoint for provider outreach
+      await db.from("provider_outreach_touchpoints").insert({
+        provider_id: oleraProviderId,
+        touchpoint_type: "stage_changed",
+        details: {
+          old_stage: trackingRow.stage,
+          new_stage: "archived",
+          source: "questions_archive_sync",
+          reason,
+        },
+        admin_user_id: adminUserId,
+        created_at: nowIso,
+      });
+    }
+  }
+
   // 2. Suppress future questions — one row per variant.
   const { error: supErr } = await db.from("archived_question_providers").upsert(
     variants.map((id) => ({

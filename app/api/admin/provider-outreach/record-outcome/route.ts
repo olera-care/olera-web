@@ -372,6 +372,41 @@ export async function POST(request: NextRequest) {
           })),
           { onConflict: "provider_id" }
         );
+
+        // Sync to MedJobs: if provider has a student_outreach row, update status
+        if (linkedBp) {
+          const { data: medjobsRow } = await db
+            .from("student_outreach")
+            .select("id, status")
+            .eq("provider_business_profile_id", linkedBp.id)
+            .eq("kind", "provider")
+            .maybeSingle();
+
+          if (medjobsRow && !["not_interested", "do_not_contact", "archived"].includes(medjobsRow.status)) {
+            await db
+              .from("student_outreach")
+              .update({
+                status: "not_interested",
+                status_changed_at: nowIso,
+                last_edited_at: nowIso,
+              })
+              .eq("id", medjobsRow.id);
+
+            // Log touchpoint in MedJobs
+            await db.from("student_outreach_touchpoints").insert({
+              outreach_id: medjobsRow.id,
+              touchpoint_type: "stage_change",
+              payload: {
+                from: medjobsRow.status,
+                to: "not_interested",
+                source: "provider_outreach_sync",
+                reason: archiveReason,
+              },
+              created_by: adminUser.id,
+              created_at: nowIso,
+            });
+          }
+        }
       }
     }
 

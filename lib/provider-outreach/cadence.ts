@@ -5,7 +5,7 @@
  * Each provider goes through a 4-email sequence:
  *   Day 0: Intro email
  *   Day 3: Follow-up email (profile gaps)
- *   Day 7: Check-in email (graceful close)
+ *   Day 7: Summary email (everything in one place)
  *   Day 14: Breakup email (last attempt)
  *
  * After the final email (Day 14) with no claim, the provider moves to

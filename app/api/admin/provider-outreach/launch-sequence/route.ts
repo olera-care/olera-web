@@ -79,6 +79,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Ensure all provider_ids are strings
+    const validProviderIds = provider_ids.filter((id): id is string => typeof id === "string" && id.length > 0);
+    if (validProviderIds.length === 0) {
+      return NextResponse.json(
+        { error: "No valid provider IDs provided" },
+        { status: 400 }
+      );
+    }
+
+    console.log("[launch-sequence] Fetching providers:", validProviderIds);
+
     const db = getServiceClient();
 
     // Fetch provider data including fields needed for gap detection
@@ -86,7 +97,7 @@ export async function POST(request: NextRequest) {
     const { data: providers, error: fetchError } = await db
       .from("olera-providers")
       .select("provider_id, slug, provider_name, email, city, state, provider_category, lower_price, upper_price, contact_for_price, provider_images, hero_image_url, phone, provider_description")
-      .in("provider_id", provider_ids);
+      .in("provider_id", validProviderIds);
 
     if (fetchError) {
       console.error("Failed to fetch providers:", fetchError);
@@ -101,7 +112,7 @@ export async function POST(request: NextRequest) {
     let validCount = 0;
     let invalidCount = 0;
 
-    for (const providerId of provider_ids) {
+    for (const providerId of validProviderIds) {
       const provider = providers?.find((p) => p.provider_id === providerId);
 
       if (!provider) {
@@ -226,7 +237,7 @@ export async function POST(request: NextRequest) {
         dueAt: s.dueAt.toISOString(),
       })),
       summary: {
-        total: provider_ids.length,
+        total: validProviderIds.length,
         valid: validCount,
         invalid: invalidCount,
       },

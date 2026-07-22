@@ -185,10 +185,12 @@ export function buildContextFromProvider(
     baseUrl
   );
 
-  // Remove and unsubscribe URLs - these need provider identification
-  // For now, include the slug so the endpoint can look up the provider
-  const removeUrl = options?.removeUrl || `${baseUrl}/provider/${slug}/remove`;
-  const unsubscribeUrl = options?.unsubscribeUrl || `${baseUrl}/unsubscribe?provider=${slug}`;
+  // Remove URL: points to removal request page
+  const removeUrl = options?.removeUrl || `${baseUrl}/for-providers/removal-request/${slug}`;
+
+  // Unsubscribe URL: points to unsubscribe page with cold_outreach type
+  // This will add them to do_not_contact list
+  const unsubscribeUrl = options?.unsubscribeUrl || `${baseUrl}/unsubscribe/${slug}?type=cold_outreach`;
 
   return {
     provider_name: provider.name,

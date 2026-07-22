@@ -2131,6 +2131,7 @@ export default function ProviderOutreachPage() {
     };
   } | null>(null);
   const [sequencePreviewLoading, setSequencePreviewLoading] = useState(false);
+  const [sequencePreviewError, setSequencePreviewError] = useState<string | null>(null);
   // For batch preview: which provider to show and which email day
   const [previewProviderId, setPreviewProviderId] = useState<string | null>(null);
   const [previewDay, setPreviewDay] = useState<number>(0);
@@ -2251,6 +2252,7 @@ export default function ProviderOutreachPage() {
     if (providerIds.length === 0) return;
 
     setSequencePreviewLoading(true);
+    setSequencePreviewError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
         method: "POST",
@@ -2261,6 +2263,7 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const data = await res.json();
         setSequencePreviewData(data);
+        setSequencePreviewError(null);
         // Set initial preview provider to first valid one
         const firstValid = data.providers?.find((p: { valid: boolean }) => p.valid);
         if (firstValid) {
@@ -2268,11 +2271,15 @@ export default function ProviderOutreachPage() {
         }
         setPreviewDay(0); // Start with Day 0 (intro email)
       } else {
-        console.error("Failed to fetch sequence preview");
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg = errorData.error || `API error: ${res.status}`;
+        console.error("Failed to fetch sequence preview:", errorMsg);
+        setSequencePreviewError(errorMsg);
         setSequencePreviewData(null);
       }
     } catch (error) {
       console.error("Error fetching sequence preview:", error);
+      setSequencePreviewError(error instanceof Error ? error.message : "Network error");
       setSequencePreviewData(null);
     } finally {
       setSequencePreviewLoading(false);
@@ -3120,6 +3127,7 @@ export default function ProviderOutreachPage() {
                       // Show confirmation modal for starting sequence
                       setSequenceConfirmProviders(selectedProvidersWithEmail);
                       setShowSequenceConfirm(true);
+                      setShowSequencePreview(true); // Auto-expand preview accordion
                       // Fetch preview data for the modal
                       fetchSequencePreview(selectedProvidersWithEmail.map(p => p.provider_id));
                     } else {
@@ -3855,6 +3863,11 @@ export default function ProviderOutreachPage() {
                       <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 text-center text-sm text-gray-500">
                         Loading email previews...
                       </div>
+                    ) : sequencePreviewError ? (
+                      <div className="rounded-lg bg-red-50 p-4 border border-red-200 text-center text-sm text-red-600">
+                        <p className="font-medium">Failed to load email preview</p>
+                        <p className="mt-1 text-xs text-red-500">{sequencePreviewError}</p>
+                      </div>
                     ) : sequencePreviewData?.cadence ? (
                       <>
                         {/* Provider selector for batch preview */}
@@ -3983,6 +3996,7 @@ export default function ProviderOutreachPage() {
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
                 }}
@@ -4001,6 +4015,7 @@ export default function ProviderOutreachPage() {
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
                 }}

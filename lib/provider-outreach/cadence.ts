@@ -5,11 +5,14 @@
  * Each provider goes through a 4-email sequence:
  *   Day 0: Intro email
  *   Day 3: Follow-up email (profile gaps)
- *   Day 7: Summary email (everything in one place)
- *   Day 14: Breakup email (just the claim link)
+ *   Day 7: Demand-loss email (family views, unanswered questions)
+ *   Day 14: Summary email (everything in one place)
  *
  * After the final email (Day 14) with no claim, the provider moves to
  * "needs_call" stage for manual follow-up.
+ *
+ * Note: The "nudge" template is standalone (not in cadence) — used by
+ * Follow Up resend action and future re-engagement triggers.
  */
 
 import type { ProviderOutreachTemplateKey } from "./templates";
@@ -40,13 +43,13 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
   },
   {
     day: 7,
-    templateKey: "final",
-    description: "Summary email - everything in one place, full value prop",
+    templateKey: "demand_loss",
+    description: "Demand-loss - what families couldn't ask you",
   },
   {
     day: 14,
-    templateKey: "breakup",
-    description: "Breakup email - just the claim link, easy to find",
+    templateKey: "final",
+    description: "Summary - everything in one place",
   },
 ];
 

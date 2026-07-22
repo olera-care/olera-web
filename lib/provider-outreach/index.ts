@@ -47,6 +47,9 @@ export {
   validateProviderForOutreach,
   getProviderGaps,
   formatGapList,
+  // City demand metrics
+  getCityViews,
+  getCityViewsBatch,
   // Email sending configuration
   PROVIDER_OUTREACH_EMAIL_TYPE,
   PROVIDER_OUTREACH_FROM,

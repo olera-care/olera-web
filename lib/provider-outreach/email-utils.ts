@@ -163,6 +163,8 @@ export function buildContextFromProvider(
     mailingAddress?: string;
     // Profile gaps (computed via getProviderGaps + formatGapList)
     gap_list?: string;
+    // City demand metric (total unique views for city+category in last 30 days)
+    city_views?: number;
   }
 ): TemplateContext {
   const baseUrl = options?.baseUrl || "https://olera.care";
@@ -203,6 +205,7 @@ export function buildContextFromProvider(
     unsubscribe_url: unsubscribeUrl,
     mailing_address: options?.mailingAddress || DEFAULT_MAILING_ADDRESS,
     gap_list: options?.gap_list,
+    city_views: options?.city_views,
   };
 }
 
@@ -399,5 +402,113 @@ export function formatGapList(
   if (gaps.length === 2) return `${gaps[0]} and ${gaps[1]}`;
   // Oxford comma for 3+
   return `${gaps.slice(0, -1).join(", ")}, and ${gaps[gaps.length - 1]}`;
+}
+
+// ── City Demand Metrics ────────────────────────────────────────────────────
+
+/**
+ * Fetch the total unique page views for a city+category over the last 30 days.
+ *
+ * Data source: provider_page_view_stats table (populated by the nightly
+ * aggregate-provider-views cron job).
+ *
+ * @param city - Provider's city
+ * @param category - Provider's normalized category (from olera-providers.provider_category)
+ * @param db - Supabase client (service role)
+ * @returns Total unique views, or 0 if no data
+ */
+export async function getCityViews(
+  city: string | null | undefined,
+  category: string | null | undefined,
+  db: ReturnType<typeof import("@/lib/admin").getServiceClient>
+): Promise<number> {
+  if (!city) return 0;
+
+  // Calculate date 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const dateThreshold = thirtyDaysAgo.toISOString().split("T")[0];
+
+  // Build query - sum unique views for this city (and optionally category)
+  let query = db
+    .from("provider_page_view_stats")
+    .select("unique_view_count")
+    .eq("city", city)
+    .gte("date", dateThreshold);
+
+  // If category is provided, filter by it too
+  if (category) {
+    query = query.eq("category", category);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("[getCityViews] Query failed:", error);
+    return 0;
+  }
+
+  if (!data || data.length === 0) {
+    return 0;
+  }
+
+  // Sum all unique_view_count values
+  return data.reduce((sum, row) => sum + (row.unique_view_count || 0), 0);
+}
+
+/**
+ * Batch-fetch city views for multiple city+category pairs.
+ * More efficient than calling getCityViews() in a loop.
+ *
+ * @param pairs - Array of { city, category } pairs
+ * @param db - Supabase client (service role)
+ * @returns Map of "city|category" → total views
+ */
+export async function getCityViewsBatch(
+  pairs: Array<{ city: string | null; category: string | null }>,
+  db: ReturnType<typeof import("@/lib/admin").getServiceClient>
+): Promise<Map<string, number>> {
+  const result = new Map<string, number>();
+
+  // Filter out null cities
+  const validPairs = pairs.filter((p) => p.city);
+  if (validPairs.length === 0) return result;
+
+  // Get unique cities
+  const uniqueCities = [...new Set(validPairs.map((p) => p.city!))];
+
+  // Calculate date 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const dateThreshold = thirtyDaysAgo.toISOString().split("T")[0];
+
+  // Fetch all rows for these cities in one query
+  const { data, error } = await db
+    .from("provider_page_view_stats")
+    .select("city, category, unique_view_count")
+    .in("city", uniqueCities)
+    .gte("date", dateThreshold);
+
+  if (error) {
+    console.error("[getCityViewsBatch] Query failed:", error);
+    return result;
+  }
+
+  if (!data) return result;
+
+  // Aggregate by city|category
+  const aggregated = new Map<string, number>();
+  for (const row of data) {
+    const key = `${row.city}|${row.category || ""}`;
+    aggregated.set(key, (aggregated.get(key) || 0) + (row.unique_view_count || 0));
+  }
+
+  // Build result map for requested pairs
+  for (const pair of validPairs) {
+    const key = `${pair.city}|${pair.category || ""}`;
+    result.set(key, aggregated.get(key) || 0);
+  }
+
+  return result;
 }
 

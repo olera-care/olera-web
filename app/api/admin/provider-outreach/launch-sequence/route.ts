@@ -8,6 +8,7 @@ import {
   validateProviderForOutreach,
   getProviderGaps,
   formatGapList,
+  getCityViewsBatch,
   PROVIDER_OUTREACH_CADENCE,
 } from "@/lib/provider-outreach";
 
@@ -107,6 +108,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Batch-fetch city views for Day 7 demand-loss email
+    // This is more efficient than fetching per-provider
+    const cityViewsPairs = (providers || [])
+      .filter((p) => p.city)
+      .map((p) => ({ city: p.city, category: p.provider_category }));
+    const cityViewsMap = await getCityViewsBatch(cityViewsPairs, db);
+
     // Build previews for each provider
     const previews: ProviderPreview[] = [];
     let validCount = 0;
@@ -169,6 +177,10 @@ export async function POST(request: NextRequest) {
       });
       const gapList = formatGapList(gaps);
 
+      // Get city views for this provider's city+category
+      const cityViewsKey = `${provider.city}|${provider.provider_category || ""}`;
+      const cityViews = cityViewsMap.get(cityViewsKey) || 0;
+
       // Build context and render emails
       const context = buildContextFromProvider({
         provider_id: providerId,
@@ -180,6 +192,7 @@ export async function POST(request: NextRequest) {
         slug: provider.slug,
       }, {
         gap_list: gapList,
+        city_views: cityViews,
       });
 
       const emails: ProviderPreview["emails"] = [];

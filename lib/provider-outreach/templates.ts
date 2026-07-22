@@ -57,11 +57,15 @@ export interface TemplateContext {
   mailing_address: string;
   // Profile gaps (Day 3 template)
   gap_list?: string;
+  // City demand metric (Day 7 template)
+  // Total unique page views for this city+category in the last 30 days
+  city_views?: number;
 }
 
 // Template keys for the cadence system
-// "breakup" = Day 14, final attempt before moving to calls
-export type ProviderOutreachTemplateKey = "intro" | "followup" | "final" | "breakup";
+// Cadence emails: intro (Day 0), followup (Day 3), demand_loss (Day 7), final (Day 14)
+// Standalone: nudge (Follow Up resend action)
+export type ProviderOutreachTemplateKey = "intro" | "followup" | "demand_loss" | "final" | "nudge";
 
 // Placeholders for variable substitution
 const PLACEHOLDER = {
@@ -79,20 +83,24 @@ const PLACEHOLDER = {
   unsubscribeUrl: "{unsubscribe_url}",
   mailingAddress: "{mailing_address}",
   gapList: "{gap_list}",
+  cityViews: "{city_views}",
 };
 
 // Subject lines
 const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.rank} of ${PLACEHOLDER.total}`;
 const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
 const SUBJECT_FOLLOWUP = `What families see when they open ${PLACEHOLDER.providerName}`;
+const SUBJECT_DEMAND_LOSS = `Families are searching for ${PLACEHOLDER.category} in ${PLACEHOLDER.city}`;
+const SUBJECT_DEMAND_LOSS_WITH_COUNT = `Families viewed ${PLACEHOLDER.category} providers in ${PLACEHOLDER.city} ${PLACEHOLDER.cityViews} times in the last 30 days`;
 const SUBJECT_FINAL = `What claiming ${PLACEHOLDER.providerName} actually gets you`;
-const SUBJECT_BREAKUP = `Your claim link for ${PLACEHOLDER.providerName}`;
+const SUBJECT_NUDGE = `Your claim link for ${PLACEHOLDER.providerName}`;
 
 // Preheader text
 const PREHEADER_INTRO = "By the Google reviews they actually read";
 const PREHEADER_FOLLOWUP = `It's one of the first pages ${PLACEHOLDER.city} families compare — here's what it shows them`;
+const PREHEADER_DEMAND_LOSS = "They couldn't ask you a single question";
 const PREHEADER_FINAL = "The whole thing in one email: free leads, family questions, your page under your control";
-const PREHEADER_BREAKUP = "Two minutes, and the page is yours";
+const PREHEADER_NUDGE = "Two minutes, and the page is yours";
 
 /**
  * Convert number to ordinal string (1 → "1st", 2 → "2nd", etc.)
@@ -112,15 +120,22 @@ export function getTemplate(
 ): EmailDraft {
   const hasRank = ctx.rank != null && ctx.total != null && ctx.rank > 0;
 
+  // Minimum threshold for showing specific view counts in demand-loss email
+  // Below this, we use generic "families are searching" language
+  const CITY_VIEWS_THRESHOLD = 10;
+  const hasDemandData = ctx.city_views != null && ctx.city_views >= CITY_VIEWS_THRESHOLD;
+
   switch (key) {
     case "intro":
       return introEmail(hasRank);
     case "followup":
       return followupEmail(hasRank);
+    case "demand_loss":
+      return demandLossEmail(hasDemandData);
     case "final":
       return finalEmail();
-    case "breakup":
-      return breakupEmail();
+    case "nudge":
+      return nudgeEmail();
   }
 }
 
@@ -157,6 +172,7 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
     unsubscribe_url: ctx.unsubscribe_url,
     mailing_address: ctx.mailing_address,
     gap_list: ctx.gap_list || "",
+    city_views: ctx.city_views?.toLocaleString() || "0",
   };
 }
 
@@ -230,7 +246,45 @@ function followupEmail(hasRank: boolean): EmailDraft {
 }
 
 /**
- * Day 7: Summary email
+ * Day 7: Demand-loss email
+ *
+ * Shows families are actively viewing providers in their city but can't
+ * engage with unclaimed pages. Creates urgency through real demand data.
+ *
+ * Two variants:
+ *   - With demand data (hasDemandData=true): Shows specific view count
+ *   - Without demand data (hasDemandData=false): Uses generic "families are searching" language
+ *
+ * Variable: {city_views} = total unique page views for this city+category
+ * in the last 30 days (from provider_page_view_stats table).
+ */
+function demandLossEmail(hasDemandData: boolean): EmailDraft {
+  // Opener varies based on whether we have meaningful view data
+  const opener = hasDemandData
+    ? `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} pages on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`
+    : `Families in ${PLACEHOLDER.city} are searching for ${PLACEHOLDER.category} on Olera right now.`;
+
+  return {
+    subject: hasDemandData ? SUBJECT_DEMAND_LOSS_WITH_COUNT : SUBJECT_DEMAND_LOSS,
+    preheader: PREHEADER_DEMAND_LOSS,
+    body: [
+      opener,
+      ``,
+      `When they open ${PLACEHOLDER.providerName}'s page, here's what they can do: compare you with the other providers, read your public reviews — and that's it. They can't ask about availability, pricing, or room for their mother next month, because unclaimed pages can't answer questions.`,
+      ``,
+      `And families don't wait for answers. They ask the next provider on their list.`,
+      ``,
+      `Claiming changes what that page does: questions reach you, your prices and photos replace the blanks, and the families already looking at ${PLACEHOLDER.providerName} can finally talk to ${PLACEHOLDER.providerName}.`,
+      ``,
+      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `Or reply with your starting price and I'll put it up for you today.`,
+    ].join("\n"),
+  };
+}
+
+/**
+ * Day 14: Summary email
  *
  * Everything in one place for recipients who may have missed earlier emails.
  * Comprehensive value prop, low-pressure close, offer to redirect to right contact.
@@ -259,15 +313,18 @@ function finalEmail(): EmailDraft {
 }
 
 /**
- * Day 14: Breakup email
+ * Standalone: Nudge email
  *
- * Final attempt before moving to manual calls.
+ * NOT part of the cadence. Used by:
+ *   - Follow Up "resend link" action
+ *   - Future re-engagement triggers
+ *
  * Short and simple: just the claim link, easy to find.
  */
-function breakupEmail(): EmailDraft {
+function nudgeEmail(): EmailDraft {
   return {
-    subject: SUBJECT_BREAKUP,
-    preheader: PREHEADER_BREAKUP,
+    subject: SUBJECT_NUDGE,
+    preheader: PREHEADER_NUDGE,
     body: [
       `Just putting the claim link where it's easy to find:`,
       ``,

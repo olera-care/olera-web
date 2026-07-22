@@ -85,17 +85,13 @@ export async function POST(request: NextRequest) {
     // Note: provider_ids are the provider_id column values, not slugs
     const { data: providers, error: fetchError } = await db
       .from("olera-providers")
-      .select(`
-        provider_id, slug, provider_name, email, city, state, provider_category,
-        lower_price, upper_price, contact_for_price,
-        provider_images, hero_image_url, phone, provider_description
-      `)
+      .select("provider_id, slug, provider_name, email, city, state, provider_category, lower_price, upper_price, contact_for_price, provider_images, hero_image_url, phone, provider_description")
       .in("provider_id", provider_ids);
 
     if (fetchError) {
       console.error("Failed to fetch providers:", fetchError);
       return NextResponse.json(
-        { error: "Failed to fetch provider data" },
+        { error: `Failed to fetch provider data: ${fetchError.message}` },
         { status: 500 }
       );
     }

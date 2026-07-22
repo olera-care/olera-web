@@ -359,7 +359,7 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
     const enriched = await enrichWithEmailVerification(db, providers);
-    return NextResponse.json({ providers: enriched, stage_counts: stageCounts, current_admin_id: adminUser.id });
+    return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
     return NextResponse.json(

@@ -1383,13 +1383,22 @@ function FollowUpProviderRow({
 
         {/* Provider Name */}
         <div className="flex-1 min-w-0">
-          <Link
-            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-            className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {provider.provider_name}
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+              className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {provider.provider_name}
+            </Link>
+            {provider.assigned_to && (
+              <span className="w-4 h-4 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center shrink-0" title="Assigned">
+                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                </svg>
+              </span>
+            )}
+          </div>
           {provider.provider_category && (
             <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
           )}
@@ -1918,8 +1927,17 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive }: ReEn
           >
             {/* Provider info */}
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-gray-900 truncate">
-                {provider.provider_name}
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-gray-900 truncate">
+                  {provider.provider_name}
+                </span>
+                {provider.assigned_to && (
+                  <span className="w-4 h-4 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center shrink-0" title="Assigned">
+                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                    </svg>
+                  </span>
+                )}
               </div>
               <div className="text-xs text-gray-500 truncate">
                 {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
@@ -2020,7 +2038,6 @@ export default function ProviderOutreachPage() {
 
   // My Assignments filter
   const [myAssignmentsOnly, setMyAssignmentsOnly] = useState(false);
-  const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
 
   // Cities data (for needs_email and ready tabs)
   const [cities, setCities] = useState<CityStats[]>([]);
@@ -2359,9 +2376,6 @@ export default function ProviderOutreachPage() {
         setIsSearchResult(!!data.is_search);
         if (data.stage_counts) {
           setStageCounts(data.stage_counts);
-        }
-        if (data.current_admin_id) {
-          setCurrentAdminId(data.current_admin_id);
         }
       }
     } catch (err) {
@@ -3051,16 +3065,18 @@ export default function ProviderOutreachPage() {
               </button>
             ))}
           </div>
-          {/* My Assignments toggle */}
-          <label className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
-            <input
-              type="checkbox"
-              checked={myAssignmentsOnly}
-              onChange={(e) => setMyAssignmentsOnly(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-            <span>My Assignments</span>
-          </label>
+          {/* My Assignments toggle - only show for stages where assignment applies */}
+          {["in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
+            <label className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
+              <input
+                type="checkbox"
+                checked={myAssignmentsOnly}
+                onChange={(e) => setMyAssignmentsOnly(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span>My Assignments</span>
+            </label>
+          )}
         </div>
       )}
 
@@ -3238,8 +3254,8 @@ export default function ProviderOutreachPage() {
                     <div className="w-24 text-sm text-gray-600 truncate">
                       {provider.city || "—"}
                     </div>
-                    {/* Stage Badge */}
-                    <div className="w-28">
+                    {/* Stage Badge + Assignment */}
+                    <div className="w-28 flex items-center gap-1.5">
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
                         provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
                         provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
@@ -3250,6 +3266,13 @@ export default function ProviderOutreachPage() {
                       }`}>
                         {STAGE_LABELS[provider.stage]}
                       </span>
+                      {provider.assigned_to && (
+                        <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center" title="Assigned">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                          </svg>
+                        </span>
+                      )}
                     </div>
                     {/* Actions - hide for claimed only (archived can be unarchived) */}
                     <div className="w-10 flex items-center gap-1">
@@ -3560,6 +3583,45 @@ export default function ProviderOutreachPage() {
                       <div>
                         <p className="font-medium text-gray-900">Archive</p>
                         <p className="text-xs text-gray-500">Stop all outreach to this provider</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Remove Assignment - only show if provider is assigned */}
+                {actionModalProvider.assigned_to && (
+                  <button
+                    onClick={async () => {
+                      setActionLoading(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/update-assignment", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            provider_id: actionModalProvider.provider_id,
+                            assigned_to: null,
+                          }),
+                        });
+                        if (res.ok) {
+                          closeActionModal();
+                          fetchProviders();
+                        }
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    }}
+                    disabled={actionLoading}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-gray-500 mt-0.5">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">Remove Assignment</p>
+                        <p className="text-xs text-gray-500">Unassign this provider so anyone can pick it up</p>
                       </div>
                     </div>
                   </button>

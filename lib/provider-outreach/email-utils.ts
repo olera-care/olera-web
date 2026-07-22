@@ -356,7 +356,7 @@ export function getProviderGaps(
  *   ["no starting price", "no photos"] → "no starting price and no photos"
  *   ["no starting price", "no photos", "no way to ask you a question"]
  *     → "no starting price, no photos, and no way to ask you a question"
- *   [] → fallback (default: "limited details about your services")
+ *   [] → fallback (default: "only what we could gather publicly")
  *
  * @param gaps - Array of gap strings from getProviderGaps()
  * @param fallback - String to return if gaps is empty (for unclaimed providers, there's always something missing)
@@ -364,7 +364,7 @@ export function getProviderGaps(
  */
 export function formatGapList(
   gaps: string[],
-  fallback = "limited details about your services"
+  fallback = "only what we could gather publicly"
 ): string {
   if (gaps.length === 0) return fallback;
   if (gaps.length === 1) return gaps[0];

@@ -2,13 +2,14 @@
  * Provider Outreach Cadence Configuration
  *
  * Defines the email sequence timing for provider cold outreach.
- * Each provider goes through a 3-email sequence:
+ * Each provider goes through a 4-email sequence:
  *   Day 0: Intro email
- *   Day 3: Follow-up email
- *   Day 7: Final email
+ *   Day 3: Follow-up email (profile gaps)
+ *   Day 7: Check-in email (graceful close)
+ *   Day 14: Breakup email (last attempt)
  *
- * After Day 7 with no claim, the provider moves to "needs_call" stage
- * for manual follow-up.
+ * After the final email (Day 14) with no claim, the provider moves to
+ * "needs_call" stage for manual follow-up.
  */
 
 import type { ProviderOutreachTemplateKey } from "./templates";
@@ -35,12 +36,17 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
   {
     day: 3,
     templateKey: "followup",
-    description: "Follow-up email - lighter touch, re-emphasize value",
+    description: "Follow-up email - profile gaps and value",
   },
   {
     day: 7,
     templateKey: "final",
-    description: "Final email - graceful close, offer to forward",
+    description: "Check-in email - graceful close, offer to forward",
+  },
+  {
+    day: 14,
+    templateKey: "breakup",
+    description: "Breakup email - last attempt before calls",
   },
 ];
 

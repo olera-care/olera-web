@@ -60,8 +60,8 @@ export interface TemplateContext {
 }
 
 // Template keys for the cadence system
-// "intro" = Day 0, "intro_resend" = Day 3 non-opener resend (same body, different subject)
-export type ProviderOutreachTemplateKey = "intro" | "intro_resend" | "followup" | "final";
+// "breakup" = Day 14, final attempt before moving to calls
+export type ProviderOutreachTemplateKey = "intro" | "followup" | "final" | "breakup";
 
 // Placeholders for variable substitution
 const PLACEHOLDER = {
@@ -83,10 +83,10 @@ const PLACEHOLDER = {
 
 // Subject lines
 const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.rank} of ${PLACEHOLDER.total}`;
-const SUBJECT_INTRO_RESEND = `Where ${PLACEHOLDER.providerName} stands in ${PLACEHOLDER.city}`;
 const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
 const SUBJECT_FOLLOWUP = `What families see when they open ${PLACEHOLDER.providerName}`;
 const SUBJECT_FINAL = `Last check-in: ${PLACEHOLDER.providerName} profile`;
+const SUBJECT_BREAKUP = `Closing the loop: ${PLACEHOLDER.providerName}`;
 
 // Preheader text
 const PREHEADER_INTRO = "By the Google reviews they actually read";
@@ -113,12 +113,12 @@ export function getTemplate(
   switch (key) {
     case "intro":
       return introEmail(hasRank);
-    case "intro_resend":
-      return introResendEmail(hasRank);
     case "followup":
       return followupEmail(hasRank);
     case "final":
       return finalEmail();
+    case "breakup":
+      return breakupEmail();
   }
 }
 
@@ -197,22 +197,7 @@ function introEmail(hasRank: boolean): EmailDraft {
 }
 
 /**
- * Day 3: Resend for non-openers
- *
- * Same body as Day 0 intro, different subject line.
- * Subject: "Where {Business name} stands in {city}"
- */
-function introResendEmail(hasRank: boolean): EmailDraft {
-  const intro = introEmail(hasRank);
-  return {
-    subject: SUBJECT_INTRO_RESEND,
-    preheader: intro.preheader,
-    body: intro.body,
-  };
-}
-
-/**
- * Day 3: Follow-up email (for openers who didn't claim)
+ * Day 3: Follow-up email
  *
  * Focuses on profile gaps — what families see when they open the page.
  * Two variants based on whether Day 0 mentioned ranking.
@@ -243,9 +228,9 @@ function followupEmail(hasRank: boolean): EmailDraft {
 }
 
 /**
- * Day 7: Final email
+ * Day 7: Check-in email
  *
- * Last outreach attempt. Low-pressure, graceful close.
+ * Low-pressure, graceful close.
  * Offers to connect them with the right person if they're not the decision maker.
  */
 function finalEmail(): EmailDraft {
@@ -263,6 +248,27 @@ function finalEmail(): EmailDraft {
       `[Claim your page](${PLACEHOLDER.claimUrl}) | [View your listing](${PLACEHOLDER.profileUrl})`,
       ``,
       `Thanks for your time, and best of luck with your work in the community.`,
+    ].join("\n"),
+  };
+}
+
+/**
+ * Day 14: Breakup email
+ *
+ * Final attempt before moving to manual calls.
+ * Placeholder template - content TBD.
+ */
+function breakupEmail(): EmailDraft {
+  return {
+    subject: SUBJECT_BREAKUP,
+    body: [
+      `Hello,`,
+      ``,
+      `[PLACEHOLDER - Day 14 breakup email content TBD]`,
+      ``,
+      `This is the final email in the sequence before we move to phone outreach.`,
+      ``,
+      `[Claim your page](${PLACEHOLDER.claimUrl}) | [View your listing](${PLACEHOLDER.profileUrl})`,
     ].join("\n"),
   };
 }

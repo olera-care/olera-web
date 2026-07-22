@@ -3920,7 +3920,7 @@ export default function ProviderOutreachPage() {
                                 </div>
                                 <div className="text-xs text-gray-500 space-y-0.5">
                                   <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
-                                  <p><span className="font-medium text-gray-600">From:</span> TJ Falohun &lt;tj@olera.care&gt;</p>
+                                  <p><span className="font-medium text-gray-600">From:</span> Dr. Logan DuBose &lt;logan@olera.care&gt;</p>
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>
@@ -3951,15 +3951,23 @@ export default function ProviderOutreachPage() {
                             <span className="text-xs text-gray-400">+3 days</span>
                           </div>
                           <p className="text-sm font-medium text-gray-800">Follow-up Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Gentle reminder about the profile</p>
+                          <p className="text-xs text-gray-500 mt-1">Profile gaps and value proposition</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 7</span>
                             <span className="text-xs text-gray-400">+7 days</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-800">Final Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Last outreach before moving to calls</p>
+                          <p className="text-sm font-medium text-gray-800">Check-in Email</p>
+                          <p className="text-xs text-gray-500 mt-1">Graceful close, offer to forward</p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 14</span>
+                            <span className="text-xs text-gray-400">+14 days</span>
+                          </div>
+                          <p className="text-sm font-medium text-gray-800">Breakup Email</p>
+                          <p className="text-xs text-gray-500 mt-1">Last attempt before moving to calls</p>
                         </div>
                       </>
                     )}

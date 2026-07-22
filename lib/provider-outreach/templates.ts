@@ -14,21 +14,27 @@
  *   - Body is plain text with markdown markers:
  *       **text**       → <strong>text</strong> in HTML
  *       [label](url)   → <a href="url">label</a> in HTML
- *   - Footer (TJ signature + STOP line) is NOT in the template body.
- *     email-utils.ts composes it once and appends to every send.
+ *   - Footer (Logan signature + links) is composed separately.
  *
  * Variables (substituted by substituteVars):
  *   {provider_name}      provider organization name
  *   {city}               provider city
  *   {state}              provider state
- *   {category}           provider care type (e.g., "home health agency")
- *   {profile_url}        link to their Olera profile page
- *   {claim_url}          link to claim/verify their profile
- *   {sender_name}        sender's first name (TJ)
+ *   {category}           provider care type (e.g., "home care")
+ *   {rank}               provider's ranking in market (number)
+ *   {total}              total providers in market
+ *   {ordinal}            ordinal form of rank ("1st", "2nd", etc.)
+ *   {profile_url}        link to their Olera profile page (no sign-in)
+ *   {claim_url}          magic link to claim/verify their profile
+ *   {manage_url}         magic link to manage listing
+ *   {remove_url}         link to request listing removal
+ *   {unsubscribe_url}    link to unsubscribe from emails
+ *   {mailing_address}    physical mailing address (CAN-SPAM)
  */
 
 export interface EmailDraft {
   subject: string;
+  preheader?: string;
   body: string;
 }
 
@@ -37,41 +43,73 @@ export interface TemplateContext {
   city: string;
   state: string;
   category?: string;
+  // Ranking data (optional - if missing, use fallback opener)
+  rank?: number;
+  total?: number;
+  // URLs
   profile_url: string;
   claim_url: string;
-  sender_name?: string;
+  manage_url: string;
+  remove_url: string;
+  unsubscribe_url: string;
+  // Compliance
+  mailing_address: string;
 }
 
 // Template keys for the cadence system
-export type ProviderOutreachTemplateKey = "intro" | "followup" | "final";
+// "intro" = Day 0, "intro_resend" = Day 3 non-opener resend (same body, different subject)
+export type ProviderOutreachTemplateKey = "intro" | "intro_resend" | "followup" | "final";
 
 // Placeholders for variable substitution
 const PLACEHOLDER = {
   providerName: "{provider_name}",
   city: "{city}",
   state: "{state}",
-  location: "{location}", // Combined city, state (handles empty state)
   category: "{category}",
+  rank: "{rank}",
+  total: "{total}",
+  ordinal: "{ordinal}",
   profileUrl: "{profile_url}",
   claimUrl: "{claim_url}",
-  senderName: "{sender_name}",
+  manageUrl: "{manage_url}",
+  removeUrl: "{remove_url}",
+  unsubscribeUrl: "{unsubscribe_url}",
+  mailingAddress: "{mailing_address}",
 };
 
 // Subject lines
-const SUBJECT_INTRO = `Your ${PLACEHOLDER.providerName} profile on Olera`;
+const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.rank} of ${PLACEHOLDER.total}`;
+const SUBJECT_INTRO_RESEND = `Where ${PLACEHOLDER.providerName} stands in ${PLACEHOLDER.city}`;
+const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
 const SUBJECT_FOLLOWUP = `Following up: ${PLACEHOLDER.providerName} on Olera`;
 const SUBJECT_FINAL = `Last check-in: ${PLACEHOLDER.providerName} profile`;
+
+// Preheader text
+const PREHEADER_INTRO = "By the Google reviews they actually read";
+
+/**
+ * Convert number to ordinal string (1 → "1st", 2 → "2nd", etc.)
+ */
+export function toOrdinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
 
 /**
  * Get a template by key
  */
 export function getTemplate(
   key: ProviderOutreachTemplateKey,
-  _ctx: TemplateContext
+  ctx: TemplateContext
 ): EmailDraft {
+  const hasRank = ctx.rank != null && ctx.total != null && ctx.rank > 0;
+
   switch (key) {
     case "intro":
-      return introEmail();
+      return introEmail(hasRank);
+    case "intro_resend":
+      return introResendEmail(hasRank);
     case "followup":
       return followupEmail();
     case "final":
@@ -97,21 +135,20 @@ export function substituteVars(
  * Build the variables object from context
  */
 export function buildVars(ctx: TemplateContext): Record<string, string> {
-  // Handle city/state formatting to avoid "Houston, " when state is empty
-  const location = ctx.state
-    ? `${ctx.city}, ${ctx.state}`
-    : ctx.city;
-
   return {
     provider_name: ctx.provider_name,
     city: ctx.city,
     state: ctx.state,
-    // Combined location for use in templates (avoids trailing comma)
-    location: location,
-    category: ctx.category || "care provider",
+    category: ctx.category || "care providers",
+    rank: ctx.rank?.toString() || "",
+    total: ctx.total?.toString() || "",
+    ordinal: ctx.rank ? toOrdinal(ctx.rank) : "",
     profile_url: ctx.profile_url,
     claim_url: ctx.claim_url,
-    sender_name: ctx.sender_name || "TJ",
+    manage_url: ctx.manage_url,
+    remove_url: ctx.remove_url,
+    unsubscribe_url: ctx.unsubscribe_url,
+    mailing_address: ctx.mailing_address,
   };
 }
 
@@ -120,44 +157,58 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
 /**
  * Day 0: Introduction email
  *
- * First touch. Introduces Olera, explains the value of claiming their profile,
- * and provides a clear CTA to claim/verify.
+ * First touch from Dr. Logan DuBose. Trust-forward opener explaining
+ * who Olera is, NIH backing, no-broker model. CTA to claim profile.
+ *
+ * Two variants:
+ *   - With rank: "Families comparing {care type} in {city} see {total} providers.
+ *                 {Business name} ranks {ordinal}..."
+ *   - Without rank: "Families comparing {care type} in {city} can already find
+ *                    {Business name}'s page..."
  */
-function introEmail(): EmailDraft {
+function introEmail(hasRank: boolean): EmailDraft {
+  const opener = hasRank
+    ? `Families comparing ${PLACEHOLDER.category} in ${PLACEHOLDER.city} see ${PLACEHOLDER.total} providers. ${PLACEHOLDER.providerName} ranks ${PLACEHOLDER.ordinal} — by the Google reviews they actually read.`
+    : `Families comparing ${PLACEHOLDER.category} in ${PLACEHOLDER.city} can already find ${PLACEHOLDER.providerName}'s page — here's what they see.`;
+
   return {
-    subject: SUBJECT_INTRO,
+    subject: hasRank ? SUBJECT_INTRO : SUBJECT_INTRO_NO_RANK,
+    preheader: hasRank ? PREHEADER_INTRO : undefined,
     body: [
-      `Hello,`,
+      opener,
       ``,
-      `I'm reaching out because **${PLACEHOLDER.providerName}** has a profile on [Olera](https://olera.care), a directory that helps families find and compare senior care providers in ${PLACEHOLDER.location}.`,
+      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. We built it with NIH funding so families can find trustworthy care directly, without a broker taking a cut. There's nothing to buy here, and we don't sell your leads.`,
       ``,
-      `Your profile is currently unclaimed, which means:`,
+      `Your page is already up — you can see exactly what families see here: [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}). It's unclaimed, so all it shows is what we could gather publicly, blanks included.`,
       ``,
-      `• Families can see your listing but can't contact you directly through Olera`,
-      `• You're missing out on free leads from families actively searching for care`,
-      `• You can't respond to questions or reviews on your profile`,
+      `[Claim your page — it takes about 2 minutes](${PLACEHOLDER.claimUrl})`,
       ``,
-      `**Claiming your profile takes about 2 minutes** and gives you:`,
+      `Questions? Just reply — it goes straight to our team, and I'll help you directly.`,
       ``,
-      `• Free leads from families in your area`,
-      `• The ability to respond to questions and reviews`,
-      `• A verified badge that builds trust with families`,
-      `• Control over your listing information`,
-      ``,
-      `You can view your profile here: [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl})`,
-      ``,
-      `Ready to claim it? [Click here to get started](${PLACEHOLDER.claimUrl}).`,
-      ``,
-      `If you have any questions, just reply to this email.`,
+      `Not the right person for this? Forwarding it to whoever manages ${PLACEHOLDER.providerName}'s listing would be a big help.`,
     ].join("\n"),
   };
 }
 
 /**
- * Day 3: Follow-up email
+ * Day 3: Resend for non-openers
  *
- * Lighter touch. "Just in case you missed it" framing.
- * Re-emphasizes the value prop and CTA.
+ * Same body as Day 0 intro, different subject line.
+ * Subject: "Where {Business name} stands in {city}"
+ */
+function introResendEmail(hasRank: boolean): EmailDraft {
+  const intro = introEmail(hasRank);
+  return {
+    subject: SUBJECT_INTRO_RESEND,
+    preheader: intro.preheader,
+    body: intro.body,
+  };
+}
+
+/**
+ * Day 3: Follow-up email (for openers who didn't claim)
+ *
+ * Lighter touch. Re-emphasizes the value prop and CTA.
  */
 function followupEmail(): EmailDraft {
   return {
@@ -165,13 +216,13 @@ function followupEmail(): EmailDraft {
     body: [
       `Hello,`,
       ``,
-      `I wanted to follow up on my earlier email about your [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}) profile on Olera.`,
+      `I wanted to follow up on my earlier email about your [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}) page on Olera.`,
       ``,
-      `Families in ${PLACEHOLDER.location} are actively searching for ${PLACEHOLDER.category} options, and claiming your profile is a simple way to get in front of them.`,
+      `Families in ${PLACEHOLDER.city} are actively searching for ${PLACEHOLDER.category} options, and claiming your page is a simple way to get in front of them.`,
       ``,
       `It's free, takes just a couple of minutes, and gives you direct access to leads from families looking for care.`,
       ``,
-      `[Claim your profile here](${PLACEHOLDER.claimUrl}).`,
+      `[Claim your page here](${PLACEHOLDER.claimUrl})`,
       ``,
       `Let me know if you have any questions.`,
     ].join("\n"),
@@ -190,13 +241,13 @@ function finalEmail(): EmailDraft {
     body: [
       `Hello,`,
       ``,
-      `This is my last check-in about your [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}) profile on Olera.`,
+      `This is my last check-in about your [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}) page on Olera.`,
       ``,
-      `If claiming your profile isn't a priority right now, no problem. Your listing will remain visible to families searching in ${PLACEHOLDER.location}, and you can claim it anytime.`,
+      `If claiming your page isn't a priority right now, no problem. Your listing will remain visible to families searching in ${PLACEHOLDER.city}, and you can claim it anytime.`,
       ``,
       `If someone else at ${PLACEHOLDER.providerName} handles marketing or online presence, I'd appreciate a quick forward to them.`,
       ``,
-      `[Claim your profile](${PLACEHOLDER.claimUrl}) | [View your listing](${PLACEHOLDER.profileUrl})`,
+      `[Claim your page](${PLACEHOLDER.claimUrl}) | [View your listing](${PLACEHOLDER.profileUrl})`,
       ``,
       `Thanks for your time, and best of luck with your work in the community.`,
     ].join("\n"),
@@ -206,73 +257,101 @@ function finalEmail(): EmailDraft {
 // ── Signature ────────────────────────────────────────────────────────────
 
 /**
- * TJ signature photo URL (Supabase-hosted for email compatibility)
+ * Logan photo URL (Supabase-hosted for email compatibility)
  */
-export const TJ_PHOTO_URL =
-  process.env.PROVIDER_OUTREACH_TJ_PHOTO_URL ??
-  "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/tj.jpg";
+export const LOGAN_PHOTO_URL =
+  "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
 
 /**
- * TJ signature block HTML.
- * Photo + name + title + company link.
+ * Logan signature block HTML.
+ * Photo + name + title + NIH credentials.
  */
-export function tjSignatureHtml(): string {
+export function loganSignatureHtml(): string {
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
   <tr>
-    <td style="vertical-align:top;padding-right:16px;">
-      <img src="${TJ_PHOTO_URL}" alt="TJ Falohun" width="80" height="80" style="border-radius:8px;display:block;" />
+    <td style="vertical-align:top;padding-right:12px;">
+      <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
     </td>
-    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">
-      <p style="margin:0 0 4px;font-weight:600;color:#111827;">TJ Falohun</p>
-      <p style="margin:0 0 2px;">Co-founder &amp; CEO, <a href="https://olera.care" style="color:#059669;">Olera</a></p>
-      <p style="margin:0 0 2px;">PhD Researcher, Biomedical Engineering</p>
-      <p style="margin:0;"><a href="https://www.linkedin.com/in/tfalohun/" style="color:#059669;">LinkedIn</a></p>
+    <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p>
+      <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
     </td>
   </tr>
 </table>`;
 }
 
 /**
- * TJ signature block plain text (for text/plain MIME alternative)
+ * Logan signature block plain text (for text/plain MIME alternative)
  */
-export function tjSignaturePlainText(): string {
+export function loganSignaturePlainText(): string {
   return [
     ``,
-    `TJ Falohun`,
-    `Co-founder & CEO, Olera`,
-    `PhD Researcher, Biomedical Engineering`,
-    `https://olera.care`,
+    `Dr. Logan DuBose`,
+    `CRO, Olera · Researcher funded by NIH SBIR Program`,
   ].join("\n");
 }
 
 /**
  * Compose the full email footer HTML.
- * Includes: sign-off, TJ signature, compliance line.
+ * Includes: sign-off, Logan signature, footer links, mailing address.
  */
-export function composeFooterHtml(): string {
+export function composeFooterHtml(vars: Record<string, string>): string {
   return [
     // Sign-off
-    `<p style="margin:16px 0 4px;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0;font-size:13px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">TJ</p>`,
+    `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
+    `<p style="margin:0;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
     // Signature block
-    tjSignatureHtml(),
-    // Compliance line
-    `<p style="margin:24px 0 0;font-size:11px;line-height:1.5;color:#9ca3af;font-family:Inter,Arial,sans-serif;">Reply STOP if you would like us to stop reaching out.</p>`,
+    loganSignatureHtml(),
+    // Footer links
+    `<div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
+    `<p style="font-size:13px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;">`,
+    `<a href="${vars.manage_url}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a> · `,
+    `<a href="${vars.remove_url}" style="color:#9ca3af;text-decoration:underline;">Remove my listing</a> · `,
+    `<a href="${vars.unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>`,
+    `</p>`,
+    // Mailing address (CAN-SPAM)
+    `<p style="font-size:11px;color:#d1d5db;margin:12px 0 0;font-family:Inter,Arial,sans-serif;">Olera · ${vars.mailing_address}</p>`,
+    `</div>`,
   ].join("\n");
 }
 
 /**
  * Compose the full email footer plain text.
  */
-export function composeFooterPlainText(): string {
+export function composeFooterPlainText(vars: Record<string, string>): string {
   return [
     ``,
     `Best,`,
-    `TJ`,
-    tjSignaturePlainText(),
+    `Logan`,
+    loganSignaturePlainText(),
     ``,
     `---`,
-    `Reply STOP if you would like us to stop reaching out.`,
+    `Manage your listing: ${vars.manage_url}`,
+    `Remove my listing: ${vars.remove_url}`,
+    `Unsubscribe: ${vars.unsubscribe_url}`,
+    ``,
+    `Olera · ${vars.mailing_address}`,
   ].join("\n");
+}
+
+// ── Legacy exports (for backward compatibility) ──────────────────────────
+
+/**
+ * @deprecated Use loganSignatureHtml instead
+ */
+export const TJ_PHOTO_URL = LOGAN_PHOTO_URL;
+
+/**
+ * @deprecated Use loganSignatureHtml instead
+ */
+export function tjSignatureHtml(): string {
+  return loganSignatureHtml();
+}
+
+/**
+ * @deprecated Use loganSignaturePlainText instead
+ */
+export function tjSignaturePlainText(): string {
+  return loganSignaturePlainText();
 }

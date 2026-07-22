@@ -18,6 +18,10 @@ import {
   composeFooterHtml,
   composeFooterPlainText,
 } from "./templates";
+import {
+  generateClaimUrl,
+  generateProviderPortalUrl,
+} from "../claim-tokens";
 
 /**
  * Re-export bodyToHtml for convenience
@@ -29,6 +33,7 @@ export { bodyToHtml };
  */
 export interface RenderedEmail {
   subject: string;
+  preheader?: string;
   html: string;
   text: string;
 }
@@ -50,17 +55,18 @@ export function renderEmail(
   // Build substitution variables
   const vars = buildVars(context);
 
-  // Substitute variables in subject and body
+  // Substitute variables in subject, preheader, and body
   const subject = substituteVars(template.subject, vars);
+  const preheader = template.preheader ? substituteVars(template.preheader, vars) : undefined;
   const body = substituteVars(template.body, vars);
 
   // Convert body to HTML and append footer
-  const html = bodyToHtml(body) + composeFooterHtml();
+  const html = bodyToHtml(body) + composeFooterHtml(vars);
 
   // Build plain text version
-  const text = body + composeFooterPlainText();
+  const text = body + composeFooterPlainText(vars);
 
-  return { subject, html, text };
+  return { subject, preheader, html, text };
 }
 
 /**
@@ -93,31 +99,79 @@ export function previewEmail(
 }
 
 /**
+ * Default mailing address for CAN-SPAM compliance
+ */
+const DEFAULT_MAILING_ADDRESS = "340 S Lemon Ave #1439, Walnut, CA 91789";
+
+/**
  * Build the context object from provider data.
  * Used to transform raw provider data into the template context format.
  *
- * @param provider - Provider data from olera-providers table
- * @param profileUrl - Full URL to the provider's profile page
- * @param claimUrl - Full URL to claim/verify the profile
+ * IMPORTANT: The `email` field is required to generate magic link tokens.
+ * Without it, the claim/manage URLs won't auto-authenticate the provider.
+ *
+ * @param provider - Provider data from olera-providers table (must include email for magic links)
+ * @param options - Optional overrides for URLs and ranking data
  */
 export function buildContextFromProvider(
   provider: {
+    provider_id: string;
     name: string;
+    email: string; // Required for magic link token generation
     city?: string | null;
     state?: string | null;
     category?: string | null;
     slug: string;
   },
-  baseUrl: string = "https://olera.care"
+  options?: {
+    baseUrl?: string;
+    rank?: number;
+    total?: number;
+    // Override URLs (if provided, these take precedence over generated magic links)
+    claimUrl?: string;
+    manageUrl?: string;
+    removeUrl?: string;
+    unsubscribeUrl?: string;
+    mailingAddress?: string;
+  }
 ): TemplateContext {
+  const baseUrl = options?.baseUrl || "https://olera.care";
+  const slug = provider.slug;
+
+  // Generate magic link URLs with signed tokens
+  const claimUrl = options?.claimUrl || generateClaimUrl(
+    provider.provider_id,
+    slug,
+    provider.email,
+    baseUrl
+  );
+
+  const manageUrl = options?.manageUrl || generateProviderPortalUrl(
+    slug,
+    provider.email,
+    "manage",
+    baseUrl
+  );
+
+  // Remove and unsubscribe URLs - these need provider identification
+  // For now, include the slug so the endpoint can look up the provider
+  const removeUrl = options?.removeUrl || `${baseUrl}/provider/${slug}/remove`;
+  const unsubscribeUrl = options?.unsubscribeUrl || `${baseUrl}/unsubscribe?provider=${slug}`;
+
   return {
     provider_name: provider.name,
     city: provider.city || "your area",
-    state: provider.state || "", // Empty state handled in templates
+    state: provider.state || "",
     category: normalizeCategory(provider.category),
-    profile_url: `${baseUrl}/${provider.slug}`,
-    claim_url: `${baseUrl}/provider/onboarding?org=${provider.slug}`,
-    sender_name: "TJ",
+    rank: options?.rank,
+    total: options?.total,
+    // Profile URL is the public listing page (no auth needed)
+    profile_url: `${baseUrl}/provider/${slug}`,
+    claim_url: claimUrl,
+    manage_url: manageUrl,
+    remove_url: removeUrl,
+    unsubscribe_url: unsubscribeUrl,
+    mailing_address: options?.mailingAddress || DEFAULT_MAILING_ADDRESS,
   };
 }
 
@@ -160,6 +214,7 @@ function normalizeCategory(category: string | null | undefined): string {
  * Returns validation errors if any required fields are missing.
  */
 export function validateProviderForOutreach(provider: {
+  provider_id?: string | null;
   name?: string | null;
   email?: string | null;
   city?: string | null;
@@ -167,6 +222,10 @@ export function validateProviderForOutreach(provider: {
   slug?: string | null;
 }): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
+
+  if (!provider.provider_id) {
+    errors.push("Provider ID is required");
+  }
 
   if (!provider.name) {
     errors.push("Provider name is required");
@@ -201,6 +260,7 @@ export function validateProviderForOutreach(provider: {
  */
 export function generateDryRunReport(
   providers: Array<{
+    provider_id: string;
     name: string;
     email?: string | null;
     city?: string | null;
@@ -219,7 +279,7 @@ export function generateDryRunReport(
   return providers.map((provider) => {
     const validation = validateProviderForOutreach(provider);
 
-    if (!validation.valid) {
+    if (!validation.valid || !provider.email) {
       return {
         provider: provider.name,
         email: provider.email || null,
@@ -228,12 +288,20 @@ export function generateDryRunReport(
       };
     }
 
-    const context = buildContextFromProvider(provider);
+    const context = buildContextFromProvider({
+      provider_id: provider.provider_id,
+      name: provider.name,
+      email: provider.email,
+      city: provider.city,
+      state: provider.state,
+      category: provider.category,
+      slug: provider.slug,
+    });
     const preview = renderEmail(templateKey, context);
 
     return {
       provider: provider.name,
-      email: provider.email || null,
+      email: provider.email,
       valid: true,
       errors: [],
       preview,

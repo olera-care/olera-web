@@ -145,7 +145,9 @@ export async function POST(request: NextRequest) {
 
       // Build context and render emails
       const context = buildContextFromProvider({
+        provider_id: providerId,
         name: provider.provider_name,
+        email: provider.email,
         city: provider.city,
         state: provider.state,
         category: provider.provider_category,

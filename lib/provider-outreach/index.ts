@@ -45,7 +45,6 @@ export {
   previewEmail,
   buildContextFromProvider,
   validateProviderForOutreach,
-  generateDryRunReport,
   getProviderGaps,
   formatGapList,
 } from "./email-utils";

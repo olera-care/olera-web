@@ -85,12 +85,13 @@ const PLACEHOLDER = {
 const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.rank} of ${PLACEHOLDER.total}`;
 const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
 const SUBJECT_FOLLOWUP = `What families see when they open ${PLACEHOLDER.providerName}`;
-const SUBJECT_FINAL = `Last check-in: ${PLACEHOLDER.providerName} profile`;
+const SUBJECT_FINAL = `What claiming ${PLACEHOLDER.providerName} actually gets you`;
 const SUBJECT_BREAKUP = `Closing the loop: ${PLACEHOLDER.providerName}`;
 
 // Preheader text
 const PREHEADER_INTRO = "By the Google reviews they actually read";
 const PREHEADER_FOLLOWUP = `It's one of the first pages ${PLACEHOLDER.city} families compare — here's what it shows them`;
+const PREHEADER_FINAL = "The whole thing in one email: free leads, family questions, your page under your control";
 
 /**
  * Convert number to ordinal string (1 → "1st", 2 → "2nd", etc.)
@@ -228,26 +229,30 @@ function followupEmail(hasRank: boolean): EmailDraft {
 }
 
 /**
- * Day 7: Check-in email
+ * Day 7: Summary email
  *
- * Low-pressure, graceful close.
- * Offers to connect them with the right person if they're not the decision maker.
+ * Everything in one place for recipients who may have missed earlier emails.
+ * Comprehensive value prop, low-pressure close, offer to redirect to right contact.
  */
 function finalEmail(): EmailDraft {
   return {
     subject: SUBJECT_FINAL,
+    preheader: PREHEADER_FINAL,
     body: [
-      `Hello,`,
+      `In case my earlier notes never reached you, here's everything in one place.`,
       ``,
-      `This is my last check-in about your [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}) page on Olera.`,
+      `Olera is where families find and compare senior care in ${PLACEHOLDER.city}, built by a physician-researcher, funded by the NIH, with nothing to buy and no selling of your leads. ${PLACEHOLDER.providerName} is already listed. Claiming the page is free, takes about two minutes, and gives you:`,
       ``,
-      `If claiming your page isn't a priority right now, no problem. Your listing will remain visible to families searching in ${PLACEHOLDER.city}, and you can claim it anytime.`,
+      `• Direct leads from families looking for ${PLACEHOLDER.category} in ${PLACEHOLDER.city}, free, no broker taking a cut`,
+      `• Family questions come to you, right now they go unanswered, and families move on`,
+      `• A verified badge that families trust when comparing options`,
+      `• Your prices, photos, and details under your control instead of publicly-gathered blanks`,
       ``,
-      `If someone else at ${PLACEHOLDER.providerName} handles marketing or online presence, I'd appreciate a quick forward to them.`,
+      `If now isn't the time, no pressure. The page stays up and stays yours to claim whenever you're ready.`,
       ``,
-      `[Claim your page](${PLACEHOLDER.claimUrl}) | [View your listing](${PLACEHOLDER.profileUrl})`,
+      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Thanks for your time, and best of luck with your work in the community.`,
+      `And if I've had the wrong address all along, reply with the email of whoever manages ${PLACEHOLDER.providerName}'s marketing or admissions, and I'll reach out to them directly.`,
     ].join("\n"),
   };
 }

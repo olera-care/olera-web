@@ -41,7 +41,7 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
   {
     day: 7,
     templateKey: "final",
-    description: "Check-in email - graceful close, offer to forward",
+    description: "Summary email - everything in one place, full value prop",
   },
   {
     day: 14,

@@ -1146,20 +1146,9 @@ function FollowUpProviderRow({
   const noAnswerWarning = provider.no_answer_count === 2;
 
   // Confirmation modal content for each outcome
+  // Note: No "claimed_on_call" case - auto-claim detection handles claims automatically
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
-      case "claimed_on_call":
-        return {
-          title: "Mark as Claimed",
-          description: "This provider successfully claimed their profile during the call.",
-          details: [
-            "Provider will be moved to the Claimed stage",
-            "They will no longer appear in the Follow Up queue",
-            "This is a success outcome"
-          ],
-          confirmLabel: "Yes, mark as claimed",
-          confirmClass: "bg-emerald-600 hover:bg-emerald-700 text-white",
-        };
       case "resend_link":
         return {
           title: "Resend Claim Link",
@@ -1518,16 +1507,9 @@ function FollowUpProviderRow({
           )}
 
           {/* Outcome Buttons - subtle outlined tags */}
+          {/* Note: No "Claimed on call" button - auto-claim detection handles this automatically */}
+          {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Claimed on call */}
-            <button
-              onClick={() => setPendingOutcome("claimed_on_call")}
-              disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Claimed on call
-            </button>
-
             {/* Resend link */}
             <button
               onClick={() => setPendingOutcome("resend_link")}

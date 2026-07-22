@@ -8,6 +8,9 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  * Record a call outcome for a provider in the Follow Up (needs_call) stage.
  * This powers the call queue workflow with proper counter/date management.
  *
+ * Note: "Claimed" is NOT an outcome here - auto-claim detection (migration 133)
+ * automatically moves providers to "claimed" when they claim via any method.
+ *
  * Request body:
  *   - provider_id: string (required)
  *   - outcome: string (required) - one of the valid outcomes
@@ -18,7 +21,6 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  *
  * | Outcome          | Counter/Date Updates            | Stage Change    |
  * |------------------|--------------------------------|-----------------|
- * | claimed_on_call  | -                              | → claimed       |
  * | resend_link      | resend_count++, due_date=+3d   | stays           |
  * | schedule_callback| due_date=callback_date         | stays           |
  * | no_answer (1-2)  | no_answer_count++, due_date=+2d| stays           |
@@ -28,7 +30,6 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  */
 
 const VALID_OUTCOMES = [
-  "claimed_on_call",
   "resend_link",
   "schedule_callback",
   "no_answer",
@@ -125,10 +126,6 @@ export async function POST(request: NextRequest) {
     let rejectionMessage: string | null = null;
 
     switch (outcome as CallOutcome) {
-      case "claimed_on_call":
-        newStage = "claimed";
-        break;
-
       case "resend_link":
         // Reject if already at limit
         if (currentResendCount >= 2) {

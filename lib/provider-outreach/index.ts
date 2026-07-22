@@ -25,6 +25,7 @@ export {
   type CadenceStep,
   PROVIDER_OUTREACH_CADENCE,
   DAYS_AFTER_FINAL_TO_NEEDS_CALL,
+  RE_ENGAGE_WAITING_PERIOD_DAYS,
   getCadenceDays,
   getCadenceStepByDay,
   getTemplateKeyForDay,
@@ -45,3 +46,11 @@ export {
   validateProviderForOutreach,
   generateDryRunReport,
 } from "./email-utils";
+
+// Auto re-engage (NOT YET ACTIVATED - see file header for activation instructions)
+export {
+  type AutoReEngageResult,
+  findEligibleReEngageProviders,
+  processEligibleReEngageProviders,
+  dryRunAutoReEngage,
+} from "./auto-re-engage";

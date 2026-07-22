@@ -16,8 +16,9 @@ const OUTREACH_STAGES = [
   "in_sequence",
   "needs_call",
   "re_engage",
+  "not_interested",  // Soft terminal: no outreach, but questions/connections flow
   "claimed",
-  "archived",
+  "archived",  // Hard terminal: system-wide block
 ] as const;
 
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
@@ -31,8 +32,9 @@ const UI_TABS: UITab[] = [
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
+  "not_interested",  // Soft terminal
   "claimed",
-  "archived",
+  "archived",  // Hard terminal
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -41,6 +43,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Re-Engage",
+  not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
 };
@@ -51,12 +54,15 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Re-Engage",
+  not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
 };
 
-// Claimed and Archived are terminal stages
-const TERMINAL_STAGES: OutreachStage[] = ["claimed", "archived"];
+// Terminal stages - no more outreach
+// not_interested = soft (questions/connections still flow)
+// archived = hard (system-wide block)
+const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived"];
 
 interface CityStats {
   city: string;
@@ -135,6 +141,9 @@ interface OutreachProvider {
   due_date: string | null;
   resend_count: number;
   no_answer_count: number;
+  // Re-engage cycle fields
+  cycle_number: number;
+  re_engage_entered_at: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -1072,6 +1081,7 @@ interface FollowUpQueueProps {
   onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
   onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: (provider: OutreachProvider) => void;
+  onArchive: (provider: OutreachProvider) => void;
 }
 
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
@@ -1122,6 +1132,7 @@ function FollowUpProviderRow({
   onProviderUpdated,
   onStageChange,
   onRemoveProvider,
+  onArchive,
 }: {
   provider: OutreachProvider;
   isExpanded: boolean;
@@ -1130,6 +1141,7 @@ function FollowUpProviderRow({
   onProviderUpdated: (updates: Partial<OutreachProvider>) => void;
   onStageChange: (newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: () => void;
+  onArchive: () => void;
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -1215,12 +1227,13 @@ function FollowUpProviderRow({
           title: "Not Interested",
           description: "The provider explicitly declined to claim their profile.",
           details: [
-            "Provider will be moved to the Archived stage",
-            "They will no longer receive any outreach",
-            "This action can be reversed from the Archived tab if needed",
+            "Provider will be moved to the Not Interested stage (soft terminal)",
+            "They will no longer receive any outreach emails or calls",
+            "Questions and connections can still flow to them",
+            "Use Archive instead for a full system-wide block",
           ],
-          confirmLabel: "Yes, archive provider",
-          confirmClass: "bg-red-600 hover:bg-red-700 text-white",
+          confirmLabel: "Yes, mark as not interested",
+          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
         };
       default:
         return null;
@@ -1442,7 +1455,28 @@ function FollowUpProviderRow({
               >
                 Re-Engage
               </button>
-              {/* Archive requires a reason - use "Not interested" button instead */}
+              <div className="border-t border-gray-100 my-1" />
+              <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
+                Terminal
+              </div>
+              <button
+                onClick={() => {
+                  setShowActionMenu(false);
+                  setPendingOutcome("not_interested");
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-amber-600 hover:bg-amber-50 transition-colors"
+              >
+                Not Interested (soft)
+              </button>
+              <button
+                onClick={() => {
+                  setShowActionMenu(false);
+                  onArchive();
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Archive (hard)
+              </button>
             </div>
           )}
         </div>
@@ -1551,11 +1585,11 @@ function FollowUpProviderRow({
               Wrong contact
             </button>
 
-            {/* Not interested */}
+            {/* Not interested (soft terminal) */}
             <button
               onClick={() => setPendingOutcome("not_interested")}
               disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-full hover:border-red-300 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-600 bg-white border border-amber-200 rounded-full hover:border-amber-300 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Not interested
             </button>
@@ -1643,7 +1677,7 @@ function FollowUpProviderRow({
   );
 }
 
-function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider }: FollowUpQueueProps) {
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
   // Group providers by due date sections
@@ -1734,6 +1768,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
               });
             }}
             onRemoveProvider={() => onRemoveProvider(provider)}
+            onArchive={() => onArchive(provider)}
           />
         ))}
       </div>
@@ -1745,6 +1780,178 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
       {renderSection("Overdue", overdue, "bg-red-50 text-red-700 border-b border-red-100")}
       {renderSection("Due Today", dueToday, "bg-amber-50 text-amber-700 border-b border-amber-100")}
       {renderSection("Upcoming", upcoming, "bg-gray-50 text-gray-600 border-b border-gray-100")}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Re-Engage Queue Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ReEngageQueueProps {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
+  onArchive: (provider: OutreachProvider) => void;
+}
+
+// Helper: calculate days since a date
+function daysSince(dateString: string | null): number {
+  if (!dateString) return 0;
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function ReEngageQueue({ providers, loading, onReEngageAction, onArchive }: ReEngageQueueProps) {
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleReEngage = async (provider: OutreachProvider) => {
+    setActionLoading(provider.provider_id);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/re-engage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to process re-engage action");
+      }
+
+      const result = await res.json();
+      onReEngageAction(provider.provider_id, result);
+    } catch (err) {
+      console.error("Re-engage error:", err);
+      alert(err instanceof Error ? err.message : "Failed to process re-engage action");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (providers.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-gray-500">No providers in Re-Engage queue</p>
+      </div>
+    );
+  }
+
+  // Sort by re_engage_entered_at (oldest first - most urgent)
+  const sorted = [...providers].sort((a, b) => {
+    if (!a.re_engage_entered_at && !b.re_engage_entered_at) return 0;
+    if (!a.re_engage_entered_at) return 1;
+    if (!b.re_engage_entered_at) return -1;
+    return a.re_engage_entered_at.localeCompare(b.re_engage_entered_at);
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <div className="flex-1">Provider</div>
+        <div className="w-20 text-center">Cycle</div>
+        <div className="w-28 text-center">Waiting</div>
+        <div className="w-56 text-right">Actions</div>
+      </div>
+
+      {/* Provider rows */}
+      {sorted.map((provider) => {
+        const waitDays = daysSince(provider.re_engage_entered_at);
+        const isLoading = actionLoading === provider.provider_id;
+        const isCycle2 = provider.cycle_number === 2;
+
+        return (
+          <div
+            key={provider.provider_id}
+            className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+          >
+            {/* Provider info */}
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-gray-900 truncate">
+                {provider.provider_name}
+              </div>
+              <div className="text-xs text-gray-500 truncate">
+                {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
+              </div>
+            </div>
+
+            {/* Cycle badge */}
+            <div className="w-20 text-center">
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  isCycle2
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                Cycle {provider.cycle_number}
+              </span>
+            </div>
+
+            {/* Wait time */}
+            <div className="w-28 text-center">
+              <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
+                {waitDays} day{waitDays !== 1 ? "s" : ""}
+              </span>
+              {waitDays >= 30 && (
+                <div className="text-[10px] text-emerald-600">Ready</div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="w-56 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => handleReEngage(provider)}
+                disabled={isLoading}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isCycle2
+                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-primary-600 text-white hover:bg-primary-700"
+                }`}
+              >
+                {isLoading ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : isCycle2 ? (
+                  "Archive (2 cycles done)"
+                ) : (
+                  "Re-engage now"
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onArchive(provider)}
+                disabled={isLoading}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Archive
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Summary footer */}
+      <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
+        {providers.length} provider{providers.length !== 1 ? "s" : ""} in Re-Engage queue
+        {" • "}
+        {providers.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
+      </div>
     </div>
   );
 }
@@ -1790,6 +1997,7 @@ export default function ProviderOutreachPage() {
     in_sequence: 0,
     needs_call: 0,
     re_engage: 0,
+    not_interested: 0,
     claimed: 0,
     archived: 0,
     needs_email: 0,
@@ -2224,6 +2432,7 @@ export default function ProviderOutreachPage() {
         in_sequence: 0,
         needs_call: 0,
         re_engage: 0,
+        not_interested: 0,
         claimed: 0,
         archived: 0,
         needs_email: 0,
@@ -3078,6 +3287,32 @@ export default function ProviderOutreachPage() {
                 providerName: provider.provider_name,
                 stage: provider.stage,
               });
+            }}
+            onArchive={(provider) => {
+              setActionModalProvider(provider);
+            }}
+          />
+        ) : activeTab === "re_engage" ? (
+          // Re-Engage tab: cycle-aware queue view
+          <ReEngageQueue
+            providers={providers}
+            loading={loadingProviders}
+            onReEngageAction={(providerId, result) => {
+              // Provider moved out of re_engage - remove from local state
+              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+              // Update stage counts
+              setStageCounts((prev) => ({
+                ...prev,
+                re_engage: Math.max(0, prev.re_engage - 1),
+                ...(result.new_stage === "not_contacted" && { ready: prev.ready + 1 }),
+                ...(result.new_stage === "not_interested" && { not_interested: prev.not_interested + 1 }),
+                ...(result.new_stage === "archived" && { archived: prev.archived + 1 }),
+              }));
+              // Refresh to sync
+              fetchProviders();
+            }}
+            onArchive={(provider) => {
+              setActionModalProvider(provider);
             }}
           />
         ) : (

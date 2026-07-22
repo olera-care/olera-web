@@ -61,15 +61,18 @@ export const OUTREACH_STAGES = [
   "not_contacted",
   "in_sequence",
   "needs_call",  // UI: "Follow Up"
-  "re_engage",   // New stage for re-engagement
+  "re_engage",   // Re-engagement waiting period
+  "not_interested",  // Soft terminal: no outreach, but questions/connections still flow
   "claimed",
-  "archived",
+  "archived",  // Hard terminal: system-wide block
 ] as const;
 
 export type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
-// Claimed and Archived are terminal stages
-export const TERMINAL_STAGES: OutreachStage[] = ["claimed", "archived"];
+// Terminal stages - no more outreach
+// not_interested = soft (questions/connections still flow)
+// archived = hard (system-wide block)
+export const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived"];
 
 interface ProviderRow {
   provider_id: string;
@@ -98,6 +101,9 @@ interface TrackingRow {
   due_date: string | null;
   resend_count: number;
   no_answer_count: number;
+  // Re-engage cycle fields
+  cycle_number: number;
+  re_engage_entered_at: string | null;
 }
 
 export interface OutreachProvider {
@@ -119,6 +125,9 @@ export interface OutreachProvider {
   due_date: string | null;
   resend_count: number;
   no_answer_count: number;
+  // Re-engage cycle fields
+  cycle_number: number;
+  re_engage_entered_at: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -322,6 +331,9 @@ export async function GET(request: NextRequest) {
           due_date: t.due_date,
           resend_count: t.resend_count ?? 0,
           no_answer_count: t.no_answer_count ?? 0,
+          // Re-engage cycle fields
+          cycle_number: t.cycle_number ?? 1,
+          re_engage_entered_at: t.re_engage_entered_at ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -367,7 +379,7 @@ async function getNotContactedProviders(
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
   const { data: trackedInState } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, cycle_number, re_engage_entered_at")
     .eq("state", state);
 
   const trackedProviderIds = new Set(
@@ -428,6 +440,9 @@ async function getNotContactedProviders(
         due_date: null,
         resend_count: 0,
         no_answer_count: 0,
+        // Re-engage cycle fields
+        cycle_number: 1,
+        re_engage_entered_at: null,
       };
     });
 
@@ -520,6 +535,9 @@ async function getClaimedProviders(
         due_date: null,
         resend_count: 0,
         no_answer_count: 0,
+        // Re-engage cycle fields
+        cycle_number: 1,
+        re_engage_entered_at: null,
         verification_state: claimInfo?.verification_state || null,
       };
     })
@@ -530,10 +548,11 @@ async function getClaimedProviders(
 
 /**
  * Get archived providers from BOTH sources:
- * 1. provider_outreach_tracking where stage = "archived" or "not_interested"
+ * 1. provider_outreach_tracking where stage = "archived" (hard terminal only)
  * 2. business_profiles where metadata.admin_archived = true
  *
- * This ensures providers archived from Questions/Connections also appear here.
+ * Note: "not_interested" is now a separate soft-terminal stage with its own tab.
+ * This function only handles hard-archived providers.
  */
 async function getArchivedProviders(
   db: ReturnType<typeof getServiceClient>,
@@ -543,12 +562,12 @@ async function getArchivedProviders(
   // Track all archived provider IDs to dedupe
   const archivedProviderMap = new Map<string, OutreachProvider>();
 
-  // Step 1: Get providers from tracking table with stage = archived or not_interested
+  // Step 1: Get providers from tracking table with stage = archived (hard terminal only)
   let trackingQuery = db
     .from("provider_outreach_tracking")
     .select("*")
     .eq("state", state)
-    .or("stage.eq.archived,stage.eq.not_interested");
+    .eq("stage", "archived");
 
   if (city) {
     trackingQuery = trackingQuery.eq("city", city);
@@ -599,6 +618,9 @@ async function getArchivedProviders(
         due_date: null,
         resend_count: 0,
         no_answer_count: 0,
+        // Re-engage cycle fields
+        cycle_number: t.cycle_number ?? 1,
+        re_engage_entered_at: t.re_engage_entered_at ?? null,
       });
     }
   }
@@ -685,6 +707,9 @@ async function getArchivedProviders(
           due_date: null,
           resend_count: 0,
           no_answer_count: 0,
+          // Re-engage cycle fields
+          cycle_number: 1,
+          re_engage_entered_at: null,
         });
       }
     }
@@ -746,7 +771,7 @@ async function searchProviders(
   // Get tracking data for all matched providers
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, cycle_number, re_engage_entered_at")
     .in("provider_id", providerIds);
 
   const trackingMap = new Map(
@@ -785,8 +810,8 @@ async function searchProviders(
       stage = "claimed";
       stageChangedAt = claimInfo.timestamp;
     } else if (tracking) {
-      // Normalize legacy "not_interested" to "archived"
-      stage = tracking.stage === "not_interested" ? "archived" : (tracking.stage as OutreachStage);
+      // not_interested is now a distinct soft-terminal stage
+      stage = tracking.stage as OutreachStage;
       stageChangedAt = tracking.stage_changed_at;
       notes = tracking.notes;
     } else if (adminArchived) {
@@ -821,6 +846,9 @@ async function searchProviders(
       due_date: tracking?.due_date ?? null,
       resend_count: tracking?.resend_count ?? 0,
       no_answer_count: tracking?.no_answer_count ?? 0,
+      // Re-engage cycle fields
+      cycle_number: tracking?.cycle_number ?? 1,
+      re_engage_entered_at: tracking?.re_engage_entered_at ?? null,
       verification_state: claimInfo?.verification_state || null,
     };
   });
@@ -855,8 +883,9 @@ async function getStageCounts(
     in_sequence: 0,
     needs_call: 0,
     re_engage: 0,
+    not_interested: 0,  // Soft terminal
     claimed: 0,
-    archived: 0,
+    archived: 0,  // Hard terminal
     // Additional email-based counts
     needs_email: 0,
     ready: 0,
@@ -917,12 +946,7 @@ async function getStageCounts(
 
   if (trackingRows) {
     for (const row of trackingRows) {
-      let stage = row.stage as string;
-
-      // Handle legacy "not_interested" records - treat as archived
-      if (stage === "not_interested") {
-        stage = "archived";
-      }
+      const stage = row.stage as string;
 
       // Skip not_contacted and claimed - they're calculated separately
       if (stage === "not_contacted" || stage === "claimed") {
@@ -1000,8 +1024,8 @@ async function getStageCounts(
   // System-archived providers should ONLY be counted in archived (via additionalSystemArchived)
   if (trackingRows) {
     for (const row of trackingRows) {
-      let stage = row.stage as string;
-      if (stage === "not_interested") stage = "archived";
+      const stage = row.stage as string;
+      // not_interested is now its own stage, not grouped with archived
       if (stage === "not_contacted" || stage === "claimed") continue;
       if (claimedProviderIds.has(row.provider_id)) continue;
       if (!existingTrackedIds.has(row.provider_id)) continue; // Skip deleted providers
@@ -1019,8 +1043,8 @@ async function getStageCounts(
   const trackingArchivedIds = new Set<string>();
   if (trackingRows) {
     for (const row of trackingRows) {
-      const stage = row.stage === "not_interested" ? "archived" : row.stage;
-      if (stage === "archived" && existingTrackedIds.has(row.provider_id) && !claimedProviderIds.has(row.provider_id)) {
+      // Only count hard-archived (not soft not_interested)
+      if (row.stage === "archived" && existingTrackedIds.has(row.provider_id) && !claimedProviderIds.has(row.provider_id)) {
         trackingArchivedIds.add(row.provider_id);
       }
     }

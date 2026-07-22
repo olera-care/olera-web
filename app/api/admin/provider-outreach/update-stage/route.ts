@@ -118,10 +118,11 @@ export async function POST(request: NextRequest) {
     // Check BOTH tracking table AND system-wide archive (business_profiles.admin_archived)
     const providersBeingUnarchived: string[] = [];
 
-    // First, check tracking table for archived/not_interested
+    // First, check tracking table for archived (hard terminal only)
+    // not_interested is soft terminal - no system-wide archive to undo
     for (const pid of provider_ids) {
       const existing = existingMap.get(pid);
-      if (existing && (existing.stage === "archived" || existing.stage === "not_interested") && stage !== "archived") {
+      if (existing && existing.stage === "archived" && stage !== "archived") {
         providersBeingUnarchived.push(pid);
       }
     }

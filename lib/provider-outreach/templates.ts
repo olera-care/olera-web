@@ -273,7 +273,7 @@ function breakupEmail(): EmailDraft {
       ``,
       `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
       ``,
-      `It's free, and it puts everything on ${PLACEHOLDER.providerName}'s page, prices, photos, family questions, under your control. If anything's in the way, reply and I'll help you directly.`,
+      `It's free and puts ${PLACEHOLDER.providerName}'s page under your control: prices, photos, and family questions. If anything's in the way, reply and I'll help you directly.`,
     ].join("\n"),
   };
 }

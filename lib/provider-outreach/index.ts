@@ -39,12 +39,15 @@ export {
 // Email utilities
 export {
   type RenderedEmail,
+  type ProviderGapData,
   bodyToHtml,
   renderEmail,
   previewEmail,
   buildContextFromProvider,
   validateProviderForOutreach,
   generateDryRunReport,
+  getProviderGaps,
+  formatGapList,
 } from "./email-utils";
 
 // Auto re-engage (NOT YET ACTIVATED - see file header for activation instructions)

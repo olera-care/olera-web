@@ -30,6 +30,7 @@
  *   {remove_url}         link to request listing removal
  *   {unsubscribe_url}    link to unsubscribe from emails
  *   {mailing_address}    physical mailing address (CAN-SPAM)
+ *   {gap_list}           formatted list of missing profile fields (Day 3 only)
  */
 
 export interface EmailDraft {
@@ -54,6 +55,8 @@ export interface TemplateContext {
   unsubscribe_url: string;
   // Compliance
   mailing_address: string;
+  // Profile gaps (Day 3 template)
+  gap_list?: string;
 }
 
 // Template keys for the cadence system
@@ -75,17 +78,19 @@ const PLACEHOLDER = {
   removeUrl: "{remove_url}",
   unsubscribeUrl: "{unsubscribe_url}",
   mailingAddress: "{mailing_address}",
+  gapList: "{gap_list}",
 };
 
 // Subject lines
 const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.rank} of ${PLACEHOLDER.total}`;
 const SUBJECT_INTRO_RESEND = `Where ${PLACEHOLDER.providerName} stands in ${PLACEHOLDER.city}`;
 const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
-const SUBJECT_FOLLOWUP = `Following up: ${PLACEHOLDER.providerName} on Olera`;
+const SUBJECT_FOLLOWUP = `What families see when they open ${PLACEHOLDER.providerName}`;
 const SUBJECT_FINAL = `Last check-in: ${PLACEHOLDER.providerName} profile`;
 
 // Preheader text
 const PREHEADER_INTRO = "By the Google reviews they actually read";
+const PREHEADER_FOLLOWUP = `It's one of the first pages ${PLACEHOLDER.city} families compare — here's what it shows them`;
 
 /**
  * Convert number to ordinal string (1 → "1st", 2 → "2nd", etc.)
@@ -111,7 +116,7 @@ export function getTemplate(
     case "intro_resend":
       return introResendEmail(hasRank);
     case "followup":
-      return followupEmail();
+      return followupEmail(hasRank);
     case "final":
       return finalEmail();
   }
@@ -149,6 +154,7 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
     remove_url: ctx.remove_url,
     unsubscribe_url: ctx.unsubscribe_url,
     mailing_address: ctx.mailing_address,
+    gap_list: ctx.gap_list || "",
   };
 }
 
@@ -208,23 +214,30 @@ function introResendEmail(hasRank: boolean): EmailDraft {
 /**
  * Day 3: Follow-up email (for openers who didn't claim)
  *
- * Lighter touch. Re-emphasizes the value prop and CTA.
+ * Focuses on profile gaps — what families see when they open the page.
+ * Two variants based on whether Day 0 mentioned ranking.
  */
-function followupEmail(): EmailDraft {
+function followupEmail(hasRank: boolean): EmailDraft {
+  // Reference Day 0 appropriately based on whether we mentioned ranking
+  const opener = hasRank
+    ? `A few days ago I wrote about where ${PLACEHOLDER.providerName} ranks in ${PLACEHOLDER.city}. Here's the part that matters more: what families actually see when they open your page.`
+    : `A few days ago I wrote about your ${PLACEHOLDER.providerName} page on Olera. Here's what matters most: what families actually see when they open it.`;
+
   return {
     subject: SUBJECT_FOLLOWUP,
+    preheader: PREHEADER_FOLLOWUP,
     body: [
-      `Hello,`,
+      opener,
       ``,
-      `I wanted to follow up on my earlier email about your [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}) page on Olera.`,
+      `Right now it shows ${PLACEHOLDER.gapList}. Families comparing care filter on exactly those things — and when the answers aren't there, they move on to the next provider on their list, even when you would have been the right fit.`,
       ``,
-      `Families in ${PLACEHOLDER.city} are actively searching for ${PLACEHOLDER.category} options, and claiming your page is a simple way to get in front of them.`,
+      `Claiming fixes that. Two minutes, and the blanks become your answers.`,
       ``,
-      `It's free, takes just a couple of minutes, and gives you direct access to leads from families looking for care.`,
+      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page here](${PLACEHOLDER.claimUrl})`,
+      `Or start even smaller: reply with your starting price, and I'll add it to your page for you.`,
       ``,
-      `Let me know if you have any questions.`,
+      `Not the right contact? Please forward this to whoever manages ${PLACEHOLDER.providerName}'s listing.`,
     ].join("\n"),
   };
 }

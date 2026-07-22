@@ -133,6 +133,8 @@ export function buildContextFromProvider(
     removeUrl?: string;
     unsubscribeUrl?: string;
     mailingAddress?: string;
+    // Profile gaps (computed via getProviderGaps + formatGapList)
+    gap_list?: string;
   }
 ): TemplateContext {
   const baseUrl = options?.baseUrl || "https://olera.care";
@@ -172,41 +174,40 @@ export function buildContextFromProvider(
     remove_url: removeUrl,
     unsubscribe_url: unsubscribeUrl,
     mailing_address: options?.mailingAddress || DEFAULT_MAILING_ADDRESS,
+    gap_list: options?.gap_list,
   };
 }
 
 /**
  * Normalize provider category to a friendly display string.
- * Handles various formats from the olera-providers table.
+ * Handles the actual category values from olera-providers table.
  */
 function normalizeCategory(category: string | null | undefined): string {
   if (!category) return "care provider";
 
-  // Map common categories to friendly names
+  // Map actual olera-providers categories to friendly email-safe names
+  // These are the real values from the provider_category column
   const categoryMap: Record<string, string> = {
-    "home-health-agency": "home health agency",
-    "home_health_agency": "home health agency",
-    "home health agency": "home health agency",
-    "nursing-home": "nursing home",
-    "nursing_home": "nursing home",
-    "nursing home": "nursing home",
-    "assisted-living": "assisted living facility",
-    "assisted_living": "assisted living facility",
+    // Exact matches from olera-providers
+    "home care (non-medical)": "home care provider",
+    "home health care": "home health agency",
     "assisted living": "assisted living facility",
-    "memory-care": "memory care facility",
-    "memory_care": "memory care facility",
+    "independent living": "independent living community",
     "memory care": "memory care facility",
-    "adult-day-care": "adult day care center",
-    "adult_day_care": "adult day care center",
-    "adult day care": "adult day care center",
-    hospice: "hospice provider",
+    "nursing home": "nursing home",
+    "hospice": "hospice provider",
+    // Combined categories
+    "assisted living | independent living": "assisted living facility",
+    "memory care | assisted living": "memory care facility",
+    // Legacy/alternate formats (for safety)
     "home-care": "home care provider",
     "home_care": "home care provider",
-    "home care": "home care provider",
+    "home-health": "home health agency",
+    "home_health": "home health agency",
   };
 
   const normalized = category.toLowerCase().trim();
-  return categoryMap[normalized] || category.toLowerCase();
+  return categoryMap[normalized] || normalized;
 }
 
 /**
@@ -248,6 +249,128 @@ export function validateProviderForOutreach(provider: {
     valid: errors.length === 0,
     errors,
   };
+}
+
+// ── Profile Gap Detection ─────────────────────────────────────────────────
+
+/**
+ * Provider data shape for gap detection.
+ * Matches fields from the olera-providers table.
+ */
+export interface ProviderGapData {
+  lower_price?: number | null;
+  upper_price?: number | null;
+  contact_for_price?: string | null; // "True" or "False"
+  provider_images?: string | null; // Pipe-separated URLs
+  hero_image_url?: string | null;
+  phone?: string | null;
+  provider_description?: string | null;
+}
+
+/**
+ * Human-readable gap labels for email templates.
+ * These are phrased to fit naturally in a sentence like:
+ * "Right now, it shows {gap_list}."
+ */
+const GAP_LABELS = {
+  pricing: "no starting price",
+  photos: "no photos",
+  contact: "no way to ask you a question",
+  description: "no description of your services",
+} as const;
+
+/**
+ * Priority order for gaps - most impactful to families first.
+ * Matches what families care about when comparing providers.
+ */
+const GAP_PRIORITY: (keyof typeof GAP_LABELS)[] = [
+  "pricing",
+  "photos",
+  "contact",
+  "description",
+];
+
+/**
+ * Detect which profile fields are missing for an unclaimed provider.
+ * Returns an array of human-readable gap descriptions.
+ *
+ * @param provider - Provider data from olera-providers table
+ * @param maxGaps - Maximum number of gaps to return (default: 3)
+ * @returns Array of gap strings like ["no starting price", "no photos"]
+ */
+export function getProviderGaps(
+  provider: ProviderGapData,
+  maxGaps = 3
+): string[] {
+  const gaps: string[] = [];
+
+  for (const key of GAP_PRIORITY) {
+    if (gaps.length >= maxGaps) break;
+
+    switch (key) {
+      case "pricing":
+        // Missing if no price range AND not explicitly "contact for pricing"
+        // Normalize to lowercase for safety (database might have "True", "true", etc.)
+        if (
+          provider.lower_price == null &&
+          provider.upper_price == null &&
+          provider.contact_for_price?.toLowerCase() !== "true"
+        ) {
+          gaps.push(GAP_LABELS.pricing);
+        }
+        break;
+
+      case "photos":
+        // Missing if no images at all
+        if (!provider.provider_images?.trim() && !provider.hero_image_url) {
+          gaps.push(GAP_LABELS.photos);
+        }
+        break;
+
+      case "contact":
+        // Missing if no phone (email is for outreach, website is indirect)
+        if (!provider.phone?.trim()) {
+          gaps.push(GAP_LABELS.contact);
+        }
+        break;
+
+      case "description": {
+        // Missing if no description or very short
+        const desc = provider.provider_description?.trim();
+        if (!desc || desc.length < 50) {
+          gaps.push(GAP_LABELS.description);
+        }
+        break;
+      }
+    }
+  }
+
+  return gaps;
+}
+
+/**
+ * Format an array of gaps into a grammatically correct sentence fragment.
+ *
+ * Examples:
+ *   ["no photos"] → "no photos"
+ *   ["no starting price", "no photos"] → "no starting price and no photos"
+ *   ["no starting price", "no photos", "no way to ask you a question"]
+ *     → "no starting price, no photos, and no way to ask you a question"
+ *   [] → fallback (default: "limited details about your services")
+ *
+ * @param gaps - Array of gap strings from getProviderGaps()
+ * @param fallback - String to return if gaps is empty (for unclaimed providers, there's always something missing)
+ * @returns Formatted string for use in templates
+ */
+export function formatGapList(
+  gaps: string[],
+  fallback = "limited details about your services"
+): string {
+  if (gaps.length === 0) return fallback;
+  if (gaps.length === 1) return gaps[0];
+  if (gaps.length === 2) return `${gaps[0]} and ${gaps[1]}`;
+  // Oxford comma for 3+
+  return `${gaps.slice(0, -1).join(", ")}, and ${gaps[gaps.length - 1]}`;
 }
 
 /**

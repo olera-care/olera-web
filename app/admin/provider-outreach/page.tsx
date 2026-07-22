@@ -1233,7 +1233,7 @@ function FollowUpProviderRow({
             "Use Archive instead for a full system-wide block",
           ],
           confirmLabel: "Yes, mark as not interested",
-          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
       default:
         return null;
@@ -1464,18 +1464,18 @@ function FollowUpProviderRow({
                   setShowActionMenu(false);
                   setPendingOutcome("not_interested");
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-amber-600 hover:bg-amber-50 transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Not Interested (soft)
+                Not Interested
               </button>
               <button
                 onClick={() => {
                   setShowActionMenu(false);
                   onArchive();
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                Archive (hard)
+                Archive
               </button>
             </div>
           )}
@@ -1589,7 +1589,7 @@ function FollowUpProviderRow({
             <button
               onClick={() => setPendingOutcome("not_interested")}
               disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-600 bg-white border border-amber-200 rounded-full hover:border-amber-300 hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:text-gray-800 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Not interested
             </button>

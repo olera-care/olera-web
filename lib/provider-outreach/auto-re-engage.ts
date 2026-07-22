@@ -125,7 +125,8 @@ async function processProvider(
   try {
     if (cycle_number === 1) {
       // ── Cycle 1 → Start Cycle 2 ──
-      const { error: updateError } = await db
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (db as any)
         .from("provider_outreach_tracking")
         .update({
           stage: "not_contacted",
@@ -144,7 +145,8 @@ async function processProvider(
       }
 
       // Log touchpoints
-      await db.from("provider_outreach_touchpoints").insert([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (db as any).from("provider_outreach_touchpoints").insert([
         {
           provider_id,
           touchpoint_type: "cycle_started",
@@ -184,7 +186,8 @@ async function processProvider(
       // Provider stops receiving outreach but can still get questions/connections
       const terminalReason = "unresponsive_after_two_cycles";
 
-      const { error: updateError } = await db
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (db as any)
         .from("provider_outreach_tracking")
         .update({
           stage: "not_interested",
@@ -200,7 +203,8 @@ async function processProvider(
       }
 
       // Log touchpoints
-      await db.from("provider_outreach_touchpoints").insert([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (db as any).from("provider_outreach_touchpoints").insert([
         {
           provider_id,
           touchpoint_type: "cycle_exhausted",

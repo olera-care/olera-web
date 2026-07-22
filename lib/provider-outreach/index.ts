@@ -63,3 +63,9 @@ export {
   processEligibleReEngageProviders,
   dryRunAutoReEngage,
 } from "./auto-re-engage";
+
+// Auto-send executor (used by cron job)
+export {
+  type ExecuteResult,
+  executeProviderOutreachTask,
+} from "./auto-send-executor";

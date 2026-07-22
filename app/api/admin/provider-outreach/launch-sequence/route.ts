@@ -19,18 +19,26 @@ import {
  *
  * Body:
  *   - provider_ids: string[] (required) - List of provider IDs to include
- *   - dry_run: boolean (default: true) - If true, returns preview only; if false, would send emails
+ *   - dry_run: boolean (default: true) - If true, returns preview only; if false, launches sequence
  *
- * Returns:
+ * Returns (dry_run=true):
  *   - providers: Array of provider previews with rendered emails
  *   - schedule: The cadence schedule (days and template keys)
  *   - summary: Counts of valid/invalid providers
  *
- * NOTE: This is currently a preview-only endpoint. Email sending is NOT implemented.
- * When dry_run=false is implemented, it will:
- *   1. Move providers to "in_sequence" stage
- *   2. Create tasks in provider_outreach_tasks table
- *   3. Cron job will pick up due tasks and send emails
+ * Returns (dry_run=false):
+ *   - success: boolean
+ *   - launched: count of providers whose sequence was started
+ *   - failed: count of providers that failed to launch
+ *   - launched_providers: array of provider IDs
+ *   - failed_providers: array of { provider_id, error }
+ *   - schedule: the cadence schedule with due dates
+ *
+ * When dry_run=false:
+ *   1. Moves valid providers to "in_sequence" stage
+ *   2. Creates tasks in provider_outreach_tasks table (4 tasks per provider)
+ *   3. Logs a sequence_launched touchpoint
+ *   4. Cron job picks up due tasks and sends emails
  */
 
 interface ProviderPreview {
@@ -226,19 +234,138 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const schedule = generateTaskSchedule(now);
 
-    // If not dry run, we would create tasks here
-    // For now, always return preview-only
+    // If not dry run, launch the sequence for valid providers
     if (!dry_run) {
-      // TODO: Implement actual launch
-      // 1. Move providers to "in_sequence" stage via update-stage
-      // 2. Create tasks in provider_outreach_tasks
-      // 3. Cron job picks up due tasks and sends via Resend
-      //
-      // For now, return a message that this is not yet implemented
+      const validPreviews = previews.filter((p) => p.valid);
+
+      if (validPreviews.length === 0) {
+        return NextResponse.json({
+          error: "No valid providers to launch sequence for",
+          invalid_count: invalidCount,
+        }, { status: 400 });
+      }
+
+      // 1. Get or create tracking records and move to in_sequence
+      const launchedProviders: string[] = [];
+      const failedProviders: Array<{ provider_id: string; error: string }> = [];
+
+      for (const preview of validPreviews) {
+        try {
+          // Check if tracking record exists
+          const { data: existingTracking } = await db
+            .from("provider_outreach_tracking")
+            .select("id, stage")
+            .eq("provider_id", preview.provider_id)
+            .maybeSingle();
+
+          let trackingId: string;
+
+          if (existingTracking) {
+            // Already in sequence? Skip
+            if (existingTracking.stage === "in_sequence") {
+              failedProviders.push({
+                provider_id: preview.provider_id,
+                error: "Already in sequence",
+              });
+              continue;
+            }
+
+            // Clean up any stale pending tasks from previous cycle
+            // This prevents old Day 14 tasks from firing alongside new Day 0 tasks
+            await db
+              .from("provider_outreach_tasks")
+              .delete()
+              .eq("tracking_id", existingTracking.id)
+              .eq("status", "pending");
+
+            // Update to in_sequence with fresh sequence_started_at
+            // (Can't rely on trigger — it only fires if sequence_started_at IS NULL)
+            const { error: updateError } = await db
+              .from("provider_outreach_tracking")
+              .update({
+                stage: "in_sequence",
+                sequence_started_at: new Date().toISOString(),
+              })
+              .eq("id", existingTracking.id);
+
+            if (updateError) throw updateError;
+            trackingId = existingTracking.id;
+          } else {
+            // Create new tracking record in in_sequence stage
+            const { data: newTracking, error: insertError } = await db
+              .from("provider_outreach_tracking")
+              .insert({
+                provider_id: preview.provider_id,
+                stage: "in_sequence",
+                city: preview.city,
+                state: preview.state,
+                sequence_started_at: new Date().toISOString(),
+              })
+              .select("id")
+              .single();
+
+            if (insertError) throw insertError;
+            trackingId = newTracking.id;
+          }
+
+          // 2. Create tasks for each cadence step
+          const taskRows = schedule.map((step) => ({
+            tracking_id: trackingId,
+            provider_id: preview.provider_id,
+            task_type: "outreach_email_send",
+            cadence_day: step.day,
+            template_key: step.templateKey,
+            due_at: step.dueAt.toISOString(),
+            status: "pending",
+            payload: {
+              recipient_email: preview.email,
+              provider_name: preview.provider_name,
+              city: preview.city,
+              state: preview.state,
+              category: preview.category,
+            },
+          }));
+
+          const { error: tasksError } = await db
+            .from("provider_outreach_tasks")
+            .insert(taskRows);
+
+          if (tasksError) throw tasksError;
+
+          // 3. Log touchpoint
+          await db.from("provider_outreach_touchpoints").insert({
+            provider_id: preview.provider_id,
+            touchpoint_type: "sequence_launched",
+            admin_user_id: adminUser.id,
+            details: {
+              email_count: taskRows.length,
+              first_due_at: schedule[0].dueAt.toISOString(),
+              last_due_at: schedule[schedule.length - 1].dueAt.toISOString(),
+            },
+          });
+
+          launchedProviders.push(preview.provider_id);
+        } catch (err) {
+          console.error(`Failed to launch sequence for ${preview.provider_id}:`, err);
+          failedProviders.push({
+            provider_id: preview.provider_id,
+            error: err instanceof Error ? err.message : "Unknown error",
+          });
+        }
+      }
+
       return NextResponse.json({
-        error: "Email sending is not yet implemented. Use dry_run=true for preview.",
-        preview_available: true,
-      }, { status: 501 });
+        success: true,
+        launched: launchedProviders.length,
+        failed: failedProviders.length,
+        launched_providers: launchedProviders,
+        failed_providers: failedProviders,
+        schedule: schedule.map((s) => ({
+          day: s.day,
+          templateKey: s.templateKey,
+          dueAt: s.dueAt.toISOString(),
+        })),
+      });
     }
 
     return NextResponse.json({

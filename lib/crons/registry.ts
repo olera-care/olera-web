@@ -226,6 +226,33 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/staffing-outreach",
   },
+  {
+    id: "provider-outreach-send",
+    name: "Provider outreach — scheduled sends",
+    description: "Every 15 minutes: scans for due provider outreach email tasks (Day 0/3/7/14 cadence) and sends them via Resend through oleracare.com.",
+    recipientCohort: "Unclaimed providers in the outreach sequence with a due email task.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "*/15 * * * *",
+    humanSchedule: "Every 15 minutes",
+    path: "/api/cron/provider-outreach-send",
+    emailTypes: ["provider_outreach_sequence"],
+    successSignal: "Provider claims their profile.",
+    relatedAdminPath: "/admin/provider-outreach",
+  },
+  {
+    id: "provider-outreach-sequence-check",
+    name: "Provider outreach — sequence advance",
+    description: "Hourly: auto-transitions providers from 'in_sequence' to 'needs_call' once their 4-email cadence is complete (Day 14 + 7 days elapsed).",
+    recipientCohort: "(No recipients — a state-transition job.)",
+    audience: "Providers",
+    fn: "maintenance",
+    schedule: "45 * * * *",
+    humanSchedule: "Hourly, at :45",
+    path: "/api/cron/provider-outreach-sequence-check",
+    emailTypes: [],
+    relatedAdminPath: "/admin/provider-outreach",
+  },
   // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
   // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
   {

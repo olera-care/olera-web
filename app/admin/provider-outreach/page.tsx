@@ -141,6 +141,7 @@ interface OutreachProvider {
   due_date: string | null;
   resend_count: number;
   no_answer_count: number;
+  needs_call_reason: string | null;
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
@@ -207,6 +208,31 @@ function formatPhone(phone: string): string {
     return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
   }
   return phone;
+}
+
+// Labels for why a provider is in the Follow Up queue
+const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
+  sequence_completed: "Sequence done",
+  clicked_not_claimed: "Clicked",
+  replied: "Replied",
+  manual: "Manual",
+};
+
+function getNeedsCallReasonChip(reason: string | null): { label: string; className: string } | null {
+  if (!reason) return null;
+  const label = NEEDS_CALL_REASON_LABELS[reason] || reason;
+  // Different colors for different reasons
+  switch (reason) {
+    case "sequence_completed":
+      return { label, className: "bg-blue-50 text-blue-700" };
+    case "clicked_not_claimed":
+      return { label, className: "bg-emerald-50 text-emerald-700" };
+    case "replied":
+      return { label, className: "bg-purple-50 text-purple-700" };
+    case "manual":
+    default:
+      return { label, className: "bg-gray-100 text-gray-600" };
+  }
 }
 
 // Editable Provider Contact - with Edit mode for existing emails
@@ -1395,6 +1421,18 @@ function FollowUpProviderRow({
           ) : (
             <span className="text-sm text-gray-400">No email</span>
           )}
+        </div>
+
+        {/* Reason Chip */}
+        <div className="w-24 shrink-0">
+          {(() => {
+            const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
+            return reasonChip ? (
+              <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
+                {reasonChip.label}
+              </span>
+            ) : null;
+          })()}
         </div>
 
         {/* Due Date Badge */}

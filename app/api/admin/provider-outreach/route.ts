@@ -101,6 +101,7 @@ interface TrackingRow {
   due_date: string | null;
   resend_count: number;
   no_answer_count: number;
+  needs_call_reason: string | null;
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
@@ -125,6 +126,7 @@ export interface OutreachProvider {
   due_date: string | null;
   resend_count: number;
   no_answer_count: number;
+  needs_call_reason: string | null;
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
@@ -331,6 +333,7 @@ export async function GET(request: NextRequest) {
           due_date: t.due_date,
           resend_count: t.resend_count ?? 0,
           no_answer_count: t.no_answer_count ?? 0,
+          needs_call_reason: t.needs_call_reason ?? null,
           // Re-engage cycle fields
           cycle_number: t.cycle_number ?? 1,
           re_engage_entered_at: t.re_engage_entered_at ?? null,
@@ -379,7 +382,7 @@ async function getNotContactedProviders(
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
   const { data: trackedInState } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, cycle_number, re_engage_entered_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at")
     .eq("state", state);
 
   const trackedProviderIds = new Set(
@@ -440,6 +443,7 @@ async function getNotContactedProviders(
         due_date: null,
         resend_count: 0,
         no_answer_count: 0,
+        needs_call_reason: null,
         // Re-engage cycle fields
         cycle_number: 1,
         re_engage_entered_at: null,
@@ -535,6 +539,7 @@ async function getClaimedProviders(
         due_date: null,
         resend_count: 0,
         no_answer_count: 0,
+        needs_call_reason: null,
         // Re-engage cycle fields
         cycle_number: 1,
         re_engage_entered_at: null,
@@ -618,6 +623,7 @@ async function getArchivedProviders(
         due_date: null,
         resend_count: 0,
         no_answer_count: 0,
+        needs_call_reason: null,
         // Re-engage cycle fields
         cycle_number: t.cycle_number ?? 1,
         re_engage_entered_at: t.re_engage_entered_at ?? null,
@@ -707,6 +713,7 @@ async function getArchivedProviders(
           due_date: null,
           resend_count: 0,
           no_answer_count: 0,
+          needs_call_reason: null,
           // Re-engage cycle fields
           cycle_number: 1,
           re_engage_entered_at: null,
@@ -771,7 +778,7 @@ async function searchProviders(
   // Get tracking data for all matched providers
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, cycle_number, re_engage_entered_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at")
     .in("provider_id", providerIds);
 
   const trackingMap = new Map(
@@ -846,6 +853,7 @@ async function searchProviders(
       due_date: tracking?.due_date ?? null,
       resend_count: tracking?.resend_count ?? 0,
       no_answer_count: tracking?.no_answer_count ?? 0,
+      needs_call_reason: tracking?.needs_call_reason ?? null,
       // Re-engage cycle fields
       cycle_number: tracking?.cycle_number ?? 1,
       re_engage_entered_at: tracking?.re_engage_entered_at ?? null,

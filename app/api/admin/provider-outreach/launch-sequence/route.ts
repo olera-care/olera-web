@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     // Note: provider_ids are the provider_id column values, not slugs
     const { data: providers, error: fetchError } = await db
       .from("olera-providers")
-      .select("provider_id, slug, provider_name, email, city, state, provider_category, lower_price, upper_price, contact_for_price, provider_images, hero_image_url, phone, provider_description")
+      .select("provider_id, slug, provider_name, email, city, state, provider_category, lower_price, upper_price, contact_for_price, provider_images, phone, provider_description")
       .in("provider_id", validProviderIds);
 
     if (fetchError) {
@@ -158,12 +158,12 @@ export async function POST(request: NextRequest) {
       }
 
       // Compute profile gaps for Day 3 email
+      // Note: hero_image_url column doesn't exist in olera-providers yet
       const gaps = getProviderGaps({
         lower_price: provider.lower_price,
         upper_price: provider.upper_price,
         contact_for_price: provider.contact_for_price,
         provider_images: provider.provider_images,
-        hero_image_url: provider.hero_image_url,
         phone: provider.phone,
         provider_description: provider.provider_description,
       });

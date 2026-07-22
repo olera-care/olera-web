@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
 
       // Validate provider has required data
       const validation = validateProviderForOutreach({
+        provider_id: providerId,
         name: provider.provider_name,
         email: provider.email,
         city: provider.city,

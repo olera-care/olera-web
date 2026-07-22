@@ -86,12 +86,13 @@ const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.r
 const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
 const SUBJECT_FOLLOWUP = `What families see when they open ${PLACEHOLDER.providerName}`;
 const SUBJECT_FINAL = `What claiming ${PLACEHOLDER.providerName} actually gets you`;
-const SUBJECT_BREAKUP = `Closing the loop: ${PLACEHOLDER.providerName}`;
+const SUBJECT_BREAKUP = `Your claim link for ${PLACEHOLDER.providerName}`;
 
 // Preheader text
 const PREHEADER_INTRO = "By the Google reviews they actually read";
 const PREHEADER_FOLLOWUP = `It's one of the first pages ${PLACEHOLDER.city} families compare — here's what it shows them`;
 const PREHEADER_FINAL = "The whole thing in one email: free leads, family questions, your page under your control";
+const PREHEADER_BREAKUP = "Two minutes, and the page is yours";
 
 /**
  * Convert number to ordinal string (1 → "1st", 2 → "2nd", etc.)
@@ -261,19 +262,18 @@ function finalEmail(): EmailDraft {
  * Day 14: Breakup email
  *
  * Final attempt before moving to manual calls.
- * Placeholder template - content TBD.
+ * Short and simple: just the claim link, easy to find.
  */
 function breakupEmail(): EmailDraft {
   return {
     subject: SUBJECT_BREAKUP,
+    preheader: PREHEADER_BREAKUP,
     body: [
-      `Hello,`,
+      `Just putting the claim link where it's easy to find:`,
       ``,
-      `[PLACEHOLDER - Day 14 breakup email content TBD]`,
+      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
       ``,
-      `This is the final email in the sequence before we move to phone outreach.`,
-      ``,
-      `[Claim your page](${PLACEHOLDER.claimUrl}) | [View your listing](${PLACEHOLDER.profileUrl})`,
+      `It's free, and it puts everything on ${PLACEHOLDER.providerName}'s page, prices, photos, family questions, under your control. If anything's in the way, reply and I'll help you directly.`,
     ].join("\n"),
   };
 }

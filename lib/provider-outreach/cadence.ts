@@ -6,7 +6,7 @@
  *   Day 0: Intro email
  *   Day 3: Follow-up email (profile gaps)
  *   Day 7: Summary email (everything in one place)
- *   Day 14: Breakup email (last attempt)
+ *   Day 14: Breakup email (just the claim link)
  *
  * After the final email (Day 14) with no claim, the provider moves to
  * "needs_call" stage for manual follow-up.
@@ -46,7 +46,7 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
   {
     day: 14,
     templateKey: "breakup",
-    description: "Breakup email - last attempt before calls",
+    description: "Breakup email - just the claim link, easy to find",
   },
 ];
 

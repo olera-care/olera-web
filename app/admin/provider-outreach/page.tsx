@@ -3980,7 +3980,7 @@ export default function ProviderOutreachPage() {
                             <span className="text-xs text-gray-400">+14 days</span>
                           </div>
                           <p className="text-sm font-medium text-gray-800">Breakup Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Last attempt before moving to calls</p>
+                          <p className="text-xs text-gray-500 mt-1">Just the claim link, easy to find</p>
                         </div>
                       </>
                     )}

@@ -3933,7 +3933,7 @@ export default function ProviderOutreachPage() {
                                 </div>
                                 <div className="text-xs text-gray-500 space-y-0.5">
                                   <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
-                                  <p><span className="font-medium text-gray-600">From:</span> Dr. Logan DuBose &lt;logan@olera.care&gt;</p>
+                                  <p><span className="font-medium text-gray-600">From:</span> Dr. Logan DuBose · Olera &lt;noreply@oleracare.com&gt;</p>
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>

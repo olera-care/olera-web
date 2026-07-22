@@ -50,6 +50,9 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   // addresses, so they ring-fence to the isolated domain like other cold mail.
   "medjobs_student_interest",
   "medjobs_candidate_ready",
+  // Provider outreach cold sequence (Day 0/3/7/14 emails to unclaimed providers).
+  // These go to scraped directory addresses, so they ring-fence to oleracare.com.
+  "provider_outreach_sequence",
 ]);
 
 /**

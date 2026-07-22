@@ -47,6 +47,10 @@ export {
   validateProviderForOutreach,
   getProviderGaps,
   formatGapList,
+  // Email sending configuration
+  PROVIDER_OUTREACH_EMAIL_TYPE,
+  PROVIDER_OUTREACH_FROM,
+  PROVIDER_OUTREACH_REPLY_TO,
 } from "./email-utils";
 
 // Auto re-engage (NOT YET ACTIVATED - see file header for activation instructions)

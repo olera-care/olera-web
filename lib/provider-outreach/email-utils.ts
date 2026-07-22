@@ -28,6 +28,34 @@ import {
  */
 export { bodyToHtml };
 
+// ── Email Sending Configuration ───────────────────────────────────────────────
+
+/**
+ * Email type for provider outreach sequence (Day 0/3/7/14).
+ * Registered in PROVIDER_NOTIFY_FROM_TYPES (lib/email.ts) so these emails:
+ *   - Route through oleracare.com (isolated domain for cold mail)
+ *   - Get verify-on-send treatment (ZeroBounce check)
+ *   - Respect suppression for bounced/invalid addresses
+ */
+export const PROVIDER_OUTREACH_EMAIL_TYPE = "provider_outreach_sequence";
+
+/**
+ * From address for provider outreach emails.
+ * Uses oleracare.com (the cold-mail domain) with Dr. Logan DuBose as sender.
+ * Matches the established cold-mail pattern (noreply@oleracare.com).
+ * Override via env var PROVIDER_OUTREACH_FROM if needed.
+ */
+export const PROVIDER_OUTREACH_FROM =
+  process.env.PROVIDER_OUTREACH_FROM ??
+  "Dr. Logan DuBose · Olera <noreply@oleracare.com>";
+
+/**
+ * Reply-To address for provider outreach emails.
+ * Routes replies to the shared inbox so the team can respond.
+ */
+export const PROVIDER_OUTREACH_REPLY_TO =
+  process.env.PROVIDER_OUTREACH_REPLY_TO ?? "hello@olera.care";
+
 /**
  * Rendered email ready for sending
  */

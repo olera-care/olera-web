@@ -2,13 +2,17 @@
  * Provider Outreach Cadence Configuration
  *
  * Defines the email sequence timing for provider cold outreach.
- * Each provider goes through a 3-email sequence:
+ * Each provider goes through a 4-email sequence:
  *   Day 0: Intro email
- *   Day 3: Follow-up email
- *   Day 7: Final email
+ *   Day 3: Follow-up email (profile gaps)
+ *   Day 7: Demand-loss email (family views, unanswered questions)
+ *   Day 14: Summary email (everything in one place)
  *
- * After Day 7 with no claim, the provider moves to "needs_call" stage
- * for manual follow-up.
+ * After the final email (Day 14) with no claim, the provider moves to
+ * "needs_call" stage for manual follow-up.
+ *
+ * Note: The "nudge" template is standalone (not in cadence) — used by
+ * Follow Up resend action and future re-engagement triggers.
  */
 
 import type { ProviderOutreachTemplateKey } from "./templates";
@@ -35,12 +39,17 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
   {
     day: 3,
     templateKey: "followup",
-    description: "Follow-up email - lighter touch, re-emphasize value",
+    description: "Follow-up email - profile gaps and value",
   },
   {
     day: 7,
+    templateKey: "demand_loss",
+    description: "Demand-loss - what families couldn't ask you",
+  },
+  {
+    day: 14,
     templateKey: "final",
-    description: "Final email - graceful close, offer to forward",
+    description: "Summary - everything in one place",
   },
 ];
 
@@ -49,6 +58,19 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
  * If no claim after this period, provider needs manual follow-up.
  */
 export const DAYS_AFTER_FINAL_TO_NEEDS_CALL = 7;
+
+/**
+ * Number of days a provider must wait in the re_engage stage before
+ * being eligible for another outreach cycle.
+ *
+ * After this period:
+ *   - Cycle 1 providers move to "ready" stage as cycle 2
+ *   - Cycle 2 providers are auto-archived (two cycles exhausted)
+ *
+ * This constant is the single source of truth for the waiting period.
+ * Change this value to adjust the re-engagement timing system-wide.
+ */
+export const RE_ENGAGE_WAITING_PERIOD_DAYS = 30;
 
 /**
  * Get all cadence days as an array.

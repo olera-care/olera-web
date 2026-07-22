@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-type UnsubscribeType = "leads" | "analytics_digest";
+type UnsubscribeType = "leads" | "analytics_digest" | "cold_outreach";
 
 const COPY: Record<UnsubscribeType, { title: string; confirm: string; done: string; disclaimer: string }> = {
   leads: {
@@ -21,13 +21,23 @@ const COPY: Record<UnsubscribeType, { title: string; confirm: string; done: stri
     done: "You will no longer receive the weekly analytics digest. Lead notifications, account emails, and other communications are unaffected.",
     disclaimer: "This only affects the weekly analytics digest. Lead notifications still come through.",
   },
+  cold_outreach: {
+    title: "Unsubscribe from Olera outreach",
+    confirm:
+      "You will stop receiving emails from Olera about your listing. If you change your mind, you can always claim your listing directly.",
+    done: "You will no longer receive outreach emails from Olera. If you ever want to claim your listing, visit olera.care and search for your business.",
+    disclaimer: "This will stop all outreach emails about your unclaimed listing.",
+  },
 };
 
 function UnsubscribeInner() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
-  const type: UnsubscribeType = typeParam === "analytics_digest" ? "analytics_digest" : "leads";
+  const type: UnsubscribeType =
+    typeParam === "analytics_digest" ? "analytics_digest" :
+    typeParam === "cold_outreach" ? "cold_outreach" :
+    "leads";
   const copy = COPY[type];
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 

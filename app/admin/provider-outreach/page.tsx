@@ -16,8 +16,9 @@ const OUTREACH_STAGES = [
   "in_sequence",
   "needs_call",
   "re_engage",
+  "not_interested",  // Soft terminal: no outreach, but questions/connections flow
   "claimed",
-  "archived",
+  "archived",  // Hard terminal: system-wide block
 ] as const;
 
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
@@ -31,8 +32,9 @@ const UI_TABS: UITab[] = [
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
+  "not_interested",  // Soft terminal
   "claimed",
-  "archived",
+  "archived",  // Hard terminal
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -41,6 +43,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Re-Engage",
+  not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
 };
@@ -51,12 +54,15 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Re-Engage",
+  not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
 };
 
-// Claimed and Archived are terminal stages
-const TERMINAL_STAGES: OutreachStage[] = ["claimed", "archived"];
+// Terminal stages - no more outreach
+// not_interested = soft (questions/connections still flow)
+// archived = hard (system-wide block)
+const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived"];
 
 interface CityStats {
   city: string;
@@ -135,6 +141,12 @@ interface OutreachProvider {
   due_date: string | null;
   resend_count: number;
   no_answer_count: number;
+  needs_call_reason: string | null;
+  // Re-engage cycle fields
+  cycle_number: number;
+  re_engage_entered_at: string | null;
+  // Assignment
+  assigned_to: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -198,6 +210,31 @@ function formatPhone(phone: string): string {
     return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
   }
   return phone;
+}
+
+// Labels for why a provider is in the Follow Up queue
+const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
+  sequence_completed: "Sequence done",
+  clicked_not_claimed: "Clicked",
+  replied: "Replied",
+  manual: "Manual",
+};
+
+function getNeedsCallReasonChip(reason: string | null): { label: string; className: string } | null {
+  if (!reason) return null;
+  const label = NEEDS_CALL_REASON_LABELS[reason] || reason;
+  // Different colors for different reasons
+  switch (reason) {
+    case "sequence_completed":
+      return { label, className: "bg-blue-50 text-blue-700" };
+    case "clicked_not_claimed":
+      return { label, className: "bg-emerald-50 text-emerald-700" };
+    case "replied":
+      return { label, className: "bg-purple-50 text-purple-700" };
+    case "manual":
+    default:
+      return { label, className: "bg-gray-100 text-gray-600" };
+  }
 }
 
 // Editable Provider Contact - with Edit mode for existing emails
@@ -1072,6 +1109,7 @@ interface FollowUpQueueProps {
   onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
   onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: (provider: OutreachProvider) => void;
+  onArchive: (provider: OutreachProvider) => void;
 }
 
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
@@ -1122,6 +1160,7 @@ function FollowUpProviderRow({
   onProviderUpdated,
   onStageChange,
   onRemoveProvider,
+  onArchive,
 }: {
   provider: OutreachProvider;
   isExpanded: boolean;
@@ -1130,6 +1169,7 @@ function FollowUpProviderRow({
   onProviderUpdated: (updates: Partial<OutreachProvider>) => void;
   onStageChange: (newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: () => void;
+  onArchive: () => void;
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -1215,12 +1255,13 @@ function FollowUpProviderRow({
           title: "Not Interested",
           description: "The provider explicitly declined to claim their profile.",
           details: [
-            "Provider will be moved to the Archived stage",
-            "They will no longer receive any outreach",
-            "This action can be reversed from the Archived tab if needed",
+            "Provider will be moved to the Not Interested stage (soft terminal)",
+            "They will no longer receive any outreach emails or calls",
+            "Questions and connections can still flow to them",
+            "Use Archive instead for a full system-wide block",
           ],
-          confirmLabel: "Yes, archive provider",
-          confirmClass: "bg-red-600 hover:bg-red-700 text-white",
+          confirmLabel: "Yes, mark as not interested",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
       default:
         return null;
@@ -1342,13 +1383,22 @@ function FollowUpProviderRow({
 
         {/* Provider Name */}
         <div className="flex-1 min-w-0">
-          <Link
-            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-            className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {provider.provider_name}
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+              className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {provider.provider_name}
+            </Link>
+            {provider.assigned_to && (
+              <span className="w-4 h-4 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center shrink-0" title="Assigned">
+                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                </svg>
+              </span>
+            )}
+          </div>
           {provider.provider_category && (
             <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
           )}
@@ -1382,6 +1432,18 @@ function FollowUpProviderRow({
           ) : (
             <span className="text-sm text-gray-400">No email</span>
           )}
+        </div>
+
+        {/* Reason Chip */}
+        <div className="w-24 shrink-0">
+          {(() => {
+            const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
+            return reasonChip ? (
+              <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
+                {reasonChip.label}
+              </span>
+            ) : null;
+          })()}
         </div>
 
         {/* Due Date Badge */}
@@ -1442,7 +1504,28 @@ function FollowUpProviderRow({
               >
                 Re-Engage
               </button>
-              {/* Archive requires a reason - use "Not interested" button instead */}
+              <div className="border-t border-gray-100 my-1" />
+              <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
+                Terminal
+              </div>
+              <button
+                onClick={() => {
+                  setShowActionMenu(false);
+                  setPendingOutcome("not_interested");
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Not Interested
+              </button>
+              <button
+                onClick={() => {
+                  setShowActionMenu(false);
+                  onArchive();
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Archive
+              </button>
             </div>
           )}
         </div>
@@ -1551,11 +1634,11 @@ function FollowUpProviderRow({
               Wrong contact
             </button>
 
-            {/* Not interested */}
+            {/* Not interested (soft terminal) */}
             <button
               onClick={() => setPendingOutcome("not_interested")}
               disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-full hover:border-red-300 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:text-gray-800 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Not interested
             </button>
@@ -1643,7 +1726,7 @@ function FollowUpProviderRow({
   );
 }
 
-function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider }: FollowUpQueueProps) {
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
   // Group providers by due date sections
@@ -1734,6 +1817,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
               });
             }}
             onRemoveProvider={() => onRemoveProvider(provider)}
+            onArchive={() => onArchive(provider)}
           />
         ))}
       </div>
@@ -1745,6 +1829,187 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
       {renderSection("Overdue", overdue, "bg-red-50 text-red-700 border-b border-red-100")}
       {renderSection("Due Today", dueToday, "bg-amber-50 text-amber-700 border-b border-amber-100")}
       {renderSection("Upcoming", upcoming, "bg-gray-50 text-gray-600 border-b border-gray-100")}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Re-Engage Queue Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ReEngageQueueProps {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
+  onArchive: (provider: OutreachProvider) => void;
+}
+
+// Helper: calculate days since a date
+function daysSince(dateString: string | null): number {
+  if (!dateString) return 0;
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function ReEngageQueue({ providers, loading, onReEngageAction, onArchive }: ReEngageQueueProps) {
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleReEngage = async (provider: OutreachProvider) => {
+    setActionLoading(provider.provider_id);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/re-engage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to process re-engage action");
+      }
+
+      const result = await res.json();
+      onReEngageAction(provider.provider_id, result);
+    } catch (err) {
+      console.error("Re-engage error:", err);
+      alert(err instanceof Error ? err.message : "Failed to process re-engage action");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (providers.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-gray-500">No providers in Re-Engage queue</p>
+      </div>
+    );
+  }
+
+  // Sort by re_engage_entered_at (oldest first - most urgent)
+  const sorted = [...providers].sort((a, b) => {
+    if (!a.re_engage_entered_at && !b.re_engage_entered_at) return 0;
+    if (!a.re_engage_entered_at) return 1;
+    if (!b.re_engage_entered_at) return -1;
+    return a.re_engage_entered_at.localeCompare(b.re_engage_entered_at);
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <div className="flex-1">Provider</div>
+        <div className="w-20 text-center">Cycle</div>
+        <div className="w-28 text-center">Waiting</div>
+        <div className="w-56 text-right">Actions</div>
+      </div>
+
+      {/* Provider rows */}
+      {sorted.map((provider) => {
+        const waitDays = daysSince(provider.re_engage_entered_at);
+        const isLoading = actionLoading === provider.provider_id;
+        const isCycle2 = provider.cycle_number === 2;
+
+        return (
+          <div
+            key={provider.provider_id}
+            className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+          >
+            {/* Provider info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-gray-900 truncate">
+                  {provider.provider_name}
+                </span>
+                {provider.assigned_to && (
+                  <span className="w-4 h-4 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center shrink-0" title="Assigned">
+                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+              <div className="text-xs text-gray-500 truncate">
+                {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
+              </div>
+            </div>
+
+            {/* Cycle badge */}
+            <div className="w-20 text-center">
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  isCycle2
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                Cycle {provider.cycle_number}
+              </span>
+            </div>
+
+            {/* Wait time */}
+            <div className="w-28 text-center">
+              <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
+                {waitDays} day{waitDays !== 1 ? "s" : ""}
+              </span>
+              {waitDays >= 30 && (
+                <div className="text-[10px] text-emerald-600">Ready</div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="w-56 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => handleReEngage(provider)}
+                disabled={isLoading}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isCycle2
+                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-primary-600 text-white hover:bg-primary-700"
+                }`}
+              >
+                {isLoading ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : isCycle2 ? (
+                  "Archive (2 cycles done)"
+                ) : (
+                  "Re-engage now"
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onArchive(provider)}
+                disabled={isLoading}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Archive
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Summary footer */}
+      <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
+        {providers.length} provider{providers.length !== 1 ? "s" : ""} in Re-Engage queue
+        {" • "}
+        {providers.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
+      </div>
     </div>
   );
 }
@@ -1771,6 +2036,9 @@ export default function ProviderOutreachPage() {
   const [isSearchResult, setIsSearchResult] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // My Assignments filter
+  const [myAssignmentsOnly, setMyAssignmentsOnly] = useState(false);
+
   // Cities data (for needs_email and ready tabs)
   const [cities, setCities] = useState<CityStats[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
@@ -1790,6 +2058,7 @@ export default function ProviderOutreachPage() {
     in_sequence: 0,
     needs_call: 0,
     re_engage: 0,
+    not_interested: 0,
     claimed: 0,
     archived: 0,
     needs_email: 0,
@@ -1885,6 +2154,7 @@ export default function ProviderOutreachPage() {
     };
   } | null>(null);
   const [sequencePreviewLoading, setSequencePreviewLoading] = useState(false);
+  const [sequencePreviewError, setSequencePreviewError] = useState<string | null>(null);
   // For batch preview: which provider to show and which email day
   const [previewProviderId, setPreviewProviderId] = useState<string | null>(null);
   const [previewDay, setPreviewDay] = useState<number>(0);
@@ -2005,6 +2275,7 @@ export default function ProviderOutreachPage() {
     if (providerIds.length === 0) return;
 
     setSequencePreviewLoading(true);
+    setSequencePreviewError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
         method: "POST",
@@ -2015,6 +2286,7 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const data = await res.json();
         setSequencePreviewData(data);
+        setSequencePreviewError(null);
         // Set initial preview provider to first valid one
         const firstValid = data.providers?.find((p: { valid: boolean }) => p.valid);
         if (firstValid) {
@@ -2022,11 +2294,15 @@ export default function ProviderOutreachPage() {
         }
         setPreviewDay(0); // Start with Day 0 (intro email)
       } else {
-        console.error("Failed to fetch sequence preview");
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg = errorData.error || `API error: ${res.status}`;
+        console.error("Failed to fetch sequence preview:", errorMsg);
+        setSequencePreviewError(errorMsg);
         setSequencePreviewData(null);
       }
     } catch (error) {
       console.error("Error fetching sequence preview:", error);
+      setSequencePreviewError(error instanceof Error ? error.message : "Network error");
       setSequencePreviewData(null);
     } finally {
       setSequencePreviewLoading(false);
@@ -2091,6 +2367,7 @@ export default function ProviderOutreachPage() {
       if (emailFilter) params.set("email_filter", emailFilter);
       if (city) params.set("city", city);
       if (searchTerm) params.set("search", searchTerm);
+      if (myAssignmentsOnly) params.set("assigned_to", "me");
 
       const res = await fetch(`/api/admin/provider-outreach?${params}`);
       if (res.ok) {
@@ -2106,7 +2383,7 @@ export default function ProviderOutreachPage() {
     } finally {
       setLoadingProviders(false);
     }
-  }, [selectedState, activeTab]);
+  }, [selectedState, activeTab, myAssignmentsOnly]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -2224,6 +2501,7 @@ export default function ProviderOutreachPage() {
         in_sequence: 0,
         needs_call: 0,
         re_engage: 0,
+        not_interested: 0,
         claimed: 0,
         archived: 0,
         needs_email: 0,
@@ -2766,25 +3044,39 @@ export default function ProviderOutreachPage() {
 
       {/* Stage Tabs - only show when a state is selected */}
       {selectedState && (
-        <div className="flex gap-1 mb-6 border-b border-gray-100 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.value
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              {tab.label}
-              {tab.count > 0 && (
-                <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="flex items-center justify-between mb-6 border-b border-gray-100">
+          <div className="flex gap-1 overflow-x-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === tab.value
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          {/* My Assignments toggle - only show for stages where assignment applies */}
+          {["in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
+            <label className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
+              <input
+                type="checkbox"
+                checked={myAssignmentsOnly}
+                onChange={(e) => setMyAssignmentsOnly(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span>My Assignments</span>
+            </label>
+          )}
         </div>
       )}
 
@@ -2873,6 +3165,7 @@ export default function ProviderOutreachPage() {
                       // Show confirmation modal for starting sequence
                       setSequenceConfirmProviders(selectedProvidersWithEmail);
                       setShowSequenceConfirm(true);
+                      setShowSequencePreview(true); // Auto-expand preview accordion
                       // Fetch preview data for the modal
                       fetchSequencePreview(selectedProvidersWithEmail.map(p => p.provider_id));
                     } else {
@@ -2961,8 +3254,8 @@ export default function ProviderOutreachPage() {
                     <div className="w-24 text-sm text-gray-600 truncate">
                       {provider.city || "—"}
                     </div>
-                    {/* Stage Badge */}
-                    <div className="w-28">
+                    {/* Stage Badge + Assignment */}
+                    <div className="w-28 flex items-center gap-1.5">
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
                         provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
                         provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
@@ -2973,6 +3266,13 @@ export default function ProviderOutreachPage() {
                       }`}>
                         {STAGE_LABELS[provider.stage]}
                       </span>
+                      {provider.assigned_to && (
+                        <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center" title="Assigned">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                          </svg>
+                        </span>
+                      )}
                     </div>
                     {/* Actions - hide for claimed only (archived can be unarchived) */}
                     <div className="w-10 flex items-center gap-1">
@@ -3078,6 +3378,32 @@ export default function ProviderOutreachPage() {
                 providerName: provider.provider_name,
                 stage: provider.stage,
               });
+            }}
+            onArchive={(provider) => {
+              setActionModalProvider(provider);
+            }}
+          />
+        ) : activeTab === "re_engage" ? (
+          // Re-Engage tab: cycle-aware queue view
+          <ReEngageQueue
+            providers={providers}
+            loading={loadingProviders}
+            onReEngageAction={(providerId, result) => {
+              // Provider moved out of re_engage - remove from local state
+              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+              // Update stage counts
+              setStageCounts((prev) => ({
+                ...prev,
+                re_engage: Math.max(0, prev.re_engage - 1),
+                ...(result.new_stage === "not_contacted" && { ready: prev.ready + 1 }),
+                ...(result.new_stage === "not_interested" && { not_interested: prev.not_interested + 1 }),
+                ...(result.new_stage === "archived" && { archived: prev.archived + 1 }),
+              }));
+              // Refresh to sync
+              fetchProviders();
+            }}
+            onArchive={(provider) => {
+              setActionModalProvider(provider);
             }}
           />
         ) : (
@@ -3257,6 +3583,45 @@ export default function ProviderOutreachPage() {
                       <div>
                         <p className="font-medium text-gray-900">Archive</p>
                         <p className="text-xs text-gray-500">Stop all outreach to this provider</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Remove Assignment - only show if provider is assigned */}
+                {actionModalProvider.assigned_to && (
+                  <button
+                    onClick={async () => {
+                      setActionLoading(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/update-assignment", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            provider_id: actionModalProvider.provider_id,
+                            assigned_to: null,
+                          }),
+                        });
+                        if (res.ok) {
+                          closeActionModal();
+                          fetchProviders();
+                        }
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    }}
+                    disabled={actionLoading}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-gray-500 mt-0.5">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">Remove Assignment</p>
+                        <p className="text-xs text-gray-500">Unassign this provider so anyone can pick it up</p>
                       </div>
                     </div>
                   </button>
@@ -3582,6 +3947,11 @@ export default function ProviderOutreachPage() {
                       <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 text-center text-sm text-gray-500">
                         Loading email previews...
                       </div>
+                    ) : sequencePreviewError ? (
+                      <div className="rounded-lg bg-red-50 p-4 border border-red-200 text-center text-sm text-red-600">
+                        <p className="font-medium">Failed to load email preview</p>
+                        <p className="mt-1 text-xs text-red-500">{sequencePreviewError}</p>
+                      </div>
                     ) : sequencePreviewData?.cadence ? (
                       <>
                         {/* Provider selector for batch preview */}
@@ -3647,7 +4017,7 @@ export default function ProviderOutreachPage() {
                                 </div>
                                 <div className="text-xs text-gray-500 space-y-0.5">
                                   <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
-                                  <p><span className="font-medium text-gray-600">From:</span> TJ Falohun &lt;tj@olera.care&gt;</p>
+                                  <p><span className="font-medium text-gray-600">From:</span> Dr. Logan DuBose · Olera &lt;noreply@oleracare.com&gt;</p>
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>
@@ -3678,15 +4048,23 @@ export default function ProviderOutreachPage() {
                             <span className="text-xs text-gray-400">+3 days</span>
                           </div>
                           <p className="text-sm font-medium text-gray-800">Follow-up Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Gentle reminder about the profile</p>
+                          <p className="text-xs text-gray-500 mt-1">Profile gaps and value proposition</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 7</span>
                             <span className="text-xs text-gray-400">+7 days</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-800">Final Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Last outreach before moving to calls</p>
+                          <p className="text-sm font-medium text-gray-800">Demand-loss Email</p>
+                          <p className="text-xs text-gray-500 mt-1">What families couldn't ask you</p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 14</span>
+                            <span className="text-xs text-gray-400">+14 days</span>
+                          </div>
+                          <p className="text-sm font-medium text-gray-800">Summary Email</p>
+                          <p className="text-xs text-gray-500 mt-1">Everything in one place</p>
                         </div>
                       </>
                     )}
@@ -3702,6 +4080,7 @@ export default function ProviderOutreachPage() {
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
                 }}
@@ -3720,6 +4099,7 @@ export default function ProviderOutreachPage() {
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
                 }}

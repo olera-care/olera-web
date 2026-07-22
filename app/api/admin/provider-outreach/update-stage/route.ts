@@ -118,10 +118,11 @@ export async function POST(request: NextRequest) {
     // Check BOTH tracking table AND system-wide archive (business_profiles.admin_archived)
     const providersBeingUnarchived: string[] = [];
 
-    // First, check tracking table for archived/not_interested
+    // First, check tracking table for archived (hard terminal only)
+    // not_interested is soft terminal - no system-wide archive to undo
     for (const pid of provider_ids) {
       const existing = existingMap.get(pid);
-      if (existing && (existing.stage === "archived" || existing.stage === "not_interested") && stage !== "archived") {
+      if (existing && existing.stage === "archived" && stage !== "archived") {
         providersBeingUnarchived.push(pid);
       }
     }
@@ -193,6 +194,7 @@ export async function POST(request: NextRequest) {
       notes: string | null;
       sequence_started_at?: string;
       claimed_at?: string;
+      needs_call_reason?: string;
     }[] = [];
 
     for (const providerId of provider_ids) {
@@ -227,6 +229,11 @@ export async function POST(request: NextRequest) {
           insertRow.claimed_at = nowIso;
         }
 
+        // Set needs_call_reason for new needs_call entries
+        if (stage === "needs_call") {
+          insertRow.needs_call_reason = "manual";
+        }
+
         toInsert.push(insertRow);
       }
     }
@@ -234,7 +241,7 @@ export async function POST(request: NextRequest) {
     // Perform updates
     if (toUpdate.length > 0) {
       const updateIds = toUpdate.map((t) => t.id);
-      const updateData: { stage: OutreachStage; stage_changed_at: string; notes?: string | null } = {
+      const updateData: { stage: OutreachStage; stage_changed_at: string; notes?: string | null; needs_call_reason?: string | null } = {
         stage: stage as OutreachStage,
         stage_changed_at: nowIso,
       };
@@ -245,6 +252,10 @@ export async function POST(request: NextRequest) {
         } else {
           updateData.notes = notes;
         }
+      }
+      // Set needs_call_reason for moves to needs_call
+      if (stage === "needs_call") {
+        updateData.needs_call_reason = "manual";
       }
 
       const { error: updateError } = await db

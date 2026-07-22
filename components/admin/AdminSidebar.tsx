@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
+import { useProviderOutreachRefresh } from "@/hooks/useProviderOutreachRefresh";
 
 interface AdminSidebarProps {
   adminUser: AdminUser;
@@ -128,6 +129,18 @@ const medjobsItems: NavItem[] = [
   { label: "Stats",     href: "/admin/medjobs/stats" },
 ];
 
+const providerOutreachItems: NavItem[] = [
+  { label: "States",    href: "/admin/provider-outreach/sites" },
+  { label: "In Basket", href: "/admin/provider-outreach/in-basket" },
+  { label: "Stats",     href: "/admin/provider-outreach/stats" },
+];
+
+const PROVIDER_OUTREACH_COUNTS_KEY: Record<string, string | null> = {
+  "/admin/provider-outreach/in-basket": "in_basket",
+  "/admin/provider-outreach/sites":     "sites",
+  "/admin/provider-outreach/stats":     null,
+};
+
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
  *  carry a count badge now; Stats is an overview surface. */
 const COUNTS_KEY: Record<string, string | null> = {
@@ -228,6 +241,7 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
       initial[s.key] = !s.defaultOpen;
     }
     initial.medjobs = false;
+    initial["provider-outreach"] = false;
     return initial;
   });
 
@@ -275,6 +289,40 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   useEffect(() => { void refetchCounts(); }, [refetchCounts]);
   useMedJobsRefresh(refetchCounts);
 
+  // Provider Outreach sidebar counts (same pattern as MedJobs)
+  const [poSidebarCounts, setPoSidebarCounts] = useState<SidebarCounts | null>(null);
+  const [poPulseKeys, setPoPulseKeys] = useState<Set<string>>(new Set());
+  const prevPoCountsRef = useRef<SidebarCounts | null>(null);
+  useEffect(() => {
+    const prev = prevPoCountsRef.current;
+    prevPoCountsRef.current = poSidebarCounts;
+    if (!poSidebarCounts || !prev) return;
+    const changed = new Set<string>();
+    for (const [key, entry] of Object.entries(poSidebarCounts)) {
+      const prevEntry = prev[key];
+      if (!prevEntry || !entry) continue;
+      if (entry.unread !== prevEntry.unread || entry.total !== prevEntry.total) {
+        changed.add(key);
+      }
+    }
+    if (changed.size === 0) return;
+    setPoPulseKeys(changed);
+    const timer = setTimeout(() => setPoPulseKeys(new Set()), 800);
+    return () => clearTimeout(timer);
+  }, [poSidebarCounts]);
+  const refetchPoCounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/provider-outreach/sidebar-counts");
+      if (!res.ok) return;
+      const data = (await res.json()) as { counts: SidebarCounts };
+      setPoSidebarCounts(data.counts ?? null);
+    } catch {
+      /* non-critical */
+    }
+  }, []);
+  useEffect(() => { void refetchPoCounts(); }, [refetchPoCounts]);
+  useProviderOutreachRefresh(refetchPoCounts);
+
   // Hydrate from localStorage after mount
   useEffect(() => {
     try {
@@ -295,7 +343,7 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   // collapsed state, not effective-open — the active section stays visually
   // open via the auto-expand override even after "Collapse all", so the
   // current page never disappears from the nav.
-  const allSectionKeys = [...navSections.map((s) => s.key), "medjobs"];
+  const allSectionKeys = [...navSections.map((s) => s.key), "medjobs", "provider-outreach"];
   const allCollapsed = allSectionKeys.every((k) => collapsed[k]);
   function setAll(collapse: boolean) {
     setCollapsed((prev) => {
@@ -318,6 +366,9 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   // is active, so the current page is always visible in the nav.
   const medjobsHasActive = medjobsItems.some((item) => isActive(item.href));
   const medjobsOpen = !collapsed.medjobs || medjobsHasActive;
+
+  const poHasActive = providerOutreachItems.some((item) => isActive(item.href));
+  const poOpen = !collapsed["provider-outreach"] || poHasActive;
   void STAKEHOLDERS_KEY;
   void stakeholdersChildren;
 
@@ -444,6 +495,71 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                             "ml-2 text-[11px] tabular-nums rounded px-1 transition-colors duration-500",
                             hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
                             countsKey && pulseKeys.has(countsKey)
+                              ? "bg-emerald-100"
+                              : "bg-transparent",
+                          ].join(" ")}
+                        >
+                          {fraction}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Provider Outreach section — exact structural copy of MedJobs above */}
+          <div key="provider-outreach" className="mt-1">
+            <button
+              onClick={() => toggle("provider-outreach")}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors duration-100"
+            >
+              Provider Outreach
+              <Chevron open={poOpen} />
+            </button>
+
+            {poOpen && (
+              <div className="mt-0.5 space-y-px">
+                {providerOutreachItems.map((item) => {
+                  const active = isActive(item.href);
+                  const countsKey = PROVIDER_OUTREACH_COUNTS_KEY[item.href];
+                  const entry = countsKey ? poSidebarCounts?.[countsKey] : undefined;
+                  const isPlainCount = item.href === "/admin/provider-outreach/sites";
+                  const hasUnread = !isPlainCount && !!entry && entry.unread > 0;
+                  const fraction = entry
+                    ? isPlainCount
+                      ? entry.total > 0
+                        ? String(entry.total)
+                        : null
+                      : hasUnread
+                        ? `${entry.unread}/${entry.total}`
+                        : entry.total > 0
+                          ? String(entry.total)
+                          : null
+                    : null;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={[
+                        "flex items-center justify-between pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                        active
+                          ? hasUnread
+                            ? "bg-gray-100 font-semibold text-gray-900"
+                            : "bg-gray-100 font-medium text-gray-900"
+                          : hasUnread
+                            ? "font-semibold text-gray-900 hover:bg-gray-50"
+                            : "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      <span>{item.label}</span>
+                      {fraction != null && (
+                        <span
+                          className={[
+                            "ml-2 text-[11px] tabular-nums rounded px-1 transition-colors duration-500",
+                            hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
+                            countsKey && poPulseKeys.has(countsKey)
                               ? "bg-emerald-100"
                               : "bg-transparent",
                           ].join(" ")}

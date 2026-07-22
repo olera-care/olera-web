@@ -145,6 +145,8 @@ interface OutreachProvider {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  // Assignment
+  assigned_to: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -2016,6 +2018,10 @@ export default function ProviderOutreachPage() {
   const [isSearchResult, setIsSearchResult] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // My Assignments filter
+  const [myAssignmentsOnly, setMyAssignmentsOnly] = useState(false);
+  const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
+
   // Cities data (for needs_email and ready tabs)
   const [cities, setCities] = useState<CityStats[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
@@ -2344,6 +2350,7 @@ export default function ProviderOutreachPage() {
       if (emailFilter) params.set("email_filter", emailFilter);
       if (city) params.set("city", city);
       if (searchTerm) params.set("search", searchTerm);
+      if (myAssignmentsOnly) params.set("assigned_to", "me");
 
       const res = await fetch(`/api/admin/provider-outreach?${params}`);
       if (res.ok) {
@@ -2353,13 +2360,16 @@ export default function ProviderOutreachPage() {
         if (data.stage_counts) {
           setStageCounts(data.stage_counts);
         }
+        if (data.current_admin_id) {
+          setCurrentAdminId(data.current_admin_id);
+        }
       }
     } catch (err) {
       console.error("Failed to fetch providers:", err);
     } finally {
       setLoadingProviders(false);
     }
-  }, [selectedState, activeTab]);
+  }, [selectedState, activeTab, myAssignmentsOnly]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -3020,25 +3030,37 @@ export default function ProviderOutreachPage() {
 
       {/* Stage Tabs - only show when a state is selected */}
       {selectedState && (
-        <div className="flex gap-1 mb-6 border-b border-gray-100 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.value
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              {tab.label}
-              {tab.count > 0 && (
-                <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="flex items-center justify-between mb-6 border-b border-gray-100">
+          <div className="flex gap-1 overflow-x-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === tab.value
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          {/* My Assignments toggle */}
+          <label className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
+            <input
+              type="checkbox"
+              checked={myAssignmentsOnly}
+              onChange={(e) => setMyAssignmentsOnly(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <span>My Assignments</span>
+          </label>
         </div>
       )}
 

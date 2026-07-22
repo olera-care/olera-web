@@ -72,7 +72,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_ids, dry_run = true } = body;
+    const { provider_ids, dry_run = true, assigned_to } = body;
+
+    // Resolve assigned_to: default to current admin if not specified
+    const assignedToId = assigned_to || adminUser.id;
 
     if (!provider_ids || !Array.isArray(provider_ids) || provider_ids.length === 0) {
       return NextResponse.json(
@@ -285,6 +288,7 @@ export async function POST(request: NextRequest) {
               .update({
                 stage: "in_sequence",
                 sequence_started_at: new Date().toISOString(),
+                assigned_to: assignedToId,
               })
               .eq("id", existingTracking.id);
 
@@ -300,6 +304,7 @@ export async function POST(request: NextRequest) {
                 city: preview.city,
                 state: preview.state,
                 sequence_started_at: new Date().toISOString(),
+                assigned_to: assignedToId,
               })
               .select("id")
               .single();

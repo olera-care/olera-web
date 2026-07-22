@@ -105,6 +105,8 @@ interface TrackingRow {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  // Assignment
+  assigned_to: string | null;
 }
 
 export interface OutreachProvider {
@@ -130,6 +132,8 @@ export interface OutreachProvider {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  // Assignment
+  assigned_to: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -213,6 +217,8 @@ export async function GET(request: NextRequest) {
     const search = (searchParams.get("search") || "").trim().toLowerCase();
     // email_filter: "needs_email" | "has_email" - only applies to not_contacted stage
     const emailFilter = searchParams.get("email_filter") as "needs_email" | "has_email" | null;
+    // assigned_to: "me" to filter by current admin, or a specific admin user ID
+    const assignedToParam = searchParams.get("assigned_to");
 
     if (!state) {
       return NextResponse.json({ error: "State parameter is required" }, { status: 400 });
@@ -251,6 +257,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
     }
 
+    // Resolve assigned_to filter: "me" means current admin user
+    const assignedToFilter = assignedToParam === "me" ? adminUser.id : assignedToParam;
+
     // For ALL non-claimed stages: query tracking but exclude providers who have since claimed
     // This ensures a provider only appears in ONE tab (Claimed wins if they've claimed)
     let trackingQuery = db
@@ -270,6 +279,11 @@ export async function GET(request: NextRequest) {
 
     if (city) {
       trackingQuery = trackingQuery.eq("city", city);
+    }
+
+    // Filter by assigned admin if specified
+    if (assignedToFilter) {
+      trackingQuery = trackingQuery.eq("assigned_to", assignedToFilter);
     }
 
     const { data: trackingRows, error: trackingError } = await trackingQuery;
@@ -337,13 +351,15 @@ export async function GET(request: NextRequest) {
           // Re-engage cycle fields
           cycle_number: t.cycle_number ?? 1,
           re_engage_entered_at: t.re_engage_entered_at ?? null,
+          // Assignment
+          assigned_to: t.assigned_to ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
     const enriched = await enrichWithEmailVerification(db, providers);
-    return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
+    return NextResponse.json({ providers: enriched, stage_counts: stageCounts, current_admin_id: adminUser.id });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
     return NextResponse.json(
@@ -382,7 +398,7 @@ async function getNotContactedProviders(
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
   const { data: trackedInState } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to")
     .eq("state", state);
 
   const trackedProviderIds = new Set(
@@ -447,6 +463,8 @@ async function getNotContactedProviders(
         // Re-engage cycle fields
         cycle_number: 1,
         re_engage_entered_at: null,
+        // Assignment
+        assigned_to: tracking?.assigned_to ?? null,
       };
     });
 
@@ -543,6 +561,8 @@ async function getClaimedProviders(
         // Re-engage cycle fields
         cycle_number: 1,
         re_engage_entered_at: null,
+        // Assignment (not applicable for claimed)
+        assigned_to: null,
         verification_state: claimInfo?.verification_state || null,
       };
     })
@@ -627,6 +647,8 @@ async function getArchivedProviders(
         // Re-engage cycle fields
         cycle_number: t.cycle_number ?? 1,
         re_engage_entered_at: t.re_engage_entered_at ?? null,
+        // Assignment
+        assigned_to: t.assigned_to ?? null,
       });
     }
   }
@@ -717,6 +739,8 @@ async function getArchivedProviders(
           // Re-engage cycle fields
           cycle_number: 1,
           re_engage_entered_at: null,
+          // Assignment (not applicable for system-archived)
+          assigned_to: null,
         });
       }
     }
@@ -778,7 +802,7 @@ async function searchProviders(
   // Get tracking data for all matched providers
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to")
     .in("provider_id", providerIds);
 
   const trackingMap = new Map(
@@ -857,6 +881,8 @@ async function searchProviders(
       // Re-engage cycle fields
       cycle_number: tracking?.cycle_number ?? 1,
       re_engage_entered_at: tracking?.re_engage_entered_at ?? null,
+      // Assignment
+      assigned_to: tracking?.assigned_to ?? null,
       verification_state: claimInfo?.verification_state || null,
     };
   });

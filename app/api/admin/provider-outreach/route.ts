@@ -50,22 +50,26 @@ async function batchedInQuery<T>(
 
 /**
  * Outreach stages and their properties
+ *
+ * UI tabs: Needs Email | Ready | In Sequence | Follow Up | Re-Engage | Claimed | Archived
+ *
+ * "Needs Email" and "Ready" are filtered views of "not_contacted" (based on email presence)
+ * "Follow Up" is the UI label for "needs_call" stage
+ * "Re-Engage" is a new stage for providers needing re-engagement
  */
 export const OUTREACH_STAGES = [
   "not_contacted",
   "in_sequence",
-  "needs_call",
-  "called",
+  "needs_call",  // UI: "Follow Up"
+  "re_engage",   // New stage for re-engagement
   "claimed",
   "archived",
-  "hidden",
 ] as const;
 
 export type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
-// Called is terminal for our outreach effort (ball is in provider's court)
-// Claimed and Archived are also terminal
-export const TERMINAL_STAGES: OutreachStage[] = ["called", "claimed", "archived"];
+// Claimed and Archived are terminal stages
+export const TERMINAL_STAGES: OutreachStage[] = ["claimed", "archived"];
 
 interface ProviderRow {
   provider_id: string;
@@ -90,6 +94,10 @@ interface TrackingRow {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  // Follow-up queue fields
+  due_date: string | null;
+  resend_count: number;
+  no_answer_count: number;
 }
 
 export interface OutreachProvider {
@@ -107,8 +115,56 @@ export interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
+  // Follow-up queue fields
+  due_date: string | null;
+  resend_count: number;
+  no_answer_count: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  // Email verification status from email_verifications table
+  email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
+  // Whether email has been manually overridden/trusted (from email_overrides table)
+  is_email_overridden?: boolean;
+}
+
+/**
+ * Enrich providers with email verification status and override status.
+ * Queries both email_verifications and email_overrides tables.
+ */
+async function enrichWithEmailVerification(
+  db: ReturnType<typeof getServiceClient>,
+  providers: OutreachProvider[]
+): Promise<OutreachProvider[]> {
+  // Get all unique emails (lowercase, trimmed)
+  const emails = providers
+    .map((p) => p.email?.toLowerCase().trim())
+    .filter((e): e is string => !!e);
+
+  if (emails.length === 0) return providers;
+
+  // Fetch verification statuses and overrides in parallel
+  const [{ data: verifications }, { data: overrides }] = await Promise.all([
+    db.from("email_verifications").select("email, status").in("email", emails),
+    db.from("email_overrides").select("email").in("email", emails),
+  ]);
+
+  // Build lookup maps
+  const statusMap = new Map(
+    (verifications || []).map((v) => [v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown"])
+  );
+  const overrideSet = new Set(
+    (overrides || []).map((o) => o.email.toLowerCase())
+  );
+
+  // Enrich providers
+  return providers.map((p) => {
+    const emailKey = p.email?.toLowerCase().trim();
+    return {
+      ...p,
+      email_verification_status: emailKey ? statusMap.get(emailKey) ?? null : null,
+      is_email_overridden: emailKey ? overrideSet.has(emailKey) : false,
+    };
+  });
 }
 
 /**
@@ -144,12 +200,16 @@ export async function GET(request: NextRequest) {
     const stage = (searchParams.get("stage") || "not_contacted") as OutreachStage;
     const city = searchParams.get("city");
     const search = (searchParams.get("search") || "").trim().toLowerCase();
+    // email_filter: "needs_email" | "has_email" - only applies to not_contacted stage
+    const emailFilter = searchParams.get("email_filter") as "needs_email" | "has_email" | null;
 
     if (!state) {
       return NextResponse.json({ error: "State parameter is required" }, { status: 400 });
     }
 
-    if (!OUTREACH_STAGES.includes(stage)) {
+    // Allow legacy "hidden" stage queries but don't include in validation
+    const validStages = [...OUTREACH_STAGES, "hidden"] as string[];
+    if (!validStages.includes(stage)) {
       return NextResponse.json({ error: "Invalid stage parameter" }, { status: 400 });
     }
 
@@ -161,19 +221,23 @@ export async function GET(request: NextRequest) {
     // If search is provided, search across ALL stages and return flat results
     if (search) {
       const searchResults = await searchProviders(db, state, search);
-      return NextResponse.json({ providers: searchResults, stage_counts: stageCounts, is_search: true });
+      const enriched = await enrichWithEmailVerification(db, searchResults);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, is_search: true });
     }
 
     if (stage === "not_contacted") {
       // Special case: providers NOT in tracking OR with stage = not_contacted
-      const providers = await getNotContactedProviders(db, state, city);
-      return NextResponse.json({ providers, stage_counts: stageCounts });
+      // email_filter allows splitting into "Needs Email" and "Ready" tabs
+      const providers = await getNotContactedProviders(db, state, city, emailFilter);
+      const enriched = await enrichWithEmailVerification(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
     }
 
     if (stage === "claimed") {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
-      return NextResponse.json({ providers, stage_counts: stageCounts });
+      const enriched = await enrichWithEmailVerification(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
     }
 
     // For ALL non-claimed stages: query tracking but exclude providers who have since claimed
@@ -186,7 +250,8 @@ export async function GET(request: NextRequest) {
     // When querying "archived", use special function that merges tracking + system-wide archived
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
-      return NextResponse.json({ providers, stage_counts: stageCounts });
+      const enriched = await enrichWithEmailVerification(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
     }
 
     // For other stages: query tracking but exclude providers who have since claimed
@@ -253,12 +318,17 @@ export async function GET(request: NextRequest) {
           stage: t.stage as OutreachStage,
           stage_changed_at: t.stage_changed_at,
           notes: t.notes,
+          // Follow-up queue fields
+          due_date: t.due_date,
+          resend_count: t.resend_count ?? 0,
+          no_answer_count: t.no_answer_count ?? 0,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
-    return NextResponse.json({ providers, stage_counts: stageCounts });
+    const enriched = await enrichWithEmailVerification(db, providers);
+    return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
     return NextResponse.json(
@@ -279,7 +349,8 @@ export async function GET(request: NextRequest) {
 async function getNotContactedProviders(
   db: ReturnType<typeof getServiceClient>,
   state: string,
-  city: string | null
+  city: string | null,
+  emailFilter?: "needs_email" | "has_email" | null
 ): Promise<OutreachProvider[]> {
   // Step 1: Get all claimed provider IDs (small set ~600 total)
   // We query ALL claimed, then filter in JS - avoids large IN clause
@@ -296,7 +367,7 @@ async function getNotContactedProviders(
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
   const { data: trackedInState } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count")
     .eq("state", state);
 
   const trackedProviderIds = new Set(
@@ -335,7 +406,7 @@ async function getNotContactedProviders(
   }
 
   // Step 4: Filter in JavaScript (no large IN clause needed)
-  const result: OutreachProvider[] = (providers as ProviderRow[])
+  let result: OutreachProvider[] = (providers as ProviderRow[])
     .filter((p) => !claimedProviderIds.has(p.provider_id) && !trackedProviderIds.has(p.provider_id))
     .map((p) => {
       const tracking = notContactedMap.get(p.provider_id);
@@ -353,11 +424,21 @@ async function getNotContactedProviders(
         stage: "not_contacted" as OutreachStage,
         stage_changed_at: tracking?.stage_changed_at ?? null,
         notes: tracking?.notes ?? null,
+        // Follow-up queue fields (not applicable for not_contacted)
+        due_date: null,
+        resend_count: 0,
+        no_answer_count: 0,
       };
-    })
-    .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+    });
 
-  return result;
+  // Step 5: Apply email filter if specified (for Needs Email / Ready tabs)
+  if (emailFilter === "needs_email") {
+    result = result.filter((p) => !p.email || !p.email.trim());
+  } else if (emailFilter === "has_email") {
+    result = result.filter((p) => p.email && p.email.trim());
+  }
+
+  return result.sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 }
 
 /**
@@ -435,6 +516,10 @@ async function getClaimedProviders(
         stage: "claimed" as OutreachStage,
         stage_changed_at: claimInfo?.timestamp || null,
         notes: null,
+        // Follow-up queue fields (not applicable for claimed)
+        due_date: null,
+        resend_count: 0,
+        no_answer_count: 0,
         verification_state: claimInfo?.verification_state || null,
       };
     })
@@ -510,6 +595,10 @@ async function getArchivedProviders(
         stage: "archived" as OutreachStage,
         stage_changed_at: t.stage_changed_at,
         notes: t.notes,
+        // Follow-up queue fields (not applicable for archived)
+        due_date: null,
+        resend_count: 0,
+        no_answer_count: 0,
       });
     }
   }
@@ -592,6 +681,10 @@ async function getArchivedProviders(
           stage: "archived" as OutreachStage,
           stage_changed_at: archivedAt,
           notes,
+          // Follow-up queue fields (not applicable for archived)
+          due_date: null,
+          resend_count: 0,
+          no_answer_count: 0,
         });
       }
     }
@@ -653,7 +746,7 @@ async function searchProviders(
   // Get tracking data for all matched providers
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count")
     .in("provider_id", providerIds);
 
   const trackingMap = new Map(
@@ -724,6 +817,10 @@ async function searchProviders(
       stage,
       stage_changed_at: stageChangedAt,
       notes,
+      // Follow-up queue fields (from tracking if available)
+      due_date: tracking?.due_date ?? null,
+      resend_count: tracking?.resend_count ?? 0,
+      no_answer_count: tracking?.no_answer_count ?? 0,
       verification_state: claimInfo?.verification_state || null,
     };
   });
@@ -740,22 +837,29 @@ async function searchProviders(
  * Key logic:
  * - "claimed" count = actual claimed providers (from business_profiles with account_id)
  * - Active stages (in_sequence, needs_call) = tracking count MINUS those who have since claimed
- * - "called" = terminal for our outreach (ball in provider's court), count MINUS those who claimed
  * - "archived" = tracking count + system-wide archived (admin_archived = true in business_profiles)
  * - "not_contacted" = total providers - claimed - tracked - system-archived
  */
+interface StageCounts extends Record<OutreachStage, number> {
+  // Additional counts for email-based filtering of not_contacted
+  needs_email: number;
+  ready: number;  // has_email
+}
+
 async function getStageCounts(
   db: ReturnType<typeof getServiceClient>,
   state: string
-): Promise<Record<OutreachStage, number>> {
-  const counts: Record<OutreachStage, number> = {
+): Promise<StageCounts> {
+  const counts: StageCounts = {
     not_contacted: 0,
     in_sequence: 0,
     needs_call: 0,
-    called: 0,
+    re_engage: 0,
     claimed: 0,
     archived: 0,
-    hidden: 0,
+    // Additional email-based counts
+    needs_email: 0,
+    ready: 0,
   };
 
   // Step 1: Get total provider count for this state (just count, not all IDs)
@@ -937,6 +1041,35 @@ async function getStageCounts(
     (id) => !claimedProviderIds.has(id) && !systemArchivedProviderIds.has(id)
   ).length;
   counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed - additionalSystemArchived);
+
+  // Step 8: Calculate needs_email and ready counts (subsets of not_contacted)
+  // We need to query providers to check email status
+  // Build exclusion sets for efficient filtering
+  const excludedIds = new Set([
+    ...claimedProviderIds,
+    ...existingTrackedIds,  // Already tracked in a stage
+    ...systemArchivedProviderIds,
+  ]);
+
+  // Query providers with email vs without email
+  const { data: providersWithEmail } = await db
+    .from("olera-providers")
+    .select("provider_id, email")
+    .eq("state", state)
+    .or("deleted.is.null,deleted.eq.false");
+
+  if (providersWithEmail) {
+    for (const p of providersWithEmail) {
+      if (excludedIds.has(p.provider_id)) continue;
+      // Also check if they're in tracking with not_contacted stage (those are still "not contacted")
+      // But we already filtered these out via existingTrackedIds which excludes not_contacted
+      if (p.email && p.email.trim()) {
+        counts.ready++;
+      } else {
+        counts.needs_email++;
+      }
+    }
+  }
 
   return counts;
 }

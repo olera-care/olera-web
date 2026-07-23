@@ -85,6 +85,10 @@
       "schedule": "45 * * * *"
     },
     {
+      "path": "/api/cron/provider-outreach-auto-re-engage",
+      "schedule": "0 6 * * *"
+    },
+    {
       "path": "/api/cron/staffing-send-email2",
       "schedule": "0 * * * *"
     },

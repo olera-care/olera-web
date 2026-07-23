@@ -111,6 +111,41 @@ export async function POST(request: NextRequest) {
 
     const existingMap = new Map((existingTracking || []).map((t) => [t.provider_id, t]));
 
+    // ── Clean up pending tasks when moving OUT of in_sequence ──
+    // Find providers being moved FROM in_sequence to another stage
+    const providersLeavingSequence: string[] = [];
+    for (const pid of provider_ids) {
+      const existing = existingMap.get(pid);
+      if (existing && existing.stage === "in_sequence" && stage !== "in_sequence") {
+        providersLeavingSequence.push(pid);
+      }
+    }
+
+    // Delete their pending tasks to prevent stale emails from firing
+    if (providersLeavingSequence.length > 0) {
+      // Get tracking IDs for these providers
+      const trackingIdsToClean = providersLeavingSequence
+        .map((pid) => existingMap.get(pid)?.id)
+        .filter((id): id is string => !!id);
+
+      if (trackingIdsToClean.length > 0) {
+        const { error: cleanupError, count: deletedCount } = await db
+          .from("provider_outreach_tasks")
+          .delete()
+          .in("tracking_id", trackingIdsToClean)
+          .eq("status", "pending");
+
+        if (cleanupError) {
+          console.error("[provider-outreach/update-stage] Task cleanup error:", cleanupError);
+          // Non-fatal - continue with stage update
+        } else {
+          console.log(
+            `[provider-outreach/update-stage] Cleaned up ${deletedCount ?? 0} pending task(s) for ${providersLeavingSequence.length} provider(s) leaving in_sequence`
+          );
+        }
+      }
+    }
+
     // Detect archive/unarchive scenarios
     const isArchiving = stage === "archived";
 

@@ -170,11 +170,18 @@ async function isEmailSuppressed(db: DB, email: string): Promise<boolean> {
 /**
  * Execute a single provider outreach email task.
  * Idempotent — calling twice for the same task is safe (second call returns task_already_taken).
+ *
+ * Race condition note: We intentionally claim the task BEFORE validating stage.
+ * This is safer than the alternative:
+ *   - If we checked stage first, a provider could claim between check and claim,
+ *     and we'd send email to a now-claimed provider (bad!).
+ *   - By claiming first, we lock the task, then validate. If stage changed,
+ *     we skip sending and mark as "skipped_stage_changed" (correct!).
  */
 export async function executeProviderOutreachTask(taskId: string): Promise<ExecuteResult> {
   const db = getServiceClient();
 
-  // 1. Atomically claim the task
+  // 1. Atomically claim the task (locks it so no duplicate sends)
   const claimed = await claimTask(db, taskId);
   if (!claimed) {
     return { task_id: taskId, outcome: "task_already_taken" };
@@ -184,6 +191,7 @@ export async function executeProviderOutreachTask(taskId: string): Promise<Execu
   const recipientEmail = (payload.recipient_email as string) || "";
 
   // 2. Validate tracking record is still in in_sequence stage
+  // If provider claimed/archived since task was queued, skip sending
   const { data: tracking } = await db
     .from("provider_outreach_tracking")
     .select("stage")

@@ -1,19 +1,6 @@
 /**
  * Auto Re-Engage Function for Provider Outreach
  *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │  ⚠️  NOT YET ACTIVATED - DO NOT SCHEDULE                                   │
- * │                                                                             │
- * │  This function is defined but MUST NOT be called automatically until the   │
- * │  email sending system is built. When that system is ready:                 │
- * │                                                                             │
- * │  1. Create a cron job that calls processEligibleReEngageProviders()        │
- * │  2. Add the cron to vercel.json and lib/crons/registry.ts                  │
- * │  3. Remove this warning block                                              │
- * │                                                                             │
- * │  The function is testable in isolation but MUST NOT run on a schedule yet. │
- * └─────────────────────────────────────────────────────────────────────────────┘
- *
  * Purpose:
  *   Automatically process providers who have been in the re_engage stage for
  *   at least RE_ENGAGE_WAITING_PERIOD_DAYS (30 days).
@@ -254,15 +241,7 @@ async function processProvider(
 /**
  * Process all eligible re-engage providers.
  *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │  ⚠️  NOT YET ACTIVATED - This function should NOT be called by a cron job  │
- * │      until the email sending system is built.                               │
- * │                                                                             │
- * │  When ready to activate:                                                    │
- * │  1. Create /api/cron/provider-outreach-auto-re-engage/route.ts             │
- * │  2. Add cron to vercel.json (recommend daily at 6 AM UTC)                  │
- * │  3. Add to lib/crons/registry.ts                                           │
- * └─────────────────────────────────────────────────────────────────────────────┘
+ * Called by /api/cron/provider-outreach-auto-re-engage (daily at 6 AM UTC).
  *
  * @param db - Supabase client with service role access
  * @param systemUserId - User ID for audit logging (use a system account or admin ID)

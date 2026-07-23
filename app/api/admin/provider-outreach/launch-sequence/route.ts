@@ -119,6 +119,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check for already-claimed providers (business_profiles with account_id set)
+    // These providers have claimed their listing and shouldn't receive outreach
+    const { data: claimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .in("source_provider_id", validProviderIds)
+      .not("account_id", "is", null);
+
+    const claimedProviderIds = new Set(
+      (claimedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
+    );
+
     // Batch-fetch city views for Day 7 demand-loss email
     // This is more efficient than fetching per-provider
     const cityViewsPairs = (providers || [])
@@ -144,6 +156,23 @@ export async function POST(request: NextRequest) {
           category: null,
           valid: false,
           errors: ["Provider not found"],
+          emails: [],
+        });
+        invalidCount++;
+        continue;
+      }
+
+      // Check if provider is already claimed
+      if (claimedProviderIds.has(providerId)) {
+        previews.push({
+          provider_id: providerId,
+          provider_name: provider.provider_name || providerId,
+          email: provider.email,
+          city: provider.city,
+          state: provider.state,
+          category: provider.provider_category,
+          valid: false,
+          errors: ["Provider has already claimed their listing"],
           emails: [],
         });
         invalidCount++;

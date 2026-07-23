@@ -169,17 +169,98 @@ async function processProvider(
       // ── Cycle 1 → Start Cycle 2 AUTOMATICALLY ──
       // Move directly to in_sequence and create email tasks
 
-      // Skip if no email - can't send sequence without email
+      // If no email, move to not_contacted (Needs Email tab) so admin can add email
+      // Don't skip - that would leave them stuck in re_engage forever
       if (!email) {
-        console.log(`[auto-re-engage] Skipping ${provider_id}: no email address`);
+        console.log(`[auto-re-engage] Moving ${provider_id} to Needs Email (no email for Cycle 2)`);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: noEmailUpdateError } = await (db as any)
+          .from("provider_outreach_tracking")
+          .update({
+            stage: "not_contacted",
+            stage_changed_at: nowIso,
+            cycle_number: 2,
+            resend_count: 0,
+            no_answer_count: 0,
+            due_date: null,
+            re_engage_entered_at: null,
+            notes: "Moved to Needs Email - no email for Cycle 2 auto-start",
+            updated_at: nowIso,
+          })
+          .eq("id", id);
+
+        if (noEmailUpdateError) {
+          throw new Error(`No-email update failed: ${noEmailUpdateError.message}`);
+        }
+
+        // Log touchpoint
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db as any).from("provider_outreach_touchpoints").insert([
+          {
+            provider_id,
+            touchpoint_type: "stage_changed",
+            details: {
+              old_stage: "re_engage",
+              new_stage: "not_contacted",
+              trigger: "auto_re_engage_no_email",
+              cycle: 2,
+              reason: "No email address available for Cycle 2",
+            },
+            admin_user_id: systemUserId,
+            created_at: nowIso,
+          },
+        ]);
+
         return {
           provider_id,
           action: "skipped",
-          skip_reason: "no_email",
+          skip_reason: "no_email_moved_to_needs_email",
+          new_stage: "not_contacted",
         };
       }
 
-      // 1. Update tracking record to in_sequence
+      // 1. Clean up any stale pending tasks from previous cycle
+      // This prevents old tasks from firing alongside new Cycle 2 tasks
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (db as any)
+        .from("provider_outreach_tasks")
+        .delete()
+        .eq("tracking_id", id)
+        .eq("status", "pending");
+
+      // 2. Create email tasks FIRST (before updating tracking)
+      // This way if task creation fails, provider stays in re_engage and will be retried
+      const schedule = generateTaskSchedule(now);
+      const taskRows = schedule.map((step) => ({
+        tracking_id: id,
+        provider_id,
+        task_type: "outreach_email_send",
+        cadence_day: step.day,
+        template_key: step.templateKey,
+        due_at: step.dueAt.toISOString(),
+        status: "pending",
+        payload: {
+          recipient_email: email,
+          provider_name: provider_name || "Provider",
+          city: city || "",
+          state: state || "",
+          category: provider_category || "",
+          cycle: 2,
+        },
+      }));
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: tasksError } = await (db as any)
+        .from("provider_outreach_tasks")
+        .insert(taskRows);
+
+      if (tasksError) {
+        // Task creation failed - provider stays in re_engage, will retry next run
+        throw new Error(`Task creation failed: ${tasksError.message}`);
+      }
+
+      // 2. Now update tracking to in_sequence (tasks exist, safe to move stage)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: updateError } = await (db as any)
         .from("provider_outreach_tracking")
@@ -197,37 +278,11 @@ async function processProvider(
         .eq("id", id);
 
       if (updateError) {
-        throw new Error(`Update failed: ${updateError.message}`);
-      }
-
-      // 2. Create email tasks for all 4 cadence steps
-      const schedule = generateTaskSchedule(now);
-      const taskRows = schedule.map((step) => ({
-        tracking_id: id,
-        provider_id,
-        task_type: "outreach_email_send",
-        cadence_day: step.day,
-        template_key: step.templateKey,
-        due_at: step.dueAt.toISOString(),
-        status: "pending",
-        payload: {
-          provider_name: provider_name || "Provider",
-          email,
-          city: city || "",
-          state: state || "",
-          category: provider_category || "",
-          cycle: 2,
-        },
-      }));
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: tasksError } = await (db as any)
-        .from("provider_outreach_tasks")
-        .insert(taskRows);
-
-      if (tasksError) {
-        console.error(`[auto-re-engage] Task creation failed for ${provider_id}:`, tasksError);
-        // Don't fail the whole operation - provider is in in_sequence, tasks can be manually created
+        // Tasks were created but tracking update failed - this is bad but rare
+        // Tasks won't fire because stage isn't in_sequence, so no harm done
+        // Provider will be picked up next run (still in re_engage) and tasks will be duplicated
+        // but the auto-send executor dedupes by checking status=pending
+        throw new Error(`Tracking update failed: ${updateError.message}`);
       }
 
       // 3. Log touchpoints

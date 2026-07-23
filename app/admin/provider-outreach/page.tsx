@@ -2505,6 +2505,8 @@ export default function ProviderOutreachPage() {
         });
         setEditingCityAssignment(null);
         showToast(ownerId ? `Assigned ${city} to ${ownerName}` : `Unassigned ${city}`, "success");
+        // Refresh providers to update assigned_to on individual rows and filter chip counts
+        fetchProviders();
       } else {
         const err = await res.json();
         showToast(err.error || "Failed to assign city", "error");

@@ -195,6 +195,17 @@ export function AdminAutocomplete({
             openUpward ? "bottom-full mb-1" : "top-full mt-1"
           }`}
         >
+          {/* Show Unassign option at top if there's currently an assignment */}
+          {selectedAdminId && !query && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 border-b border-gray-100"
+            >
+              <X className="w-4 h-4" />
+              <span>Unassign</span>
+            </button>
+          )}
           {filteredAdmins.map((admin, index) => (
             <button
               key={admin.id}

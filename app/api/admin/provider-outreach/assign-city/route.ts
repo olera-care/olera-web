@@ -82,18 +82,29 @@ export async function POST(request: NextRequest) {
     const allProviderIds = new Set((allProvidersInCity || []).map((p) => p.provider_id));
 
     // 3. Get existing tracking records in this city
-    const { data: trackingRecords, error: trackingError } = await db
-      .from("provider_outreach_tracking")
-      .select("id, provider_id, assigned_to")
-      .eq("state", state)
-      .eq("city", city);
+    // Use provider_ids to find tracking records (more reliable than city filter)
+    const providerIdArray = [...allProviderIds];
+    let trackingRecords: Array<{ id: string; provider_id: string; assigned_to: string | null }> = [];
 
-    if (trackingError) {
-      console.error("[assign-city] Failed to fetch tracking records:", trackingError);
-      return NextResponse.json({ error: "Failed to fetch tracking records" }, { status: 500 });
+    if (providerIdArray.length > 0) {
+      // Batch query to avoid URL length limits
+      for (let i = 0; i < providerIdArray.length; i += IN_CLAUSE_BATCH_SIZE) {
+        const batch = providerIdArray.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+        const { data: batchRecords, error: trackingError } = await db
+          .from("provider_outreach_tracking")
+          .select("id, provider_id, assigned_to")
+          .in("provider_id", batch);
+
+        if (trackingError) {
+          console.error("[assign-city] Failed to fetch tracking records batch:", trackingError);
+          // Continue instead of failing - we'll just create new records for untracked providers
+        } else if (batchRecords) {
+          trackingRecords.push(...batchRecords);
+        }
+      }
     }
 
-    const trackedProviderIds = new Set((trackingRecords || []).map((t) => t.provider_id));
+    const trackedProviderIds = new Set(trackingRecords.map((t) => t.provider_id));
 
     // 4. Get claimed providers (exclude from assignment)
     const { data: claimedBps } = await db

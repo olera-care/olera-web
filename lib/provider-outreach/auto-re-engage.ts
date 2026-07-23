@@ -1,37 +1,24 @@
 /**
  * Auto Re-Engage Function for Provider Outreach
  *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │  ⚠️  NOT YET ACTIVATED - DO NOT SCHEDULE                                   │
- * │                                                                             │
- * │  This function is defined but MUST NOT be called automatically until the   │
- * │  email sending system is built. When that system is ready:                 │
- * │                                                                             │
- * │  1. Create a cron job that calls processEligibleReEngageProviders()        │
- * │  2. Add the cron to vercel.json and lib/crons/registry.ts                  │
- * │  3. Remove this warning block                                              │
- * │                                                                             │
- * │  The function is testable in isolation but MUST NOT run on a schedule yet. │
- * └─────────────────────────────────────────────────────────────────────────────┘
- *
  * Purpose:
  *   Automatically process providers who have been in the re_engage stage for
  *   at least RE_ENGAGE_WAITING_PERIOD_DAYS (30 days).
  *
  * Logic:
- *   - Cycle 1 providers → Move to "not_contacted" (Ready tab) as cycle 2
+ *   - Cycle 1 providers → Automatically start Cycle 2 (move to in_sequence, create email tasks)
  *   - Cycle 2 providers → Move to "not_interested" (soft terminal)
+ *
+ * Key Point: Cycle 2 starts AUTOMATICALLY - no manual re-launch needed.
+ * The cron creates email tasks and moves providers directly to in_sequence.
  *
  * Terminal States:
  *   - not_interested = soft terminal (stops outreach, questions/connections still flow)
  *   - archived = hard terminal (system-wide block, only set via explicit Archive action)
- *
- * This ensures providers get a second chance at outreach after a cooling-off
- * period, but are moved to soft terminal after two unsuccessful cycles.
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { RE_ENGAGE_WAITING_PERIOD_DAYS } from "./cadence";
+import { RE_ENGAGE_WAITING_PERIOD_DAYS, generateTaskSchedule } from "./cadence";
 
 // Re-export the constant for external visibility
 export { RE_ENGAGE_WAITING_PERIOD_DAYS };
@@ -41,10 +28,12 @@ export { RE_ENGAGE_WAITING_PERIOD_DAYS };
  */
 interface ProcessResult {
   provider_id: string;
-  action: "cycle_started" | "soft_terminal" | "error";
+  action: "cycle_started" | "soft_terminal" | "error" | "skipped";
   new_cycle?: number;
   new_stage?: string;
+  tasks_created?: number;
   error?: string;
+  skip_reason?: string;
 }
 
 /**
@@ -54,8 +43,26 @@ export interface AutoReEngageResult {
   processed: number;
   cycle_started: number;
   soft_terminal: number;
+  skipped: number;
   errors: number;
   results: ProcessResult[];
+}
+
+/**
+ * Extended tracking record with provider info needed for task creation
+ */
+interface EligibleProvider {
+  id: string;
+  provider_id: string;
+  cycle_number: number;
+  re_engage_entered_at: string;
+  city: string | null;
+  state: string | null;
+  assigned_to: string | null;
+  // From olera-providers join
+  email: string | null;
+  provider_name: string | null;
+  provider_category: string | null;
 }
 
 /**
@@ -66,71 +73,201 @@ export interface AutoReEngageResult {
  *   - re_engage_entered_at is at least RE_ENGAGE_WAITING_PERIOD_DAYS ago
  *
  * @param db - Supabase client with service role access
- * @returns Array of eligible provider tracking records
+ * @returns Array of eligible provider tracking records with provider info
  */
 export async function findEligibleReEngageProviders(
   db: ReturnType<typeof createClient>
-): Promise<Array<{
-  id: string;
-  provider_id: string;
-  cycle_number: number;
-  re_engage_entered_at: string;
-  city: string | null;
-  state: string | null;
-}>> {
+): Promise<EligibleProvider[]> {
   // Calculate the cutoff date (30 days ago)
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - RE_ENGAGE_WAITING_PERIOD_DAYS);
   const cutoffIso = cutoffDate.toISOString();
 
-  const { data, error } = await db
+  // Get tracking records
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: trackingData, error: trackingError } = await (db as any)
     .from("provider_outreach_tracking")
-    .select("id, provider_id, cycle_number, re_engage_entered_at, city, state")
+    .select("id, provider_id, cycle_number, re_engage_entered_at, city, state, assigned_to")
     .eq("stage", "re_engage")
     .not("re_engage_entered_at", "is", null)
     .lte("re_engage_entered_at", cutoffIso);
 
-  if (error) {
-    console.error("[auto-re-engage] Query error:", error);
+  if (trackingError) {
+    console.error("[auto-re-engage] Query error:", trackingError);
     throw new Error("Failed to query eligible providers");
   }
 
-  return data || [];
+  if (!trackingData || trackingData.length === 0) {
+    return [];
+  }
+
+  // Get provider info for all eligible providers
+  const providerIds = trackingData.map((t: { provider_id: string }) => t.provider_id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: providerData, error: providerError } = await (db as any)
+    .from("olera-providers")
+    .select("provider_id, email, provider_name, provider_category")
+    .in("provider_id", providerIds);
+
+  if (providerError) {
+    console.error("[auto-re-engage] Provider query error:", providerError);
+    // Continue with empty provider data - we'll skip providers without email
+  }
+
+  const providerMap = new Map<string, { email: string | null; provider_name: string | null; provider_category: string | null }>(
+    (providerData || []).map((p: { provider_id: string; email: string | null; provider_name: string | null; provider_category: string | null }) => [
+      p.provider_id,
+      { email: p.email, provider_name: p.provider_name, provider_category: p.provider_category },
+    ])
+  );
+
+  // Merge tracking + provider data
+  return trackingData.map((t: { id: string; provider_id: string; cycle_number: number; re_engage_entered_at: string; city: string | null; state: string | null; assigned_to: string | null }) => {
+    const provider = providerMap.get(t.provider_id) || { email: null, provider_name: null, provider_category: null };
+    return {
+      id: t.id,
+      provider_id: t.provider_id,
+      cycle_number: t.cycle_number,
+      re_engage_entered_at: t.re_engage_entered_at,
+      city: t.city,
+      state: t.state,
+      assigned_to: t.assigned_to,
+      email: provider.email || null,
+      provider_name: provider.provider_name || null,
+      provider_category: provider.provider_category || null,
+    };
+  });
 }
 
 /**
  * Process a single provider's re-engagement action.
  *
- * This is the same logic as the manual /api/admin/provider-outreach/re-engage
- * endpoint, but designed to be called from an automated context.
+ * For Cycle 1:
+ *   - Move directly to in_sequence (NOT to Ready/not_contacted)
+ *   - Create email tasks automatically
+ *   - No manual intervention needed
+ *
+ * For Cycle 2:
+ *   - Move to not_interested (soft terminal)
  *
  * @param db - Supabase client with service role access
- * @param trackingRecord - The provider's tracking record
- * @param systemUserId - User ID for audit logging (use a system account)
+ * @param provider - The provider's tracking record with provider info
+ * @param systemUserId - User ID for audit logging (null for system/cron actions)
  * @returns Processing result
  */
 async function processProvider(
   db: ReturnType<typeof createClient>,
-  trackingRecord: {
-    id: string;
-    provider_id: string;
-    cycle_number: number;
-    re_engage_entered_at: string;
-  },
-  systemUserId: string
+  provider: EligibleProvider,
+  systemUserId: string | null
 ): Promise<ProcessResult> {
-  const { id, provider_id, cycle_number } = trackingRecord;
+  const { id, provider_id, cycle_number, email, provider_name, provider_category, city, state } = provider;
   const nowIso = new Date().toISOString();
+  const now = new Date();
 
   try {
     if (cycle_number === 1) {
-      // ── Cycle 1 → Start Cycle 2 ──
+      // ── Cycle 1 → Start Cycle 2 AUTOMATICALLY ──
+      // Move directly to in_sequence and create email tasks
+
+      // If no email, move to not_contacted (Needs Email tab) so admin can add email
+      // Don't skip - that would leave them stuck in re_engage forever
+      if (!email) {
+        console.log(`[auto-re-engage] Moving ${provider_id} to Needs Email (no email for Cycle 2)`);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: noEmailUpdateError } = await (db as any)
+          .from("provider_outreach_tracking")
+          .update({
+            stage: "not_contacted",
+            stage_changed_at: nowIso,
+            cycle_number: 2,
+            resend_count: 0,
+            no_answer_count: 0,
+            due_date: null,
+            re_engage_entered_at: null,
+            notes: "Moved to Needs Email - no email for Cycle 2 auto-start",
+            updated_at: nowIso,
+          })
+          .eq("id", id);
+
+        if (noEmailUpdateError) {
+          throw new Error(`No-email update failed: ${noEmailUpdateError.message}`);
+        }
+
+        // Log touchpoint
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db as any).from("provider_outreach_touchpoints").insert([
+          {
+            provider_id,
+            touchpoint_type: "stage_changed",
+            details: {
+              old_stage: "re_engage",
+              new_stage: "not_contacted",
+              trigger: "auto_re_engage_no_email",
+              cycle: 2,
+              reason: "No email address available for Cycle 2",
+            },
+            admin_user_id: systemUserId,
+            created_at: nowIso,
+          },
+        ]);
+
+        return {
+          provider_id,
+          action: "skipped",
+          skip_reason: "no_email_moved_to_needs_email",
+          new_stage: "not_contacted",
+        };
+      }
+
+      // 1. Clean up any stale pending tasks from previous cycle
+      // This prevents old tasks from firing alongside new Cycle 2 tasks
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (db as any)
+        .from("provider_outreach_tasks")
+        .delete()
+        .eq("tracking_id", id)
+        .eq("status", "pending");
+
+      // 2. Create email tasks FIRST (before updating tracking)
+      // This way if task creation fails, provider stays in re_engage and will be retried
+      const schedule = generateTaskSchedule(now);
+      const taskRows = schedule.map((step) => ({
+        tracking_id: id,
+        provider_id,
+        task_type: "outreach_email_send",
+        cadence_day: step.day,
+        template_key: step.templateKey,
+        due_at: step.dueAt.toISOString(),
+        status: "pending",
+        payload: {
+          recipient_email: email,
+          provider_name: provider_name || "Provider",
+          city: city || "",
+          state: state || "",
+          category: provider_category || "",
+          cycle: 2,
+        },
+      }));
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: tasksError } = await (db as any)
+        .from("provider_outreach_tasks")
+        .insert(taskRows);
+
+      if (tasksError) {
+        // Task creation failed - provider stays in re_engage, will retry next run
+        throw new Error(`Task creation failed: ${tasksError.message}`);
+      }
+
+      // 2. Now update tracking to in_sequence (tasks exist, safe to move stage)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: updateError } = await (db as any)
         .from("provider_outreach_tracking")
         .update({
-          stage: "not_contacted",
+          stage: "in_sequence",
           stage_changed_at: nowIso,
+          sequence_started_at: nowIso,
           cycle_number: 2,
           resend_count: 0,
           no_answer_count: 0,
@@ -141,10 +278,14 @@ async function processProvider(
         .eq("id", id);
 
       if (updateError) {
-        throw new Error(`Update failed: ${updateError.message}`);
+        // Tasks were created but tracking update failed - this is bad but rare
+        // Tasks won't fire because stage isn't in_sequence, so no harm done
+        // Provider will be picked up next run (still in re_engage) and tasks will be duplicated
+        // but the auto-send executor dedupes by checking status=pending
+        throw new Error(`Tracking update failed: ${updateError.message}`);
       }
 
-      // Log touchpoints
+      // 3. Log touchpoints
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (db as any).from("provider_outreach_touchpoints").insert([
         {
@@ -153,9 +294,11 @@ async function processProvider(
           details: {
             cycle: 2,
             previous_stage: "re_engage",
-            new_stage: "not_contacted",
+            new_stage: "in_sequence",
             trigger: "auto_re_engage",
             wait_days: RE_ENGAGE_WAITING_PERIOD_DAYS,
+            tasks_created: taskRows.length,
+            automatic: true,
           },
           admin_user_id: systemUserId,
           created_at: nowIso,
@@ -165,9 +308,20 @@ async function processProvider(
           touchpoint_type: "stage_changed",
           details: {
             old_stage: "re_engage",
-            new_stage: "not_contacted",
+            new_stage: "in_sequence",
             trigger: "auto_re_engage_cycle_start",
             cycle: 2,
+          },
+          admin_user_id: systemUserId,
+          created_at: nowIso,
+        },
+        {
+          provider_id,
+          touchpoint_type: "sequence_launched",
+          details: {
+            cycle: 2,
+            trigger: "auto_re_engage",
+            emails_scheduled: taskRows.length,
           },
           admin_user_id: systemUserId,
           created_at: nowIso,
@@ -178,7 +332,8 @@ async function processProvider(
         provider_id,
         action: "cycle_started",
         new_cycle: 2,
-        new_stage: "not_contacted",
+        new_stage: "in_sequence",
+        tasks_created: taskRows.length,
       };
     } else {
       // ── Cycle 2 → Not Interested (soft terminal) ──
@@ -254,23 +409,18 @@ async function processProvider(
 /**
  * Process all eligible re-engage providers.
  *
- * ┌─────────────────────────────────────────────────────────────────────────────┐
- * │  ⚠️  NOT YET ACTIVATED - This function should NOT be called by a cron job  │
- * │      until the email sending system is built.                               │
- * │                                                                             │
- * │  When ready to activate:                                                    │
- * │  1. Create /api/cron/provider-outreach-auto-re-engage/route.ts             │
- * │  2. Add cron to vercel.json (recommend daily at 6 AM UTC)                  │
- * │  3. Add to lib/crons/registry.ts                                           │
- * └─────────────────────────────────────────────────────────────────────────────┘
+ * Called by /api/cron/provider-outreach-auto-re-engage (daily at 6 AM UTC).
+ *
+ * For Cycle 1 providers: Automatically moves to in_sequence and creates email tasks.
+ * For Cycle 2 providers: Moves to not_interested (soft terminal).
  *
  * @param db - Supabase client with service role access
- * @param systemUserId - User ID for audit logging (use a system account or admin ID)
+ * @param systemUserId - User ID for audit logging (null for system/cron actions)
  * @returns Summary of processing results
  */
 export async function processEligibleReEngageProviders(
   db: ReturnType<typeof createClient>,
-  systemUserId: string
+  systemUserId: string | null
 ): Promise<AutoReEngageResult> {
   console.log("[auto-re-engage] Starting batch processing...");
 
@@ -283,6 +433,7 @@ export async function processEligibleReEngageProviders(
       processed: 0,
       cycle_started: 0,
       soft_terminal: 0,
+      skipped: 0,
       errors: 0,
       results: [],
     };
@@ -292,10 +443,11 @@ export async function processEligibleReEngageProviders(
   const results: ProcessResult[] = [];
   let cycleStarted = 0;
   let softTerminal = 0;
+  let skipped = 0;
   let errors = 0;
 
-  for (const record of eligible) {
-    const result = await processProvider(db, record, systemUserId);
+  for (const provider of eligible) {
+    const result = await processProvider(db, provider, systemUserId);
     results.push(result);
 
     switch (result.action) {
@@ -305,6 +457,9 @@ export async function processEligibleReEngageProviders(
       case "soft_terminal":
         softTerminal++;
         break;
+      case "skipped":
+        skipped++;
+        break;
       case "error":
         errors++;
         break;
@@ -313,13 +468,15 @@ export async function processEligibleReEngageProviders(
 
   console.log(
     `[auto-re-engage] Completed: ${eligible.length} processed, ` +
-    `${cycleStarted} cycle started, ${softTerminal} soft terminal, ${errors} errors`
+    `${cycleStarted} cycle started (in_sequence), ${softTerminal} soft terminal, ` +
+    `${skipped} skipped, ${errors} errors`
   );
 
   return {
     processed: eligible.length,
     cycle_started: cycleStarted,
     soft_terminal: softTerminal,
+    skipped,
     errors,
     results,
   };
@@ -339,11 +496,13 @@ export async function dryRunAutoReEngage(
   eligible_count: number;
   would_start_cycle_2: number;
   would_soft_terminal: number;
+  would_skip_no_email: number;
   providers: Array<{
     provider_id: string;
     cycle_number: number;
     days_waiting: number;
-    would_action: "cycle_started" | "soft_terminal";
+    has_email: boolean;
+    would_action: "cycle_started" | "soft_terminal" | "skipped";
   }>;
 }> {
   const eligible = await findEligibleReEngageProviders(db);
@@ -354,11 +513,19 @@ export async function dryRunAutoReEngage(
       (1000 * 60 * 60 * 24)
     );
 
+    let wouldAction: "cycle_started" | "soft_terminal" | "skipped";
+    if (record.cycle_number === 1) {
+      wouldAction = record.email ? "cycle_started" : "skipped";
+    } else {
+      wouldAction = "soft_terminal";
+    }
+
     return {
       provider_id: record.provider_id,
       cycle_number: record.cycle_number,
       days_waiting: daysWaiting,
-      would_action: (record.cycle_number === 1 ? "cycle_started" : "soft_terminal") as "cycle_started" | "soft_terminal",
+      has_email: !!record.email,
+      would_action: wouldAction,
     };
   });
 
@@ -366,6 +533,7 @@ export async function dryRunAutoReEngage(
     eligible_count: eligible.length,
     would_start_cycle_2: providers.filter((p) => p.would_action === "cycle_started").length,
     would_soft_terminal: providers.filter((p) => p.would_action === "soft_terminal").length,
+    would_skip_no_email: providers.filter((p) => p.would_action === "skipped").length,
     providers,
   };
 }

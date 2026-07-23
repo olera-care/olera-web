@@ -42,6 +42,10 @@ const VALID_OUTCOMES = [
 
 type CallOutcome = (typeof VALID_OUTCOMES)[number];
 
+// Maximum number of times a claim link can be resent before requiring manual intervention
+// Configurable via env var, default 2
+const MAX_RESEND_COUNT = parseInt(process.env.OUTREACH_MAX_RESEND_COUNT || "2", 10);
+
 // Add days to a date, return ISO date string (date only, no time) in UTC
 // Uses UTC to match database CURRENT_DATE (Supabase runs in UTC)
 function addDays(date: Date, days: number): string {
@@ -130,8 +134,8 @@ export async function POST(request: NextRequest) {
     switch (outcome as CallOutcome) {
       case "resend_link":
         // Reject if already at limit
-        if (currentResendCount >= 2) {
-          rejectionMessage = "Resend link limit reached (2). Consider moving to Re-Engage.";
+        if (currentResendCount >= MAX_RESEND_COUNT) {
+          rejectionMessage = `Resend link limit reached (${MAX_RESEND_COUNT}). Consider moving to Re-Engage.`;
           return NextResponse.json({ error: rejectionMessage }, { status: 400 });
         }
         newResendCount = currentResendCount + 1;

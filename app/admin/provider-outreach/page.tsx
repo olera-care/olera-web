@@ -5,6 +5,9 @@ import Link from "next/link";
 import { US_STATES } from "@/lib/us-states";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
+import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
+import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
+import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -701,6 +704,13 @@ interface CityRowProps {
   onEmailSaved: (providerId: string, newEmail: string) => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
+  // City assignment
+  cityOwnerId: string | null;
+  cityOwnerName: string | null;
+  isEditingAssignment: boolean;
+  onStartEditAssignment: () => void;
+  onAssignCity: (ownerId: string | null, ownerName: string | null) => void;
+  onCancelEditAssignment: () => void;
 }
 
 function CityRow({
@@ -716,6 +726,12 @@ function CityRow({
   onEmailSaved,
   onOpenActionModal,
   onRemoveProvider,
+  cityOwnerId,
+  cityOwnerName,
+  isEditingAssignment,
+  onStartEditAssignment,
+  onAssignCity,
+  onCancelEditAssignment,
 }: CityRowProps) {
   // Auto email lookup state
   const [lookingUpEmails, setLookingUpEmails] = useState<Set<string>>(new Set());
@@ -864,9 +880,38 @@ function CityRow({
           </svg>
         </div>
 
-        {/* City Name */}
-        <div className="flex-1 min-w-0">
+        {/* City Name + Owner */}
+        <div className="flex-1 min-w-0 flex items-center gap-3">
           <span className="font-medium text-gray-900">{city.city}</span>
+          {/* City Owner Assignment */}
+          {isEditingAssignment ? (
+            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <AdminAutocomplete
+                selectedAdminId={cityOwnerId}
+                selectedAdminName={cityOwnerName}
+                onSelect={(id, name) => onAssignCity(id, name)}
+                onClose={onCancelEditAssignment}
+                placeholder="Assign to..."
+                autoFocus
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onStartEditAssignment();
+              }}
+              className="flex items-center gap-1 text-sm hover:underline"
+              title={cityOwnerId ? "Change assignment" : "Assign city"}
+            >
+              <AdminChip
+                adminId={cityOwnerId}
+                adminName={cityOwnerName}
+                size="sm"
+              />
+            </button>
+          )}
         </div>
 
         {/* Stats - show count relevant to the active tab */}
@@ -1110,6 +1155,7 @@ interface FollowUpQueueProps {
   onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: (provider: OutreachProvider) => void;
   onArchive: (provider: OutreachProvider) => void;
+  adminNameLookup: Map<string, string>;
 }
 
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
@@ -1161,6 +1207,7 @@ function FollowUpProviderRow({
   onStageChange,
   onRemoveProvider,
   onArchive,
+  adminNameLookup,
 }: {
   provider: OutreachProvider;
   isExpanded: boolean;
@@ -1170,6 +1217,7 @@ function FollowUpProviderRow({
   onStageChange: (newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: () => void;
   onArchive: () => void;
+  adminNameLookup: Map<string, string>;
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
@@ -1391,13 +1439,12 @@ function FollowUpProviderRow({
             >
               {provider.provider_name}
             </Link>
-            {provider.assigned_to && (
-              <span className="w-4 h-4 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center shrink-0" title="Assigned">
-                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                </svg>
-              </span>
-            )}
+            <AdminChip
+              adminId={provider.assigned_to}
+              adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+              size="sm"
+              showUnassigned={true}
+            />
           </div>
           {provider.provider_category && (
             <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
@@ -1726,7 +1773,7 @@ function FollowUpProviderRow({
   );
 }
 
-function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive }: FollowUpQueueProps) {
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive, adminNameLookup }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
   // Group providers by due date sections
@@ -1818,6 +1865,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
             }}
             onRemoveProvider={() => onRemoveProvider(provider)}
             onArchive={() => onArchive(provider)}
+            adminNameLookup={adminNameLookup}
           />
         ))}
       </div>
@@ -1842,6 +1890,7 @@ interface ReEngageQueueProps {
   loading: boolean;
   onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
   onArchive: (provider: OutreachProvider) => void;
+  adminNameLookup: Map<string, string>;
 }
 
 // Helper: calculate days since a date
@@ -1853,7 +1902,7 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onReEngageAction, onArchive }: ReEngageQueueProps) {
+function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup }: ReEngageQueueProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const handleReEngage = async (provider: OutreachProvider) => {
@@ -1931,13 +1980,12 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive }: ReEn
                 <span className="font-medium text-gray-900 truncate">
                   {provider.provider_name}
                 </span>
-                {provider.assigned_to && (
-                  <span className="w-4 h-4 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center shrink-0" title="Assigned">
-                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                    </svg>
-                  </span>
-                )}
+                <AdminChip
+                  adminId={provider.assigned_to}
+                  adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                  size="sm"
+                  showUnassigned={true}
+                />
               </div>
               <div className="text-xs text-gray-500 truncate">
                 {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
@@ -2036,13 +2084,35 @@ export default function ProviderOutreachPage() {
   const [isSearchResult, setIsSearchResult] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // My Assignments filter
-  const [myAssignmentsOnly, setMyAssignmentsOnly] = useState(false);
+  // Admin filter state (replaces My Assignments checkbox)
+  const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
+  const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
+
+  // All admins for name lookup (fetched once)
+  interface AdminUser {
+    id: string;
+    email: string;
+    display_name: string | null;
+  }
+  const [allAdmins, setAllAdmins] = useState<AdminUser[]>([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(true);
+
+  // Legacy: kept for backwards compatibility with assigned_to=me URL param
+  const myAssignmentsOnly = false; // No longer used, but kept for query param handling
 
   // Cities data (for needs_email and ready tabs)
   const [cities, setCities] = useState<CityStats[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
+
+  // City owners for assignment
+  interface CityOwner {
+    city: string;
+    owner_id: string | null;
+    owner_name: string | null;
+  }
+  const [cityOwners, setCityOwners] = useState<Map<string, CityOwner>>(new Map());
+  const [editingCityAssignment, setEditingCityAssignment] = useState<string | null>(null);
 
   // Providers data
   const [providers, setProviders] = useState<OutreachProvider[]>([]);
@@ -2064,6 +2134,23 @@ export default function ProviderOutreachPage() {
     needs_email: 0,
     ready: 0,
   });
+
+  // Admin name lookup from allAdmins + admin_counts (fallback)
+  const adminNameLookup = useMemo(() => {
+    const lookup = new Map<string, string>();
+    // First, add all admins
+    for (const admin of allAdmins) {
+      const name = admin.display_name || admin.email.split("@")[0];
+      lookup.set(admin.id, name);
+    }
+    // Then, add/update from admin_counts (in case they have more recent names)
+    for (const [adminId, data] of Object.entries(adminCounts)) {
+      if (adminId !== "unassigned" && data.display_name) {
+        lookup.set(adminId, data.display_name);
+      }
+    }
+    return lookup;
+  }, [allAdmins, adminCounts]);
 
   // Expanded cities (for not_contacted tab)
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
@@ -2126,6 +2213,9 @@ export default function ProviderOutreachPage() {
   // Sequence confirmation modal state
   const [showSequenceConfirm, setShowSequenceConfirm] = useState(false);
   const [sequenceConfirmProviders, setSequenceConfirmProviders] = useState<OutreachProvider[]>([]);
+  const [sequenceAssigneeId, setSequenceAssigneeId] = useState<string | null>(null);
+  const [sequenceAssigneeName, setSequenceAssigneeName] = useState<string | null>(null);
+  const [showAssigneeAutocomplete, setShowAssigneeAutocomplete] = useState(false);
   const [showSequencePreview, setShowSequencePreview] = useState(false);
   const [sequencePreviewData, setSequencePreviewData] = useState<{
     providers: Array<{
@@ -2333,6 +2423,22 @@ export default function ProviderOutreachPage() {
     }
   }, [selectedState]);
 
+  // Fetch all admins (for name lookup)
+  const fetchAllAdmins = useCallback(async () => {
+    setLoadingAdmins(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/admins");
+      if (res.ok) {
+        const data = await res.json();
+        setAllAdmins(data.admins || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admins:", err);
+    } finally {
+      setLoadingAdmins(false);
+    }
+  }, []);
+
   // Fetch cities for not_contacted stage
   const fetchCities = useCallback(async () => {
     if (!selectedState) return;
@@ -2352,6 +2458,60 @@ export default function ProviderOutreachPage() {
     }
   }, [selectedState]);
 
+  // Fetch city owners for the selected state
+  const fetchCityOwners = useCallback(async () => {
+    if (!selectedState) return;
+
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/assign-city?state=${selectedState}`);
+      if (res.ok) {
+        const data = await res.json();
+        const ownerMap = new Map<string, CityOwner>();
+        for (const owner of data.city_owners || []) {
+          ownerMap.set(owner.city, owner);
+        }
+        setCityOwners(ownerMap);
+      }
+    } catch (err) {
+      console.error("Failed to fetch city owners:", err);
+    }
+  }, [selectedState]);
+
+  // Assign city to an admin
+  const assignCity = async (city: string, ownerId: string | null, ownerName: string | null) => {
+    if (!selectedState) return;
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/assign-city", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          state: selectedState,
+          city,
+          owner_id: ownerId,
+          owner_name: ownerName,
+        }),
+      });
+
+      if (res.ok) {
+        // Update local state
+        setCityOwners((prev) => {
+          const next = new Map(prev);
+          next.set(city, { city, owner_id: ownerId, owner_name: ownerName });
+          return next;
+        });
+        setEditingCityAssignment(null);
+        showToast(ownerId ? `Assigned ${city} to ${ownerName}` : `Unassigned ${city}`, "success");
+      } else {
+        const err = await res.json();
+        showToast(err.error || "Failed to assign city", "error");
+      }
+    } catch (err) {
+      console.error("Failed to assign city:", err);
+      showToast("Failed to assign city", "error");
+    }
+  };
+
   // Fetch providers for current tab/state (or search)
   const fetchProviders = useCallback(async (city?: string, searchTerm?: string) => {
     if (!selectedState) return;
@@ -2367,15 +2527,26 @@ export default function ProviderOutreachPage() {
       if (emailFilter) params.set("email_filter", emailFilter);
       if (city) params.set("city", city);
       if (searchTerm) params.set("search", searchTerm);
-      if (myAssignmentsOnly) params.set("assigned_to", "me");
+      // Handle admin filter - "unassigned" filters for null assigned_to
+      if (selectedAdminFilter && selectedAdminFilter !== "unassigned") {
+        params.set("assigned_to", selectedAdminFilter);
+      }
 
       const res = await fetch(`/api/admin/provider-outreach?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setProviders(data.providers || []);
+        let filteredProviders = data.providers || [];
+        // Client-side filter for "unassigned" since API doesn't support null filter directly
+        if (selectedAdminFilter === "unassigned") {
+          filteredProviders = filteredProviders.filter((p: OutreachProvider) => !p.assigned_to);
+        }
+        setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);
         if (data.stage_counts) {
           setStageCounts(data.stage_counts);
+        }
+        if (data.admin_counts) {
+          setAdminCounts(data.admin_counts);
         }
       }
     } catch (err) {
@@ -2383,7 +2554,7 @@ export default function ProviderOutreachPage() {
     } finally {
       setLoadingProviders(false);
     }
-  }, [selectedState, activeTab, myAssignmentsOnly]);
+  }, [selectedState, activeTab, selectedAdminFilter]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -2451,6 +2622,11 @@ export default function ProviderOutreachPage() {
     fetchStateCounts();
   }, [showAddStateModal]);
 
+  // Effect: fetch all admins on mount (for name lookup)
+  useEffect(() => {
+    fetchAllAdmins();
+  }, [fetchAllAdmins]);
+
   // Effect: close dropdowns when clicking outside
   useEffect(() => {
     if (!stateActionsMenu && !showStateSelector) return;
@@ -2468,6 +2644,13 @@ export default function ProviderOutreachPage() {
       fetchCities();
     }
   }, [selectedState, activeTab, debouncedSearch, fetchCities]);
+
+  // Effect: fetch city owners when state changes
+  useEffect(() => {
+    if (selectedState) {
+      fetchCityOwners();
+    }
+  }, [selectedState, fetchCityOwners]);
 
   // Effect: fetch providers and stage counts when state/tab/search changes
   useEffect(() => {
@@ -3065,19 +3248,18 @@ export default function ProviderOutreachPage() {
               </button>
             ))}
           </div>
-          {/* My Assignments toggle - only show for stages where assignment applies */}
-          {["in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
-            <label className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 cursor-pointer hover:text-gray-900 transition-colors">
-              <input
-                type="checkbox"
-                checked={myAssignmentsOnly}
-                onChange={(e) => setMyAssignmentsOnly(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <span>My Assignments</span>
-            </label>
-          )}
         </div>
+      )}
+
+      {/* Admin Filter Chips - show on tabs where assignment applies */}
+      {selectedState && ["needs_email", "ready", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && Object.keys(adminCounts).length > 0 && (
+        <AdminFilterChips
+          adminCounts={adminCounts}
+          totalCount={Object.values(adminCounts).reduce((sum, a) => sum + a.count, 0)}
+          selectedAdminId={selectedAdminFilter}
+          onSelect={(adminId) => setSelectedAdminFilter(adminId)}
+          tabKey={activeTab}
+        />
       )}
 
       {/* Collapsible Funnel Stats - only show when a state is selected */}
@@ -3266,13 +3448,12 @@ export default function ProviderOutreachPage() {
                       }`}>
                         {STAGE_LABELS[provider.stage]}
                       </span>
-                      {provider.assigned_to && (
-                        <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center" title="Assigned">
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                          </svg>
-                        </span>
-                      )}
+                      <AdminChip
+                        adminId={provider.assigned_to}
+                        adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                        size="sm"
+                        showUnassigned={true}
+                      />
                     </div>
                     {/* Actions - hide for claimed only (archived can be unarchived) */}
                     <div className="w-10 flex items-center gap-1">
@@ -3382,6 +3563,7 @@ export default function ProviderOutreachPage() {
             onArchive={(provider) => {
               setActionModalProvider(provider);
             }}
+            adminNameLookup={adminNameLookup}
           />
         ) : activeTab === "re_engage" ? (
           // Re-Engage tab: cycle-aware queue view
@@ -3405,6 +3587,7 @@ export default function ProviderOutreachPage() {
             onArchive={(provider) => {
               setActionModalProvider(provider);
             }}
+            adminNameLookup={adminNameLookup}
           />
         ) : (
           // Normal city-grouped view
@@ -3492,6 +3675,12 @@ export default function ProviderOutreachPage() {
                           stage: provider.stage,
                         });
                       }}
+                      cityOwnerId={cityOwners.get(city.city)?.owner_id || null}
+                      cityOwnerName={cityOwners.get(city.city)?.owner_name || null}
+                      isEditingAssignment={editingCityAssignment === city.city}
+                      onStartEditAssignment={() => setEditingCityAssignment(city.city)}
+                      onAssignCity={(ownerId, ownerName) => assignCity(city.city, ownerId, ownerName)}
+                      onCancelEditAssignment={() => setEditingCityAssignment(null)}
                     />
                   ))}
                 </div>
@@ -3858,6 +4047,9 @@ export default function ProviderOutreachPage() {
             setSequencePreviewData(null);
             setPreviewProviderId(null);
             setPreviewDay(0);
+            setSequenceAssigneeId(null);
+            setSequenceAssigneeName(null);
+            setShowAssigneeAutocomplete(false);
           }}
         >
           <div
@@ -3889,6 +4081,45 @@ export default function ProviderOutreachPage() {
                   </div>
                 </div>
               )}
+
+              {/* Assigned To */}
+              <div className="mb-5">
+                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                  Assigned To
+                </h4>
+                <div className="flex items-center gap-2">
+                  {showAssigneeAutocomplete ? (
+                    <div className="flex-1">
+                      <AdminAutocomplete
+                        selectedAdminId={sequenceAssigneeId}
+                        selectedAdminName={sequenceAssigneeName}
+                        onSelect={(id, name) => {
+                          setSequenceAssigneeId(id);
+                          setSequenceAssigneeName(name);
+                          setShowAssigneeAutocomplete(false);
+                        }}
+                        onClose={() => setShowAssigneeAutocomplete(false)}
+                        placeholder="Search admins..."
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowAssigneeAutocomplete(true)}
+                      className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <AdminChip
+                        adminId={sequenceAssigneeId}
+                        adminName={sequenceAssigneeName}
+                        size="sm"
+                      />
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Provider list */}
               <div className="mb-5">
@@ -4083,6 +4314,9 @@ export default function ProviderOutreachPage() {
                   setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
+                  setSequenceAssigneeId(null);
+                  setSequenceAssigneeName(null);
+                  setShowAssigneeAutocomplete(false);
                 }}
                 disabled={actionLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -4095,13 +4329,53 @@ export default function ProviderOutreachPage() {
                   const validProviderIds = sequencePreviewData
                     ? sequencePreviewData.providers.filter(p => p.valid).map(p => p.provider_id)
                     : sequenceConfirmProviders.map(p => p.provider_id);
-                  await updateStage("in_sequence", validProviderIds);
+
+                  if (validProviderIds.length === 0) return;
+
+                  setActionLoading(true);
+                  try {
+                    // Call launch-sequence API to create tracking records and email tasks
+                    const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        provider_ids: validProviderIds,
+                        dry_run: false,
+                        assigned_to: sequenceAssigneeId,
+                      }),
+                    });
+
+                    if (res.ok) {
+                      const data = await res.json();
+                      showToast(`Started sequence for ${data.launched} provider(s)`, "success");
+                      setSelectedProviders(new Set());
+                      // Refresh data
+                      if (isNotContactedTab(activeTab)) {
+                        fetchCities();
+                        fetchProviders();
+                      } else {
+                        fetchProviders();
+                      }
+                    } else {
+                      const err = await res.json();
+                      showToast(err.error || "Failed to start sequence", "error");
+                    }
+                  } catch (err) {
+                    console.error("Failed to start sequence:", err);
+                    showToast("Failed to start sequence", "error");
+                  } finally {
+                    setActionLoading(false);
+                  }
+
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
                   setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
+                  setSequenceAssigneeId(null);
+                  setSequenceAssigneeName(null);
+                  setShowAssigneeAutocomplete(false);
                 }}
                 disabled={actionLoading || sequencePreviewLoading || (sequencePreviewData?.summary.valid === 0)}
                 className="px-5 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

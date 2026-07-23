@@ -69,3 +69,12 @@ export {
   type ExecuteResult,
   executeProviderOutreachTask,
 } from "./auto-send-executor";
+
+// Admin colors for name chips
+export {
+  type ChipColor,
+  CHIP_COLORS,
+  UNASSIGNED_CHIP_COLOR,
+  getAdminColor,
+  getAdminColorClasses,
+} from "./admin-colors";

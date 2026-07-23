@@ -248,16 +248,51 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
+      // Fetch city owners for inheritance lookup
+      // Group providers by state to batch fetch city owners
+      const statesInBatch = [...new Set(validPreviews.map((p) => p.state).filter(Boolean))] as string[];
+      const cityOwnersMap = new Map<string, { owner_id: string; owner_name: string | null }>();
+
+      if (statesInBatch.length > 0) {
+        const { data: cityOwners } = await db
+          .from("provider_outreach_city_owners")
+          .select("state, city, owner_id, owner_name")
+          .in("state", statesInBatch)
+          .not("owner_id", "is", null);
+
+        if (cityOwners) {
+          for (const co of cityOwners) {
+            cityOwnersMap.set(`${co.state}|${co.city}`, {
+              owner_id: co.owner_id,
+              owner_name: co.owner_name,
+            });
+          }
+        }
+      }
+
       // 1. Get or create tracking records and move to in_sequence
       const launchedProviders: string[] = [];
       const failedProviders: Array<{ provider_id: string; error: string }> = [];
 
       for (const preview of validPreviews) {
         try {
+          // Determine assigned_to with city owner inheritance:
+          // 1. If assigned_to was explicitly provided in request, use that
+          // 2. If provider's city has an owner, inherit the city owner
+          // 3. Otherwise, use the current admin as default
+          let effectiveAssignedTo = assignedToId;
+          if (!assigned_to && preview.state && preview.city) {
+            const cityOwnerKey = `${preview.state}|${preview.city}`;
+            const cityOwner = cityOwnersMap.get(cityOwnerKey);
+            if (cityOwner) {
+              effectiveAssignedTo = cityOwner.owner_id;
+            }
+          }
+
           // Check if tracking record exists
           const { data: existingTracking } = await db
             .from("provider_outreach_tracking")
-            .select("id, stage")
+            .select("id, stage, assigned_to")
             .eq("provider_id", preview.provider_id)
             .maybeSingle();
 
@@ -281,6 +316,10 @@ export async function POST(request: NextRequest) {
               .eq("tracking_id", existingTracking.id)
               .eq("status", "pending");
 
+            // For existing records: only update assigned_to if it's currently null
+            // This preserves manual assignments while still inheriting city owner for unassigned
+            const newAssignedTo = existingTracking.assigned_to || effectiveAssignedTo;
+
             // Update to in_sequence with fresh sequence_started_at
             // (Can't rely on trigger — it only fires if sequence_started_at IS NULL)
             const { error: updateError } = await db
@@ -288,7 +327,7 @@ export async function POST(request: NextRequest) {
               .update({
                 stage: "in_sequence",
                 sequence_started_at: new Date().toISOString(),
-                assigned_to: assignedToId,
+                assigned_to: newAssignedTo,
               })
               .eq("id", existingTracking.id);
 
@@ -304,7 +343,7 @@ export async function POST(request: NextRequest) {
                 city: preview.city,
                 state: preview.state,
                 sequence_started_at: new Date().toISOString(),
-                assigned_to: assignedToId,
+                assigned_to: effectiveAssignedTo,
               })
               .select("id")
               .single();

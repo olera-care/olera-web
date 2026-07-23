@@ -232,14 +232,17 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Get stage counts for tabs
-    const stageCounts = await getStageCounts(db, state);
+    // Get stage counts for tabs and admin counts for filter chips
+    const [stageCounts, adminCounts] = await Promise.all([
+      getStageCounts(db, state),
+      getAdminCounts(db, state, stage, emailFilter),
+    ]);
 
     // If search is provided, search across ALL stages and return flat results
     if (search) {
       const searchResults = await searchProviders(db, state, search);
       const enriched = await enrichWithEmailVerification(db, searchResults);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, is_search: true });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, is_search: true });
     }
 
     if (stage === "not_contacted") {
@@ -247,14 +250,14 @@ export async function GET(request: NextRequest) {
       // email_filter allows splitting into "Needs Email" and "Ready" tabs
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
       const enriched = await enrichWithEmailVerification(db, providers);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
     }
 
     if (stage === "claimed") {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
       const enriched = await enrichWithEmailVerification(db, providers);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
     }
 
     // Resolve assigned_to filter: "me" means current admin user
@@ -271,7 +274,7 @@ export async function GET(request: NextRequest) {
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
       const enriched = await enrichWithEmailVerification(db, providers);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
     }
 
     // For other stages: query tracking but exclude providers who have since claimed
@@ -294,7 +297,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!trackingRows || trackingRows.length === 0) {
-      return NextResponse.json({ providers: [], stage_counts: stageCounts });
+      return NextResponse.json({ providers: [], stage_counts: stageCounts, admin_counts: adminCounts });
     }
 
     // Get provider details for tracked providers
@@ -359,7 +362,7 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
     const enriched = await enrichWithEmailVerification(db, providers);
-    return NextResponse.json({ providers: enriched, stage_counts: stageCounts });
+    return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
     return NextResponse.json(
@@ -1127,6 +1130,169 @@ async function getStageCounts(
         counts.needs_email++;
       }
     }
+  }
+
+  return counts;
+}
+
+/**
+ * Get counts of providers per assigned admin for the current stage.
+ * Used for the filter chip row in the UI.
+ *
+ * For needs_call (Follow Up) stage, only counts providers with due_date <= today.
+ */
+interface AdminCounts {
+  [adminId: string]: {
+    count: number;
+    display_name?: string;
+  };
+}
+
+async function getAdminCounts(
+  db: ReturnType<typeof getServiceClient>,
+  state: string,
+  stage: OutreachStage,
+  emailFilter?: "needs_email" | "has_email" | null
+): Promise<AdminCounts> {
+  const counts: AdminCounts = {};
+
+  // Get admin display names for lookup
+  const { data: admins } = await db
+    .from("admin_users")
+    .select("id, display_name");
+
+  const adminNameMap = new Map(
+    (admins || []).map((a) => [a.id, a.display_name || a.id])
+  );
+
+  // For not_contacted stage (Needs Email / Ready tabs):
+  // - Some providers have tracking records with stage = 'not_contacted' and may have assigned_to
+  // - Others have no tracking record (implicitly unassigned)
+  if (stage === "not_contacted") {
+    // Get all tracking records with stage = not_contacted for this state
+    const { data: notContactedTracking } = await db
+      .from("provider_outreach_tracking")
+      .select("provider_id, assigned_to")
+      .eq("state", state)
+      .eq("stage", "not_contacted");
+
+    // Get provider IDs that have assigned_to values
+    const assignedProviderIds = new Set<string>();
+    if (notContactedTracking) {
+      for (const row of notContactedTracking) {
+        const key = row.assigned_to || "unassigned";
+        if (!counts[key]) {
+          counts[key] = {
+            count: 0,
+            display_name: key === "unassigned" ? undefined : adminNameMap.get(key),
+          };
+        }
+        counts[key].count++;
+        assignedProviderIds.add(row.provider_id);
+      }
+    }
+
+    // Count untracked providers (no tracking record at all) as unassigned
+    // These are providers in the state that aren't tracked and aren't claimed
+    const { data: allClaimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .not("source_provider_id", "is", null)
+      .not("account_id", "is", null);
+
+    const claimedProviderIds = new Set(
+      (allClaimedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
+    );
+
+    // Get all tracked provider IDs (any stage) for this state
+    const { data: allTrackedInState } = await db
+      .from("provider_outreach_tracking")
+      .select("provider_id")
+      .eq("state", state);
+
+    const trackedProviderIds = new Set(
+      (allTrackedInState || []).map((t) => t.provider_id)
+    );
+
+    // Count providers with no tracking record
+    // Query providers to filter by email if needed
+    let providerQuery = db
+      .from("olera-providers")
+      .select("provider_id, email")
+      .eq("state", state)
+      .or("deleted.is.null,deleted.eq.false");
+
+    const { data: providers } = await providerQuery;
+
+    let untrackedCount = 0;
+    if (providers) {
+      for (const p of providers) {
+        // Skip if tracked, claimed, or already counted via tracking
+        if (trackedProviderIds.has(p.provider_id)) continue;
+        if (claimedProviderIds.has(p.provider_id)) continue;
+
+        // Apply email filter if specified
+        if (emailFilter === "needs_email" && p.email?.trim()) continue;
+        if (emailFilter === "has_email" && !p.email?.trim()) continue;
+
+        untrackedCount++;
+      }
+    }
+
+    // Add untracked count to unassigned
+    if (!counts["unassigned"]) {
+      counts["unassigned"] = { count: 0 };
+    }
+    counts["unassigned"].count += untrackedCount;
+
+    return counts;
+  }
+
+  // For claimed stage, there's no assignment tracking
+  if (stage === "claimed") {
+    return {};
+  }
+
+  // For archived, we'd need to merge tracking + system-archived which is complex
+  // For now, return empty - the UI can compute from the provider list
+  if (stage === "archived") {
+    return {};
+  }
+
+  // For active stages: query tracking table
+  let query = db
+    .from("provider_outreach_tracking")
+    .select("assigned_to")
+    .eq("state", state)
+    .eq("stage", stage);
+
+  // For needs_call (Follow Up), only count providers with due_date <= today
+  if (stage === "needs_call") {
+    const today = new Date().toISOString().split("T")[0];
+    query = query.lte("due_date", today);
+  }
+
+  const { data: trackingRows, error } = await query;
+
+  if (error) {
+    console.error("[admin-counts] Query error:", error);
+    return {};
+  }
+
+  if (!trackingRows) {
+    return {};
+  }
+
+  // Count by assigned_to
+  for (const row of trackingRows) {
+    const key = row.assigned_to || "unassigned";
+    if (!counts[key]) {
+      counts[key] = {
+        count: 0,
+        display_name: key === "unassigned" ? undefined : adminNameMap.get(key),
+      };
+    }
+    counts[key].count++;
   }
 
   return counts;

@@ -3401,6 +3401,24 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
+      {/* Search mode info - show when providers selected during search */}
+      {selectedProviders.size > 0 && isSearchResult && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              {selectedProviders.size} provider{selectedProviders.size === 1 ? "" : "s"} selected
+            </span>
+            <span className="text-xs text-gray-400">— Use the action menu (•••) on each row to move providers</span>
+          </div>
+          <button
+            onClick={() => setSelectedProviders(new Set())}
+            className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* Content - Search results (flat list) or City-grouped view */}
       <div className="bg-white rounded-xl border border-gray-200">
         {!selectedState ? (
@@ -3843,6 +3861,144 @@ export default function ProviderOutreachPage() {
                       </div>
                     </div>
                   </button>
+                )}
+
+                {/* Move to Stage Section */}
+                {!["claimed", "archived"].includes(actionModalProvider.stage) && (
+                  <>
+                    <div className="border-t border-gray-100 my-3" />
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {actionModalProvider.stage !== "not_contacted" && (
+                        <button
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  provider_ids: [actionModalProvider.provider_id],
+                                  stage: "not_contacted",
+                                }),
+                              });
+                              if (res.ok) {
+                                showToast("Moved to Ready", "success");
+                                closeActionModal();
+                                fetchProviders();
+                                if (isNotContactedTab(activeTab)) fetchCities();
+                              } else {
+                                const err = await res.json().catch(() => ({}));
+                                showToast(err.error || "Failed to move provider", "error");
+                              }
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                          Ready
+                        </button>
+                      )}
+                      {actionModalProvider.stage !== "in_sequence" && (
+                        <button
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  provider_ids: [actionModalProvider.provider_id],
+                                  stage: "in_sequence",
+                                }),
+                              });
+                              if (res.ok) {
+                                showToast("Moved to In Sequence", "success");
+                                closeActionModal();
+                                fetchProviders();
+                                if (isNotContactedTab(activeTab)) fetchCities();
+                              } else {
+                                const err = await res.json().catch(() => ({}));
+                                showToast(err.error || "Failed to move provider", "error");
+                              }
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
+                        >
+                          In Sequence
+                        </button>
+                      )}
+                      {actionModalProvider.stage !== "needs_call" && (
+                        <button
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  provider_ids: [actionModalProvider.provider_id],
+                                  stage: "needs_call",
+                                }),
+                              });
+                              if (res.ok) {
+                                showToast("Moved to Follow Up", "success");
+                                closeActionModal();
+                                fetchProviders();
+                                if (isNotContactedTab(activeTab)) fetchCities();
+                              } else {
+                                const err = await res.json().catch(() => ({}));
+                                showToast(err.error || "Failed to move provider", "error");
+                              }
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors disabled:opacity-50"
+                        >
+                          Follow Up
+                        </button>
+                      )}
+                      {actionModalProvider.stage !== "re_engage" && (
+                        <button
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  provider_ids: [actionModalProvider.provider_id],
+                                  stage: "re_engage",
+                                }),
+                              });
+                              if (res.ok) {
+                                showToast("Moved to Re-Engage", "success");
+                                closeActionModal();
+                                fetchProviders();
+                                if (isNotContactedTab(activeTab)) fetchCities();
+                              } else {
+                                const err = await res.json().catch(() => ({}));
+                                showToast(err.error || "Failed to move provider", "error");
+                              }
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
+                        >
+                          Re-Engage
+                        </button>
+                      )}
+                    </div>
+                  </>
                 )}
 
               </div>

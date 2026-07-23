@@ -376,8 +376,8 @@ export async function POST(request: NextRequest) {
 
           if (tasksError) throw tasksError;
 
-          // 3. Log touchpoint
-          await db.from("provider_outreach_touchpoints").insert({
+          // 3. Log touchpoint (non-fatal - don't fail the sequence if touchpoint fails)
+          const { error: touchpointError } = await db.from("provider_outreach_touchpoints").insert({
             provider_id: preview.provider_id,
             touchpoint_type: "sequence_launched",
             admin_user_id: adminUser.id,
@@ -387,6 +387,11 @@ export async function POST(request: NextRequest) {
               last_due_at: schedule[schedule.length - 1].dueAt.toISOString(),
             },
           });
+
+          if (touchpointError) {
+            // Log but don't fail - tracking and tasks are already created
+            console.warn(`[launch-sequence] Failed to log touchpoint for ${preview.provider_id}:`, touchpointError);
+          }
 
           launchedProviders.push(preview.provider_id);
         } catch (err) {

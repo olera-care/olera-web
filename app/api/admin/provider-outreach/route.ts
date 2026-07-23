@@ -233,9 +233,19 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Get stage counts for tabs and admin counts for filter chips
+    // Wrap in individual try-catches so one failing doesn't crash the whole request
     const [stageCounts, adminCounts] = await Promise.all([
-      getStageCounts(db, state),
-      getAdminCounts(db, state, stage, emailFilter),
+      getStageCounts(db, state).catch((err) => {
+        console.error("[provider-outreach] getStageCounts error:", err);
+        return {
+          not_contacted: 0, in_sequence: 0, needs_call: 0, re_engage: 0,
+          not_interested: 0, claimed: 0, archived: 0, needs_email: 0, ready: 0,
+        };
+      }),
+      getAdminCounts(db, state, stage, emailFilter).catch((err) => {
+        console.error("[provider-outreach] getAdminCounts error:", err);
+        return {};
+      }),
     ]);
 
     // If search is provided, search across ALL stages and return flat results
@@ -1166,86 +1176,11 @@ async function getAdminCounts(
   );
 
   // For not_contacted stage (Needs Email / Ready tabs):
-  // - Some providers have tracking records with stage = 'not_contacted' and may have assigned_to
-  // - Others have no tracking record (implicitly unassigned)
+  // Most providers are untracked, so we return empty counts here.
+  // The frontend computes counts from the provider list instead.
+  // This avoids expensive queries on 10k+ providers.
   if (stage === "not_contacted") {
-    // Get all tracking records with stage = not_contacted for this state
-    const { data: notContactedTracking } = await db
-      .from("provider_outreach_tracking")
-      .select("provider_id, assigned_to")
-      .eq("state", state)
-      .eq("stage", "not_contacted");
-
-    // Get provider IDs that have assigned_to values
-    const assignedProviderIds = new Set<string>();
-    if (notContactedTracking) {
-      for (const row of notContactedTracking) {
-        const key = row.assigned_to || "unassigned";
-        if (!counts[key]) {
-          counts[key] = {
-            count: 0,
-            display_name: key === "unassigned" ? undefined : adminNameMap.get(key),
-          };
-        }
-        counts[key].count++;
-        assignedProviderIds.add(row.provider_id);
-      }
-    }
-
-    // Count untracked providers (no tracking record at all) as unassigned
-    // These are providers in the state that aren't tracked and aren't claimed
-    const { data: allClaimedBps } = await db
-      .from("business_profiles")
-      .select("source_provider_id")
-      .not("source_provider_id", "is", null)
-      .not("account_id", "is", null);
-
-    const claimedProviderIds = new Set(
-      (allClaimedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
-    );
-
-    // Get all tracked provider IDs (any stage) for this state
-    const { data: allTrackedInState } = await db
-      .from("provider_outreach_tracking")
-      .select("provider_id")
-      .eq("state", state);
-
-    const trackedProviderIds = new Set(
-      (allTrackedInState || []).map((t) => t.provider_id)
-    );
-
-    // Count providers with no tracking record
-    // Query providers to filter by email if needed
-    let providerQuery = db
-      .from("olera-providers")
-      .select("provider_id, email")
-      .eq("state", state)
-      .or("deleted.is.null,deleted.eq.false");
-
-    const { data: providers } = await providerQuery;
-
-    let untrackedCount = 0;
-    if (providers) {
-      for (const p of providers) {
-        // Skip if tracked, claimed, or already counted via tracking
-        if (trackedProviderIds.has(p.provider_id)) continue;
-        if (claimedProviderIds.has(p.provider_id)) continue;
-
-        // Apply email filter if specified
-        if (emailFilter === "needs_email" && p.email?.trim()) continue;
-        if (emailFilter === "has_email" && !p.email?.trim()) continue;
-
-        untrackedCount++;
-      }
-    }
-
-    // Add untracked count to unassigned
-    if (!counts["unassigned"]) {
-      counts["unassigned"] = { count: 0 };
-    }
-    counts["unassigned"].count += untrackedCount;
-
-    return counts;
+    return {};
   }
 
   // For claimed stage, there's no assignment tracking

@@ -715,6 +715,8 @@ interface CityRowProps {
   onStartEditAssignment: () => void;
   onAssignCity: (ownerId: string | null, ownerName: string | null) => void;
   onCancelEditAssignment: () => void;
+  // Admin name lookup for provider assignment chips
+  adminNameLookup: Map<string, string>;
 }
 
 function CityRow({
@@ -736,6 +738,7 @@ function CityRow({
   onStartEditAssignment,
   onAssignCity,
   onCancelEditAssignment,
+  adminNameLookup,
 }: CityRowProps) {
   // Auto email lookup state
   const [lookingUpEmails, setLookingUpEmails] = useState<Set<string>>(new Set());
@@ -991,8 +994,8 @@ function CityRow({
                       className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
                     />
 
-                    {/* Provider Name + Category */}
-                    <div className="w-56 shrink-0">
+                    {/* Provider Name + Category + Assignment */}
+                    <div className="w-64 shrink-0">
                       <div className="flex items-center gap-1.5">
                         <Link
                           href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
@@ -1008,6 +1011,12 @@ function CityRow({
                             View
                           </Link>
                         )}
+                        <AdminChip
+                          adminId={provider.assigned_to}
+                          adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                          size="sm"
+                          showUnassigned={false}
+                        />
                       </div>
                       {provider.provider_category && (
                         <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
@@ -3732,6 +3741,7 @@ export default function ProviderOutreachPage() {
                       onStartEditAssignment={() => setEditingCityAssignment(city.city)}
                       onAssignCity={(ownerId, ownerName) => assignCity(city.city, ownerId, ownerName)}
                       onCancelEditAssignment={() => setEditingCityAssignment(null)}
+                      adminNameLookup={adminNameLookup}
                     />
                   ))}
                 </div>

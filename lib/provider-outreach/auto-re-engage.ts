@@ -104,7 +104,7 @@ async function processProvider(
     cycle_number: number;
     re_engage_entered_at: string;
   },
-  systemUserId: string
+  systemUserId: string | null
 ): Promise<ProcessResult> {
   const { id, provider_id, cycle_number } = trackingRecord;
   const nowIso = new Date().toISOString();
@@ -244,12 +244,12 @@ async function processProvider(
  * Called by /api/cron/provider-outreach-auto-re-engage (daily at 6 AM UTC).
  *
  * @param db - Supabase client with service role access
- * @param systemUserId - User ID for audit logging (use a system account or admin ID)
+ * @param systemUserId - User ID for audit logging (null for system/cron actions)
  * @returns Summary of processing results
  */
 export async function processEligibleReEngageProviders(
   db: ReturnType<typeof createClient>,
-  systemUserId: string
+  systemUserId: string | null
 ): Promise<AutoReEngageResult> {
   console.log("[auto-re-engage] Starting batch processing...");
 

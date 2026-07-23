@@ -67,6 +67,10 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
 // archived = hard (system-wide block)
 const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived"];
 
+// Follow Up queue limits (must match backend config)
+const MAX_RESEND_COUNT = 2;
+const MAX_NO_ANSWER_COUNT = 3;
+
 interface CityStats {
   city: string;
   total: number;
@@ -1230,8 +1234,8 @@ function FollowUpProviderRow({
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
-  const resendDisabled = provider.resend_count >= 2;
-  const noAnswerWarning = provider.no_answer_count === 2;
+  const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
+  const noAnswerWarning = provider.no_answer_count === MAX_NO_ANSWER_COUNT - 1;
 
   // Confirmation modal content for each outcome
   // Note: No "claimed_on_call" case - auto-claim detection handles claims automatically
@@ -1244,7 +1248,7 @@ function FollowUpProviderRow({
           details: [
             "Provider will stay in the Follow Up queue",
             `Due date will be pushed to ${addDaysFormatted(3)}`,
-            `This is resend #${provider.resend_count + 1} of 2 allowed`,
+            `This is resend #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
           ],
           confirmLabel: "Yes, resend link",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
@@ -1644,7 +1648,7 @@ function FollowUpProviderRow({
             <button
               onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? "Resend limit reached (2 max)" : undefined}
+              title={resendDisabled ? `Resend limit reached (${MAX_RESEND_COUNT} max)` : undefined}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
                 resendDisabled
                   ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"

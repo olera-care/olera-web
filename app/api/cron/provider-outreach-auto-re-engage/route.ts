@@ -30,9 +30,6 @@ import { processEligibleReEngageProviders, dryRunAutoReEngage } from "@/lib/prov
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabaseClient = any;
 
-// System user ID for audit logging (null = system action)
-const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
-
 function authorize(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
@@ -69,8 +66,8 @@ async function runCron(req: NextRequest) {
       });
     }
 
-    // Process eligible providers
-    const result = await processEligibleReEngageProviders(db as AnySupabaseClient, SYSTEM_USER_ID);
+    // Process eligible providers (null = system action for audit logging)
+    const result = await processEligibleReEngageProviders(db as AnySupabaseClient, null);
 
     return NextResponse.json({
       processed: result.processed,

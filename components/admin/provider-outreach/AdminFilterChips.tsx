@@ -39,16 +39,22 @@ export function AdminFilterChips({
   onSelect,
   tabKey,
 }: AdminFilterChipsProps) {
-  // Load persisted selection on mount
+  // Load persisted selection on mount, validate it exists in current adminCounts
   useEffect(() => {
     const stored = localStorage.getItem(`provider-outreach-filter-${tabKey}`);
     if (stored !== null) {
       const value = stored === "null" ? null : stored;
-      if (value !== selectedAdminId) {
+      // Validate the stored admin ID still exists (or is "unassigned" or null)
+      const isValidSelection = value === null || value === "unassigned" || value in adminCounts;
+      if (isValidSelection && value !== selectedAdminId) {
         onSelect(value);
+      } else if (!isValidSelection && selectedAdminId !== null) {
+        // Stored admin no longer exists, reset to "All"
+        localStorage.removeItem(`provider-outreach-filter-${tabKey}`);
+        onSelect(null);
       }
     }
-  }, [tabKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tabKey, adminCounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist selection changes
   const handleSelect = (adminId: string | null) => {

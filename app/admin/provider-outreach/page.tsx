@@ -2471,6 +2471,9 @@ export default function ProviderOutreachPage() {
           ownerMap.set(owner.city, owner);
         }
         setCityOwners(ownerMap);
+      } else {
+        // Non-critical: just log, don't show toast
+        console.error("Failed to fetch city owners: API returned", res.status);
       }
     } catch (err) {
       console.error("Failed to fetch city owners:", err);
@@ -2545,12 +2548,28 @@ export default function ProviderOutreachPage() {
         if (data.stage_counts) {
           setStageCounts(data.stage_counts);
         }
-        if (data.admin_counts) {
+        // Use API admin_counts if provided, otherwise compute from provider list
+        if (data.admin_counts && Object.keys(data.admin_counts).length > 0) {
           setAdminCounts(data.admin_counts);
+        } else {
+          // Compute admin counts from provider list (for not_contacted stage)
+          const computed: AdminCounts = {};
+          for (const p of data.providers || []) {
+            const key = p.assigned_to || "unassigned";
+            if (!computed[key]) {
+              computed[key] = { count: 0 };
+            }
+            computed[key].count++;
+          }
+          setAdminCounts(computed);
         }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || "Failed to fetch providers", "error");
       }
     } catch (err) {
       console.error("Failed to fetch providers:", err);
+      showToast("Failed to fetch providers", "error");
     } finally {
       setLoadingProviders(false);
     }
@@ -3252,10 +3271,18 @@ export default function ProviderOutreachPage() {
       )}
 
       {/* Admin Filter Chips - show on tabs where assignment applies */}
-      {selectedState && ["needs_email", "ready", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && Object.keys(adminCounts).length > 0 && (
+      {selectedState && ["needs_email", "ready", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
         <AdminFilterChips
           adminCounts={adminCounts}
-          totalCount={Object.values(adminCounts).reduce((sum, a) => sum + a.count, 0)}
+          totalCount={
+            activeTab === "needs_email" ? stageCounts.needs_email :
+            activeTab === "ready" ? stageCounts.ready :
+            activeTab === "in_sequence" ? stageCounts.in_sequence :
+            activeTab === "needs_call" ? stageCounts.needs_call :
+            activeTab === "re_engage" ? stageCounts.re_engage :
+            activeTab === "not_interested" ? stageCounts.not_interested :
+            0
+          }
           selectedAdminId={selectedAdminFilter}
           onSelect={(adminId) => setSelectedAdminFilter(adminId)}
           tabKey={activeTab}

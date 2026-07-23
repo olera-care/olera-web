@@ -66,7 +66,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to update city assignment" }, { status: 500 });
     }
 
-    // 2. Get all tracking records in this city
+    // 2. Get all providers in this city (from olera-providers)
+    const { data: allProvidersInCity, error: providersError } = await db
+      .from("olera-providers")
+      .select("provider_id")
+      .eq("state", state)
+      .eq("city", city)
+      .or("deleted.is.null,deleted.eq.false");
+
+    if (providersError) {
+      console.error("[assign-city] Failed to fetch providers:", providersError);
+      return NextResponse.json({ error: "Failed to fetch providers" }, { status: 500 });
+    }
+
+    const allProviderIds = new Set((allProvidersInCity || []).map((p) => p.provider_id));
+
+    // 3. Get existing tracking records in this city
     const { data: trackingRecords, error: trackingError } = await db
       .from("provider_outreach_tracking")
       .select("id, provider_id, assigned_to")
@@ -75,11 +90,29 @@ export async function POST(request: NextRequest) {
 
     if (trackingError) {
       console.error("[assign-city] Failed to fetch tracking records:", trackingError);
-      return NextResponse.json({ error: "Failed to fetch providers" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to fetch tracking records" }, { status: 500 });
     }
 
-    // 3. Bulk-update assigned_to for all tracked providers in this city
+    const trackedProviderIds = new Set((trackingRecords || []).map((t) => t.provider_id));
+
+    // 4. Get claimed providers (exclude from assignment)
+    const { data: claimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .not("source_provider_id", "is", null)
+      .not("account_id", "is", null);
+
+    const claimedProviderIds = new Set(
+      (claimedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
+    );
+
+    // 5. Find untracked, unclaimed providers that need tracking records created
+    const untrackedProviderIds = [...allProviderIds].filter(
+      (id) => !trackedProviderIds.has(id) && !claimedProviderIds.has(id)
+    );
+
     let updatedCount = 0;
+    let createdCount = 0;
     const touchpoints: Array<{
       provider_id: string;
       touchpoint_type: string;
@@ -87,6 +120,7 @@ export async function POST(request: NextRequest) {
       details: Record<string, unknown>;
     }> = [];
 
+    // 6. Update existing tracking records
     if (trackingRecords && trackingRecords.length > 0) {
       const trackingIds = trackingRecords.map((t) => t.id);
 
@@ -106,9 +140,8 @@ export async function POST(request: NextRequest) {
 
       updatedCount = trackingIds.length;
 
-      // 4. Log assignment_changed touchpoints for each affected provider
+      // Log assignment_changed touchpoints for tracked providers
       for (const record of trackingRecords) {
-        // Only log if assignment actually changed
         if (record.assigned_to !== owner_id) {
           touchpoints.push({
             provider_id: record.provider_id,
@@ -124,19 +157,64 @@ export async function POST(request: NextRequest) {
           });
         }
       }
+    }
 
-      if (touchpoints.length > 0) {
-        // Batch touchpoint inserts for large cities
-        for (let i = 0; i < touchpoints.length; i += IN_CLAUSE_BATCH_SIZE) {
-          const batch = touchpoints.slice(i, i + IN_CLAUSE_BATCH_SIZE);
-          const { error: touchpointError } = await db
-            .from("provider_outreach_touchpoints")
-            .insert(batch);
+    // 7. Create tracking records for untracked providers (only if assigning, not unassigning)
+    if (owner_id && untrackedProviderIds.length > 0) {
+      const now = new Date().toISOString();
+      const newTrackingRecords = untrackedProviderIds.map((provider_id) => ({
+        provider_id,
+        state,
+        city,
+        stage: "not_contacted",
+        assigned_to: owner_id,
+        stage_changed_at: now,
+        created_at: now,
+        updated_at: now,
+      }));
 
-          if (touchpointError) {
-            // Log but don't fail the request
-            console.error("[assign-city] Failed to log touchpoints batch:", touchpointError);
-          }
+      // Batch inserts
+      for (let i = 0; i < newTrackingRecords.length; i += IN_CLAUSE_BATCH_SIZE) {
+        const batch = newTrackingRecords.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+        const { error: insertError } = await db
+          .from("provider_outreach_tracking")
+          .insert(batch);
+
+        if (insertError) {
+          console.error("[assign-city] Failed to create tracking records batch:", insertError);
+          // Continue - don't fail the whole request
+        }
+      }
+
+      createdCount = untrackedProviderIds.length;
+
+      // Log assignment touchpoints for newly tracked providers
+      for (const provider_id of untrackedProviderIds) {
+        touchpoints.push({
+          provider_id,
+          touchpoint_type: "assignment_changed",
+          admin_user_id: adminUser.id,
+          details: {
+            previous_assigned_to: null,
+            new_assigned_to: owner_id,
+            source: "city_assignment",
+            city,
+            state,
+          },
+        });
+      }
+    }
+
+    // 8. Batch insert touchpoints
+    if (touchpoints.length > 0) {
+      for (let i = 0; i < touchpoints.length; i += IN_CLAUSE_BATCH_SIZE) {
+        const batch = touchpoints.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+        const { error: touchpointError } = await db
+          .from("provider_outreach_touchpoints")
+          .insert(batch);
+
+        if (touchpointError) {
+          console.error("[assign-city] Failed to log touchpoints batch:", touchpointError);
         }
       }
     }
@@ -148,6 +226,8 @@ export async function POST(request: NextRequest) {
       owner_id: owner_id || null,
       owner_name: owner_name || null,
       updated_count: updatedCount,
+      created_count: createdCount,
+      total_assigned: updatedCount + createdCount,
       touchpoints_logged: touchpoints.length,
     });
   } catch (err) {

@@ -9,8 +9,10 @@
  *
  * Behavior:
  *   - Find providers in re_engage stage for 30+ days
- *   - Cycle 1 providers: move to not_contacted (Ready tab) as cycle 2
+ *   - Cycle 1 providers: AUTOMATICALLY move to in_sequence and create email tasks
+ *     (no manual re-launch needed - sequence starts automatically)
  *   - Cycle 2 providers: move to not_interested (soft terminal)
+ *   - Providers without email are skipped
  *   - Log touchpoints for each transition
  *
  * Terminal States:
@@ -20,6 +22,10 @@
  * Local testing:
  *   curl -H "Authorization: Bearer $CRON_SECRET" \
  *     http://localhost:3000/api/cron/provider-outreach-auto-re-engage
+ *
+ *   # Dry run (preview only):
+ *   curl -H "Authorization: Bearer $CRON_SECRET" \
+ *     "http://localhost:3000/api/cron/provider-outreach-auto-re-engage?dry_run=true"
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -73,6 +79,7 @@ async function runCron(req: NextRequest) {
       processed: result.processed,
       cycle_started: result.cycle_started,
       soft_terminal: result.soft_terminal,
+      skipped: result.skipped,
       errors: result.errors,
       results: result.results,
     });

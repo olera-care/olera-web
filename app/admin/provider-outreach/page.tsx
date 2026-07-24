@@ -4018,6 +4018,30 @@ export default function ProviderOutreachPage() {
                           markAsRecentlyMoved(actionModalProvider.provider_id);
                           // Optimistically remove from current tab to prevent duplicate appearance
                           setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
+                          // Optimistically update stage counts
+                          const oldStage = actionModalProvider.stage;
+                          setStageCounts((prev) => {
+                            const updates: Partial<typeof prev> = {};
+                            // Decrement old stage count
+                            if (oldStage === "not_contacted") {
+                              // not_contacted is split into needs_email/ready sub-tabs
+                              if (actionModalProvider.email) {
+                                updates.ready = Math.max(0, prev.ready - 1);
+                              } else {
+                                updates.needs_email = Math.max(0, prev.needs_email - 1);
+                              }
+                            } else if (oldStage && oldStage in prev) {
+                              updates[oldStage as keyof typeof prev] = Math.max(0, (prev[oldStage as keyof typeof prev] || 0) - 1);
+                            }
+                            // Increment new stage count
+                            if (pendingStageMove === "not_contacted") {
+                              // Moving to not_contacted means they have email, so increment ready
+                              updates.ready = (updates.ready ?? prev.ready) + 1;
+                            } else if (pendingStageMove && pendingStageMove in prev) {
+                              updates[pendingStageMove as keyof typeof prev] = (prev[pendingStageMove as keyof typeof prev] || 0) + 1;
+                            }
+                            return { ...prev, ...updates };
+                          });
                           closeActionModal();
                           fetchProviders();
                           if (isNotContactedTab(activeTab)) fetchCities();

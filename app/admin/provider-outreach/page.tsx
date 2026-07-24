@@ -1401,19 +1401,6 @@ function FollowUpProviderRow({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showActionMenu]);
 
-  // Handle stage change from action menu
-  const handleStageMove = async (newStage: OutreachStage) => {
-    setStageChangeLoading(true);
-    setShowActionMenu(false);
-    try {
-      await onStageChange(newStage);
-    } catch {
-      setError("Failed to move provider");
-    } finally {
-      setStageChangeLoading(false);
-    }
-  };
-
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       {/* Collapsed Row */}
@@ -1699,6 +1686,13 @@ function FollowUpProviderRow({
 
             {/* Content */}
             <div className="px-5 py-4">
+              {/* Error message - show inside modal for visibility */}
+              {error && (
+                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
               <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
 
               <div className="bg-gray-50 rounded-lg p-3 mb-4">
@@ -1739,13 +1733,16 @@ function FollowUpProviderRow({
                     await handleOutcome(pendingOutcome);
                   } else if (pendingStageMove) {
                     setStageChangeLoading(true);
+                    setError(null);
                     try {
                       await onStageChange(pendingStageMove);
+                      // Success - modal will close when component unmounts after parent removes provider
+                      setPendingStageMove(null);
                     } catch {
-                      setError("Failed to move provider");
+                      // Keep modal open on error so user can see it and retry
+                      setError("Failed to move provider. Please try again.");
                     } finally {
                       setStageChangeLoading(false);
-                      setPendingStageMove(null);
                     }
                   }
                 }}

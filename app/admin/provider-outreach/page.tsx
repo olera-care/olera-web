@@ -3949,7 +3949,7 @@ export default function ProviderOutreachPage() {
                         </li>
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
-                          After Day 14, they move to Follow Up automatically
+                          After Day 14, they move to Follow Up
                         </li>
                       </>
                     )}

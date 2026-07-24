@@ -1250,15 +1250,16 @@ function FollowUpProviderRow({
     switch (outcome) {
       case "resend_link":
         return {
-          title: "Resend Claim Link",
-          description: "The provider requested to receive the claim link again.",
+          title: "Send Claim Link Email",
+          description: "Send a short email with just the claim link to the provider.",
           details: [
+            "📧 Email will be sent immediately with the claim link",
             "Provider will stay in the Follow Up queue",
             `Due date will be pushed to ${addDaysFormatted(3)}`,
-            `This is resend #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
+            `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
           ],
-          confirmLabel: "Yes, resend link",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+          confirmLabel: "Yes, send email now",
+          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
         };
       case "schedule_callback":
         return {
@@ -1357,6 +1358,12 @@ function FollowUpProviderRow({
           });
           onOutcomeRecorded(false);
         }
+
+        // Check if email was supposed to be sent but failed
+        if (data.email_sent === false && data.email_error) {
+          setError(`Email failed: ${data.email_error}. Due date was still updated.`);
+        }
+
         // Reset form
         setNotes("");
         setCallbackDate("");
@@ -1638,18 +1645,18 @@ function FollowUpProviderRow({
           {/* Note: No "Claimed on call" button - auto-claim detection handles this automatically */}
           {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Resend link */}
+            {/* Send claim email */}
             <button
               onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? `Resend limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link"}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
                 resendDisabled
                   ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
-                  : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
               }`}
             >
-              Resend link{resendDisabled && " (max)"}
+              📧 Send claim email{resendDisabled && " (max)"}
             </button>
 
             {/* Schedule callback */}

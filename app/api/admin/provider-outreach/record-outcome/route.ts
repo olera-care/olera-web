@@ -23,8 +23,7 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  * |------------------|--------------------------------|-----------------|
  * | resend_link      | resend_count++, due_date=+3d   | stays           |
  * | schedule_callback| due_date=callback_date         | stays           |
- * | no_answer (1-2)  | no_answer_count++, due_date=+2d| stays           |
- * | no_answer (3rd)  | no_answer_count++              | → re_engage     |
+ * | no_answer        | no_answer_count++              | → re_engage     |
  * | wrong_contact    | clears email                   | → not_contacted |
  * | not_interested   | -                              | → not_interested (soft terminal) |
  *
@@ -149,13 +148,8 @@ export async function POST(request: NextRequest) {
 
       case "no_answer":
         newNoAnswerCount = currentNoAnswerCount + 1;
-        if (newNoAnswerCount >= 3) {
-          // 3rd no-answer: auto-transition to re_engage
-          newStage = "re_engage";
-        } else {
-          // 1st or 2nd: bump due date by 2 days
-          newDueDate = addDays(today, 2);
-        }
+        // Immediate transition to re_engage on first no-answer
+        newStage = "re_engage";
         break;
 
       case "wrong_contact":

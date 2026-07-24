@@ -69,7 +69,6 @@ const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived
 
 // Follow Up queue limits (must match backend config)
 const MAX_RESEND_COUNT = 2;
-const MAX_NO_ANSWER_COUNT = 3;
 
 interface CityStats {
   city: string;
@@ -1244,7 +1243,6 @@ function FollowUpProviderRow({
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
-  const noAnswerWarning = provider.no_answer_count === MAX_NO_ANSWER_COUNT - 1;
 
   // Confirmation modal content for each outcome
   // Note: No "claimed_on_call" case - auto-claim detection handles claims automatically
@@ -1275,29 +1273,16 @@ function FollowUpProviderRow({
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
       case "no_answer":
-        if (noAnswerWarning) {
-          return {
-            title: "No Answer (3rd Attempt)",
-            description: "This is the third time the provider didn't answer.",
-            details: [
-              "Provider will be moved to the Re-Engage stage",
-              "They will no longer appear in the Follow Up queue",
-              "Consider re-engaging via email sequence later",
-            ],
-            confirmLabel: "Yes, move to Re-Engage",
-            confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
-          };
-        }
         return {
           title: "No Answer",
           description: "The provider did not answer the call.",
           details: [
-            "Provider will stay in the Follow Up queue",
-            `Due date will be pushed to ${addDaysFormatted(2)}`,
-            `This is attempt #${provider.no_answer_count + 1} of 3 before moving to Re-Engage`,
+            "Provider will be moved to the Re-Engage stage",
+            "They will no longer appear in the Follow Up queue",
+            "They can be re-engaged via email sequence later",
           ],
-          confirmLabel: "Yes, mark as no answer",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+          confirmLabel: "Yes, move to Re-Engage",
+          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
         };
       case "wrong_contact":
         return {
@@ -1682,7 +1667,7 @@ function FollowUpProviderRow({
               disabled={submitting !== null}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              No answer{noAnswerWarning && " (→ Re-Engage)"}
+              No answer (→ Re-Engage)
             </button>
 
             {/* Wrong contact */}

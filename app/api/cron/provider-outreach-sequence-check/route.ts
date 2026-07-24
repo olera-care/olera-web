@@ -8,13 +8,13 @@
  * (401) if CRON_SECRET is unset OR doesn't match — never publicly callable.
  *
  * Behavior:
- *   - Find providers in in_sequence stage where sequence_started_at + 21 days <= now()
+ *   - Find providers in in_sequence stage where sequence_started_at + 14 days <= now()
  *   - Check they haven't claimed (claimed_at is still null)
  *   - Move to needs_call stage with reason 'sequence_exhausted'
  *   - Log touchpoint for each transition
  *
- * Why 21 days? The cadence is Day 0, 3, 7, 14. After Day 14 + 7 days of
- * waiting for a response, we escalate to manual calls.
+ * Timing: The cadence is Day 0, 3, 7, 14. After Day 14 (final email) with
+ * no claim, we immediately escalate to manual calls (Follow Up stage).
  *
  * Local testing:
  *   curl -H "Authorization: Bearer $CRON_SECRET" \

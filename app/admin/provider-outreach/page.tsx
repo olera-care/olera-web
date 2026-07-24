@@ -2045,6 +2045,25 @@ export default function ProviderOutreachPage() {
   const [providers, setProviders] = useState<OutreachProvider[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
 
+  // Track recently-moved provider IDs to filter from stale API responses
+  // This prevents providers from reappearing due to database replication lag
+  const recentlyMovedRef = useRef<Set<string>>(new Set());
+  const recentlyMovedTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Helper to mark a provider as recently moved (auto-clears after 5 seconds)
+  const markAsRecentlyMoved = useCallback((providerId: string) => {
+    recentlyMovedRef.current.add(providerId);
+    // Clear any existing timer for this provider
+    const existingTimer = recentlyMovedTimersRef.current.get(providerId);
+    if (existingTimer) clearTimeout(existingTimer);
+    // Set new timer to remove after 5 seconds
+    const timer = setTimeout(() => {
+      recentlyMovedRef.current.delete(providerId);
+      recentlyMovedTimersRef.current.delete(providerId);
+    }, 5000);
+    recentlyMovedTimersRef.current.set(providerId, timer);
+  }, []);
+
   // Stage counts (includes needs_email and ready for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     needs_email: number;
@@ -2472,6 +2491,13 @@ export default function ProviderOutreachPage() {
         if (selectedAdminFilter === "unassigned") {
           filteredProviders = filteredProviders.filter((p: OutreachProvider) => !p.assigned_to);
         }
+        // Filter out recently-moved providers to prevent stale data from reappearing
+        // This guards against database replication lag returning old state
+        if (recentlyMovedRef.current.size > 0) {
+          filteredProviders = filteredProviders.filter(
+            (p: OutreachProvider) => !recentlyMovedRef.current.has(p.provider_id)
+          );
+        }
         setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);
         if (data.stage_counts) {
@@ -2824,6 +2850,8 @@ export default function ProviderOutreachPage() {
         // Use UI_TAB_LABELS for the target stage display
         const stageLabel = UI_TAB_LABELS[newStage as UITab] || newStage;
         showToast(`Moved ${data.updated + data.created} provider(s) to ${stageLabel}`, "success");
+        // Mark as recently moved to filter from stale API responses
+        idsToUpdate.forEach((id) => markAsRecentlyMoved(id));
         // Optimistically remove moved providers from current tab to prevent duplicate appearance
         const idsSet = new Set(idsToUpdate);
         setProviders((prev) => prev.filter((p) => !idsSet.has(p.provider_id)));
@@ -2873,6 +2901,8 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const actionLabel = action === "not_contacted" ? "Restored" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
+        // Mark as recently moved to filter from stale API responses
+        markAsRecentlyMoved(providerId);
         // Optimistically remove from current tab to prevent duplicate appearance
         setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
 
@@ -3488,6 +3518,8 @@ export default function ProviderOutreachPage() {
             loading={loadingProviders}
             onOutcomeRecorded={(providerId, stageChanged) => {
               if (stageChanged) {
+                // Mark as recently moved to filter from stale API responses
+                markAsRecentlyMoved(providerId);
                 // Provider left the queue - remove from local state
                 setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
                 // Optimistically decrement needs_call count
@@ -3521,6 +3553,8 @@ export default function ProviderOutreachPage() {
                 const err = await res.json();
                 throw new Error(err.error || "Failed to update stage");
               }
+              // Mark as recently moved to filter from stale API responses
+              markAsRecentlyMoved(providerId);
               // Remove from local state (provider left Follow Up)
               setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
               // Update stage counts
@@ -3550,6 +3584,8 @@ export default function ProviderOutreachPage() {
             providers={providers}
             loading={loadingProviders}
             onReEngageAction={(providerId, result) => {
+              // Mark as recently moved to filter from stale API responses
+              markAsRecentlyMoved(providerId);
               // Provider moved out of re_engage - remove from local state
               setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
               // Update stage counts
@@ -3817,6 +3853,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to Ready", "success");
+                                // Mark as recently moved to filter from stale API responses
+                                markAsRecentlyMoved(actionModalProvider.provider_id);
                                 // Optimistically remove from current tab to prevent duplicate appearance
                                 setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();
@@ -3851,6 +3889,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to In Sequence", "success");
+                                // Mark as recently moved to filter from stale API responses
+                                markAsRecentlyMoved(actionModalProvider.provider_id);
                                 // Optimistically remove from current tab to prevent duplicate appearance
                                 setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();
@@ -3885,6 +3925,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to Follow Up", "success");
+                                // Mark as recently moved to filter from stale API responses
+                                markAsRecentlyMoved(actionModalProvider.provider_id);
                                 // Optimistically remove from current tab to prevent duplicate appearance
                                 setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();
@@ -3919,6 +3961,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to Re-Engage", "success");
+                                // Mark as recently moved to filter from stale API responses
+                                markAsRecentlyMoved(actionModalProvider.provider_id);
                                 // Optimistically remove from current tab to prevent duplicate appearance
                                 setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();

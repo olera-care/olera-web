@@ -1533,7 +1533,8 @@ function FollowUpProviderRow({
                 Move to stage
               </div>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowActionMenu(false);
                   setPendingStageMove("not_contacted");
                 }}
@@ -1542,7 +1543,8 @@ function FollowUpProviderRow({
                 Ready
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowActionMenu(false);
                   setPendingStageMove("in_sequence");
                 }}
@@ -1551,7 +1553,8 @@ function FollowUpProviderRow({
                 In Sequence
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowActionMenu(false);
                   setPendingStageMove("re_engage");
                 }}
@@ -1564,7 +1567,8 @@ function FollowUpProviderRow({
                 Terminal
               </div>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowActionMenu(false);
                   setPendingOutcome("not_interested");
                 }}
@@ -1573,7 +1577,8 @@ function FollowUpProviderRow({
                 Not Interested
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowActionMenu(false);
                   onArchive();
                 }}
@@ -1673,7 +1678,15 @@ function FollowUpProviderRow({
 
       {/* Confirmation Modal - outside expanded section so it works for both outcomes and stage moves */}
       {(pendingOutcome || pendingStageMove) && confirmationContent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Click on backdrop cancels
+            setPendingOutcome(null);
+            setPendingStageMove(null);
+          }}
+        >
           <div
             className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
             onClick={(e) => e.stopPropagation()}
@@ -2116,17 +2129,20 @@ export default function ProviderOutreachPage() {
   const recentlyMovedRef = useRef<Set<string>>(new Set());
   const recentlyMovedTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Helper to mark a provider as recently moved (auto-clears after 5 seconds)
+  // Helper to mark a provider as recently moved (auto-clears after 30 seconds)
+  // Extended from 5s to 30s to account for database replication lag
   const markAsRecentlyMoved = useCallback((providerId: string) => {
     recentlyMovedRef.current.add(providerId);
+    console.log("[recentlyMoved] Added:", providerId, "Set size:", recentlyMovedRef.current.size);
     // Clear any existing timer for this provider
     const existingTimer = recentlyMovedTimersRef.current.get(providerId);
     if (existingTimer) clearTimeout(existingTimer);
-    // Set new timer to remove after 5 seconds
+    // Set new timer to remove after 30 seconds (extended for DB replication)
     const timer = setTimeout(() => {
       recentlyMovedRef.current.delete(providerId);
       recentlyMovedTimersRef.current.delete(providerId);
-    }, 5000);
+      console.log("[recentlyMoved] Expired:", providerId, "Set size:", recentlyMovedRef.current.size);
+    }, 30000);
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
@@ -2562,10 +2578,16 @@ export default function ProviderOutreachPage() {
         }
         // Filter out recently-moved providers to prevent stale data from reappearing
         // This guards against database replication lag returning old state
-        if (recentlyMovedRef.current.size > 0) {
+        const recentlyMovedIds = Array.from(recentlyMovedRef.current);
+        if (recentlyMovedIds.length > 0) {
+          const beforeCount = filteredProviders.length;
           filteredProviders = filteredProviders.filter(
             (p: OutreachProvider) => !recentlyMovedRef.current.has(p.provider_id)
           );
+          const afterCount = filteredProviders.length;
+          if (beforeCount !== afterCount) {
+            console.log("[recentlyMoved] Filtered out", beforeCount - afterCount, "providers. IDs in Set:", recentlyMovedIds);
+          }
         }
         setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);

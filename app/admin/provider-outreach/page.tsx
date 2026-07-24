@@ -2147,6 +2147,8 @@ export default function ProviderOutreachPage() {
     loading: boolean;
   } | null>(null);
   const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
+  // Pending stage move confirmation (for Move to Stage buttons)
+  const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
 
   // Remove from outreach confirmation state
   const [pendingRemoval, setPendingRemoval] = useState<{
@@ -2262,6 +2264,7 @@ export default function ProviderOutreachPage() {
     setActionNotes("");
     setUnarchivePreview(null);
     setUnarchivePreviewConfirmed(false);
+    setPendingStageMove(null);
   };
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
@@ -3732,7 +3735,7 @@ export default function ProviderOutreachPage() {
             </div>
 
             {/* Step 1: Select Action */}
-            {!selectedAction && (
+            {!selectedAction && !pendingStageMove && (
               <div className="p-4 space-y-2">
                 {/* Unarchive - only show if provider is currently archived */}
                 {actionModalProvider.stage === "archived" && (
@@ -3840,34 +3843,7 @@ export default function ProviderOutreachPage() {
                     <div className="grid grid-cols-2 gap-2">
                       {actionModalProvider.stage !== "not_contacted" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "not_contacted",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to Ready", "success");
-                                // Mark as recently moved to filter from stale API responses
-                                markAsRecentlyMoved(actionModalProvider.provider_id);
-                                // Optimistically remove from current tab to prevent duplicate appearance
-                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("not_contacted")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
@@ -3876,34 +3852,7 @@ export default function ProviderOutreachPage() {
                       )}
                       {actionModalProvider.stage !== "in_sequence" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "in_sequence",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to In Sequence", "success");
-                                // Mark as recently moved to filter from stale API responses
-                                markAsRecentlyMoved(actionModalProvider.provider_id);
-                                // Optimistically remove from current tab to prevent duplicate appearance
-                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("in_sequence")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
                         >
@@ -3912,34 +3861,7 @@ export default function ProviderOutreachPage() {
                       )}
                       {actionModalProvider.stage !== "needs_call" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "needs_call",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to Follow Up", "success");
-                                // Mark as recently moved to filter from stale API responses
-                                markAsRecentlyMoved(actionModalProvider.provider_id);
-                                // Optimistically remove from current tab to prevent duplicate appearance
-                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("needs_call")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors disabled:opacity-50"
                         >
@@ -3948,34 +3870,7 @@ export default function ProviderOutreachPage() {
                       )}
                       {actionModalProvider.stage !== "re_engage" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "re_engage",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to Re-Engage", "success");
-                                // Mark as recently moved to filter from stale API responses
-                                markAsRecentlyMoved(actionModalProvider.provider_id);
-                                // Optimistically remove from current tab to prevent duplicate appearance
-                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("re_engage")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
                         >
@@ -3986,6 +3881,176 @@ export default function ProviderOutreachPage() {
                   </>
                 )}
 
+              </div>
+            )}
+
+            {/* Stage Move Confirmation Modal */}
+            {pendingStageMove && actionModalProvider && (
+              <div className="p-4 space-y-4">
+                {/* Back button */}
+                <button
+                  onClick={() => setPendingStageMove(null)}
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+
+                {/* Confirmation content */}
+                <div className={`p-3 rounded-lg border ${
+                  pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
+                  pendingStageMove === "in_sequence" ? "bg-blue-50 border-blue-200" :
+                  pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
+                  "bg-purple-50 border-purple-200"
+                }`}>
+                  <p className="text-sm font-medium text-gray-900">
+                    Move to {
+                      pendingStageMove === "not_contacted" ? "Ready" :
+                      pendingStageMove === "in_sequence" ? "In Sequence" :
+                      pendingStageMove === "needs_call" ? "Follow Up" :
+                      "Re-Engage"
+                    }
+                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    {actionModalProvider.provider_name}
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                  <ul className="space-y-1.5">
+                    {pendingStageMove === "not_contacted" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will be moved back to the Ready queue
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Any scheduled outreach tasks will be cleared
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          You can start a fresh outreach sequence later
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "in_sequence" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will enter the automated email sequence
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Emails will be sent on Days 0, 3, 7, and 14
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          After Day 14, they move to Follow Up automatically
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "needs_call" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will appear in the Follow Up call queue
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          They should be contacted by phone
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Use outcome buttons to record call results
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "re_engage" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will enter the Re-Engage waiting period
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          After 30 days, they can be re-engaged one more time
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Or they can be moved to Not Interested / Archived
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Confirm/Cancel buttons */}
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => setPendingStageMove(null)}
+                    disabled={actionLoading}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setActionLoading(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            provider_ids: [actionModalProvider.provider_id],
+                            stage: pendingStageMove,
+                          }),
+                        });
+                        if (res.ok) {
+                          const stageLabel = pendingStageMove === "not_contacted" ? "Ready" :
+                            pendingStageMove === "in_sequence" ? "In Sequence" :
+                            pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage";
+                          showToast(`Moved to ${stageLabel}`, "success");
+                          // Mark as recently moved to filter from stale API responses
+                          markAsRecentlyMoved(actionModalProvider.provider_id);
+                          // Optimistically remove from current tab to prevent duplicate appearance
+                          setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
+                          closeActionModal();
+                          fetchProviders();
+                          if (isNotContactedTab(activeTab)) fetchCities();
+                        } else {
+                          const err = await res.json().catch(() => ({}));
+                          showToast(err.error || "Failed to move provider", "error");
+                        }
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    }}
+                    disabled={actionLoading}
+                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      pendingStageMove === "not_contacted" ? "bg-gray-600 hover:bg-gray-700" :
+                      pendingStageMove === "in_sequence" ? "bg-blue-600 hover:bg-blue-700" :
+                      pendingStageMove === "needs_call" ? "bg-amber-600 hover:bg-amber-700" :
+                      "bg-purple-600 hover:bg-purple-700"
+                    }`}
+                  >
+                    {actionLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Moving...
+                      </span>
+                    ) : (
+                      `Yes, move to ${
+                        pendingStageMove === "not_contacted" ? "Ready" :
+                        pendingStageMove === "in_sequence" ? "In Sequence" :
+                        pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage"
+                      }`
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 

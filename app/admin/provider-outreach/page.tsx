@@ -2824,6 +2824,9 @@ export default function ProviderOutreachPage() {
         // Use UI_TAB_LABELS for the target stage display
         const stageLabel = UI_TAB_LABELS[newStage as UITab] || newStage;
         showToast(`Moved ${data.updated + data.created} provider(s) to ${stageLabel}`, "success");
+        // Optimistically remove moved providers from current tab to prevent duplicate appearance
+        const idsSet = new Set(idsToUpdate);
+        setProviders((prev) => prev.filter((p) => !idsSet.has(p.provider_id)));
         setSelectedProviders(new Set());
 
         // Refresh data
@@ -2870,6 +2873,8 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const actionLabel = action === "not_contacted" ? "Restored" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
+        // Optimistically remove from current tab to prevent duplicate appearance
+        setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
 
         // Refresh data
         if (isNotContactedTab(activeTab)) {
@@ -3812,6 +3817,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to Ready", "success");
+                                // Optimistically remove from current tab to prevent duplicate appearance
+                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();
                                 fetchProviders();
                                 if (isNotContactedTab(activeTab)) fetchCities();
@@ -3844,6 +3851,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to In Sequence", "success");
+                                // Optimistically remove from current tab to prevent duplicate appearance
+                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();
                                 fetchProviders();
                                 if (isNotContactedTab(activeTab)) fetchCities();
@@ -3876,6 +3885,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to Follow Up", "success");
+                                // Optimistically remove from current tab to prevent duplicate appearance
+                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();
                                 fetchProviders();
                                 if (isNotContactedTab(activeTab)) fetchCities();
@@ -3908,6 +3919,8 @@ export default function ProviderOutreachPage() {
                               });
                               if (res.ok) {
                                 showToast("Moved to Re-Engage", "success");
+                                // Optimistically remove from current tab to prevent duplicate appearance
+                                setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
                                 closeActionModal();
                                 fetchProviders();
                                 if (isNotContactedTab(activeTab)) fetchCities();

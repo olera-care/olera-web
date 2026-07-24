@@ -101,6 +101,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No valid providers found" }, { status: 404 });
     }
 
+    // Log provider state values for debugging multi-tab appearance bug
+    console.log("[update-stage] Provider states from olera-providers:",
+      providers.map(p => ({ provider_id: p.provider_id, name: p.provider_name?.substring(0, 30), state: p.state, city: p.city }))
+    );
+
     const providerMap = new Map(providers.map((p) => [p.provider_id, p]));
 
     // Check which providers already have tracking rows
@@ -276,10 +281,28 @@ export async function POST(request: NextRequest) {
     // Perform updates
     if (toUpdate.length > 0) {
       const updateIds = toUpdate.map((t) => t.id);
-      const updateData: { stage: OutreachStage; stage_changed_at: string; notes?: string | null; needs_call_reason?: string | null } = {
+
+      // Log what we're updating for debugging
+      console.log("[update-stage] Updating tracking records:",
+        toUpdate.map(t => ({ id: t.id, provider_id: t.provider_id, oldStage: t.oldStage, newStage: stage }))
+      );
+
+      const updateData: { stage: OutreachStage; stage_changed_at: string; notes?: string | null; needs_call_reason?: string | null; city?: string | null; state?: string | null } = {
         stage: stage as OutreachStage,
         stage_changed_at: nowIso,
       };
+
+      // Also update city/state from provider details to ensure consistency
+      // This fixes cases where tracking record has stale/wrong location data
+      for (const item of toUpdate) {
+        const providerDetails = providerMap.get(item.provider_id);
+        if (providerDetails && toUpdate.length === 1) {
+          // Only set city/state if updating a single provider (bulk updates might have mixed states)
+          updateData.city = providerDetails.city;
+          updateData.state = providerDetails.state;
+        }
+      }
+
       if (notes !== undefined) {
         // For archive/unarchive, combine reason + notes
         if (isArchiving || isUnarchiving) {
@@ -306,6 +329,11 @@ export async function POST(request: NextRequest) {
 
     // Perform inserts
     if (toInsert.length > 0) {
+      // Log what we're inserting for debugging
+      console.log("[update-stage] Inserting tracking records:",
+        toInsert.map(r => ({ provider_id: r.provider_id, stage: r.stage, state: r.state, city: r.city }))
+      );
+
       const { error: insertError } = await db
         .from("provider_outreach_tracking")
         .insert(toInsert);

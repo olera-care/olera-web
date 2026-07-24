@@ -69,7 +69,6 @@ const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived
 
 // Follow Up queue limits (must match backend config)
 const MAX_RESEND_COUNT = 2;
-const MAX_NO_ANSWER_COUNT = 3;
 
 interface CityStats {
   city: string;
@@ -1234,17 +1233,15 @@ function FollowUpProviderRow({
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
-  const [callbackDate, setCallbackDate] = useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
+  const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
-  const noAnswerWarning = provider.no_answer_count === MAX_NO_ANSWER_COUNT - 1;
 
   // Confirmation modal content for each outcome
   // Note: No "claimed_on_call" case - auto-claim detection handles claims automatically
@@ -1252,52 +1249,28 @@ function FollowUpProviderRow({
     switch (outcome) {
       case "resend_link":
         return {
-          title: "Resend Claim Link",
-          description: "The provider requested to receive the claim link again.",
+          title: "Send Claim Link Email",
+          description: "Send a short email with just the claim link to the provider.",
           details: [
-            "Provider will stay in the Follow Up queue",
-            `Due date will be pushed to ${addDaysFormatted(3)}`,
-            `This is resend #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
+            "📧 Email will be sent immediately with the claim link",
+            "Provider will be moved to the Re-Engage stage",
+            "They will no longer appear in the Follow Up queue",
+            `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
           ],
-          confirmLabel: "Yes, resend link",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
-        };
-      case "schedule_callback":
-        return {
-          title: "Schedule Callback",
-          description: "Set a specific date to call this provider back.",
-          details: [
-            "Provider will stay in the Follow Up queue",
-            `Due date will be set to ${callbackDate ? new Date(callbackDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "(select a date)"}`,
-            "They will appear in the appropriate section based on that date",
-          ],
-          confirmLabel: "Confirm callback",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+          confirmLabel: "Yes, send email & move to Re-Engage",
+          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
         };
       case "no_answer":
-        if (noAnswerWarning) {
-          return {
-            title: "No Answer (3rd Attempt)",
-            description: "This is the third time the provider didn't answer.",
-            details: [
-              "Provider will be moved to the Re-Engage stage",
-              "They will no longer appear in the Follow Up queue",
-              "Consider re-engaging via email sequence later",
-            ],
-            confirmLabel: "Yes, move to Re-Engage",
-            confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
-          };
-        }
         return {
           title: "No Answer",
           description: "The provider did not answer the call.",
           details: [
-            "Provider will stay in the Follow Up queue",
-            `Due date will be pushed to ${addDaysFormatted(2)}`,
-            `This is attempt #${provider.no_answer_count + 1} of 3 before moving to Re-Engage`,
+            "Provider will be moved to the Re-Engage stage",
+            "They will no longer appear in the Follow Up queue",
+            "They can be re-engaged via email sequence later",
           ],
-          confirmLabel: "Yes, mark as no answer",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+          confirmLabel: "Yes, move to Re-Engage",
+          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
         };
       case "wrong_contact":
         return {
@@ -1324,17 +1297,47 @@ function FollowUpProviderRow({
           confirmLabel: "Yes, mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
+      // Stage move confirmations (from dropdown menu)
+      case "move_to_not_contacted":
+        return {
+          title: "Move to Ready",
+          description: "Move this provider back to the Ready queue.",
+          details: [
+            "Provider will be moved to the Ready stage",
+            "They will no longer appear in the Follow Up queue",
+            "You can launch a new sequence from the Ready tab",
+          ],
+          confirmLabel: "Yes, move to Ready",
+          confirmClass: "bg-gray-600 hover:bg-gray-700 text-white",
+        };
+      case "move_to_in_sequence":
+        return {
+          title: "Move to In Sequence",
+          description: "Start a new email sequence for this provider.",
+          details: [
+            "Provider will be moved to In Sequence",
+            "A new 4-email sequence will begin",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to In Sequence",
+          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
+        };
+      case "move_to_re_engage":
+        return {
+          title: "Move to Re-Engage",
+          description: "Move this provider to the Re-Engage waiting period.",
+          details: [
+            "Provider will be moved to the Re-Engage stage",
+            "They will wait 30 days before auto-cycling",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to Re-Engage",
+          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
+        };
       default:
         return null;
     }
   };
-
-  // Helper to format date for display
-  function addDaysFormatted(days: number): string {
-    const result = new Date();
-    result.setDate(result.getDate() + days);
-    return result.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  }
 
   const handleOutcome = async (outcome: string) => {
     setSubmitting(outcome);
@@ -1348,9 +1351,6 @@ function FollowUpProviderRow({
       if (notes.trim()) {
         body.notes = notes.trim();
       }
-      if (outcome === "schedule_callback" && callbackDate) {
-        body.callback_date = callbackDate;
-      }
 
       const res = await fetch("/api/admin/provider-outreach/record-outcome", {
         method: "POST",
@@ -1360,22 +1360,17 @@ function FollowUpProviderRow({
 
       if (res.ok) {
         const data = await res.json();
-        // Update local state or notify parent
-        if (data.stage_changed) {
-          onOutcomeRecorded(true);
-        } else {
-          // Update provider in place with new counts/due_date
-          onProviderUpdated({
-            due_date: data.new_due_date ?? provider.due_date,
-            resend_count: data.resend_count ?? provider.resend_count,
-            no_answer_count: data.no_answer_count ?? provider.no_answer_count,
-          });
-          onOutcomeRecorded(false);
+
+        // All outcomes now change stage, so always notify parent to remove from queue
+        onOutcomeRecorded(true);
+
+        // Check if email was supposed to be sent but failed
+        if (data.email_sent === false && data.email_error) {
+          setError(`Email failed: ${data.email_error}. Provider was still moved to Re-Engage.`);
         }
+
         // Reset form
         setNotes("");
-        setCallbackDate("");
-        setShowDatePicker(false);
       } else {
         const errData = await res.json();
         setError(errData.error || "Failed to record outcome");
@@ -1388,7 +1383,11 @@ function FollowUpProviderRow({
     }
   };
 
-  const confirmationContent = pendingOutcome ? getConfirmationContent(pendingOutcome) : null;
+  const confirmationContent = pendingOutcome
+    ? getConfirmationContent(pendingOutcome)
+    : pendingStageMove
+    ? getConfirmationContent(`move_to_${pendingStageMove}`)
+    : null;
 
   // Close action menu when clicking outside
   useEffect(() => {
@@ -1401,19 +1400,6 @@ function FollowUpProviderRow({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showActionMenu]);
-
-  // Handle stage change from action menu
-  const handleStageMove = async (newStage: OutreachStage) => {
-    setStageChangeLoading(true);
-    setShowActionMenu(false);
-    try {
-      await onStageChange(newStage);
-    } catch {
-      setError("Failed to move provider");
-    } finally {
-      setStageChangeLoading(false);
-    }
-  };
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -1547,19 +1533,31 @@ function FollowUpProviderRow({
                 Move to stage
               </div>
               <button
-                onClick={() => handleStageMove("not_contacted")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  setPendingStageMove("not_contacted");
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Ready
               </button>
               <button
-                onClick={() => handleStageMove("in_sequence")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  setPendingStageMove("in_sequence");
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 In Sequence
               </button>
               <button
-                onClick={() => handleStageMove("re_engage")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  setPendingStageMove("re_engage");
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Re-Engage
@@ -1569,7 +1567,8 @@ function FollowUpProviderRow({
                 Terminal
               </div>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowActionMenu(false);
                   setPendingOutcome("not_interested");
                 }}
@@ -1578,7 +1577,8 @@ function FollowUpProviderRow({
                 Not Interested
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowActionMenu(false);
                   onArchive();
                 }}
@@ -1615,65 +1615,22 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Date Picker for Schedule Callback */}
-          {showDatePicker && (
-            <div className="mb-4 flex items-center gap-3">
-              <label className="text-sm text-gray-600">Callback date:</label>
-              <input
-                type="date"
-                value={callbackDate}
-                onChange={(e) => setCallbackDate(e.target.value)}
-                min={getTodayISO()}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              <button
-                onClick={() => {
-                  if (callbackDate) {
-                    setPendingOutcome("schedule_callback");
-                  }
-                }}
-                disabled={!callbackDate || submitting !== null}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Confirm date
-              </button>
-              <button
-                onClick={() => {
-                  setShowDatePicker(false);
-                  setCallbackDate("");
-                }}
-                className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
           {/* Outcome Buttons - subtle outlined tags */}
           {/* Note: No "Claimed on call" button - auto-claim detection handles this automatically */}
           {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Resend link */}
+            {/* Send claim email (→ Re-Engage) */}
             <button
               onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? `Resend limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link, then move to Re-Engage"}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
                 resendDisabled
                   ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
-                  : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
               }`}
             >
-              Resend link{resendDisabled && " (max)"}
-            </button>
-
-            {/* Schedule callback */}
-            <button
-              onClick={() => setShowDatePicker(true)}
-              disabled={submitting !== null || showDatePicker}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Schedule callback
+              📧 Send email (→ Re-Engage){resendDisabled && " (max)"}
             </button>
 
             {/* No answer */}
@@ -1682,7 +1639,7 @@ function FollowUpProviderRow({
               disabled={submitting !== null}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              No answer{noAnswerWarning && " (→ Re-Engage)"}
+              No answer (→ Re-Engage)
             </button>
 
             {/* Wrong contact */}
@@ -1716,70 +1673,106 @@ function FollowUpProviderRow({
             />
           </div>
 
-          {/* Confirmation Modal */}
-          {pendingOutcome && confirmationContent && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-              <div
-                className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Header */}
-                <div className="px-5 py-4 border-b border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
-                </div>
+        </div>
+      )}
 
-                {/* Content */}
-                <div className="px-5 py-4">
-                  <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
-
-                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
-                    <ul className="space-y-1.5">
-                      {confirmationContent.details.map((detail, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {notes.trim() && (
-                    <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
-                      <p className="text-sm text-blue-800">{notes.trim()}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-                  <button
-                    onClick={() => setPendingOutcome(null)}
-                    disabled={submitting !== null}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleOutcome(pendingOutcome)}
-                    disabled={submitting !== null}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
-                  >
-                    {submitting ? (
-                      <span className="flex items-center gap-2">
-                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Processing...
-                      </span>
-                    ) : (
-                      confirmationContent.confirmLabel
-                    )}
-                  </button>
-                </div>
-              </div>
+      {/* Confirmation Modal - outside expanded section so it works for both outcomes and stage moves */}
+      {(pendingOutcome || pendingStageMove) && confirmationContent && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Click on backdrop cancels
+            setPendingOutcome(null);
+            setPendingStageMove(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
+              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
             </div>
-          )}
+
+            {/* Content */}
+            <div className="px-5 py-4">
+              {/* Error message - show inside modal for visibility */}
+              {error && (
+                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
+
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  {confirmationContent.details.map((detail, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-gray-400 mt-0.5">•</span>
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {notes.trim() && pendingOutcome && (
+                <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
+                  <p className="text-sm text-blue-800">{notes.trim()}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setPendingOutcome(null);
+                  setPendingStageMove(null);
+                }}
+                disabled={submitting !== null || stageChangeLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (pendingOutcome) {
+                    await handleOutcome(pendingOutcome);
+                  } else if (pendingStageMove) {
+                    setStageChangeLoading(true);
+                    setError(null);
+                    try {
+                      await onStageChange(pendingStageMove);
+                      // Success - modal will close when component unmounts after parent removes provider
+                      setPendingStageMove(null);
+                    } catch {
+                      // Keep modal open on error so user can see it and retry
+                      setError("Failed to move provider. Please try again.");
+                    } finally {
+                      setStageChangeLoading(false);
+                    }
+                  }
+                }}
+                disabled={submitting !== null || stageChangeLoading}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
+              >
+                {submitting || stageChangeLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : (
+                  confirmationContent.confirmLabel
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -2131,6 +2124,28 @@ export default function ProviderOutreachPage() {
   const [providers, setProviders] = useState<OutreachProvider[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
 
+  // Track recently-moved provider IDs to filter from stale API responses
+  // This prevents providers from reappearing due to database replication lag
+  const recentlyMovedRef = useRef<Set<string>>(new Set());
+  const recentlyMovedTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Helper to mark a provider as recently moved (auto-clears after 30 seconds)
+  // Extended from 5s to 30s to account for database replication lag
+  const markAsRecentlyMoved = useCallback((providerId: string) => {
+    recentlyMovedRef.current.add(providerId);
+    console.log("[recentlyMoved] Added:", providerId, "Set size:", recentlyMovedRef.current.size);
+    // Clear any existing timer for this provider
+    const existingTimer = recentlyMovedTimersRef.current.get(providerId);
+    if (existingTimer) clearTimeout(existingTimer);
+    // Set new timer to remove after 30 seconds (extended for DB replication)
+    const timer = setTimeout(() => {
+      recentlyMovedRef.current.delete(providerId);
+      recentlyMovedTimersRef.current.delete(providerId);
+      console.log("[recentlyMoved] Expired:", providerId, "Set size:", recentlyMovedRef.current.size);
+    }, 30000);
+    recentlyMovedTimersRef.current.set(providerId, timer);
+  }, []);
+
   // Stage counts (includes needs_email and ready for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     needs_email: number;
@@ -2214,6 +2229,8 @@ export default function ProviderOutreachPage() {
     loading: boolean;
   } | null>(null);
   const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
+  // Pending stage move confirmation (for Move to Stage buttons)
+  const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
 
   // Remove from outreach confirmation state
   const [pendingRemoval, setPendingRemoval] = useState<{
@@ -2329,6 +2346,7 @@ export default function ProviderOutreachPage() {
     setActionNotes("");
     setUnarchivePreview(null);
     setUnarchivePreviewConfirmed(false);
+    setPendingStageMove(null);
   };
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
@@ -2557,6 +2575,19 @@ export default function ProviderOutreachPage() {
         // Client-side filter for "unassigned" since API doesn't support null filter directly
         if (selectedAdminFilter === "unassigned") {
           filteredProviders = filteredProviders.filter((p: OutreachProvider) => !p.assigned_to);
+        }
+        // Filter out recently-moved providers to prevent stale data from reappearing
+        // This guards against database replication lag returning old state
+        const recentlyMovedIds = Array.from(recentlyMovedRef.current);
+        if (recentlyMovedIds.length > 0) {
+          const beforeCount = filteredProviders.length;
+          filteredProviders = filteredProviders.filter(
+            (p: OutreachProvider) => !recentlyMovedRef.current.has(p.provider_id)
+          );
+          const afterCount = filteredProviders.length;
+          if (beforeCount !== afterCount) {
+            console.log("[recentlyMoved] Filtered out", beforeCount - afterCount, "providers. IDs in Set:", recentlyMovedIds);
+          }
         }
         setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);
@@ -2910,6 +2941,11 @@ export default function ProviderOutreachPage() {
         // Use UI_TAB_LABELS for the target stage display
         const stageLabel = UI_TAB_LABELS[newStage as UITab] || newStage;
         showToast(`Moved ${data.updated + data.created} provider(s) to ${stageLabel}`, "success");
+        // Mark as recently moved to filter from stale API responses
+        idsToUpdate.forEach((id) => markAsRecentlyMoved(id));
+        // Optimistically remove moved providers from current tab to prevent duplicate appearance
+        const idsSet = new Set(idsToUpdate);
+        setProviders((prev) => prev.filter((p) => !idsSet.has(p.provider_id)));
         setSelectedProviders(new Set());
 
         // Refresh data
@@ -2956,6 +2992,10 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const actionLabel = action === "not_contacted" ? "Restored" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
+        // Mark as recently moved to filter from stale API responses
+        markAsRecentlyMoved(providerId);
+        // Optimistically remove from current tab to prevent duplicate appearance
+        setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
 
         // Refresh data
         if (isNotContactedTab(activeTab)) {
@@ -3569,6 +3609,8 @@ export default function ProviderOutreachPage() {
             loading={loadingProviders}
             onOutcomeRecorded={(providerId, stageChanged) => {
               if (stageChanged) {
+                // Mark as recently moved to filter from stale API responses
+                markAsRecentlyMoved(providerId);
                 // Provider left the queue - remove from local state
                 setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
                 // Optimistically decrement needs_call count
@@ -3602,6 +3644,8 @@ export default function ProviderOutreachPage() {
                 const err = await res.json();
                 throw new Error(err.error || "Failed to update stage");
               }
+              // Mark as recently moved to filter from stale API responses
+              markAsRecentlyMoved(providerId);
               // Remove from local state (provider left Follow Up)
               setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
               // Update stage counts
@@ -3631,6 +3675,8 @@ export default function ProviderOutreachPage() {
             providers={providers}
             loading={loadingProviders}
             onReEngageAction={(providerId, result) => {
+              // Mark as recently moved to filter from stale API responses
+              markAsRecentlyMoved(providerId);
               // Provider moved out of re_engage - remove from local state
               setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
               // Update stage counts
@@ -3777,7 +3823,7 @@ export default function ProviderOutreachPage() {
             </div>
 
             {/* Step 1: Select Action */}
-            {!selectedAction && (
+            {!selectedAction && !pendingStageMove && (
               <div className="p-4 space-y-2">
                 {/* Unarchive - only show if provider is currently archived */}
                 {actionModalProvider.stage === "archived" && (
@@ -3885,30 +3931,7 @@ export default function ProviderOutreachPage() {
                     <div className="grid grid-cols-2 gap-2">
                       {actionModalProvider.stage !== "not_contacted" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "not_contacted",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to Ready", "success");
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("not_contacted")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
@@ -3917,30 +3940,7 @@ export default function ProviderOutreachPage() {
                       )}
                       {actionModalProvider.stage !== "in_sequence" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "in_sequence",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to In Sequence", "success");
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("in_sequence")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
                         >
@@ -3949,30 +3949,7 @@ export default function ProviderOutreachPage() {
                       )}
                       {actionModalProvider.stage !== "needs_call" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "needs_call",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to Follow Up", "success");
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("needs_call")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors disabled:opacity-50"
                         >
@@ -3981,30 +3958,7 @@ export default function ProviderOutreachPage() {
                       )}
                       {actionModalProvider.stage !== "re_engage" && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  provider_ids: [actionModalProvider.provider_id],
-                                  stage: "re_engage",
-                                }),
-                              });
-                              if (res.ok) {
-                                showToast("Moved to Re-Engage", "success");
-                                closeActionModal();
-                                fetchProviders();
-                                if (isNotContactedTab(activeTab)) fetchCities();
-                              } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast(err.error || "Failed to move provider", "error");
-                              }
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
+                          onClick={() => setPendingStageMove("re_engage")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
                         >
@@ -4015,6 +3969,200 @@ export default function ProviderOutreachPage() {
                   </>
                 )}
 
+              </div>
+            )}
+
+            {/* Stage Move Confirmation Modal */}
+            {pendingStageMove && actionModalProvider && (
+              <div className="p-4 space-y-4">
+                {/* Back button */}
+                <button
+                  onClick={() => setPendingStageMove(null)}
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+
+                {/* Confirmation content */}
+                <div className={`p-3 rounded-lg border ${
+                  pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
+                  pendingStageMove === "in_sequence" ? "bg-blue-50 border-blue-200" :
+                  pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
+                  "bg-purple-50 border-purple-200"
+                }`}>
+                  <p className="text-sm font-medium text-gray-900">
+                    Move to {
+                      pendingStageMove === "not_contacted" ? "Ready" :
+                      pendingStageMove === "in_sequence" ? "In Sequence" :
+                      pendingStageMove === "needs_call" ? "Follow Up" :
+                      "Re-Engage"
+                    }
+                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    {actionModalProvider.provider_name}
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                  <ul className="space-y-1.5">
+                    {pendingStageMove === "not_contacted" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will be moved back to the Ready queue
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Any scheduled outreach tasks will be cleared
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          You can start a fresh outreach sequence later
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "in_sequence" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will enter the automated email sequence
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Emails will be sent on Days 0, 3, 7, and 14
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          After Day 14, they move to Follow Up
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "needs_call" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will appear in the Follow Up call queue
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          They should be contacted by phone
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Use outcome buttons to record call results
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "re_engage" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will enter the Re-Engage waiting period
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          After 30 days, they can be re-engaged one more time
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Or they can be moved to Not Interested / Archived
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Confirm/Cancel buttons */}
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => setPendingStageMove(null)}
+                    disabled={actionLoading}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setActionLoading(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            provider_ids: [actionModalProvider.provider_id],
+                            stage: pendingStageMove,
+                          }),
+                        });
+                        if (res.ok) {
+                          const stageLabel = pendingStageMove === "not_contacted" ? "Ready" :
+                            pendingStageMove === "in_sequence" ? "In Sequence" :
+                            pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage";
+                          showToast(`Moved to ${stageLabel}`, "success");
+                          // Mark as recently moved to filter from stale API responses
+                          markAsRecentlyMoved(actionModalProvider.provider_id);
+                          // Optimistically remove from current tab to prevent duplicate appearance
+                          setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
+                          // Optimistically update stage counts
+                          const oldStage = actionModalProvider.stage;
+                          setStageCounts((prev) => {
+                            const updates: Partial<typeof prev> = {};
+                            // Decrement old stage count
+                            if (oldStage === "not_contacted") {
+                              // not_contacted is split into needs_email/ready sub-tabs
+                              if (actionModalProvider.email) {
+                                updates.ready = Math.max(0, prev.ready - 1);
+                              } else {
+                                updates.needs_email = Math.max(0, prev.needs_email - 1);
+                              }
+                            } else if (oldStage && oldStage in prev) {
+                              updates[oldStage as keyof typeof prev] = Math.max(0, (prev[oldStage as keyof typeof prev] || 0) - 1);
+                            }
+                            // Increment new stage count
+                            if (pendingStageMove === "not_contacted") {
+                              // Moving to not_contacted means they have email, so increment ready
+                              updates.ready = (updates.ready ?? prev.ready) + 1;
+                            } else if (pendingStageMove && pendingStageMove in prev) {
+                              updates[pendingStageMove as keyof typeof prev] = (prev[pendingStageMove as keyof typeof prev] || 0) + 1;
+                            }
+                            return { ...prev, ...updates };
+                          });
+                          closeActionModal();
+                          fetchProviders();
+                          if (isNotContactedTab(activeTab)) fetchCities();
+                        } else {
+                          const err = await res.json().catch(() => ({}));
+                          showToast(err.error || "Failed to move provider", "error");
+                        }
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    }}
+                    disabled={actionLoading}
+                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      pendingStageMove === "not_contacted" ? "bg-gray-600 hover:bg-gray-700" :
+                      pendingStageMove === "in_sequence" ? "bg-blue-600 hover:bg-blue-700" :
+                      pendingStageMove === "needs_call" ? "bg-amber-600 hover:bg-amber-700" :
+                      "bg-purple-600 hover:bg-purple-700"
+                    }`}
+                  >
+                    {actionLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Moving...
+                      </span>
+                    ) : (
+                      `Yes, move to ${
+                        pendingStageMove === "not_contacted" ? "Ready" :
+                        pendingStageMove === "in_sequence" ? "In Sequence" :
+                        pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage"
+                      }`
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 

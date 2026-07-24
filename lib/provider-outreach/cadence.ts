@@ -56,8 +56,10 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
 /**
  * Number of days after final email before moving to "needs_call" stage.
  * If no claim after this period, provider needs manual follow-up.
+ *
+ * Set to 0 for immediate transition after Day 14 final email.
  */
-export const DAYS_AFTER_FINAL_TO_NEEDS_CALL = 7;
+export const DAYS_AFTER_FINAL_TO_NEEDS_CALL = 0;
 
 /**
  * Number of days a provider must wait in the re_engage stage before

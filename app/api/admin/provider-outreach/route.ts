@@ -409,15 +409,25 @@ async function getNotContactedProviders(
   );
 
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
-  const { data: trackedInState } = await db
+  const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state")
     .eq("state", state);
 
+  if (trackingError) {
+    console.error("[getNotContactedProviders] Tracking query error:", trackingError);
+  }
+
+  // Log tracking records with non-not_contacted stages (these should be excluded)
+  const nonNotContactedTracking = (trackedInState || []).filter((t) => t.stage !== "not_contacted");
+  if (nonNotContactedTracking.length > 0) {
+    console.log(`[getNotContactedProviders] Found ${nonNotContactedTracking.length} tracked providers with non-not_contacted stage for state=${state}:`,
+      nonNotContactedTracking.slice(0, 10).map(t => ({ provider_id: t.provider_id, stage: t.stage, tracking_state: t.state }))
+    );
+  }
+
   const trackedProviderIds = new Set(
-    (trackedInState || [])
-      .filter((t) => t.stage !== "not_contacted")
-      .map((t) => t.provider_id)
+    nonNotContactedTracking.map((t) => t.provider_id)
   );
 
   // Build map for not_contacted tracking records (for tracking_id)

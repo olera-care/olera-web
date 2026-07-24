@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { sendEmail } from "@/lib/email";
+import {
+  renderEmail,
+  buildContextFromProvider,
+  PROVIDER_OUTREACH_EMAIL_TYPE,
+  PROVIDER_OUTREACH_FROM,
+  PROVIDER_OUTREACH_REPLY_TO,
+} from "@/lib/provider-outreach";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
 
 /**
@@ -14,19 +22,16 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  * Request body:
  *   - provider_id: string (required)
  *   - outcome: string (required) - one of the valid outcomes
- *   - callback_date?: string (ISO date) - required for schedule_callback
  *   - notes?: string - optional notes
  *
  * Outcomes and their effects:
  *
- * | Outcome          | Counter/Date Updates            | Stage Change    |
- * |------------------|--------------------------------|-----------------|
- * | resend_link      | resend_count++, due_date=+3d   | stays           |
- * | schedule_callback| due_date=callback_date         | stays           |
- * | no_answer (1-2)  | no_answer_count++, due_date=+2d| stays           |
- * | no_answer (3rd)  | no_answer_count++              | → re_engage     |
- * | wrong_contact    | clears email                   | → not_contacted |
- * | not_interested   | -                              | → not_interested (soft terminal) |
+ * | Outcome          | Counter/Date Updates            | Stage Change    | Email Sent?     |
+ * |------------------|--------------------------------|-----------------|-----------------|
+ * | resend_link      | resend_count++                 | → re_engage     | YES (nudge)     |
+ * | no_answer        | no_answer_count++              | → re_engage     | no              |
+ * | wrong_contact    | clears email                   | → not_contacted | no              |
+ * | not_interested   | -                              | → not_interested| no              |
  *
  * Note: "not_interested" is a soft terminal - stops outreach but questions/connections still flow.
  * Use the Archive action (via action modal) for hard terminal with system-wide block.
@@ -34,7 +39,6 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
 
 const VALID_OUTCOMES = [
   "resend_link",
-  "schedule_callback",
   "no_answer",
   "wrong_contact",
   "not_interested",
@@ -45,14 +49,6 @@ type CallOutcome = (typeof VALID_OUTCOMES)[number];
 // Maximum number of times a claim link can be resent before requiring manual intervention
 // Configurable via env var, default 2
 const MAX_RESEND_COUNT = parseInt(process.env.OUTREACH_MAX_RESEND_COUNT || "2", 10);
-
-// Add days to a date, return ISO date string (date only, no time) in UTC
-// Uses UTC to match database CURRENT_DATE (Supabase runs in UTC)
-function addDays(date: Date, days: number): string {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result.toISOString().split("T")[0];
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, outcome, callback_date, notes } = body;
+    const { provider_id, outcome, notes } = body;
 
     if (!provider_id || typeof provider_id !== "string") {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -80,25 +76,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (outcome === "schedule_callback" && !callback_date) {
-      return NextResponse.json({ error: "callback_date is required for schedule_callback" }, { status: 400 });
-    }
-
-    // Validate callback_date format and ensure it's not in the past
-    if (outcome === "schedule_callback" && callback_date) {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateRegex.test(callback_date)) {
-        return NextResponse.json({ error: "callback_date must be in YYYY-MM-DD format" }, { status: 400 });
-      }
-      const todayISO = new Date().toISOString().split("T")[0];
-      if (callback_date < todayISO) {
-        return NextResponse.json({ error: "callback_date cannot be in the past" }, { status: 400 });
-      }
-    }
-
     const db = getServiceClient();
     const nowIso = new Date().toISOString();
-    const today = new Date();
 
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
@@ -125,37 +104,29 @@ export async function POST(request: NextRequest) {
 
     // Process outcome - determine updates
     let newStage: OutreachStage | null = null;
-    let newDueDate: string | null = null;
     let newResendCount = currentResendCount;
     let newNoAnswerCount = currentNoAnswerCount;
     let clearEmail = false;
-    let rejectionMessage: string | null = null;
+    let shouldSendNudgeEmail = false;
 
     switch (outcome as CallOutcome) {
       case "resend_link":
         // Reject if already at limit
         if (currentResendCount >= MAX_RESEND_COUNT) {
-          rejectionMessage = `Resend link limit reached (${MAX_RESEND_COUNT}). Consider moving to Re-Engage.`;
-          return NextResponse.json({ error: rejectionMessage }, { status: 400 });
+          return NextResponse.json(
+            { error: `Resend link limit reached (${MAX_RESEND_COUNT}). Provider has been emailed too many times.` },
+            { status: 400 }
+          );
         }
         newResendCount = currentResendCount + 1;
-        newDueDate = addDays(today, 3);
-        break;
-
-      case "schedule_callback":
-        // callback_date already validated above
-        newDueDate = callback_date;
+        newStage = "re_engage"; // Move to re-engage after sending email
+        shouldSendNudgeEmail = true;
         break;
 
       case "no_answer":
         newNoAnswerCount = currentNoAnswerCount + 1;
-        if (newNoAnswerCount >= 3) {
-          // 3rd no-answer: auto-transition to re_engage
-          newStage = "re_engage";
-        } else {
-          // 1st or 2nd: bump due date by 2 days
-          newDueDate = addDays(today, 2);
-        }
+        // Immediate transition to re_engage on first no-answer
+        newStage = "re_engage";
         break;
 
       case "wrong_contact":
@@ -182,10 +153,6 @@ export async function POST(request: NextRequest) {
 
     if (newNoAnswerCount !== currentNoAnswerCount) {
       updateData.no_answer_count = newNoAnswerCount;
-    }
-
-    if (newDueDate) {
-      updateData.due_date = newDueDate;
     }
 
     if (newStage) {
@@ -224,6 +191,90 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ── Send nudge email if resend_link ──
+
+    let emailSent = false;
+    let emailLogId: string | undefined;
+    let emailError: string | undefined;
+
+    if (shouldSendNudgeEmail) {
+      // Fetch provider data for email rendering
+      const { data: provider, error: providerError } = await db
+        .from("olera-providers")
+        .select("provider_id, slug, provider_name, email, city, state, provider_category")
+        .eq("provider_id", provider_id)
+        .single();
+
+      if (providerError || !provider) {
+        console.error("[record-outcome] Failed to fetch provider for email:", providerError);
+        emailError = "Failed to fetch provider data";
+      } else if (!provider.email) {
+        console.error("[record-outcome] Provider has no email:", provider_id);
+        emailError = "Provider has no email address";
+      } else {
+        // Check if email is suppressed (bounced, unsubscribed, etc.)
+        const { data: verification } = await db
+          .from("email_verifications")
+          .select("status")
+          .eq("email", provider.email.toLowerCase())
+          .maybeSingle();
+
+        const { data: dnc } = await db
+          .from("do_not_contact")
+          .select("id")
+          .eq("email", provider.email.toLowerCase())
+          .maybeSingle();
+
+        const isSuppressed =
+          verification?.status === "invalid" ||
+          verification?.status === "catch-all" ||
+          !!dnc;
+
+        if (isSuppressed) {
+          console.log("[record-outcome] Email suppressed:", provider.email);
+          emailError = "Email address is suppressed (bounced or unsubscribed)";
+        } else {
+          // Build context and render nudge email
+          const context = buildContextFromProvider({
+            provider_id: provider.provider_id,
+            name: provider.provider_name,
+            email: provider.email,
+            city: provider.city,
+            state: provider.state,
+            category: provider.provider_category,
+            slug: provider.slug,
+          });
+
+          const rendered = renderEmail("nudge", context);
+
+          // Send via Resend
+          const sendResult = await sendEmail({
+            to: provider.email,
+            from: PROVIDER_OUTREACH_FROM,
+            replyTo: PROVIDER_OUTREACH_REPLY_TO,
+            subject: rendered.subject,
+            html: rendered.html,
+            emailType: PROVIDER_OUTREACH_EMAIL_TYPE,
+            providerId: provider_id,
+            metadata: {
+              template_key: "nudge",
+              trigger: "resend_link_outcome",
+              resend_count: newResendCount,
+            },
+          });
+
+          if (sendResult.success) {
+            emailSent = true;
+            emailLogId = sendResult.emailLogId;
+            console.log("[record-outcome] Nudge email sent:", provider.email, emailLogId);
+          } else {
+            emailError = sendResult.error || "Failed to send email";
+            console.error("[record-outcome] Email send failed:", emailError);
+          }
+        }
+      }
+    }
+
     // ── Log touchpoints ──
 
     const touchpointRows: Array<{
@@ -242,14 +293,30 @@ export async function POST(request: NextRequest) {
         outcome,
         resend_count: newResendCount,
         no_answer_count: newNoAnswerCount,
-        ...(newDueDate && { new_due_date: newDueDate }),
         ...(notes?.trim() && { notes: notes.trim() }),
         ...(newStage && { triggered_stage_change: newStage }),
         ...(clearEmail && { email_cleared: true }),
+        ...(shouldSendNudgeEmail && { email_sent: emailSent, email_error: emailError }),
       },
       admin_user_id: adminUser.id,
       created_at: nowIso,
     });
+
+    // Log email_sent touchpoint if nudge email was sent
+    if (emailSent) {
+      touchpointRows.push({
+        provider_id,
+        touchpoint_type: "email_sent",
+        details: {
+          template_key: "nudge",
+          trigger: "resend_link_outcome",
+          email_log_id: emailLogId,
+          resend_count: newResendCount,
+        },
+        admin_user_id: adminUser.id,
+        created_at: nowIso,
+      });
+    }
 
     // Also log stage_changed if stage moved
     if (newStage) {
@@ -281,9 +348,14 @@ export async function POST(request: NextRequest) {
       outcome,
       stage_changed: !!newStage,
       new_stage: newStage,
-      new_due_date: newDueDate,
       resend_count: newResendCount,
       no_answer_count: newNoAnswerCount,
+      // Email status for resend_link outcome
+      ...(shouldSendNudgeEmail && {
+        email_sent: emailSent,
+        email_log_id: emailLogId,
+        email_error: emailError,
+      }),
     });
   } catch (err) {
     console.error("[record-outcome] Error:", err);

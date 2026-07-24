@@ -4,29 +4,163 @@
  * Handles email rendering, variable substitution, and signature composition
  * for provider outreach emails.
  *
- * Reuses the body → HTML markdown conversion from student-outreach
- * but with provider-specific signatures and footers.
+ * Uses a polished email template matching the Olera email gallery style:
+ * - Olera logo header in teal
+ * - Category label (e.g., "CLAIM YOUR PAGE")
+ * - Clean body text with proper typography
+ * - Teal CTA buttons
+ * - Professional footer with Dr. Logan's signature
  */
 
-import { bodyToHtml } from "../student-outreach/email-markdown";
 import {
   type TemplateContext,
   type ProviderOutreachTemplateKey,
   getTemplate,
   substituteVars,
   buildVars,
-  composeFooterHtml,
-  composeFooterPlainText,
+  LOGAN_PHOTO_URL,
 } from "./templates";
 import {
   generateClaimUrl,
   generateProviderPortalUrl,
 } from "../claim-tokens";
 
+// ── Brand Constants ────────────────────────────────────────────────────────
+
+const BRAND_COLOR = "#198087";
+const FONT_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+// ── Polished Email Layout ──────────────────────────────────────────────────
+
 /**
- * Re-export bodyToHtml for convenience
+ * Hidden inbox-preview text (preheader) for email clients.
  */
-export { bodyToHtml };
+function preheaderHtml(text: string): string {
+  if (!text) return "";
+  const escaped = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\n+/g, " ")
+    .trim();
+  const spacer = "&zwnj;&nbsp;".repeat(80);
+  return `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f9fafb;opacity:0;">${escaped}${spacer}</div>`;
+}
+
+/**
+ * Polished email layout wrapper matching Olera email gallery style.
+ */
+function polishedLayout(
+  body: string,
+  footer: string,
+  opts?: { preheader?: string; categoryLabel?: string }
+): string {
+  const categoryHtml = opts?.categoryLabel
+    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">${opts.categoryLabel}</p>`
+    : "";
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9fafb;font-family:${FONT_STACK};">
+  ${preheaderHtml(opts?.preheader ?? "")}
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:520px;width:100%;">
+        <!-- Header -->
+        <tr><td style="padding:24px 32px 16px;">
+          <span style="font-size:18px;font-weight:700;color:${BRAND_COLOR};letter-spacing:-0.3px;">Olera</span>
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:0 32px 24px;">
+          ${categoryHtml}
+          ${body}
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="padding:0 32px 32px;">
+          ${footer}
+        </td></tr>
+        <!-- Copyright -->
+        <tr><td style="padding:16px 32px;border-top:1px solid #f3f4f6;">
+          <p style="font-size:12px;color:#9ca3af;margin:0;">
+            &copy; ${new Date().getFullYear()} Olera &middot;
+            <a href="${BASE_URL}" style="color:#9ca3af;">olera.care</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+/**
+ * Convert body text with markdown markers to polished HTML.
+ *
+ * Handles:
+ *   **text**       → <strong>text</strong>
+ *   [label](url)   → styled button if it's a CTA, otherwise styled link
+ *
+ * CTA detection: Links with "Claim" or "about 2 minutes" in the label
+ * are rendered as teal buttons.
+ */
+function bodyToPolishedHtml(text: string): string {
+  // 1) HTML-escape
+  let s = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // 2) [label](url) → styled link or button
+  s = s.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (_m, label: string, href: string) => {
+      // Check if this is a CTA (claim link)
+      const isCta = label.toLowerCase().includes("claim") ||
+                    label.toLowerCase().includes("2 minutes");
+
+      if (isCta) {
+        // Render as teal button
+        return `</p>
+<table cellpadding="0" cellspacing="0" style="margin:20px 0;">
+  <tr>
+    <td style="background:${BRAND_COLOR};border-radius:8px;">
+      <a href="${href}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">${label}</a>
+    </td>
+  </tr>
+</table>
+<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">`;
+      } else {
+        // Render as inline teal link
+        return `<a href="${href}" style="color:${BRAND_COLOR};font-weight:500;text-decoration:underline;">${label}</a>`;
+      }
+    }
+  );
+
+  // 3) **text** → <strong>
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
+
+  // 4) Split into paragraphs
+  const paragraphs = s.split(/\n{2,}/).map((p) => {
+    // Convert single newlines to <br>
+    const content = p.trim().replace(/\n/g, "<br>");
+    if (!content) return "";
+    return `<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">${content}</p>`;
+  });
+
+  return paragraphs.filter(Boolean).join("\n");
+}
+
+/**
+ * Re-export bodyToHtml for backward compatibility
+ * @deprecated Use bodyToPolishedHtml for new templates
+ */
+export function bodyToHtml(text: string): string {
+  return bodyToPolishedHtml(text);
+}
 
 // ── Email Sending Configuration ───────────────────────────────────────────────
 
@@ -67,7 +201,88 @@ export interface RenderedEmail {
 }
 
 /**
+ * Get category label for the email header based on template type.
+ */
+function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): string {
+  switch (templateKey) {
+    case "intro":
+      return "Your Olera Listing";
+    case "followup":
+      return "Your Profile";
+    case "demand_loss":
+      return "Local Family Searches";
+    case "final":
+      return "Claim Your Page";
+    case "nudge":
+      return "Your Claim Link";
+    default:
+      return "Olera";
+  }
+}
+
+/**
+ * Compose the polished email footer HTML with Dr. Logan's signature.
+ */
+function composePolishedFooterHtml(vars: Record<string, string>): string {
+  return `
+<!-- Signature -->
+<div style="margin-top:8px;padding-top:20px;border-top:1px solid #f3f4f6;">
+  <p style="font-size:14px;color:#374151;margin:0 0 4px;">Best,</p>
+  <p style="font-size:14px;color:#374151;margin:0;">Logan</p>
+
+  <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+    <tr>
+      <td style="vertical-align:top;padding-right:12px;">
+        <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+      </td>
+      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
+        <p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p>
+        <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · NIH SBIR Researcher</p>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- Footer Links -->
+<div style="margin-top:24px;padding-top:16px;border-top:1px solid #f3f4f6;">
+  <p style="font-size:12px;color:#6b7280;margin:0 0 8px;">
+    Questions? Just reply — it goes straight to our team.
+  </p>
+  <p style="font-size:12px;color:#9ca3af;margin:0;">
+    <a href="${vars.manage_url}" style="color:#9ca3af;text-decoration:underline;">Manage listing</a> ·
+    <a href="${vars.remove_url}" style="color:#9ca3af;text-decoration:underline;">Remove listing</a> ·
+    <a href="${vars.unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>
+  </p>
+  <p style="font-size:11px;color:#d1d5db;margin:12px 0 0;">Olera · ${vars.mailing_address}</p>
+</div>`;
+}
+
+/**
+ * Compose plain text footer.
+ */
+function composePolishedFooterPlainText(vars: Record<string, string>): string {
+  return [
+    "",
+    "Best,",
+    "Logan",
+    "",
+    "Dr. Logan DuBose",
+    "CRO, Olera · NIH SBIR Researcher",
+    "",
+    "---",
+    "Questions? Just reply — it goes straight to our team.",
+    "",
+    `Manage listing: ${vars.manage_url}`,
+    `Remove listing: ${vars.remove_url}`,
+    `Unsubscribe: ${vars.unsubscribe_url}`,
+    "",
+    `Olera · ${vars.mailing_address}`,
+  ].join("\n");
+}
+
+/**
  * Render a provider outreach email with full HTML and plain text versions.
+ * Uses the polished Olera email template style.
  *
  * @param templateKey - Which template to use (intro, followup, final)
  * @param context - Provider context for variable substitution
@@ -88,11 +303,18 @@ export function renderEmail(
   const preheader = template.preheader ? substituteVars(template.preheader, vars) : undefined;
   const body = substituteVars(template.body, vars);
 
-  // Convert body to HTML and append footer
-  const html = bodyToHtml(body) + composeFooterHtml(vars);
+  // Convert body to polished HTML
+  const bodyHtml = bodyToPolishedHtml(body);
+  const footerHtml = composePolishedFooterHtml(vars);
+
+  // Wrap in polished layout
+  const html = polishedLayout(bodyHtml, footerHtml, {
+    preheader,
+    categoryLabel: getCategoryLabel(templateKey),
+  });
 
   // Build plain text version
-  const text = body + composeFooterPlainText(vars);
+  const text = body + composePolishedFooterPlainText(vars);
 
   return { subject, preheader, html, text };
 }

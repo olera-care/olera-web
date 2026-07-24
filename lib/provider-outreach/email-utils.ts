@@ -98,60 +98,94 @@ function polishedLayout(
 }
 
 /**
- * Convert body text with markdown markers to polished HTML.
- *
- * Handles:
- *   **text**       → <strong>text</strong>
- *   [label](url)   → styled button if it's a CTA, otherwise styled link
- *
- * CTA detection: Links with "Claim" or "about 2 minutes" in the label
- * are rendered as teal buttons.
+ * Check if a link label indicates it's a CTA (call-to-action).
  */
-function bodyToPolishedHtml(text: string): string {
-  // 1) HTML-escape
-  let s = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+function isCtaLink(label: string): boolean {
+  const lower = label.toLowerCase();
+  return lower.includes("claim") || lower.includes("2 minutes");
+}
 
-  // 2) [label](url) → styled link or button
-  s = s.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    (_m, label: string, href: string) => {
-      // Check if this is a CTA (claim link)
-      const isCta = label.toLowerCase().includes("claim") ||
-                    label.toLowerCase().includes("2 minutes");
-
-      if (isCta) {
-        // Render as teal button
-        return `</p>
+/**
+ * Render a CTA button block (standalone, not inside a paragraph).
+ */
+function renderCtaButton(label: string, href: string): string {
+  return `
 <table cellpadding="0" cellspacing="0" style="margin:20px 0;">
   <tr>
     <td style="background:${BRAND_COLOR};border-radius:8px;">
       <a href="${href}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">${label}</a>
     </td>
   </tr>
-</table>
-<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">`;
-      } else {
-        // Render as inline teal link
-        return `<a href="${href}" style="color:${BRAND_COLOR};font-weight:500;text-decoration:underline;">${label}</a>`;
-      }
-    }
-  );
+</table>`;
+}
 
-  // 3) **text** → <strong>
+/**
+ * Render an inline link (inside a paragraph).
+ */
+function renderInlineLink(label: string, href: string): string {
+  return `<a href="${href}" style="color:${BRAND_COLOR};font-weight:500;text-decoration:underline;">${label}</a>`;
+}
+
+/**
+ * Convert body text with markdown markers to polished HTML.
+ *
+ * Handles:
+ *   **text**       → <strong>text</strong>
+ *   [label](url)   → styled button (if CTA) or inline link
+ *
+ * CTA detection: Links with "Claim" or "2 minutes" in the label
+ * are rendered as teal buttons. CTAs on their own line become
+ * standalone button blocks; inline CTAs become inline links.
+ */
+function bodyToPolishedHtml(text: string): string {
+  // 1) HTML-escape first
+  let s = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // 2) **text** → <strong>
   s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
 
-  // 4) Split into paragraphs
-  const paragraphs = s.split(/\n{2,}/).map((p) => {
-    // Convert single newlines to <br>
-    const content = p.trim().replace(/\n/g, "<br>");
-    if (!content) return "";
-    return `<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">${content}</p>`;
-  });
+  // 3) Split into paragraphs and process each
+  const paragraphs = s.split(/\n{2,}/);
+  const outputBlocks: string[] = [];
 
-  return paragraphs.filter(Boolean).join("\n");
+  for (const para of paragraphs) {
+    const trimmed = para.trim();
+    if (!trimmed) continue;
+
+    // Check if this paragraph is ONLY a link (standalone CTA pattern)
+    const standaloneMatch = trimmed.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+
+    if (standaloneMatch) {
+      const [, label, href] = standaloneMatch;
+      if (isCtaLink(label)) {
+        // Standalone CTA → render as button block (no <p> wrapper)
+        outputBlocks.push(renderCtaButton(label, href));
+      } else {
+        // Standalone non-CTA link → wrap in paragraph
+        outputBlocks.push(
+          `<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">${renderInlineLink(label, href)}</p>`
+        );
+      }
+    } else {
+      // Normal paragraph: process inline links
+      const processed = trimmed.replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        (_m, label: string, href: string) => renderInlineLink(label, href)
+      );
+
+      // Convert single newlines to <br>
+      const withBreaks = processed.replace(/\n/g, "<br>");
+
+      outputBlocks.push(
+        `<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">${withBreaks}</p>`
+      );
+    }
+  }
+
+  return outputBlocks.join("\n");
 }
 
 /**

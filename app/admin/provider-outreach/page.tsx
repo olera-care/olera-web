@@ -1233,8 +1233,6 @@ function FollowUpProviderRow({
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
-  const [callbackDate, setCallbackDate] = useState("");
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
@@ -1254,24 +1252,12 @@ function FollowUpProviderRow({
           description: "Send a short email with just the claim link to the provider.",
           details: [
             "📧 Email will be sent immediately with the claim link",
-            "Provider will stay in the Follow Up queue",
-            `Due date will be pushed to ${addDaysFormatted(3)}`,
+            "Provider will be moved to the Re-Engage stage",
+            "They will no longer appear in the Follow Up queue",
             `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
           ],
-          confirmLabel: "Yes, send email now",
+          confirmLabel: "Yes, send email & move to Re-Engage",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "schedule_callback":
-        return {
-          title: "Schedule Callback",
-          description: "Set a specific date to call this provider back.",
-          details: [
-            "Provider will stay in the Follow Up queue",
-            `Due date will be set to ${callbackDate ? new Date(callbackDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "(select a date)"}`,
-            "They will appear in the appropriate section based on that date",
-          ],
-          confirmLabel: "Confirm callback",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
       case "no_answer":
         return {
@@ -1315,13 +1301,6 @@ function FollowUpProviderRow({
     }
   };
 
-  // Helper to format date for display
-  function addDaysFormatted(days: number): string {
-    const result = new Date();
-    result.setDate(result.getDate() + days);
-    return result.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  }
-
   const handleOutcome = async (outcome: string) => {
     setSubmitting(outcome);
     setError(null);
@@ -1334,9 +1313,6 @@ function FollowUpProviderRow({
       if (notes.trim()) {
         body.notes = notes.trim();
       }
-      if (outcome === "schedule_callback" && callbackDate) {
-        body.callback_date = callbackDate;
-      }
 
       const res = await fetch("/api/admin/provider-outreach/record-outcome", {
         method: "POST",
@@ -1346,28 +1322,17 @@ function FollowUpProviderRow({
 
       if (res.ok) {
         const data = await res.json();
-        // Update local state or notify parent
-        if (data.stage_changed) {
-          onOutcomeRecorded(true);
-        } else {
-          // Update provider in place with new counts/due_date
-          onProviderUpdated({
-            due_date: data.new_due_date ?? provider.due_date,
-            resend_count: data.resend_count ?? provider.resend_count,
-            no_answer_count: data.no_answer_count ?? provider.no_answer_count,
-          });
-          onOutcomeRecorded(false);
-        }
+
+        // All outcomes now change stage, so always notify parent to remove from queue
+        onOutcomeRecorded(true);
 
         // Check if email was supposed to be sent but failed
         if (data.email_sent === false && data.email_error) {
-          setError(`Email failed: ${data.email_error}. Due date was still updated.`);
+          setError(`Email failed: ${data.email_error}. Provider was still moved to Re-Engage.`);
         }
 
         // Reset form
         setNotes("");
-        setCallbackDate("");
-        setShowDatePicker(false);
       } else {
         const errData = await res.json();
         setError(errData.error || "Failed to record outcome");
@@ -1607,65 +1572,22 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Date Picker for Schedule Callback */}
-          {showDatePicker && (
-            <div className="mb-4 flex items-center gap-3">
-              <label className="text-sm text-gray-600">Callback date:</label>
-              <input
-                type="date"
-                value={callbackDate}
-                onChange={(e) => setCallbackDate(e.target.value)}
-                min={getTodayISO()}
-                className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              <button
-                onClick={() => {
-                  if (callbackDate) {
-                    setPendingOutcome("schedule_callback");
-                  }
-                }}
-                disabled={!callbackDate || submitting !== null}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Confirm date
-              </button>
-              <button
-                onClick={() => {
-                  setShowDatePicker(false);
-                  setCallbackDate("");
-                }}
-                className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
           {/* Outcome Buttons - subtle outlined tags */}
           {/* Note: No "Claimed on call" button - auto-claim detection handles this automatically */}
           {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Send claim email */}
+            {/* Send claim email (→ Re-Engage) */}
             <button
               onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link"}
+              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link, then move to Re-Engage"}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
                 resendDisabled
                   ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
                   : "text-blue-700 bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
               }`}
             >
-              📧 Send claim email{resendDisabled && " (max)"}
-            </button>
-
-            {/* Schedule callback */}
-            <button
-              onClick={() => setShowDatePicker(true)}
-              disabled={submitting !== null || showDatePicker}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Schedule callback
+              📧 Send email (→ Re-Engage){resendDisabled && " (max)"}
             </button>
 
             {/* No answer */}

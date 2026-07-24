@@ -22,15 +22,13 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  * Request body:
  *   - provider_id: string (required)
  *   - outcome: string (required) - one of the valid outcomes
- *   - callback_date?: string (ISO date) - required for schedule_callback
  *   - notes?: string - optional notes
  *
  * Outcomes and their effects:
  *
  * | Outcome          | Counter/Date Updates            | Stage Change    | Email Sent?     |
  * |------------------|--------------------------------|-----------------|-----------------|
- * | resend_link      | resend_count++, due_date=+3d   | stays           | YES (nudge)     |
- * | schedule_callback| due_date=callback_date         | stays           | no              |
+ * | resend_link      | resend_count++                 | → re_engage     | YES (nudge)     |
  * | no_answer        | no_answer_count++              | → re_engage     | no              |
  * | wrong_contact    | clears email                   | → not_contacted | no              |
  * | not_interested   | -                              | → not_interested| no              |
@@ -41,7 +39,6 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
 
 const VALID_OUTCOMES = [
   "resend_link",
-  "schedule_callback",
   "no_answer",
   "wrong_contact",
   "not_interested",
@@ -52,14 +49,6 @@ type CallOutcome = (typeof VALID_OUTCOMES)[number];
 // Maximum number of times a claim link can be resent before requiring manual intervention
 // Configurable via env var, default 2
 const MAX_RESEND_COUNT = parseInt(process.env.OUTREACH_MAX_RESEND_COUNT || "2", 10);
-
-// Add days to a date, return ISO date string (date only, no time) in UTC
-// Uses UTC to match database CURRENT_DATE (Supabase runs in UTC)
-function addDays(date: Date, days: number): string {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result.toISOString().split("T")[0];
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, outcome, callback_date, notes } = body;
+    const { provider_id, outcome, notes } = body;
 
     if (!provider_id || typeof provider_id !== "string") {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -87,25 +76,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (outcome === "schedule_callback" && !callback_date) {
-      return NextResponse.json({ error: "callback_date is required for schedule_callback" }, { status: 400 });
-    }
-
-    // Validate callback_date format and ensure it's not in the past
-    if (outcome === "schedule_callback" && callback_date) {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateRegex.test(callback_date)) {
-        return NextResponse.json({ error: "callback_date must be in YYYY-MM-DD format" }, { status: 400 });
-      }
-      const todayISO = new Date().toISOString().split("T")[0];
-      if (callback_date < todayISO) {
-        return NextResponse.json({ error: "callback_date cannot be in the past" }, { status: 400 });
-      }
-    }
-
     const db = getServiceClient();
     const nowIso = new Date().toISOString();
-    const today = new Date();
 
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
@@ -132,7 +104,6 @@ export async function POST(request: NextRequest) {
 
     // Process outcome - determine updates
     let newStage: OutreachStage | null = null;
-    let newDueDate: string | null = null;
     let newResendCount = currentResendCount;
     let newNoAnswerCount = currentNoAnswerCount;
     let clearEmail = false;
@@ -143,18 +114,13 @@ export async function POST(request: NextRequest) {
         // Reject if already at limit
         if (currentResendCount >= MAX_RESEND_COUNT) {
           return NextResponse.json(
-            { error: `Resend link limit reached (${MAX_RESEND_COUNT}). Consider moving to Re-Engage.` },
+            { error: `Resend link limit reached (${MAX_RESEND_COUNT}). Provider has been emailed too many times.` },
             { status: 400 }
           );
         }
         newResendCount = currentResendCount + 1;
-        newDueDate = addDays(today, 3);
+        newStage = "re_engage"; // Move to re-engage after sending email
         shouldSendNudgeEmail = true;
-        break;
-
-      case "schedule_callback":
-        // callback_date already validated above
-        newDueDate = callback_date;
         break;
 
       case "no_answer":
@@ -187,10 +153,6 @@ export async function POST(request: NextRequest) {
 
     if (newNoAnswerCount !== currentNoAnswerCount) {
       updateData.no_answer_count = newNoAnswerCount;
-    }
-
-    if (newDueDate) {
-      updateData.due_date = newDueDate;
     }
 
     if (newStage) {
@@ -331,7 +293,6 @@ export async function POST(request: NextRequest) {
         outcome,
         resend_count: newResendCount,
         no_answer_count: newNoAnswerCount,
-        ...(newDueDate && { new_due_date: newDueDate }),
         ...(notes?.trim() && { notes: notes.trim() }),
         ...(newStage && { triggered_stage_change: newStage }),
         ...(clearEmail && { email_cleared: true }),
@@ -387,7 +348,6 @@ export async function POST(request: NextRequest) {
       outcome,
       stage_changed: !!newStage,
       new_stage: newStage,
-      new_due_date: newDueDate,
       resend_count: newResendCount,
       no_answer_count: newNoAnswerCount,
       // Email status for resend_link outcome

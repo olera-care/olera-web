@@ -1235,6 +1235,7 @@ function FollowUpProviderRow({
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
+  const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
@@ -1296,6 +1297,43 @@ function FollowUpProviderRow({
           confirmLabel: "Yes, mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
+      // Stage move confirmations (from dropdown menu)
+      case "move_to_not_contacted":
+        return {
+          title: "Move to Ready",
+          description: "Move this provider back to the Ready queue.",
+          details: [
+            "Provider will be moved to the Ready stage",
+            "They will no longer appear in the Follow Up queue",
+            "You can launch a new sequence from the Ready tab",
+          ],
+          confirmLabel: "Yes, move to Ready",
+          confirmClass: "bg-gray-600 hover:bg-gray-700 text-white",
+        };
+      case "move_to_in_sequence":
+        return {
+          title: "Move to In Sequence",
+          description: "Start a new email sequence for this provider.",
+          details: [
+            "Provider will be moved to In Sequence",
+            "A new 4-email sequence will begin",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to In Sequence",
+          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
+        };
+      case "move_to_re_engage":
+        return {
+          title: "Move to Re-Engage",
+          description: "Move this provider to the Re-Engage waiting period.",
+          details: [
+            "Provider will be moved to the Re-Engage stage",
+            "They will wait 30 days before auto-cycling",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to Re-Engage",
+          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
+        };
       default:
         return null;
     }
@@ -1345,7 +1383,11 @@ function FollowUpProviderRow({
     }
   };
 
-  const confirmationContent = pendingOutcome ? getConfirmationContent(pendingOutcome) : null;
+  const confirmationContent = pendingOutcome
+    ? getConfirmationContent(pendingOutcome)
+    : pendingStageMove
+    ? getConfirmationContent(`move_to_${pendingStageMove}`)
+    : null;
 
   // Close action menu when clicking outside
   useEffect(() => {
@@ -1504,19 +1546,28 @@ function FollowUpProviderRow({
                 Move to stage
               </div>
               <button
-                onClick={() => handleStageMove("not_contacted")}
+                onClick={() => {
+                  setShowActionMenu(false);
+                  setPendingStageMove("not_contacted");
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Ready
               </button>
               <button
-                onClick={() => handleStageMove("in_sequence")}
+                onClick={() => {
+                  setShowActionMenu(false);
+                  setPendingStageMove("in_sequence");
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 In Sequence
               </button>
               <button
-                onClick={() => handleStageMove("re_engage")}
+                onClick={() => {
+                  setShowActionMenu(false);
+                  setPendingStageMove("re_engage");
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Re-Engage
@@ -1630,70 +1681,88 @@ function FollowUpProviderRow({
             />
           </div>
 
-          {/* Confirmation Modal */}
-          {pendingOutcome && confirmationContent && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
-              <div
-                className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Header */}
-                <div className="px-5 py-4 border-b border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
-                </div>
+        </div>
+      )}
 
-                {/* Content */}
-                <div className="px-5 py-4">
-                  <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
-
-                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
-                    <ul className="space-y-1.5">
-                      {confirmationContent.details.map((detail, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {notes.trim() && (
-                    <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                      <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
-                      <p className="text-sm text-blue-800">{notes.trim()}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-                  <button
-                    onClick={() => setPendingOutcome(null)}
-                    disabled={submitting !== null}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => handleOutcome(pendingOutcome)}
-                    disabled={submitting !== null}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
-                  >
-                    {submitting ? (
-                      <span className="flex items-center gap-2">
-                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Processing...
-                      </span>
-                    ) : (
-                      confirmationContent.confirmLabel
-                    )}
-                  </button>
-                </div>
-              </div>
+      {/* Confirmation Modal - outside expanded section so it works for both outcomes and stage moves */}
+      {(pendingOutcome || pendingStageMove) && confirmationContent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
+              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
             </div>
-          )}
+
+            {/* Content */}
+            <div className="px-5 py-4">
+              <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
+
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  {confirmationContent.details.map((detail, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-gray-400 mt-0.5">•</span>
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {notes.trim() && pendingOutcome && (
+                <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
+                  <p className="text-sm text-blue-800">{notes.trim()}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setPendingOutcome(null);
+                  setPendingStageMove(null);
+                }}
+                disabled={submitting !== null || stageChangeLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (pendingOutcome) {
+                    await handleOutcome(pendingOutcome);
+                  } else if (pendingStageMove) {
+                    setStageChangeLoading(true);
+                    try {
+                      await onStageChange(pendingStageMove);
+                    } catch {
+                      setError("Failed to move provider");
+                    } finally {
+                      setStageChangeLoading(false);
+                      setPendingStageMove(null);
+                    }
+                  }
+                }}
+                disabled={submitting !== null || stageChangeLoading}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
+              >
+                {submitting || stageChangeLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : (
+                  confirmationContent.confirmLabel
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

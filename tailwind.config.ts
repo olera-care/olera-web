@@ -214,6 +214,12 @@ const config: Config = {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.15)" },
         },
+        // Nav count pill arriving — scale up with a light settle, no bounce
+        badgePop: {
+          "0%": { opacity: "0", transform: "scale(0.4)" },
+          "60%": { transform: "scale(1.1)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.2s ease-out",
@@ -223,6 +229,7 @@ const config: Config = {
         toastEnter: "toastEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
         toastExit: "toastExit 0.25s cubic-bezier(0.4, 0, 1, 1) forwards",
         heartPulse: "heartPulse 1.5s ease-in-out infinite",
+        badgePop: "badgePop 0.34s cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },

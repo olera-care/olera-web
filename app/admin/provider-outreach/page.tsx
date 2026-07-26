@@ -4113,10 +4113,27 @@ export default function ProviderOutreachPage() {
                   </ul>
                 </div>
 
+                {/* Notes field */}
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    value={actionNotes}
+                    onChange={(e) => setActionNotes(e.target.value)}
+                    placeholder="Add context or reason..."
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  />
+                </div>
+
                 {/* Confirm/Cancel buttons */}
                 <div className="flex justify-end gap-3 pt-2">
                   <button
-                    onClick={() => setPendingStageMove(null)}
+                    onClick={() => {
+                      setPendingStageMove(null);
+                      setActionNotes("");
+                    }}
                     disabled={actionLoading}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
                   >
@@ -4132,12 +4149,15 @@ export default function ProviderOutreachPage() {
                           body: JSON.stringify({
                             provider_ids: [actionModalProvider.provider_id],
                             stage: pendingStageMove,
+                            notes: actionNotes.trim() || undefined,
                           }),
                         });
                         if (res.ok) {
                           const stageLabel = pendingStageMove === "not_contacted" ? "Ready" :
                             pendingStageMove === "in_sequence" ? "In Sequence" :
-                            pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage";
+                            pendingStageMove === "needs_call" ? "Follow Up" :
+                            pendingStageMove === "not_interested" ? "Not Interested" :
+                            "Re-Engage";
                           showToast(`Moved to ${stageLabel}`, "success");
                           // Mark as recently moved to filter from stale API responses
                           markAsRecentlyMoved(actionModalProvider.provider_id);

@@ -232,9 +232,9 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Get stage counts for tabs and admin counts for filter chips
+    // Get stage counts for tabs, admin counts for filter chips, and follow-ups due today
     // Wrap in individual try-catches so one failing doesn't crash the whole request
-    const [stageCounts, adminCounts] = await Promise.all([
+    const [stageCounts, adminCounts, followUpsTodayStats] = await Promise.all([
       getStageCounts(db, state).catch((err) => {
         console.error("[provider-outreach] getStageCounts error:", err);
         return {
@@ -246,13 +246,17 @@ export async function GET(request: NextRequest) {
         console.error("[provider-outreach] getAdminCounts error:", err);
         return {};
       }),
+      getFollowUpsTodayStats(db, state).catch((err) => {
+        console.error("[provider-outreach] getFollowUpsTodayStats error:", err);
+        return { total: 0, by_admin: [] };
+      }),
     ]);
 
     // If search is provided, search across ALL stages and return flat results
     if (search) {
       const searchResults = await searchProviders(db, state, search);
       const enriched = await enrichWithEmailVerification(db, searchResults);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, is_search: true });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats, is_search: true });
     }
 
     if (stage === "not_contacted") {
@@ -262,14 +266,14 @@ export async function GET(request: NextRequest) {
       const enriched = await enrichWithEmailVerification(db, providers);
       // Compute admin counts from the providers list (includes display_name for filter chips)
       const computedAdminCounts = await computeAdminCountsFromProviders(db, providers);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     if (stage === "claimed") {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
       const enriched = await enrichWithEmailVerification(db, providers);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     // Resolve assigned_to filter: "me" means current admin user
@@ -286,7 +290,7 @@ export async function GET(request: NextRequest) {
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
       const enriched = await enrichWithEmailVerification(db, providers);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     // For other stages: query tracking but exclude providers who have since claimed
@@ -309,7 +313,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!trackingRows || trackingRows.length === 0) {
-      return NextResponse.json({ providers: [], stage_counts: stageCounts, admin_counts: adminCounts });
+      return NextResponse.json({ providers: [], stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     // Get provider details for tracked providers
@@ -374,7 +378,7 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
     const enriched = await enrichWithEmailVerification(db, providers);
-    return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
+    return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
     return NextResponse.json(
@@ -1277,4 +1281,75 @@ async function computeAdminCountsFromProviders(
   }
 
   return counts;
+}
+
+/**
+ * Get follow-ups due today stats with admin breakdown.
+ * Used for the "Due Today" stat box in the Outreach Funnel.
+ */
+interface FollowUpsTodayStats {
+  total: number;
+  by_admin: Array<{
+    admin_id: string | null;
+    display_name: string;
+    count: number;
+  }>;
+}
+
+async function getFollowUpsTodayStats(
+  db: ReturnType<typeof getServiceClient>,
+  state: string
+): Promise<FollowUpsTodayStats> {
+  const today = new Date().toISOString().split("T")[0];
+
+  // Get admin display names for lookup
+  const { data: admins } = await db
+    .from("admin_users")
+    .select("id, display_name");
+
+  const adminNameMap = new Map(
+    (admins || []).map((a) => [a.id, a.display_name || a.id])
+  );
+
+  // Query follow-ups due today
+  const { data: trackingRows, error } = await db
+    .from("provider_outreach_tracking")
+    .select("assigned_to")
+    .eq("state", state)
+    .eq("stage", "needs_call")
+    .lte("due_date", today);
+
+  if (error || !trackingRows) {
+    console.error("[follow-ups-today] Query error:", error);
+    return { total: 0, by_admin: [] };
+  }
+
+  // Count by assigned_to
+  const countMap = new Map<string, number>();
+  for (const row of trackingRows) {
+    const key = row.assigned_to || "unassigned";
+    countMap.set(key, (countMap.get(key) || 0) + 1);
+  }
+
+  // Convert to sorted array (highest count first, then unassigned last)
+  const byAdmin: FollowUpsTodayStats["by_admin"] = [];
+  for (const [adminId, count] of countMap.entries()) {
+    byAdmin.push({
+      admin_id: adminId === "unassigned" ? null : adminId,
+      display_name: adminId === "unassigned" ? "Unassigned" : (adminNameMap.get(adminId) || adminId),
+      count,
+    });
+  }
+
+  // Sort: assigned admins first (by count desc), then unassigned
+  byAdmin.sort((a, b) => {
+    if (a.admin_id === null && b.admin_id !== null) return 1;
+    if (a.admin_id !== null && b.admin_id === null) return -1;
+    return b.count - a.count;
+  });
+
+  return {
+    total: trackingRows.length,
+    by_admin: byAdmin,
+  };
 }

@@ -2163,6 +2163,20 @@ export default function ProviderOutreachPage() {
     ready: 0,
   });
 
+  // Follow-ups due today with admin breakdown
+  interface FollowUpsTodayStats {
+    total: number;
+    by_admin: Array<{
+      admin_id: string | null;
+      display_name: string;
+      count: number;
+    }>;
+  }
+  const [followUpsToday, setFollowUpsToday] = useState<FollowUpsTodayStats>({
+    total: 0,
+    by_admin: [],
+  });
+
   // Admin name lookup from allAdmins + admin_counts (fallback)
   const adminNameLookup = useMemo(() => {
     const lookup = new Map<string, string>();
@@ -2608,6 +2622,10 @@ export default function ProviderOutreachPage() {
             computed[key].count++;
           }
           setAdminCounts(computed);
+        }
+        // Update follow-ups due today stats
+        if (data.follow_ups_today) {
+          setFollowUpsToday(data.follow_ups_today);
         }
       } else {
         const err = await res.json().catch(() => ({}));
@@ -3394,6 +3412,17 @@ export default function ProviderOutreachPage() {
                 }
                 format="percent"
                 subtitle="of providers who entered sequence"
+              />
+              <FunnelStat
+                label="Due Today"
+                value={followUpsToday.total}
+                subtitle={
+                  followUpsToday.by_admin.length > 0
+                    ? followUpsToday.by_admin
+                        .map((a) => `${a.display_name} ${a.count}`)
+                        .join(" • ")
+                    : "none due"
+                }
               />
             </div>
           )}

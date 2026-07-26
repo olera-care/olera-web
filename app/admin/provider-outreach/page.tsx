@@ -2149,18 +2149,6 @@ export default function ProviderOutreachPage() {
   });
 
   // Follow-ups due today with admin breakdown
-  interface FollowUpsTodayStats {
-    total: number;
-    by_admin: Array<{
-      admin_id: string | null;
-      display_name: string;
-      count: number;
-    }>;
-  }
-  const [followUpsToday, setFollowUpsToday] = useState<FollowUpsTodayStats>({
-    total: 0,
-    by_admin: [],
-  });
 
   // Admin name lookup from allAdmins + admin_counts (fallback)
   const adminNameLookup = useMemo(() => {
@@ -2193,6 +2181,12 @@ export default function ProviderOutreachPage() {
 
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
+
+  // Global follow-ups due today (across all states)
+  const [globalFollowUpsToday, setGlobalFollowUpsToday] = useState<{
+    total: number;
+    by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
+  }>({ total: 0, by_admin: [] });
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -2608,10 +2602,6 @@ export default function ProviderOutreachPage() {
           }
           setAdminCounts(computed);
         }
-        // Update follow-ups due today stats
-        if (data.follow_ups_today) {
-          setFollowUpsToday(data.follow_ups_today);
-        }
       } else {
         const err = await res.json().catch(() => ({}));
         showToast(err.error || "Failed to fetch providers", "error");
@@ -2658,6 +2648,25 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchGlobalClaimed();
+  }, []);
+
+  // Effect: fetch global follow-ups due today on mount
+  useEffect(() => {
+    const fetchGlobalFollowUps = async () => {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/stats?metric=follow_ups_today");
+        if (res.ok) {
+          const data = await res.json();
+          setGlobalFollowUpsToday(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch global follow-ups today:", err);
+      }
+    };
+    fetchGlobalFollowUps();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchGlobalFollowUps, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   // Effect: fetch provider counts when Add State modal opens
@@ -3283,7 +3292,7 @@ export default function ProviderOutreachPage() {
         </div>
 
         {/* Stat Boxes */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Number of states you've added for outreach work">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active States</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalStates}</p>
@@ -3298,6 +3307,15 @@ export default function ProviderOutreachPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Claimed</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalClaimedCount !== null ? globalClaimedCount.toLocaleString() : "—"}</p>
             <p className="mt-0.5 text-[11px] text-gray-500">all states, all time</p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Follow-ups due today across all states">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Due Today</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{globalFollowUpsToday.total}</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {globalFollowUpsToday.by_admin.length > 0
+                ? globalFollowUpsToday.by_admin.map(a => `${a.display_name} ${a.count}`).join(" · ")
+                : "no follow-ups due"}
+            </p>
           </div>
         </div>
       </div>
@@ -3367,7 +3385,7 @@ export default function ProviderOutreachPage() {
           </button>
 
           {statsExpanded && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
               <FunnelStat
                 label="In Sequence"
                 value={stageCounts.in_sequence}
@@ -3397,17 +3415,6 @@ export default function ProviderOutreachPage() {
                 }
                 format="percent"
                 subtitle="of providers who entered sequence"
-              />
-              <FunnelStat
-                label="Due Today"
-                value={followUpsToday.total}
-                subtitle={
-                  followUpsToday.by_admin.length > 0
-                    ? followUpsToday.by_admin
-                        .map((a) => `${a.display_name} ${a.count}`)
-                        .join(" • ")
-                    : "none due"
-                }
               />
             </div>
           )}

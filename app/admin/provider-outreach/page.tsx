@@ -2598,7 +2598,7 @@ export default function ProviderOutreachPage() {
         if (data.admin_counts && Object.keys(data.admin_counts).length > 0) {
           setAdminCounts(data.admin_counts);
         } else {
-          // Compute admin counts from provider list (for not_contacted stage)
+          // Compute admin counts from provider list (fallback for stages without API counts)
           const computed: AdminCounts = {};
           for (const p of data.providers || []) {
             const key = p.assigned_to || "unassigned";

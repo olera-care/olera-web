@@ -98,12 +98,10 @@ export async function POST(request: NextRequest) {
 
     // Current counter values (default to 0 if null)
     const currentResendCount = tracking.resend_count ?? 0;
-    const currentNoAnswerCount = tracking.no_answer_count ?? 0;
 
     // Process outcome - determine updates
     let newStage: OutreachStage | null = null;
     let newResendCount = currentResendCount;
-    let newNoAnswerCount = currentNoAnswerCount;
     let clearEmail = false;
     let shouldSendNudgeEmail = false;
 
@@ -141,10 +139,6 @@ export async function POST(request: NextRequest) {
 
     if (newResendCount !== currentResendCount) {
       updateData.resend_count = newResendCount;
-    }
-
-    if (newNoAnswerCount !== currentNoAnswerCount) {
-      updateData.no_answer_count = newNoAnswerCount;
     }
 
     if (newStage) {
@@ -284,7 +278,6 @@ export async function POST(request: NextRequest) {
       details: {
         outcome,
         resend_count: newResendCount,
-        no_answer_count: newNoAnswerCount,
         ...(notes?.trim() && { notes: notes.trim() }),
         ...(newStage && { triggered_stage_change: newStage }),
         ...(clearEmail && { email_cleared: true }),
@@ -341,7 +334,6 @@ export async function POST(request: NextRequest) {
       stage_changed: !!newStage,
       new_stage: newStage,
       resend_count: newResendCount,
-      no_answer_count: newNoAnswerCount,
       // Email status for resend_link outcome
       ...(shouldSendNudgeEmail && {
         email_sent: emailSent,

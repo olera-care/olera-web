@@ -127,9 +127,9 @@ export function getTemplate(
 
   switch (key) {
     case "intro":
-      return introEmail(hasRank);
+      return introEmail();
     case "followup":
-      return followupEmail(hasRank);
+      return followupEmail();
     case "demand_loss":
       return demandLossEmail(hasDemandData);
     case "final":
@@ -181,35 +181,25 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
 /**
  * Day 0: Introduction email
  *
- * First touch from Dr. Logan DuBose. Trust-forward opener explaining
- * who Olera is, NIH backing, no-broker model. CTA to claim profile.
- *
- * Two variants:
- *   - With rank: "Families comparing {care type} in {city} see {total} providers.
- *                 {Business name} ranks {ordinal}..."
- *   - Without rank: "Families comparing {care type} in {city} can already find
- *                    {Business name}'s page..."
+ * First touch from Dr. Logan DuBose. Introduces Olera, explains the
+ * no-cost/no-referral-fee model, and invites them to review their page.
  */
-function introEmail(hasRank: boolean): EmailDraft {
-  const opener = hasRank
-    ? `Families comparing ${PLACEHOLDER.category} in ${PLACEHOLDER.city} see ${PLACEHOLDER.total} providers. ${PLACEHOLDER.providerName} ranks ${PLACEHOLDER.ordinal} — by the Google reviews they actually read.`
-    : `Families comparing ${PLACEHOLDER.category} in ${PLACEHOLDER.city} can already find ${PLACEHOLDER.providerName}'s page — here's what they see.`;
-
+function introEmail(): EmailDraft {
   return {
-    subject: hasRank ? SUBJECT_INTRO : SUBJECT_INTRO_NO_RANK,
-    preheader: hasRank ? PREHEADER_INTRO : undefined,
+    subject: `A free way for more families to find ${PLACEHOLDER.providerName}`,
+    preheader: `No broker, no fee, families come directly to you`,
     body: [
-      opener,
+      `We've created a free Olera page for ${PLACEHOLDER.providerName}, giving families an easier way to discover and connect with you.`,
       ``,
-      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. We built it with NIH funding so families can find trustworthy care directly, without a broker taking a cut. There's nothing to buy here, and we don't sell your leads.`,
+      `There's no cost to manage your page and no referral fees. When a family finds you through Olera, they contact your team directly.`,
       ``,
-      `Your page is already up — you can see exactly what families see here: [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}). It's unclaimed, so all it shows is what we could gather publicly, blanks included.`,
+      `[Review your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page — it takes about 2 minutes](${PLACEHOLDER.claimUrl})`,
+      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. With support from the NIH, we built Olera to make finding trusted senior care easier for families.`,
       ``,
-      `Questions? Just reply — it goes straight to our team, and I'll help you directly.`,
+      `We'd love for you to take a look and make sure the page accurately reflects ${PLACEHOLDER.providerName}.`,
       ``,
-      `Not the right person for this? Forwarding it to whoever manages ${PLACEHOLDER.providerName}'s listing would be a big help.`,
+      `Questions or need help getting set up? Just reply. We're happy to help.`,
     ].join("\n"),
   };
 }
@@ -217,30 +207,21 @@ function introEmail(hasRank: boolean): EmailDraft {
 /**
  * Day 3: Follow-up email
  *
- * Focuses on profile gaps — what families see when they open the page.
- * Two variants based on whether Day 0 mentioned ranking.
+ * Encourages providers to personalize their page and show what makes
+ * them different. Integrates gap_list to highlight what's currently missing.
  */
-function followupEmail(hasRank: boolean): EmailDraft {
-  // Reference Day 0 appropriately based on whether we mentioned ranking
-  const opener = hasRank
-    ? `A few days ago I wrote about where ${PLACEHOLDER.providerName} ranks in ${PLACEHOLDER.city}. Here's the part that matters more: what families actually see when they open your page.`
-    : `A few days ago I wrote about your ${PLACEHOLDER.providerName} page on Olera. Here's what matters most: what families actually see when they open it.`;
-
+function followupEmail(): EmailDraft {
   return {
-    subject: SUBJECT_FOLLOWUP,
-    preheader: PREHEADER_FOLLOWUP,
+    subject: `Your story deserves more than a listing`,
+    preheader: `Give families the full picture`,
     body: [
-      opener,
+      `Families don't choose care from a list of services. They choose the people and places they trust.`,
       ``,
-      `Right now it shows ${PLACEHOLDER.gapList}. Families comparing care filter on exactly those things — and when the answers aren't there, they move on to the next provider on their list, even when you would have been the right fit.`,
+      `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that — to show families what makes ${PLACEHOLDER.providerName} different. Add photos, highlight the people behind your care, and showcase what makes your community special.`,
       ``,
-      `Claiming fixes that. Two minutes, and the blanks become your answers.`,
+      `[Personalize your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `Or start even smaller: reply with your starting price, and I'll add it to your page for you.`,
-      ``,
-      `Not the right contact? Please forward this to whoever manages ${PLACEHOLDER.providerName}'s listing.`,
+      `Help families see why ${PLACEHOLDER.providerName} could be the right place for someone they love. It only takes a few minutes to get started.`,
     ].join("\n"),
   };
 }

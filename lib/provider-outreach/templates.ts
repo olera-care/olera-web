@@ -131,7 +131,7 @@ export function getTemplate(
     case "followup":
       return followupEmail();
     case "demand_loss":
-      return demandLossEmail();
+      return demandLossEmail(hasDemandData);
     case "final":
       return finalEmail();
     case "nudge":
@@ -231,13 +231,19 @@ function followupEmail(): EmailDraft {
  *
  * Creates urgency by showing real demand and emphasizing the risk of
  * missing family inquiries. Encourages turning on notifications.
+ *
+ * Has fallback for low view counts (< 10) to avoid showing weak numbers.
  */
-function demandLossEmail(): EmailDraft {
+function demandLossEmail(hasDemandData: boolean): EmailDraft {
+  const opener = hasDemandData
+    ? `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} providers on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`
+    : `Families in ${PLACEHOLDER.city} are actively searching for ${PLACEHOLDER.category} providers on Olera.`;
+
   return {
     subject: `A family has a question. Will you see it?`,
     preheader: `Don't miss families ready to talk`,
     body: [
-      `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} providers on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`,
+      opener,
       ``,
       `Imagine a daughter urgently searching for care for her mom. She finds ${PLACEHOLDER.providerName} and has a question before taking the next step.`,
       ``,

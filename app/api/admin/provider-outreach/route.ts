@@ -1311,10 +1311,10 @@ async function getFollowUpsTodayStats(
     (admins || []).map((a) => [a.id, a.display_name || a.id])
   );
 
-  // Query follow-ups due today
+  // Query follow-ups due today (need provider_id to check exclusions)
   const { data: trackingRows, error } = await db
     .from("provider_outreach_tracking")
-    .select("assigned_to")
+    .select("provider_id, assigned_to")
     .eq("state", state)
     .eq("stage", "needs_call")
     .lte("due_date", today);
@@ -1324,11 +1324,40 @@ async function getFollowUpsTodayStats(
     return { total: 0, by_admin: [] };
   }
 
-  // Count by assigned_to
+  // Get claimed providers (have account_id in business_profiles)
+  // These should be excluded even if tracking row still says needs_call
+  const { data: claimedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .not("account_id", "is", null);
+
+  const claimedProviderIds = new Set(
+    (claimedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Get system-archived providers (admin_archived = true in business_profiles)
+  const { data: archivedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .filter("metadata->>admin_archived", "eq", "true");
+
+  const archivedProviderIds = new Set(
+    (archivedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Count by assigned_to, excluding claimed and system-archived
   const countMap = new Map<string, number>();
+  let totalCount = 0;
   for (const row of trackingRows) {
+    // Skip providers who have since claimed or been system-archived
+    if (claimedProviderIds.has(row.provider_id)) continue;
+    if (archivedProviderIds.has(row.provider_id)) continue;
+
     const key = row.assigned_to || "unassigned";
     countMap.set(key, (countMap.get(key) || 0) + 1);
+    totalCount++;
   }
 
   // Convert to sorted array (highest count first, then unassigned last)
@@ -1349,7 +1378,7 @@ async function getFollowUpsTodayStats(
   });
 
   return {
-    total: trackingRows.length,
+    total: totalCount,
     by_admin: byAdmin,
   };
 }

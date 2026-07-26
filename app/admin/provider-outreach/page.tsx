@@ -1698,12 +1698,19 @@ function FollowUpProviderRow({
                 </ul>
               </div>
 
-              {notes.trim() && pendingOutcome && (
-                <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
-                  <p className="text-sm text-blue-800">{notes.trim()}</p>
-                </div>
-              )}
+              {/* Notes textarea - editable in modal */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add context or reason..."
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                />
+              </div>
             </div>
 
             {/* Footer */}
@@ -3972,6 +3979,15 @@ export default function ProviderOutreachPage() {
                           Re-Engage
                         </button>
                       )}
+                      {actionModalProvider.stage !== "not_interested" && (
+                        <button
+                          onClick={() => setPendingStageMove("not_interested")}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                          Not Interested
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -3998,6 +4014,7 @@ export default function ProviderOutreachPage() {
                   pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
                   pendingStageMove === "in_sequence" ? "bg-blue-50 border-blue-200" :
                   pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
+                  pendingStageMove === "not_interested" ? "bg-gray-50 border-gray-300" :
                   "bg-purple-50 border-purple-200"
                 }`}>
                   <p className="text-sm font-medium text-gray-900">
@@ -4005,6 +4022,7 @@ export default function ProviderOutreachPage() {
                       pendingStageMove === "not_contacted" ? "Ready" :
                       pendingStageMove === "in_sequence" ? "In Sequence" :
                       pendingStageMove === "needs_call" ? "Follow Up" :
+                      pendingStageMove === "not_interested" ? "Not Interested" :
                       "Re-Engage"
                     }
                   </p>
@@ -4073,6 +4091,22 @@ export default function ProviderOutreachPage() {
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
                           Or they can be moved to Not Interested / Archived
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "not_interested" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will stop receiving outreach emails
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Questions and connections can still flow to them
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Use Archive instead for a full system-wide block
                         </li>
                       </>
                     )}
@@ -4149,6 +4183,7 @@ export default function ProviderOutreachPage() {
                       pendingStageMove === "not_contacted" ? "bg-gray-600 hover:bg-gray-700" :
                       pendingStageMove === "in_sequence" ? "bg-blue-600 hover:bg-blue-700" :
                       pendingStageMove === "needs_call" ? "bg-amber-600 hover:bg-amber-700" :
+                      pendingStageMove === "not_interested" ? "bg-gray-800 hover:bg-gray-900" :
                       "bg-purple-600 hover:bg-purple-700"
                     }`}
                   >
@@ -4161,7 +4196,9 @@ export default function ProviderOutreachPage() {
                       `Yes, move to ${
                         pendingStageMove === "not_contacted" ? "Ready" :
                         pendingStageMove === "in_sequence" ? "In Sequence" :
-                        pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage"
+                        pendingStageMove === "needs_call" ? "Follow Up" :
+                        pendingStageMove === "not_interested" ? "Not Interested" :
+                        "Re-Engage"
                       }`
                     )}
                   </button>

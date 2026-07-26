@@ -2726,9 +2726,12 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const data = await res.json();
         let filteredProviders = data.providers || [];
-        // Client-side filter for "unassigned" since API doesn't support null filter directly
+        // Client-side filter by assigned_to
+        // API doesn't filter not_contacted stage by assigned_to, so we filter here
         if (selectedAdminFilter === "unassigned") {
           filteredProviders = filteredProviders.filter((p: OutreachProvider) => !p.assigned_to);
+        } else if (selectedAdminFilter) {
+          filteredProviders = filteredProviders.filter((p: OutreachProvider) => p.assigned_to === selectedAdminFilter);
         }
         // Filter out recently-moved providers to prevent stale data from reappearing
         // This guards against database replication lag returning old state
@@ -3888,15 +3891,17 @@ export default function ProviderOutreachPage() {
             </div>
 
             {(() => {
-              // For needs_email/ready tabs, use the cities API data; for other stages, compute from providers
-              // Filter to only show cities with providers for the active tab
-              let displayCities = isNotContactedTab(activeTab) ? cities : computeCityStatsFromProviders(providers);
+              // For needs_email/ready tabs: use cities API data when no admin filter,
+              // otherwise compute from providers (which are already filtered by assigned_to)
+              // For other stages: always compute from providers
+              const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
+              let displayCities = useApiCities ? cities : computeCityStatsFromProviders(providers);
               if (activeTab === "needs_email") {
                 displayCities = displayCities.filter((c) => c.needs_email > 0);
               } else if (activeTab === "ready") {
                 displayCities = displayCities.filter((c) => c.has_email > 0);
               }
-              const isLoading = isNotContactedTab(activeTab) ? loadingCities : loadingProviders;
+              const isLoading = useApiCities ? loadingCities : loadingProviders;
               const emptyMessage = isNotContactedTab(activeTab)
                 ? `No ${activeTab === "needs_email" ? "providers needing email" : "ready providers"} in ${selectedState}`
                 : `No providers in ${UI_TAB_LABELS[activeTab]}`;
@@ -3980,9 +3985,21 @@ export default function ProviderOutreachPage() {
       </div>
 
       {/* Summary */}
-      {isNotContactedTab(activeTab) && !loadingCities && !isSearchResult && (
+      {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (
         <div className="mt-4 text-sm text-gray-500">
-          {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
+          {selectedAdminFilter ? (
+            <>
+              {providers.length.toLocaleString()} providers assigned to {
+                selectedAdminFilter === "unassigned"
+                  ? "no one"
+                  : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
+              } across {computeCityStatsFromProviders(providers).length} cities
+            </>
+          ) : (
+            <>
+              {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
+            </>
+          )}
         </div>
       )}
 

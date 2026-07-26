@@ -260,7 +260,9 @@ export async function GET(request: NextRequest) {
       // email_filter allows splitting into "Needs Email" and "Ready" tabs
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
       const enriched = await enrichWithEmailVerification(db, providers);
-      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts });
+      // Compute admin counts from the providers list (includes display_name for filter chips)
+      const computedAdminCounts = await computeAdminCountsFromProviders(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts });
     }
 
     if (stage === "claimed") {
@@ -1231,6 +1233,40 @@ async function getAdminCounts(
   // Count by assigned_to
   for (const row of trackingRows) {
     const key = row.assigned_to || "unassigned";
+    if (!counts[key]) {
+      counts[key] = {
+        count: 0,
+        display_name: key === "unassigned" ? undefined : adminNameMap.get(key),
+      };
+    }
+    counts[key].count++;
+  }
+
+  return counts;
+}
+
+/**
+ * Compute admin counts from a providers list.
+ * Used for stages where we already have the providers (not_contacted, claimed, archived)
+ * to avoid returning empty counts and forcing client-side computation.
+ */
+async function computeAdminCountsFromProviders(
+  db: ReturnType<typeof getServiceClient>,
+  providers: Array<{ assigned_to?: string | null }>
+): Promise<AdminCounts> {
+  // Get admin display names for lookup
+  const { data: admins } = await db
+    .from("admin_users")
+    .select("id, display_name");
+
+  const adminNameMap = new Map(
+    (admins || []).map((a) => [a.id, a.display_name || a.id])
+  );
+
+  const counts: AdminCounts = {};
+
+  for (const p of providers) {
+    const key = p.assigned_to || "unassigned";
     if (!counts[key]) {
       counts[key] = {
         count: 0,

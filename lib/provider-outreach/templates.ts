@@ -259,30 +259,23 @@ function demandLossEmail(hasDemandData: boolean): EmailDraft {
 }
 
 /**
- * Day 14: Summary email
+ * Day 14: Final email
  *
- * Everything in one place for recipients who may have missed earlier emails.
- * Comprehensive value prop, low-pressure close, offer to redirect to right contact.
+ * Focuses on the Verified badge as a trust signal for families.
+ * Simple, focused message about building confidence.
  */
 function finalEmail(): EmailDraft {
   return {
-    subject: SUBJECT_FINAL,
-    preheader: PREHEADER_FINAL,
+    subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
+    preheader: `Give families confidence to reach out`,
     body: [
-      `In case my earlier notes never reached you, here's everything in one place.`,
+      `Choosing senior care is one of the biggest decisions a family will ever make. They need to know they're connecting with a real person they can trust.`,
       ``,
-      `Olera is where families find and compare senior care in ${PLACEHOLDER.city}, built by a physician-researcher, funded by the NIH, with nothing to buy and no selling of your leads. ${PLACEHOLDER.providerName} is already listed. Claiming the page is free, takes about two minutes, and gives you:`,
+      `A Verified badge gives them that confidence. It shows that a member of the ${PLACEHOLDER.providerName} team has confirmed the information is accurate, helping build trust before the very first conversation.`,
       ``,
-      `• Direct leads from families looking for ${PLACEHOLDER.category} in ${PLACEHOLDER.city}, free, no broker taking a cut`,
-      `• Family questions come to you, right now they go unanswered, and families move on`,
-      `• A verified badge that families trust when comparing options`,
-      `• Your prices, photos, and details under your control instead of publicly-gathered blanks`,
+      `[Get your Verified badge →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `If now isn't the time, no pressure. The page stays up and stays yours to claim whenever you're ready.`,
-      ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `And if I've had the wrong address all along, reply with the email of whoever manages ${PLACEHOLDER.providerName}'s marketing or admissions, and I'll reach out to them directly.`,
+      `It only takes about two minutes and helps families feel at ease when they're ready to take the next step in their care journey.`,
     ].join("\n"),
   };
 }

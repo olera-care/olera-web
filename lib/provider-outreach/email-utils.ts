@@ -99,10 +99,20 @@ function polishedLayout(
 
 /**
  * Check if a link label indicates it's a CTA (call-to-action).
+ * CTAs are rendered as prominent teal buttons instead of inline links.
+ *
+ * Detected by:
+ *   - Arrow (→) in the label (e.g., "Review your page →")
+ *   - "claim" keyword (e.g., "Claim your page")
+ *   - "2 minutes" phrase (e.g., "about 2 minutes")
  */
 function isCtaLink(label: string): boolean {
   const lower = label.toLowerCase();
-  return lower.includes("claim") || lower.includes("2 minutes");
+  return (
+    label.includes("→") ||
+    lower.includes("claim") ||
+    lower.includes("2 minutes")
+  );
 }
 
 /**

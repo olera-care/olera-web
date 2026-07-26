@@ -1932,6 +1932,10 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     await handleReEngage(pendingAction.provider, actionNotes);
   };
 
+  // Filter to only show providers actually in re_engage stage
+  // This prevents ghost data from appearing during tab switches (React state sync issue)
+  const reEngageProviders = providers.filter(p => p.stage === "re_engage");
+
   if (loading) {
     return (
       <div className="p-8 text-center">
@@ -1940,7 +1944,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     );
   }
 
-  if (providers.length === 0) {
+  if (reEngageProviders.length === 0) {
     return (
       <div className="p-12 text-center">
         <p className="text-gray-500">No providers in Re-Engage queue</p>
@@ -1949,7 +1953,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   }
 
   // Sort by re_engage_entered_at (oldest first - most urgent)
-  const sorted = [...providers].sort((a, b) => {
+  const sorted = [...reEngageProviders].sort((a, b) => {
     if (!a.re_engage_entered_at && !b.re_engage_entered_at) return 0;
     if (!a.re_engage_entered_at) return 1;
     if (!b.re_engage_entered_at) return -1;
@@ -2060,9 +2064,9 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
       {/* Summary footer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
-        {providers.length} provider{providers.length !== 1 ? "s" : ""} in Re-Engage queue
+        {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Re-Engage queue
         {" • "}
-        {providers.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
+        {reEngageProviders.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
       </div>
 
       {/* Confirmation Modal */}

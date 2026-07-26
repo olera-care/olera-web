@@ -54,6 +54,12 @@ export async function GET(request: NextRequest) {
       return await buildFunnelResponse(db, state!, { from, to, priorFrom, queryStart });
     }
 
+    // Global follow-ups due today (no state filter)
+    if (metric === "follow_ups_today") {
+      const stats = await getGlobalFollowUpsTodayStats(db);
+      return NextResponse.json(stats);
+    }
+
     // Single metric response
     let timestamps: Date[];
 
@@ -289,4 +295,89 @@ async function buildFunnelResponse(
     series: [], // Empty for backward compat; breakdown drives the multi-line chart
     breakdown,
   });
+}
+
+/**
+ * Get global follow-ups due today across ALL states.
+ * Returns total count and breakdown by admin.
+ */
+async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
+  total: number;
+  by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
+}> {
+  const today = new Date().toISOString().split("T")[0];
+
+  // Get admin display names for lookup
+  const { data: admins } = await db
+    .from("admin_users")
+    .select("id, display_name");
+
+  const adminNameMap = new Map(
+    (admins || []).map((a: { id: string; display_name: string | null }) => [a.id, a.display_name || a.id])
+  );
+
+  // Query follow-ups due today across ALL states (no state filter)
+  const { data: trackingRows, error } = await db
+    .from("provider_outreach_tracking")
+    .select("provider_id, assigned_to")
+    .eq("stage", "needs_call")
+    .lte("due_date", today);
+
+  if (error || !trackingRows) {
+    console.error("[follow-ups-today-global] Query error:", error);
+    return { total: 0, by_admin: [] };
+  }
+
+  // Get claimed providers (have account_id in business_profiles)
+  const { data: claimedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .not("account_id", "is", null);
+
+  const claimedProviderIds = new Set(
+    (claimedBps || []).map((bp: { source_provider_id: string }) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Get system-archived providers
+  const { data: archivedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .filter("metadata->>admin_archived", "eq", "true");
+
+  const archivedProviderIds = new Set(
+    (archivedBps || []).map((bp: { source_provider_id: string }) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Count by assigned_to, excluding claimed and system-archived
+  const countMap = new Map<string, number>();
+  let totalCount = 0;
+  for (const row of trackingRows) {
+    if (claimedProviderIds.has(row.provider_id)) continue;
+    if (archivedProviderIds.has(row.provider_id)) continue;
+
+    const key = row.assigned_to || "unassigned";
+    countMap.set(key, (countMap.get(key) || 0) + 1);
+    totalCount++;
+  }
+
+  // Convert to sorted array
+  const byAdmin: Array<{ admin_id: string | null; display_name: string; count: number }> = [];
+  for (const [adminId, count] of countMap.entries()) {
+    byAdmin.push({
+      admin_id: adminId === "unassigned" ? null : adminId,
+      display_name: adminId === "unassigned" ? "Unassigned" : (adminNameMap.get(adminId) || adminId),
+      count,
+    });
+  }
+
+  // Sort: highest count first, unassigned last
+  byAdmin.sort((a, b) => {
+    if (a.admin_id === null && b.admin_id !== null) return 1;
+    if (a.admin_id !== null && b.admin_id === null) return -1;
+    return b.count - a.count;
+  });
+
+  return { total: totalCount, by_admin: byAdmin };
 }

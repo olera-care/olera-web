@@ -220,10 +220,11 @@ function formatPhone(phone: string): string {
 
 // Labels for why a provider is in the Follow Up queue
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
-  sequence_completed: "Sequence done",
-  clicked_not_claimed: "Clicked",
-  replied: "Replied",
-  manual: "Manual",
+  sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no engagement
+  sequence_completed: "Sequence done",  // Legacy/alternate code
+  clicked_not_claimed: "Clicked",       // Provider clicked a link but didn't claim (hot lead)
+  replied: "Replied",                   // Provider replied to an email (requires inbound setup)
+  manual: "Manual",                     // Admin manually moved to Follow Up
 };
 
 function getNeedsCallReasonChip(reason: string | null): { label: string; className: string } | null {
@@ -231,6 +232,7 @@ function getNeedsCallReasonChip(reason: string | null): { label: string; classNa
   const label = NEEDS_CALL_REASON_LABELS[reason] || reason;
   // Different colors for different reasons
   switch (reason) {
+    case "sequence_exhausted":
     case "sequence_completed":
       return { label, className: "bg-blue-50 text-blue-700" };
     case "clicked_not_claimed":
@@ -1244,7 +1246,7 @@ function FollowUpProviderRow({
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
 
   // Confirmation modal content for each outcome
-  // Note: No "claimed_on_call" case - auto-claim detection handles claims automatically
+  // Note: No "claimed" outcome - auto-claim detection handles claims automatically
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
       case "resend_link":
@@ -1259,18 +1261,6 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Yes, send email & move to Re-Engage",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "no_answer":
-        return {
-          title: "No Answer",
-          description: "The provider did not answer the call.",
-          details: [
-            "Provider will be moved to the Re-Engage stage",
-            "They will no longer appear in the Follow Up queue",
-            "They can be re-engaged via email sequence later",
-          ],
-          confirmLabel: "Yes, move to Re-Engage",
-          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
         };
       case "wrong_contact":
         return {
@@ -1290,7 +1280,7 @@ function FollowUpProviderRow({
           description: "The provider explicitly declined to claim their profile.",
           details: [
             "Provider will be moved to the Not Interested stage (soft terminal)",
-            "They will no longer receive any outreach emails or calls",
+            "They will no longer receive any outreach emails",
             "Questions and connections can still flow to them",
             "Use Archive instead for a full system-wide block",
           ],
@@ -1501,8 +1491,7 @@ function FollowUpProviderRow({
 
         {/* Counters (subtle) */}
         <div className="w-20 shrink-0 text-xs text-gray-400">
-          {provider.resend_count > 0 && <span className="mr-2">R:{provider.resend_count}</span>}
-          {provider.no_answer_count > 0 && <span>NA:{provider.no_answer_count}</span>}
+          {provider.resend_count > 0 && <span>R:{provider.resend_count}</span>}
         </div>
 
         {/* Actions menu (three dots) */}
@@ -1616,7 +1605,7 @@ function FollowUpProviderRow({
           )}
 
           {/* Outcome Buttons - subtle outlined tags */}
-          {/* Note: No "Claimed on call" button - auto-claim detection handles this automatically */}
+          {/* Note: No "Claimed" button - auto-claim detection handles this automatically */}
           {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
           <div className="flex flex-wrap gap-2 mb-4">
             {/* Send claim email (→ Re-Engage) */}
@@ -1631,15 +1620,6 @@ function FollowUpProviderRow({
               }`}
             >
               📧 Send email (→ Re-Engage){resendDisabled && " (max)"}
-            </button>
-
-            {/* No answer */}
-            <button
-              onClick={() => setPendingOutcome("no_answer")}
-              disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              No answer (→ Re-Engage)
             </button>
 
             {/* Wrong contact */}
@@ -1667,7 +1647,7 @@ function FollowUpProviderRow({
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add call notes..."
+              placeholder="Add notes..."
               rows={2}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
@@ -1720,12 +1700,19 @@ function FollowUpProviderRow({
                 </ul>
               </div>
 
-              {notes.trim() && pendingOutcome && (
-                <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
-                  <p className="text-sm text-blue-800">{notes.trim()}</p>
-                </div>
-              )}
+              {/* Notes textarea - editable in modal */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add context or reason..."
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                />
+              </div>
             </div>
 
             {/* Footer */}
@@ -1782,26 +1769,46 @@ function FollowUpProviderRow({
 function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive, adminNameLookup }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
+  // Filter to only show providers actually in needs_call stage
+  // This prevents ghost data from appearing during tab switches (React state sync issue)
+  const followUpProviders = providers.filter(p => p.stage === "needs_call");
+
   // Group providers by due date sections
   const today = getTodayISO();
 
   // Note: Providers with null due_date are legacy records that entered needs_call
   // before the migration. Treat them as "Due Today" since they need attention.
-  const overdue = providers.filter((p) => p.due_date && p.due_date < today);
-  const dueToday = providers.filter((p) => !p.due_date || p.due_date === today);
-  const upcoming = providers.filter((p) => p.due_date && p.due_date > today);
+  const overdue = followUpProviders.filter((p) => p.due_date && p.due_date < today);
+  const dueToday = followUpProviders.filter((p) => !p.due_date || p.due_date === today);
+  const upcoming = followUpProviders.filter((p) => p.due_date && p.due_date > today);
 
-  // Sort each group by due_date ASC (oldest first)
-  const sortByDueDate = (a: OutreachProvider, b: OutreachProvider) => {
+  // Engagement priority: clicked/replied providers are "hot leads" - show them first
+  const getEngagementPriority = (reason: string | null): number => {
+    switch (reason) {
+      case "replied":            return 0; // Hottest - they replied
+      case "clicked_not_claimed": return 1; // Hot - clicked but didn't finish
+      case "manual":              return 2; // Admin flagged - probably important
+      case "sequence_exhausted":
+      case "sequence_completed":  return 3; // Cold - no engagement
+      default:                    return 4;
+    }
+  };
+
+  // Sort: engagement priority first, then due_date ASC within same priority
+  const sortByEngagementThenDate = (a: OutreachProvider, b: OutreachProvider) => {
+    const priorityA = getEngagementPriority(a.needs_call_reason);
+    const priorityB = getEngagementPriority(b.needs_call_reason);
+    if (priorityA !== priorityB) return priorityA - priorityB;
+    // Same priority - sort by due_date ASC
     if (!a.due_date && !b.due_date) return 0;
     if (!a.due_date) return 1;
     if (!b.due_date) return -1;
     return a.due_date.localeCompare(b.due_date);
   };
 
-  overdue.sort(sortByDueDate);
-  dueToday.sort(sortByDueDate);
-  upcoming.sort(sortByDueDate);
+  overdue.sort(sortByEngagementThenDate);
+  dueToday.sort(sortByEngagementThenDate);
+  upcoming.sort(sortByEngagementThenDate);
 
   const toggleProvider = (providerId: string) => {
     setExpandedProviders((prev) => {
@@ -1823,7 +1830,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
     );
   }
 
-  if (providers.length === 0) {
+  if (followUpProviders.length === 0) {
     return (
       <div className="p-12 text-center">
         <p className="text-gray-500">No providers in Follow Up queue</p>
@@ -1910,14 +1917,19 @@ function daysSince(dateString: string | null): number {
 
 function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup }: ReEngageQueueProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
+  const [actionNotes, setActionNotes] = useState("");
 
-  const handleReEngage = async (provider: OutreachProvider) => {
+  const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
     setActionLoading(provider.provider_id);
     try {
       const res = await fetch("/api/admin/provider-outreach/re-engage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          notes: notes?.trim() || undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -1932,8 +1944,19 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       alert(err instanceof Error ? err.message : "Failed to process re-engage action");
     } finally {
       setActionLoading(null);
+      setPendingAction(null);
+      setActionNotes("");
     }
   };
+
+  const confirmAction = async () => {
+    if (!pendingAction) return;
+    await handleReEngage(pendingAction.provider, actionNotes);
+  };
+
+  // Filter to only show providers actually in re_engage stage
+  // This prevents ghost data from appearing during tab switches (React state sync issue)
+  const reEngageProviders = providers.filter(p => p.stage === "re_engage");
 
   if (loading) {
     return (
@@ -1943,7 +1966,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     );
   }
 
-  if (providers.length === 0) {
+  if (reEngageProviders.length === 0) {
     return (
       <div className="p-12 text-center">
         <p className="text-gray-500">No providers in Re-Engage queue</p>
@@ -1952,7 +1975,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   }
 
   // Sort by re_engage_entered_at (oldest first - most urgent)
-  const sorted = [...providers].sort((a, b) => {
+  const sorted = [...reEngageProviders].sort((a, b) => {
     if (!a.re_engage_entered_at && !b.re_engage_entered_at) return 0;
     if (!a.re_engage_entered_at) return 1;
     if (!b.re_engage_entered_at) return -1;
@@ -2025,7 +2048,10 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
             <div className="w-56 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => handleReEngage(provider)}
+                onClick={() => setPendingAction({
+                  provider,
+                  type: isCycle2 ? "cycle2_archive" : "re_engage"
+                })}
                 disabled={isLoading}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                   isCycle2
@@ -2060,10 +2086,130 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
       {/* Summary footer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
-        {providers.length} provider{providers.length !== 1 ? "s" : ""} in Re-Engage queue
+        {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Re-Engage queue
         {" • "}
-        {providers.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
+        {reEngageProviders.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
       </div>
+
+      {/* Confirmation Modal */}
+      {pendingAction && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => {
+            setPendingAction(null);
+            setActionNotes("");
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {pendingAction.type === "re_engage" ? "Start Cycle 2" : "Archive Provider"}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">{pendingAction.provider.provider_name}</p>
+            </div>
+
+            {/* Content */}
+            <div className="px-5 py-4">
+              <div className={`p-3 rounded-lg border mb-4 ${
+                pendingAction.type === "re_engage"
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-gray-50 border-gray-200"
+              }`}>
+                <p className="text-sm text-gray-700 mb-2">
+                  {pendingAction.type === "re_engage"
+                    ? "This will start the second and final email sequence for this provider."
+                    : "This provider has completed 2 cycles without claiming. They will be archived."}
+                </p>
+                <ul className="space-y-1.5">
+                  {pendingAction.type === "re_engage" ? (
+                    <>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Provider will move to Ready tab (cycle 2)
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Email sequence will begin automatically
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        This is their final outreach cycle
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Provider will be moved to Not Interested
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        No more outreach emails will be sent
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Questions and connections can still flow to them
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
+
+              {/* Notes field */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={actionNotes}
+                  onChange={(e) => setActionNotes(e.target.value)}
+                  placeholder="Add context or reason..."
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setPendingAction(null);
+                  setActionNotes("");
+                }}
+                disabled={actionLoading !== null}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAction}
+                disabled={actionLoading !== null}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  pendingAction.type === "re_engage"
+                    ? "bg-primary-600 hover:bg-primary-700"
+                    : "bg-gray-800 hover:bg-gray-900"
+                }`}
+              >
+                {actionLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : pendingAction.type === "re_engage" ? (
+                  "Yes, start Cycle 2"
+                ) : (
+                  "Yes, archive provider"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2163,6 +2309,8 @@ export default function ProviderOutreachPage() {
     ready: 0,
   });
 
+  // Follow-ups due today with admin breakdown
+
   // Admin name lookup from allAdmins + admin_counts (fallback)
   const adminNameLookup = useMemo(() => {
     const lookup = new Map<string, string>();
@@ -2194,6 +2342,12 @@ export default function ProviderOutreachPage() {
 
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
+
+  // Global follow-ups due today (across all states)
+  const [globalFollowUpsToday, setGlobalFollowUpsToday] = useState<{
+    total: number;
+    by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
+  }>({ total: 0, by_admin: [] });
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -2572,9 +2726,12 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const data = await res.json();
         let filteredProviders = data.providers || [];
-        // Client-side filter for "unassigned" since API doesn't support null filter directly
+        // Client-side filter by assigned_to
+        // API doesn't filter not_contacted stage by assigned_to, so we filter here
         if (selectedAdminFilter === "unassigned") {
           filteredProviders = filteredProviders.filter((p: OutreachProvider) => !p.assigned_to);
+        } else if (selectedAdminFilter) {
+          filteredProviders = filteredProviders.filter((p: OutreachProvider) => p.assigned_to === selectedAdminFilter);
         }
         // Filter out recently-moved providers to prevent stale data from reappearing
         // This guards against database replication lag returning old state
@@ -2655,6 +2812,25 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchGlobalClaimed();
+  }, []);
+
+  // Effect: fetch global follow-ups due today on mount
+  useEffect(() => {
+    const fetchGlobalFollowUps = async () => {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/stats?metric=follow_ups_today");
+        if (res.ok) {
+          const data = await res.json();
+          setGlobalFollowUpsToday(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch global follow-ups today:", err);
+      }
+    };
+    fetchGlobalFollowUps();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchGlobalFollowUps, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   // Effect: fetch provider counts when Add State modal opens
@@ -3280,7 +3456,7 @@ export default function ProviderOutreachPage() {
         </div>
 
         {/* Stat Boxes */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Number of states you've added for outreach work">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active States</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalStates}</p>
@@ -3295,6 +3471,15 @@ export default function ProviderOutreachPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Claimed</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalClaimedCount !== null ? globalClaimedCount.toLocaleString() : "—"}</p>
             <p className="mt-0.5 text-[11px] text-gray-500">all states, all time</p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Follow-ups due today across all states">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Due Today</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{globalFollowUpsToday.total}</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {globalFollowUpsToday.by_admin.length > 0
+                ? globalFollowUpsToday.by_admin.map(a => `${a.display_name} ${a.count}`).join(" · ")
+                : "no follow-ups due"}
+            </p>
           </div>
         </div>
       </div>
@@ -3364,7 +3549,7 @@ export default function ProviderOutreachPage() {
           </button>
 
           {statsExpanded && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
               <FunnelStat
                 label="In Sequence"
                 value={stageCounts.in_sequence}
@@ -3706,15 +3891,17 @@ export default function ProviderOutreachPage() {
             </div>
 
             {(() => {
-              // For needs_email/ready tabs, use the cities API data; for other stages, compute from providers
-              // Filter to only show cities with providers for the active tab
-              let displayCities = isNotContactedTab(activeTab) ? cities : computeCityStatsFromProviders(providers);
+              // For needs_email/ready tabs: use cities API data when no admin filter,
+              // otherwise compute from providers (which are already filtered by assigned_to)
+              // For other stages: always compute from providers
+              const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
+              let displayCities = useApiCities ? cities : computeCityStatsFromProviders(providers);
               if (activeTab === "needs_email") {
                 displayCities = displayCities.filter((c) => c.needs_email > 0);
               } else if (activeTab === "ready") {
                 displayCities = displayCities.filter((c) => c.has_email > 0);
               }
-              const isLoading = isNotContactedTab(activeTab) ? loadingCities : loadingProviders;
+              const isLoading = useApiCities ? loadingCities : loadingProviders;
               const emptyMessage = isNotContactedTab(activeTab)
                 ? `No ${activeTab === "needs_email" ? "providers needing email" : "ready providers"} in ${selectedState}`
                 : `No providers in ${UI_TAB_LABELS[activeTab]}`;
@@ -3798,9 +3985,21 @@ export default function ProviderOutreachPage() {
       </div>
 
       {/* Summary */}
-      {isNotContactedTab(activeTab) && !loadingCities && !isSearchResult && (
+      {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (
         <div className="mt-4 text-sm text-gray-500">
-          {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
+          {selectedAdminFilter ? (
+            <>
+              {providers.length.toLocaleString()} providers assigned to {
+                selectedAdminFilter === "unassigned"
+                  ? "no one"
+                  : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
+              } across {computeCityStatsFromProviders(providers).length} cities
+            </>
+          ) : (
+            <>
+              {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
+            </>
+          )}
         </div>
       )}
 
@@ -3965,6 +4164,15 @@ export default function ProviderOutreachPage() {
                           Re-Engage
                         </button>
                       )}
+                      {actionModalProvider.stage !== "not_interested" && (
+                        <button
+                          onClick={() => setPendingStageMove("not_interested")}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                          Not Interested
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -3991,6 +4199,7 @@ export default function ProviderOutreachPage() {
                   pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
                   pendingStageMove === "in_sequence" ? "bg-blue-50 border-blue-200" :
                   pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
+                  pendingStageMove === "not_interested" ? "bg-gray-50 border-gray-300" :
                   "bg-purple-50 border-purple-200"
                 }`}>
                   <p className="text-sm font-medium text-gray-900">
@@ -3998,6 +4207,7 @@ export default function ProviderOutreachPage() {
                       pendingStageMove === "not_contacted" ? "Ready" :
                       pendingStageMove === "in_sequence" ? "In Sequence" :
                       pendingStageMove === "needs_call" ? "Follow Up" :
+                      pendingStageMove === "not_interested" ? "Not Interested" :
                       "Re-Engage"
                     }
                   </p>
@@ -4045,15 +4255,11 @@ export default function ProviderOutreachPage() {
                       <>
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
-                          Provider will appear in the Follow Up call queue
+                          Provider will appear in the Follow Up queue
                         </li>
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
-                          They should be contacted by phone
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Use outcome buttons to record call results
+                          Use outcome buttons to send emails or update status
                         </li>
                       </>
                     )}
@@ -4073,13 +4279,46 @@ export default function ProviderOutreachPage() {
                         </li>
                       </>
                     )}
+                    {pendingStageMove === "not_interested" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will stop receiving outreach emails
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Questions and connections can still flow to them
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Use Archive instead for a full system-wide block
+                        </li>
+                      </>
+                    )}
                   </ul>
+                </div>
+
+                {/* Notes field */}
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                    Notes (optional)
+                  </label>
+                  <textarea
+                    value={actionNotes}
+                    onChange={(e) => setActionNotes(e.target.value)}
+                    placeholder="Add context or reason..."
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  />
                 </div>
 
                 {/* Confirm/Cancel buttons */}
                 <div className="flex justify-end gap-3 pt-2">
                   <button
-                    onClick={() => setPendingStageMove(null)}
+                    onClick={() => {
+                      setPendingStageMove(null);
+                      setActionNotes("");
+                    }}
                     disabled={actionLoading}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
                   >
@@ -4095,12 +4334,15 @@ export default function ProviderOutreachPage() {
                           body: JSON.stringify({
                             provider_ids: [actionModalProvider.provider_id],
                             stage: pendingStageMove,
+                            notes: actionNotes.trim() || undefined,
                           }),
                         });
                         if (res.ok) {
                           const stageLabel = pendingStageMove === "not_contacted" ? "Ready" :
                             pendingStageMove === "in_sequence" ? "In Sequence" :
-                            pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage";
+                            pendingStageMove === "needs_call" ? "Follow Up" :
+                            pendingStageMove === "not_interested" ? "Not Interested" :
+                            "Re-Engage";
                           showToast(`Moved to ${stageLabel}`, "success");
                           // Mark as recently moved to filter from stale API responses
                           markAsRecentlyMoved(actionModalProvider.provider_id);
@@ -4146,6 +4388,7 @@ export default function ProviderOutreachPage() {
                       pendingStageMove === "not_contacted" ? "bg-gray-600 hover:bg-gray-700" :
                       pendingStageMove === "in_sequence" ? "bg-blue-600 hover:bg-blue-700" :
                       pendingStageMove === "needs_call" ? "bg-amber-600 hover:bg-amber-700" :
+                      pendingStageMove === "not_interested" ? "bg-gray-800 hover:bg-gray-900" :
                       "bg-purple-600 hover:bg-purple-700"
                     }`}
                   >
@@ -4158,7 +4401,9 @@ export default function ProviderOutreachPage() {
                       `Yes, move to ${
                         pendingStageMove === "not_contacted" ? "Ready" :
                         pendingStageMove === "in_sequence" ? "In Sequence" :
-                        pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage"
+                        pendingStageMove === "needs_call" ? "Follow Up" :
+                        pendingStageMove === "not_interested" ? "Not Interested" :
+                        "Re-Engage"
                       }`
                     )}
                   </button>

@@ -219,11 +219,13 @@ function formatPhone(phone: string): string {
 }
 
 // Labels for why a provider is in the Follow Up queue
+// Note: clicked_not_claimed and replied are future features (not yet implemented)
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
-  sequence_completed: "Sequence done",
-  clicked_not_claimed: "Clicked",
-  replied: "Replied",
-  manual: "Manual",
+  sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no claim
+  sequence_completed: "Sequence done",  // Legacy/alternate code
+  clicked_not_claimed: "Clicked",       // Future: provider clicked claim link but didn't finish
+  replied: "Replied",                   // Future: provider replied to an email
+  manual: "Manual",                     // Admin manually moved to Follow Up
 };
 
 function getNeedsCallReasonChip(reason: string | null): { label: string; className: string } | null {
@@ -231,6 +233,7 @@ function getNeedsCallReasonChip(reason: string | null): { label: string; classNa
   const label = NEEDS_CALL_REASON_LABELS[reason] || reason;
   // Different colors for different reasons
   switch (reason) {
+    case "sequence_exhausted":
     case "sequence_completed":
       return { label, className: "bg-blue-50 text-blue-700" };
     case "clicked_not_claimed":

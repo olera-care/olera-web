@@ -131,7 +131,7 @@ export function getTemplate(
     case "followup":
       return followupEmail();
     case "demand_loss":
-      return demandLossEmail(hasDemandData);
+      return demandLossEmail();
     case "final":
       return finalEmail();
     case "nudge":
@@ -229,37 +229,25 @@ function followupEmail(): EmailDraft {
 /**
  * Day 7: Demand-loss email
  *
- * Shows families are actively viewing providers in their city but can't
- * engage with unclaimed pages. Creates urgency through real demand data.
- *
- * Two variants:
- *   - With demand data (hasDemandData=true): Shows specific view count
- *   - Without demand data (hasDemandData=false): Uses generic "families are searching" language
- *
- * Variable: {city_views} = total unique page views for this city+category
- * in the last 30 days (from provider_page_view_stats table).
+ * Creates urgency by showing real demand and emphasizing the risk of
+ * missing family inquiries. Encourages turning on notifications.
  */
-function demandLossEmail(hasDemandData: boolean): EmailDraft {
-  // Opener varies based on whether we have meaningful view data
-  const opener = hasDemandData
-    ? `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} pages on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`
-    : `Families in ${PLACEHOLDER.city} are searching for ${PLACEHOLDER.category} on Olera right now.`;
-
+function demandLossEmail(): EmailDraft {
   return {
-    subject: hasDemandData ? SUBJECT_DEMAND_LOSS_WITH_COUNT : SUBJECT_DEMAND_LOSS,
-    preheader: PREHEADER_DEMAND_LOSS,
+    subject: `A family has a question. Will you see it?`,
+    preheader: `Don't miss families ready to talk`,
     body: [
-      opener,
+      `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} providers on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`,
       ``,
-      `When they open ${PLACEHOLDER.providerName}'s page, here's what they can do: compare you with the other providers, read your public reviews — and that's it. They can't ask about availability, pricing, or room for their mother next month, because unclaimed pages can't answer questions.`,
+      `Imagine a daughter urgently searching for care for her mom. She finds ${PLACEHOLDER.providerName} and has a question before taking the next step.`,
       ``,
-      `And families don't wait for answers. They ask the next provider on their list.`,
+      `If she can't reach you, she'll find a provider she can.`,
       ``,
-      `Claiming changes what that page does: questions reach you, your prices and photos replace the blanks, and the families already looking at ${PLACEHOLDER.providerName} can finally talk to ${PLACEHOLDER.providerName}.`,
+      `[Turn on notifications →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
+      `Be the first to know when a family reaches out and respond when it matters most.`,
       ``,
-      `Or reply with your starting price and I'll put it up for you today.`,
+      `Don't miss out on a family who could be ready to choose you.`,
     ].join("\n"),
   };
 }

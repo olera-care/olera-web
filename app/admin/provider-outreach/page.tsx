@@ -1244,7 +1244,7 @@ function FollowUpProviderRow({
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
 
   // Confirmation modal content for each outcome
-  // Note: No "claimed_on_call" case - auto-claim detection handles claims automatically
+  // Note: No "claimed" outcome - auto-claim detection handles claims automatically
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
       case "resend_link":
@@ -1259,18 +1259,6 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Yes, send email & move to Re-Engage",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "no_answer":
-        return {
-          title: "No Answer",
-          description: "The provider did not answer the call.",
-          details: [
-            "Provider will be moved to the Re-Engage stage",
-            "They will no longer appear in the Follow Up queue",
-            "They can be re-engaged via email sequence later",
-          ],
-          confirmLabel: "Yes, move to Re-Engage",
-          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
         };
       case "wrong_contact":
         return {
@@ -1290,7 +1278,7 @@ function FollowUpProviderRow({
           description: "The provider explicitly declined to claim their profile.",
           details: [
             "Provider will be moved to the Not Interested stage (soft terminal)",
-            "They will no longer receive any outreach emails or calls",
+            "They will no longer receive any outreach emails",
             "Questions and connections can still flow to them",
             "Use Archive instead for a full system-wide block",
           ],
@@ -1501,8 +1489,7 @@ function FollowUpProviderRow({
 
         {/* Counters (subtle) */}
         <div className="w-20 shrink-0 text-xs text-gray-400">
-          {provider.resend_count > 0 && <span className="mr-2">R:{provider.resend_count}</span>}
-          {provider.no_answer_count > 0 && <span>NA:{provider.no_answer_count}</span>}
+          {provider.resend_count > 0 && <span>R:{provider.resend_count}</span>}
         </div>
 
         {/* Actions menu (three dots) */}
@@ -1616,7 +1603,7 @@ function FollowUpProviderRow({
           )}
 
           {/* Outcome Buttons - subtle outlined tags */}
-          {/* Note: No "Claimed on call" button - auto-claim detection handles this automatically */}
+          {/* Note: No "Claimed" button - auto-claim detection handles this automatically */}
           {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
           <div className="flex flex-wrap gap-2 mb-4">
             {/* Send claim email (→ Re-Engage) */}
@@ -1631,15 +1618,6 @@ function FollowUpProviderRow({
               }`}
             >
               📧 Send email (→ Re-Engage){resendDisabled && " (max)"}
-            </button>
-
-            {/* No answer */}
-            <button
-              onClick={() => setPendingOutcome("no_answer")}
-              disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              No answer (→ Re-Engage)
             </button>
 
             {/* Wrong contact */}
@@ -1667,7 +1645,7 @@ function FollowUpProviderRow({
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add call notes..."
+              placeholder="Add notes..."
               rows={2}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
@@ -4074,15 +4052,11 @@ export default function ProviderOutreachPage() {
                       <>
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
-                          Provider will appear in the Follow Up call queue
+                          Provider will appear in the Follow Up queue
                         </li>
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
-                          They should be contacted by phone
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Use outcome buttons to record call results
+                          Use outcome buttons to send emails or update status
                         </li>
                       </>
                     )}

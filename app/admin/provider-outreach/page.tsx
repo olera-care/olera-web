@@ -1767,14 +1767,18 @@ function FollowUpProviderRow({
 function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive, adminNameLookup }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
+  // Filter to only show providers actually in needs_call stage
+  // This prevents ghost data from appearing during tab switches (React state sync issue)
+  const followUpProviders = providers.filter(p => p.stage === "needs_call");
+
   // Group providers by due date sections
   const today = getTodayISO();
 
   // Note: Providers with null due_date are legacy records that entered needs_call
   // before the migration. Treat them as "Due Today" since they need attention.
-  const overdue = providers.filter((p) => p.due_date && p.due_date < today);
-  const dueToday = providers.filter((p) => !p.due_date || p.due_date === today);
-  const upcoming = providers.filter((p) => p.due_date && p.due_date > today);
+  const overdue = followUpProviders.filter((p) => p.due_date && p.due_date < today);
+  const dueToday = followUpProviders.filter((p) => !p.due_date || p.due_date === today);
+  const upcoming = followUpProviders.filter((p) => p.due_date && p.due_date > today);
 
   // Sort each group by due_date ASC (oldest first)
   const sortByDueDate = (a: OutreachProvider, b: OutreachProvider) => {
@@ -1808,7 +1812,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
     );
   }
 
-  if (providers.length === 0) {
+  if (followUpProviders.length === 0) {
     return (
       <div className="p-12 text-center">
         <p className="text-gray-500">No providers in Follow Up queue</p>

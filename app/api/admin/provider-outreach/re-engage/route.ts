@@ -11,18 +11,20 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  *
  * Request body:
  *   - provider_id: string (required)
+ *   - notes?: string (optional admin notes)
  *
  * Action logic:
  *   - If cycle_number = 1:
  *       - Increment cycle_number to 2
- *       - Reset resend_count and no_answer_count to 0
+ *       - Reset resend_count to 0
  *       - Clear due_date
  *       - Move to "not_contacted" stage (Ready tab, since they have email)
  *       - Log "cycle_started" touchpoint
+ *       - Include admin notes if provided
  *
  *   - If cycle_number = 2:
  *       - Move to "not_interested" stage (soft terminal)
- *       - Set notes to "unresponsive_after_two_cycles"
+ *       - Set notes to "unresponsive_after_two_cycles" (with admin notes if provided)
  *       - Log "cycle_exhausted" touchpoint
  *       - NO system-wide sync (soft terminal still receives questions/connections)
  */
@@ -40,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id } = body;
+    const { provider_id, notes } = body;
 
     if (!provider_id || typeof provider_id !== "string") {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -48,7 +50,6 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
     const nowIso = new Date().toISOString();
-    const adminEmail = user.email ?? adminUser.id;
 
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
@@ -83,9 +84,9 @@ export async function POST(request: NextRequest) {
           stage_changed_at: nowIso,
           cycle_number: 2,
           resend_count: 0,
-          no_answer_count: 0,
           due_date: null,
           re_engage_entered_at: null, // Clear since they're leaving re_engage
+          ...(notes?.trim() && { notes: notes.trim() }),
           updated_at: nowIso,
         })
         .eq("id", tracking.id);
@@ -105,6 +106,7 @@ export async function POST(request: NextRequest) {
             previous_stage: "re_engage",
             new_stage: "not_contacted",
             trigger: "manual_re_engage",
+            ...(notes?.trim() && { notes: notes.trim() }),
           },
           admin_user_id: adminUser.id,
           created_at: nowIso,
@@ -117,6 +119,7 @@ export async function POST(request: NextRequest) {
             new_stage: "not_contacted",
             trigger: "re_engage_cycle_start",
             cycle: 2,
+            ...(notes?.trim() && { notes: notes.trim() }),
           },
           admin_user_id: adminUser.id,
           created_at: nowIso,
@@ -146,13 +149,17 @@ export async function POST(request: NextRequest) {
       // Provider stops receiving outreach but can still get questions/connections
 
       const terminalReason = "unresponsive_after_two_cycles";
+      // Combine admin notes with terminal reason
+      const combinedNotes = notes?.trim()
+        ? `${terminalReason} | ${notes.trim()}`
+        : terminalReason;
 
       const { error: updateError } = await db
         .from("provider_outreach_tracking")
         .update({
           stage: "not_interested" as OutreachStage,
           stage_changed_at: nowIso,
-          notes: terminalReason,
+          notes: combinedNotes,
           re_engage_entered_at: null,
           updated_at: nowIso,
         })
@@ -173,6 +180,7 @@ export async function POST(request: NextRequest) {
             reason: terminalReason,
             terminal_stage: "not_interested",
             trigger: "manual_re_engage",
+            ...(notes?.trim() && { admin_notes: notes.trim() }),
           },
           admin_user_id: adminUser.id,
           created_at: nowIso,
@@ -185,6 +193,7 @@ export async function POST(request: NextRequest) {
             new_stage: "not_interested",
             trigger: "re_engage_cycle_exhausted",
             reason: terminalReason,
+            ...(notes?.trim() && { admin_notes: notes.trim() }),
           },
           admin_user_id: adminUser.id,
           created_at: nowIso,

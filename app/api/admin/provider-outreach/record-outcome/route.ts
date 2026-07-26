@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, resend_count, no_answer_count, due_date, city, state")
+      .select("id, provider_id, stage, resend_count, due_date, city, state")
       .eq("provider_id", provider_id)
       .single();
 

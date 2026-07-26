@@ -1895,14 +1895,19 @@ function daysSince(dateString: string | null): number {
 
 function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup }: ReEngageQueueProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
+  const [actionNotes, setActionNotes] = useState("");
 
-  const handleReEngage = async (provider: OutreachProvider) => {
+  const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
     setActionLoading(provider.provider_id);
     try {
       const res = await fetch("/api/admin/provider-outreach/re-engage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          notes: notes?.trim() || undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -1917,7 +1922,14 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       alert(err instanceof Error ? err.message : "Failed to process re-engage action");
     } finally {
       setActionLoading(null);
+      setPendingAction(null);
+      setActionNotes("");
     }
+  };
+
+  const confirmAction = async () => {
+    if (!pendingAction) return;
+    await handleReEngage(pendingAction.provider, actionNotes);
   };
 
   if (loading) {
@@ -2010,7 +2022,10 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
             <div className="w-56 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => handleReEngage(provider)}
+                onClick={() => setPendingAction({
+                  provider,
+                  type: isCycle2 ? "cycle2_archive" : "re_engage"
+                })}
                 disabled={isLoading}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                   isCycle2
@@ -2049,6 +2064,126 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         {" • "}
         {providers.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
       </div>
+
+      {/* Confirmation Modal */}
+      {pendingAction && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => {
+            setPendingAction(null);
+            setActionNotes("");
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {pendingAction.type === "re_engage" ? "Start Cycle 2" : "Archive Provider"}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">{pendingAction.provider.provider_name}</p>
+            </div>
+
+            {/* Content */}
+            <div className="px-5 py-4">
+              <div className={`p-3 rounded-lg border mb-4 ${
+                pendingAction.type === "re_engage"
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-gray-50 border-gray-200"
+              }`}>
+                <p className="text-sm text-gray-700 mb-2">
+                  {pendingAction.type === "re_engage"
+                    ? "This will start the second and final email sequence for this provider."
+                    : "This provider has completed 2 cycles without claiming. They will be archived."}
+                </p>
+                <ul className="space-y-1.5">
+                  {pendingAction.type === "re_engage" ? (
+                    <>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Provider will move to Ready tab (cycle 2)
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Email sequence will begin automatically
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        This is their final outreach cycle
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Provider will be moved to Not Interested
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        No more outreach emails will be sent
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400 mt-0.5">•</span>
+                        Questions and connections can still flow to them
+                      </li>
+                    </>
+                  )}
+                </ul>
+              </div>
+
+              {/* Notes field */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={actionNotes}
+                  onChange={(e) => setActionNotes(e.target.value)}
+                  placeholder="Add context or reason..."
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setPendingAction(null);
+                  setActionNotes("");
+                }}
+                disabled={actionLoading !== null}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAction}
+                disabled={actionLoading !== null}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  pendingAction.type === "re_engage"
+                    ? "bg-primary-600 hover:bg-primary-700"
+                    : "bg-gray-800 hover:bg-gray-900"
+                }`}
+              >
+                {actionLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : pendingAction.type === "re_engage" ? (
+                  "Yes, start Cycle 2"
+                ) : (
+                  "Yes, archive provider"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

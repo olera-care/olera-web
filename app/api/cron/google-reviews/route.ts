@@ -14,12 +14,13 @@ import {
  *
  * Tiered monthly cron — refreshes Google review data for providers based on activity.
  *
- * Tier 1: Claimed/verified providers — refresh if >30 days stale
- * Tier 2: Recently viewed providers (last 30 days) — refresh if >30 days stale
+ * Tier 1: Claimed/verified providers — refresh if >90 days stale
+ * Tier 2: Recently viewed providers (last 30 days) — refresh if >90 days stale
  * Tier 3: Long tail — refresh if >90 days stale or never synced
  *
- * Runs 1st of each month at 3 AM UTC.
- * Cost: ~$100/month at 100K providers (vs $500 for blind refresh).
+ * Runs 1st of each month at 3 AM UTC. Reviews change slowly, so a 90-day
+ * staleness window across all tiers is plenty fresh and ~cuts recurring cost.
+ * The `reviews` field is the Places Enterprise+Atmosphere SKU (~$25/1K).
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -63,10 +64,10 @@ export async function GET(request: NextRequest) {
       const isClaimed = claimedSlugSet.has(p.slug as string);
       const wasViewedRecently = p.last_viewed_at && new Date(p.last_viewed_at) > new Date(thirtyDaysAgo);
 
-      if (isClaimed && (!lastSynced || lastSynced < new Date(thirtyDaysAgo))) {
+      if (isClaimed && (!lastSynced || lastSynced < new Date(ninetyDaysAgo))) {
         toRefresh.push({ provider_id: p.provider_id, place_id: p.place_id, tier: 1 });
         stats.tier1++;
-      } else if (wasViewedRecently && (!lastSynced || lastSynced < new Date(thirtyDaysAgo))) {
+      } else if (wasViewedRecently && (!lastSynced || lastSynced < new Date(ninetyDaysAgo))) {
         toRefresh.push({ provider_id: p.provider_id, place_id: p.place_id, tier: 2 });
         stats.tier2++;
       } else if (!lastSynced || lastSynced < new Date(ninetyDaysAgo)) {
@@ -105,7 +106,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const costEstimate = ((stats.tier1 + stats.tier2 + stats.tier3) / 1000) * 5;
+    // `reviews` is the Places Enterprise+Atmosphere SKU (~$25/1K), not $5/1K.
+    const costEstimate = ((stats.tier1 + stats.tier2 + stats.tier3) / 1000) * 25;
     console.log(
       `[google-reviews-cron] Done. T1:${stats.tier1} T2:${stats.tier2} T3:${stats.tier3} updated:${stats.updated} errors:${stats.errors} skipped:${stats.skipped} est_cost:$${costEstimate.toFixed(2)}`,
     );

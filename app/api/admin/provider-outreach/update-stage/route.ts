@@ -101,6 +101,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No valid providers found" }, { status: 404 });
     }
 
+    // Log provider state values for debugging multi-tab appearance bug
+    console.log("[update-stage] Provider states from olera-providers:",
+      providers.map(p => ({ provider_id: p.provider_id, name: p.provider_name?.substring(0, 30), state: p.state, city: p.city }))
+    );
+
     const providerMap = new Map(providers.map((p) => [p.provider_id, p]));
 
     // Check which providers already have tracking rows
@@ -111,6 +116,41 @@ export async function POST(request: NextRequest) {
 
     const existingMap = new Map((existingTracking || []).map((t) => [t.provider_id, t]));
 
+    // ── Clean up pending tasks when moving OUT of in_sequence ──
+    // Find providers being moved FROM in_sequence to another stage
+    const providersLeavingSequence: string[] = [];
+    for (const pid of provider_ids) {
+      const existing = existingMap.get(pid);
+      if (existing && existing.stage === "in_sequence" && stage !== "in_sequence") {
+        providersLeavingSequence.push(pid);
+      }
+    }
+
+    // Delete their pending tasks to prevent stale emails from firing
+    if (providersLeavingSequence.length > 0) {
+      // Get tracking IDs for these providers
+      const trackingIdsToClean = providersLeavingSequence
+        .map((pid) => existingMap.get(pid)?.id)
+        .filter((id): id is string => !!id);
+
+      if (trackingIdsToClean.length > 0) {
+        const { error: cleanupError, count: deletedCount } = await db
+          .from("provider_outreach_tasks")
+          .delete()
+          .in("tracking_id", trackingIdsToClean)
+          .eq("status", "pending");
+
+        if (cleanupError) {
+          console.error("[provider-outreach/update-stage] Task cleanup error:", cleanupError);
+          // Non-fatal - continue with stage update
+        } else {
+          console.log(
+            `[provider-outreach/update-stage] Cleaned up ${deletedCount ?? 0} pending task(s) for ${providersLeavingSequence.length} provider(s) leaving in_sequence`
+          );
+        }
+      }
+    }
+
     // Detect archive/unarchive scenarios
     const isArchiving = stage === "archived";
 
@@ -118,10 +158,11 @@ export async function POST(request: NextRequest) {
     // Check BOTH tracking table AND system-wide archive (business_profiles.admin_archived)
     const providersBeingUnarchived: string[] = [];
 
-    // First, check tracking table for archived/not_interested
+    // First, check tracking table for archived (hard terminal only)
+    // not_interested is soft terminal - no system-wide archive to undo
     for (const pid of provider_ids) {
       const existing = existingMap.get(pid);
-      if (existing && (existing.stage === "archived" || existing.stage === "not_interested") && stage !== "archived") {
+      if (existing && existing.stage === "archived" && stage !== "archived") {
         providersBeingUnarchived.push(pid);
       }
     }
@@ -193,6 +234,7 @@ export async function POST(request: NextRequest) {
       notes: string | null;
       sequence_started_at?: string;
       claimed_at?: string;
+      needs_call_reason?: string;
     }[] = [];
 
     for (const providerId of provider_ids) {
@@ -227,6 +269,11 @@ export async function POST(request: NextRequest) {
           insertRow.claimed_at = nowIso;
         }
 
+        // Set needs_call_reason for new needs_call entries
+        if (stage === "needs_call") {
+          insertRow.needs_call_reason = "manual";
+        }
+
         toInsert.push(insertRow);
       }
     }
@@ -234,10 +281,28 @@ export async function POST(request: NextRequest) {
     // Perform updates
     if (toUpdate.length > 0) {
       const updateIds = toUpdate.map((t) => t.id);
-      const updateData: { stage: OutreachStage; stage_changed_at: string; notes?: string | null } = {
+
+      // Log what we're updating for debugging
+      console.log("[update-stage] Updating tracking records:",
+        toUpdate.map(t => ({ id: t.id, provider_id: t.provider_id, oldStage: t.oldStage, newStage: stage }))
+      );
+
+      const updateData: { stage: OutreachStage; stage_changed_at: string; notes?: string | null; needs_call_reason?: string | null; city?: string | null; state?: string | null } = {
         stage: stage as OutreachStage,
         stage_changed_at: nowIso,
       };
+
+      // Also update city/state from provider details to ensure consistency
+      // This fixes cases where tracking record has stale/wrong location data
+      for (const item of toUpdate) {
+        const providerDetails = providerMap.get(item.provider_id);
+        if (providerDetails && toUpdate.length === 1) {
+          // Only set city/state if updating a single provider (bulk updates might have mixed states)
+          updateData.city = providerDetails.city;
+          updateData.state = providerDetails.state;
+        }
+      }
+
       if (notes !== undefined) {
         // For archive/unarchive, combine reason + notes
         if (isArchiving || isUnarchiving) {
@@ -245,6 +310,10 @@ export async function POST(request: NextRequest) {
         } else {
           updateData.notes = notes;
         }
+      }
+      // Set needs_call_reason for moves to needs_call
+      if (stage === "needs_call") {
+        updateData.needs_call_reason = "manual";
       }
 
       const { error: updateError } = await db
@@ -260,6 +329,11 @@ export async function POST(request: NextRequest) {
 
     // Perform inserts
     if (toInsert.length > 0) {
+      // Log what we're inserting for debugging
+      console.log("[update-stage] Inserting tracking records:",
+        toInsert.map(r => ({ provider_id: r.provider_id, stage: r.stage, state: r.state, city: r.city }))
+      );
+
       const { error: insertError } = await db
         .from("provider_outreach_tracking")
         .insert(toInsert);
@@ -267,6 +341,64 @@ export async function POST(request: NextRequest) {
       if (insertError) {
         console.error("[provider-outreach/update-stage] Insert error:", insertError);
         return NextResponse.json({ error: "Failed to create tracking records" }, { status: 500 });
+      }
+    }
+
+    // ── Log stage_changed touchpoints ──
+    // Record permanent event history for all providers whose stage changed
+    const touchpointRows: Array<{
+      provider_id: string;
+      touchpoint_type: "stage_changed";
+      details: { old_stage: string; new_stage: string; reason?: string; notes?: string };
+      admin_user_id: string;
+      created_at: string;
+    }> = [];
+
+    // Providers that had existing tracking rows (stage change from old to new)
+    for (const item of toUpdate) {
+      // Only log if stage actually changed
+      if (item.oldStage === stage) continue;
+      touchpointRows.push({
+        provider_id: item.provider_id,
+        touchpoint_type: "stage_changed",
+        details: {
+          old_stage: item.oldStage,
+          new_stage: stage,
+          ...(reason && { reason }),
+          ...(notes?.trim() && { notes: notes.trim() }),
+        },
+        admin_user_id: adminUser.id,
+        created_at: nowIso,
+      });
+    }
+
+    // Providers that were newly inserted (implicit stage change from not_contacted)
+    // Only log if actually changing to a different stage
+    if (stage !== "not_contacted") {
+      for (const item of toInsert) {
+        touchpointRows.push({
+          provider_id: item.provider_id,
+          touchpoint_type: "stage_changed",
+          details: {
+            old_stage: "not_contacted",
+            new_stage: stage,
+            ...(reason && { reason }),
+            ...(notes?.trim() && { notes: notes.trim() }),
+          },
+          admin_user_id: adminUser.id,
+          created_at: nowIso,
+        });
+      }
+    }
+
+    if (touchpointRows.length > 0) {
+      const { error: touchpointError } = await db
+        .from("provider_outreach_touchpoints")
+        .insert(touchpointRows);
+
+      if (touchpointError) {
+        // Non-fatal: log but don't fail the request (tracking update already succeeded)
+        console.error("[provider-outreach/update-stage] Touchpoint insert error:", touchpointError);
       }
     }
 

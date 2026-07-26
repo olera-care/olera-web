@@ -65,8 +65,6 @@ export async function GET(request: NextRequest) {
       timestamps = await fetchStageTimestamps(db, state!, "in_sequence", queryStart, to);
     } else if (metric === "needs_call") {
       timestamps = await fetchStageTimestamps(db, state!, "needs_call", queryStart, to);
-    } else if (metric === "called") {
-      timestamps = await fetchStageTimestamps(db, state!, "called", queryStart, to);
     } else {
       return NextResponse.json({ error: `Unknown metric: ${metric}` }, { status: 400 });
     }
@@ -144,7 +142,7 @@ async function fetchClaimedTimestamps(
  * Fetch timestamps for when providers ENTERED a stage (historical, not current state).
  * For in_sequence: use sequence_started_at (all providers who ever entered sequence)
  * For claimed: use claimed_at via fetchClaimedTimestamps
- * For needs_call/called: LIMITATION - can only show current holders, not historical
+ * For needs_call: LIMITATION - can only show current holders, not historical
  */
 async function fetchStageTimestamps(
   db: DB,
@@ -159,7 +157,7 @@ async function fetchStageTimestamps(
     return fetchSequenceStartTimestamps(db, state, queryStart, to);
   }
 
-  // For needs_call and called, we only have current state (no historical transition tracking)
+  // For needs_call, we only have current state (no historical transition tracking)
   // This is a known limitation - these lines will undercount in the funnel
   let q = db
     .from("provider_outreach_tracking")
@@ -186,7 +184,7 @@ async function fetchStageTimestamps(
 /**
  * Fetch sequence_started_at timestamps - when providers entered the outreach sequence.
  * This captures ALL providers who ever entered sequence, even if they've since
- * progressed to needs_call, called, or claimed.
+ * progressed to needs_call or claimed.
  */
 async function fetchSequenceStartTimestamps(
   db: DB,
@@ -219,16 +217,14 @@ async function fetchSequenceStartTimestamps(
 
 /**
  * Build multi-series funnel response showing stage progression over time.
- * Shows: In Sequence → Needs Call → Called → Claimed
+ * Shows: In Sequence → Needs Call → Claimed
  *
  * Data accuracy notes:
  * - "In Sequence": ACCURATE — uses sequence_started_at, captures all who ever entered
  * - "Claimed": ACCURATE — uses claimed_at, captures all who claimed
- * - "Needs Call": LIMITED — only current holders, misses those who progressed to called/claimed
- * - "Called": LIMITED — only current holders, misses those who progressed to claimed
+ * - "Needs Call": LIMITED — only current holders, misses those who progressed to claimed
  *
  * For accurate funnel visualization, focus on "In Sequence" and "Claimed" lines.
- * Needs Call and Called are useful for current workload visibility, not historical trends.
  */
 async function buildFunnelResponse(
   db: DB,
@@ -243,10 +239,9 @@ async function buildFunnelResponse(
   const { from, to, priorFrom, queryStart } = opts;
 
   // Fetch all stage timestamps in parallel
-  const [inSequence, needsCall, called, claimed] = await Promise.all([
+  const [inSequence, needsCall, claimed] = await Promise.all([
     fetchStageTimestamps(db, state, "in_sequence", queryStart, to),
     fetchStageTimestamps(db, state, "needs_call", queryStart, to),
-    fetchStageTimestamps(db, state, "called", queryStart, to),
     fetchClaimedTimestamps(db, queryStart, to),
   ]);
 
@@ -255,8 +250,7 @@ async function buildFunnelResponse(
 
   const named: Array<{ name: string; color: string; timestamps: Date[] }> = [
     { name: "In Sequence", color: "#3b82f6", timestamps: inSequence },    // blue-500
-    { name: "Needs Call", color: "#f59e0b", timestamps: needsCall },      // amber-500
-    { name: "Called", color: "#8b5cf6", timestamps: called },             // violet-500
+    { name: "Follow Up", color: "#f59e0b", timestamps: needsCall },       // amber-500
     { name: "Claimed", color: "#10b981", timestamps: claimed },           // emerald-500
   ];
 

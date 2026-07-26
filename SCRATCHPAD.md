@@ -7,6 +7,25 @@
 
 ## Current Focus
 
+### 2026-07-23 — Ad Boost: Legacy Haven Senior Care campaign PUBLISHED (ID 24062146484)
+
+Ran /ad-boost-setup for Legacy Haven Senior Care (Harrisburg, NC) end-to-end via the Dia browser. **This provider is ASSISTED LIVING, not home care** — adapted keywords/copy (assisted living / senior living / retirement community + Concord/Kannapolis/Mint Hill suburbs) and display path `Senior-Living/Harrisburg`; still passed the policy audit clean.
+
+**Campaign:** "Legacy Haven Senior Care – Harrisburg – Jul 2026", ID **24062146484**, account 419-933-1442. Search-only (both networks off), Maximize clicks + $2.50 CPC cap, 20mi radius Harrisburg NC Presence-only, EN+ES, AI Max off, 13 phrase keywords, 13 headlines + 4 descriptions (audit clean — no URLs/phones/symbols/caps), tag `legacy-haven-harrisburg-jul26`. **$50 total, Jul 27 → Aug 23** (~4-week Monday start). Status: Pending → serving Jul 27.
+
+**DB (prod):** request row `fe9a072e` → `scheduled`, channel google, tag + campaign-ID note written. business_profiles lat/lng was null → backfilled from directory row harrisburg-nc-0003 (35.3041101, -80.6201762). ZeroBounce: info@legacyhavensenior.com = role_based but live G-Suite mailbox (fine). Pre-flight: claimed, verified, 10 photos — no profile asks.
+
+**Deviations/lessons (painful session — root causes now in memory SOP):**
+- **The "Confirm it's you" re-auth fired ~3x (budget AND review) and EACH reload reverted the keywords + RSA ad to Google's auto-defaults** (auto "Olera.care" headline, 0 keywords) while committed steps survived. "One verification per session" did NOT hold.
+- **ROOT FIX: edit keywords/ads via the in-app left-nav step link, NOT by rewriting the `currentStep=` URL.** URL-jumping loads a detached auto-gen editor whose Done/Next never commit (review stays "Ads: None"). In-app nav loads the real editor ("All changes saved").
+- **RSA headline/description material-inputs need the real-typing `fill`/`fill_form` tool** — JS native-setter fills the DOM but Angular doesn't register it, so the ad saves empty. (Keyword textarea DOES take the JS setter, but only commits on Next.)
+- **The Review "Overview" summary is UNRELIABLE** — showed "All countries"/"AI Max on"/"Ads: None" when the editable steps proved all correct. Trust the editor + "ready to publish / zero issues", not the summary.
+- Budget step re-defaults to Average daily on every load → re-select Campaign total + $50 + dates each pass.
+
+**PENDING (browser MCP disconnected mid-step — needs `/mcp` reconnect to finish):** (1) confirm the 11 campaign-level negatives saved (Save was clicked); (2) AI Max post-publish toggle recheck.
+
+**TJ to-do (not executed):** flip request row → **live via /admin/ad-boost UI** once serving starts Jul 27 (DB flip would skip the "campaign is live" email). Step-up conversation: they requested **$150/mo** — pitch at wrap-up after the free $50 intro delivers leads.
+
 ### 2026-07-20 — Ad Boost: HomeWell East Tennessee campaign PUBLISHED (ID 24052308622)
 
 Ran /ad-boost-setup for HomeWell Care Services of East Tennessee (Oak Ridge, TN) end-to-end via the Dia browser.

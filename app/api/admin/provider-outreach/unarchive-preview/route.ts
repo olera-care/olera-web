@@ -84,7 +84,9 @@ export async function GET(request: NextRequest) {
       .eq("provider_id", providerId)
       .maybeSingle();
 
-    const isTrackingArchived = trackingRow?.stage === "archived" || trackingRow?.stage === "not_interested";
+    // Only hard-archived providers need unarchive preview
+    // not_interested is soft terminal - no system-wide archive to undo
+    const isTrackingArchived = trackingRow?.stage === "archived";
 
     // Count archived questions (from archived_question_providers table)
     const { count: archivedQuestionsCount, error: aqpError } = await db

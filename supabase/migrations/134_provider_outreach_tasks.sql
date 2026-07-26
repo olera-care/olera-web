@@ -29,9 +29,11 @@ CREATE TABLE IF NOT EXISTS provider_outreach_tasks (
   -- Which template/cadence day this task is for
   cadence_day     INT NOT NULL DEFAULT 0,
   template_key    TEXT NOT NULL CHECK (template_key IN (
-    'intro',      -- Day 0
-    'followup',   -- Day 3
-    'final'       -- Day 7
+    'intro',        -- Day 0
+    'followup',     -- Day 3
+    'demand_loss',  -- Day 7
+    'final',        -- Day 14
+    'nudge'         -- Standalone resend
   )),
 
   -- When to execute (cron scans for due tasks)

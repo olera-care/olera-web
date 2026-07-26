@@ -10,7 +10,8 @@
 import { createHmac } from "crypto";
 
 const TOKEN_SECRET = process.env.CLAIM_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-secret";
-const TOKEN_EXPIRY_HOURS = 72; // 3 days for email campaign links
+// Token expiry: configurable via env var, default 72 hours (3 days)
+const TOKEN_EXPIRY_HOURS = parseInt(process.env.CLAIM_TOKEN_EXPIRY_HOURS || "72", 10);
 
 interface TokenPayload {
   providerId: string;

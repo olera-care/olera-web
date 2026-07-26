@@ -5,36 +5,70 @@ import Link from "next/link";
 import { US_STATES } from "@/lib/us-states";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
+import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
+import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
+import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Database stages
 const OUTREACH_STAGES = [
   "not_contacted",
   "in_sequence",
   "needs_call",
-  "called",
+  "re_engage",
+  "not_interested",  // Soft terminal: no outreach, but questions/connections flow
   "claimed",
-  "archived",
-  "hidden",
+  "archived",  // Hard terminal: system-wide block
 ] as const;
 
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
+// UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
+type UITab = "needs_email" | "ready" | Exclude<OutreachStage, "not_contacted">;
+
+const UI_TABS: UITab[] = [
+  "needs_email",
+  "ready",
+  "in_sequence",
+  "needs_call",  // Displayed as "Follow Up"
+  "re_engage",
+  "not_interested",  // Soft terminal
+  "claimed",
+  "archived",  // Hard terminal
+];
+
+const UI_TAB_LABELS: Record<UITab, string> = {
+  needs_email: "Needs Email",
+  ready: "Ready",
+  in_sequence: "In Sequence",
+  needs_call: "Follow Up",
+  re_engage: "Re-Engage",
+  not_interested: "Not Interested",
+  claimed: "Claimed",
+  archived: "Archived",
+};
+
+// Database stage labels (for search results showing provider's actual stage)
 const STAGE_LABELS: Record<OutreachStage, string> = {
   not_contacted: "Not Contacted",
   in_sequence: "In Sequence",
-  needs_call: "Needs Call",
-  called: "Called",
+  needs_call: "Follow Up",
+  re_engage: "Re-Engage",
+  not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
-  hidden: "Hidden",
 };
 
-// Called is terminal for our outreach effort (ball is in provider's court)
-// Claimed and Archived are also terminal
-const TERMINAL_STAGES: OutreachStage[] = ["called", "claimed", "archived"];
+// Terminal stages - no more outreach
+// not_interested = soft (questions/connections still flow)
+// archived = hard (system-wide block)
+const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived"];
+
+// Follow Up queue limits (must match backend config)
+const MAX_RESEND_COUNT = 2;
 
 interface CityStats {
   city: string;
@@ -109,8 +143,22 @@ interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
+  // Follow-up queue fields
+  due_date: string | null;
+  resend_count: number;
+  no_answer_count: number;
+  needs_call_reason: string | null;
+  // Re-engage cycle fields
+  cycle_number: number;
+  re_engage_entered_at: string | null;
+  // Assignment
+  assigned_to: string | null;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  // Email verification status from email_verifications table
+  email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
+  // Whether email has been manually overridden/trusted
+  is_email_overridden?: boolean;
 }
 
 interface ActiveState {
@@ -123,16 +171,31 @@ interface ActiveState {
   not_contacted: number;
   in_sequence: number;
   needs_call: number;
-  called: number;
+  re_engage: number;
   claimed: number;
   archived: number;
-  hidden: number;
   stats_refreshed_at: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Map UI tab to API parameters (stage + optional email_filter)
+function getApiParamsForTab(tab: UITab): { stage: OutreachStage; emailFilter?: "needs_email" | "has_email" } {
+  if (tab === "needs_email") {
+    return { stage: "not_contacted", emailFilter: "needs_email" };
+  }
+  if (tab === "ready") {
+    return { stage: "not_contacted", emailFilter: "has_email" };
+  }
+  return { stage: tab as OutreachStage };
+}
+
+// Check if a UI tab represents the "not_contacted" stage (needs_email or ready)
+function isNotContactedTab(tab: UITab): boolean {
+  return tab === "needs_email" || tab === "ready";
+}
 
 function timeAgo(isoDate: string | undefined | null): string {
   if (!isoDate) return "—";
@@ -155,6 +218,31 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
+// Labels for why a provider is in the Follow Up queue
+const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
+  sequence_completed: "Sequence done",
+  clicked_not_claimed: "Clicked",
+  replied: "Replied",
+  manual: "Manual",
+};
+
+function getNeedsCallReasonChip(reason: string | null): { label: string; className: string } | null {
+  if (!reason) return null;
+  const label = NEEDS_CALL_REASON_LABELS[reason] || reason;
+  // Different colors for different reasons
+  switch (reason) {
+    case "sequence_completed":
+      return { label, className: "bg-blue-50 text-blue-700" };
+    case "clicked_not_claimed":
+      return { label, className: "bg-emerald-50 text-emerald-700" };
+    case "replied":
+      return { label, className: "bg-purple-50 text-purple-700" };
+    case "manual":
+    default:
+      return { label, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
 // Editable Provider Contact - with Edit mode for existing emails
 function ProviderContactEditor({
   providerId,
@@ -165,6 +253,8 @@ function ProviderContactEditor({
   emailFoundUrl,
   phone,
   onEmailUpdate,
+  emailVerificationStatus,
+  isEmailOverridden,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -174,6 +264,10 @@ function ProviderContactEditor({
   emailFoundUrl?: string | null;
   phone: string | null;
   onEmailUpdate?: (newEmail: string) => void;
+  /** Pre-fetched email verification status from database */
+  emailVerificationStatus?: "valid" | "invalid" | "risky" | "unknown" | null;
+  /** Whether email has been manually overridden/trusted */
+  isEmailOverridden?: boolean;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -197,6 +291,12 @@ function ProviderContactEditor({
   // Trust score state
   const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
   const [trustScoreReason, setTrustScoreReason] = useState("");
+
+  // Email override state (for one-click trust action)
+  const [isOverriding, setIsOverriding] = useState(false);
+  const [locallyOverridden, setLocallyOverridden] = useState(false);
+  // Combine database state (prop) with local action state
+  const isOverridden = isEmailOverridden || locallyOverridden;
 
   // Cleanup debounce timeout on unmount
   useEffect(() => {
@@ -404,6 +504,32 @@ function ProviderContactEditor({
     }
   }
 
+  // One-click override for risky/invalid emails
+  async function handleOverride() {
+    if (!email || isOverriding) return;
+
+    setIsOverriding(true);
+    try {
+      const res = await fetch("/api/admin/email-override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          providerSlug: providerSlug || providerId,
+          reason: "admin",
+        }),
+      });
+
+      if (res.ok) {
+        setLocallyOverridden(true);
+      }
+    } catch {
+      // Silent fail - button will remain visible for retry
+    } finally {
+      setIsOverriding(false);
+    }
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
       <div className="flex items-center gap-1.5">
@@ -501,6 +627,34 @@ function ProviderContactEditor({
           // Display mode: show email + verification badge + Edit button
           <>
             <span className="text-sm text-gray-700">{email}</span>
+            {/* Email verification status and override */}
+            {isOverridden ? (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+                Trusted
+              </span>
+            ) : emailVerificationStatus && emailVerificationStatus !== "valid" ? (
+              <>
+                <EmailVerificationBadge status={emailVerificationStatus} />
+                {/* One-click trust button for risky/invalid emails */}
+                {(emailVerificationStatus === "risky" || emailVerificationStatus === "invalid") && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOverride();
+                    }}
+                    disabled={isOverriding}
+                    className="shrink-0 px-2 py-0.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded transition disabled:opacity-50"
+                    title="Mark this email as trusted"
+                  >
+                    {isOverriding ? "..." : "Trust"}
+                  </button>
+                )}
+              </>
+            ) : null}
             {saved && (
               <span className="text-xs text-emerald-600 flex items-center gap-0.5">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -542,7 +696,7 @@ function ProviderContactEditor({
 
 interface CityRowProps {
   city: CityStats;
-  stage: OutreachStage;
+  activeTab: UITab;
   isExpanded: boolean;
   onToggle: () => void;
   providers: OutreachProvider[];
@@ -552,11 +706,21 @@ interface CityRowProps {
   onSelectAllInCity: (providerIds: string[]) => void;
   onEmailSaved: (providerId: string, newEmail: string) => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
+  onRemoveProvider: (provider: OutreachProvider) => void;
+  // City assignment
+  cityOwnerId: string | null;
+  cityOwnerName: string | null;
+  isEditingAssignment: boolean;
+  onStartEditAssignment: () => void;
+  onAssignCity: (ownerId: string | null, ownerName: string | null) => void;
+  onCancelEditAssignment: () => void;
+  // Admin name lookup for provider assignment chips
+  adminNameLookup: Map<string, string>;
 }
 
 function CityRow({
   city,
-  stage,
+  activeTab,
   isExpanded,
   onToggle,
   providers,
@@ -566,9 +730,15 @@ function CityRow({
   onSelectAllInCity,
   onEmailSaved,
   onOpenActionModal,
+  onRemoveProvider,
+  cityOwnerId,
+  cityOwnerName,
+  isEditingAssignment,
+  onStartEditAssignment,
+  onAssignCity,
+  onCancelEditAssignment,
+  adminNameLookup,
 }: CityRowProps) {
-  const [emailFilter, setEmailFilter] = useState<"all" | "with" | "without">("all");
-
   // Auto email lookup state
   const [lookingUpEmails, setLookingUpEmails] = useState<Set<string>>(new Set());
   const [foundEmails, setFoundEmails] = useState<Map<string, { email: string; source: string | null; foundUrl: string | null }>>(new Map());
@@ -686,13 +856,8 @@ function CityRow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isExpanded, loadingProviders, cityProviders]);
 
-  const filteredProviders =
-    emailFilter === "with" ? cityProviders.filter((p) => p.email && p.email.trim()) :
-    emailFilter === "without" ? cityProviders.filter((p) => !p.email || !p.email.trim()) :
-    cityProviders;
-
-  const allSelected = filteredProviders.length > 0 && filteredProviders.every((p) => selectedProviders.has(p.provider_id));
-  const someSelected = filteredProviders.some((p) => selectedProviders.has(p.provider_id)) && !allSelected;
+  const allSelected = cityProviders.length > 0 && cityProviders.every((p) => selectedProviders.has(p.provider_id));
+  const someSelected = cityProviders.some((p) => selectedProviders.has(p.provider_id)) && !allSelected;
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -721,31 +886,54 @@ function CityRow({
           </svg>
         </div>
 
-        {/* City Name */}
-        <div className="flex-1 min-w-0">
+        {/* City Name + Owner */}
+        <div className="flex-1 min-w-0 flex items-center gap-3">
           <span className="font-medium text-gray-900">{city.city}</span>
+          {/* City Owner Assignment */}
+          {isEditingAssignment ? (
+            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <AdminAutocomplete
+                selectedAdminId={cityOwnerId}
+                selectedAdminName={cityOwnerName}
+                onSelect={(id, name) => onAssignCity(id, name)}
+                onClose={onCancelEditAssignment}
+                placeholder="Assign to..."
+                autoFocus
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onStartEditAssignment();
+              }}
+              className="flex items-center gap-1 text-sm hover:underline"
+              title={cityOwnerId ? "Change assignment" : "Assign city"}
+            >
+              <AdminChip
+                adminId={cityOwnerId}
+                adminName={cityOwnerName}
+                size="sm"
+              />
+            </button>
+          )}
         </div>
 
-        {/* Stats - different display based on stage */}
+        {/* Stats - show count relevant to the active tab */}
         <div className="flex items-center gap-6 text-sm">
-          {stage === "not_contacted" ? (
-            // Not contacted: show ready/needs email breakdown
-            <>
-              <div className="text-center">
-                <span className="font-semibold text-gray-900 tabular-nums">{city.total}</span>
-                <span className="text-gray-400 ml-1">total</span>
-              </div>
-              <div className="text-center">
-                <span className="font-semibold text-emerald-600 tabular-nums">{city.has_email}</span>
-                <span className="text-gray-400 ml-1">ready</span>
-              </div>
-              <div className="text-center">
-                <span className="font-semibold text-amber-600 tabular-nums">{city.needs_email}</span>
-                <span className="text-gray-400 ml-1">needs email</span>
-              </div>
-            </>
+          {activeTab === "needs_email" ? (
+            <div className="text-center">
+              <span className="font-semibold text-amber-600 tabular-nums">{city.needs_email}</span>
+              <span className="text-gray-400 ml-1">{city.needs_email === 1 ? "provider" : "providers"}</span>
+            </div>
+          ) : activeTab === "ready" ? (
+            <div className="text-center">
+              <span className="font-semibold text-emerald-600 tabular-nums">{city.has_email}</span>
+              <span className="text-gray-400 ml-1">{city.has_email === 1 ? "provider" : "providers"}</span>
+            </div>
           ) : (
-            // Other stages: just show count
+            // Other stages: show total count
             <div className="text-center">
               <span className="font-semibold text-gray-900 tabular-nums">{city.total}</span>
               <span className="text-gray-400 ml-1">{city.total === 1 ? "provider" : "providers"}</span>
@@ -777,48 +965,26 @@ function CityRow({
                     }}
                     onChange={() => {
                       if (allSelected) {
-                        filteredProviders.forEach((p) => {
+                        cityProviders.forEach((p) => {
                           if (selectedProviders.has(p.provider_id)) {
                             onToggleProvider(p.provider_id);
                           }
                         });
                       } else {
-                        onSelectAllInCity(filteredProviders.map((p) => p.provider_id));
+                        onSelectAllInCity(cityProviders.map((p) => p.provider_id));
                       }
                     }}
                     className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-xs text-gray-500">
-                    Select all {filteredProviders.length}
+                    Select all {cityProviders.length}
                   </span>
-                </label>
-
-                {/* Show only with email */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={emailFilter === "with"}
-                    onChange={(e) => setEmailFilter(e.target.checked ? "with" : "all")}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-xs text-gray-500">Show only with email</span>
-                </label>
-
-                {/* Show only without email */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={emailFilter === "without"}
-                    onChange={(e) => setEmailFilter(e.target.checked ? "without" : "all")}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="text-xs text-gray-500">Show only without email</span>
                 </label>
               </div>
 
               {/* Provider Cards */}
               <div className="divide-y divide-gray-100">
-                {filteredProviders.map((provider) => (
+                {cityProviders.map((provider) => (
                   <div key={provider.provider_id} className="group px-5 py-3 pl-10 flex items-center gap-3 hover:bg-white transition-colors">
                     <input
                       type="checkbox"
@@ -827,8 +993,8 @@ function CityRow({
                       className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
                     />
 
-                    {/* Provider Name + Category */}
-                    <div className="w-56 shrink-0">
+                    {/* Provider Name + Category + Assignment */}
+                    <div className="w-64 shrink-0">
                       <div className="flex items-center gap-1.5">
                         <Link
                           href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
@@ -844,6 +1010,12 @@ function CityRow({
                             View
                           </Link>
                         )}
+                        <AdminChip
+                          adminId={provider.assigned_to}
+                          adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                          size="sm"
+                          showUnassigned={false}
+                        />
                       </div>
                       {provider.provider_category && (
                         <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
@@ -926,6 +1098,8 @@ function CityRow({
                             emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
                             phone={provider.phone}
                             onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
+                            emailVerificationStatus={provider.email_verification_status}
+                            isEmailOverridden={provider.is_email_overridden}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
@@ -938,8 +1112,8 @@ function CityRow({
                     </div>
 
                     {/* Actions button - ellipsis icon, opens modal */}
-                    {/* Show for all stages except claimed (archived can be unarchived) */}
-                    {stage !== "claimed" && (
+                    {/* Show for all tabs except claimed (archived can be unarchived) */}
+                    {activeTab !== "claimed" && (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -955,20 +1129,941 @@ function CityRow({
                         </svg>
                       </button>
                     )}
+
+                    {/* Remove from outreach (trash icon) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveProvider(provider);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
+                      title="Remove from outreach"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 ))}
               </div>
-
-              {/* Show count if filtered */}
-              {emailFilter !== "all" && filteredProviders.length < cityProviders.length && (
-                <div className="px-5 py-2 text-xs text-gray-400 border-t border-gray-100">
-                  Showing {filteredProviders.length} of {cityProviders.length} providers
-                </div>
-              )}
             </>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Follow Up Queue Component (Due Date Grouped)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface FollowUpQueueProps {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onOutcomeRecorded: (providerId: string, stageChanged: boolean) => void;
+  onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
+  onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
+  onRemoveProvider: (provider: OutreachProvider) => void;
+  onArchive: (provider: OutreachProvider) => void;
+  adminNameLookup: Map<string, string>;
+}
+
+// Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
+// Uses UTC to match server/database which also use UTC, ensuring consistent comparisons
+function getTodayISO(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+// Helper: calculate days difference from today
+function getDaysDiff(dateStr: string | null): number {
+  if (!dateStr) return 0;
+  const today = new Date(getTodayISO());
+  const dueDate = new Date(dateStr);
+  const diffTime = dueDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Helper: format due date badge
+function formatDueDateBadge(dateStr: string | null): { text: string; className: string } {
+  if (!dateStr) {
+    // Legacy record without due_date - show as due today since it needs attention
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  }
+
+  const daysDiff = getDaysDiff(dateStr);
+
+  if (daysDiff < 0) {
+    const daysOverdue = Math.abs(daysDiff);
+    return {
+      text: daysOverdue === 1 ? "1 day overdue" : `${daysOverdue} days overdue`,
+      className: "bg-red-100 text-red-700",
+    };
+  } else if (daysDiff === 0) {
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  } else if (daysDiff === 1) {
+    return { text: "Tomorrow", className: "bg-blue-100 text-blue-700" };
+  } else {
+    return { text: `In ${daysDiff} days`, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+// Expandable provider row for Follow Up queue
+function FollowUpProviderRow({
+  provider,
+  isExpanded,
+  onToggle,
+  onOutcomeRecorded,
+  onProviderUpdated,
+  onStageChange,
+  onRemoveProvider,
+  onArchive,
+  adminNameLookup,
+}: {
+  provider: OutreachProvider;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onOutcomeRecorded: (stageChanged: boolean) => void;
+  onProviderUpdated: (updates: Partial<OutreachProvider>) => void;
+  onStageChange: (newStage: OutreachStage) => Promise<void>;
+  onRemoveProvider: () => void;
+  onArchive: () => void;
+  adminNameLookup: Map<string, string>;
+}) {
+  const [submitting, setSubmitting] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
+  const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [stageChangeLoading, setStageChangeLoading] = useState(false);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  const dueBadge = formatDueDateBadge(provider.due_date);
+  const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
+
+  // Confirmation modal content for each outcome
+  // Note: No "claimed_on_call" case - auto-claim detection handles claims automatically
+  const getConfirmationContent = (outcome: string) => {
+    switch (outcome) {
+      case "resend_link":
+        return {
+          title: "Send Claim Link Email",
+          description: "Send a short email with just the claim link to the provider.",
+          details: [
+            "📧 Email will be sent immediately with the claim link",
+            "Provider will be moved to the Re-Engage stage",
+            "They will no longer appear in the Follow Up queue",
+            `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
+          ],
+          confirmLabel: "Yes, send email & move to Re-Engage",
+          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
+        };
+      case "no_answer":
+        return {
+          title: "No Answer",
+          description: "The provider did not answer the call.",
+          details: [
+            "Provider will be moved to the Re-Engage stage",
+            "They will no longer appear in the Follow Up queue",
+            "They can be re-engaged via email sequence later",
+          ],
+          confirmLabel: "Yes, move to Re-Engage",
+          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
+        };
+      case "wrong_contact":
+        return {
+          title: "Wrong Contact Info",
+          description: "The contact information for this provider is incorrect.",
+          details: [
+            "Provider will be moved back to Not Contacted",
+            "Their email will be cleared from the system",
+            "You'll need to find correct contact info before re-engaging",
+          ],
+          confirmLabel: "Yes, clear contact info",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+        };
+      case "not_interested":
+        return {
+          title: "Not Interested",
+          description: "The provider explicitly declined to claim their profile.",
+          details: [
+            "Provider will be moved to the Not Interested stage (soft terminal)",
+            "They will no longer receive any outreach emails or calls",
+            "Questions and connections can still flow to them",
+            "Use Archive instead for a full system-wide block",
+          ],
+          confirmLabel: "Yes, mark as not interested",
+          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+        };
+      // Stage move confirmations (from dropdown menu)
+      case "move_to_not_contacted":
+        return {
+          title: "Move to Ready",
+          description: "Move this provider back to the Ready queue.",
+          details: [
+            "Provider will be moved to the Ready stage",
+            "They will no longer appear in the Follow Up queue",
+            "You can launch a new sequence from the Ready tab",
+          ],
+          confirmLabel: "Yes, move to Ready",
+          confirmClass: "bg-gray-600 hover:bg-gray-700 text-white",
+        };
+      case "move_to_in_sequence":
+        return {
+          title: "Move to In Sequence",
+          description: "Start a new email sequence for this provider.",
+          details: [
+            "Provider will be moved to In Sequence",
+            "A new 4-email sequence will begin",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to In Sequence",
+          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
+        };
+      case "move_to_re_engage":
+        return {
+          title: "Move to Re-Engage",
+          description: "Move this provider to the Re-Engage waiting period.",
+          details: [
+            "Provider will be moved to the Re-Engage stage",
+            "They will wait 30 days before auto-cycling",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to Re-Engage",
+          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
+        };
+      default:
+        return null;
+    }
+  };
+
+  const handleOutcome = async (outcome: string) => {
+    setSubmitting(outcome);
+    setError(null);
+
+    try {
+      const body: Record<string, unknown> = {
+        provider_id: provider.provider_id,
+        outcome,
+      };
+      if (notes.trim()) {
+        body.notes = notes.trim();
+      }
+
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+
+        // All outcomes now change stage, so always notify parent to remove from queue
+        onOutcomeRecorded(true);
+
+        // Check if email was supposed to be sent but failed
+        if (data.email_sent === false && data.email_error) {
+          setError(`Email failed: ${data.email_error}. Provider was still moved to Re-Engage.`);
+        }
+
+        // Reset form
+        setNotes("");
+      } else {
+        const errData = await res.json();
+        setError(errData.error || "Failed to record outcome");
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setSubmitting(null);
+      setPendingOutcome(null);
+    }
+  };
+
+  const confirmationContent = pendingOutcome
+    ? getConfirmationContent(pendingOutcome)
+    : pendingStageMove
+    ? getConfirmationContent(`move_to_${pendingStageMove}`)
+    : null;
+
+  // Close action menu when clicking outside
+  useEffect(() => {
+    if (!showActionMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
+        setShowActionMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showActionMenu]);
+
+  return (
+    <div className="border-b border-gray-100 last:border-b-0">
+      {/* Collapsed Row */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        className="group flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+      >
+        {/* Expand Chevron */}
+        <div className="w-5 shrink-0">
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+          </svg>
+        </div>
+
+        {/* Provider Name */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+              className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {provider.provider_name}
+            </Link>
+            <AdminChip
+              adminId={provider.assigned_to}
+              adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+              size="sm"
+              showUnassigned={true}
+            />
+          </div>
+          {provider.provider_category && (
+            <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
+          )}
+        </div>
+
+        {/* Phone */}
+        <div className="w-32 shrink-0">
+          {provider.phone ? (
+            <a
+              href={`tel:${provider.phone.replace(/\D/g, "")}`}
+              className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {formatPhone(provider.phone)}
+            </a>
+          ) : (
+            <span className="text-sm text-gray-400">No phone</span>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="w-44 shrink-0 truncate">
+          {provider.email ? (
+            <a
+              href={`mailto:${provider.email}`}
+              className="text-sm text-gray-600 hover:text-primary-600 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {provider.email}
+            </a>
+          ) : (
+            <span className="text-sm text-gray-400">No email</span>
+          )}
+        </div>
+
+        {/* Reason Chip */}
+        <div className="w-24 shrink-0">
+          {(() => {
+            const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
+            return reasonChip ? (
+              <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
+                {reasonChip.label}
+              </span>
+            ) : null;
+          })()}
+        </div>
+
+        {/* Due Date Badge */}
+        <div className="w-32 shrink-0">
+          <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${dueBadge.className}`}>
+            {dueBadge.text}
+          </span>
+        </div>
+
+        {/* Counters (subtle) */}
+        <div className="w-20 shrink-0 text-xs text-gray-400">
+          {provider.resend_count > 0 && <span className="mr-2">R:{provider.resend_count}</span>}
+          {provider.no_answer_count > 0 && <span>NA:{provider.no_answer_count}</span>}
+        </div>
+
+        {/* Actions menu (three dots) */}
+        <div className="relative shrink-0" ref={actionMenuRef}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActionMenu(!showActionMenu);
+            }}
+            disabled={stageChangeLoading}
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600 disabled:opacity-50"
+            title="More actions"
+          >
+            {stageChangeLoading ? (
+              <span className="block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+              </svg>
+            )}
+          </button>
+
+          {/* Dropdown menu */}
+          {showActionMenu && (
+            <div className="absolute right-0 top-full mt-1 z-20 w-48 py-1 bg-white rounded-lg shadow-lg border border-gray-200">
+              <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
+                Move to stage
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  setPendingStageMove("not_contacted");
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Ready
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  setPendingStageMove("in_sequence");
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                In Sequence
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  setPendingStageMove("re_engage");
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Re-Engage
+              </button>
+              <div className="border-t border-gray-100 my-1" />
+              <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
+                Terminal
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  setPendingOutcome("not_interested");
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Not Interested
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActionMenu(false);
+                  onArchive();
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Archive
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Remove from outreach (trash icon) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemoveProvider();
+          }}
+          className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500 shrink-0"
+          title="Remove from outreach"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Expanded: Outcome Buttons */}
+      {isExpanded && (
+        <div className="bg-gray-50/50 border-t border-gray-100 px-5 py-4">
+          {error && (
+            <div className="mb-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Outcome Buttons - subtle outlined tags */}
+          {/* Note: No "Claimed on call" button - auto-claim detection handles this automatically */}
+          {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {/* Send claim email (→ Re-Engage) */}
+            <button
+              onClick={() => setPendingOutcome("resend_link")}
+              disabled={submitting !== null || resendDisabled}
+              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link, then move to Re-Engage"}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
+                resendDisabled
+                  ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
+                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
+              }`}
+            >
+              📧 Send email (→ Re-Engage){resendDisabled && " (max)"}
+            </button>
+
+            {/* No answer */}
+            <button
+              onClick={() => setPendingOutcome("no_answer")}
+              disabled={submitting !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              No answer (→ Re-Engage)
+            </button>
+
+            {/* Wrong contact */}
+            <button
+              onClick={() => setPendingOutcome("wrong_contact")}
+              disabled={submitting !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Wrong contact
+            </button>
+
+            {/* Not interested (soft terminal) */}
+            <button
+              onClick={() => setPendingOutcome("not_interested")}
+              disabled={submitting !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:text-gray-800 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Not interested
+            </button>
+          </div>
+
+          {/* Notes field */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Notes (optional)</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add call notes..."
+              rows={2}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+            />
+          </div>
+
+        </div>
+      )}
+
+      {/* Confirmation Modal - outside expanded section so it works for both outcomes and stage moves */}
+      {(pendingOutcome || pendingStageMove) && confirmationContent && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Click on backdrop cancels
+            setPendingOutcome(null);
+            setPendingStageMove(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
+              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
+            </div>
+
+            {/* Content */}
+            <div className="px-5 py-4">
+              {/* Error message - show inside modal for visibility */}
+              {error && (
+                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
+
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  {confirmationContent.details.map((detail, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-gray-400 mt-0.5">•</span>
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {notes.trim() && pendingOutcome && (
+                <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                  <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">Note attached:</p>
+                  <p className="text-sm text-blue-800">{notes.trim()}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setPendingOutcome(null);
+                  setPendingStageMove(null);
+                }}
+                disabled={submitting !== null || stageChangeLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (pendingOutcome) {
+                    await handleOutcome(pendingOutcome);
+                  } else if (pendingStageMove) {
+                    setStageChangeLoading(true);
+                    setError(null);
+                    try {
+                      await onStageChange(pendingStageMove);
+                      // Success - modal will close when component unmounts after parent removes provider
+                      setPendingStageMove(null);
+                    } catch {
+                      // Keep modal open on error so user can see it and retry
+                      setError("Failed to move provider. Please try again.");
+                    } finally {
+                      setStageChangeLoading(false);
+                    }
+                  }
+                }}
+                disabled={submitting !== null || stageChangeLoading}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
+              >
+                {submitting || stageChangeLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : (
+                  confirmationContent.confirmLabel
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive, adminNameLookup }: FollowUpQueueProps) {
+  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
+
+  // Group providers by due date sections
+  const today = getTodayISO();
+
+  // Note: Providers with null due_date are legacy records that entered needs_call
+  // before the migration. Treat them as "Due Today" since they need attention.
+  const overdue = providers.filter((p) => p.due_date && p.due_date < today);
+  const dueToday = providers.filter((p) => !p.due_date || p.due_date === today);
+  const upcoming = providers.filter((p) => p.due_date && p.due_date > today);
+
+  // Sort each group by due_date ASC (oldest first)
+  const sortByDueDate = (a: OutreachProvider, b: OutreachProvider) => {
+    if (!a.due_date && !b.due_date) return 0;
+    if (!a.due_date) return 1;
+    if (!b.due_date) return -1;
+    return a.due_date.localeCompare(b.due_date);
+  };
+
+  overdue.sort(sortByDueDate);
+  dueToday.sort(sortByDueDate);
+  upcoming.sort(sortByDueDate);
+
+  const toggleProvider = (providerId: string) => {
+    setExpandedProviders((prev) => {
+      const next = new Set(prev);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (providers.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-gray-500">No providers in Follow Up queue</p>
+      </div>
+    );
+  }
+
+  const renderSection = (
+    title: string,
+    items: OutreachProvider[],
+    headerClassName: string
+  ) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-2 last:mb-0">
+        <div className={`px-5 py-2 text-xs font-semibold uppercase tracking-wide ${headerClassName}`}>
+          {title} ({items.length})
+        </div>
+        {items.map((provider) => (
+          <FollowUpProviderRow
+            key={provider.provider_id}
+            provider={provider}
+            isExpanded={expandedProviders.has(provider.provider_id)}
+            onToggle={() => toggleProvider(provider.provider_id)}
+            onOutcomeRecorded={(stageChanged) => {
+              if (stageChanged) {
+                // Remove from expanded since it's leaving the queue
+                setExpandedProviders((prev) => {
+                  const next = new Set(prev);
+                  next.delete(provider.provider_id);
+                  return next;
+                });
+              }
+              onOutcomeRecorded(provider.provider_id, stageChanged);
+            }}
+            onProviderUpdated={(updates) => onProviderUpdated(provider.provider_id, updates)}
+            onStageChange={async (newStage) => {
+              await onStageChange(provider.provider_id, newStage);
+              // Remove from expanded since provider is leaving the queue
+              setExpandedProviders((prev) => {
+                const next = new Set(prev);
+                next.delete(provider.provider_id);
+                return next;
+              });
+            }}
+            onRemoveProvider={() => onRemoveProvider(provider)}
+            onArchive={() => onArchive(provider)}
+            adminNameLookup={adminNameLookup}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {renderSection("Overdue", overdue, "bg-red-50 text-red-700 border-b border-red-100")}
+      {renderSection("Due Today", dueToday, "bg-amber-50 text-amber-700 border-b border-amber-100")}
+      {renderSection("Upcoming", upcoming, "bg-gray-50 text-gray-600 border-b border-gray-100")}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Re-Engage Queue Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ReEngageQueueProps {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
+  onArchive: (provider: OutreachProvider) => void;
+  adminNameLookup: Map<string, string>;
+}
+
+// Helper: calculate days since a date
+function daysSince(dateString: string | null): number {
+  if (!dateString) return 0;
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup }: ReEngageQueueProps) {
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleReEngage = async (provider: OutreachProvider) => {
+    setActionLoading(provider.provider_id);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/re-engage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to process re-engage action");
+      }
+
+      const result = await res.json();
+      onReEngageAction(provider.provider_id, result);
+    } catch (err) {
+      console.error("Re-engage error:", err);
+      alert(err instanceof Error ? err.message : "Failed to process re-engage action");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (providers.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-gray-500">No providers in Re-Engage queue</p>
+      </div>
+    );
+  }
+
+  // Sort by re_engage_entered_at (oldest first - most urgent)
+  const sorted = [...providers].sort((a, b) => {
+    if (!a.re_engage_entered_at && !b.re_engage_entered_at) return 0;
+    if (!a.re_engage_entered_at) return 1;
+    if (!b.re_engage_entered_at) return -1;
+    return a.re_engage_entered_at.localeCompare(b.re_engage_entered_at);
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <div className="flex-1">Provider</div>
+        <div className="w-20 text-center">Cycle</div>
+        <div className="w-28 text-center">Waiting</div>
+        <div className="w-56 text-right">Actions</div>
+      </div>
+
+      {/* Provider rows */}
+      {sorted.map((provider) => {
+        const waitDays = daysSince(provider.re_engage_entered_at);
+        const isLoading = actionLoading === provider.provider_id;
+        const isCycle2 = provider.cycle_number === 2;
+
+        return (
+          <div
+            key={provider.provider_id}
+            className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+          >
+            {/* Provider info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-gray-900 truncate">
+                  {provider.provider_name}
+                </span>
+                <AdminChip
+                  adminId={provider.assigned_to}
+                  adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                  size="sm"
+                  showUnassigned={true}
+                />
+              </div>
+              <div className="text-xs text-gray-500 truncate">
+                {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
+              </div>
+            </div>
+
+            {/* Cycle badge */}
+            <div className="w-20 text-center">
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  isCycle2
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                Cycle {provider.cycle_number}
+              </span>
+            </div>
+
+            {/* Wait time */}
+            <div className="w-28 text-center">
+              <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
+                {waitDays} day{waitDays !== 1 ? "s" : ""}
+              </span>
+              {waitDays >= 30 && (
+                <div className="text-[10px] text-emerald-600">Ready</div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="w-56 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => handleReEngage(provider)}
+                disabled={isLoading}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isCycle2
+                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-primary-600 text-white hover:bg-primary-700"
+                }`}
+              >
+                {isLoading ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : isCycle2 ? (
+                  "Archive (2 cycles done)"
+                ) : (
+                  "Re-engage now"
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onArchive(provider)}
+                disabled={isLoading}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Archive
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Summary footer */}
+      <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
+        {providers.length} provider{providers.length !== 1 ? "s" : ""} in Re-Engage queue
+        {" • "}
+        {providers.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
+      </div>
     </div>
   );
 }
@@ -986,8 +2081,8 @@ export default function ProviderOutreachPage() {
   // Selected state (from active states or fallback)
   const [selectedState, setSelectedState] = useState<string>("");
 
-  // Stage tab
-  const [stage, setStage] = useState<OutreachStage>("not_contacted");
+  // Active UI tab (needs_email and ready are filtered views of not_contacted)
+  const [activeTab, setActiveTab] = useState<UITab>("needs_email");
 
   // Search
   const [search, setSearch] = useState("");
@@ -995,25 +2090,95 @@ export default function ProviderOutreachPage() {
   const [isSearchResult, setIsSearchResult] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Cities data (for not_contacted tab)
+  // Admin filter state (replaces My Assignments checkbox)
+  const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
+  const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
+
+  // All admins for name lookup (fetched once)
+  interface AdminUser {
+    id: string;
+    email: string;
+    display_name: string | null;
+  }
+  const [allAdmins, setAllAdmins] = useState<AdminUser[]>([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(true);
+
+  // Legacy: kept for backwards compatibility with assigned_to=me URL param
+  const myAssignmentsOnly = false; // No longer used, but kept for query param handling
+
+  // Cities data (for needs_email and ready tabs)
   const [cities, setCities] = useState<CityStats[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
+
+  // City owners for assignment
+  interface CityOwner {
+    city: string;
+    owner_id: string | null;
+    owner_name: string | null;
+  }
+  const [cityOwners, setCityOwners] = useState<Map<string, CityOwner>>(new Map());
+  const [editingCityAssignment, setEditingCityAssignment] = useState<string | null>(null);
 
   // Providers data
   const [providers, setProviders] = useState<OutreachProvider[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
 
-  // Stage counts
-  const [stageCounts, setStageCounts] = useState<Record<OutreachStage, number>>({
+  // Track recently-moved provider IDs to filter from stale API responses
+  // This prevents providers from reappearing due to database replication lag
+  const recentlyMovedRef = useRef<Set<string>>(new Set());
+  const recentlyMovedTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Helper to mark a provider as recently moved (auto-clears after 30 seconds)
+  // Extended from 5s to 30s to account for database replication lag
+  const markAsRecentlyMoved = useCallback((providerId: string) => {
+    recentlyMovedRef.current.add(providerId);
+    console.log("[recentlyMoved] Added:", providerId, "Set size:", recentlyMovedRef.current.size);
+    // Clear any existing timer for this provider
+    const existingTimer = recentlyMovedTimersRef.current.get(providerId);
+    if (existingTimer) clearTimeout(existingTimer);
+    // Set new timer to remove after 30 seconds (extended for DB replication)
+    const timer = setTimeout(() => {
+      recentlyMovedRef.current.delete(providerId);
+      recentlyMovedTimersRef.current.delete(providerId);
+      console.log("[recentlyMoved] Expired:", providerId, "Set size:", recentlyMovedRef.current.size);
+    }, 30000);
+    recentlyMovedTimersRef.current.set(providerId, timer);
+  }, []);
+
+  // Stage counts (includes needs_email and ready for UI tabs)
+  interface TabCounts extends Record<OutreachStage, number> {
+    needs_email: number;
+    ready: number;
+  }
+  const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
     in_sequence: 0,
     needs_call: 0,
-    called: 0,
+    re_engage: 0,
+    not_interested: 0,
     claimed: 0,
     archived: 0,
-    hidden: 0,
+    needs_email: 0,
+    ready: 0,
   });
+
+  // Admin name lookup from allAdmins + admin_counts (fallback)
+  const adminNameLookup = useMemo(() => {
+    const lookup = new Map<string, string>();
+    // First, add all admins
+    for (const admin of allAdmins) {
+      const name = admin.display_name || admin.email.split("@")[0];
+      lookup.set(admin.id, name);
+    }
+    // Then, add/update from admin_counts (in case they have more recent names)
+    for (const [adminId, data] of Object.entries(adminCounts)) {
+      if (adminId !== "unassigned" && data.display_name) {
+        lookup.set(adminId, data.display_name);
+      }
+    }
+    return lookup;
+  }, [allAdmins, adminCounts]);
 
   // Expanded cities (for not_contacted tab)
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
@@ -1054,7 +2219,7 @@ export default function ProviderOutreachPage() {
 
   // Action modal state
   const [actionModalProvider, setActionModalProvider] = useState<OutreachProvider | null>(null);
-  const [selectedAction, setSelectedAction] = useState<"called" | "archived" | "hidden" | "unhide" | null>(null);
+  const [selectedAction, setSelectedAction] = useState<"archived" | "unhide" | null>(null);
   const [actionReason, setActionReason] = useState("");
   const [actionNotes, setActionNotes] = useState("");
   // Unarchive preview state
@@ -1064,10 +2229,23 @@ export default function ProviderOutreachPage() {
     loading: boolean;
   } | null>(null);
   const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
+  // Pending stage move confirmation (for Move to Stage buttons)
+  const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
+
+  // Remove from outreach confirmation state
+  const [pendingRemoval, setPendingRemoval] = useState<{
+    providerId: string;
+    providerName: string;
+    stage: string;
+  } | null>(null);
+  const [removingProvider, setRemovingProvider] = useState(false);
 
   // Sequence confirmation modal state
   const [showSequenceConfirm, setShowSequenceConfirm] = useState(false);
   const [sequenceConfirmProviders, setSequenceConfirmProviders] = useState<OutreachProvider[]>([]);
+  const [sequenceAssigneeId, setSequenceAssigneeId] = useState<string | null>(null);
+  const [sequenceAssigneeName, setSequenceAssigneeName] = useState<string | null>(null);
+  const [showAssigneeAutocomplete, setShowAssigneeAutocomplete] = useState(false);
   const [showSequencePreview, setShowSequencePreview] = useState(false);
   const [sequencePreviewData, setSequencePreviewData] = useState<{
     providers: Array<{
@@ -1096,6 +2274,7 @@ export default function ProviderOutreachPage() {
     };
   } | null>(null);
   const [sequencePreviewLoading, setSequencePreviewLoading] = useState(false);
+  const [sequencePreviewError, setSequencePreviewError] = useState<string | null>(null);
   // For batch preview: which provider to show and which email day
   const [previewProviderId, setPreviewProviderId] = useState<string | null>(null);
   const [previewDay, setPreviewDay] = useState<number>(0);
@@ -1118,13 +2297,6 @@ export default function ProviderOutreachPage() {
     { value: "other", label: "Other" },
   ];
 
-  const HIDE_REASONS = [
-    { value: "test_account", label: "Test account" },
-    { value: "duplicate", label: "Duplicate entry" },
-    { value: "data_quality", label: "Data quality issue" },
-    { value: "other", label: "Other" },
-  ];
-
   // Standardized unarchive reasons - direct positive inverses of each archive reason
   const UNARCHIVE_REASONS = [
     { value: "archived_in_error", label: "Mistakenly archived" },
@@ -1142,13 +2314,6 @@ export default function ProviderOutreachPage() {
     { value: "other", label: "Other" },
   ];
 
-  // Keep legacy UNHIDE_REASONS for hidden -> not_contacted transition
-  const UNHIDE_REASONS = [
-    { value: "ready_for_outreach", label: "Ready for outreach" },
-    { value: "hidden_in_error", label: "Hidden in error" },
-    { value: "data_issue_resolved", label: "Data issue resolved" },
-    { value: "other", label: "Other" },
-  ];
 
   // Global stats computed from activeStates
   const globalStats = useMemo(() => {
@@ -1181,6 +2346,49 @@ export default function ProviderOutreachPage() {
     setActionNotes("");
     setUnarchivePreview(null);
     setUnarchivePreviewConfirmed(false);
+    setPendingStageMove(null);
+  };
+
+  // Remove provider from outreach (delete tracking row, not the provider itself)
+  const handleRemoveFromOutreach = async () => {
+    if (!pendingRemoval) return;
+
+    setRemovingProvider(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: pendingRemoval.providerId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to remove provider");
+      }
+
+      // Remove from local state
+      setProviders((prev) => prev.filter((p) => p.provider_id !== pendingRemoval.providerId));
+
+      // Update stage counts
+      const oldStage = pendingRemoval.stage as OutreachStage;
+      if (oldStage === "not_contacted") {
+        // Could be in needs_email or ready - refresh cities
+        fetchCities();
+      } else {
+        setStageCounts((prev) => ({
+          ...prev,
+          [oldStage]: Math.max(0, (prev[oldStage] || 0) - 1),
+        }));
+      }
+
+      showToast(`Removed ${pendingRemoval.providerName} from outreach`, "success");
+      setPendingRemoval(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to remove provider";
+      showToast(message, "error");
+    } finally {
+      setRemovingProvider(false);
+    }
   };
 
   // Fetch sequence preview from launch-sequence API
@@ -1188,6 +2396,7 @@ export default function ProviderOutreachPage() {
     if (providerIds.length === 0) return;
 
     setSequencePreviewLoading(true);
+    setSequencePreviewError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
         method: "POST",
@@ -1198,6 +2407,7 @@ export default function ProviderOutreachPage() {
       if (res.ok) {
         const data = await res.json();
         setSequencePreviewData(data);
+        setSequencePreviewError(null);
         // Set initial preview provider to first valid one
         const firstValid = data.providers?.find((p: { valid: boolean }) => p.valid);
         if (firstValid) {
@@ -1205,11 +2415,15 @@ export default function ProviderOutreachPage() {
         }
         setPreviewDay(0); // Start with Day 0 (intro email)
       } else {
-        console.error("Failed to fetch sequence preview");
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg = errorData.error || `API error: ${res.status}`;
+        console.error("Failed to fetch sequence preview:", errorMsg);
+        setSequencePreviewError(errorMsg);
         setSequencePreviewData(null);
       }
     } catch (error) {
       console.error("Error fetching sequence preview:", error);
+      setSequencePreviewError(error instanceof Error ? error.message : "Network error");
       setSequencePreviewData(null);
     } finally {
       setSequencePreviewLoading(false);
@@ -1240,6 +2454,22 @@ export default function ProviderOutreachPage() {
     }
   }, [selectedState]);
 
+  // Fetch all admins (for name lookup)
+  const fetchAllAdmins = useCallback(async () => {
+    setLoadingAdmins(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/admins");
+      if (res.ok) {
+        const data = await res.json();
+        setAllAdmins(data.admins || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admins:", err);
+    } finally {
+      setLoadingAdmins(false);
+    }
+  }, []);
+
   // Fetch cities for not_contacted stage
   const fetchCities = useCallback(async () => {
     if (!selectedState) return;
@@ -1259,34 +2489,137 @@ export default function ProviderOutreachPage() {
     }
   }, [selectedState]);
 
-  // Fetch providers for current stage/state (or search)
+  // Fetch city owners for the selected state
+  const fetchCityOwners = useCallback(async () => {
+    if (!selectedState) return;
+
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/assign-city?state=${selectedState}`);
+      if (res.ok) {
+        const data = await res.json();
+        const ownerMap = new Map<string, CityOwner>();
+        for (const owner of data.city_owners || []) {
+          ownerMap.set(owner.city, owner);
+        }
+        setCityOwners(ownerMap);
+      } else {
+        // Non-critical: just log, don't show toast
+        console.error("Failed to fetch city owners: API returned", res.status);
+      }
+    } catch (err) {
+      console.error("Failed to fetch city owners:", err);
+    }
+  }, [selectedState]);
+
+  // Assign city to an admin
+  const assignCity = async (city: string, ownerId: string | null, ownerName: string | null) => {
+    if (!selectedState) return;
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/assign-city", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          state: selectedState,
+          city,
+          owner_id: ownerId,
+          owner_name: ownerName,
+        }),
+      });
+
+      if (res.ok) {
+        // Update local state
+        setCityOwners((prev) => {
+          const next = new Map(prev);
+          next.set(city, { city, owner_id: ownerId, owner_name: ownerName });
+          return next;
+        });
+        setEditingCityAssignment(null);
+        showToast(ownerId ? `Assigned ${city} to ${ownerName}` : `Unassigned ${city}`, "success");
+        // Refresh providers to update assigned_to on individual rows and filter chip counts
+        fetchProviders();
+      } else {
+        const err = await res.json();
+        showToast(err.error || "Failed to assign city", "error");
+      }
+    } catch (err) {
+      console.error("Failed to assign city:", err);
+      showToast("Failed to assign city", "error");
+    }
+  };
+
+  // Fetch providers for current tab/state (or search)
   const fetchProviders = useCallback(async (city?: string, searchTerm?: string) => {
     if (!selectedState) return;
     setLoadingProviders(true);
 
     try {
+      // Map UI tab to API parameters
+      const { stage, emailFilter } = getApiParamsForTab(activeTab);
       const params = new URLSearchParams({
         state: selectedState,
         stage,
       });
+      if (emailFilter) params.set("email_filter", emailFilter);
       if (city) params.set("city", city);
       if (searchTerm) params.set("search", searchTerm);
+      // Handle admin filter - "unassigned" filters for null assigned_to
+      if (selectedAdminFilter && selectedAdminFilter !== "unassigned") {
+        params.set("assigned_to", selectedAdminFilter);
+      }
 
       const res = await fetch(`/api/admin/provider-outreach?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setProviders(data.providers || []);
+        let filteredProviders = data.providers || [];
+        // Client-side filter for "unassigned" since API doesn't support null filter directly
+        if (selectedAdminFilter === "unassigned") {
+          filteredProviders = filteredProviders.filter((p: OutreachProvider) => !p.assigned_to);
+        }
+        // Filter out recently-moved providers to prevent stale data from reappearing
+        // This guards against database replication lag returning old state
+        const recentlyMovedIds = Array.from(recentlyMovedRef.current);
+        if (recentlyMovedIds.length > 0) {
+          const beforeCount = filteredProviders.length;
+          filteredProviders = filteredProviders.filter(
+            (p: OutreachProvider) => !recentlyMovedRef.current.has(p.provider_id)
+          );
+          const afterCount = filteredProviders.length;
+          if (beforeCount !== afterCount) {
+            console.log("[recentlyMoved] Filtered out", beforeCount - afterCount, "providers. IDs in Set:", recentlyMovedIds);
+          }
+        }
+        setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);
         if (data.stage_counts) {
           setStageCounts(data.stage_counts);
         }
+        // Use API admin_counts if provided, otherwise compute from provider list
+        if (data.admin_counts && Object.keys(data.admin_counts).length > 0) {
+          setAdminCounts(data.admin_counts);
+        } else {
+          // Compute admin counts from provider list (for not_contacted stage)
+          const computed: AdminCounts = {};
+          for (const p of data.providers || []) {
+            const key = p.assigned_to || "unassigned";
+            if (!computed[key]) {
+              computed[key] = { count: 0 };
+            }
+            computed[key].count++;
+          }
+          setAdminCounts(computed);
+        }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || "Failed to fetch providers", "error");
       }
     } catch (err) {
       console.error("Failed to fetch providers:", err);
+      showToast("Failed to fetch providers", "error");
     } finally {
       setLoadingProviders(false);
     }
-  }, [selectedState, stage]);
+  }, [selectedState, activeTab, selectedAdminFilter]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -1354,6 +2687,11 @@ export default function ProviderOutreachPage() {
     fetchStateCounts();
   }, [showAddStateModal]);
 
+  // Effect: fetch all admins on mount (for name lookup)
+  useEffect(() => {
+    fetchAllAdmins();
+  }, [fetchAllAdmins]);
+
   // Effect: close dropdowns when clicking outside
   useEffect(() => {
     if (!stateActionsMenu && !showStateSelector) return;
@@ -1365,35 +2703,42 @@ export default function ProviderOutreachPage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [stateActionsMenu, showStateSelector]);
 
-  // Effect: fetch cities when state changes (for not_contacted tab, when not searching)
+  // Effect: fetch cities when state changes (for needs_email/ready tabs, when not searching)
   useEffect(() => {
-    if (stage === "not_contacted" && !debouncedSearch) {
+    if (isNotContactedTab(activeTab) && !debouncedSearch) {
       fetchCities();
     }
-  }, [selectedState, stage, debouncedSearch, fetchCities]);
+  }, [selectedState, activeTab, debouncedSearch, fetchCities]);
 
-  // Effect: fetch providers and stage counts when state/stage/search changes
+  // Effect: fetch city owners when state changes
+  useEffect(() => {
+    if (selectedState) {
+      fetchCityOwners();
+    }
+  }, [selectedState, fetchCityOwners]);
+
+  // Effect: fetch providers and stage counts when state/tab/search changes
   useEffect(() => {
     if (selectedState) {
       fetchProviders(undefined, debouncedSearch || undefined);
     }
-  }, [selectedState, stage, debouncedSearch, fetchProviders]);
+  }, [selectedState, activeTab, debouncedSearch, fetchProviders]);
 
   // Effect: fetch providers when a city is expanded (only when not searching)
   useEffect(() => {
-    if (stage === "not_contacted" && expandedCities.size > 0 && !debouncedSearch) {
+    if (isNotContactedTab(activeTab) && expandedCities.size > 0 && !debouncedSearch) {
       fetchProviders();
     }
-  }, [expandedCities, stage, debouncedSearch, fetchProviders]);
+  }, [expandedCities, activeTab, debouncedSearch, fetchProviders]);
 
-  // Clear selection, providers, and stage counts when stage/state/search changes
+  // Clear selection, providers, and stage counts when tab/state/search changes
   useEffect(() => {
     setSelectedProviders(new Set());
     setExpandedCities(new Set());
     setProviders([]);
-    // Clear stage counts when STATE changes (not stage) to avoid showing stale data
-    // Stage counts are state-level, so changing stage within same state keeps counts
-  }, [stage, selectedState, debouncedSearch]);
+    // Clear stage counts when STATE changes (not tab) to avoid showing stale data
+    // Stage counts are state-level, so changing tab within same state keeps counts
+  }, [activeTab, selectedState, debouncedSearch]);
 
   // Separate effect to clear stage counts only when state changes
   const prevStateRef = useRef(selectedState);
@@ -1403,10 +2748,12 @@ export default function ProviderOutreachPage() {
         not_contacted: 0,
         in_sequence: 0,
         needs_call: 0,
-        called: 0,
+        re_engage: 0,
+        not_interested: 0,
         claimed: 0,
         archived: 0,
-        hidden: 0,
+        needs_email: 0,
+        ready: 0,
       });
       prevStateRef.current = selectedState;
     }
@@ -1591,11 +2938,18 @@ export default function ProviderOutreachPage() {
 
       if (res.ok) {
         const data = await res.json();
-        showToast(`Moved ${data.updated + data.created} provider(s) to ${STAGE_LABELS[newStage]}`, "success");
+        // Use UI_TAB_LABELS for the target stage display
+        const stageLabel = UI_TAB_LABELS[newStage as UITab] || newStage;
+        showToast(`Moved ${data.updated + data.created} provider(s) to ${stageLabel}`, "success");
+        // Mark as recently moved to filter from stale API responses
+        idsToUpdate.forEach((id) => markAsRecentlyMoved(id));
+        // Optimistically remove moved providers from current tab to prevent duplicate appearance
+        const idsSet = new Set(idsToUpdate);
+        setProviders((prev) => prev.filter((p) => !idsSet.has(p.provider_id)));
         setSelectedProviders(new Set());
 
         // Refresh data
-        if (stage === "not_contacted") {
+        if (isNotContactedTab(activeTab)) {
           fetchCities();
           fetchProviders();
         } else {
@@ -1617,7 +2971,7 @@ export default function ProviderOutreachPage() {
   // If requiresReasonValidation is true, reason is required (archive/unarchive actions)
   const handleQuickAction = async (
     providerId: string,
-    action: "not_contacted" | "called" | "archived" | "hidden",
+    action: "not_contacted" | "archived",
     reason?: string | null,
     notes?: string | null,
     requiresReasonValidation?: boolean
@@ -1636,11 +2990,15 @@ export default function ProviderOutreachPage() {
       });
 
       if (res.ok) {
-        const actionLabel = action === "not_contacted" ? "Unhidden" : action === "called" ? "Called" : action === "hidden" ? "Hidden" : "Archived";
+        const actionLabel = action === "not_contacted" ? "Restored" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
+        // Mark as recently moved to filter from stale API responses
+        markAsRecentlyMoved(providerId);
+        // Optimistically remove from current tab to prevent duplicate appearance
+        setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
 
         // Refresh data
-        if (stage === "not_contacted") {
+        if (isNotContactedTab(activeTab)) {
           fetchCities();
           fetchProviders();
         } else {
@@ -1664,37 +3022,30 @@ export default function ProviderOutreachPage() {
   );
   const selectedWithEmailCount = selectedProvidersWithEmail.length;
 
-  // Available actions based on current stage
+  // Available actions based on current tab
   // Note: "Mark Claimed" is NOT included because Claimed auto-syncs from business_profiles
   // Note: Archive removed from bulk actions - use individual provider modal instead
   const getAvailableActions = (): { stage: OutreachStage; label: string; color: string; requiresEmail?: boolean }[] => {
-    switch (stage) {
-      case "not_contacted":
-        // Only "Move to In Sequence" - requires email
+    switch (activeTab) {
+      case "needs_email":
+        // Providers without email - can only add email (no bulk actions)
+        return [];
+      case "ready":
+        // Providers with email - can move to sequence
         return [
           { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700", requiresEmail: true },
         ];
       case "in_sequence":
         return [
-          { stage: "needs_call", label: "Needs Call", color: "bg-amber-600 hover:bg-amber-700" },
-          { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
+          { stage: "needs_call", label: "Move to Follow Up", color: "bg-amber-600 hover:bg-amber-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
-      case "needs_call":
+      case "needs_call":  // Follow Up - no bulk actions, use individual outcome buttons instead
+        return [];
+      case "re_engage":
         return [
-          { stage: "called", label: "Mark Called", color: "bg-purple-600 hover:bg-purple-700" },
+          { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
-        ];
-      case "called":
-        // Called is terminal for outreach - we've done our part
-        // Only allow going back in case of error
-        return [
-          { stage: "needs_call", label: "Back to Needs Call", color: "bg-amber-600 hover:bg-amber-700" },
-        ];
-      case "hidden":
-        // Hidden is NOT terminal - can unhide
-        return [
-          { stage: "not_contacted", label: "Unhide", color: "bg-blue-600 hover:bg-blue-700" },
         ];
       default:
         // Terminal stages (archived, claimed) - allow moving back to not_contacted
@@ -1704,11 +3055,12 @@ export default function ProviderOutreachPage() {
     }
   };
 
-  const tabs = OUTREACH_STAGES.map((s) => ({
-    value: s,
-    label: STAGE_LABELS[s],
-    count: stageCounts[s],
-    isTerminal: TERMINAL_STAGES.includes(s),
+  // Build tabs from UI_TABS with correct counts
+  const tabs = UI_TABS.map((tab) => ({
+    value: tab,
+    label: UI_TAB_LABELS[tab],
+    count: stageCounts[tab] ?? 0,
+    isTerminal: TERMINAL_STAGES.includes(tab as OutreachStage),
   }));
 
   return (
@@ -1949,26 +3301,47 @@ export default function ProviderOutreachPage() {
 
       {/* Stage Tabs - only show when a state is selected */}
       {selectedState && (
-        <div className="flex gap-1 mb-6 border-b border-gray-100">
-          {tabs.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setStage(tab.value)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                stage === tab.value
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-400 hover:text-gray-600"
-              }`}
-            >
-              {tab.label}
-              {tab.count > 0 && (
-                <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="flex items-center justify-between mb-6 border-b border-gray-100">
+          <div className="flex gap-1 overflow-x-auto">
+            {tabs.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === tab.value
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Admin Filter Chips - show on tabs where assignment applies */}
+      {selectedState && ["needs_email", "ready", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
+        <AdminFilterChips
+          adminCounts={adminCounts}
+          totalCount={
+            activeTab === "needs_email" ? stageCounts.needs_email :
+            activeTab === "ready" ? stageCounts.ready :
+            activeTab === "in_sequence" ? stageCounts.in_sequence :
+            activeTab === "needs_call" ? stageCounts.needs_call :
+            activeTab === "re_engage" ? stageCounts.re_engage :
+            activeTab === "not_interested" ? stageCounts.not_interested :
+            0
+          }
+          selectedAdminId={selectedAdminFilter}
+          onSelect={(adminId) => setSelectedAdminFilter(adminId)}
+          tabKey={activeTab}
+        />
       )}
 
       {/* Collapsible Funnel Stats - only show when a state is selected */}
@@ -1998,14 +3371,9 @@ export default function ProviderOutreachPage() {
                 subtitle="actively receiving emails"
               />
               <FunnelStat
-                label="Needs Call"
+                label="Follow Up"
                 value={stageCounts.needs_call}
                 subtitle="sequence complete"
-              />
-              <FunnelStat
-                label="Called"
-                value={stageCounts.called}
-                subtitle="awaiting response"
               />
               <FunnelStat
                 label="Claimed"
@@ -2016,10 +3384,10 @@ export default function ProviderOutreachPage() {
               <FunnelStat
                 label="Claim Rate"
                 value={
-                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed > 0
+                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed > 0
                     ? Math.round(
                         (stageCounts.claimed /
-                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.called + stageCounts.claimed)) *
+                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed)) *
                           100
                       )
                     : 0
@@ -2061,6 +3429,7 @@ export default function ProviderOutreachPage() {
                       // Show confirmation modal for starting sequence
                       setSequenceConfirmProviders(selectedProvidersWithEmail);
                       setShowSequenceConfirm(true);
+                      setShowSequencePreview(true); // Auto-expand preview accordion
                       // Fetch preview data for the modal
                       fetchSequencePreview(selectedProvidersWithEmail.map(p => p.provider_id));
                     } else {
@@ -2085,8 +3454,26 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
+      {/* Search mode info - show when providers selected during search */}
+      {selectedProviders.size > 0 && isSearchResult && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">
+              {selectedProviders.size} provider{selectedProviders.size === 1 ? "" : "s"} selected
+            </span>
+            <span className="text-xs text-gray-400">— Use the action menu (•••) on each row to move providers</span>
+          </div>
+          <button
+            onClick={() => setSelectedProviders(new Set())}
+            className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {/* Content - Search results (flat list) or City-grouped view */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200">
         {!selectedState ? (
           // No state selected - prompt user to select a state from the header
           <div className="p-12 text-center">
@@ -2149,22 +3536,27 @@ export default function ProviderOutreachPage() {
                     <div className="w-24 text-sm text-gray-600 truncate">
                       {provider.city || "—"}
                     </div>
-                    {/* Stage Badge */}
-                    <div className="w-28">
+                    {/* Stage Badge + Assignment */}
+                    <div className="w-28 flex items-center gap-1.5">
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
                         provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
                         provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
                         provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
-                        provider.stage === "called" ? "bg-purple-100 text-purple-700" :
+                        provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
                         provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
-                        provider.stage === "hidden" ? "bg-gray-100 text-gray-500" :
                         "bg-gray-100 text-gray-600"
                       }`}>
                         {STAGE_LABELS[provider.stage]}
                       </span>
+                      <AdminChip
+                        adminId={provider.assigned_to}
+                        adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                        size="sm"
+                        showUnassigned={true}
+                      />
                     </div>
                     {/* Actions - hide for claimed only (archived can be unarchived) */}
-                    <div className="w-10">
+                    <div className="w-10 flex items-center gap-1">
                       {!["claimed"].includes(provider.stage) && (
                         <button
                           type="button"
@@ -2180,6 +3572,24 @@ export default function ProviderOutreachPage() {
                           </svg>
                         </button>
                       )}
+                      {/* Remove from outreach (trash icon) */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPendingRemoval({
+                            providerId: provider.provider_id,
+                            providerName: provider.provider_name,
+                            stage: provider.stage,
+                          });
+                        }}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
+                        title="Remove from outreach"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -2192,6 +3602,99 @@ export default function ProviderOutreachPage() {
               </div>
             )}
           </>
+        ) : activeTab === "needs_call" ? (
+          // Follow Up tab: due-date grouped queue view
+          <FollowUpQueue
+            providers={providers}
+            loading={loadingProviders}
+            onOutcomeRecorded={(providerId, stageChanged) => {
+              if (stageChanged) {
+                // Mark as recently moved to filter from stale API responses
+                markAsRecentlyMoved(providerId);
+                // Provider left the queue - remove from local state
+                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                // Optimistically decrement needs_call count
+                setStageCounts((prev) => ({
+                  ...prev,
+                  needs_call: Math.max(0, prev.needs_call - 1),
+                }));
+              }
+              // Refresh to get updated counts
+              fetchProviders();
+            }}
+            onProviderUpdated={(providerId, updates) => {
+              // Update provider in place (new due_date, counters, etc.)
+              setProviders((prev) =>
+                prev.map((p) =>
+                  p.provider_id === providerId ? { ...p, ...updates } : p
+                )
+              );
+            }}
+            onStageChange={async (providerId, newStage) => {
+              // Call update-stage API directly
+              const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  provider_ids: [providerId],
+                  stage: newStage,
+                }),
+              });
+              if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "Failed to update stage");
+              }
+              // Mark as recently moved to filter from stale API responses
+              markAsRecentlyMoved(providerId);
+              // Remove from local state (provider left Follow Up)
+              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+              // Update stage counts
+              setStageCounts((prev) => ({
+                ...prev,
+                needs_call: Math.max(0, prev.needs_call - 1),
+                [newStage]: (prev[newStage] || 0) + 1,
+              }));
+              // Refresh to sync
+              fetchProviders();
+            }}
+            onRemoveProvider={(provider) => {
+              setPendingRemoval({
+                providerId: provider.provider_id,
+                providerName: provider.provider_name,
+                stage: provider.stage,
+              });
+            }}
+            onArchive={(provider) => {
+              setActionModalProvider(provider);
+            }}
+            adminNameLookup={adminNameLookup}
+          />
+        ) : activeTab === "re_engage" ? (
+          // Re-Engage tab: cycle-aware queue view
+          <ReEngageQueue
+            providers={providers}
+            loading={loadingProviders}
+            onReEngageAction={(providerId, result) => {
+              // Mark as recently moved to filter from stale API responses
+              markAsRecentlyMoved(providerId);
+              // Provider moved out of re_engage - remove from local state
+              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+              // Update stage counts
+              setStageCounts((prev) => ({
+                ...prev,
+                re_engage: Math.max(0, prev.re_engage - 1),
+                ...(result.new_stage === "not_contacted" && { ready: prev.ready + 1 }),
+                ...(result.new_stage === "not_interested" && { not_interested: prev.not_interested + 1 }),
+                ...(result.new_stage === "archived" && { archived: prev.archived + 1 }),
+              }));
+              // Refresh to sync
+              fetchProviders();
+            }}
+            onArchive={(provider) => {
+              setActionModalProvider(provider);
+            }}
+            adminNameLookup={adminNameLookup}
+          />
         ) : (
           // Normal city-grouped view
           <>
@@ -2203,12 +3706,18 @@ export default function ProviderOutreachPage() {
             </div>
 
             {(() => {
-              // For not_contacted, use the cities API data; for other stages, compute from providers
-              const displayCities = stage === "not_contacted" ? cities : computeCityStatsFromProviders(providers);
-              const isLoading = stage === "not_contacted" ? loadingCities : loadingProviders;
-              const emptyMessage = stage === "not_contacted"
-                ? `No unclaimed providers in ${selectedState}`
-                : `No providers in ${STAGE_LABELS[stage]}`;
+              // For needs_email/ready tabs, use the cities API data; for other stages, compute from providers
+              // Filter to only show cities with providers for the active tab
+              let displayCities = isNotContactedTab(activeTab) ? cities : computeCityStatsFromProviders(providers);
+              if (activeTab === "needs_email") {
+                displayCities = displayCities.filter((c) => c.needs_email > 0);
+              } else if (activeTab === "ready") {
+                displayCities = displayCities.filter((c) => c.has_email > 0);
+              }
+              const isLoading = isNotContactedTab(activeTab) ? loadingCities : loadingProviders;
+              const emptyMessage = isNotContactedTab(activeTab)
+                ? `No ${activeTab === "needs_email" ? "providers needing email" : "ready providers"} in ${selectedState}`
+                : `No providers in ${UI_TAB_LABELS[activeTab]}`;
 
               if (isLoading) {
                 return (
@@ -2232,7 +3741,7 @@ export default function ProviderOutreachPage() {
                     <CityRow
                       key={city.city}
                       city={city}
-                      stage={stage}
+                      activeTab={activeTab}
                       isExpanded={expandedCities.has(city.city)}
                       onToggle={() => toggleCity(city.city)}
                       providers={providers}
@@ -2241,18 +3750,44 @@ export default function ProviderOutreachPage() {
                       onToggleProvider={toggleProvider}
                       onSelectAllInCity={selectAllInCity}
                       onEmailSaved={(providerId, newEmail) => {
-                        // Update local providers state immediately
-                        setProviders((prev) =>
-                          prev.map((p) =>
-                            p.provider_id === providerId ? { ...p, email: newEmail } : p
-                          )
-                        );
-                        // Refresh cities to update counts (for not_contacted)
-                        if (stage === "not_contacted") {
+                        // Update local providers state
+                        // On "Needs Email" tab, remove the provider (it now has email, belongs in "Ready")
+                        // On other tabs, just update the email field
+                        if (activeTab === "needs_email") {
+                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                          // Optimistically update tab counts: needs_email -1, ready +1
+                          setStageCounts((prev) => ({
+                            ...prev,
+                            needs_email: Math.max(0, prev.needs_email - 1),
+                            ready: prev.ready + 1,
+                          }));
+                        } else {
+                          setProviders((prev) =>
+                            prev.map((p) =>
+                              p.provider_id === providerId ? { ...p, email: newEmail } : p
+                            )
+                          );
+                        }
+                        // Refresh cities to update counts (for needs_email/ready tabs)
+                        if (isNotContactedTab(activeTab)) {
                           fetchCities();
                         }
                       }}
                       onOpenActionModal={setActionModalProvider}
+                      onRemoveProvider={(provider) => {
+                        setPendingRemoval({
+                          providerId: provider.provider_id,
+                          providerName: provider.provider_name,
+                          stage: provider.stage,
+                        });
+                      }}
+                      cityOwnerId={cityOwners.get(city.city)?.owner_id || null}
+                      cityOwnerName={cityOwners.get(city.city)?.owner_name || null}
+                      isEditingAssignment={editingCityAssignment === city.city}
+                      onStartEditAssignment={() => setEditingCityAssignment(city.city)}
+                      onAssignCity={(ownerId, ownerName) => assignCity(city.city, ownerId, ownerName)}
+                      onCancelEditAssignment={() => setEditingCityAssignment(null)}
+                      adminNameLookup={adminNameLookup}
                     />
                   ))}
                 </div>
@@ -2263,7 +3798,7 @@ export default function ProviderOutreachPage() {
       </div>
 
       {/* Summary */}
-      {stage === "not_contacted" && !loadingCities && !isSearchResult && (
+      {isNotContactedTab(activeTab) && !loadingCities && !isSearchResult && (
         <div className="mt-4 text-sm text-gray-500">
           {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
         </div>
@@ -2288,7 +3823,7 @@ export default function ProviderOutreachPage() {
             </div>
 
             {/* Step 1: Select Action */}
-            {!selectedAction && (
+            {!selectedAction && !pendingStageMove && (
               <div className="p-4 space-y-2">
                 {/* Unarchive - only show if provider is currently archived */}
                 {actionModalProvider.stage === "archived" && (
@@ -2329,47 +3864,6 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Unhide - only show if provider is currently hidden */}
-                {actionModalProvider.stage === "hidden" && (
-                  <button
-                    onClick={() => setSelectedAction("unhide")}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-blue-500 mt-0.5">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="font-medium text-gray-900">Unhide</p>
-                        <p className="text-xs text-gray-500">Return to Not Contacted for outreach</p>
-                      </div>
-                    </div>
-                  </button>
-                )}
-
-                {/* Mark as Called - show for active stages that haven't been called yet */}
-                {["not_contacted", "in_sequence", "needs_call"].includes(actionModalProvider.stage) && (
-                  <button
-                    onClick={() => setSelectedAction("called")}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-purple-500 mt-0.5">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                        </svg>
-                      </span>
-                      <div>
-                        <p className="font-medium text-gray-900">Mark as Called</p>
-                        <p className="text-xs text-gray-500">We called them - ball is in their court</p>
-                      </div>
-                    </div>
-                  </button>
-                )}
-
                 {/* Archive - only show if NOT already archived */}
                 {actionModalProvider.stage !== "archived" && (
                   <button
@@ -2390,25 +3884,285 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Hide - only show if provider is NOT already hidden or archived */}
-                {actionModalProvider.stage !== "hidden" && actionModalProvider.stage !== "archived" && (
+                {/* Remove Assignment - only show if provider is assigned */}
+                {actionModalProvider.assigned_to && (
                   <button
-                    onClick={() => setSelectedAction("hidden")}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                    onClick={async () => {
+                      setActionLoading(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/update-assignment", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            provider_id: actionModalProvider.provider_id,
+                            assigned_to: null,
+                          }),
+                        });
+                        if (res.ok) {
+                          closeActionModal();
+                          fetchProviders();
+                        }
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    }}
+                    disabled={actionLoading}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     <div className="flex items-start gap-3">
-                      <span className="text-gray-400 mt-0.5">
+                      <span className="text-gray-500 mt-0.5">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
                         </svg>
                       </span>
                       <div>
-                        <p className="font-medium text-gray-900">Hide</p>
-                        <p className="text-xs text-gray-500">Skip for this sequence (test accounts)</p>
+                        <p className="font-medium text-gray-900">Remove Assignment</p>
+                        <p className="text-xs text-gray-500">Unassign this provider so anyone can pick it up</p>
                       </div>
                     </div>
                   </button>
                 )}
+
+                {/* Move to Stage Section */}
+                {!["claimed", "archived"].includes(actionModalProvider.stage) && (
+                  <>
+                    <div className="border-t border-gray-100 my-3" />
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {actionModalProvider.stage !== "not_contacted" && (
+                        <button
+                          onClick={() => setPendingStageMove("not_contacted")}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                          Ready
+                        </button>
+                      )}
+                      {actionModalProvider.stage !== "in_sequence" && (
+                        <button
+                          onClick={() => setPendingStageMove("in_sequence")}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
+                        >
+                          In Sequence
+                        </button>
+                      )}
+                      {actionModalProvider.stage !== "needs_call" && (
+                        <button
+                          onClick={() => setPendingStageMove("needs_call")}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors disabled:opacity-50"
+                        >
+                          Follow Up
+                        </button>
+                      )}
+                      {actionModalProvider.stage !== "re_engage" && (
+                        <button
+                          onClick={() => setPendingStageMove("re_engage")}
+                          disabled={actionLoading}
+                          className="px-3 py-2 text-sm text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
+                        >
+                          Re-Engage
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+
+              </div>
+            )}
+
+            {/* Stage Move Confirmation Modal */}
+            {pendingStageMove && actionModalProvider && (
+              <div className="p-4 space-y-4">
+                {/* Back button */}
+                <button
+                  onClick={() => setPendingStageMove(null)}
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back
+                </button>
+
+                {/* Confirmation content */}
+                <div className={`p-3 rounded-lg border ${
+                  pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
+                  pendingStageMove === "in_sequence" ? "bg-blue-50 border-blue-200" :
+                  pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
+                  "bg-purple-50 border-purple-200"
+                }`}>
+                  <p className="text-sm font-medium text-gray-900">
+                    Move to {
+                      pendingStageMove === "not_contacted" ? "Ready" :
+                      pendingStageMove === "in_sequence" ? "In Sequence" :
+                      pendingStageMove === "needs_call" ? "Follow Up" :
+                      "Re-Engage"
+                    }
+                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    {actionModalProvider.provider_name}
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                  <ul className="space-y-1.5">
+                    {pendingStageMove === "not_contacted" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will be moved back to the Ready queue
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Any scheduled outreach tasks will be cleared
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          You can start a fresh outreach sequence later
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "in_sequence" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will enter the automated email sequence
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Emails will be sent on Days 0, 3, 7, and 14
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          After Day 14, they move to Follow Up
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "needs_call" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will appear in the Follow Up call queue
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          They should be contacted by phone
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Use outcome buttons to record call results
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "re_engage" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Provider will enter the Re-Engage waiting period
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          After 30 days, they can be re-engaged one more time
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          Or they can be moved to Not Interested / Archived
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Confirm/Cancel buttons */}
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => setPendingStageMove(null)}
+                    disabled={actionLoading}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setActionLoading(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            provider_ids: [actionModalProvider.provider_id],
+                            stage: pendingStageMove,
+                          }),
+                        });
+                        if (res.ok) {
+                          const stageLabel = pendingStageMove === "not_contacted" ? "Ready" :
+                            pendingStageMove === "in_sequence" ? "In Sequence" :
+                            pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage";
+                          showToast(`Moved to ${stageLabel}`, "success");
+                          // Mark as recently moved to filter from stale API responses
+                          markAsRecentlyMoved(actionModalProvider.provider_id);
+                          // Optimistically remove from current tab to prevent duplicate appearance
+                          setProviders((prev) => prev.filter((p) => p.provider_id !== actionModalProvider.provider_id));
+                          // Optimistically update stage counts
+                          const oldStage = actionModalProvider.stage;
+                          setStageCounts((prev) => {
+                            const updates: Partial<typeof prev> = {};
+                            // Decrement old stage count
+                            if (oldStage === "not_contacted") {
+                              // not_contacted is split into needs_email/ready sub-tabs
+                              if (actionModalProvider.email) {
+                                updates.ready = Math.max(0, prev.ready - 1);
+                              } else {
+                                updates.needs_email = Math.max(0, prev.needs_email - 1);
+                              }
+                            } else if (oldStage && oldStage in prev) {
+                              updates[oldStage as keyof typeof prev] = Math.max(0, (prev[oldStage as keyof typeof prev] || 0) - 1);
+                            }
+                            // Increment new stage count
+                            if (pendingStageMove === "not_contacted") {
+                              // Moving to not_contacted means they have email, so increment ready
+                              updates.ready = (updates.ready ?? prev.ready) + 1;
+                            } else if (pendingStageMove && pendingStageMove in prev) {
+                              updates[pendingStageMove as keyof typeof prev] = (prev[pendingStageMove as keyof typeof prev] || 0) + 1;
+                            }
+                            return { ...prev, ...updates };
+                          });
+                          closeActionModal();
+                          fetchProviders();
+                          if (isNotContactedTab(activeTab)) fetchCities();
+                        } else {
+                          const err = await res.json().catch(() => ({}));
+                          showToast(err.error || "Failed to move provider", "error");
+                        }
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    }}
+                    disabled={actionLoading}
+                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      pendingStageMove === "not_contacted" ? "bg-gray-600 hover:bg-gray-700" :
+                      pendingStageMove === "in_sequence" ? "bg-blue-600 hover:bg-blue-700" :
+                      pendingStageMove === "needs_call" ? "bg-amber-600 hover:bg-amber-700" :
+                      "bg-purple-600 hover:bg-purple-700"
+                    }`}
+                  >
+                    {actionLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Moving...
+                      </span>
+                    ) : (
+                      `Yes, move to ${
+                        pendingStageMove === "not_contacted" ? "Ready" :
+                        pendingStageMove === "in_sequence" ? "In Sequence" :
+                        pendingStageMove === "needs_call" ? "Follow Up" : "Re-Engage"
+                      }`
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -2420,7 +4174,7 @@ export default function ProviderOutreachPage() {
                   onClick={() => {
                     // If we're in the preview step (unarchive not yet confirmed), go back to action selection
                     // If we're in the reason step (preview confirmed), go back to preview step
-                    if (selectedAction === "unhide" && actionModalProvider?.stage === "archived" && unarchivePreviewConfirmed) {
+                    if (selectedAction === "unhide" && unarchivePreviewConfirmed) {
                       setUnarchivePreviewConfirmed(false);
                       setActionReason("");
                       setActionNotes("");
@@ -2437,11 +4191,11 @@ export default function ProviderOutreachPage() {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
-                  {selectedAction === "unhide" && actionModalProvider?.stage === "archived" && unarchivePreviewConfirmed ? "Back to Preview" : "Back"}
+                  {selectedAction === "unhide" && unarchivePreviewConfirmed ? "Back to Preview" : "Back"}
                 </button>
 
                 {/* Unarchive Preview Step - show impact before reason selection */}
-                {selectedAction === "unhide" && actionModalProvider?.stage === "archived" && !unarchivePreviewConfirmed && (
+                {selectedAction === "unhide" && !unarchivePreviewConfirmed && (
                   <div className="space-y-4">
                     <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
                       <p className="text-sm font-medium text-gray-900">Unarchive Provider</p>
@@ -2530,72 +4284,56 @@ export default function ProviderOutreachPage() {
                 )}
 
                 {/* Standard confirmation flow - show for non-unarchive actions OR after unarchive preview is confirmed */}
-                {(selectedAction !== "unhide" || actionModalProvider?.stage !== "archived" || unarchivePreviewConfirmed) && (
+                {(selectedAction !== "unhide" || unarchivePreviewConfirmed) && (
                   <>
                     {/* Action description */}
                     <div className={`p-3 rounded-lg ${
-                      selectedAction === "called" ? "bg-purple-50 border border-purple-200" :
                       selectedAction === "archived" ? "bg-amber-50 border border-amber-200" :
-                      selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-50 border border-emerald-200" :
-                      selectedAction === "unhide" ? "bg-blue-50 border border-blue-200" :
+                      selectedAction === "unhide" ? "bg-emerald-50 border border-emerald-200" :
                       "bg-gray-50 border border-gray-200"
                     }`}>
                       <p className="text-sm font-medium text-gray-900">
-                        {selectedAction === "called" ? "Mark as Called" :
-                         selectedAction === "archived" ? "Archive Provider" :
-                         selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Unarchive Provider" :
-                         selectedAction === "unhide" ? "Unhide Provider" :
-                         "Hide Provider"}
+                        {selectedAction === "archived" ? "Archive Provider" :
+                         selectedAction === "unhide" ? "Unarchive Provider" :
+                         "Unknown Action"}
                       </p>
                       <p className="text-xs text-gray-600 mt-0.5">
-                        {selectedAction === "called" ? "Provider will be moved to Called tab. We've done our part - ball is in their court." :
-                         selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
-                         selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
-                         selectedAction === "unhide" ? "Provider will return to Not Contacted and be available for outreach." :
-                         "Provider will be hidden from this sequence but can be unhidden later."}
+                        {selectedAction === "archived" ? "Provider will be archived and removed from active outreach. This also stops emails from Questions and Connections." :
+                         selectedAction === "unhide" ? "Provider will be restored to Not Contacted and will receive outreach again. This also restores Questions and Connections emails." :
+                         ""}
                       </p>
                     </div>
 
-                    {/* Reason dropdown - not needed for "called" */}
-                    {selectedAction !== "called" && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Reason
-                        </label>
-                        <select
-                          value={actionReason}
-                          onChange={(e) => setActionReason(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                        >
-                          <option value="">Select a reason...</option>
-                          {(selectedAction === "archived" ? ARCHIVE_REASONS :
-                            selectedAction === "unhide" ? (
-                              // If provider was archived, use UNARCHIVE_REASONS; otherwise UNHIDE_REASONS
-                              actionModalProvider?.stage === "archived" ? UNARCHIVE_REASONS : UNHIDE_REASONS
-                            ) :
-                            HIDE_REASONS
-                          ).map((reason) => (
-                            <option key={reason.value} value={reason.value}>{reason.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                    {/* Reason dropdown */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Reason
+                      </label>
+                      <select
+                        value={actionReason}
+                        onChange={(e) => setActionReason(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                      >
+                        <option value="">Select a reason...</option>
+                        {(selectedAction === "archived" ? ARCHIVE_REASONS : UNARCHIVE_REASONS).map((reason) => (
+                          <option key={reason.value} value={reason.value}>{reason.label}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                    {/* Notes textarea - not needed for "called" */}
-                    {selectedAction !== "called" && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Notes <span className="text-gray-400 font-normal">{actionReason === "other" ? "(required)" : "(optional)"}</span>
-                        </label>
-                        <textarea
-                          value={actionNotes}
-                          onChange={(e) => setActionNotes(e.target.value)}
-                          placeholder="Add any additional context..."
-                          rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
-                        />
-                      </div>
-                    )}
+                    {/* Notes textarea */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Notes <span className="text-gray-400 font-normal">{actionReason === "other" ? "(required)" : "(optional)"}</span>
+                      </label>
+                      <textarea
+                        value={actionNotes}
+                        onChange={(e) => setActionNotes(e.target.value)}
+                        placeholder="Add any additional context..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                      />
+                    </div>
                   </>
                 )}
               </div>
@@ -2610,18 +4348,15 @@ export default function ProviderOutreachPage() {
                 Cancel
               </button>
               {/* Show Confirm button only when not in unarchive preview step */}
-              {selectedAction && !(selectedAction === "unhide" && actionModalProvider?.stage === "archived" && !unarchivePreviewConfirmed) && (
+              {selectedAction && !(selectedAction === "unhide" && !unarchivePreviewConfirmed) && (
                 <button
                   onClick={async () => {
-                    // "called" doesn't require a reason
-                    if (selectedAction !== "called") {
-                      if (!actionReason) return;
-                      if (actionReason === "other" && !actionNotes.trim()) return;
-                    }
+                    if (!actionReason) return;
+                    if (actionReason === "other" && !actionNotes.trim()) return;
                     // Map "unhide" to "not_contacted" stage
                     const stageToSet = selectedAction === "unhide" ? "not_contacted" : selectedAction;
                     // Detect if this is an unarchive scenario (moving from archived to not_contacted)
-                    const isUnarchiving = actionModalProvider.stage === "archived" && stageToSet === "not_contacted";
+                    const isUnarchiving = selectedAction === "unhide";
                     await handleQuickAction(
                       actionModalProvider.provider_id,
                       stageToSet,
@@ -2633,14 +4368,12 @@ export default function ProviderOutreachPage() {
                   }}
                   disabled={
                     actionLoading ||
-                    (selectedAction !== "called" && !actionReason) ||
-                    (selectedAction !== "called" && actionReason === "other" && !actionNotes.trim())
+                    !actionReason ||
+                    (actionReason === "other" && !actionNotes.trim())
                   }
                   className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    selectedAction === "called" ? "bg-purple-600 hover:bg-purple-700" :
                     selectedAction === "archived" ? "bg-amber-600 hover:bg-amber-700" :
-                    selectedAction === "unhide" && actionModalProvider?.stage === "archived" ? "bg-emerald-600 hover:bg-emerald-700" :
-                    selectedAction === "unhide" ? "bg-blue-600 hover:bg-blue-700" :
+                    selectedAction === "unhide" ? "bg-emerald-600 hover:bg-emerald-700" :
                     "bg-gray-600 hover:bg-gray-700"
                   }`}
                 >
@@ -2661,6 +4394,9 @@ export default function ProviderOutreachPage() {
             setSequencePreviewData(null);
             setPreviewProviderId(null);
             setPreviewDay(0);
+            setSequenceAssigneeId(null);
+            setSequenceAssigneeName(null);
+            setShowAssigneeAutocomplete(false);
           }}
         >
           <div
@@ -2692,6 +4428,45 @@ export default function ProviderOutreachPage() {
                   </div>
                 </div>
               )}
+
+              {/* Assigned To */}
+              <div className="mb-5">
+                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                  Assigned To
+                </h4>
+                <div className="flex items-center gap-2">
+                  {showAssigneeAutocomplete ? (
+                    <div className="flex-1">
+                      <AdminAutocomplete
+                        selectedAdminId={sequenceAssigneeId}
+                        selectedAdminName={sequenceAssigneeName}
+                        onSelect={(id, name) => {
+                          setSequenceAssigneeId(id);
+                          setSequenceAssigneeName(name);
+                          setShowAssigneeAutocomplete(false);
+                        }}
+                        onClose={() => setShowAssigneeAutocomplete(false)}
+                        placeholder="Search admins..."
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowAssigneeAutocomplete(true)}
+                      className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <AdminChip
+                        adminId={sequenceAssigneeId}
+                        adminName={sequenceAssigneeName}
+                        size="sm"
+                      />
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Provider list */}
               <div className="mb-5">
@@ -2749,6 +4524,11 @@ export default function ProviderOutreachPage() {
                     {sequencePreviewLoading ? (
                       <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 text-center text-sm text-gray-500">
                         Loading email previews...
+                      </div>
+                    ) : sequencePreviewError ? (
+                      <div className="rounded-lg bg-red-50 p-4 border border-red-200 text-center text-sm text-red-600">
+                        <p className="font-medium">Failed to load email preview</p>
+                        <p className="mt-1 text-xs text-red-500">{sequencePreviewError}</p>
                       </div>
                     ) : sequencePreviewData?.cadence ? (
                       <>
@@ -2815,7 +4595,7 @@ export default function ProviderOutreachPage() {
                                 </div>
                                 <div className="text-xs text-gray-500 space-y-0.5">
                                   <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
-                                  <p><span className="font-medium text-gray-600">From:</span> TJ Falohun &lt;tj@olera.care&gt;</p>
+                                  <p><span className="font-medium text-gray-600">From:</span> Dr. Logan DuBose · Olera &lt;noreply@oleracare.com&gt;</p>
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>
@@ -2846,15 +4626,23 @@ export default function ProviderOutreachPage() {
                             <span className="text-xs text-gray-400">+3 days</span>
                           </div>
                           <p className="text-sm font-medium text-gray-800">Follow-up Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Gentle reminder about the profile</p>
+                          <p className="text-xs text-gray-500 mt-1">Profile gaps and value proposition</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 7</span>
                             <span className="text-xs text-gray-400">+7 days</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-800">Final Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Last outreach before moving to calls</p>
+                          <p className="text-sm font-medium text-gray-800">Demand-loss Email</p>
+                          <p className="text-xs text-gray-500 mt-1">What families couldn't ask you</p>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 14</span>
+                            <span className="text-xs text-gray-400">+14 days</span>
+                          </div>
+                          <p className="text-sm font-medium text-gray-800">Summary Email</p>
+                          <p className="text-xs text-gray-500 mt-1">Everything in one place</p>
                         </div>
                       </>
                     )}
@@ -2870,8 +4658,12 @@ export default function ProviderOutreachPage() {
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
+                  setSequenceAssigneeId(null);
+                  setSequenceAssigneeName(null);
+                  setShowAssigneeAutocomplete(false);
                 }}
                 disabled={actionLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2884,12 +4676,53 @@ export default function ProviderOutreachPage() {
                   const validProviderIds = sequencePreviewData
                     ? sequencePreviewData.providers.filter(p => p.valid).map(p => p.provider_id)
                     : sequenceConfirmProviders.map(p => p.provider_id);
-                  await updateStage("in_sequence", validProviderIds);
+
+                  if (validProviderIds.length === 0) return;
+
+                  setActionLoading(true);
+                  try {
+                    // Call launch-sequence API to create tracking records and email tasks
+                    const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        provider_ids: validProviderIds,
+                        dry_run: false,
+                        assigned_to: sequenceAssigneeId,
+                      }),
+                    });
+
+                    if (res.ok) {
+                      const data = await res.json();
+                      showToast(`Started sequence for ${data.launched} provider(s)`, "success");
+                      setSelectedProviders(new Set());
+                      // Refresh data
+                      if (isNotContactedTab(activeTab)) {
+                        fetchCities();
+                        fetchProviders();
+                      } else {
+                        fetchProviders();
+                      }
+                    } else {
+                      const err = await res.json();
+                      showToast(err.error || "Failed to start sequence", "error");
+                    }
+                  } catch (err) {
+                    console.error("Failed to start sequence:", err);
+                    showToast("Failed to start sequence", "error");
+                  } finally {
+                    setActionLoading(false);
+                  }
+
                   setShowSequenceConfirm(false);
                   setShowSequencePreview(false);
                   setSequencePreviewData(null);
+                  setSequencePreviewError(null);
                   setPreviewProviderId(null);
                   setPreviewDay(0);
+                  setSequenceAssigneeId(null);
+                  setSequenceAssigneeName(null);
+                  setShowAssigneeAutocomplete(false);
                 }}
                 disabled={actionLoading || sequencePreviewLoading || (sequencePreviewData?.summary.valid === 0)}
                 className="px-5 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -3082,6 +4915,45 @@ export default function ProviderOutreachPage() {
                   </svg>
                 )}
                 Remove State
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove from outreach confirmation dialog */}
+      {pendingRemoval && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Remove from outreach</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Are you sure you want to remove this provider from the outreach system?
+            </p>
+            <div className="mt-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-800">
+                <strong>Note:</strong> This only removes them from outreach tracking. Their provider profile and directory listing will remain unchanged.
+              </p>
+            </div>
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-900">{pendingRemoval.providerName}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Current stage: {STAGE_LABELS[pendingRemoval.stage as OutreachStage] || pendingRemoval.stage}
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setPendingRemoval(null)}
+                disabled={removingProvider}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveFromOutreach}
+                disabled={removingProvider}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {removingProvider ? "Removing..." : "Remove"}
               </button>
             </div>
           </div>

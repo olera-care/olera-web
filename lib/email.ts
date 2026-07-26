@@ -50,6 +50,9 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   // addresses, so they ring-fence to the isolated domain like other cold mail.
   "medjobs_student_interest",
   "medjobs_candidate_ready",
+  // Provider outreach cold sequence (Day 0/3/7/14 emails to unclaimed providers).
+  // These go to scraped directory addresses, so they ring-fence to oleracare.com.
+  "provider_outreach_sequence",
 ]);
 
 /**
@@ -89,6 +92,15 @@ export function resolveFromAddress(explicitFrom: string | undefined, emailType: 
     return process.env.PROVIDER_NOTIFY_FROM;
   }
   return FROM_ADDRESS;
+}
+
+/**
+ * Extract the email address portion from a From header string.
+ * Handles both "Display Name <email@domain.com>" and plain "email@domain.com".
+ */
+function extractEmailFromAddress(fromHeader: string): string {
+  const match = fromHeader.match(/<([^>]+)>/);
+  return match ? match[1] : fromHeader.trim();
 }
 
 /**
@@ -645,9 +657,15 @@ export async function sendEmail(
   // Reply-To: explicit caller value wins. Otherwise, if this send was routed to
   // the provider-notification domain, point replies at PROVIDER_NOTIFY_REPLY_TO
   // (when set) so they don't land on an unmonitored mailbox on the new domain.
+  // Compare email portions only (not display names) so custom display names
+  // like "Dr. Logan DuBose · Olera <noreply@oleracare.com>" still auto-fallback.
+  const envFromEmail = process.env.PROVIDER_NOTIFY_FROM
+    ? extractEmailFromAddress(process.env.PROVIDER_NOTIFY_FROM)
+    : null;
+  const fromEmail = extractEmailFromAddress(from);
   const replyTo =
     options.replyTo ??
-    (from === process.env.PROVIDER_NOTIFY_FROM
+    (envFromEmail && fromEmail === envFromEmail
       ? process.env.PROVIDER_NOTIFY_REPLY_TO
       : undefined);
   if (replyTo) {

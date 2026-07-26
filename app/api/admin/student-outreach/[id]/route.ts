@@ -912,6 +912,8 @@ async function transitionStage(
   // inert for rows that were never enrolled.
   if (CLOSED_STATUSES.includes(to)) {
     await stopRowSmartleadDrips(db, row, userId);
+    // Sync provider archive to other systems (Questions, Connections, Provider Outreach)
+    await syncProviderArchiveToOtherSystems(db, row, to, userId);
   }
 
   if (effects.taskToQueue) {
@@ -984,6 +986,160 @@ async function stopRowSmartleadDrips(db: DB, row: OutreachRow, userId: string) {
   } catch (e) {
     console.error(
       "[stopRowSmartleadDrips] threw:",
+      e instanceof Error ? e.message : e,
+    );
+  }
+}
+
+/**
+ * Sync provider archive status to other systems (Questions, Connections, Provider Outreach).
+ *
+ * When a provider row enters a closed status (not_interested, archived, do_not_contact, etc.),
+ * sync the archive state across all systems:
+ * 1. Set business_profiles.metadata.admin_archived = true
+ * 2. Add to archived_question_providers (stops question notifications)
+ * 3. Stop connection followup sequences
+ * 4. Update provider_outreach_tracking.stage = 'archived'
+ *
+ * Only applies to kind='provider' rows.
+ */
+async function syncProviderArchiveToOtherSystems(
+  db: DB,
+  row: OutreachRow,
+  closedStatus: Status,
+  userId: string,
+) {
+  // Only sync for provider rows
+  if (row.kind !== "provider") return;
+  if (!row.provider_business_profile_id) return;
+
+  const nowIso = new Date().toISOString();
+
+  try {
+    // 1. Get the business_profile to find source_provider_id
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("id, slug, source_provider_id, metadata")
+      .eq("id", row.provider_business_profile_id)
+      .maybeSingle();
+
+    if (!bp) {
+      console.warn("[syncProviderArchive] No business_profile found for row:", row.id);
+      return;
+    }
+
+    // Get admin email for audit trail
+    const { data: adminUser } = await db
+      .from("admin_users")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const { data: authUser } = await db.auth.admin.getUserById(userId);
+    const adminEmail = authUser?.user?.email ?? adminUser?.id ?? userId;
+
+    // Map MedJobs closed status to archive reason
+    const archiveReason = closedStatus === "not_interested"
+      ? "not_interested"
+      : closedStatus === "do_not_contact"
+        ? "do_not_contact"
+        : closedStatus === "wrong_contact"
+          ? "wrong_contact"
+          : "medjobs_archived";
+
+    // 2. Update business_profiles.metadata.admin_archived
+    const meta = (bp.metadata as Record<string, unknown>) ?? {};
+    meta.admin_archived = true;
+    meta.admin_archived_at = nowIso;
+    meta.admin_archived_by = adminEmail;
+    meta.admin_archived_reason = archiveReason;
+    meta.admin_archived_source = "medjobs";
+
+    await db
+      .from("business_profiles")
+      .update({ metadata: meta, updated_at: nowIso })
+      .eq("id", bp.id);
+
+    // 3. Stop connection followup sequences
+    const { data: connections } = await db
+      .from("connections")
+      .select("id, metadata")
+      .eq("to_profile_id", bp.id)
+      .eq("type", "inquiry");
+
+    if (connections && connections.length > 0) {
+      for (const conn of connections) {
+        const connMeta = (conn.metadata as Record<string, unknown>) ?? {};
+        if (!connMeta.followup_stopped_at) {
+          const updatedConnMeta = {
+            ...connMeta,
+            followup_stopped_at: nowIso,
+            followup_stopped_reason: "provider_admin_archived",
+          };
+          await db.from("connections").update({ metadata: updatedConnMeta }).eq("id", conn.id);
+        }
+      }
+    }
+
+    // 4. Add to archived_question_providers (all variants)
+    const variantSet = new Set<string>();
+    if (bp.source_provider_id) variantSet.add(bp.source_provider_id);
+    if (bp.slug) variantSet.add(bp.slug);
+
+    if (variantSet.size > 0) {
+      const variants = Array.from(variantSet);
+      await db.from("archived_question_providers").upsert(
+        variants.map((id) => ({
+          provider_id: id,
+          reason: archiveReason,
+          notes: `Archived via MedJobs (status: ${closedStatus})`,
+          archived_by: adminEmail,
+          archived_at: nowIso,
+        })),
+        { onConflict: "provider_id" }
+      );
+    }
+
+    // 5. Update provider_outreach_tracking if exists
+    if (bp.source_provider_id) {
+      const { data: tracking } = await db
+        .from("provider_outreach_tracking")
+        .select("id, stage")
+        .eq("provider_id", bp.source_provider_id)
+        .maybeSingle();
+
+      if (tracking && tracking.stage !== "archived" && tracking.stage !== "claimed") {
+        await db
+          .from("provider_outreach_tracking")
+          .update({
+            stage: "archived",
+            stage_changed_at: nowIso,
+            notes: `Archived via MedJobs (status: ${closedStatus})`,
+            updated_at: nowIso,
+          })
+          .eq("id", tracking.id);
+
+        // Log touchpoint for provider outreach
+        await db.from("provider_outreach_touchpoints").insert({
+          provider_id: bp.source_provider_id,
+          touchpoint_type: "stage_changed",
+          details: {
+            old_stage: tracking.stage,
+            new_stage: "archived",
+            source: "medjobs_sync",
+            medjobs_status: closedStatus,
+          },
+          admin_user_id: adminUser?.id ?? null,
+          created_at: nowIso,
+        });
+      }
+    }
+
+    console.log("[syncProviderArchive] Synced archive for provider row:", row.id);
+  } catch (e) {
+    // Non-fatal: log but don't fail the MedJobs action
+    console.error(
+      "[syncProviderArchive] Error syncing archive:",
       e instanceof Error ? e.message : e,
     );
   }

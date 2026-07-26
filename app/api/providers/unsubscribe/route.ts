@@ -8,11 +8,15 @@ function getServiceDb() {
   return createClient(url, serviceKey);
 }
 
-type UnsubscribeType = "leads" | "analytics_digest";
+type UnsubscribeType = "leads" | "analytics_digest" | "cold_outreach";
 
-function flagForType(type: UnsubscribeType): { flag: string; at: string } {
+function flagForType(type: UnsubscribeType): { flag: string; at: string } | null {
   if (type === "analytics_digest") {
     return { flag: "analytics_digest_unsubscribed", at: "analytics_digest_unsubscribed_at" };
+  }
+  if (type === "cold_outreach") {
+    // Cold outreach uses do_not_contact table, not metadata flags
+    return null;
   }
   return { flag: "leads_unsubscribed", at: "leads_unsubscribed_at" };
 }
@@ -34,8 +38,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { slug } = body;
-    const type: UnsubscribeType = body.type === "analytics_digest" ? "analytics_digest" : "leads";
-    const { flag, at } = flagForType(type);
+    const type: UnsubscribeType =
+      body.type === "analytics_digest" ? "analytics_digest" :
+      body.type === "cold_outreach" ? "cold_outreach" :
+      "leads";
+    const flagInfo = flagForType(type);
 
     if (!slug) {
       return NextResponse.json({ error: "slug is required" }, { status: 400 });
@@ -53,6 +60,57 @@ export async function POST(request: NextRequest) {
       .eq("slug", slug)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
+
+    // Cold outreach unsubscribe: add to do_not_contact table
+    // This is separate from the leads/analytics channels
+    if (type === "cold_outreach") {
+      // Get the provider's email from olera-providers
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("provider_id, slug, email")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (!iosProvider) {
+        return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+      }
+
+      if (!iosProvider.email) {
+        return NextResponse.json({ success: true, unsubscribed: true, type, noop: "no_email_on_file" });
+      }
+
+      const emailKey = iosProvider.email.toLowerCase();
+
+      // Add to do_not_contact table (this will block all cold outreach)
+      const { error: dncErr } = await db
+        .from("do_not_contact")
+        .upsert(
+          {
+            email: emailKey,
+            reason: "unsubscribed_cold_outreach",
+            source: "unsubscribe_page",
+            created_at: new Date().toISOString(),
+          },
+          { onConflict: "email" }
+        );
+
+      if (dncErr) {
+        console.error("do_not_contact upsert failed:", dncErr);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      }
+
+      // Also update provider_outreach_tracking to not_interested if exists
+      await db
+        .from("provider_outreach_tracking")
+        .update({
+          stage: "not_interested",
+          notes: "unsubscribed_via_email_link",
+          stage_changed_at: new Date().toISOString(),
+        })
+        .eq("provider_id", iosProvider.provider_id);
+
+      return NextResponse.json({ success: true, unsubscribed: true, type });
+    }
 
     if (!profile) {
       // Unclaimed provider path. olera-providers has no metadata column, so
@@ -111,7 +169,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, unsubscribed: shouldUnsubscribe, type });
     }
 
-    // Update business_profiles metadata
+    // Update business_profiles metadata (for leads/analytics_digest)
+    if (!flagInfo) {
+      // This shouldn't happen since cold_outreach is handled above
+      return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+    }
+    const { flag, at } = flagInfo;
     const meta = (profile.metadata as Record<string, unknown>) || {};
     const shouldUnsubscribe = body.unsubscribe !== false; // default true for backwards compat
     if (shouldUnsubscribe) {
@@ -139,8 +202,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get("slug");
     const typeParam = searchParams.get("type");
-    const type: UnsubscribeType = typeParam === "analytics_digest" ? "analytics_digest" : "leads";
-    const { flag } = flagForType(type);
+    const type: UnsubscribeType =
+      typeParam === "analytics_digest" ? "analytics_digest" :
+      typeParam === "cold_outreach" ? "cold_outreach" :
+      "leads";
+    const flagInfo = flagForType(type);
 
     if (!slug) {
       return NextResponse.json({ error: "slug is required" }, { status: 400 });
@@ -151,6 +217,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
+    // Cold outreach: check do_not_contact table
+    if (type === "cold_outreach") {
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("email")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (!iosProvider?.email) {
+        return NextResponse.json({ unsubscribed: false, type });
+      }
+
+      const { data: dncRow } = await db
+        .from("do_not_contact")
+        .select("email")
+        .eq("email", iosProvider.email.toLowerCase())
+        .maybeSingle();
+
+      return NextResponse.json({ unsubscribed: !!dncRow, type });
+    }
+
     const { data: profile } = await db
       .from("business_profiles")
       .select("metadata")
@@ -158,9 +245,9 @@ export async function GET(request: NextRequest) {
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
 
-    if (profile) {
+    if (profile && flagInfo) {
       const meta = (profile.metadata as Record<string, unknown>) || {};
-      return NextResponse.json({ unsubscribed: !!meta[flag], type });
+      return NextResponse.json({ unsubscribed: !!meta[flagInfo.flag], type });
     }
 
     // No business_profiles row — fall through to the email-keyed

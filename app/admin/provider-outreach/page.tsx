@@ -219,12 +219,11 @@ function formatPhone(phone: string): string {
 }
 
 // Labels for why a provider is in the Follow Up queue
-// Note: clicked_not_claimed and replied are future features (not yet implemented)
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
-  sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no claim
+  sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no engagement
   sequence_completed: "Sequence done",  // Legacy/alternate code
-  clicked_not_claimed: "Clicked",       // Future: provider clicked claim link but didn't finish
-  replied: "Replied",                   // Future: provider replied to an email
+  clicked_not_claimed: "Clicked",       // Provider clicked a link but didn't claim (hot lead)
+  replied: "Replied",                   // Provider replied to an email (requires inbound setup)
   manual: "Manual",                     // Admin manually moved to Follow Up
 };
 
@@ -1783,17 +1782,33 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
   const dueToday = followUpProviders.filter((p) => !p.due_date || p.due_date === today);
   const upcoming = followUpProviders.filter((p) => p.due_date && p.due_date > today);
 
-  // Sort each group by due_date ASC (oldest first)
-  const sortByDueDate = (a: OutreachProvider, b: OutreachProvider) => {
+  // Engagement priority: clicked/replied providers are "hot leads" - show them first
+  const getEngagementPriority = (reason: string | null): number => {
+    switch (reason) {
+      case "replied":            return 0; // Hottest - they replied
+      case "clicked_not_claimed": return 1; // Hot - clicked but didn't finish
+      case "manual":              return 2; // Admin flagged - probably important
+      case "sequence_exhausted":
+      case "sequence_completed":  return 3; // Cold - no engagement
+      default:                    return 4;
+    }
+  };
+
+  // Sort: engagement priority first, then due_date ASC within same priority
+  const sortByEngagementThenDate = (a: OutreachProvider, b: OutreachProvider) => {
+    const priorityA = getEngagementPriority(a.needs_call_reason);
+    const priorityB = getEngagementPriority(b.needs_call_reason);
+    if (priorityA !== priorityB) return priorityA - priorityB;
+    // Same priority - sort by due_date ASC
     if (!a.due_date && !b.due_date) return 0;
     if (!a.due_date) return 1;
     if (!b.due_date) return -1;
     return a.due_date.localeCompare(b.due_date);
   };
 
-  overdue.sort(sortByDueDate);
-  dueToday.sort(sortByDueDate);
-  upcoming.sort(sortByDueDate);
+  overdue.sort(sortByEngagementThenDate);
+  dueToday.sort(sortByEngagementThenDate);
+  upcoming.sort(sortByEngagementThenDate);
 
   const toggleProvider = (providerId: string) => {
     setExpandedProviders((prev) => {

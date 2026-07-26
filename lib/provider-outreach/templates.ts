@@ -86,20 +86,7 @@ const PLACEHOLDER = {
   cityViews: "{city_views}",
 };
 
-// Subject lines
-const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.rank} of ${PLACEHOLDER.total}`;
-const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
-const SUBJECT_FOLLOWUP = `What families see when they open ${PLACEHOLDER.providerName}`;
-const SUBJECT_DEMAND_LOSS = `Families are searching for ${PLACEHOLDER.category} in ${PLACEHOLDER.city}`;
-const SUBJECT_DEMAND_LOSS_WITH_COUNT = `Families viewed ${PLACEHOLDER.category} providers in ${PLACEHOLDER.city} ${PLACEHOLDER.cityViews} times in the last 30 days`;
-const SUBJECT_FINAL = `What claiming ${PLACEHOLDER.providerName} actually gets you`;
-const SUBJECT_NUDGE = `Your claim link for ${PLACEHOLDER.providerName}`;
-
-// Preheader text
-const PREHEADER_INTRO = "By the Google reviews they actually read";
-const PREHEADER_FOLLOWUP = `It's one of the first pages ${PLACEHOLDER.city} families compare — here's what it shows them`;
-const PREHEADER_DEMAND_LOSS = "They couldn't ask you a single question";
-const PREHEADER_FINAL = "The whole thing in one email: free leads, family questions, your page under your control";
+// Preheader text (nudge only - other emails have inline preheaders)
 const PREHEADER_NUDGE = "Two minutes, and the page is yours";
 
 /**
@@ -118,8 +105,6 @@ export function getTemplate(
   key: ProviderOutreachTemplateKey,
   ctx: TemplateContext
 ): EmailDraft {
-  const hasRank = ctx.rank != null && ctx.total != null && ctx.rank > 0;
-
   // Minimum threshold for showing specific view counts in demand-loss email
   // Below this, we use generic "families are searching" language
   const CITY_VIEWS_THRESHOLD = 10;
@@ -269,6 +254,8 @@ function finalEmail(): EmailDraft {
     subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
     preheader: `Give families confidence to reach out`,
     body: [
+      `Hi ${PLACEHOLDER.providerName},`,
+      ``,
       `Choosing senior care is one of the biggest decisions a family will ever make. They need to know they're connecting with a real person they can trust.`,
       ``,
       `A Verified badge gives them that confidence. It shows that a member of the ${PLACEHOLDER.providerName} team has confirmed the information is accurate, helping build trust before the very first conversation.`,
@@ -291,14 +278,20 @@ function finalEmail(): EmailDraft {
  */
 function nudgeEmail(): EmailDraft {
   return {
-    subject: SUBJECT_NUDGE,
+    subject: `Your free Olera page for ${PLACEHOLDER.providerName} is ready`,
     preheader: PREHEADER_NUDGE,
     body: [
-      `Just putting the claim link where it's easy to find:`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
+      `We've already created a free Olera page for ${PLACEHOLDER.providerName}. It's ready for your team to manage whenever you are.`,
       ``,
-      `It's free and puts ${PLACEHOLDER.providerName}'s page under your control: prices, photos, and family questions. If anything's in the way, reply and I'll help you directly.`,
+      `[Open your page →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `It only takes about two minutes to get started. Once your page is yours, you can start receiving leads, answering questions, and connecting directly with families looking for care.`,
+      ``,
+      `No referral fees or brokers in between. The relationship stays directly with your team.`,
+      ``,
+      `Questions? Just reply to this email and I'll help personally.`,
     ].join("\n"),
   };
 }

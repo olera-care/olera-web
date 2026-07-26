@@ -202,7 +202,7 @@ function followupEmail(): EmailDraft {
     body: [
       `Families don't choose care from a list of services. They choose the people and places they trust.`,
       ``,
-      `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that — to show families what makes ${PLACEHOLDER.providerName} different. Add photos, highlight the people behind your care, and showcase what makes your community special.`,
+      `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that. Show families what makes ${PLACEHOLDER.providerName} different. Add photos, highlight the people behind your care, and showcase what makes your community special.`,
       ``,
       `[Personalize your page →](${PLACEHOLDER.claimUrl})`,
       ``,

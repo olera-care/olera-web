@@ -2077,7 +2077,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               }`}>
                 <p className="text-sm text-gray-700 mb-2">
                   {pendingAction.type === "re_engage"
-                    ? "This will start the second and final email sequence for this provider."
+                    ? "This will prepare the provider for their second and final email sequence."
                     : "This provider has completed 2 cycles without claiming. They will be archived."}
                 </p>
                 <ul className="space-y-1.5">

@@ -2089,7 +2089,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="text-gray-400 mt-0.5">•</span>
-                        Email sequence will begin automatically
+                        Launch the sequence from the Ready tab
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="text-gray-400 mt-0.5">•</span>

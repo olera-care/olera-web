@@ -3175,8 +3175,8 @@ export default function ProviderOutreachPage() {
       case "needs_call":  // Follow Up - no bulk actions, use individual outcome buttons instead
         return [];
       case "re_engage":
+        // No "Move to In Sequence" - automation handles Cycle 2 start after 30 days
         return [
-          { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
       default:

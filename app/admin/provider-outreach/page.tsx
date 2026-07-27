@@ -4815,7 +4815,7 @@ export default function ProviderOutreachPage() {
                             <span className="text-xs text-gray-400">+7 days</span>
                           </div>
                           <p className="text-sm font-medium text-gray-800">Demand-loss Email</p>
-                          <p className="text-xs text-gray-500 mt-1">What families couldn't ask you</p>
+                          <p className="text-xs text-gray-500 mt-1">What families couldn&apos;t ask you</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">

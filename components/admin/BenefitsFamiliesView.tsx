@@ -22,6 +22,10 @@ const TIMELINE_LABELS: Record<string, string> = {
   few_months: "Few months",
   researching: "Researching",
   exploring: "Exploring",
+  // Care-timeline values from other intake flows share the same field.
+  immediate: "ASAP",
+  within_1_month: "Within a month",
+  within_3_months: "Within 3 months",
 };
 
 interface FamilyRow {

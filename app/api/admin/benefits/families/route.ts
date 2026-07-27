@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    const [{ data: events, error: eventsErr }, { count: prevCount }] = await Promise.all([
+    const [{ data: events, error: eventsErr }, { count: windowCount }, { count: prevCount }] = await Promise.all([
       db
         .from("seeker_activity")
         .select("profile_id, created_at, metadata")
@@ -79,6 +79,13 @@ export async function GET(request: NextRequest) {
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(500),
+      // True completion count — the row fetch above caps at 500, so counts
+      // must not come from events.length or growth silently under-reports.
+      db
+        .from("seeker_activity")
+        .select("id", { count: "exact", head: true })
+        .eq("event_type", "benefits_completed")
+        .gte("created_at", since),
       db
         .from("seeker_activity")
         .select("id", { count: "exact", head: true })
@@ -194,7 +201,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       days,
       summary: {
-        completions: (events ?? []).length,
+        completions: windowCount ?? (events ?? []).length,
         uniqueFamilies: families.length,
         prevCompletions: prevCount ?? 0,
         engaged,

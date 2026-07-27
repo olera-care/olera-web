@@ -1267,7 +1267,7 @@ function FollowUpProviderRow({
           title: "Wrong Contact Info",
           description: "The contact information for this provider is incorrect.",
           details: [
-            "Provider will be moved back to Not Contacted",
+            "Provider will be moved to Needs Email",
             "Their email will be cleared from the system",
             "You'll need to find correct contact info before re-engaging",
           ],
@@ -1299,30 +1299,6 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Yes, move to Ready",
           confirmClass: "bg-gray-600 hover:bg-gray-700 text-white",
-        };
-      case "move_to_in_sequence":
-        return {
-          title: "Move to In Sequence",
-          description: "Start a new email sequence for this provider.",
-          details: [
-            "Provider will be moved to In Sequence",
-            "A new 4-email sequence will begin",
-            "They will no longer appear in the Follow Up queue",
-          ],
-          confirmLabel: "Yes, move to In Sequence",
-          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "move_to_re_engage":
-        return {
-          title: "Move to Re-Engage",
-          description: "Move this provider to the Re-Engage waiting period.",
-          details: [
-            "Provider will be moved to the Re-Engage stage",
-            "They will wait 30 days before auto-cycling",
-            "They will no longer appear in the Follow Up queue",
-          ],
-          confirmLabel: "Yes, move to Re-Engage",
-          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
         };
       default:
         return null;
@@ -1531,26 +1507,6 @@ function FollowUpProviderRow({
               >
                 Ready
               </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActionMenu(false);
-                  setPendingStageMove("in_sequence");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                In Sequence
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActionMenu(false);
-                  setPendingStageMove("re_engage");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Re-Engage
-              </button>
               <div className="border-t border-gray-100 my-1" />
               <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
                 Terminal
@@ -1603,6 +1559,27 @@ function FollowUpProviderRow({
               {error}
             </div>
           )}
+
+          {/* Call Script */}
+          <details className="mb-4 bg-white border border-gray-200 rounded-lg">
+            <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
+              📞 Call Script
+            </summary>
+            <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
+              <p>
+                &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Dr. Logan DuBose&apos;s office at Olera. We run a referral program that connects families with {provider.provider_category || "care"} providers in {provider.city || "your area"}.&quot;
+              </p>
+              <p>
+                &quot;We&apos;ve created a profile for you that families visit when searching for care. We&apos;ve been sending emails about claiming it so you can manage it yourself — update your information and respond directly when families reach out.&quot;
+              </p>
+              <p>
+                &quot;Did those emails come through, or should I send the link to someone else on your team?&quot;
+              </p>
+              <p className="text-xs text-gray-400 border-t border-gray-100 pt-2 mt-2">
+                If wrong contact → &quot;Could you give me the contact for whoever handles your online listings?&quot;
+              </p>
+            </div>
+          </details>
 
           {/* Outcome Buttons - subtle outlined tags */}
           {/* Note: No "Claimed" button - auto-claim detection handles this automatically */}
@@ -2121,7 +2098,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               }`}>
                 <p className="text-sm text-gray-700 mb-2">
                   {pendingAction.type === "re_engage"
-                    ? "This will start the second and final email sequence for this provider."
+                    ? "This will prepare the provider for their second and final email sequence."
                     : "This provider has completed 2 cycles without claiming. They will be archived."}
                 </p>
                 <ul className="space-y-1.5">
@@ -2133,7 +2110,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="text-gray-400 mt-0.5">•</span>
-                        Email sequence will begin automatically
+                        Launch the sequence from the Ready tab
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="text-gray-400 mt-0.5">•</span>
@@ -3219,8 +3196,8 @@ export default function ProviderOutreachPage() {
       case "needs_call":  // Follow Up - no bulk actions, use individual outcome buttons instead
         return [];
       case "re_engage":
+        // No "Move to In Sequence" - automation handles Cycle 2 start after 30 days
         return [
-          { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
       default:
@@ -3615,6 +3592,15 @@ export default function ProviderOutreachPage() {
                       setSequenceConfirmProviders(selectedProvidersWithEmail);
                       setShowSequenceConfirm(true);
                       setShowSequencePreview(true); // Auto-expand preview accordion
+                      // Pre-populate assignee from city owner
+                      const firstProvider = selectedProvidersWithEmail[0];
+                      if (firstProvider?.city) {
+                        const cityOwner = cityOwners.get(firstProvider.city);
+                        if (cityOwner?.owner_id) {
+                          setSequenceAssigneeId(cityOwner.owner_id);
+                          setSequenceAssigneeName(cityOwner.owner_name);
+                        }
+                      }
                       // Fetch preview data for the modal
                       fetchSequencePreview(selectedProvidersWithEmail.map(p => p.provider_id));
                     } else {
@@ -4137,15 +4123,6 @@ export default function ProviderOutreachPage() {
                           Ready
                         </button>
                       )}
-                      {actionModalProvider.stage !== "in_sequence" && (
-                        <button
-                          onClick={() => setPendingStageMove("in_sequence")}
-                          disabled={actionLoading}
-                          className="px-3 py-2 text-sm text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
-                        >
-                          In Sequence
-                        </button>
-                      )}
                       {actionModalProvider.stage !== "needs_call" && (
                         <button
                           onClick={() => setPendingStageMove("needs_call")}
@@ -4153,15 +4130,6 @@ export default function ProviderOutreachPage() {
                           className="px-3 py-2 text-sm text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-50 transition-colors disabled:opacity-50"
                         >
                           Follow Up
-                        </button>
-                      )}
-                      {actionModalProvider.stage !== "re_engage" && (
-                        <button
-                          onClick={() => setPendingStageMove("re_engage")}
-                          disabled={actionLoading}
-                          className="px-3 py-2 text-sm text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
-                        >
-                          Re-Engage
                         </button>
                       )}
                       {actionModalProvider.stage !== "not_interested" && (
@@ -4197,18 +4165,14 @@ export default function ProviderOutreachPage() {
                 {/* Confirmation content */}
                 <div className={`p-3 rounded-lg border ${
                   pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
-                  pendingStageMove === "in_sequence" ? "bg-blue-50 border-blue-200" :
                   pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
-                  pendingStageMove === "not_interested" ? "bg-gray-50 border-gray-300" :
-                  "bg-purple-50 border-purple-200"
+                  "bg-gray-50 border-gray-300"
                 }`}>
                   <p className="text-sm font-medium text-gray-900">
                     Move to {
                       pendingStageMove === "not_contacted" ? "Ready" :
-                      pendingStageMove === "in_sequence" ? "In Sequence" :
                       pendingStageMove === "needs_call" ? "Follow Up" :
-                      pendingStageMove === "not_interested" ? "Not Interested" :
-                      "Re-Engage"
+                      "Not Interested"
                     }
                   </p>
                   <p className="text-xs text-gray-600 mt-0.5">
@@ -4235,22 +4199,6 @@ export default function ProviderOutreachPage() {
                         </li>
                       </>
                     )}
-                    {pendingStageMove === "in_sequence" && (
-                      <>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Provider will enter the automated email sequence
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Emails will be sent on Days 0, 3, 7, and 14
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          After Day 14, they move to Follow Up
-                        </li>
-                      </>
-                    )}
                     {pendingStageMove === "needs_call" && (
                       <>
                         <li className="flex items-start gap-2 text-sm text-gray-600">
@@ -4260,22 +4208,6 @@ export default function ProviderOutreachPage() {
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
                           Use outcome buttons to send emails or update status
-                        </li>
-                      </>
-                    )}
-                    {pendingStageMove === "re_engage" && (
-                      <>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Provider will enter the Re-Engage waiting period
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          After 30 days, they can be re-engaged one more time
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Or they can be moved to Not Interested / Archived
                         </li>
                       </>
                     )}
@@ -4879,7 +4811,7 @@ export default function ProviderOutreachPage() {
                             <span className="text-xs text-gray-400">+7 days</span>
                           </div>
                           <p className="text-sm font-medium text-gray-800">Demand-loss Email</p>
-                          <p className="text-xs text-gray-500 mt-1">What families couldn't ask you</p>
+                          <p className="text-xs text-gray-500 mt-1">What families couldn&apos;t ask you</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
@@ -4925,36 +4857,75 @@ export default function ProviderOutreachPage() {
                   if (validProviderIds.length === 0) return;
 
                   setActionLoading(true);
-                  try {
-                    // Call launch-sequence API to create tracking records and email tasks
-                    const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        provider_ids: validProviderIds,
-                        dry_run: false,
-                        assigned_to: sequenceAssigneeId,
-                      }),
-                    });
 
-                    if (res.ok) {
-                      const data = await res.json();
-                      showToast(`Started sequence for ${data.launched} provider(s)`, "success");
-                      setSelectedProviders(new Set());
-                      // Refresh data
-                      if (isNotContactedTab(activeTab)) {
-                        fetchCities();
-                        fetchProviders();
-                      } else {
-                        fetchProviders();
+                  // Split into batches of 100 to avoid API limit
+                  const BATCH_SIZE = 100;
+                  const batches: string[][] = [];
+                  for (let i = 0; i < validProviderIds.length; i += BATCH_SIZE) {
+                    batches.push(validProviderIds.slice(i, i + BATCH_SIZE));
+                  }
+
+                  let totalLaunched = 0;
+                  let totalFailed = 0;
+
+                  try {
+                    for (let i = 0; i < batches.length; i++) {
+                      const batch = batches[i];
+
+                      // Show progress for multiple batches
+                      if (batches.length > 1) {
+                        showToast(`Processing batch ${i + 1} of ${batches.length}...`, "success");
                       }
+
+                      const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          provider_ids: batch,
+                          dry_run: false,
+                          assigned_to: sequenceAssigneeId,
+                        }),
+                      });
+
+                      if (res.ok) {
+                        const data = await res.json();
+                        totalLaunched += data.launched || 0;
+                        totalFailed += data.failed || 0;
+                      } else {
+                        // Try to parse error, but handle non-JSON responses gracefully
+                        try {
+                          const err = await res.json();
+                          console.error(`Batch ${i + 1} failed:`, err);
+                        } catch {
+                          console.error(`Batch ${i + 1} failed with status ${res.status}`);
+                        }
+                        totalFailed += batch.length;
+                      }
+                    }
+
+                    // Show final result
+                    if (totalFailed === 0) {
+                      showToast(`Started sequence for ${totalLaunched} provider(s)`, "success");
                     } else {
-                      const err = await res.json();
-                      showToast(err.error || "Failed to start sequence", "error");
+                      showToast(`Started ${totalLaunched}, failed ${totalFailed}`, totalLaunched > 0 ? "success" : "error");
+                    }
+
+                    setSelectedProviders(new Set());
+                    // Refresh data
+                    if (isNotContactedTab(activeTab)) {
+                      fetchCities();
+                      fetchProviders();
+                    } else {
+                      fetchProviders();
                     }
                   } catch (err) {
                     console.error("Failed to start sequence:", err);
-                    showToast("Failed to start sequence", "error");
+                    // Show partial success if any batches completed before the error
+                    if (totalLaunched > 0) {
+                      showToast(`Started ${totalLaunched} before error, ${totalFailed} failed`, "error");
+                    } else {
+                      showToast("Failed to start sequence", "error");
+                    }
                   } finally {
                     setActionLoading(false);
                   }

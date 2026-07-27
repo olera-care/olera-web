@@ -4102,15 +4102,6 @@ export default function ProviderOutreachPage() {
                           Follow Up
                         </button>
                       )}
-                      {actionModalProvider.stage !== "re_engage" && (
-                        <button
-                          onClick={() => setPendingStageMove("re_engage")}
-                          disabled={actionLoading}
-                          className="px-3 py-2 text-sm text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
-                        >
-                          Re-Engage
-                        </button>
-                      )}
                       {actionModalProvider.stage !== "not_interested" && (
                         <button
                           onClick={() => setPendingStageMove("not_interested")}
@@ -4145,15 +4136,13 @@ export default function ProviderOutreachPage() {
                 <div className={`p-3 rounded-lg border ${
                   pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
                   pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
-                  pendingStageMove === "not_interested" ? "bg-gray-50 border-gray-300" :
-                  "bg-purple-50 border-purple-200"
+                  "bg-gray-50 border-gray-300"
                 }`}>
                   <p className="text-sm font-medium text-gray-900">
                     Move to {
                       pendingStageMove === "not_contacted" ? "Ready" :
                       pendingStageMove === "needs_call" ? "Follow Up" :
-                      pendingStageMove === "not_interested" ? "Not Interested" :
-                      "Re-Engage"
+                      "Not Interested"
                     }
                   </p>
                   <p className="text-xs text-gray-600 mt-0.5">
@@ -4189,22 +4178,6 @@ export default function ProviderOutreachPage() {
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
                           Use outcome buttons to send emails or update status
-                        </li>
-                      </>
-                    )}
-                    {pendingStageMove === "re_engage" && (
-                      <>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Provider will enter the Re-Engage waiting period
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          After 30 days, they can be re-engaged one more time
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Or they can be moved to Not Interested / Archived
                         </li>
                       </>
                     )}

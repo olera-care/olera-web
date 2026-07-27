@@ -4896,8 +4896,13 @@ export default function ProviderOutreachPage() {
                         totalLaunched += data.launched || 0;
                         totalFailed += data.failed || 0;
                       } else {
-                        const err = await res.json();
-                        console.error(`Batch ${i + 1} failed:`, err);
+                        // Try to parse error, but handle non-JSON responses gracefully
+                        try {
+                          const err = await res.json();
+                          console.error(`Batch ${i + 1} failed:`, err);
+                        } catch {
+                          console.error(`Batch ${i + 1} failed with status ${res.status}`);
+                        }
                         totalFailed += batch.length;
                       }
                     }
@@ -4919,7 +4924,12 @@ export default function ProviderOutreachPage() {
                     }
                   } catch (err) {
                     console.error("Failed to start sequence:", err);
-                    showToast("Failed to start sequence", "error");
+                    // Show partial success if any batches completed before the error
+                    if (totalLaunched > 0) {
+                      showToast(`Started ${totalLaunched} before error, ${totalFailed} failed`, "error");
+                    } else {
+                      showToast("Failed to start sequence", "error");
+                    }
                   } finally {
                     setActionLoading(false);
                   }

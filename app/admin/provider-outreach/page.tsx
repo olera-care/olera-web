@@ -1567,16 +1567,16 @@ function FollowUpProviderRow({
             </summary>
             <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
               <p>
-                &quot;Hi, this is Dr. Logan DuBose&apos;s office at Olera. I&apos;m calling about a referral program we have.&quot;
+                &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Dr. Logan DuBose&apos;s office at Olera. I&apos;m calling about a referral program.&quot;
               </p>
               <p>
-                &quot;Families in {provider.city || "your area"} are searching for {provider.provider_category || "care"} providers, and we&apos;ve already created a free profile for you. All you have to do is claim it.&quot;
+                &quot;We sent an email about claiming your free provider profile. Did you get it?&quot;
               </p>
-              <p>
-                &quot;Once you claim your profile, you can update your information so families see the most accurate details. And when a family reaches out, you&apos;ll be able to see and respond to their message right away.&quot;
+              <p className="text-gray-500 italic">
+                If yes → &quot;Great, just wanted to make sure. Let me know if you have any questions.&quot;
               </p>
-              <p>
-                &quot;Can I send you a quick link to claim your profile?&quot;
+              <p className="text-gray-500 italic">
+                If no / wrong contact → &quot;No problem. Could I get the email for whoever manages your online presence or business listings?&quot;
               </p>
             </div>
           </details>

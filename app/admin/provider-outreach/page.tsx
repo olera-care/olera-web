@@ -3571,6 +3571,15 @@ export default function ProviderOutreachPage() {
                       setSequenceConfirmProviders(selectedProvidersWithEmail);
                       setShowSequenceConfirm(true);
                       setShowSequencePreview(true); // Auto-expand preview accordion
+                      // Pre-populate assignee from city owner
+                      const firstProvider = selectedProvidersWithEmail[0];
+                      if (firstProvider?.city) {
+                        const cityOwner = cityOwners.get(firstProvider.city);
+                        if (cityOwner?.owner_id) {
+                          setSequenceAssigneeId(cityOwner.owner_id);
+                          setSequenceAssigneeName(cityOwner.owner_name);
+                        }
+                      }
                       // Fetch preview data for the modal
                       fetchSequencePreview(selectedProvidersWithEmail.map(p => p.provider_id));
                     } else {

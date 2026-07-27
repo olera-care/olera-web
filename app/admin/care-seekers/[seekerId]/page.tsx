@@ -14,6 +14,23 @@ const TIMELINE_LABELS: Record<string, string> = {
   exploring: "Exploring",
 };
 
+const CARE_NEED_LABELS: Record<string, string> = {
+  stayingAtHome: "Staying at home",
+  payingForCare: "Paying for care",
+  memoryHealth: "Memory & health care",
+  companionship: "Companionship & support",
+};
+
+interface SavedProgramRow {
+  program_id: string;
+  state_id: string | null;
+  name: string;
+  short_name: string | null;
+  program_type: string | null;
+  savings_range: string | null;
+  created_at: string;
+}
+
 interface ConnectionRow {
   id: string;
   type: string;
@@ -46,6 +63,8 @@ export default function AdminCareSeekerDetailPage() {
   const [seeker, setSeeker] = useState<any>(null);
   const [connections, setConnections] = useState<ConnectionRow[]>([]);
   const [connectionCount, setConnectionCount] = useState(0);
+  const [savedPrograms, setSavedPrograms] = useState<SavedProgramRow[]>([]);
+  const [benefitsViewedAt, setBenefitsViewedAt] = useState<string | null>(null);
 
   const fetchSeeker = useCallback(async () => {
     try {
@@ -58,6 +77,8 @@ export default function AdminCareSeekerDetailPage() {
       setSeeker(data.seeker);
       setConnections(data.connections ?? []);
       setConnectionCount(data.connectionCount ?? 0);
+      setSavedPrograms(data.savedPrograms ?? []);
+      setBenefitsViewedAt(data.benefitsResultsViewedAt ?? null);
     } catch (err) {
       console.error("Failed to fetch care seeker:", err);
     } finally {
@@ -199,6 +220,57 @@ export default function AdminCareSeekerDetailPage() {
             />
           </div>
         </Section>
+
+        {/* Benefits — shown for families who came through the benefits intake */}
+        {(meta.benefits_results || savedPrograms.length > 0 || seeker.source === "benefits_intake") && (
+          <Section title="Benefits">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <ReadOnlyField
+                label="Care Need"
+                value={(() => {
+                  const cn = meta.benefits_results?.answers?.careNeed;
+                  return typeof cn === "string" ? CARE_NEED_LABELS[cn] ?? cn : null;
+                })()}
+              />
+              <ReadOnlyField
+                label="Intake Completed"
+                value={
+                  meta.benefits_results?.completed_at
+                    ? new Date(meta.benefits_results.completed_at).toLocaleDateString()
+                    : null
+                }
+              />
+              <ReadOnlyField
+                label="Programs Matched"
+                value={meta.benefits_results?.matchCount != null ? String(meta.benefits_results.matchCount) : null}
+              />
+              <ReadOnlyField
+                label="Results Page Viewed"
+                value={benefitsViewedAt ? new Date(benefitsViewedAt).toLocaleDateString() : "Never"}
+              />
+            </div>
+            {savedPrograms.length > 0 && (
+              <details className="mt-4">
+                <summary className="text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">
+                  Saved programs ({savedPrograms.length})
+                </summary>
+                <div className="mt-3 divide-y divide-gray-100 border border-gray-100 rounded-lg">
+                  {savedPrograms.map((p) => (
+                    <div key={p.program_id} className="px-4 py-2.5 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm text-gray-900 truncate">{p.short_name || p.name}</p>
+                        {p.short_name && p.short_name !== p.name && (
+                          <p className="text-xs text-gray-400 truncate">{p.name}</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 shrink-0">{p.savings_range || p.state_id || ""}</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </Section>
+        )}
 
         {/* Connection History */}
         <Section title="Connection History">

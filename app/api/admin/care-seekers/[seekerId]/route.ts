@@ -52,10 +52,37 @@ export async function GET(
       .order("created_at", { ascending: false })
       .limit(10);
 
+    // Benefits: results-page views (token) + saved programs. saved_programs
+    // keys off auth.users, so resolve profile → account → user first.
+    const [{ data: tokenRows }, { data: account }] = await Promise.all([
+      db
+        .from("benefits_results_tokens")
+        .select("last_viewed_at")
+        .eq("profile_id", seekerId)
+        .not("last_viewed_at", "is", null)
+        .order("last_viewed_at", { ascending: false })
+        .limit(1),
+      seeker.account_id
+        ? db.from("accounts").select("user_id").eq("id", seeker.account_id).single()
+        : Promise.resolve({ data: null }),
+    ]);
+
+    let savedPrograms: unknown[] = [];
+    if (account?.user_id) {
+      const { data } = await db
+        .from("saved_programs")
+        .select("program_id, state_id, name, short_name, program_type, savings_range, created_at")
+        .eq("user_id", account.user_id)
+        .order("created_at", { ascending: false });
+      savedPrograms = data ?? [];
+    }
+
     return NextResponse.json({
       seeker,
       connectionCount: connectionCount ?? 0,
       connections: connections ?? [],
+      savedPrograms,
+      benefitsResultsViewedAt: tokenRows?.[0]?.last_viewed_at ?? null,
     });
   } catch (err) {
     console.error("Admin care-seeker detail error:", err);

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useToast } from "@/components/admin/Toast";
+import BenefitsFamiliesView from "@/components/admin/BenefitsFamiliesView";
 import { allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
 import { pipelineData, type PipelineComparison, type PipelineStateSummary } from "@/data/pipeline-summary";
 import { pipelineDrafts, type PipelineDraft, type PipelineStateOverview } from "@/data/pipeline-drafts";
@@ -1155,6 +1156,9 @@ function StateDetail({
 type ReadinessFilter = "all" | "published" | "drafted" | "explored" | "scaffolding";
 
 export default function AdminBenefitsPage() {
+  // Families is the primary view — the content-ops CMS is demoted to a
+  // secondary tab (mostly used during pipeline/review pushes).
+  const [view, setView] = useState<"families" | "content">("families");
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -1182,7 +1186,9 @@ export default function AdminBenefitsPage() {
     const stateParam = params.get("state");
     if (stateParam && allStates.some((s) => s.abbreviation === stateParam.toUpperCase())) {
       setSelectedState(stateParam.toUpperCase());
+      setView("content");
     }
+    if (params.get("view") === "content") setView("content");
   }, []);
 
   const globalStats = useMemo(() => {
@@ -1275,9 +1281,31 @@ export default function AdminBenefitsPage() {
 
   return (
     <div>
-      {/* Header — serif title + status line */}
+      {/* Header — serif title + view toggle */}
       <div className="mb-8">
-        <h1 className="text-display-xs font-bold text-gray-900 font-serif">Benefits Content</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-display-xs font-bold text-gray-900 font-serif">Benefits</h1>
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            <button
+              onClick={() => setView("families")}
+              className={`px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                view === "families" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              Families
+            </button>
+            <button
+              onClick={() => setView("content")}
+              className={`px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                view === "content" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"
+              }`}
+            >
+              Content
+            </button>
+          </div>
+        </div>
+        {view === "content" && (
+        <>
         <p className="text-sm text-gray-500 mt-1">
           {globalStats.readiness.drafted > 0 && (
             <><span className="font-medium text-gray-700">{globalStats.readiness.drafted}</span> drafted</>
@@ -1306,9 +1334,13 @@ export default function AdminBenefitsPage() {
             <div className="bg-amber-400 transition-all" style={{ width: `${(globalStats.readiness.explored / allStates.length) * 100}%` }} />
           )}
         </div>
+        </>
+        )}
       </div>
 
-      {stateData ? (
+      {view === "families" ? (
+        <BenefitsFamiliesView />
+      ) : stateData ? (
         <StateDetail
           state={stateData}
           onBack={() => window.history.back()}

@@ -67,6 +67,9 @@ export interface FirstStepPick {
   /** State slug for the program page route. */
   stateId: string;
   stateAbbrev: string;
+  /** How this program was chosen — "entry" means it's the program page the
+   *  family arrived through, which the email calls out for recognition. */
+  source: "entry" | "saved" | "state";
   name: string;
   shortName: string;
   savingsRange: string | null;
@@ -88,7 +91,12 @@ function draftFor(stateAbbrev: string, programId: string): PipelineDraft | null 
 
 /** A draft can anchor a first-step email only when it carries the v3 content:
  *  a callable contact + a document list. Returns the pick or null. */
-function toPick(draft: PipelineDraft, stateAbbrev: string, stateId: string): FirstStepPick | null {
+function toPick(
+  draft: PipelineDraft,
+  stateAbbrev: string,
+  stateId: string,
+  source: FirstStepPick["source"],
+): FirstStepPick | null {
   const contacts = draft.contacts || [];
   const contact =
     contacts.find((c) => c.phone && /start here/i.test(c.label)) ||
@@ -99,6 +107,7 @@ function toPick(draft: PipelineDraft, stateAbbrev: string, stateId: string): Fir
     programId: draft.id,
     stateId,
     stateAbbrev,
+    source,
     name: draft.name,
     shortName: draft.shortName || draft.name,
     savingsRange: draft.savingsRange?.trim() || null,
@@ -156,7 +165,7 @@ export async function selectFirstStepProgram(
     const abbrev = getStateAbbrev(entry.stateId);
     const draft = draftFor(abbrev, entry.programId);
     if (draft) {
-      const pick = toPick(draft, abbrev, entry.stateId);
+      const pick = toPick(draft, abbrev, entry.stateId, "entry");
       if (pick) return pick;
     }
   }
@@ -175,7 +184,7 @@ export async function selectFirstStepProgram(
     const abbrev = getStateAbbrev(row.state_id);
     const draft = draftFor(abbrev, row.program_id);
     if (!draft) return;
-    const pick = toPick(draft, abbrev, row.state_id);
+    const pick = toPick(draft, abbrev, row.state_id, "saved");
     if (!pick) return;
     candidates.push({ pick, rank: COMPLEXITY_RANK[draft.complexity] ?? 3, idx });
   });
@@ -191,7 +200,7 @@ export async function selectFirstStepProgram(
       for (const s of startHere) {
         const draft = draftFor(abbrev, s.programId);
         if (!draft) continue;
-        const pick = toPick(draft, abbrev, stateId);
+        const pick = toPick(draft, abbrev, stateId, "state");
         if (pick) return pick;
       }
     }

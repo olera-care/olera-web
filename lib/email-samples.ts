@@ -194,6 +194,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       ],
       tip: "Apply early in the month. Many local agencies release assistance funds monthly and they run out fast.",
       programUrl: "https://olera.care/benefits/texas/liheap",
+      pickedFromEntryPage: true,
     }),
   },
   {

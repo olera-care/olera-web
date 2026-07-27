@@ -1527,6 +1527,9 @@ export function benefitsFirstStepEmail(opts: {
   documents: string[];
   tip: string | null;
   programUrl: string;
+  /** True when the program is the one whose page the family arrived through —
+   *  the card then says so, turning a cold match into recognition. */
+  pickedFromEntryPage?: boolean;
   unsubscribeId?: string;
 }): string {
   const familyFirstName = firstName(opts.familyName, "there");
@@ -1535,59 +1538,67 @@ export function benefitsFirstStepEmail(opts: {
   const docsHtml = opts.documents
     .map(
       (d) =>
-        `<tr><td style="padding:4px 8px 4px 0;font-size:14px;color:${BRAND_COLOR};vertical-align:top;">&#10003;</td><td style="padding:4px 0;font-size:14px;color:#374151;line-height:1.5;">${escapeHtml(stripEmDashes(d))}</td></tr>`,
+        `<tr><td style="padding:4px 8px 4px 0;font-size:15px;color:${BRAND_COLOR};vertical-align:top;">&#10003;</td><td style="padding:4px 0;font-size:15px;color:#374151;line-height:1.5;">${escapeHtml(stripEmDashes(d))}</td></tr>`,
     )
     .join("");
 
+  const recognitionLine = opts.pickedFromEntryPage
+    ? `<p style="font-size:13px;color:#6b7280;margin:0 0 4px;">The program you were looking into</p>`
+    : `<p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Your closest match</p>`;
+
   const savingsLine = opts.savingsRange
-    ? `<p style="font-size:13px;color:#047857;font-weight:600;margin:4px 0 0;">${escapeHtml(opts.savingsRange)}</p>`
+    ? `<p style="font-size:14px;color:#047857;font-weight:600;margin:4px 0 0;">Typically ${escapeHtml(opts.savingsRange)}</p>`
     : "";
 
   const hoursLine = opts.contactHours
-    ? `<p style="font-size:13px;color:#6b7280;margin:4px 0 0;">${escapeHtml(opts.contactHours)}</p>`
+    ? `<p style="font-size:14px;color:#6b7280;margin:8px 0 0;">${escapeHtml(opts.contactHours)}</p>`
     : "";
 
   const tipHtml = opts.tip
     ? `<div style="background:#fffbeb;border-radius:8px;padding:12px 16px;margin:0 0 24px;">
-        <p style="font-size:13px;color:#92400e;margin:0;line-height:1.5;"><strong>Worth knowing:</strong> ${escapeHtml(stripEmDashes(opts.tip))}</p>
+        <p style="font-size:14px;color:#92400e;margin:0;line-height:1.5;"><strong>Worth knowing:</strong> ${escapeHtml(stripEmDashes(opts.tip))}</p>
       </div>`
     : "";
 
   return layout(
     `
-    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+    <p style="font-size:16px;color:#374151;margin:0 0 16px;line-height:1.5;">
       Hi ${escapeHtml(familyFirstName)},
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
-      A few days ago we matched you with benefit programs in your state. Most families never start
-      because the first step feels big. So we shrank it. Here is the whole thing, about ten minutes:
+    <p style="font-size:16px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      Most families never start on benefit programs because the first step feels big.
+      So we shrank yours: it&rsquo;s one phone call, and you can take it in about ten minutes.
     </p>
 
-    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;margin:0 0 24px;">
+    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:16px 18px;margin:0 0 20px;">
+      ${recognitionLine}
       <p style="font-size:16px;font-weight:700;color:#111827;margin:0;line-height:1.4;">${escapeHtml(opts.programName)}</p>
       ${savingsLine}
     </div>
 
-    <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 8px;">1. Make one phone call</p>
+    <p style="font-size:15px;font-weight:700;color:#111827;margin:0 0 8px;">1. Make the call</p>
     <div style="background:#f9fafb;border-radius:8px;padding:14px 16px;margin:0 0 20px;">
-      <p style="font-size:14px;color:#374151;margin:0;">${escapeHtml(stripEmDashes(opts.contactLabel))}</p>
-      <p style="margin:6px 0 0;"><a href="${phoneHref}" style="font-size:20px;font-weight:700;color:${BRAND_COLOR};text-decoration:none;">${escapeHtml(opts.contactPhone)}</a></p>
+      <p style="font-size:15px;color:#374151;margin:0 0 10px;">${escapeHtml(stripEmDashes(opts.contactLabel))}</p>
+      <a href="${phoneHref}" style="display:block;text-align:center;padding:14px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:17px;font-weight:700;text-decoration:none;border-radius:8px;">Call ${escapeHtml(opts.contactPhone)}</a>
       ${hoursLine}
     </div>
 
-    <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 8px;">2. Say this</p>
+    <p style="font-size:15px;font-weight:700;color:#111827;margin:0 0 8px;">2. Say this</p>
     <div style="border-left:3px solid ${BRAND_COLOR};padding:2px 0 2px 14px;margin:0 0 20px;">
-      <p style="font-size:14px;color:#4b5563;margin:0;line-height:1.6;font-style:italic;">&ldquo;${escapeHtml(opts.callScript)}&rdquo;</p>
+      <p style="font-size:15px;color:#374151;margin:0;line-height:1.6;">&ldquo;${escapeHtml(opts.callScript)}&rdquo;</p>
     </div>
 
-    <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 8px;">3. Have these nearby, if you can</p>
-    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">${docsHtml}</table>
+    <p style="font-size:15px;font-weight:700;color:#111827;margin:0 0 8px;">3. Have these nearby, if you can</p>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 8px;">${docsHtml}</table>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Don&rsquo;t have everything? Call anyway. The person on the phone will tell you what matters and what can wait.
+    </p>
 
     ${tipHtml}
 
-    <div style="margin:0 0 8px;">${button("See the full guide for " + escapeHtml(opts.programShortName), opts.programUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:12px 0 0;line-height:1.5;">
-      Missing a document is fine. The person on the phone will tell you what matters and what can wait.
+    <p style="margin:0 0 6px;">${browseLink("See the full guide for " + escapeHtml(opts.programShortName), opts.programUrl)}</p>
+    <p style="font-size:14px;color:#6b7280;margin:12px 0 0;line-height:1.5;">
+      Questions before you call? Email <a href="mailto:support@olera.care" style="color:${BRAND_COLOR};text-decoration:none;">support@olera.care</a> and a real person will answer.
     </p>
     ${careUnsubscribeFooter(opts.unsubscribeId)}
   `,
@@ -1627,17 +1638,17 @@ export function benefitsCheckInEmail(opts: {
 
   return layout(
     `
-    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+    <p style="font-size:16px;color:#374151;margin:0 0 20px;line-height:1.5;">
       Hi ${escapeHtml(familyFirstName)},
     </p>
-    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">
+    <p style="font-size:16px;color:#374151;margin:0 0 24px;line-height:1.6;">
       A few days ago we sent you the first step for <strong>${program}</strong>.
       However far you got, even if that's nowhere yet, tap the one that fits:
     </p>
     <div style="margin:0 0 12px;">${primaryBtn("It's moving", opts.movingUrl)}</div>
     <div style="margin:0 0 12px;">${neutralBtn("I want help with this", opts.helpUrl)}</div>
     <div style="margin:0 0 24px;">${neutralBtn("This program isn't right for me", opts.wrongUrl)}</div>
-    <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.6;">
+    <p style="font-size:15px;color:#6b7280;margin:0;line-height:1.6;">
       Whichever you tap, we'll point you to the next step. If you ask for help, a real person
       from Olera follows up. Nobody applies for these programs alone, and you don't have to either.
     </p>

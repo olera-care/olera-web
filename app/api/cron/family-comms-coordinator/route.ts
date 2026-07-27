@@ -949,6 +949,7 @@ export async function GET(request: NextRequest) {
                     documents: pick.documents,
                     tip: pick.tip,
                     programUrl: `${siteUrl}${appendTrackingParams(pick.programPath, eid)}`,
+                    pickedFromEntryPage: pick.source === "entry",
                     unsubscribeId: fam.familyId,
                   }),
                 stamp: async (sentAt) => {

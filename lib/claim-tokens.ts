@@ -454,6 +454,78 @@ export function validateQuizToken(
 // every href, overwrite the family's real answer with the last chip scanned.
 
 /**
+ * ── Benefits-outcome tokens ──────────────────────────────────────────────────
+ *
+ * Carries the family + their check-in answer from the benefits check-in email
+ * chips to /benefits-outcome, which records it via a client-side POST (the
+ * quiz-answer pattern — a GET that writes would let email link-scanners, which
+ * follow every href, record the last chip they crawled). Same HMAC scheme,
+ * distinct "boutcome:" domain.
+ *
+ * Expiry is 30 days (not TOKEN_EXPIRY_HOURS): the check-in lands ~day 5-6 and
+ * families act on benefits email late — a 72h window would dead-link most
+ * real taps.
+ */
+
+export type BenefitsOutcomeTokenValue = "moving" | "wants_help" | "wrong_program";
+
+const BENEFITS_OUTCOME_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
+
+interface BenefitsOutcomeTokenPayload {
+  familyProfileId: string;
+  value: BenefitsOutcomeTokenValue;
+  email: string;
+  expiresAt: number;
+}
+
+function generateBenefitsOutcomeSignature(p: BenefitsOutcomeTokenPayload): string {
+  const data = `boutcome:${p.familyProfileId}:${p.value}:${p.email}:${p.expiresAt}`;
+  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+}
+
+export function generateBenefitsOutcomeToken(
+  familyProfileId: string,
+  value: BenefitsOutcomeTokenValue,
+  email: string,
+): string {
+  const expiresAt = Date.now() + BENEFITS_OUTCOME_EXPIRY_MS;
+  const payload: BenefitsOutcomeTokenPayload = { familyProfileId, value, email, expiresAt };
+  const tokenData = { ...payload, signature: generateBenefitsOutcomeSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateBenefitsOutcomeToken(
+  token: string,
+):
+  | { valid: true; familyProfileId: string; value: BenefitsOutcomeTokenValue; email: string }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as BenefitsOutcomeTokenPayload & {
+      signature: string;
+    };
+    const { familyProfileId, value, email, expiresAt, signature } = tokenData;
+    if (!familyProfileId || !value || !email || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (!["moving", "wants_help", "wrong_program"].includes(value)) {
+      return { valid: false, error: "Invalid outcome value" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    if (signature !== generateBenefitsOutcomeSignature({ familyProfileId, value, email, expiresAt })) {
+      return { valid: false, error: "Invalid token signature" };
+    }
+    return { valid: true, familyProfileId, value, email };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+/**
  * ── Program-brief tokens ─────────────────────────────────────────────────────
  *
  * Carries family context (id + email) to /family/program/[pid] so the brief can

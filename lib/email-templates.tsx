@@ -1494,6 +1494,159 @@ export function connectionOutcomeCheckEmail(opts: {
   );
 }
 
+// ── Benefits Cascade (rungs B1/B2 of the family-comms coordinator) ─────────
+
+/** Subject for the ten-minute first step. Program name only, no PHI. */
+export function benefitsFirstStepSubject(programShortName: string): string {
+  return `Your first step for ${programShortName} takes about ten minutes`;
+}
+
+/** Pipeline-draft prose (tips, document lists, contact labels) is AI-drafted
+ *  and routinely carries em dashes — the tell we keep out of shipped copy.
+ *  Spaced dashes become commas, joining dashes become hyphens. */
+function stripEmDashes(text: string): string {
+  return text.replace(/\s*—\s*/g, (m) => (/\s/.test(m) ? ", " : "-")).replace(/—/g, "-");
+}
+
+/**
+ * Rung B1 — the ten-minute first step. Not a check-in: ONE program, one
+ * phone number, what to say, and the documents to have nearby. Content comes
+ * from the state pipeline drafts via selectFirstStepProgram (documentsNeeded /
+ * contacts / applicationNotes, 51 states). The posture is "we did the homework,
+ * here is the shortest path", never "have you applied yet".
+ */
+export function benefitsFirstStepEmail(opts: {
+  familyName: string;
+  programName: string;
+  programShortName: string;
+  savingsRange: string | null;
+  contactLabel: string;
+  contactPhone: string;
+  contactHours: string | null;
+  callScript: string;
+  documents: string[];
+  tip: string | null;
+  programUrl: string;
+  unsubscribeId?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const phoneHref = `tel:${opts.contactPhone.replace(/[^\d+]/g, "")}`;
+
+  const docsHtml = opts.documents
+    .map(
+      (d) =>
+        `<tr><td style="padding:4px 8px 4px 0;font-size:14px;color:${BRAND_COLOR};vertical-align:top;">&#10003;</td><td style="padding:4px 0;font-size:14px;color:#374151;line-height:1.5;">${escapeHtml(stripEmDashes(d))}</td></tr>`,
+    )
+    .join("");
+
+  const savingsLine = opts.savingsRange
+    ? `<p style="font-size:13px;color:#047857;font-weight:600;margin:4px 0 0;">${escapeHtml(opts.savingsRange)}</p>`
+    : "";
+
+  const hoursLine = opts.contactHours
+    ? `<p style="font-size:13px;color:#6b7280;margin:4px 0 0;">${escapeHtml(opts.contactHours)}</p>`
+    : "";
+
+  const tipHtml = opts.tip
+    ? `<div style="background:#fffbeb;border-radius:8px;padding:12px 16px;margin:0 0 24px;">
+        <p style="font-size:13px;color:#92400e;margin:0;line-height:1.5;"><strong>Worth knowing:</strong> ${escapeHtml(stripEmDashes(opts.tip))}</p>
+      </div>`
+    : "";
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.6;">
+      A few days ago we matched you with benefit programs in your state. Most families never start
+      because the first step feels big. So we shrank it. Here is the whole thing, about ten minutes:
+    </p>
+
+    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;margin:0 0 24px;">
+      <p style="font-size:16px;font-weight:700;color:#111827;margin:0;line-height:1.4;">${escapeHtml(opts.programName)}</p>
+      ${savingsLine}
+    </div>
+
+    <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 8px;">1. Make one phone call</p>
+    <div style="background:#f9fafb;border-radius:8px;padding:14px 16px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#374151;margin:0;">${escapeHtml(stripEmDashes(opts.contactLabel))}</p>
+      <p style="margin:6px 0 0;"><a href="${phoneHref}" style="font-size:20px;font-weight:700;color:${BRAND_COLOR};text-decoration:none;">${escapeHtml(opts.contactPhone)}</a></p>
+      ${hoursLine}
+    </div>
+
+    <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 8px;">2. Say this</p>
+    <div style="border-left:3px solid ${BRAND_COLOR};padding:2px 0 2px 14px;margin:0 0 20px;">
+      <p style="font-size:14px;color:#4b5563;margin:0;line-height:1.6;font-style:italic;">&ldquo;${escapeHtml(opts.callScript)}&rdquo;</p>
+    </div>
+
+    <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 8px;">3. Have these nearby, if you can</p>
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">${docsHtml}</table>
+
+    ${tipHtml}
+
+    <div style="margin:0 0 8px;">${button("See the full guide for " + escapeHtml(opts.programShortName), opts.programUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:12px 0 0;line-height:1.5;">
+      Missing a document is fine. The person on the phone will tell you what matters and what can wait.
+    </p>
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `,
+    `One call starts ${opts.programShortName}. We wrote down the number, what to say, and what to have nearby.`,
+  );
+}
+
+/** Subject for the check-in that is an offer. Program name only, no PHI. */
+export function benefitsCheckInSubject(programShortName: string): string {
+  return `How is it going with ${programShortName}?`;
+}
+
+/**
+ * Rung B2 — the check that's an offer. Three chips, all forward-looking:
+ * "It's moving / I want help / This program isn't right for me". Every answer
+ * gets help on the landing page; outcome data is the exhaust, not the product
+ * (the responsibility-asymmetry lesson: applying is the family's own hard
+ * task, so a "did you do it?" audit trains them to avoid us). Chips link to
+ * /benefits-outcome pages that record the answer via a client-side POST on
+ * mount — scanner-safe, mirrors connectionOutcomeCheckEmail.
+ */
+export function benefitsCheckInEmail(opts: {
+  familyName: string;
+  programShortName: string;
+  movingUrl: string;
+  helpUrl: string;
+  wrongUrl: string;
+  unsubscribeId?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const program = escapeHtml(opts.programShortName);
+
+  const primaryBtn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:13px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
+  const neutralBtn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:13px 24px;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border:1px solid #d1d5db;border-radius:8px;">${label}</a>`;
+
+  return layout(
+    `
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.6;">
+      A few days ago we sent you the first step for <strong>${program}</strong>.
+      However far you got, even if that's nowhere yet, tap the one that fits:
+    </p>
+    <div style="margin:0 0 12px;">${primaryBtn("It's moving", opts.movingUrl)}</div>
+    <div style="margin:0 0 12px;">${neutralBtn("I want help with this", opts.helpUrl)}</div>
+    <div style="margin:0 0 24px;">${neutralBtn("This program isn't right for me", opts.wrongUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0;line-height:1.6;">
+      Whichever you tap, we'll point you to the next step. If you ask for help, a real person
+      from Olera follows up. Nobody applies for these programs alone, and you don't have to either.
+    </p>
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `,
+    `However far you got with ${opts.programShortName}, one tap tells us how to help next.`,
+  );
+}
+
 /** Subject for the archetype first-touch — one question, no PHI. */
 export function archetypeSubject(): string {
   return "Quick question about where you are";

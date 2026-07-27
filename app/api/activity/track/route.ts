@@ -71,6 +71,7 @@ const FAMILY_EVENT_TYPES = [
   "qa_email_capture_impression",
   "question_email_enriched",
   "connection_outcome_reported", // Family one-click self-report: did the provider respond? (migration 115)
+  "benefits_outcome_reported",   // Family self-report from the benefits check-in: moving | wants_help | wrong_program (migration 148)
 ] as const;
 
 // Anonymous events are care-seeker-driven but lack a known profile_id.

@@ -1570,13 +1570,13 @@ function FollowUpProviderRow({
                 &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Dr. Logan DuBose&apos;s office at Olera. We run a referral program that connects families with {provider.provider_category || "care"} providers in {provider.city || "your area"}.&quot;
               </p>
               <p>
-                &quot;We&apos;ve been sending families your way, and I wanted to make sure you saw the emails we sent about claiming your profile. Once you claim it, you can update your info and respond directly when families reach out.&quot;
+                &quot;We&apos;ve created a profile for you that families visit when searching for care. We&apos;ve been sending emails about claiming it so you can manage it yourself — update your information and respond directly when families reach out.&quot;
               </p>
               <p>
                 &quot;Did those emails come through, or should I send the link to someone else on your team?&quot;
               </p>
               <p className="text-xs text-gray-400 border-t border-gray-100 pt-2 mt-2">
-                If wrong contact → ask for the email of whoever handles their online listings or marketing.
+                If wrong contact → &quot;Could you give me the contact for whoever handles your online listings?&quot;
               </p>
             </div>
           </details>

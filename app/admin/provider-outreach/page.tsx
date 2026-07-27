@@ -4093,15 +4093,6 @@ export default function ProviderOutreachPage() {
                           Ready
                         </button>
                       )}
-                      {actionModalProvider.stage !== "in_sequence" && (
-                        <button
-                          onClick={() => setPendingStageMove("in_sequence")}
-                          disabled={actionLoading}
-                          className="px-3 py-2 text-sm text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50"
-                        >
-                          In Sequence
-                        </button>
-                      )}
                       {actionModalProvider.stage !== "needs_call" && (
                         <button
                           onClick={() => setPendingStageMove("needs_call")}
@@ -4153,7 +4144,6 @@ export default function ProviderOutreachPage() {
                 {/* Confirmation content */}
                 <div className={`p-3 rounded-lg border ${
                   pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
-                  pendingStageMove === "in_sequence" ? "bg-blue-50 border-blue-200" :
                   pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
                   pendingStageMove === "not_interested" ? "bg-gray-50 border-gray-300" :
                   "bg-purple-50 border-purple-200"
@@ -4161,7 +4151,6 @@ export default function ProviderOutreachPage() {
                   <p className="text-sm font-medium text-gray-900">
                     Move to {
                       pendingStageMove === "not_contacted" ? "Ready" :
-                      pendingStageMove === "in_sequence" ? "In Sequence" :
                       pendingStageMove === "needs_call" ? "Follow Up" :
                       pendingStageMove === "not_interested" ? "Not Interested" :
                       "Re-Engage"
@@ -4188,22 +4177,6 @@ export default function ProviderOutreachPage() {
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
                           You can start a fresh outreach sequence later
-                        </li>
-                      </>
-                    )}
-                    {pendingStageMove === "in_sequence" && (
-                      <>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Provider will enter the automated email sequence
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          Emails will be sent on Days 0, 3, 7, and 14
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-gray-600">
-                          <span className="text-gray-400 mt-0.5">•</span>
-                          After Day 14, they move to Follow Up
                         </li>
                       </>
                     )}

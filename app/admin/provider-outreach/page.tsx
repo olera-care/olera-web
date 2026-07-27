@@ -1300,30 +1300,6 @@ function FollowUpProviderRow({
           confirmLabel: "Yes, move to Ready",
           confirmClass: "bg-gray-600 hover:bg-gray-700 text-white",
         };
-      case "move_to_in_sequence":
-        return {
-          title: "Move to In Sequence",
-          description: "Start a new email sequence for this provider.",
-          details: [
-            "Provider will be moved to In Sequence",
-            "A new 4-email sequence will begin",
-            "They will no longer appear in the Follow Up queue",
-          ],
-          confirmLabel: "Yes, move to In Sequence",
-          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "move_to_re_engage":
-        return {
-          title: "Move to Re-Engage",
-          description: "Move this provider to the Re-Engage waiting period.",
-          details: [
-            "Provider will be moved to the Re-Engage stage",
-            "They will wait 30 days before auto-cycling",
-            "They will no longer appear in the Follow Up queue",
-          ],
-          confirmLabel: "Yes, move to Re-Engage",
-          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
-        };
       default:
         return null;
     }
@@ -1530,26 +1506,6 @@ function FollowUpProviderRow({
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Ready
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActionMenu(false);
-                  setPendingStageMove("in_sequence");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                In Sequence
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActionMenu(false);
-                  setPendingStageMove("re_engage");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Re-Engage
               </button>
               <div className="border-t border-gray-100 my-1" />
               <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">

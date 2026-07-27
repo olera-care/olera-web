@@ -4861,32 +4861,61 @@ export default function ProviderOutreachPage() {
                   if (validProviderIds.length === 0) return;
 
                   setActionLoading(true);
-                  try {
-                    // Call launch-sequence API to create tracking records and email tasks
-                    const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        provider_ids: validProviderIds,
-                        dry_run: false,
-                        assigned_to: sequenceAssigneeId,
-                      }),
-                    });
 
-                    if (res.ok) {
-                      const data = await res.json();
-                      showToast(`Started sequence for ${data.launched} provider(s)`, "success");
-                      setSelectedProviders(new Set());
-                      // Refresh data
-                      if (isNotContactedTab(activeTab)) {
-                        fetchCities();
-                        fetchProviders();
-                      } else {
-                        fetchProviders();
+                  // Split into batches of 100 to avoid API limit
+                  const BATCH_SIZE = 100;
+                  const batches: string[][] = [];
+                  for (let i = 0; i < validProviderIds.length; i += BATCH_SIZE) {
+                    batches.push(validProviderIds.slice(i, i + BATCH_SIZE));
+                  }
+
+                  let totalLaunched = 0;
+                  let totalFailed = 0;
+
+                  try {
+                    for (let i = 0; i < batches.length; i++) {
+                      const batch = batches[i];
+
+                      // Show progress for multiple batches
+                      if (batches.length > 1) {
+                        showToast(`Processing batch ${i + 1} of ${batches.length}...`, "success");
                       }
+
+                      const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          provider_ids: batch,
+                          dry_run: false,
+                          assigned_to: sequenceAssigneeId,
+                        }),
+                      });
+
+                      if (res.ok) {
+                        const data = await res.json();
+                        totalLaunched += data.launched || 0;
+                        totalFailed += data.failed || 0;
+                      } else {
+                        const err = await res.json();
+                        console.error(`Batch ${i + 1} failed:`, err);
+                        totalFailed += batch.length;
+                      }
+                    }
+
+                    // Show final result
+                    if (totalFailed === 0) {
+                      showToast(`Started sequence for ${totalLaunched} provider(s)`, "success");
                     } else {
-                      const err = await res.json();
-                      showToast(err.error || "Failed to start sequence", "error");
+                      showToast(`Started ${totalLaunched}, failed ${totalFailed}`, totalLaunched > 0 ? "success" : "error");
+                    }
+
+                    setSelectedProviders(new Set());
+                    // Refresh data
+                    if (isNotContactedTab(activeTab)) {
+                      fetchCities();
+                      fetchProviders();
+                    } else {
+                      fetchProviders();
                     }
                   } catch (err) {
                     console.error("Failed to start sequence:", err);

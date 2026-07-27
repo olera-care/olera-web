@@ -1164,6 +1164,9 @@ export function slackBenefitsCompleted(opts: {
   medicaidStatus: string | null;
   incomeRange: string | null;
   matchCount: number;
+  /** Rows actually written to saved_programs this request. Differs from
+   *  matchCount for returning users (upsert ignores duplicates). */
+  programsSaved?: number | null;
   topProgramName: string | null;
   topSavings: string | null;
   isNewUser: boolean;
@@ -1215,11 +1218,16 @@ export function slackBenefitsCompleted(opts: {
   }
   const situation = situationParts.length > 0 ? situationParts.join(", ") : "situation details unknown";
 
-  // Match summary
+  // Match summary — "matched" is the keyword-filter count; "saved" is rows
+  // actually written (returning users often re-save 0).
   const programWord = opts.matchCount === 1 ? "program" : "programs";
+  const savedNote =
+    opts.programsSaved != null && opts.programsSaved !== opts.matchCount
+      ? ` (${opts.programsSaved} newly saved)`
+      : "";
   const matchLine = opts.topProgramName && opts.topSavings
-    ? `${opts.matchCount} ${programWord} saved • Top: *${opts.topProgramName}* (${opts.topSavings})`
-    : `${opts.matchCount} ${programWord} saved`;
+    ? `${opts.matchCount} ${programWord} matched${savedNote} • Top: *${opts.topProgramName}* (${opts.topSavings})`
+    : `${opts.matchCount} ${programWord} matched${savedNote}`;
 
   return {
     text: `Benefits intake completed: ${opts.familyName} (${opts.matchCount} ${opts.matchCount === 1 ? "match" : "matches"})`,
@@ -1252,7 +1260,9 @@ export function slackBenefitsCompleted(opts: {
       {
         type: "context",
         elements: [
-          { type: "mrkdwn", text: `<${siteUrl}/admin/activity?actor=families&event_type=benefits_completed|View in Activity Center>` },
+          // NOTE: the Activity Center page reads `category`, not `event_type`
+          // — `category=benefits` is the param that actually filters.
+          { type: "mrkdwn", text: `<${siteUrl}/admin/activity?actor=families&category=benefits|View in Activity Center> · <${siteUrl}/admin/benefits|Benefits Families>` },
         ],
       },
     ],

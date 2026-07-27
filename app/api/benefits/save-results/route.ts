@@ -640,15 +640,20 @@ export async function POST(req: Request) {
     isNewProfile
       ? db.from("accounts").update({ active_profile_id: familyProfileId }).eq("id", accountId)
       : Promise.resolve(null),
-    // Batch save programs (skip if empty)
+    // Batch save programs (skip if empty). `.select()` returns only the rows
+    // actually inserted (duplicates are ignored), so we can report the real
+    // saved count instead of the client-supplied match count.
     matchedPrograms.length > 0
-      ? db.from("saved_programs").upsert(programInserts, { onConflict: "user_id,program_id", ignoreDuplicates: true })
-      : Promise.resolve({ error: null }),
+      ? db.from("saved_programs").upsert(programInserts, { onConflict: "user_id,program_id", ignoreDuplicates: true }).select("program_id")
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   if (savedProgramsResult && "error" in savedProgramsResult && savedProgramsResult.error) {
     console.error("[save-results] Failed to batch save programs:", savedProgramsResult.error);
   }
+  const programsSavedCount = savedProgramsResult && "data" in savedProgramsResult
+    ? savedProgramsResult.data?.length ?? 0
+    : 0;
   mark("saved_programs_done");
 
   // ═══════════════════════════════════════════════════════════════════
@@ -659,7 +664,7 @@ export async function POST(req: Request) {
     event_type: "benefits_completed",
     metadata: {
       match_count: matchCount,
-      programs_saved: matchedPrograms.length,
+      programs_saved: programsSavedCount,
       state: stateAbbrev,
       care_need: careNeed,
       is_new_user: isNewUser,
@@ -711,6 +716,7 @@ export async function POST(req: Request) {
       medicaidStatus: medicaidStatus || null,
       incomeRange: incomeRange || null,
       matchCount,
+      programsSaved: programsSavedCount,
       topProgramName: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
       topSavings,
       isNewUser,

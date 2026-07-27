@@ -1567,16 +1567,16 @@ function FollowUpProviderRow({
             </summary>
             <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
               <p>
-                &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Dr. Logan DuBose&apos;s office at Olera. I&apos;m calling about a referral program.&quot;
+                &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Dr. Logan DuBose&apos;s office at Olera. We run a referral program that connects families with {provider.provider_category || "care"} providers in {provider.city || "your area"}.&quot;
               </p>
               <p>
-                &quot;We sent an email about claiming your free provider profile. Did you get it?&quot;
+                &quot;We&apos;ve been sending families your way, and I wanted to make sure you saw the emails we sent about claiming your profile. Once you claim it, you can update your info and respond directly when families reach out.&quot;
               </p>
-              <p className="text-gray-500 italic">
-                If yes → &quot;Great, just wanted to make sure. Let me know if you have any questions.&quot;
+              <p>
+                &quot;Did those emails come through, or should I send the link to someone else on your team?&quot;
               </p>
-              <p className="text-gray-500 italic">
-                If no / wrong contact → &quot;No problem. Could I get the email for whoever manages your online presence or business listings?&quot;
+              <p className="text-xs text-gray-400 border-t border-gray-100 pt-2 mt-2">
+                If wrong contact → ask for the email of whoever handles their online listings or marketing.
               </p>
             </div>
           </details>

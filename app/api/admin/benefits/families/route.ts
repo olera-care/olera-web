@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { readBenefitsCascade, cascadeStatus, type CascadeStatus } from "@/lib/family-comms/benefits-cascade.server";
 
 /**
  * GET /api/admin/benefits/families?days=30
@@ -42,6 +43,17 @@ interface FamilyRow {
     emailClicked: boolean;
     resultsViewed: boolean;
     enriched: boolean;
+  };
+  /** Benefits Cascade progress (Phase 2): matched → first_step_sent →
+   *  moving / wants_help / wrong_program. Derived from
+   *  metadata.benefits_cascade, stamped by the coordinator rungs + the
+   *  /benefits-outcome capture. */
+  cascade: {
+    status: CascadeStatus;
+    firstStepProgram: string | null;
+    firstStepSentAt: string | null;
+    outcomeAt: string | null;
+    outcomeReason: string | null;
   };
 }
 
@@ -142,6 +154,7 @@ export async function GET(request: NextRequest) {
     const byCareNeed = new Map<string, number>();
     let engaged = 0;
     let enrichedCount = 0;
+    let wantsHelp = 0;
 
     for (const [profileId, ev] of latestByProfile) {
       const meta = ev.metadata as Record<string, unknown>;
@@ -181,6 +194,10 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      const cascadeMeta = readBenefitsCascade(pMeta);
+      const status = cascadeStatus(cascadeMeta);
+      if (status === "wants_help") wantsHelp++;
+
       families.push({
         profileId,
         displayName: profile?.display_name ?? null,
@@ -195,8 +212,24 @@ export async function GET(request: NextRequest) {
         completedAt: ev.created_at,
         enrichment: { relationship, timeline, payments },
         signals,
+        cascade: {
+          status,
+          firstStepProgram: cascadeMeta.first_step_program_name ?? null,
+          firstStepSentAt: cascadeMeta.first_step_sent_at ?? null,
+          outcomeAt: cascadeMeta.outcome_at ?? null,
+          outcomeReason: cascadeMeta.outcome_reason ?? null,
+        },
       });
     }
+
+    // Queue order: "wants_help" floats to the top (the cascade escalation TJ
+    // works personally), everyone else stays newest-first.
+    families.sort((a, b) => {
+      const aHelp = a.cascade.status === "wants_help" ? 0 : 1;
+      const bHelp = b.cascade.status === "wants_help" ? 0 : 1;
+      if (aHelp !== bHelp) return aHelp - bHelp;
+      return b.completedAt.localeCompare(a.completedAt);
+    });
 
     return NextResponse.json({
       days,
@@ -206,6 +239,7 @@ export async function GET(request: NextRequest) {
         prevCompletions: prevCount ?? 0,
         engaged,
         enriched: enrichedCount,
+        wantsHelp,
       },
       breakdown: {
         topSources: [...bySource.values()].sort((a, b) => b.count - a.count).slice(0, 6),

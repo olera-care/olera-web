@@ -4,7 +4,14 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { isTransientSkip } from "@/lib/email-governance";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken, generateBriefToken } from "@/lib/claim-tokens";
+import { generateFamilyInboxUrl, generateIntroUrl, generateQuizToken, generateBriefToken, generateBenefitsOutcomeToken } from "@/lib/claim-tokens";
+import type { BenefitsOutcomeTokenValue } from "@/lib/claim-tokens";
+import {
+  benefitsCompletedAt,
+  readBenefitsCascade,
+  selectFirstStepProgram,
+  buildCallScript,
+} from "@/lib/family-comms/benefits-cascade.server";
 import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
@@ -25,6 +32,10 @@ import {
   familyNeverEngagedSubject,
   day10AwaitingEmail,
   familyPendingReachOutNudgeEmail,
+  benefitsFirstStepEmail,
+  benefitsFirstStepSubject,
+  benefitsCheckInEmail,
+  benefitsCheckInSubject,
   completionNudge1Email,
   completionNudge2Email,
   completionNudge3Email,
@@ -71,6 +82,10 @@ import type { NudgeSequence } from "@/lib/types";
  *   3. never-engaged → compare cards (guide fallback)      → family_never_engaged
  *   4. provider-responded → compare + how-to-choose        → day_10_awaiting
  *   5. pending reach-out      → family_reach_out_nudge
+ *   B1. benefits first step (intake 48-96h) → benefits_first_step
+ *   B2. benefits check-in (first step +3d)  → benefits_check_in
+ *      (the Benefits Cascade — see lib/family-comms/benefits-cascade.server.ts.
+ *      While the cascade is in flight, rung 6 stays quiet for benefits families.)
  *   6. completion track (signup cadence)  → completion_nudge_1-4 / completion_maintenance
  *      (Track 2 / Option B: the coordinator is now the SINGLE owner of the "fill your
  *      profile" ask — for ALL incomplete families, with OR without a connection. It
@@ -426,6 +441,20 @@ export async function GET(request: NextRequest) {
       const familyCareTypes = (fp.care_types as string[] | null) || [];
       const familyFirstName = fp.display_name?.split(/\s+/)[0] || "there";
       const familyCreatedAt = fp.created_at || new Date(now).toISOString();
+
+      // ── Benefits Cascade inputs (rungs B1/B2) ───────────────────────────
+      // benefits_results.completed_at is the intake anchor (only save-results
+      // writes it). While the cascade is in flight (intake < 21d ago, no
+      // outcome reported yet) the completion track stays quiet for these
+      // families: someone who came for LIHEAP help should not get "finish
+      // your profile" asks interleaved with the first-step and check-in
+      // emails (TJ, 2026-07-27). They rejoin rung 6 after resolution.
+      const benefitsDoneAt = benefitsCompletedAt(familyMeta);
+      const benefitsCascade = readBenefitsCascade(familyMeta);
+      const benefitsCascadeActive =
+        !!benefitsDoneAt &&
+        !benefitsCascade.outcome &&
+        now - new Date(benefitsDoneAt).getTime() < 21 * DAY;
 
       // ── Compare-led URL builders (v2 flywheel) ──────────────────────────
       // Both read authEmailFinal at *invocation* time (inside buildHtml, after the
@@ -883,6 +912,116 @@ export async function GET(request: NextRequest) {
           };
         }
 
+        // ── Rung B1: benefits first step — intake 48-96h ago, one-shot per family.
+        //    ONE program, its start-here phone, a call script, the top documents.
+        //    Program selection (entry-source page → simplest saved match → state
+        //    start-here list) queries accounts + saved_programs, so the band check
+        //    runs first — only the handful of families in the 48-96h window pay
+        //    for the reads. No qualifying program content → no email (fewer honest
+        //    beats hollow), and the family falls through to later rungs. ──
+        if (benefitsDoneAt && !benefitsCascade.first_step_sent_at && fpr?.account_id) {
+          const intakeAge = now - new Date(benefitsDoneAt).getTime();
+          if (intakeAge >= 48 * HOUR && intakeAge <= 96 * HOUR) {
+            const pick = await selectFirstStepProgram(db, {
+              accountId: fpr.account_id,
+              stateAbbrev: fpr.state || null,
+            });
+            if (pick) {
+              const callScript = buildCallScript(
+                pick.shortName,
+                (familyMeta.relationship_to_recipient as string) || null,
+              );
+              return {
+                rung: "benefits_first_step",
+                emailType: "benefits_first_step",
+                subject: benefitsFirstStepSubject(pick.shortName),
+                metadata: { program_id: pick.programId, state_id: pick.stateId, complexity: pick.complexity },
+                buildHtml: (eid) =>
+                  benefitsFirstStepEmail({
+                    familyName,
+                    programName: pick.name,
+                    programShortName: pick.shortName,
+                    savingsRange: pick.savingsRange,
+                    contactLabel: pick.contact.label,
+                    contactPhone: pick.contact.phone,
+                    contactHours: pick.contact.hours,
+                    callScript,
+                    documents: pick.documents,
+                    tip: pick.tip,
+                    programUrl: `${siteUrl}${appendTrackingParams(pick.programPath, eid)}`,
+                    pickedFromEntryPage: pick.source === "entry",
+                    unsubscribeId: fam.familyId,
+                  }),
+                stamp: async (sentAt) => {
+                  // Mutate familyMeta too (archetype pattern): the unified
+                  // coordinator stamp right after this spreads familyMeta into
+                  // its own metadata write — without the mutation it would
+                  // clobber the cascade stamp with the stale copy.
+                  familyMeta.benefits_cascade = {
+                    ...readBenefitsCascade(familyMeta),
+                    first_step_sent_at: sentAt,
+                    first_step_program_id: pick.programId,
+                    first_step_state_id: pick.stateId,
+                    first_step_program_name: pick.shortName,
+                  };
+                  await db
+                    .from("business_profiles")
+                    .update({ metadata: { ...familyMeta } })
+                    .eq("id", fam.familyId);
+                },
+              };
+            }
+          }
+        }
+
+        // ── Rung B2: benefits check-in — first step sent 3-14d ago, no outcome,
+        //    one-shot. Three chips, all forward-looking; each links to
+        //    /benefits-outcome with a signed token, and the PAGE records the
+        //    answer via a client-side POST (scanner-safe — a GET that writes
+        //    would let link-scanners record the last chip they crawled). The
+        //    14d upper bound keeps stale stamps from firing months later. ──
+        if (
+          benefitsCascade.first_step_sent_at &&
+          !benefitsCascade.check_sent_at &&
+          !benefitsCascade.outcome
+        ) {
+          const sinceStep = now - new Date(benefitsCascade.first_step_sent_at).getTime();
+          if (sinceStep >= 3 * DAY && sinceStep <= 14 * DAY) {
+            const programShort = benefitsCascade.first_step_program_name || "your program";
+            return {
+              rung: "benefits_check_in",
+              emailType: "benefits_check_in",
+              subject: benefitsCheckInSubject(programShort),
+              metadata: { program_id: benefitsCascade.first_step_program_id || null },
+              buildHtml: (eid) => {
+                const chip = (v: BenefitsOutcomeTokenValue) =>
+                  `${siteUrl}${appendTrackingParams(
+                    `/benefits-outcome?tok=${generateBenefitsOutcomeToken(fam.familyId, v, authEmailFinal)}`,
+                    eid,
+                  )}`;
+                return benefitsCheckInEmail({
+                  familyName,
+                  programShortName: programShort,
+                  movingUrl: chip("moving"),
+                  helpUrl: chip("wants_help"),
+                  wrongUrl: chip("wrong_program"),
+                  unsubscribeId: fam.familyId,
+                });
+              },
+              stamp: async (sentAt) => {
+                familyMeta.benefits_cascade = {
+                  ...readBenefitsCascade(familyMeta),
+                  check_sent_at: sentAt,
+                };
+                await db
+                  .from("business_profiles")
+                  .update({ metadata: { ...familyMeta } })
+                  .eq("id", fam.familyId);
+              },
+            };
+          }
+        }
+
         // ── Rung 6: completion track (Track 2 / Option B) — the SINGLE owner of the
         //    "fill your profile" ask. Fires for ANY incomplete family on signup cadence
         //    (days 0/2/6/13, then monthly maintenance), with OR without a connection,
@@ -890,7 +1029,7 @@ export async function GET(request: NextRequest) {
         //    family-nudges completion sequence + step-state in
         //    business_profiles.metadata.completion_sequence, so a sequence in flight when
         //    ownership moved continues seamlessly. PUBLISH stays demoted to family-nudges.
-        if (!isComplete && !recentConnActivity) {
+        if (!isComplete && !recentConnActivity && !benefitsCascadeActive) {
           const seq = getSequenceWithMigration(
             familyMeta.completion_sequence as NudgeSequence | undefined,
             familyMeta.profile_incomplete_reminder_sent as boolean | undefined,

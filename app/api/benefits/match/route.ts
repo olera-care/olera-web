@@ -14,6 +14,7 @@ import {
   needsToCategories,
 } from "@/lib/types/benefits";
 import { zipToState, zipToCounty } from "@/lib/benefits/zip-lookup";
+import { findLocalAAA } from "@/lib/benefits/local-aaa";
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -169,44 +170,17 @@ async function fetchStatePrograms(
   return (data ?? []) as BenefitProgram[];
 }
 
-async function findLocalAAA(
+// findLocalAAA moved to lib/benefits/local-aaa.ts (shared with the
+// benefits-outcome "I want help" page). This wrapper keeps the original
+// AreaAgency | null shape used by BenefitsSearchResult.
+async function findLocalAAAForResult(
   supabase: SupabaseDB,
   stateCode: string,
   zip: string | null,
   county: string | null
 ): Promise<AreaAgency | null> {
-  const { data, error } = await supabase
-    .from("sbf_area_agencies")
-    .select("*")
-    .eq("state_code", stateCode)
-    .eq("is_active", true)
-    .order("name");
-  if (error) throw error;
-  if (!data || data.length === 0) return null;
-
-  const agencies = data as AreaAgency[];
-
-  // Priority 1: ZIP match
-  if (zip) {
-    const zipMatch = agencies.find(
-      (a) => a.zip_codes_served?.includes(zip)
-    );
-    if (zipMatch) return zipMatch;
-  }
-
-  // Priority 2: County match
-  if (county) {
-    const normalizedCounty = county.toLowerCase().trim();
-    const countyMatch = agencies.find((a) =>
-      a.counties_served?.some(
-        (c) => c.toLowerCase().trim() === normalizedCounty
-      )
-    );
-    if (countyMatch) return countyMatch;
-  }
-
-  // Fallback: first agency in the state
-  return agencies[0];
+  const result = await findLocalAAA(supabase, stateCode, zip, county);
+  return result?.agency ?? null;
 }
 
 // ─── Match & Deduplicate ─────────────────────────────────────────────────────
@@ -264,7 +238,7 @@ export async function POST(request: Request) {
     const [federal, state, localAAA] = await Promise.all([
       fetchFederalPrograms(supabase),
       fetchStatePrograms(supabase, stateCode),
-      findLocalAAA(supabase, stateCode, answers.zipCode, answers.county),
+      findLocalAAAForResult(supabase, stateCode, answers.zipCode, answers.county),
     ]);
 
     const matchedPrograms = matchPrograms(federal, state, answers);

@@ -1270,6 +1270,57 @@ export function slackBenefitsCompleted(opts: {
 }
 
 /**
+ * Benefits Cascade escalation — a family tapped "I want help" on the check-in
+ * email. This is the cascade trigger: the family floats to the top of the
+ * /admin/benefits Families queue and TJ (the concierge rung) follows up
+ * personally. PHI note: name + email are fine in this team-restricted
+ * channel; keep them out of `text` (notification preview).
+ */
+export function slackBenefitsWantsHelp(opts: {
+  familyName: string;
+  email: string | null;
+  stateCode: string | null;
+  programName: string | null;
+  profileId: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: "Benefits cascade: a family asked for help with their application",
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🙋 Benefits: family wants help", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Family:*\n${opts.familyName}` },
+          { type: "mrkdwn", text: `*Contact:*\n${opts.email || "(no email on file)"}` },
+          ...(opts.stateCode ? [{ type: "mrkdwn", text: `*State:*\n${opts.stateCode}` }] : []),
+          ...(opts.programName ? [{ type: "mrkdwn", text: `*Program:*\n${opts.programName}` }] : []),
+        ],
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "They tapped *I want help with this* on the benefits check-in. The check-in email promised a real person will follow up.",
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${siteUrl}/admin/care-seekers/${opts.profileId}|Open family record> · <${siteUrl}/admin/benefits|Benefits Families queue>`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
  * Agent outreach request submitted — primary fulfillment surface for the
  * H1 Wizard-of-Oz outreach module. TJ acts directly from this alert in
  * Claude Code; the alert must be self-contained.

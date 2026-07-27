@@ -10,7 +10,10 @@
  * Behavior:
  *   - Find providers in in_sequence stage where sequence_started_at + 14 days <= now()
  *   - Check they haven't claimed (claimed_at is still null)
- *   - Move to needs_call stage with reason 'sequence_exhausted'
+ *   - Check email engagement (did they click any links?)
+ *   - Move to needs_call stage with appropriate reason:
+ *       - 'clicked_not_claimed' if provider clicked a link but didn't claim
+ *       - 'sequence_exhausted' if no clicks detected
  *   - Log touchpoint for each transition
  *
  * Timing: The cadence is Day 0, 3, 7, 14. After Day 14 (final email) with
@@ -75,17 +78,39 @@ async function runCron(req: NextRequest) {
       return NextResponse.json({ transitioned: 0 });
     }
 
+    // Get email engagement data for all expired providers
+    // Check if they clicked any links in their outreach emails
+    const providerIds = expiredProviders.map((p) => p.provider_id);
+    const { data: emailLogs } = await db
+      .from("email_log")
+      .select("provider_id, first_clicked_at")
+      .eq("email_type", "provider_outreach_sequence")
+      .in("provider_id", providerIds)
+      .not("first_clicked_at", "is", null);
+
+    // Build a set of provider_ids who clicked at least one email
+    const clickedProviderIds = new Set(
+      (emailLogs || []).map((log) => log.provider_id)
+    );
+
     const transitioned: string[] = [];
+    const transitionedClicked: string[] = [];
     const failed: Array<{ provider_id: string; error: string }> = [];
 
     for (const provider of expiredProviders) {
       try {
-        // Update stage to needs_call
+        // Determine reason based on engagement
+        const hasClicked = clickedProviderIds.has(provider.provider_id);
+        const reason = hasClicked ? "clicked_not_claimed" : "sequence_exhausted";
+
+        // Update stage to needs_call with appropriate reason
+        const nowIso = new Date().toISOString();
         const { error: updateError } = await db
           .from("provider_outreach_tracking")
           .update({
             stage: "needs_call",
-            needs_call_reason: "sequence_exhausted",
+            stage_changed_at: nowIso,
+            needs_call_reason: reason,
           })
           .eq("id", provider.id);
 
@@ -98,16 +123,20 @@ async function runCron(req: NextRequest) {
           details: {
             old_stage: "in_sequence",
             new_stage: "needs_call",
-            reason: "sequence_exhausted",
+            reason,
             auto_transitioned: true,
             sequence_started_at: provider.sequence_started_at,
             days_elapsed: totalDays,
+            had_email_click: hasClicked,
           },
           admin_user_id: null, // System action
           created_at: new Date().toISOString(),
         });
 
         transitioned.push(provider.provider_id);
+        if (hasClicked) {
+          transitionedClicked.push(provider.provider_id);
+        }
       } catch (err) {
         failed.push({
           provider_id: provider.provider_id,
@@ -118,8 +147,10 @@ async function runCron(req: NextRequest) {
 
     return NextResponse.json({
       transitioned: transitioned.length,
+      transitioned_clicked: transitionedClicked.length,
       failed: failed.length,
       transitioned_providers: transitioned,
+      clicked_providers: transitionedClicked,
       failed_providers: failed,
     });
   });

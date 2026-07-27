@@ -13,8 +13,8 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
 /**
  * POST /api/admin/provider-outreach/record-outcome
  *
- * Record a call outcome for a provider in the Follow Up (needs_call) stage.
- * This powers the call queue workflow with proper counter/date management.
+ * Record an outcome for a provider in the Follow Up (needs_call) stage.
+ * This powers the follow-up workflow with proper counter/date management.
  *
  * Note: "Claimed" is NOT an outcome here - auto-claim detection (migration 133)
  * automatically moves providers to "claimed" when they claim via any method.
@@ -29,7 +29,6 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  * | Outcome          | Counter/Date Updates            | Stage Change    | Email Sent?     |
  * |------------------|--------------------------------|-----------------|-----------------|
  * | resend_link      | resend_count++                 | → re_engage     | YES (nudge)     |
- * | no_answer        | no_answer_count++              | → re_engage     | no              |
  * | wrong_contact    | clears email                   | → not_contacted | no              |
  * | not_interested   | -                              | → not_interested| no              |
  *
@@ -39,12 +38,11 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
 
 const VALID_OUTCOMES = [
   "resend_link",
-  "no_answer",
   "wrong_contact",
   "not_interested",
 ] as const;
 
-type CallOutcome = (typeof VALID_OUTCOMES)[number];
+type FollowUpOutcome = (typeof VALID_OUTCOMES)[number];
 
 // Maximum number of times a claim link can be resent before requiring manual intervention
 // Configurable via env var, default 2
@@ -69,7 +67,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
     }
 
-    if (!outcome || !VALID_OUTCOMES.includes(outcome as CallOutcome)) {
+    if (!outcome || !VALID_OUTCOMES.includes(outcome as FollowUpOutcome)) {
       return NextResponse.json(
         { error: `Invalid outcome. Must be one of: ${VALID_OUTCOMES.join(", ")}` },
         { status: 400 }
@@ -82,7 +80,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, resend_count, no_answer_count, due_date, city, state")
+      .select("id, provider_id, stage, resend_count, due_date, city, state")
       .eq("provider_id", provider_id)
       .single();
 
@@ -100,16 +98,14 @@ export async function POST(request: NextRequest) {
 
     // Current counter values (default to 0 if null)
     const currentResendCount = tracking.resend_count ?? 0;
-    const currentNoAnswerCount = tracking.no_answer_count ?? 0;
 
     // Process outcome - determine updates
     let newStage: OutreachStage | null = null;
     let newResendCount = currentResendCount;
-    let newNoAnswerCount = currentNoAnswerCount;
     let clearEmail = false;
     let shouldSendNudgeEmail = false;
 
-    switch (outcome as CallOutcome) {
+    switch (outcome as FollowUpOutcome) {
       case "resend_link":
         // Reject if already at limit
         if (currentResendCount >= MAX_RESEND_COUNT) {
@@ -121,12 +117,6 @@ export async function POST(request: NextRequest) {
         newResendCount = currentResendCount + 1;
         newStage = "re_engage"; // Move to re-engage after sending email
         shouldSendNudgeEmail = true;
-        break;
-
-      case "no_answer":
-        newNoAnswerCount = currentNoAnswerCount + 1;
-        // Immediate transition to re_engage on first no-answer
-        newStage = "re_engage";
         break;
 
       case "wrong_contact":
@@ -149,10 +139,6 @@ export async function POST(request: NextRequest) {
 
     if (newResendCount !== currentResendCount) {
       updateData.resend_count = newResendCount;
-    }
-
-    if (newNoAnswerCount !== currentNoAnswerCount) {
-      updateData.no_answer_count = newNoAnswerCount;
     }
 
     if (newStage) {
@@ -292,7 +278,6 @@ export async function POST(request: NextRequest) {
       details: {
         outcome,
         resend_count: newResendCount,
-        no_answer_count: newNoAnswerCount,
         ...(notes?.trim() && { notes: notes.trim() }),
         ...(newStage && { triggered_stage_change: newStage }),
         ...(clearEmail && { email_cleared: true }),
@@ -349,7 +334,6 @@ export async function POST(request: NextRequest) {
       stage_changed: !!newStage,
       new_stage: newStage,
       resend_count: newResendCount,
-      no_answer_count: newNoAnswerCount,
       // Email status for resend_link outcome
       ...(shouldSendNudgeEmail && {
         email_sent: emailSent,

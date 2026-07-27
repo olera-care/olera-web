@@ -99,10 +99,20 @@ function polishedLayout(
 
 /**
  * Check if a link label indicates it's a CTA (call-to-action).
+ * CTAs are rendered as prominent teal buttons instead of inline links.
+ *
+ * Detected by:
+ *   - Arrow (→) in the label (e.g., "Review your page →")
+ *   - "claim" keyword (e.g., "Claim your page")
+ *   - "2 minutes" phrase (e.g., "about 2 minutes")
  */
 function isCtaLink(label: string): boolean {
   const lower = label.toLowerCase();
-  return lower.includes("claim") || lower.includes("2 minutes");
+  return (
+    label.includes("→") ||
+    lower.includes("claim") ||
+    lower.includes("2 minutes")
+  );
 }
 
 /**
@@ -133,9 +143,9 @@ function renderInlineLink(label: string, href: string): string {
  *   **text**       → <strong>text</strong>
  *   [label](url)   → styled button (if CTA) or inline link
  *
- * CTA detection: Links with "Claim" or "2 minutes" in the label
+ * CTA detection: Links with arrows (→), "claim", or "2 minutes"
  * are rendered as teal buttons. CTAs on their own line become
- * standalone button blocks; inline CTAs become inline links.
+ * standalone button blocks; inline CTAs stay as inline links.
  */
 function bodyToPolishedHtml(text: string): string {
   // 1) HTML-escape first

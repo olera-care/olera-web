@@ -86,20 +86,7 @@ const PLACEHOLDER = {
   cityViews: "{city_views}",
 };
 
-// Subject lines
-const SUBJECT_INTRO = `Families in ${PLACEHOLDER.city} rank you #${PLACEHOLDER.rank} of ${PLACEHOLDER.total}`;
-const SUBJECT_INTRO_NO_RANK = `${PLACEHOLDER.providerName} on Olera`;
-const SUBJECT_FOLLOWUP = `What families see when they open ${PLACEHOLDER.providerName}`;
-const SUBJECT_DEMAND_LOSS = `Families are searching for ${PLACEHOLDER.category} in ${PLACEHOLDER.city}`;
-const SUBJECT_DEMAND_LOSS_WITH_COUNT = `Families viewed ${PLACEHOLDER.category} providers in ${PLACEHOLDER.city} ${PLACEHOLDER.cityViews} times in the last 30 days`;
-const SUBJECT_FINAL = `What claiming ${PLACEHOLDER.providerName} actually gets you`;
-const SUBJECT_NUDGE = `Your claim link for ${PLACEHOLDER.providerName}`;
-
-// Preheader text
-const PREHEADER_INTRO = "By the Google reviews they actually read";
-const PREHEADER_FOLLOWUP = `It's one of the first pages ${PLACEHOLDER.city} families compare — here's what it shows them`;
-const PREHEADER_DEMAND_LOSS = "They couldn't ask you a single question";
-const PREHEADER_FINAL = "The whole thing in one email: free leads, family questions, your page under your control";
+// Preheader text (nudge only - other emails have inline preheaders)
 const PREHEADER_NUDGE = "Two minutes, and the page is yours";
 
 /**
@@ -118,8 +105,6 @@ export function getTemplate(
   key: ProviderOutreachTemplateKey,
   ctx: TemplateContext
 ): EmailDraft {
-  const hasRank = ctx.rank != null && ctx.total != null && ctx.rank > 0;
-
   // Minimum threshold for showing specific view counts in demand-loss email
   // Below this, we use generic "families are searching" language
   const CITY_VIEWS_THRESHOLD = 10;
@@ -127,9 +112,9 @@ export function getTemplate(
 
   switch (key) {
     case "intro":
-      return introEmail(hasRank);
+      return introEmail();
     case "followup":
-      return followupEmail(hasRank);
+      return followupEmail();
     case "demand_loss":
       return demandLossEmail(hasDemandData);
     case "final":
@@ -181,35 +166,25 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
 /**
  * Day 0: Introduction email
  *
- * First touch from Dr. Logan DuBose. Trust-forward opener explaining
- * who Olera is, NIH backing, no-broker model. CTA to claim profile.
- *
- * Two variants:
- *   - With rank: "Families comparing {care type} in {city} see {total} providers.
- *                 {Business name} ranks {ordinal}..."
- *   - Without rank: "Families comparing {care type} in {city} can already find
- *                    {Business name}'s page..."
+ * First touch from Dr. Logan DuBose. Introduces Olera, explains the
+ * no-cost/no-referral-fee model, and invites them to review their page.
  */
-function introEmail(hasRank: boolean): EmailDraft {
-  const opener = hasRank
-    ? `Families comparing ${PLACEHOLDER.category} in ${PLACEHOLDER.city} see ${PLACEHOLDER.total} providers. ${PLACEHOLDER.providerName} ranks ${PLACEHOLDER.ordinal} — by the Google reviews they actually read.`
-    : `Families comparing ${PLACEHOLDER.category} in ${PLACEHOLDER.city} can already find ${PLACEHOLDER.providerName}'s page — here's what they see.`;
-
+function introEmail(): EmailDraft {
   return {
-    subject: hasRank ? SUBJECT_INTRO : SUBJECT_INTRO_NO_RANK,
-    preheader: hasRank ? PREHEADER_INTRO : undefined,
+    subject: `A free way for more families to find ${PLACEHOLDER.providerName}`,
+    preheader: `No broker, no fee, families come directly to you`,
     body: [
-      opener,
+      `We've created a free Olera page for ${PLACEHOLDER.providerName}, giving families an easier way to discover and connect with you.`,
       ``,
-      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. We built it with NIH funding so families can find trustworthy care directly, without a broker taking a cut. There's nothing to buy here, and we don't sell your leads.`,
+      `There's no cost to manage your page and no referral fees. When a family finds you through Olera, they contact your team directly.`,
       ``,
-      `Your page is already up — you can see exactly what families see here: [${PLACEHOLDER.providerName}](${PLACEHOLDER.profileUrl}). It's unclaimed, so all it shows is what we could gather publicly, blanks included.`,
+      `[Review your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page — it takes about 2 minutes](${PLACEHOLDER.claimUrl})`,
+      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. With support from the NIH, we built Olera to make finding trusted senior care easier for families.`,
       ``,
-      `Questions? Just reply — it goes straight to our team, and I'll help you directly.`,
+      `We'd love for you to take a look and make sure the page accurately reflects ${PLACEHOLDER.providerName}.`,
       ``,
-      `Not the right person for this? Forwarding it to whoever manages ${PLACEHOLDER.providerName}'s listing would be a big help.`,
+      `Questions or need help getting set up? Just reply. We're happy to help.`,
     ].join("\n"),
   };
 }
@@ -217,30 +192,21 @@ function introEmail(hasRank: boolean): EmailDraft {
 /**
  * Day 3: Follow-up email
  *
- * Focuses on profile gaps — what families see when they open the page.
- * Two variants based on whether Day 0 mentioned ranking.
+ * Encourages providers to personalize their page and show what makes
+ * them different. Integrates gap_list to highlight what's currently missing.
  */
-function followupEmail(hasRank: boolean): EmailDraft {
-  // Reference Day 0 appropriately based on whether we mentioned ranking
-  const opener = hasRank
-    ? `A few days ago I wrote about where ${PLACEHOLDER.providerName} ranks in ${PLACEHOLDER.city}. Here's the part that matters more: what families actually see when they open your page.`
-    : `A few days ago I wrote about your ${PLACEHOLDER.providerName} page on Olera. Here's what matters most: what families actually see when they open it.`;
-
+function followupEmail(): EmailDraft {
   return {
-    subject: SUBJECT_FOLLOWUP,
-    preheader: PREHEADER_FOLLOWUP,
+    subject: `Your story deserves more than a listing`,
+    preheader: `Give families the full picture`,
     body: [
-      opener,
+      `Families don't choose care from a list of services. They choose the people and places they trust.`,
       ``,
-      `Right now it shows ${PLACEHOLDER.gapList}. Families comparing care filter on exactly those things — and when the answers aren't there, they move on to the next provider on their list, even when you would have been the right fit.`,
+      `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that. Show families what makes ${PLACEHOLDER.providerName} different. Add photos, highlight the people behind your care, and showcase what makes your community special.`,
       ``,
-      `Claiming fixes that. Two minutes, and the blanks become your answers.`,
+      `[Personalize your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `Or start even smaller: reply with your starting price, and I'll add it to your page for you.`,
-      ``,
-      `Not the right contact? Please forward this to whoever manages ${PLACEHOLDER.providerName}'s listing.`,
+      `Help families see why ${PLACEHOLDER.providerName} could be the right place for someone they love. It only takes a few minutes to get started.`,
     ].join("\n"),
   };
 }
@@ -248,66 +214,55 @@ function followupEmail(hasRank: boolean): EmailDraft {
 /**
  * Day 7: Demand-loss email
  *
- * Shows families are actively viewing providers in their city but can't
- * engage with unclaimed pages. Creates urgency through real demand data.
+ * Creates urgency by showing real demand and emphasizing the risk of
+ * missing family inquiries. Encourages turning on notifications.
  *
- * Two variants:
- *   - With demand data (hasDemandData=true): Shows specific view count
- *   - Without demand data (hasDemandData=false): Uses generic "families are searching" language
- *
- * Variable: {city_views} = total unique page views for this city+category
- * in the last 30 days (from provider_page_view_stats table).
+ * Has fallback for low view counts (< 10) to avoid showing weak numbers.
  */
 function demandLossEmail(hasDemandData: boolean): EmailDraft {
-  // Opener varies based on whether we have meaningful view data
   const opener = hasDemandData
-    ? `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} pages on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`
-    : `Families in ${PLACEHOLDER.city} are searching for ${PLACEHOLDER.category} on Olera right now.`;
+    ? `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} providers on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`
+    : `Families in ${PLACEHOLDER.city} are actively searching for ${PLACEHOLDER.category} providers on Olera.`;
 
   return {
-    subject: hasDemandData ? SUBJECT_DEMAND_LOSS_WITH_COUNT : SUBJECT_DEMAND_LOSS,
-    preheader: PREHEADER_DEMAND_LOSS,
+    subject: `A family has a question. Will you see it?`,
+    preheader: `Don't miss families ready to talk`,
     body: [
       opener,
       ``,
-      `When they open ${PLACEHOLDER.providerName}'s page, here's what they can do: compare you with the other providers, read your public reviews — and that's it. They can't ask about availability, pricing, or room for their mother next month, because unclaimed pages can't answer questions.`,
+      `Imagine a daughter urgently searching for care for her mom. She finds ${PLACEHOLDER.providerName} and has a question before taking the next step.`,
       ``,
-      `And families don't wait for answers. They ask the next provider on their list.`,
+      `If she can't reach you, she'll find a provider she can.`,
       ``,
-      `Claiming changes what that page does: questions reach you, your prices and photos replace the blanks, and the families already looking at ${PLACEHOLDER.providerName} can finally talk to ${PLACEHOLDER.providerName}.`,
+      `[Turn on notifications →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
+      `Be the first to know when a family reaches out and respond when it matters most.`,
       ``,
-      `Or reply with your starting price and I'll put it up for you today.`,
+      `Don't miss out on a family who could be ready to choose you.`,
     ].join("\n"),
   };
 }
 
 /**
- * Day 14: Summary email
+ * Day 14: Final email
  *
- * Everything in one place for recipients who may have missed earlier emails.
- * Comprehensive value prop, low-pressure close, offer to redirect to right contact.
+ * Focuses on the Verified badge as a trust signal for families.
+ * Simple, focused message about building confidence.
  */
 function finalEmail(): EmailDraft {
   return {
-    subject: SUBJECT_FINAL,
-    preheader: PREHEADER_FINAL,
+    subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
+    preheader: `Give families confidence to reach out`,
     body: [
-      `In case my earlier notes never reached you, here's everything in one place.`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Olera is where families find and compare senior care in ${PLACEHOLDER.city}, built by a physician-researcher, funded by the NIH, with nothing to buy and no selling of your leads. ${PLACEHOLDER.providerName} is already listed. Claiming the page is free, takes about two minutes, and gives you:`,
+      `Choosing senior care is one of the biggest decisions a family will ever make. They need to know they're connecting with a real person they can trust.`,
       ``,
-      `• Direct leads from families looking for ${PLACEHOLDER.category} in ${PLACEHOLDER.city}, free, no broker taking a cut`,
-      `• Family questions come to you, right now they go unanswered, and families move on`,
-      `• A verified badge that families trust when comparing options`,
-      `• Your prices, photos, and details under your control instead of publicly-gathered blanks`,
+      `A Verified badge gives them that confidence. It shows that a member of the ${PLACEHOLDER.providerName} team has confirmed the information is accurate, helping build trust before the very first conversation.`,
       ``,
-      `If now isn't the time, no pressure. The page stays up and stays yours to claim whenever you're ready.`,
+      `[Get your Verified badge →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `And if I've had the wrong address all along, reply with the email of whoever manages ${PLACEHOLDER.providerName}'s marketing or admissions, and I'll reach out to them directly.`,
+      `It only takes about two minutes and helps families feel at ease when they're ready to take the next step in their care journey.`,
     ].join("\n"),
   };
 }
@@ -323,14 +278,20 @@ function finalEmail(): EmailDraft {
  */
 function nudgeEmail(): EmailDraft {
   return {
-    subject: SUBJECT_NUDGE,
+    subject: `Your free Olera page for ${PLACEHOLDER.providerName} is ready`,
     preheader: PREHEADER_NUDGE,
     body: [
-      `Just putting the claim link where it's easy to find:`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `[Claim your page — about 2 minutes](${PLACEHOLDER.claimUrl})`,
+      `We've already created a free Olera page for ${PLACEHOLDER.providerName}. It's ready for your team to manage whenever you are.`,
       ``,
-      `It's free and puts ${PLACEHOLDER.providerName}'s page under your control: prices, photos, and family questions. If anything's in the way, reply and I'll help you directly.`,
+      `[Open your page →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `It only takes about two minutes to get started. Once your page is yours, you can start receiving leads, answering questions, and connecting directly with families looking for care.`,
+      ``,
+      `No referral fees or brokers in between. The relationship stays directly with your team.`,
+      ``,
+      `Questions? Just reply to this email and I'll help personally.`,
     ].join("\n"),
   };
 }

@@ -7,6 +7,53 @@
 
 ## Current Focus
 
+### 2026-07-26/27 — Ad Boost: Pacesetter PUBLISHED (24072567829) + Franchil post-mortem changes the roadmap
+
+**Campaign:** "Pacesetter Home Services – Dallas GA – Jul 2026", ID **24072567829**. $50 total, Maximize clicks + $2.50 CPC cap, Search-only, 20mi around **ZIP 30132 Presence-only**, EN+ES, AI Max off, 13 phrase keywords, 13 headlines + 4 descriptions (policy audit PASS, 0 violations), tag `pacesetter-dallas-ga-jul26`, display path `/Home-Care/Dallas-GA`. Serves **Jul 27 → Aug 24**. Shared negative list (82 terms) applied; account auto-apply re-verified 0/7 + 0/14.
+
+**Geo correction:** slug says Douglasville, but Google Places + Geocoding both put them at **364 W Memorial Dr, Dallas GA 30132** (Paulding County, ~13mi N). Targeted the real address. `business_profiles.lat/lng` were null → backfilled 33.9236 / -84.8456. Request row `1e1abfc9` → `scheduled`. ZeroBounce valid.
+
+**Review-generation email to Sherry Pace scheduled for Mon Jul 27** (Notion sub-page "SEND ME — Pacesetter review-generation email"). Their Google rating is **1.0 from 1 empty review**, confirmed at source via Places API, rendering as the first content block under the hero on the page the ads point at.
+
+#### 🔴 The important finding: Franchil post-mortem
+
+Franchil (first completed cycle, ended Jul 8) spent **$36.50**, got **16 clicks → 3 tagged inquiries (19%, ~$12/lead)**, and **lead #1 became a paying client — CONFIRMED with Hilda**. The platform recorded **none** of it: all 3 connections still read `status: pending`, zero outcomes, one provider message in-thread. Hilda phoned them all. So the wrap-up email asked Franchil to pay **without being able to say "you just got a client"**. They declined. That was not a bad offer, it was an unprovable one.
+
+**Gap:** outcome capture exists only on the FAMILY side (`family_outcome_check` = "Did the provider get back to you?"). Nothing asks the provider "did this family become a client?"
+
+**Top recommendation:** build provider-side outcome capture (one-tap Yes / No / Still talking at ~7 and ~21 days). Without it every wrap-up ask is blind and Ad Boost has no honest KPI. Full write-up in Notion sub-page "Franchil post-mortem", memory `project_adboost_outcome_blindness`.
+
+**Also found:** Franchil got two emails titled "Rhonda sent you a message" when Rhonda never sent one — mis-worded unread-reminders. Erodes trust in the notification class that matters most.
+
+#### Corrections I had to make (both were confident and wrong)
+
+- **"Blank hero image" was WRONG.** I logged Pacesetter's hero as permanently broken after `/_next/image` stayed pending across two loads in the Dia automation browser. TJ checked in a normal browser: it displays fine. It was first-optimization latency on a 1.4MB source. **Lesson: a pending image request under the CDP-automated profile proves nothing.**
+- **"All three families went dark" was WRONG.** Diagnosed from platform state; the provider had phoned all of them and closed one. **Platform silence is not evidence of inaction.** Same trap as `project_provider_reply_rate_investigation`.
+
+#### Senior Services & Home Care (Plattsburgh NY) — NOT ready
+
+`pending_profile` at **47% against a hard 70% gate**, so `/ad-boost-setup` will not pick it up; their Jul 27 setup week will be missed. Gaps: 1 photo, no staff screening, partial pricing, missing `category` + website. Everything else pre-flights clean (lat/lng present, `not_required`, 5.0★ Google, ZeroBounce valid). **Self-healing — the reminder cron auto-promotes to `requested` at 70%, so do not flip by hand.** Drafted a profile-gap email then **stood it down**: the cron's own reminder lands the same morning and covers the same ground.
+
+#### Deviations / notes
+
+- **Keyword deviation, unvalidated:** 10 city-qualified phrase terms + 3 geo-unqualified core-intent terms (`"in home senior care"`, `"home care agency"`, `"senior caregiver services"`), on the theory that Presence-only 20mi already confines them and HomeWell's diagnosis was too-few-keywords. Revisit at the harvest.
+- **Budget re-auth needs TJ TWICE** and the real challenge opens in a **second tab** (`accounts.google.com/.../CAMPAIGN_TOTAL_BUDGET_INCREASE`). Bring that tab forward, not the draft tab.
+- **The unreliable Review summary is a symptom of the pending re-auth**, not a revert — it corrected itself once the challenge cleared. Don't redo the work; check the left-nav first.
+- **`notion-update-page` can return success on an edit that did not apply** (link markdown stored as `[**text**](url)`, not `**[text](url)**`). Re-fetch to verify.
+- Auto-apply History tab shows **"Improve your responsive search ads" fired 4x, last 7/13/2026** — Abode now has 15 headlines, Impact and Miracle-Lightstar 14, vs the 13 we author. Google-written assets, unaudited.
+
+#### TJ to-do (not executed — all gated)
+
+1. **Record the confirmed John Turman close** (connection `0b4bd9d6` still reads `pending`). Capture contract size, start date, and how fast Hilda called. This is the case study for every future Ad Boost pitch.
+2. **Build provider-side outcome capture.**
+3. **Re-open Franchil:** "$36.50 got you a client."
+4. Flip Pacesetter → `live` via `/admin/ad-boost` UI once serving starts (DB flip skips the launch email).
+5. **Phase 3.5 search-terms harvest on 24072567829, due ~Jul 30 – Aug 3.**
+6. AI Max post-publish spot-check in a normal browser (the settings panel won't load under automation).
+7. Audit the auto-applied RSA assets on Abode / Impact / Miracle-Lightstar.
+8. **Ask the other four providers directly whether they closed anyone** — their "zero-lead" readings were measured the same broken way Franchil's were.
+9. Backlog: provider-page care-type label should derive from `category`, not `care_types[0]` (Pacesetter shows "Independent Living" on a home_care_agency page).
+
 ### 2026-07-23 — Ad Boost: Legacy Haven Senior Care campaign PUBLISHED (ID 24062146484)
 
 Ran /ad-boost-setup for Legacy Haven Senior Care (Harrisburg, NC) end-to-end via the Dia browser. **This provider is ASSISTED LIVING, not home care** — adapted keywords/copy (assisted living / senior living / retirement community + Concord/Kannapolis/Mint Hill suburbs) and display path `Senior-Living/Harrisburg`; still passed the policy audit clean.
@@ -3285,6 +3332,17 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**Ad Boost — reprioritised 2026-07-27 after the Franchil post-mortem:**
+- 🔴 **Provider-side outcome capture** (one-tap "Did this family become a client?" at ~7 and ~21 days). Top priority. Without it every wrap-up payment ask is blind and Ad Boost has no honest KPI. Note: no email chip may hit a GET that writes — route through a confirm screen. See memory `project_adboost_outcome_blindness`.
+- 🔴 **Record the confirmed Franchil close** (connection `0b4bd9d6`, still `pending`) and get the detail from Hilda: contract size, start date, how fast she called.
+- 🔴 **Ring the other four providers** (Abode, Impact, Miracle-Lightstar, HomeWell) and ask directly whether any lead became a client. Their zero-lead readings were measured the same broken way Franchil's were, so they are unmeasured, not proven.
+- ⏳ **Phase 3.5 search-terms harvest on Pacesetter `24072567829`, due ~Jul 30 – Aug 3.** Highest-value recurring chore in the SOP. Phrase-match negatives only, never broad.
+- ⏳ Flip Pacesetter → `live` via the `/admin/ad-boost` UI once serving starts.
+- ⏳ Re-open Franchil with the confirmed number.
+- ⏳ Audit the Google-auto-applied RSA assets on Abode / Impact / Miracle-Lightstar (auto-apply fired 4x, last 7/13/26).
+- ⏳ Fix the mis-worded "X sent you a message" unread-reminder subject line.
+- 🅿️ Backlog: provider-page care-type label should derive from `category`, not `care_types[0]`.
 
 **Email deliverability follow-ups (updated 2026-06-11 PM):**
 - ⏳ **`seniorlistings.net` warming in Smartlead** (started 2026-06-11, seasoned ~early-July). Decide its eventual send-use closer to July (cold outreach via Smartlead, or wherever it fits). Optionally connect + warm `team@seniorlistings.net` (2nd mailbox).

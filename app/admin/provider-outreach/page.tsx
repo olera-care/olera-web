@@ -1267,7 +1267,7 @@ function FollowUpProviderRow({
           title: "Wrong Contact Info",
           description: "The contact information for this provider is incorrect.",
           details: [
-            "Provider will be moved back to Not Contacted",
+            "Provider will be moved to Needs Email",
             "Their email will be cleared from the system",
             "You'll need to find correct contact info before re-engaging",
           ],

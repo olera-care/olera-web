@@ -1560,6 +1560,31 @@ function FollowUpProviderRow({
             </div>
           )}
 
+          {/* Call Script */}
+          <details className="mb-4 bg-white border border-gray-200 rounded-lg">
+            <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
+              📞 Call Script
+            </summary>
+            <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
+              <p>
+                <span className="font-medium text-gray-700">Intro:</span>{" "}
+                &quot;Hi, this is [Your Name] from Olera. We help families find quality care providers in their area.&quot;
+              </p>
+              <p>
+                <span className="font-medium text-gray-700">Why:</span>{" "}
+                &quot;I&apos;m reaching out because families in {provider.city || "your area"} are searching for {provider.provider_category || "care services"}, and we&apos;d love to feature your business.&quot;
+              </p>
+              <p>
+                <span className="font-medium text-gray-700">Value:</span>{" "}
+                &quot;By claiming your free profile, you&apos;ll appear in local searches, receive family inquiries directly, and can showcase your services.&quot;
+              </p>
+              <p>
+                <span className="font-medium text-gray-700">Next step:</span>{" "}
+                &quot;Can I send you a quick link to claim your profile? It only takes a minute.&quot;
+              </p>
+            </div>
+          </details>
+
           {/* Outcome Buttons - subtle outlined tags */}
           {/* Note: No "Claimed" button - auto-claim detection handles this automatically */}
           {/* when provider claims via any method (email, MedJobs, questions, direct website) */}

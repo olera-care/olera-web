@@ -187,10 +187,23 @@ export async function DELETE(
     await del("tokens", db.from("benefits_results_tokens").delete().eq("profile_id", profileId));
     if (userId) await del("saved_programs", db.from("saved_programs").delete().eq("user_id", userId));
     await del("profile", db.from("business_profiles").delete().eq("id", profileId));
-    if (profile.account_id) await del("account", db.from("accounts").delete().eq("id", profile.account_id));
-    if (userId) {
-      const { error: authErr } = await db.auth.admin.deleteUser(userId);
-      if (authErr) errors.push(`auth user: ${authErr.message}`);
+
+    // Only remove the account + auth user when NO other profile hangs off the
+    // account — an auth user can own several profiles, and deleting it would
+    // kill their sign-in for everything else they have.
+    if (profile.account_id && errors.length === 0) {
+      const { data: siblings } = await db
+        .from("business_profiles")
+        .select("id")
+        .eq("account_id", profile.account_id)
+        .limit(1);
+      if (!siblings || siblings.length === 0) {
+        await del("account", db.from("accounts").delete().eq("id", profile.account_id));
+        if (userId) {
+          const { error: authErr } = await db.auth.admin.deleteUser(userId);
+          if (authErr) errors.push(`auth user: ${authErr.message}`);
+        }
+      }
     }
 
     if (errors.length) {

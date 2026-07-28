@@ -374,6 +374,13 @@ export default function BenefitsFamiliesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
+                {families.filter((f) => filter === "all" || f.lifecycle.status === filter).length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">
+                      No families in this status right now.
+                    </td>
+                  </tr>
+                )}
                 {families
                   .filter((f) => filter === "all" || f.lifecycle.status === filter)
                   .map((f) => (

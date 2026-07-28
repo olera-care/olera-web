@@ -72,6 +72,12 @@ export interface FamilyBenefitsFacts {
   /** From metadata.veteran_status or inferred from payment_methods. */
   veteranStatus: "yes" | "no" | null;
   age: number | null;
+  /** Self-reported monthly income band from metadata.income_range
+   *  ("under1500" | "under2500" | "under4000" | "over4000" | legacy
+   *  "under6000"/"over6000" | "preferNotToSay"). Bands, never dollars —
+   *  the exclusion math uses the band FLOOR so a family is only ruled out
+   *  of a program their whole band clears the limit of. */
+  incomeBand: string | null;
 }
 
 /** Derive the benefits-relevant facts from a family profile row (top-level
@@ -100,6 +106,9 @@ export function familyBenefitsFacts(profile: { state?: string | null; care_types
 
   const age = typeof meta.age === "number" && meta.age > 0 ? meta.age : null;
 
+  const incomeBand =
+    typeof meta.income_range === "string" && meta.income_range ? meta.income_range : null;
+
   // Medicaid already on board implies path C even if the self-sort never ran.
   let financialPath: FinancialPath | null = null;
   if (meta.financial_path === "a" || meta.financial_path === "b" || meta.financial_path === "c") {
@@ -115,7 +124,45 @@ export function familyBenefitsFacts(profile: { state?: string | null; care_types
     medicaidStatus,
     veteranStatus,
     age,
+    incomeBand,
   };
+}
+
+/**
+ * The LOWEST monthly income a band can mean. Exclusion math must use the
+ * floor: "under4000" spans $2,500-$4,000, so against a $2,982 program limit
+ * the family might still qualify — only a band whose floor clears the limit
+ * is a held fact that rules the program out. preferNotToSay and unknown
+ * bands return null (no exclusion ever).
+ */
+const INCOME_BAND_FLOOR: Record<string, number> = {
+  under1500: 0,
+  under2500: 1500,
+  under4000: 2500,
+  over4000: 4000,
+  under6000: 4000,
+  over6000: 6000,
+};
+
+export function incomeBandFloor(band: string | null | undefined): number | null {
+  if (!band) return null;
+  const floor = INCOME_BAND_FLOOR[band];
+  return typeof floor === "number" ? floor : null;
+}
+
+/** The band's ceiling — used only for positive "within income" scoring,
+ *  never exclusion. Open-ended top bands return null. */
+const INCOME_BAND_CEILING: Record<string, number> = {
+  under1500: 1500,
+  under2500: 2500,
+  under4000: 4000,
+  under6000: 6000,
+};
+
+export function incomeBandCeiling(band: string | null | undefined): number | null {
+  if (!band) return null;
+  const ceiling = INCOME_BAND_CEILING[band];
+  return typeof ceiling === "number" ? ceiling : null;
 }
 
 const HOME_KEYWORDS = ["home", "hcbs", "in-home", "homemaker", "home health", "home care", "community-based", "aging in place"];
@@ -209,6 +256,12 @@ export async function getProgramsForFamily(
     if (p.requires_veteran === true && facts.veteranStatus === "no") continue;
     if (p.requires_medicaid && facts.medicaidStatus === "doesNotHave") continue;
     if (p.min_age != null && facts.age != null && facts.age < p.min_age) continue;
+    // Income: exclude only when the band's FLOOR clears the program limit —
+    // a held fact, not a guess (Phase 3 real-situation capture).
+    {
+      const floor = incomeBandFloor(facts.incomeBand);
+      if (floor != null && p.max_income_single != null && floor > p.max_income_single) continue;
+    }
     // Don't LEAD with veteran-only programs when veteran status is unknown —
     // the quiz asks; a wrong guess here reads as "they don't know us at all".
     if (p.requires_veteran === true && facts.veteranStatus !== "yes") continue;
@@ -237,6 +290,10 @@ export async function getProgramsForFamily(
     }
     if (isMedicaidGated(p) && facts.medicaidStatus === "alreadyHas") score += 6;
     if (facts.financialPath === "c" && isMedicaidGated(p)) score += 8;
+    {
+      const ceiling = incomeBandCeiling(facts.incomeBand);
+      if (ceiling != null && p.max_income_single != null && ceiling <= p.max_income_single) score += 6;
+    }
     scored.push({ program: p, isState, score });
   }
 

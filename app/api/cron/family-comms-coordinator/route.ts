@@ -962,6 +962,8 @@ export async function GET(request: NextRequest) {
             const pick = await selectFirstStepProgram(db, {
               accountId: fpr.account_id,
               stateAbbrev: fpr.state || null,
+              // Phase 3: skip programs the family's held facts rule out.
+              facts: familyBenefitsFacts(fpr),
             });
             if (pick) {
               const callScript = buildCallScript(

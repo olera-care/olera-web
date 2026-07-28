@@ -1,12 +1,16 @@
 import { getOrCreateSessionId } from "./session";
 
-export type BenefitsEnrichmentStep = 1 | 2 | 3 | 4;
+export type BenefitsEnrichmentStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export const BENEFITS_ENRICHMENT_STEP_NAMES: Record<BenefitsEnrichmentStep, string> = {
   1: "recipient",    // Who needs care?
   2: "timeline",     // How soon?
   3: "payment",      // How will you pay?
-  4: "phone",        // Want this by text?
+  4: "phone",        // Want this by text? (stays at this depth — the one ask
+                     // the dialogue can't continue without; facts go AFTER)
+  5: "age",          // How old is the person needing care?
+  6: "medicaid",     // Do they have Medicaid? (skipped when payment=medicaid)
+  7: "income",       // Monthly household income band
 };
 
 interface BenefitsEnrichmentEventParams {

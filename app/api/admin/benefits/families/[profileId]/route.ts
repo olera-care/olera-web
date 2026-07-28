@@ -66,7 +66,19 @@ export async function GET(
       if (a.event_type === "benefits_completed") {
         push(a.created_at, "intake", "Completed benefits intake", `${m.match_count ?? "?"} programs matched · ${m.entry_source || "direct"}`);
       } else if (a.event_type === "profile_enriched") {
-        const fields = Array.isArray(m.enriched_fields) ? (m.enriched_fields as string[]).join(", ") : "";
+        const FIELD_LABELS: Record<string, string> = {
+          relationship: "relationship",
+          timeline: "timeline",
+          payment_method: "payment",
+          payment_unsure: "unsure how to pay",
+          phone: "phone",
+          age: "age",
+          medicaid_status: "Medicaid",
+          income_range: "income",
+        };
+        const fields = Array.isArray(m.enriched_fields)
+          ? (m.enriched_fields as string[]).map((f) => FIELD_LABELS[f] || f).join(", ")
+          : "";
         push(a.created_at, "enriched", "Answered follow-up questions", fields + (m.sms_sent ? " · results texted" : ""));
       } else {
         push(a.created_at, "outcome", `Check-in answer: ${String(m.value || "?").replace(/_/g, " ")}`);

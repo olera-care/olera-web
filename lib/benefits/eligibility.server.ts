@@ -1,0 +1,281 @@
+/**
+ * Per-family eligibility over PIPELINE programs (Phase 3, real situation
+ * capture — 2026-07-28 handoff).
+ *
+ * The scored engine (/api/benefits/match) holds the structured eligibility
+ * columns (min_age / max_income_single / requires_medicaid / requires_veteran)
+ * but lives on the sbf_* DB tables, while every family-facing surface — the
+ * /m plan, the cascade first step, program pages — runs on pipeline draft
+ * programs with slug ids and prose eligibility. The two universes share no
+ * key (waiver_library_url covers only ~530 of 1,629 state rows), so this
+ * module bridges them by CANONICAL NAME and applies the engine's rules to
+ * the pipeline side.
+ *
+ * Philosophy (same as getProgramsForFamily): hard-exclude only on facts we
+ * HOLD, and only when the name-join or the draft's own text gives us
+ * confidence. Unknown facts and unjoined programs always stay in. Income
+ * exclusion uses the band FLOOR (the family's whole band must clear the
+ * limit); an age requirement with an alternative pathway ("or 18-64 with a
+ * disability") never rules anyone out on age.
+ */
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  type FamilyBenefitsFacts,
+  incomeBandFloor,
+  incomeBandCeiling,
+} from "@/lib/family-comms/benefits-guidance.server";
+
+// ── sbf eligibility rows ────────────────────────────────────────────────────
+
+export interface SbfEligibilityRow {
+  name: string;
+  min_age: number | null;
+  max_income_single: number | null;
+  requires_medicaid: boolean | null;
+  requires_veteran: boolean | null;
+}
+
+/** Load the structured-eligibility rows for a state (state + federal tables).
+ *  Returns [] on any error — callers degrade to draft-text-only checks. */
+export async function loadSbfEligibility(
+  db: SupabaseClient,
+  stateCode: string | null,
+): Promise<SbfEligibilityRow[]> {
+  const cols = "name, min_age, max_income_single, requires_medicaid, requires_veteran";
+  try {
+    const [stateRes, federalRes] = await Promise.all([
+      stateCode
+        ? db.from("sbf_state_programs").select(cols).eq("state_code", stateCode.toUpperCase()).eq("is_active", true)
+        : Promise.resolve({ data: [], error: null }),
+      db.from("sbf_federal_programs").select(cols).eq("is_active", true),
+    ]);
+    return [
+      ...((stateRes.data as SbfEligibilityRow[] | null) || []),
+      ...((federalRes.data as SbfEligibilityRow[] | null) || []),
+    ];
+  } catch (err) {
+    console.error("[eligibility] sbf load failed:", err);
+    return [];
+  }
+}
+
+// ── Canonical-name join ─────────────────────────────────────────────────────
+
+/**
+ * National program archetypes both universes contain under different names
+ * ("SNAP (Food Assistance)" vs "SNAP (Supplemental Nutrition Assistance
+ * Program)"). An alias hit on BOTH sides is the highest-confidence join.
+ */
+const ARCHETYPES: { key: string; re: RegExp }[] = [
+  { key: "liheap", re: /\bliheap\b|low[- ]income home energy/i },
+  { key: "snap", re: /\bsnap\b|food stamp|supplemental nutrition/i },
+  { key: "weatherization", re: /weatheriz/i },
+  { key: "msp", re: /medicare savings|\bqmb\b|\bslmb\b/i },
+  { key: "ship", re: /\bship\b|serving health insurance|health insurance (assistance|counseling)|i-care/i },
+  { key: "pace", re: /\bpace\b|all-inclusive care/i },
+  { key: "ombudsman", re: /ombudsman/i },
+  { key: "extra-help", re: /extra help|low[- ]income subsidy/i },
+  { key: "ssi", re: /\bssi\b|supplemental security income/i },
+  { key: "aid-attendance", re: /aid (and|&) attendance/i },
+  { key: "homestead", re: /homestead/i },
+  { key: "meals", re: /home[- ]delivered meals|meals on wheels|congregate/i },
+];
+
+function archetypeOf(name: string): string | null {
+  for (const a of ARCHETYPES) if (a.re.test(name)) return a.key;
+  return null;
+}
+
+const NAME_STOPWORDS = new Set([
+  "program", "programs", "assistance", "services", "service", "benefits",
+  "benefit", "the", "of", "for", "and", "senior", "seniors", "elderly",
+  "state", "county", "local", "office", "offices",
+]);
+
+/** Lowercase, drop parentheticals/punctuation/stopwords/state name → token set. */
+export function canonicalTokens(name: string, stateName?: string | null): Set<string> {
+  let s = name.toLowerCase().replace(/\([^)]*\)/g, " ");
+  if (stateName) s = s.replaceAll(stateName.toLowerCase(), " ");
+  s = s.replace(/[^a-z0-9 ]/g, " ");
+  return new Set(s.split(/\s+/).filter((t) => t.length > 1 && !NAME_STOPWORDS.has(t)));
+}
+
+/**
+ * Resolve a pipeline program name to its sbf row, or null. Match order:
+ * shared archetype → token-subset containment (≥2 meaningful tokens on the
+ * smaller side). Ambiguity (two archetype hits) resolves to the first row —
+ * rows arrive state-first, which is the program the pipeline draft mirrors.
+ */
+export function resolveSbfRow(
+  rows: SbfEligibilityRow[],
+  pipelineName: string,
+  stateName?: string | null,
+): SbfEligibilityRow | null {
+  const arch = archetypeOf(pipelineName);
+  if (arch) {
+    const hit = rows.find((r) => archetypeOf(r.name) === arch);
+    if (hit) return hit;
+  }
+  const target = canonicalTokens(pipelineName, stateName);
+  if (target.size < 2) return null;
+  for (const r of rows) {
+    const tokens = canonicalTokens(r.name, stateName);
+    if (tokens.size < 2) continue;
+    const [small, large] = tokens.size <= target.size ? [tokens, target] : [target, tokens];
+    let contained = true;
+    for (const t of small) if (!large.has(t)) { contained = false; break; }
+    if (contained) return r;
+  }
+  return null;
+}
+
+// ── Verdicts ────────────────────────────────────────────────────────────────
+
+/** Medicaid-gated by NAME (waivers require Medicaid enrollment by
+ *  definition). Name only, never description — mirrors the guidance module's
+ *  isMedicaidGated caveat about prose mentioning Medicaid. Medicare Savings
+ *  Programs are exempt even when a state's draft prefixes them "Medicaid":
+ *  MSP is Medicaid-ADMINISTERED help that families apply to directly —
+ *  requiring Medicaid first would be factually wrong. */
+export function medicaidGatedName(name: string): boolean {
+  if (archetypeOf(name) === "msp") return false;
+  return /\bmedicaid\b|\bwaiver\b/i.test(name);
+}
+
+/** Parse a bare minimum age out of the draft's own ageRequirement ("65+",
+ *  "Age 60+"). Returns null when the text hints an alternative pathway
+ *  ("65+ or 18-64 with a disability") — those programs never age-exclude. */
+export function draftMinAge(ageRequirement: string | null | undefined): number | null {
+  if (!ageRequirement) return null;
+  if (/\bor\b|disab|blind|\b1[89]\b|\b21\b/i.test(ageRequirement)) return null;
+  const m = ageRequirement.match(/(\d{2})\s*\+/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+export interface EligibilityVerdict {
+  ruledOut: boolean;
+  /** Family-readable reason, e.g. "needs Medicaid first". Null when kept. */
+  reason: string | null;
+  /** Re-rank boost from CONFIRMED facts (mirrors the scored engine's
+   *  weights: within income +12, meets age +8, Medicaid held on a gated
+   *  program +10). 0 when nothing is confirmed. */
+  boost: number;
+}
+
+export interface ProgramForVerdict {
+  name: string;
+  /** The draft's structuredEligibility.ageRequirement, when available. */
+  ageRequirement?: string | null;
+  /** The draft's structuredEligibility.summary lines — scanned for an
+   *  alternative eligibility pathway ("18-64 with a disability") that vetoes
+   *  any age rule-out. */
+  eligibilitySummary?: string[] | null;
+  /** The draft's own single-person monthly income limit
+   *  (structuredEligibility.incomeTable, householdSize 1) — the program's
+   *  OWN number outranks the fuzzy-joined sbf column. */
+  incomeLimitSingle?: number | null;
+}
+
+/** Pull the householdSize=1 monthly limit out of a draft income table. */
+export function incomeLimitFromTable(
+  table: { householdSize: number; monthlyLimit: number }[] | null | undefined,
+): number | null {
+  const row = (table || []).find((r) => r.householdSize === 1);
+  return row && row.monthlyLimit > 0 ? row.monthlyLimit : null;
+}
+
+/** Apply the scored engine's rules to one pipeline program. Conservative by
+ *  construction: every exclusion needs a HELD fact plus either a joined sbf
+ *  row or the draft's own text. */
+export function evaluateProgramForFamily(
+  program: ProgramForVerdict,
+  sbf: SbfEligibilityRow | null,
+  facts: FamilyBenefitsFacts,
+): EligibilityVerdict {
+  // Rule-out gating is NAME-only. The requires_medicaid column is seed noise
+  // in both directions (under-set: TX STAR+PLUS carries false; over-set: GA
+  // Medicare Savings carries true, and MSP is how families GET coverage
+  // help) — so the column may only ever BOOST, never exclude.
+  const gatedName = medicaidGatedName(program.name);
+  const gated = gatedName || sbf?.requires_medicaid === true;
+
+  if (facts.medicaidStatus === "doesNotHave" && gatedName) {
+    return { ruledOut: true, reason: "Needs Medicaid first", boost: 0 };
+  }
+  if (sbf?.requires_veteran === true && facts.veteranStatus === "no") {
+    return { ruledOut: true, reason: "For veteran families", boost: 0 };
+  }
+
+  // Age: rule out ONLY from the draft's own clean "N+" requirement (the
+  // pipeline content is per-state fact-checked; the sbf min_age column is
+  // seed-seniorized — FL LIHEAP carries 65 for a program with no age floor
+  // — so like requires_medicaid it may only boost, never exclude). A
+  // disability/younger pathway anywhere in the draft's eligibility text
+  // vetoes the rule-out too.
+  const draftAge = draftMinAge(program.ageRequirement);
+  const altPathway = (program.eligibilitySummary || []).some((s) =>
+    /disab|blind|18\s*[-–]\s*64/i.test(s),
+  );
+  if (!altPathway && facts.age != null && draftAge != null && facts.age < draftAge) {
+    return { ruledOut: true, reason: `For age ${draftAge} and up`, boost: 0 };
+  }
+
+  const incomeLimit = program.incomeLimitSingle ?? sbf?.max_income_single ?? null;
+  const floor = incomeBandFloor(facts.incomeBand);
+  if (floor != null && incomeLimit != null && floor > incomeLimit) {
+    return { ruledOut: true, reason: "Income is likely above its limit", boost: 0 };
+  }
+
+  let boost = 0;
+  const ceiling = incomeBandCeiling(facts.incomeBand);
+  if (ceiling != null && incomeLimit != null && ceiling <= incomeLimit) boost += 12;
+  const boostMinAge = draftAge ?? sbf?.min_age ?? null;
+  if (facts.age != null && boostMinAge != null && facts.age >= boostMinAge) boost += 8;
+  if (facts.medicaidStatus === "alreadyHas" && gated) boost += 10;
+  return { ruledOut: false, reason: null, boost };
+}
+
+/** True when the family has given at least one Phase 3 eligibility fact —
+ *  the gate for running the re-rank at all (no facts, no reorder). */
+export function hasEligibilityFacts(facts: FamilyBenefitsFacts): boolean {
+  return (
+    facts.age != null ||
+    facts.medicaidStatus != null ||
+    facts.veteranStatus != null ||
+    incomeBandFloor(facts.incomeBand) != null
+  );
+}
+
+// ── Ranked partition (the /m re-rank) ───────────────────────────────────────
+
+export interface RankedProgram<T> {
+  item: T;
+  verdict: EligibilityVerdict;
+}
+
+/**
+ * Partition + reorder a program list by the family's facts. Kept programs
+ * are stably reordered by boost (confirmed facts float, unknowns keep their
+ * original relative order); ruled-out programs come back separately with
+ * their reasons for the "probably not a fit" group.
+ */
+export function rankProgramsForFamily<T>(
+  items: T[],
+  getProgram: (item: T) => ProgramForVerdict,
+  sbfRows: SbfEligibilityRow[],
+  facts: FamilyBenefitsFacts,
+  stateName?: string | null,
+): { kept: RankedProgram<T>[]; ruledOut: RankedProgram<T>[] } {
+  const kept: (RankedProgram<T> & { idx: number })[] = [];
+  const ruledOut: RankedProgram<T>[] = [];
+  items.forEach((item, idx) => {
+    const program = getProgram(item);
+    const sbf = resolveSbfRow(sbfRows, program.name, stateName);
+    const verdict = evaluateProgramForFamily(program, sbf, facts);
+    if (verdict.ruledOut) ruledOut.push({ item, verdict });
+    else kept.push({ item, verdict, idx });
+  });
+  kept.sort((a, b) => b.verdict.boost - a.verdict.boost || a.idx - b.idx);
+  return { kept: kept.map(({ item, verdict }) => ({ item, verdict })), ruledOut };
+}

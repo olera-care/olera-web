@@ -17,6 +17,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
 import type { PipelineDraft } from "@/data/pipeline-drafts-types";
+import type { FamilyBenefitsFacts } from "@/lib/family-comms/benefits-guidance.server";
+import {
+  evaluateProgramForFamily,
+  hasEligibilityFacts,
+  incomeLimitFromTable,
+  loadSbfEligibility,
+  resolveSbfRow,
+  type SbfEligibilityRow,
+} from "@/lib/benefits/eligibility.server";
 import { getStateAbbrev, getStateSlug } from "@/lib/program-data";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { benefitsResultsSms } from "@/lib/sms/templates";
@@ -278,9 +287,12 @@ function parseEntrySourceProgram(entrySource: string | null | undefined): { stat
  *      keeping the saved order (match score) within a complexity band.
  *   3. The state's stateOverview.startHere list.
  *
- * Every candidate must clear toPick (callable contact + documents). Returns
- * null when nothing qualifies — the coordinator then skips rung B1 for this
- * family rather than sending a hollow email.
+ * Every candidate must clear toPick (callable contact + documents). When the
+ * family has given eligibility facts (Phase 3), candidates their facts rule
+ * out are skipped at every tier — an under-65 family entering through a 65+
+ * program page should not get that program as their ten-minute first step.
+ * Returns null when nothing qualifies — the coordinator then skips rung B1
+ * for this family rather than sending a hollow email.
  */
 export async function selectFirstStepProgram(
   db: SupabaseClient,
@@ -290,9 +302,35 @@ export async function selectFirstStepProgram(
     /** Program ids to skip — the living journey uses this to pick "up next"
      *  after the first step is done. */
     exclude?: string[];
+    /** The family's benefits facts (familyBenefitsFacts over their profile).
+     *  Omitted or fact-free → no eligibility screening, selection unchanged. */
+    facts?: FamilyBenefitsFacts | null;
   },
 ): Promise<FirstStepPick | null> {
   const excluded = new Set(opts.exclude || []);
+
+  // Eligibility screen (conservative: unknown facts and unjoined programs
+  // always pass). sbf rows load once, only when there are facts to apply.
+  const facts = opts.facts && hasEligibilityFacts(opts.facts) ? opts.facts : null;
+  let sbfRows: SbfEligibilityRow[] = [];
+  if (facts) {
+    sbfRows = await loadSbfEligibility(db, opts.stateAbbrev);
+  }
+  const factsRuleOut = (draft: PipelineDraft, stateId: string): boolean => {
+    if (!facts) return false;
+    const stateName = stateId.replace(/-/g, " ");
+    const verdict = evaluateProgramForFamily(
+      {
+        name: draft.name,
+        ageRequirement: draft.structuredEligibility?.ageRequirement,
+        eligibilitySummary: draft.structuredEligibility?.summary,
+        incomeLimitSingle: incomeLimitFromTable(draft.structuredEligibility?.incomeTable),
+      },
+      resolveSbfRow(sbfRows, draft.name, stateName),
+      facts,
+    );
+    return verdict.ruledOut;
+  };
   const { data: account } = await db
     .from("accounts")
     .select("user_id, signup_source")
@@ -305,7 +343,7 @@ export async function selectFirstStepProgram(
   if (entry && !excluded.has(entry.programId)) {
     const abbrev = getStateAbbrev(entry.stateId);
     const draft = draftFor(abbrev, entry.programId);
-    if (draft) {
+    if (draft && !factsRuleOut(draft, entry.stateId)) {
       const pick = toPick(draft, abbrev, entry.stateId, "entry");
       if (pick) return pick;
     }
@@ -325,6 +363,7 @@ export async function selectFirstStepProgram(
     const abbrev = getStateAbbrev(row.state_id);
     const draft = draftFor(abbrev, row.program_id);
     if (!draft) return;
+    if (factsRuleOut(draft, row.state_id)) return;
     const pick = toPick(draft, abbrev, row.state_id, "saved");
     if (!pick) return;
     candidates.push({ pick, rank: COMPLEXITY_RANK[draft.complexity] ?? 3, idx });
@@ -342,6 +381,7 @@ export async function selectFirstStepProgram(
         if (excluded.has(s.programId)) continue;
         const draft = draftFor(abbrev, s.programId);
         if (!draft) continue;
+        if (factsRuleOut(draft, stateId)) continue;
         const pick = toPick(draft, abbrev, stateId, "state");
         if (pick) return pick;
       }
@@ -349,6 +389,35 @@ export async function selectFirstStepProgram(
   }
 
   return null;
+}
+
+// ── Situation line (Phase 3 honesty) ────────────────────────────────────────
+
+/** Humanize the family's held eligibility facts into one line ("age 72, on
+ *  Medicaid, income $1,500–$2,500/mo"). Null when we hold nothing — callers
+ *  render their own "unknown" placeholder (or nothing at all). Same
+ *  vocabulary as the Slack benefits_completed alert. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function benefitsSituationLine(profileMeta: Record<string, any> | null | undefined): string | null {
+  const meta = profileMeta || {};
+  const parts: string[] = [];
+  if (typeof meta.age === "number" && meta.age > 0) parts.push(`age ${meta.age}`);
+  const medicaid = meta.medicaid_status as string | undefined;
+  if (medicaid === "alreadyHas") parts.push("on Medicaid");
+  else if (medicaid === "doesNotHave") parts.push("not on Medicaid");
+  else if (medicaid === "applying") parts.push("applying for Medicaid");
+  else if (medicaid === "notSure") parts.push("Medicaid: not sure");
+  const incomeLabels: Record<string, string> = {
+    under1500: "income under $1,500/mo",
+    under2500: "income $1,500–$2,500/mo",
+    under4000: "income $2,500–$4,000/mo",
+    over4000: "income over $4,000/mo",
+    under6000: "income $4,000–$6,000/mo",
+    over6000: "income over $6,000/mo",
+  };
+  const income = meta.income_range as string | undefined;
+  if (income && incomeLabels[income]) parts.push(incomeLabels[income]);
+  return parts.length > 0 ? parts.join(", ") : null;
 }
 
 // ── Phone capture ───────────────────────────────────────────────────────────

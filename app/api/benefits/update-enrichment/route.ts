@@ -26,7 +26,18 @@ import {
  *   stamps metadata.sms_consent (what a 10DLC audit wants, and what the future
  *   SMS cascade rungs gate on), and IMMEDIATELY texts the results link
  *   (benefitsResultsSms) so the step's promise is kept in seconds.
+ * - ageBand / medicaidStatus / incomeRange: Phase 3 real-situation facts
+ *   (one-tap asks after the phone step, and the /m gap chips). Age bands
+ *   store the same representative numbers as the email micro-quiz
+ *   (60/70/80/87) so every facts reader sees one vocabulary. Values are
+ *   allowlisted; writes are metadata-only with a quiz_answers provenance
+ *   stamp. `source` labels where the tap happened ("benefits_enrichment"
+ *   | "m_chips").
  */
+
+const AGE_BAND_VALUES = new Set(["60", "70", "80", "87"]);
+const MEDICAID_VALUES = new Set(["alreadyHas", "applying", "notSure", "doesNotHave"]);
+const INCOME_VALUES = new Set(["under1500", "under2500", "under4000", "over4000", "preferNotToSay"]);
 export async function PATCH(request: Request) {
   try {
     const supabase = await createServerClient();
@@ -42,6 +53,10 @@ export async function PATCH(request: Request) {
       timeline,
       paymentMethod,
       phone,
+      ageBand,
+      medicaidStatus,
+      incomeRange,
+      source,
       sessionId,
       completedSteps,
     } = body as {
@@ -51,9 +66,19 @@ export async function PATCH(request: Request) {
       timeline?: string;
       paymentMethod?: string;
       phone?: string;
+      ageBand?: string;
+      medicaidStatus?: string;
+      incomeRange?: string;
+      source?: string;
       sessionId?: string;
       completedSteps?: number[];
     };
+
+    // Allowlisted facts only — a garbage value degrades to "not sent",
+    // never a wrong fact on the profile.
+    const factAge = ageBand && AGE_BAND_VALUES.has(ageBand) ? parseInt(ageBand, 10) : null;
+    const factMedicaid = medicaidStatus && MEDICAID_VALUES.has(medicaidStatus) ? medicaidStatus : null;
+    const factIncome = incomeRange && INCOME_VALUES.has(incomeRange) ? incomeRange : null;
 
     if (!profileId) {
       return NextResponse.json(
@@ -144,6 +169,39 @@ export async function PATCH(request: Request) {
       await syncIntentToProfile(admin, profileId, syncData, profile.email);
     }
 
+    // ── Phase 3 facts → metadata (age / medicaid_status / income_range) ─
+    // Fresh read AFTER syncIntentToProfile so this merge can't clobber its
+    // writes; the phone capture below re-reads again for the same reason.
+    if (factAge || factMedicaid || factIncome) {
+      const { data: fresh } = await admin
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", profileId)
+        .single();
+      const meta = (fresh?.metadata as Record<string, unknown>) || {};
+      const quizAnswers = (meta.quiz_answers as Record<string, unknown>) || {};
+      const via = source === "m_chips" ? "m_chips" : "enrichment";
+      const at = new Date().toISOString();
+      if (factAge) {
+        meta.age = factAge;
+        quizAnswers.age = { answer: String(factAge), at, via };
+      }
+      if (factMedicaid) {
+        meta.medicaid_status = factMedicaid;
+        quizAnswers.medicaid = { answer: factMedicaid, at, via };
+      }
+      if (factIncome) {
+        meta.income_range = factIncome;
+        quizAnswers.income = { answer: factIncome, at, via };
+      }
+      meta.quiz_answers = quizAnswers;
+      const { error: factsErr } = await admin
+        .from("business_profiles")
+        .update({ metadata: meta })
+        .eq("id", profileId);
+      if (factsErr) console.error("[update-enrichment] facts write failed:", factsErr);
+    }
+
     // ── Phone capture (step 4) ──────────────────────────────────────────
     // Fill-if-empty + consent stamp + immediate results-link SMS, all inside
     // the shared helper (which re-reads metadata so the consent merge can't
@@ -166,6 +224,9 @@ export async function PATCH(request: Request) {
       timeline && "timeline",
       paymentMethod && "payment_method",
       normalizedPhone && "phone",
+      factAge && "age",
+      factMedicaid && "medicaid_status",
+      factIncome && "income_range",
     ].filter(Boolean);
 
     if (enrichedFields.length > 0) {
@@ -174,7 +235,7 @@ export async function PATCH(request: Request) {
         profile_id: profileId,
         event_type: "profile_enriched",
         metadata: {
-          source: "benefits_enrichment",
+          source: source === "m_chips" ? "m_chips" : "benefits_enrichment",
           enriched_fields: enrichedFields,
           completed_steps: completedSteps || [],
           session_id: sessionId || null,

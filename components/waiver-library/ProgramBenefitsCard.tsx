@@ -15,16 +15,22 @@
  *   - matchesCareNeed             (filter the state's programs for the email)
  *   - trackBenefitsEvent          (funnel analytics, tagged variant="program_card")
  *
- * Post-email enrichment (4 steps):
+ * Post-email enrichment (7 steps):
  *   - After email submission, we show optional enrichment steps to
  *     improve profile completeness from ~21% to ~55%:
  *     1. Who needs care? (Self, Parent, Spouse, Other)
  *     2. How soon? (ASAP, Within a month, In a few months, Just researching)
  *     3. How will you pay? (Medicare, Medicaid, Private insurance, etc.)
- *     4. Want this by text? (phone capture — the SMS-reachability funnel; the
- *        typed field goes LAST so it can't dampen the one-tap streak. Server
- *        texts the results link immediately so the promise is kept in seconds,
- *        and stores the consent stamp the future SMS rungs gate on.)
+ *     4. Want this by text? (phone capture — the SMS-reachability funnel;
+ *        DELIBERATELY at this depth: phone is the one ask the dialogue can't
+ *        continue without, so the Phase 3 facts go AFTER it, never before.
+ *        Server texts the results link immediately so the promise is kept in
+ *        seconds, and stores the consent stamp the SMS rungs gate on.)
+ *     5-7. Age band / Medicaid / income band (Phase 3 real-situation facts —
+ *        the bonus round riding the just-texted-you reciprocity. Each tap
+ *        PATCHes immediately so a mid-round abandon loses nothing; Medicaid
+ *        is skipped when payment=medicaid, the facts reader already infers
+ *        alreadyHas from payment_methods.)
  *   - User can answer any/all or skip to see the success card
  *
  * Value-first display:
@@ -101,7 +107,16 @@ function topSavingsLabel(range?: string): string | null {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type CardState = "capture" | "enrichment_1" | "enrichment_2" | "enrichment_3" | "enrichment_4" | "success";
+type CardState =
+  | "capture"
+  | "enrichment_1"
+  | "enrichment_2"
+  | "enrichment_3"
+  | "enrichment_4"
+  | "enrichment_5"
+  | "enrichment_6"
+  | "enrichment_7"
+  | "success";
 
 /** Loose US phone check for the enrichment step — 10 digits (optionally with
  *  a leading 1). The server does the real E.164 normalization. */
@@ -131,6 +146,30 @@ const PAYMENT_OPTIONS: { label: string; value: string }[] = [
   { label: "Private pay", value: "private_pay" },
   { label: "Veterans benefits", value: "veterans_benefits" },
   { label: "Long-term care insurance", value: "long_term_care_insurance" },
+];
+
+// Phase 3 facts (steps 5-7). Age bands store the same representative numbers
+// as the email micro-quiz (family-quiz allowlist) so every facts reader sees
+// one vocabulary.
+const AGE_OPTIONS: { label: string; value: string }[] = [
+  { label: "Under 65", value: "60" },
+  { label: "65 to 74", value: "70" },
+  { label: "75 to 84", value: "80" },
+  { label: "85 or older", value: "87" },
+];
+
+const MEDICAID_OPTIONS: { label: string; value: string }[] = [
+  { label: "Yes, they have it", value: "alreadyHas" },
+  { label: "Applying or not sure", value: "notSure" },
+  { label: "No", value: "doesNotHave" },
+];
+
+const INCOME_OPTIONS: { label: string; value: string }[] = [
+  { label: "Under $1,500 a month", value: "under1500" },
+  { label: "$1,500 to $2,500", value: "under2500" },
+  { label: "$2,500 to $4,000", value: "under4000" },
+  { label: "Over $4,000", value: "over4000" },
+  { label: "Prefer not to say", value: "preferNotToSay" },
 ];
 
 export default function ProgramBenefitsCard({
@@ -164,6 +203,9 @@ export default function ProgramBenefitsCard({
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [phoneSaving, setPhoneSaving] = useState(false);
+  const [ageBand, setAgeBand] = useState<string | null>(null);
+  const [medicaidChoice, setMedicaidChoice] = useState<string | null>(null);
+  const [incomeBand, setIncomeBand] = useState<string | null>(null);
   const [completedSteps, setCompletedSteps] = useState<BenefitsEnrichmentStep[]>([]);
 
   // Track enrichment start only once
@@ -296,7 +338,8 @@ export default function ProgramBenefitsCard({
     }
   }, [cardState, profileId, programId, stateCode, ctaSurface]);
 
-  // Save enrichment data to the profile
+  // The phone checkpoint: saves steps 1-3 (+phone when given) in one PATCH,
+  // then advances into the facts round (5-7) instead of ending the flow.
   // Note: finalPayment/finalPhone are passed directly to avoid stale closure
   // issues (React state updates are async, so the state values may not be
   // updated yet when called from selectPayment / submitPhone)
@@ -309,12 +352,6 @@ export default function ProgramBenefitsCard({
 
     const payment = finalPayment ?? paymentMethod;
     const phoneToSave = finalPhone?.trim() || undefined;
-
-    // Track completion
-    trackBenefitsEnrichmentCompleted(
-      { programId, stateCode, profileId, ctaSurface },
-      finalCompletedSteps
-    );
 
     // Only call API if we have data to save
     if (recipient || timeline || payment || phoneToSave) {
@@ -338,8 +375,43 @@ export default function ProgramBenefitsCard({
       }
     }
 
+    setCardState("enrichment_5");
+  }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId]);
+
+  // End of the flow (after step 7, answered or skipped).
+  const finishFlow = useCallback((finalCompletedSteps: BenefitsEnrichmentStep[]) => {
+    if (profileId) {
+      trackBenefitsEnrichmentCompleted(
+        { programId, stateCode, profileId, ctaSurface },
+        finalCompletedSteps
+      );
+    }
     setCardState("success");
-  }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId, programId, stateCode, ctaSurface]);
+  }, [profileId, programId, stateCode, ctaSurface]);
+
+  // Facts round (5-7): every tap PATCHes immediately — a mid-round abandon
+  // loses nothing, and the /m gap chips are the backstop for what's skipped.
+  // Fire-and-forget like the analytics calls; best-effort by design.
+  const patchFact = useCallback((fact: { ageBand?: string; medicaidStatus?: string; incomeRange?: string }) => {
+    if (!profileId) return;
+    fetch("/api/benefits/update-enrichment", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId,
+        token: resultToken,
+        source: "benefits_enrichment",
+        sessionId,
+        ...fact,
+      }),
+    }).catch(() => {
+      // Silent fail — enrichment is best-effort
+    });
+  }, [profileId, resultToken, sessionId]);
+
+  // Medicaid step is redundant when they already told us they'll pay with
+  // Medicaid (the facts reader infers alreadyHas from payment_methods).
+  const medicaidRedundant = paymentMethod === "medicaid";
 
   // Step 1: Select recipient
   const selectRecipient = useCallback((val: string) => {
@@ -382,6 +454,36 @@ export default function ProgramBenefitsCard({
     saveEnrichmentData(newCompleted, undefined, phone);
   }, [phone, phoneSaving, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
 
+  // Step 5: Age band
+  const selectAge = useCallback((val: string) => {
+    setAgeBand(val);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 5];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(5, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    patchFact({ ageBand: val });
+    setTimeout(() => setCardState(medicaidRedundant ? "enrichment_7" : "enrichment_6"), 150);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, medicaidRedundant]);
+
+  // Step 6: Medicaid status
+  const selectMedicaid = useCallback((val: string) => {
+    setMedicaidChoice(val);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 6];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(6, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    patchFact({ medicaidStatus: val });
+    setTimeout(() => setCardState("enrichment_7"), 150);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact]);
+
+  // Step 7: Income band
+  const selectIncome = useCallback((val: string) => {
+    setIncomeBand(val);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 7];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(7, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    patchFact({ incomeRange: val });
+    setTimeout(() => finishFlow(newCompleted), 150);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface, patchFact, finishFlow]);
+
   // Skip current step
   const handleSkip = useCallback(() => {
     const stepMap: Record<string, BenefitsEnrichmentStep> = {
@@ -389,6 +491,9 @@ export default function ProgramBenefitsCard({
       enrichment_2: 2,
       enrichment_3: 3,
       enrichment_4: 4,
+      enrichment_5: 5,
+      enrichment_6: 6,
+      enrichment_7: 7,
     };
     const currentStep = stepMap[cardState];
     if (currentStep) {
@@ -412,12 +517,27 @@ export default function ProgramBenefitsCard({
       case "enrichment_4":
         saveEnrichmentData(completedSteps);
         break;
+      case "enrichment_5":
+        setTimeout(() => setCardState(medicaidRedundant ? "enrichment_7" : "enrichment_6"), 150);
+        break;
+      case "enrichment_6":
+        setTimeout(() => setCardState("enrichment_7"), 150);
+        break;
+      case "enrichment_7":
+        finishFlow(completedSteps);
+        break;
     }
-  }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
+  }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData, finishFlow, medicaidRedundant]);
 
-  // Current step number for progress dots (1-4)
+  // Current step number for progress dots (1-7)
   const currentStepNumber =
-    cardState === "enrichment_1" ? 1 : cardState === "enrichment_2" ? 2 : cardState === "enrichment_3" ? 3 : 4;
+    cardState === "enrichment_1" ? 1
+    : cardState === "enrichment_2" ? 2
+    : cardState === "enrichment_3" ? 3
+    : cardState === "enrichment_4" ? 4
+    : cardState === "enrichment_5" ? 5
+    : cardState === "enrichment_6" ? 6
+    : 7;
 
   // ─── Success state ─────────────────────────────────────────────────────
   if (cardState === "success") {
@@ -438,6 +558,9 @@ export default function ProgramBenefitsCard({
               </span>{" "}
               you may qualify for — with eligibility and how to apply for each.
               {completedSteps.includes(4) && <> Your results link is also on its way by text.</>}
+              {(completedSteps.includes(5) || completedSteps.includes(6) || completedSteps.includes(7)) && (
+                <> We sorted your matches around what you shared.</>
+              )}
             </>
           ) : (
             <>We saved your search and emailed you the eligibility details for {shortLabel}.</>
@@ -489,9 +612,9 @@ export default function ProgramBenefitsCard({
           </div>
         </div>
 
-        {/* Progress dots */}
+        {/* Progress dots (step 6 drops out when payment=medicaid) */}
         <div className="flex items-center justify-center gap-1.5 mb-4">
-          {[1, 2, 3, 4].map((i) => (
+          {(medicaidRedundant ? [1, 2, 3, 4, 5, 7] : [1, 2, 3, 4, 5, 6, 7]).map((i) => (
             <div
               key={i}
               className={`rounded-full transition-all duration-300 ${
@@ -601,6 +724,105 @@ export default function ProgramBenefitsCard({
             <button
               onClick={handleSkip}
               className="w-full py-2 mt-1 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+
+        {/* Step 5: Age band (facts round — checks eligibility, sharpens matches) */}
+        {cardState === "enrichment_5" && (
+          <div className="animate-in fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              How old is the person needing care?
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">
+              Three quick taps left. These check eligibility so your matches get more accurate.
+            </p>
+            <div className="space-y-2 mb-4">
+              {AGE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => selectAge(opt.value)}
+                  className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                    ageBand === opt.value
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSkip}
+              className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+
+        {/* Step 6: Medicaid status (skipped when payment=medicaid) */}
+        {cardState === "enrichment_6" && (
+          <div className="animate-in fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              Do they have Medicaid?
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">
+              Several programs need Medicaid first. Knowing this sorts your list.
+            </p>
+            <div className="space-y-2 mb-4">
+              {MEDICAID_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => selectMedicaid(opt.value)}
+                  className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                    medicaidChoice === opt.value
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSkip}
+              className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+
+        {/* Step 7: Income band (rough is fine; band floors drive exclusions) */}
+        {cardState === "enrichment_7" && (
+          <div className="animate-in fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              About how much is their monthly income?
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">
+              Most programs have income limits. A rough range is all we need.
+            </p>
+            <div className="space-y-2 mb-4">
+              {INCOME_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => selectIncome(opt.value)}
+                  className={`w-full py-3.5 px-4 rounded-xl text-[15px] font-medium text-center transition-all duration-150 border ${
+                    incomeBand === opt.value
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98]"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleSkip}
+              className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
             >
               Skip
             </button>

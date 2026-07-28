@@ -6,6 +6,7 @@ import {
   readBenefitsCase,
   caseStatus,
   lifecycleStatus,
+  benefitsSituationLine,
   type CascadeStatus,
   type CaseStatus,
   type Lifecycle,
@@ -47,6 +48,9 @@ interface FamilyRow {
     timeline: string | null;
     payments: string[] | null;
   };
+  /** Held eligibility facts, humanized ("age 72, on Medicaid, income
+   *  $1,500–$2,500/mo"). Null until the family gives a Phase 3 fact. */
+  situation: string | null;
   signals: {
     emailOpened: boolean;
     emailClicked: boolean;
@@ -248,6 +252,7 @@ export async function GET(request: NextRequest) {
         isNewUser: Boolean(meta.is_new_user),
         completedAt: ev.created_at,
         enrichment: { relationship, timeline, payments },
+        situation: benefitsSituationLine(pMeta),
         signals,
         cascade: {
           status,

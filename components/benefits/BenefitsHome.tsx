@@ -3,6 +3,7 @@ import type { WaiverProgram } from "@/data/waiver-library";
 import { CARE_NEED_LABEL, type CareNeed } from "@/lib/benefits/match-care-need";
 import type { FirstStepPick, BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
 import JourneyActions, { type NextStepInfo } from "@/components/benefits/JourneyActions";
+import FactChips, { type KnownFacts } from "@/components/benefits/FactChips";
 
 /**
  * BenefitsHome — the /m/{token} results page, rebuilt as a guide instead of a
@@ -35,6 +36,14 @@ export interface BenefitsHomeProps {
   timeline: string | null;
   payments: string[] | null;
   matches: WaiverProgram[];
+  /** Programs a HELD fact rules out — demoted into a labeled group, never
+   *  silently removed (a family who saw 11 matches yesterday shouldn't
+   *  wonder where two went after tapping a chip). */
+  ruledOut?: { program: WaiverProgram; reason: string }[];
+  /** For the gap chips' PATCH body. */
+  profileId: string;
+  /** Phase 3 facts we hold; gaps render as tappable "+ Add" chips. */
+  knownFacts: KnownFacts;
   firstStep: FirstStepPick | null;
   callScript: string | null;
   cascade: BenefitsCascadeMeta;
@@ -122,6 +131,9 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     timeline,
     payments,
     matches,
+    ruledOut = [],
+    profileId,
+    knownFacts,
     firstStep,
     callScript,
     cascade,
@@ -208,6 +220,9 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
               {c}
             </span>
           ))}
+          {/* The living half of the row: held facts as chips, gaps as
+              tappable asks. Answering re-runs the server re-rank. */}
+          <FactChips token={token} profileId={profileId} facts={knownFacts} />
         </div>
 
         {/* ── Progress strip ──────────────────────────────────────────── */}
@@ -330,6 +345,37 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
                 </details>
               ))}
             </div>
+          </section>
+        )}
+
+        {/* ── Ruled out, honestly held ────────────────────────────────── */}
+        {ruledOut.length > 0 && (
+          <section className="mt-7">
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between py-2 text-[14px] font-medium text-gray-500 [&::-webkit-details-marker]:hidden">
+                <span>
+                  Probably not a fit, based on what you told us
+                  <span className="ml-2 text-[13px] font-normal text-gray-400">
+                    {ruledOut.length}
+                  </span>
+                </span>
+                <span className="text-gray-400 transition-transform group-open:rotate-90">›</span>
+              </summary>
+              <ul className="space-y-3 pb-2 pt-1">
+                {ruledOut.map(({ program: p, reason }) => (
+                  <li key={p.id}>
+                    <Link href={`/benefits/${stateSlug}/${p.id}`} className="block">
+                      <span className="text-[14px] font-medium text-gray-500 hover:text-gray-700">
+                        {p.shortName || p.name}
+                      </span>
+                      <span className="mt-0.5 block text-[13px] leading-snug text-gray-400">
+                        {reason}. If your situation changes, it may be worth another look.
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </details>
           </section>
         )}
 

@@ -45,6 +45,7 @@ interface FamilyRow {
     timeline: string | null;
     payments: string[] | null;
   };
+  situation: string | null;
   signals: {
     emailOpened: boolean;
     emailClicked: boolean;
@@ -428,6 +429,10 @@ export default function BenefitsFamiliesView() {
                             .filter(Boolean)
                             .join(" · ")}
                         </p>
+                      )}
+                      {/* Phase 3: the real situation, once the family gives it */}
+                      {f.situation && (
+                        <p className="text-xs text-gray-600 mt-0.5">{f.situation}</p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-600">

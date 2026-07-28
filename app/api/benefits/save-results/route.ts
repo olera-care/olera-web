@@ -708,14 +708,23 @@ export async function POST(req: Request) {
     // The helper's `email` field is the contact display — we pass whichever
     // channel the user chose. Refining the helper to know about channel is
     // out of scope for this PR.
+    // Situation honesty (Phase 3): every live intake surface still submits
+    // age/medicaid/income as null, but a RETURNING family may have given
+    // facts since (enrichment round, /m chips, email quiz) — read them off
+    // the profile so the alert stops saying "unknown" about a family we know.
+    const priorMeta = (existingFamilyProfile?.metadata as Record<string, unknown>) || {};
+    const priorAge = typeof priorMeta.age === "number" && priorMeta.age > 0 ? priorMeta.age : null;
+    const priorMedicaid = typeof priorMeta.medicaid_status === "string" ? priorMeta.medicaid_status : null;
+    const priorIncome = typeof priorMeta.income_range === "string" ? priorMeta.income_range : null;
+
     const alert = slackBenefitsCompleted({
       familyName: displayName,
       email: normalizedEmail || normalizedPhone || "(no contact)",
       stateCode: stateAbbrev,
       careNeedLabel,
-      age: age || null,
-      medicaidStatus: medicaidStatus || null,
-      incomeRange: incomeRange || null,
+      age: age || priorAge,
+      medicaidStatus: medicaidStatus || priorMedicaid,
+      incomeRange: incomeRange || priorIncome,
       matchCount,
       programsSaved: programsSavedCount,
       topProgramName: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,

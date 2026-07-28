@@ -163,6 +163,7 @@ export default function ProgramBenefitsCard({
   const [timeline, setTimeline] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
+  const [phoneSaving, setPhoneSaving] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<BenefitsEnrichmentStep[]>([]);
 
   // Track enrichment start only once
@@ -369,14 +370,17 @@ export default function ProgramBenefitsCard({
 
   // Step 4: Phone (the only typed step — last so it can't dampen the one-tap
   // streak). Submitting texts the results link right away, server-side.
+  // phoneSaving guards the awaited save (~2-4s with the SMS): without it a
+  // slow-connection double-tap would PATCH twice and send two texts.
   const submitPhone = useCallback(() => {
-    if (!phoneLooksValid(phone)) return;
+    if (!phoneLooksValid(phone) || phoneSaving) return;
+    setPhoneSaving(true);
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 4];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(4, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
     // Pass phone directly to avoid stale closure (state won't be updated yet)
     saveEnrichmentData(newCompleted, undefined, phone);
-  }, [phone, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
+  }, [phone, phoneSaving, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
 
   // Skip current step
   const handleSkip = useCallback(() => {
@@ -585,10 +589,10 @@ export default function ProgramBenefitsCard({
             />
             <button
               onClick={submitPhone}
-              disabled={!phoneLooksValid(phone)}
+              disabled={!phoneLooksValid(phone) || phoneSaving}
               className="mt-3 w-full py-3.5 px-4 rounded-xl text-[15px] font-semibold text-center transition-all duration-150 bg-gray-900 text-white disabled:opacity-40 disabled:cursor-default active:scale-[0.98] disabled:active:scale-100"
             >
-              Text me my results
+              {phoneSaving ? "Sending…" : "Text me my results"}
             </button>
             <p className="mt-2.5 text-[11px] leading-relaxed text-gray-400">
               By adding your number you agree to receive care-related texts from Olera.

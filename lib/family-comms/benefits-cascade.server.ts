@@ -113,8 +113,13 @@ export function caseStatus(
   if (cascade.outcome === "wants_help") return "wants_help";
   if (cascade.outcome === "wrong_program") return null;
 
-  if (cascade.check_sent_at && now - new Date(cascade.check_sent_at).getTime() >= 4 * CASE_DAY) {
-    return "silent_after_checkin";
+  // Once the check-in is out, IT owns the verdict: silent after 4 days, or
+  // nothing yet. Declaring a stall while the automated follow-up is still in
+  // flight would double-count the same silence.
+  if (cascade.check_sent_at) {
+    return now - new Date(cascade.check_sent_at).getTime() >= 4 * CASE_DAY
+      ? "silent_after_checkin"
+      : null;
   }
   if (cascade.first_step_sent_at) {
     const sentAt = new Date(cascade.first_step_sent_at).getTime();

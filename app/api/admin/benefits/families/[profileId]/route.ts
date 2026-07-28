@@ -108,16 +108,24 @@ export async function GET(
       .from("benefits_results_tokens")
       .select("last_viewed_at")
       .eq("profile_id", profileId);
+    let latestView: string | null = null;
     for (const t of tokens ?? []) {
       push(t.last_viewed_at, "viewed", "Viewed their plan page (latest)");
+      if (t.last_viewed_at && (!latestView || t.last_viewed_at > latestView)) latestView = t.last_viewed_at;
     }
     if (cascade.docs_checked?.length) {
-      events.push({
-        at: cascade.first_step_done_at || new Date().toISOString(),
-        kind: "docs",
-        label: `Checked ${cascade.docs_checked.length} document${cascade.docs_checked.length === 1 ? "" : "s"} on their checklist`,
-        detail: cascade.docs_checked.join("; "),
-      });
+      // docs_checked carries no per-doc timestamps; anchor to the best-known
+      // moment they were on the page (call-done, else latest view) so the
+      // entry doesn't re-date itself to "today" on every load.
+      const docsAt = cascade.first_step_done_at || latestView;
+      if (docsAt) {
+        events.push({
+          at: docsAt,
+          kind: "docs",
+          label: `Checked ${cascade.docs_checked.length} document${cascade.docs_checked.length === 1 ? "" : "s"} on their checklist`,
+          detail: cascade.docs_checked.join("; "),
+        });
+      }
     }
 
     // Case actions

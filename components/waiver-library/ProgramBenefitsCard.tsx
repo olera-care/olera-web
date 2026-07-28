@@ -338,8 +338,29 @@ export default function ProgramBenefitsCard({
     }
   }, [cardState, profileId, programId, stateCode, ctaSurface]);
 
+  // All update-enrichment PATCHes run through one chain: the route does a
+  // read-merge-write on profile metadata, so two in-flight requests can
+  // interleave (the later read landing before the earlier write commits) and
+  // silently drop a fact. Serializing client-side closes the window.
+  const patchChain = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueuePatch = useCallback((body: Record<string, unknown>) => {
+    const run = () =>
+      fetch("/api/benefits/update-enrichment", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }).catch(() => {
+        // Silent fail — enrichment is best-effort
+      });
+    const p = patchChain.current.then(run, run);
+    patchChain.current = p;
+    return p;
+  }, []);
+
   // The phone checkpoint: saves steps 1-3 (+phone when given) in one PATCH,
   // then advances into the facts round (5-7) instead of ending the flow.
+  // ALWAYS advances — a missing profileId skips the save, never strands the
+  // card on the phone step.
   // Note: finalPayment/finalPhone are passed directly to avoid stale closure
   // issues (React state updates are async, so the state values may not be
   // updated yet when called from selectPayment / submitPhone)
@@ -348,35 +369,25 @@ export default function ProgramBenefitsCard({
     finalPayment?: string,
     finalPhone?: string
   ) => {
-    if (!profileId) return;
-
     const payment = finalPayment ?? paymentMethod;
     const phoneToSave = finalPhone?.trim() || undefined;
 
     // Only call API if we have data to save
-    if (recipient || timeline || payment || phoneToSave) {
-      try {
-        await fetch("/api/benefits/update-enrichment", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            profileId,
-            token: resultToken,
-            recipient,
-            timeline,
-            paymentMethod: payment,
-            phone: phoneToSave,
-            sessionId,
-            completedSteps: finalCompletedSteps,
-          }),
-        });
-      } catch {
-        // Silent fail — enrichment is best-effort
-      }
+    if (profileId && (recipient || timeline || payment || phoneToSave)) {
+      await enqueuePatch({
+        profileId,
+        token: resultToken,
+        recipient,
+        timeline,
+        paymentMethod: payment,
+        phone: phoneToSave,
+        sessionId,
+        completedSteps: finalCompletedSteps,
+      });
     }
 
     setCardState("enrichment_5");
-  }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId]);
+  }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId, enqueuePatch]);
 
   // End of the flow (after step 7, answered or skipped).
   const finishFlow = useCallback((finalCompletedSteps: BenefitsEnrichmentStep[]) => {
@@ -389,25 +400,19 @@ export default function ProgramBenefitsCard({
     setCardState("success");
   }, [profileId, programId, stateCode, ctaSurface]);
 
-  // Facts round (5-7): every tap PATCHes immediately — a mid-round abandon
-  // loses nothing, and the /m gap chips are the backstop for what's skipped.
-  // Fire-and-forget like the analytics calls; best-effort by design.
+  // Facts round (5-7): every tap PATCHes immediately (through the serialized
+  // chain) — a mid-round abandon loses nothing, and the /m gap chips are the
+  // backstop for what's skipped. Fire-and-forget; best-effort by design.
   const patchFact = useCallback((fact: { ageBand?: string; medicaidStatus?: string; incomeRange?: string }) => {
     if (!profileId) return;
-    fetch("/api/benefits/update-enrichment", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        profileId,
-        token: resultToken,
-        source: "benefits_enrichment",
-        sessionId,
-        ...fact,
-      }),
-    }).catch(() => {
-      // Silent fail — enrichment is best-effort
+    void enqueuePatch({
+      profileId,
+      token: resultToken,
+      source: "benefits_enrichment",
+      sessionId,
+      ...fact,
     });
-  }, [profileId, resultToken, sessionId]);
+  }, [profileId, resultToken, sessionId, enqueuePatch]);
 
   // Medicaid step is redundant when they already told us they'll pay with
   // Medicaid (the facts reader infers alreadyHas from payment_methods).

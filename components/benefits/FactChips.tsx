@@ -99,6 +99,7 @@ export default function FactChips({ token, profileId, facts, suppressMedicaidChi
   const [open, setOpen] = useState<Ask | null>(null);
   const [saved, setSaved] = useState<Partial<Record<Ask, string>>>({});
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [isRefreshing, startTransition] = useTransition();
 
   const knownChips: string[] = [];
@@ -121,6 +122,7 @@ export default function FactChips({ token, profileId, facts, suppressMedicaidChi
   const answer = (ask: Ask, value: string) => {
     if (saving) return;
     setSaving(true);
+    setSaveError(false);
     fetch("/api/benefits/update-enrichment", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -137,10 +139,13 @@ export default function FactChips({ token, profileId, facts, suppressMedicaidChi
           setOpen(null);
           // Re-run the server re-rank so the list visibly sharpens.
           startTransition(() => router.refresh());
+        } else {
+          setSaveError(true);
         }
       })
       .catch(() => {
-        // Best-effort; the chip stays open so they can retry.
+        // The options stay open so they can retry.
+        setSaveError(true);
       })
       .finally(() => setSaving(false));
   };
@@ -188,6 +193,11 @@ export default function FactChips({ token, profileId, facts, suppressMedicaidChi
               </button>
             ))}
           </div>
+          {saveError && (
+            <p className="mt-2 text-[13px] text-red-600" role="alert">
+              That didn&apos;t save. Please tap it again.
+            </p>
+          )}
         </div>
       )}
     </>

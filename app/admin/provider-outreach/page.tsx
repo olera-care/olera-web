@@ -2317,6 +2317,30 @@ export default function ProviderOutreachPage() {
   // Stats section expanded state
   const [statsExpanded, setStatsExpanded] = useState(false);
 
+  // Email performance stats section
+  const [emailStatsExpanded, setEmailStatsExpanded] = useState(false);
+  const [emailStats, setEmailStats] = useState<{
+    templates: Array<{
+      template_key: string;
+      name: string;
+      sequence_step: number | null;
+      sent: number;
+      opened: number;
+      open_rate: number;
+      clicked: number;
+      click_rate: number;
+    }>;
+    totals: {
+      sent: number;
+      opened: number;
+      open_rate: number;
+      clicked: number;
+      click_rate: number;
+    };
+    period_days: number;
+  } | null>(null);
+  const [emailStatsLoading, setEmailStatsLoading] = useState(false);
+
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
 
@@ -2819,6 +2843,27 @@ export default function ProviderOutreachPage() {
     const interval = setInterval(fetchGlobalFollowUps, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Effect: fetch email performance stats when section is expanded
+  useEffect(() => {
+    if (!emailStatsExpanded || emailStats) return; // Only fetch once when first expanded
+
+    const fetchEmailStats = async () => {
+      setEmailStatsLoading(true);
+      try {
+        const res = await fetch("/api/admin/provider-outreach/email-stats?days=30");
+        if (res.ok) {
+          const data = await res.json();
+          setEmailStats(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch email stats:", err);
+      } finally {
+        setEmailStatsLoading(false);
+      }
+    };
+    fetchEmailStats();
+  }, [emailStatsExpanded, emailStats]);
 
   // Effect: fetch provider counts when Add State modal opens
   useEffect(() => {
@@ -3571,6 +3616,71 @@ export default function ProviderOutreachPage() {
           )}
         </div>
       )}
+
+      {/* Email Performance Section */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg
+            className={`w-4 h-4 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span>Email Performance</span>
+          <span className="text-xs text-gray-400">(Last 30 days)</span>
+        </button>
+
+        {emailStatsExpanded && (
+          <div className="mt-4">
+            {emailStatsLoading ? (
+              <div className="text-sm text-gray-500">Loading email stats...</div>
+            ) : emailStats ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 pr-4 font-medium text-gray-600">Template</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Sent</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Opened</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Open %</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Clicked</th>
+                      <th className="text-right py-2 pl-3 font-medium text-gray-600">Click %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emailStats.templates.map((t) => (
+                      <tr key={t.template_key} className="border-b border-gray-100">
+                        <td className="py-2 pr-4 text-gray-900">{t.name}</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.sent.toLocaleString()}</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.opened.toLocaleString()}</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.open_rate}%</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.clicked.toLocaleString()}</td>
+                        <td className="py-2 pl-3 text-right text-gray-700">{t.click_rate}%</td>
+                      </tr>
+                    ))}
+                    <tr className="font-medium bg-gray-50">
+                      <td className="py-2 pr-4 text-gray-900">Total</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.sent.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.opened.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.open_rate}%</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.clicked.toLocaleString()}</td>
+                      <td className="py-2 pl-3 text-right text-gray-900">{emailStats.totals.click_rate}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500">No email data available</div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Action Bar (when items selected) - hidden during search since providers may be from different stages */}
       {selectedProviders.size > 0 && !isSearchResult && (

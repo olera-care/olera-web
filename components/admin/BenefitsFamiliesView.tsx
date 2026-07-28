@@ -169,11 +169,26 @@ export default function BenefitsFamiliesView() {
       setCaseError(null);
       try {
         const res = await fetch(`/api/admin/benefits/families/${profileId}`, { method: "DELETE" });
-        if (!res.ok) throw new Error(String(res.status));
+        // Optimistic removal either way: the intake events (which drive this
+        // list) delete first in the chain, so the row is gone from the data
+        // even when a later sub-step (e.g. auth user) reports an error. The
+        // background refetch reconciles the truth.
         setExpanded(null);
-        await fetchData();
+        setData((d) =>
+          d
+            ? {
+                ...d,
+                families: d.families.filter((f) => f.profileId !== profileId),
+                summary: { ...d.summary, uniqueFamilies: Math.max(0, d.summary.uniqueFamilies - 1) },
+              }
+            : d,
+        );
+        if (!res.ok) {
+          setCaseError("Deleted, but some linked records may remain (check server logs).");
+        }
+        void fetchData();
       } catch {
-        setCaseError("Delete failed. The family may be partially removed; check and retry.");
+        setCaseError("Delete request failed. Refresh to see its actual state.");
       } finally {
         setCaseBusy(false);
       }

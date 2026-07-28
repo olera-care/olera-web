@@ -948,7 +948,12 @@ export async function GET(request: NextRequest) {
                     callScript,
                     documents: pick.documents,
                     tip: pick.tip,
-                    programUrl: `${siteUrl}${appendTrackingParams(pick.programPath, eid)}`,
+                    // Signed-in arrival: the guide link authenticates on the way in.
+                    programUrl: generateFamilyInboxUrl(
+                      authEmailFinal,
+                      appendTrackingParams(pick.programPath, eid),
+                      siteUrl,
+                    ),
                     pickedFromEntryPage: pick.source === "entry",
                     unsubscribeId: fam.familyId,
                   }),

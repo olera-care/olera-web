@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { validateBenefitsOutcomeToken } from "@/lib/claim-tokens";
+import { validateBenefitsOutcomeToken, generateFamilyInboxUrl } from "@/lib/claim-tokens";
 import {
   readBenefitsCascade,
   captureFamilyPhoneAndTextResults,
@@ -158,6 +158,9 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .maybeSingle();
     if (resultsToken?.token) matchesUrl = `/m/${resultsToken.token}`;
+    // Signed-in arrival: from the check-in landing page onward, links carry
+    // the one-click auth so the family stays authenticated across surfaces.
+    if (profile.email) matchesUrl = generateFamilyInboxUrl(profile.email, matchesUrl);
 
     return NextResponse.json({
       success: true,

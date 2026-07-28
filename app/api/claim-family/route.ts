@@ -54,8 +54,14 @@ export async function GET(request: NextRequest) {
   const validation = validateClaimToken(token);
   if (!validation.valid) {
     console.error("[claim-family] token validation failed:", validation.error);
-    // Token invalid/expired - redirect to inbox (they can sign in manually)
-    return NextResponse.redirect(`${siteUrl}/portal/inbox`, { status: 303 });
+    // Token invalid/expired — fall through to the destination UNAUTHENTICATED
+    // instead of stranding the user in the inbox. nextPath is already
+    // open-redirect-validated above, and destinations carry their own access
+    // model (/m/{token} is public-by-token; portal pages prompt sign-in).
+    // Before this, a family opening their welcome email >72h late lost their
+    // "View matches" link to a portal wall — the exact late-returning
+    // audience /m exists for.
+    return NextResponse.redirect(`${siteUrl}${nextPath}`, { status: 303 });
   }
 
   const { email } = validation;

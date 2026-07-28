@@ -1611,6 +1611,55 @@ export function benefitsCheckInSubject(programShortName: string): string {
   return `How is it going with ${programShortName}?`;
 }
 
+/** Retarget subject — the family already marked the call done on their plan. */
+export function benefitsCheckInDoneSubject(programShortName: string): string {
+  return `You started ${programShortName}. Here's what comes next`;
+}
+
+/**
+ * Rung B2, retarget variant: the living-journey page told us the family made
+ * the call (benefits_cascade.first_step_done_at), so the check-in congratulates
+ * instead of asking. Same three forward-looking chips, reframed; same
+ * emailType (benefits_check_in) so governance is unchanged.
+ */
+export function benefitsCheckInDoneEmail(opts: {
+  familyName: string;
+  programShortName: string;
+  movingUrl: string;
+  helpUrl: string;
+  wrongUrl: string;
+  unsubscribeId?: string;
+}): string {
+  const familyFirstName = firstName(opts.familyName, "there");
+  const program = escapeHtml(opts.programShortName);
+
+  const primaryBtn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:13px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
+  const neutralBtn = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:13px 24px;background:#ffffff;color:#374151;font-size:15px;font-weight:600;text-decoration:none;border:1px solid #d1d5db;border-radius:8px;">${label}</a>`;
+
+  return layout(
+    `
+    <p style="font-size:16px;color:#374151;margin:0 0 20px;line-height:1.5;">
+      Hi ${escapeHtml(familyFirstName)},
+    </p>
+    <p style="font-size:16px;color:#374151;margin:0 0 24px;line-height:1.6;">
+      You made the call on <strong>${program}</strong>. That was the hard part, and most
+      families never get that far. How are things now?
+    </p>
+    <div style="margin:0 0 12px;">${primaryBtn("Still moving along", opts.movingUrl)}</div>
+    <div style="margin:0 0 12px;">${neutralBtn("I want help with the next part", opts.helpUrl)}</div>
+    <div style="margin:0 0 24px;">${neutralBtn("It turned out not to be right for me", opts.wrongUrl)}</div>
+    <p style="font-size:15px;color:#6b7280;margin:0;line-height:1.6;">
+      Whichever you tap, we'll point you to the next step. Your plan page also has your
+      next program ready when you are.
+    </p>
+    ${careUnsubscribeFooter(opts.unsubscribeId)}
+  `,
+    `You started ${opts.programShortName}. One tap tells us how to help with what's next.`,
+  );
+}
+
 /**
  * Rung B2 — the check that's an offer. Three chips, all forward-looking:
  * "It's moving / I want help / This program isn't right for me". Every answer

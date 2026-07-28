@@ -704,6 +704,8 @@ export interface AdminUser {
   id: string;
   user_id: string;
   email: string;
+  /** Added in migration 144; used to attribute admin actions (case notes). */
+  display_name?: string | null;
   role: AdminRole;
   granted_by: string | null;
   created_at: string;

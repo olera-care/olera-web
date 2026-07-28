@@ -18,6 +18,7 @@ import {
   enrollProviderIntoCampaign,
   generateCampaignName,
   buildProviderSmartleadPreview,
+  resolveProviderMailboxPool,
 } from "@/lib/provider-outreach/smartlead-bridge";
 import { isSmartleadConfigured } from "@/lib/smartlead";
 
@@ -312,6 +313,48 @@ export async function POST(request: NextRequest) {
 
       // Check if SmartLead is configured
       const useSmartLead = isSmartleadConfigured();
+
+      // SAFEGUARD: If SmartLead is configured, verify prerequisites before proceeding
+      if (useSmartLead) {
+        // Check 1: Verify mailboxes are available
+        const mailboxCheck = await resolveProviderMailboxPool();
+        if (!mailboxCheck.ok) {
+          return NextResponse.json({
+            error: "SmartLead prerequisite check failed",
+            details: {
+              issue: "mailbox_pool",
+              message: mailboxCheck.error,
+              fix: "Ensure PROVIDER_OUTREACH_SMARTLEAD_SENDERS env var is set and those email accounts are connected in SmartLead",
+            },
+            fallback_available: true,
+            fallback_hint: "Set SMARTLEAD_API_KEY to empty to use Resend instead",
+          }, { status: 400 });
+        }
+
+        // Check 2: Verify smartlead_data column exists (migration ran)
+        const { error: schemaError } = await db
+          .from("provider_outreach_tracking")
+          .select("smartlead_data")
+          .limit(1);
+
+        if (schemaError?.message?.includes("smartlead_data")) {
+          return NextResponse.json({
+            error: "SmartLead prerequisite check failed",
+            details: {
+              issue: "database_migration",
+              message: "Column 'smartlead_data' does not exist",
+              fix: "Run migration 069_provider_outreach_smartlead.sql",
+            },
+            fallback_available: true,
+            fallback_hint: "Set SMARTLEAD_API_KEY to empty to use Resend instead",
+          }, { status: 400 });
+        }
+
+        // Log warnings but don't block
+        if (mailboxCheck.pool.warnings.length > 0) {
+          console.warn("[launch-sequence] SmartLead warnings:", mailboxCheck.pool.warnings);
+        }
+      }
 
       // 1. Get or create tracking records and move to in_sequence
       const launchedProviders: string[] = [];

@@ -72,6 +72,128 @@ export function cascadeStatus(cascade: BenefitsCascadeMeta): CascadeStatus {
   return "matched";
 }
 
+// ── Case management (the caseload view, TJ 2026-07-28) ──────────────────────
+
+/** Admin case actions stored on the profile: metadata.benefits_case. */
+export interface BenefitsCaseMeta {
+  notes?: { at: string; by: string; text: string }[];
+  contacted_at?: string;
+  resolved_at?: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function readBenefitsCase(profileMeta: Record<string, any> | null | undefined): BenefitsCaseMeta {
+  const raw = profileMeta?.benefits_case;
+  return raw && typeof raw === "object" ? (raw as BenefitsCaseMeta) : {};
+}
+
+/** Stuck states, most severe first. The cascade is the automated first
+ *  responder; after two ignored touches the next touch is a HUMAN — these
+ *  states are the routing. Resolved cases and moving families never float;
+ *  "contacted" suppresses the float for 7 days (the case is being worked). */
+export type CaseStatus =
+  | "wants_help"
+  | "silent_after_checkin"
+  | "action_stall"
+  | "attention_stall";
+
+const CASE_DAY = 24 * 60 * 60 * 1000;
+
+export function caseStatus(
+  cascade: BenefitsCascadeMeta,
+  caseMeta: BenefitsCaseMeta,
+  lastViewedAt: string | null,
+  now: number,
+): CaseStatus | null {
+  if (caseMeta.resolved_at) return null;
+  if (cascade.outcome === "moving" || cascade.first_step_done_at) return null;
+  if (caseMeta.contacted_at && now - new Date(caseMeta.contacted_at).getTime() < 7 * CASE_DAY) {
+    return null;
+  }
+  if (cascade.outcome === "wants_help") return "wants_help";
+  if (cascade.outcome === "wrong_program") return null;
+
+  // Once the check-in is out, IT owns the verdict: silent after 4 days, or
+  // nothing yet. Declaring a stall while the automated follow-up is still in
+  // flight would double-count the same silence.
+  if (cascade.check_sent_at) {
+    return now - new Date(cascade.check_sent_at).getTime() >= 4 * CASE_DAY
+      ? "silent_after_checkin"
+      : null;
+  }
+  if (cascade.first_step_sent_at) {
+    const sentAt = new Date(cascade.first_step_sent_at).getTime();
+    const viewedSinceSend = !!lastViewedAt && new Date(lastViewedAt).getTime() >= sentAt;
+    if (viewedSinceSend && now - sentAt >= 4 * CASE_DAY) return "action_stall";
+    if (!viewedSinceSend && now - sentAt >= 3 * CASE_DAY) return "attention_stall";
+  }
+  return null;
+}
+
+// ── Unified lifecycle (the family's journey, one vocabulary — TJ 2026-07-28) ─
+
+export type LifecycleStatus =
+  | "needs_help"
+  | "stalled"
+  | "acting"
+  | "returned"
+  | "working"
+  | "resolved"
+  | "new"
+  | "in_cascade";
+
+export interface Lifecycle {
+  status: LifecycleStatus;
+  /** Short human sub-label, e.g. "never saw plan" / "said it didn't fit". */
+  detail: string | null;
+}
+
+/** One family-centric status with strict precedence, replacing the three
+ *  system vocabularies (signals / cascade / case) in the queue. */
+export function lifecycleStatus(opts: {
+  cascade: BenefitsCascadeMeta;
+  caseMeta: BenefitsCaseMeta;
+  completedAt: string;
+  lastViewedAt: string | null;
+  now: number;
+}): Lifecycle {
+  const { cascade, caseMeta, completedAt, lastViewedAt, now } = opts;
+  if (caseMeta.resolved_at) return { status: "resolved", detail: null };
+  if (caseMeta.contacted_at && now - new Date(caseMeta.contacted_at).getTime() < 7 * CASE_DAY) {
+    return { status: "working", detail: "contacted" };
+  }
+  if (cascade.outcome === "wants_help") return { status: "needs_help", detail: "asked for a person" };
+
+  const stuck = caseStatus(cascade, caseMeta, lastViewedAt, now);
+  if (stuck === "silent_after_checkin") {
+    // Engaged with the check-in era (viewed their plan after it went out) then
+    // went quiet = requested info, no follow-up → a human's case, not a stall.
+    const viewedAfterCheck =
+      !!lastViewedAt &&
+      !!cascade.check_sent_at &&
+      new Date(lastViewedAt).getTime() >= new Date(cascade.check_sent_at).getTime();
+    return viewedAfterCheck
+      ? { status: "needs_help", detail: "engaged, then went quiet" }
+      : { status: "stalled", detail: "silent after check-in" };
+  }
+  if (stuck === "action_stall") return { status: "stalled", detail: "saw plan, no call yet" };
+  if (stuck === "attention_stall") return { status: "stalled", detail: "never saw their plan" };
+
+  if (cascade.first_step_done_at) return { status: "acting", detail: "made the call" };
+  if (cascade.outcome === "moving") return { status: "acting", detail: "says it's moving" };
+  if ((cascade.docs_checked?.length ?? 0) > 0) {
+    return { status: "acting", detail: `${cascade.docs_checked!.length} docs ready` };
+  }
+  if (cascade.outcome === "wrong_program") return { status: "returned", detail: "said it didn't fit" };
+
+  const completedMs = new Date(completedAt).getTime();
+  if (lastViewedAt && new Date(lastViewedAt).getTime() - completedMs > CASE_DAY) {
+    return { status: "returned", detail: "came back to their plan" };
+  }
+  if (now - completedMs < 2 * CASE_DAY) return { status: "new", detail: null };
+  return { status: "in_cascade", detail: cascade.first_step_sent_at ? "first step sent" : "awaiting first step" };
+}
+
 // ── First-step program selection ────────────────────────────────────────────
 
 export interface FirstStepPick {

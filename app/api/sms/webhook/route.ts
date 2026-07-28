@@ -66,6 +66,59 @@ function last10(phone: string): string | null {
   return digits.length >= 10 ? digits.slice(-10) : null;
 }
 
+/** Family profiles whose phone matches, format-agnostic. */
+async function matchFamilyProfiles(
+  phone: string,
+): Promise<{ id: string; display_name: string | null; email: string | null; metadata: Record<string, unknown> }[]> {
+  const db = getServiceDb();
+  if (!db) return [];
+  const target = last10(phone);
+  if (!target) return [];
+  const { data: rows } = await db
+    .from("business_profiles")
+    .select("id, phone, display_name, email, metadata")
+    .eq("type", "family")
+    .not("phone", "is", null);
+  return (rows ?? []).filter((r) => last10(String(r.phone ?? "")) === target) as never;
+}
+
+/**
+ * Persist an inbound text on the matched profile(s) so the case timeline can
+ * tell the story (metadata.sms_inbound, capped at 20). A family texting back
+ * is the highest-intent signal we get — it must never evaporate.
+ */
+async function recordInbound(phone: string, body: string, keyword: string | null): Promise<void> {
+  const db = getServiceDb();
+  if (!db) return;
+  const profiles = await matchFamilyProfiles(phone);
+  const at = new Date().toISOString();
+  for (const p of profiles) {
+    const meta = p.metadata || {};
+    const inbound = Array.isArray(meta.sms_inbound) ? (meta.sms_inbound as unknown[]) : [];
+    await db
+      .from("business_profiles")
+      .update({
+        metadata: {
+          ...meta,
+          sms_inbound: [...inbound, { at, body: body.slice(0, 500), keyword }].slice(-20),
+        },
+      })
+      .eq("id", p.id);
+  }
+  // A real (non-keyword) reply deserves a human: ping the team channel.
+  if (!keyword && profiles.length > 0) {
+    try {
+      const { sendSlackAlert } = await import("@/lib/slack");
+      const who = profiles[0].display_name || profiles[0].email || phone;
+      await sendSlackAlert(
+        `Family texted back: ${who}: "${body.slice(0, 300)}" - reply from the Benefits queue (/admin/benefits)`,
+      );
+    } catch (err) {
+      console.error("[sms-webhook] Slack ping failed:", err);
+    }
+  }
+}
+
 /** Set phone_validity for every family profile whose phone matches `phone`. */
 async function setFamilyPhoneValidity(
   phone: string,
@@ -114,21 +167,27 @@ export async function POST(request: NextRequest) {
   try {
     if (OPT_OUT_KEYWORDS.has(keyword)) {
       const n = await setFamilyPhoneValidity(normalizedFrom, "opted_out");
+      await recordInbound(normalizedFrom, params.Body || keyword, keyword);
       console.log(`[sms-webhook] STOP from ${normalizedFrom} → opted_out ${n} profile(s)`);
       return twiml(); // Twilio sends the carrier opt-out confirmation.
     }
     if (OPT_IN_KEYWORDS.has(keyword)) {
       const n = await setFamilyPhoneValidity(normalizedFrom, "unverified");
+      await recordInbound(normalizedFrom, params.Body || keyword, keyword);
       console.log(`[sms-webhook] START from ${normalizedFrom} → cleared ${n} profile(s)`);
       return twiml();
     }
     if (HELP_KEYWORDS.has(keyword)) {
+      await recordInbound(normalizedFrom, params.Body || keyword, keyword);
       return twiml(HELP_REPLY);
+    }
+    // A real reply — persist it + Slack-ping so a human follows up.
+    if ((params.Body || "").trim()) {
+      await recordInbound(normalizedFrom, params.Body.trim(), null);
     }
   } catch (err) {
     console.error("[sms-webhook] Error handling inbound:", err);
   }
 
-  // Anything else (a real reply to a thread, etc.) — acknowledge, no action here.
   return twiml();
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { lookupResultByToken } from "@/lib/benefits-token";
 import type { CareNeed } from "@/lib/benefits/match-care-need";
 import BenefitsHome from "@/components/benefits/BenefitsHome";
@@ -77,6 +78,29 @@ export default async function BenefitsResultsPage({
     .select("account_id")
     .eq("id", bundle.profile.id)
     .maybeSingle();
+
+  // Signed-in acknowledgement: the one-click email links authenticate the
+  // family, but nothing on the page showed it (TJ QA, 2026-07-28). Show the
+  // saved-to-account line only when the session user actually OWNS this
+  // profile — a different signed-in user on someone else's token link should
+  // never be told it's "their" account.
+  let signedIn = false;
+  try {
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user && profileRow?.account_id) {
+      const { data: acct } = await db
+        .from("accounts")
+        .select("user_id")
+        .eq("id", profileRow.account_id)
+        .maybeSingle();
+      signedIn = acct?.user_id === user.id;
+    }
+  } catch {
+    // Session read is best-effort; the page never fails over it.
+  }
   if (profileRow?.account_id) {
     try {
       firstStep = await selectFirstStepProgram(db, {
@@ -111,6 +135,7 @@ export default async function BenefitsResultsPage({
     <BenefitsHome
       token={token}
       nextStep={nextStep}
+      signedIn={signedIn}
       firstName={firstName}
       stateName={bundle.stateName}
       stateSlug={stateSlug}

@@ -139,11 +139,16 @@ const TIMELINE_OPTIONS: { label: string; value: string }[] = [
   { label: "Just researching", value: "researching" },
 ];
 
+// Payment options reframed 2026-07-28: live data showed "Medicare" winning
+// at ~41% — families answering "what coverage do I have," not "how will I
+// pay" (Medicare doesn't pay for long-term care). Medicare and private
+// insurance are dropped as noise-generators; "Not sure yet" is the honest
+// top answer for this funnel and stores as its own signal
+// (metadata.payment_unsure), never into payment_methods.
 const PAYMENT_OPTIONS: { label: string; value: string }[] = [
-  { label: "Medicare", value: "medicare" },
+  { label: "Not sure yet, I need to find out what helps", value: "not_sure" },
   { label: "Medicaid", value: "medicaid" },
-  { label: "Private insurance", value: "private_insurance" },
-  { label: "Private pay", value: "private_pay" },
+  { label: "Savings or family will pay", value: "private_pay" },
   { label: "Veterans benefits", value: "veterans_benefits" },
   { label: "Long-term care insurance", value: "long_term_care_insurance" },
 ];
@@ -389,16 +394,26 @@ export default function ProgramBenefitsCard({
     setCardState("enrichment_5");
   }, [profileId, resultToken, recipient, timeline, paymentMethod, sessionId, enqueuePatch]);
 
-  // End of the flow (after step 7, answered or skipped).
+  // End of the flow (after step 7, answered or skipped). The completion
+  // marker rides the serialized chain, so it lands AFTER every fact PATCH —
+  // the server composes its Slack summary from the finished picture.
   const finishFlow = useCallback((finalCompletedSteps: BenefitsEnrichmentStep[]) => {
     if (profileId) {
       trackBenefitsEnrichmentCompleted(
         { programId, stateCode, profileId, ctaSurface },
         finalCompletedSteps
       );
+      void enqueuePatch({
+        profileId,
+        token: resultToken,
+        source: "benefits_enrichment",
+        sessionId,
+        enrichmentComplete: true,
+        completedSteps: finalCompletedSteps,
+      });
     }
     setCardState("success");
-  }, [profileId, programId, stateCode, ctaSurface]);
+  }, [profileId, programId, stateCode, ctaSurface, enqueuePatch, resultToken, sessionId]);
 
   // Facts round (5-7): every tap PATCHes immediately (through the serialized
   // chain) — a mid-round abandon loses nothing, and the /m gap chips are the
@@ -838,7 +853,7 @@ export default function ProgramBenefitsCard({
         {cardState === "enrichment_3" && (
           <div className="animate-in fade-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              How will you pay for care?
+              How are you thinking of covering the cost?
             </h3>
             <div className="space-y-2 mb-4">
               {PAYMENT_OPTIONS.map((opt) => (

@@ -30,6 +30,7 @@ import { getStateAbbrev, getStateSlug } from "@/lib/program-data";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { benefitsResultsSms } from "@/lib/sms/templates";
 import { getSiteUrl } from "@/lib/site-url";
+import { sendSlackAlert } from "@/lib/slack";
 
 // ── benefits_cascade metadata (on business_profiles.metadata) ───────────────
 
@@ -459,7 +460,7 @@ export async function captureFamilyPhoneAndTextResults(
 
   const { data: profile } = await db
     .from("business_profiles")
-    .select("id, phone, metadata")
+    .select("id, phone, metadata, display_name, state")
     .eq("id", opts.profileId)
     .single();
   if (!profile) return { stored: false, smsSent: false };
@@ -485,6 +486,28 @@ export async function captureFamilyPhoneAndTextResults(
     return { stored: false, smsSent: false };
   }
 
+  // Slack ping — a captured phone is the scarce asset (only ~3% of benefits
+  // families had one before capture shipped), so the team hears about each.
+  // Awaited (serverless), never fatal.
+  const pingSlack = async (smsStatus: string) => {
+    try {
+      const name = profile.display_name?.trim();
+      const who = name && name.toLowerCase() !== "care seeker" ? name : "A family";
+      const sourceLabel =
+        opts.source === "benefits_enrichment"
+          ? "post-capture enrichment"
+          : opts.source === "benefits_outcome_help"
+            ? "wants-help page"
+            : opts.source;
+      await sendSlackAlert(
+        `📱 ${who}${profile.state ? ` (${profile.state})` : ""} shared their phone number via ${sourceLabel}: ${normalized}. ` +
+          `${smsStatus} <${getSiteUrl()}/admin/care-seekers/${opts.profileId}|Open family>`,
+      );
+    } catch (slackErr) {
+      console.error("[captureFamilyPhone] Slack ping failed:", slackErr);
+    }
+  };
+
   const { data: tokenRow } = await db
     .from("benefits_results_tokens")
     .select("token, match_count")
@@ -492,7 +515,10 @@ export async function captureFamilyPhoneAndTextResults(
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!tokenRow?.token) return { stored: true, smsSent: false };
+  if (!tokenRow?.token) {
+    await pingSlack("No results token on file, no text sent.");
+    return { stored: true, smsSent: false };
+  }
 
   const result = await sendSMS({
     to: normalized,
@@ -512,6 +538,9 @@ export async function captureFamilyPhoneAndTextResults(
         .eq("id", opts.profileId);
     }
   }
+
+  await pingSlack(result.success ? "Results link texted." : "Results text FAILED, check logs.");
+
   return { stored: true, smsSent: result.success };
 }
 

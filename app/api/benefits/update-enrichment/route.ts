@@ -6,7 +6,9 @@ import { normalizeUSPhone } from "@/lib/twilio";
 import {
   captureFamilyPhoneAndTextResults,
   familyPhraseFromRelationship,
+  benefitsSituationLine,
 } from "@/lib/family-comms/benefits-cascade.server";
+import { sendSlackAlert } from "@/lib/slack";
 
 /**
  * PATCH /api/benefits/update-enrichment
@@ -59,6 +61,7 @@ export async function PATCH(request: Request) {
       source,
       sessionId,
       completedSteps,
+      enrichmentComplete,
     } = body as {
       profileId?: string;
       token?: string;
@@ -72,7 +75,15 @@ export async function PATCH(request: Request) {
       source?: string;
       sessionId?: string;
       completedSteps?: number[];
+      /** Set by the client when the family reaches the end of the full
+       *  enrichment flow — triggers the Slack summary ping. */
+      enrichmentComplete?: boolean;
     };
+
+    // "Not sure yet" is its own signal, never a payment_methods entry — the
+    // family self-identifying as needing the benefits path IS the fact.
+    const paymentUnsure = paymentMethod === "not_sure";
+    const paymentReal = paymentMethod && !paymentUnsure ? paymentMethod : null;
 
     // Allowlisted facts only — a garbage value degrades to "not sent",
     // never a wrong fact on the profile.
@@ -158,12 +169,12 @@ export async function PATCH(request: Request) {
     }
 
     // ── Chip answers → profile sync ─────────────────────────────────────
-    if (recipient || timeline || paymentMethod) {
+    if (recipient || timeline || paymentReal) {
       // Map enrichment values to syncIntentToProfile format
       const syncData = {
         careRecipient: recipient || null,
         urgency: timeline || null,
-        paymentMethod: paymentMethod || null,
+        paymentMethod: paymentReal,
       };
 
       await syncIntentToProfile(admin, profileId, syncData, profile.email);
@@ -172,7 +183,7 @@ export async function PATCH(request: Request) {
     // ── Phase 3 facts → metadata (age / medicaid_status / income_range) ─
     // Fresh read AFTER syncIntentToProfile so this merge can't clobber its
     // writes; the phone capture below re-reads again for the same reason.
-    if (factAge || factMedicaid || factIncome) {
+    if (factAge || factMedicaid || factIncome || paymentUnsure) {
       const { data: fresh } = await admin
         .from("business_profiles")
         .select("metadata")
@@ -193,6 +204,9 @@ export async function PATCH(request: Request) {
       if (factIncome) {
         meta.income_range = factIncome;
         quizAnswers.income = { answer: factIncome, at, via };
+      }
+      if (paymentUnsure) {
+        meta.payment_unsure = { at, via };
       }
       meta.quiz_answers = quizAnswers;
       const { error: factsErr } = await admin
@@ -222,7 +236,8 @@ export async function PATCH(request: Request) {
     const enrichedFields = [
       recipient && "relationship",
       timeline && "timeline",
-      paymentMethod && "payment_method",
+      paymentReal && "payment_method",
+      paymentUnsure && "payment_unsure",
       normalizedPhone && "phone",
       factAge && "age",
       factMedicaid && "medicaid_status",
@@ -243,6 +258,39 @@ export async function PATCH(request: Request) {
         },
       });
       if (actErr) console.error("[seeker_activity] profile_enriched insert failed:", actErr);
+    }
+
+    // ── Completion ping ─────────────────────────────────────────────────
+    // Fired once, by the client's completion marker at the end of the full
+    // flow. This PATCH rides the serialized client chain, so the profile
+    // read here already includes every fact the family just gave. Awaited;
+    // never fatal.
+    if (enrichmentComplete === true) {
+      try {
+        const { data: done } = await admin
+          .from("business_profiles")
+          .select("display_name, state, phone, metadata")
+          .eq("id", profileId)
+          .single();
+        const doneMeta = (done?.metadata as Record<string, unknown>) || {};
+        const name = done?.display_name?.trim();
+        const who = name && name.toLowerCase() !== "care seeker" ? name : "A family";
+        const answered = Array.isArray(completedSteps) ? completedSteps.length : 0;
+        const parts: string[] = [];
+        const situation = benefitsSituationLine(doneMeta);
+        if (situation) parts.push(situation);
+        if (doneMeta.payment_unsure) parts.push("not sure how to pay, needs the benefits path");
+        if (typeof doneMeta.timeline === "string" && doneMeta.timeline) parts.push(`timeline: ${doneMeta.timeline}`);
+        if (done?.phone) parts.push("phone on file");
+        await sendSlackAlert(
+          `🧩 ${who}${done?.state ? ` (${done.state})` : ""} finished the full benefits enrichment` +
+            ` (${answered} ${answered === 1 ? "answer" : "answers"}). ` +
+            (parts.length ? `${parts.join(", ")}. ` : "Nothing answered, all steps skipped. ") +
+            `<${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/admin/care-seekers/${profileId}|Open family>`,
+        );
+      } catch (slackErr) {
+        console.error("[update-enrichment] completion ping failed:", slackErr);
+      }
     }
 
     return NextResponse.json({ success: true, smsSent });

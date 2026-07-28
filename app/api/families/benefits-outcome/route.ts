@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { validateBenefitsOutcomeToken } from "@/lib/claim-tokens";
-import { readBenefitsCascade, type BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
+import {
+  readBenefitsCascade,
+  captureFamilyPhoneAndTextResults,
+  familyPhraseFromRelationship,
+  type BenefitsCascadeMeta,
+} from "@/lib/family-comms/benefits-cascade.server";
 import { sendSlackAlert, slackBenefitsWantsHelp } from "@/lib/slack";
 
 /**
@@ -21,6 +26,10 @@ import { sendSlackAlert, slackBenefitsWantsHelp } from "@/lib/slack";
  *   { tok: string }                 → record the outcome carried by the token
  *   { tok: string, reason: string } → attach the wrong_program "what didn't
  *                                     fit" one-tap reason (second POST)
+ *   { tok: string, phone: string }  → phone capture from the wants_help path:
+ *                                     fill-if-empty + sms_consent stamp +
+ *                                     immediate results-link SMS (shared
+ *                                     helper with the enrichment step)
  *
  * Last-write-wins so a family can change their answer; the Slack ping fires
  * only on a TRANSITION to wants_help so re-taps don't re-page.
@@ -33,6 +42,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const tok: string | undefined = body.tok;
     const reason: string | undefined = body.reason;
+    const phone: string | undefined = typeof body.phone === "string" ? body.phone.trim() : undefined;
 
     if (!tok) {
       return NextResponse.json({ error: "tok is required" }, { status: 400 });
@@ -66,6 +76,24 @@ export async function POST(request: NextRequest) {
       cascade.first_step_state_id && cascade.first_step_program_id
         ? `/benefits/${cascade.first_step_state_id}/${cascade.first_step_program_id}`
         : "/benefits/finder";
+
+    // Phone capture from the wants_help landing path.
+    if (phone) {
+      const rel =
+        (meta.relationship as string) || (meta.relationship_to_recipient as string) || null;
+      const captured = await captureFamilyPhoneAndTextResults(db, {
+        profileId: profile.id,
+        rawPhone: phone,
+        source: "benefits_outcome_help",
+        familyPhrase: familyPhraseFromRelationship(rel),
+      });
+      return NextResponse.json({
+        success: true,
+        value,
+        phoneStored: captured.stored,
+        smsSent: captured.smsSent,
+      });
+    }
 
     // Reason-only follow-up from the wrong_program landing path.
     if (reason) {

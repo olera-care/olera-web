@@ -18,6 +18,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
 import type { PipelineDraft } from "@/data/pipeline-drafts-types";
 import { getStateAbbrev, getStateSlug } from "@/lib/program-data";
+import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { benefitsResultsSms } from "@/lib/sms/templates";
+import { getSiteUrl } from "@/lib/site-url";
 
 // ── benefits_cascade metadata (on business_profiles.metadata) ───────────────
 
@@ -207,6 +210,101 @@ export async function selectFirstStepProgram(
   }
 
   return null;
+}
+
+// ── Phone capture ───────────────────────────────────────────────────────────
+
+/** "your parent" / "your spouse" / "you" / "your family" — from either the
+ *  enrichment enum (self|parent|spouse|other) or the stored display value
+ *  (Self|Parent|Spouse|Family member). */
+export function familyPhraseFromRelationship(rel: string | null | undefined): string {
+  const v = (rel || "").toLowerCase();
+  if (v === "self" || v === "myself") return "you";
+  if (v.includes("parent")) return "your parent";
+  if (v.includes("spouse")) return "your spouse";
+  return "your family";
+}
+
+/**
+ * Capture a family's phone number and keep the promise immediately: store it
+ * (fill-if-empty; a DIFFERING existing number is never overwritten and gets no
+ * SMS — texting an unstored number would mislead), stamp
+ * metadata.sms_consent (the 10DLC audit record, and the gate the future SMS
+ * cascade rungs will require), and text the results link right away.
+ *
+ * Metadata is read FRESH inside this call so the consent merge can't clobber
+ * writes made earlier in the same request (e.g. syncIntentToProfile).
+ * The SMS is awaited — Vercel kills pending promises after the response.
+ */
+export async function captureFamilyPhoneAndTextResults(
+  db: SupabaseClient,
+  opts: {
+    profileId: string;
+    rawPhone: string;
+    /** Consent provenance, e.g. "benefits_enrichment" | "benefits_outcome_help". */
+    source: string;
+    familyPhrase?: string;
+  },
+): Promise<{ stored: boolean; smsSent: boolean }> {
+  const normalized = normalizeUSPhone(opts.rawPhone);
+  if (!normalized) return { stored: false, smsSent: false };
+
+  const { data: profile } = await db
+    .from("business_profiles")
+    .select("id, phone, metadata")
+    .eq("id", opts.profileId)
+    .single();
+  if (!profile) return { stored: false, smsSent: false };
+
+  const existing = (profile.phone || "").trim();
+  const sameAsExisting = existing ? normalizeUSPhone(existing) === normalized : false;
+  if (existing && !sameAsExisting) return { stored: false, smsSent: false };
+
+  const meta = (profile.metadata as Record<string, unknown>) || {};
+  const update: Record<string, unknown> = {
+    metadata: {
+      ...meta,
+      sms_consent: { at: new Date().toISOString(), source: opts.source },
+    },
+  };
+  if (!existing) update.phone = normalized;
+  const { error: updErr } = await db
+    .from("business_profiles")
+    .update(update)
+    .eq("id", opts.profileId);
+  if (updErr) {
+    console.error("[captureFamilyPhone] update failed:", updErr);
+    return { stored: false, smsSent: false };
+  }
+
+  const { data: tokenRow } = await db
+    .from("benefits_results_tokens")
+    .select("token, match_count")
+    .eq("profile_id", opts.profileId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!tokenRow?.token) return { stored: true, smsSent: false };
+
+  const result = await sendSMS({
+    to: normalized,
+    body: benefitsResultsSms({
+      matchCount: tokenRow.match_count || 0,
+      familyPhrase: opts.familyPhrase || "your family",
+      url: `${getSiteUrl()}/m/${tokenRow.token}`,
+    }),
+  });
+  if (!result.success) {
+    console.error("[captureFamilyPhone] results SMS failed:", result.error);
+    // Twilio 21610 = recipient previously texted STOP.
+    if (result.error?.includes("21610")) {
+      await db
+        .from("business_profiles")
+        .update({ phone_validity: "opted_out" })
+        .eq("id", opts.profileId);
+    }
+  }
+  return { stored: true, smsSent: result.success };
 }
 
 // ── Call script ─────────────────────────────────────────────────────────────

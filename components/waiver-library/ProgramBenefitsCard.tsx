@@ -15,12 +15,16 @@
  *   - matchesCareNeed             (filter the state's programs for the email)
  *   - trackBenefitsEvent          (funnel analytics, tagged variant="program_card")
  *
- * Post-email enrichment (3 questions):
- *   - After email submission, we show 3 optional enrichment questions to
+ * Post-email enrichment (4 steps):
+ *   - After email submission, we show optional enrichment steps to
  *     improve profile completeness from ~21% to ~55%:
  *     1. Who needs care? (Self, Parent, Spouse, Other)
  *     2. How soon? (ASAP, Within a month, In a few months, Just researching)
  *     3. How will you pay? (Medicare, Medicaid, Private insurance, etc.)
+ *     4. Want this by text? (phone capture — the SMS-reachability funnel; the
+ *        typed field goes LAST so it can't dampen the one-tap streak. Server
+ *        texts the results link immediately so the promise is kept in seconds,
+ *        and stores the consent stamp the future SMS rungs gate on.)
  *   - User can answer any/all or skip to see the success card
  *
  * Value-first display:
@@ -97,7 +101,14 @@ function topSavingsLabel(range?: string): string | null {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type CardState = "capture" | "enrichment_1" | "enrichment_2" | "enrichment_3" | "success";
+type CardState = "capture" | "enrichment_1" | "enrichment_2" | "enrichment_3" | "enrichment_4" | "success";
+
+/** Loose US phone check for the enrichment step — 10 digits (optionally with
+ *  a leading 1). The server does the real E.164 normalization. */
+function phoneLooksValid(raw: string): boolean {
+  const digits = raw.replace(/\D/g, "");
+  return digits.length === 10 || (digits.length === 11 && digits.startsWith("1"));
+}
 
 const RECIPIENT_OPTIONS: { label: string; value: string }[] = [
   { label: "Myself", value: "self" },
@@ -151,6 +162,8 @@ export default function ProgramBenefitsCard({
   const [recipient, setRecipient] = useState<string | null>(null);
   const [timeline, setTimeline] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [phoneSaving, setPhoneSaving] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<BenefitsEnrichmentStep[]>([]);
 
   // Track enrichment start only once
@@ -284,15 +297,18 @@ export default function ProgramBenefitsCard({
   }, [cardState, profileId, programId, stateCode, ctaSurface]);
 
   // Save enrichment data to the profile
-  // Note: finalPayment is passed directly to avoid stale closure issue
-  // (React state updates are async, so paymentMethod may not be updated yet when called from selectPayment)
+  // Note: finalPayment/finalPhone are passed directly to avoid stale closure
+  // issues (React state updates are async, so the state values may not be
+  // updated yet when called from selectPayment / submitPhone)
   const saveEnrichmentData = useCallback(async (
     finalCompletedSteps: BenefitsEnrichmentStep[],
-    finalPayment?: string
+    finalPayment?: string,
+    finalPhone?: string
   ) => {
     if (!profileId) return;
 
     const payment = finalPayment ?? paymentMethod;
+    const phoneToSave = finalPhone?.trim() || undefined;
 
     // Track completion
     trackBenefitsEnrichmentCompleted(
@@ -301,7 +317,7 @@ export default function ProgramBenefitsCard({
     );
 
     // Only call API if we have data to save
-    if (recipient || timeline || payment) {
+    if (recipient || timeline || payment || phoneToSave) {
       try {
         await fetch("/api/benefits/update-enrichment", {
           method: "PATCH",
@@ -312,6 +328,7 @@ export default function ProgramBenefitsCard({
             recipient,
             timeline,
             paymentMethod: payment,
+            phone: phoneToSave,
             sessionId,
             completedSteps: finalCompletedSteps,
           }),
@@ -348,9 +365,22 @@ export default function ProgramBenefitsCard({
     const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 3];
     setCompletedSteps(newCompleted);
     trackBenefitsEnrichmentStepCompleted(3, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
-    // Pass val directly to avoid stale closure (state won't be updated yet)
-    setTimeout(() => saveEnrichmentData(newCompleted, val), 150);
-  }, [completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
+    setTimeout(() => setCardState("enrichment_4"), 150);
+  }, [completedSteps, programId, stateCode, profileId, ctaSurface]);
+
+  // Step 4: Phone (the only typed step — last so it can't dampen the one-tap
+  // streak). Submitting texts the results link right away, server-side.
+  // phoneSaving guards the awaited save (~2-4s with the SMS): without it a
+  // slow-connection double-tap would PATCH twice and send two texts.
+  const submitPhone = useCallback(() => {
+    if (!phoneLooksValid(phone) || phoneSaving) return;
+    setPhoneSaving(true);
+    const newCompleted: BenefitsEnrichmentStep[] = [...completedSteps, 4];
+    setCompletedSteps(newCompleted);
+    trackBenefitsEnrichmentStepCompleted(4, { programId, stateCode, profileId: profileId || undefined, ctaSurface });
+    // Pass phone directly to avoid stale closure (state won't be updated yet)
+    saveEnrichmentData(newCompleted, undefined, phone);
+  }, [phone, phoneSaving, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
 
   // Skip current step
   const handleSkip = useCallback(() => {
@@ -358,6 +388,7 @@ export default function ProgramBenefitsCard({
       enrichment_1: 1,
       enrichment_2: 2,
       enrichment_3: 3,
+      enrichment_4: 4,
     };
     const currentStep = stepMap[cardState];
     if (currentStep) {
@@ -376,13 +407,17 @@ export default function ProgramBenefitsCard({
         setTimeout(() => setCardState("enrichment_3"), 150);
         break;
       case "enrichment_3":
+        setTimeout(() => setCardState("enrichment_4"), 150);
+        break;
+      case "enrichment_4":
         saveEnrichmentData(completedSteps);
         break;
     }
   }, [cardState, completedSteps, programId, stateCode, profileId, ctaSurface, saveEnrichmentData]);
 
-  // Current step number for progress dots (1-3)
-  const currentStepNumber = cardState === "enrichment_1" ? 1 : cardState === "enrichment_2" ? 2 : 3;
+  // Current step number for progress dots (1-4)
+  const currentStepNumber =
+    cardState === "enrichment_1" ? 1 : cardState === "enrichment_2" ? 2 : cardState === "enrichment_3" ? 3 : 4;
 
   // ─── Success state ─────────────────────────────────────────────────────
   if (cardState === "success") {
@@ -402,6 +437,7 @@ export default function ProgramBenefitsCard({
                 {resultCount} {stateName} {resultCount === 1 ? "program" : "programs"}
               </span>{" "}
               you may qualify for — with eligibility and how to apply for each.
+              {completedSteps.includes(4) && <> Your results link is also on its way by text.</>}
             </>
           ) : (
             <>We saved your search and emailed you the eligibility details for {shortLabel}.</>
@@ -455,7 +491,7 @@ export default function ProgramBenefitsCard({
 
         {/* Progress dots */}
         <div className="flex items-center justify-center gap-1.5 mb-4">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
               className={`rounded-full transition-all duration-300 ${
@@ -521,6 +557,50 @@ export default function ProgramBenefitsCard({
             <button
               onClick={handleSkip}
               className="w-full py-2 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+
+        {/* Step 4: Want this by text? (phone capture — SMS reachability) */}
+        {cardState === "enrichment_4" && (
+          <div className="animate-in fade-in duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
+              Want this by text?
+            </h3>
+            <p className="text-[13px] text-gray-500 mb-4">
+              We&apos;ll text you your results link now, and your next steps as they&apos;re ready.
+            </p>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && phoneLooksValid(phone)) {
+                  e.preventDefault();
+                  submitPhone();
+                }
+              }}
+              placeholder="Your mobile number"
+              autoComplete="tel"
+              inputMode="tel"
+              className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-[16px] text-gray-900 placeholder:text-gray-400 transition focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-600/20"
+            />
+            <button
+              onClick={submitPhone}
+              disabled={!phoneLooksValid(phone) || phoneSaving}
+              className="mt-3 w-full py-3.5 px-4 rounded-xl text-[15px] font-semibold text-center transition-all duration-150 bg-gray-900 text-white disabled:opacity-40 disabled:cursor-default active:scale-[0.98] disabled:active:scale-100"
+            >
+              {phoneSaving ? "Sending…" : "Text me my results"}
+            </button>
+            <p className="mt-2.5 text-[11px] leading-relaxed text-gray-400">
+              By adding your number you agree to receive care-related texts from Olera.
+              Reply STOP anytime.
+            </p>
+            <button
+              onClick={handleSkip}
+              className="w-full py-2 mt-1 text-[13px] text-gray-400 hover:text-gray-600 font-normal bg-transparent border-none transition-colors"
             >
               Skip
             </button>

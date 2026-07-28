@@ -51,6 +51,11 @@ interface FamilyRow {
   /** Held eligibility facts, humanized ("age 72, on Medicaid, income
    *  $1,500–$2,500/mo"). Null until the family gives a Phase 3 fact. */
   situation: string | null;
+  /** All three eligibility asks answered (prefer-not-to-say counts). */
+  situationComplete: boolean;
+  /** Reachability: textable = phone + sms_consent + not opted out (the SMS
+   *  system can reach them); hasPhone alone = manual call only. */
+  reach: { hasPhone: boolean; textable: boolean };
   signals: {
     emailOpened: boolean;
     emailClicked: boolean;
@@ -141,13 +146,20 @@ export async function GET(request: NextRequest) {
     // Hydrate profiles, results-page views, and email engagement in chunks.
     const profiles = new Map<
       string,
-      { display_name: string | null; email: string | null; state: string | null; metadata: Record<string, unknown> }
+      {
+        display_name: string | null;
+        email: string | null;
+        state: string | null;
+        phone: string | null;
+        phone_validity: string | null;
+        metadata: Record<string, unknown>;
+      }
     >();
     const viewedProfiles = new Set<string>();
     const viewedAtByProfile = new Map<string, string>();
     for (const ids of chunk(profileIds, 100)) {
       const [{ data: profs }, { data: tokens }] = await Promise.all([
-        db.from("business_profiles").select("id, display_name, email, state, metadata").in("id", ids),
+        db.from("business_profiles").select("id, display_name, email, state, phone, phone_validity, metadata").in("id", ids),
         db.from("benefits_results_tokens").select("profile_id, last_viewed_at").in("profile_id", ids),
       ]);
       for (const p of profs ?? []) profiles.set(p.id, p);
@@ -182,6 +194,8 @@ export async function GET(request: NextRequest) {
     const byCareNeed = new Map<string, number>();
     let engaged = 0;
     let enrichedCount = 0;
+    let situationCompleteCount = 0;
+    let textableCount = 0;
     let wantsHelp = 0;
     const stuckCounts: Record<string, number> = {};
     const lifecycleCounts: Record<string, number> = {};
@@ -194,7 +208,28 @@ export async function GET(request: NextRequest) {
       const relationship = (pMeta.relationship_to_recipient as string) || (pMeta.relationship as string) || null;
       const timeline = (pMeta.timeline as string) || null;
       const payments = Array.isArray(pMeta.payment_methods) ? (pMeta.payment_methods as string[]) : null;
-      const enriched = Boolean(relationship || timeline || (payments && payments.length));
+      // Enriched = answered ANY follow-up. Includes the Phase 3 facts and
+      // payment_unsure ("Not sure yet" writes its own flag, never
+      // payment_methods) — without them this KPI would silently dip after
+      // the payment-step reframe and read as an engagement regression.
+      const enriched = Boolean(
+        relationship ||
+          timeline ||
+          (payments && payments.length) ||
+          pMeta.payment_unsure ||
+          pMeta.age ||
+          pMeta.medicaid_status ||
+          pMeta.income_range,
+      );
+      // Situation complete = made it through all three eligibility asks
+      // ("prefer not to say" counts as answered — this measures flow
+      // completion; the situation line itself only shows real facts).
+      const situationComplete = Boolean(pMeta.age && pMeta.medicaid_status && pMeta.income_range);
+      // Textable = the SMS system can actually reach them (consent-aware).
+      // Phone on file without consent = TJ can call, automation won't text.
+      const hasPhone = Boolean(profile?.phone);
+      const textable =
+        hasPhone && Boolean(pMeta.sms_consent) && profile?.phone_validity !== "opted_out";
 
       const email = profile?.email ?? null;
       const signals = {
@@ -205,6 +240,8 @@ export async function GET(request: NextRequest) {
       };
       if (signals.emailOpened || signals.emailClicked || signals.resultsViewed) engaged++;
       if (enriched) enrichedCount++;
+      if (situationComplete) situationCompleteCount++;
+      if (textable) textableCount++;
 
       const state = (meta.state as string) || profile?.state || null;
       const careNeed = (meta.care_need as string) || null;
@@ -253,6 +290,8 @@ export async function GET(request: NextRequest) {
         completedAt: ev.created_at,
         enrichment: { relationship, timeline, payments },
         situation: benefitsSituationLine(pMeta),
+        situationComplete,
+        reach: { hasPhone, textable },
         signals,
         cascade: {
           status,
@@ -289,6 +328,8 @@ export async function GET(request: NextRequest) {
         prevCompletions: prevCount ?? 0,
         engaged,
         enriched: enrichedCount,
+        situationComplete: situationCompleteCount,
+        textable: textableCount,
         wantsHelp,
         stuck: stuckCounts,
         lifecycle: lifecycleCounts,

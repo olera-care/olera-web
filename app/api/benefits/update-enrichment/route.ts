@@ -279,7 +279,6 @@ export async function PATCH(request: Request) {
         const parts: string[] = [];
         const situation = benefitsSituationLine(doneMeta);
         if (situation) parts.push(situation);
-        if (doneMeta.payment_unsure) parts.push("not sure how to pay, needs the benefits path");
         if (typeof doneMeta.timeline === "string" && doneMeta.timeline) parts.push(`timeline: ${doneMeta.timeline}`);
         if (done?.phone) parts.push("phone on file");
         await sendSlackAlert(

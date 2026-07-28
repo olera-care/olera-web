@@ -418,6 +418,9 @@ export function benefitsSituationLine(profileMeta: Record<string, any> | null | 
   };
   const income = meta.income_range as string | undefined;
   if (income && incomeLabels[income]) parts.push(incomeLabels[income]);
+  // "Not sure yet" on the payment step — the family self-identifying as
+  // needing the benefits path. Triage-relevant, so it rides the same line.
+  if (meta.payment_unsure) parts.push("unsure how to pay");
   return parts.length > 0 ? parts.join(", ") : null;
 }
 

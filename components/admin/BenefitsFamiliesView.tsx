@@ -46,6 +46,8 @@ interface FamilyRow {
     payments: string[] | null;
   };
   situation: string | null;
+  situationComplete: boolean;
+  reach: { hasPhone: boolean; textable: boolean };
   signals: {
     emailOpened: boolean;
     emailClicked: boolean;
@@ -89,6 +91,8 @@ interface FamiliesData {
     prevCompletions: number;
     engaged: number;
     enriched: number;
+    situationComplete: number;
+    textable: number;
     wantsHelp: number;
     stuck: Record<string, number>;
     lifecycle: Record<string, number>;
@@ -265,7 +269,7 @@ export default function BenefitsFamiliesView() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard
           label="Completions"
           value={summary.completions}
@@ -284,7 +288,12 @@ export default function BenefitsFamiliesView() {
         <StatCard
           label="Enriched"
           value={`${enrichedPct}%`}
-          detail={`${summary.enriched} of ${summary.uniqueFamilies} answered follow-up questions`}
+          detail={`${summary.enriched} answered something · ${summary.situationComplete ?? 0} gave the full picture`}
+        />
+        <StatCard
+          label="Textable"
+          value={summary.uniqueFamilies ? `${Math.round(((summary.textable ?? 0) / summary.uniqueFamilies) * 100)}%` : "0%"}
+          detail={`${summary.textable ?? 0} of ${summary.uniqueFamilies} with phone + consent (SMS can reach them)`}
         />
         <StatCard
           label="Caseload"
@@ -414,6 +423,13 @@ export default function BenefitsFamiliesView() {
                         {f.email || "no email"}
                         {f.isNewUser && <span className="text-emerald-600"> · new</span>}
                       </p>
+                      {/* Reachability: how a human (or the SMS rungs) can
+                          actually reach them. Nothing shown = email only. */}
+                      {f.reach.textable ? (
+                        <p className="text-[11px] font-medium text-emerald-700 mt-0.5">📱 Textable</p>
+                      ) : f.reach.hasPhone ? (
+                        <p className="text-[11px] text-gray-400 mt-0.5">📱 Phone on file, call only</p>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-gray-900">
@@ -456,6 +472,8 @@ export default function BenefitsFamiliesView() {
                           timeline={timelines[f.profileId]}
                           caseInfo={f.caseInfo}
                           signals={f.signals}
+                          reach={f.reach}
+                          situationComplete={f.situationComplete}
                           noteText={noteText}
                           setNoteText={setNoteText}
                           busy={caseBusy}
@@ -576,6 +594,8 @@ function CasePanel({
   timeline,
   caseInfo,
   signals,
+  reach,
+  situationComplete,
   noteText,
   setNoteText,
   busy,
@@ -586,6 +606,8 @@ function CasePanel({
   timeline: TimelineEvent[] | "loading" | "error" | undefined;
   caseInfo: FamilyRow["caseInfo"];
   signals: FamilyRow["signals"];
+  reach: FamilyRow["reach"];
+  situationComplete: boolean;
   noteText: string;
   setNoteText: (v: string) => void;
   busy: boolean;
@@ -602,6 +624,8 @@ function CasePanel({
           <SignalChip active={signals.emailClicked} label="Clicked" />
           <SignalChip active={signals.resultsViewed} label="Viewed" />
           <SignalChip active={signals.enriched} label="Enriched" />
+          <SignalChip active={situationComplete} label="Full picture" />
+          <SignalChip active={reach.textable} label="Textable" />
         </div>
       </div>
       {timeline === "loading" || timeline === undefined ? (

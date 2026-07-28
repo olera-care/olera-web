@@ -98,9 +98,10 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     cascade,
   } = props;
 
+  const careLabel = CARE_NEED_LABEL[careNeed] || null;
   const chips = [
     stateName,
-    CARE_NEED_LABEL[careNeed] || null,
+    careLabel ? careLabel.charAt(0).toUpperCase() + careLabel.slice(1) : null,
     relationshipChip(relationship),
     timeline ? TIMELINE_LABELS[timeline] || null : null,
     payments && payments.length ? payments.join(", ") : null,

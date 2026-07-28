@@ -3,19 +3,25 @@ import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { lookupResultByToken } from "@/lib/benefits-token";
 import type { CareNeed } from "@/lib/benefits/match-care-need";
-import type { MatchableProvider } from "@/lib/benefits/provider-tie-in";
-import ResultsSheet from "@/components/benefits/ResultsSheet";
+import BenefitsHome from "@/components/benefits/BenefitsHome";
+import {
+  selectFirstStepProgram,
+  buildCallScript,
+  readBenefitsCascade,
+  type FirstStepPick,
+} from "@/lib/family-comms/benefits-cascade.server";
 import { getStateSlug } from "@/lib/program-data";
 
 /**
- * /m/{token} — addressable benefits results page.
+ * /m/{token} — addressable benefits results page, rebuilt as the family's
+ * benefits GUIDE (plans/benefits-results-home.md): recognition of what they
+ * told us, the ten-minute first step as the hero (same selection + call
+ * script as the day-2 cascade email), the other matches grouped and held.
  *
  * The token IS the auth: anyone with the URL sees the matches. No login
  * wall. This matches the "honest backup" model — ~95% of users won't
  * engage with the welcome email or SMS, but the 5% who return need
  * frictionless access to what they were promised.
- *
- * Component reused from the in-session overlay (mode="page" here).
  *
  * SEO/privacy:
  *   - noindex: per-user content with PII implications, doesn't belong in search
@@ -24,14 +30,13 @@ import { getStateSlug } from "@/lib/program-data";
  */
 
 export const metadata: Metadata = {
-  title: "Your benefit matches | Olera",
-  description: "Programs your family may qualify for.",
+  title: "Your benefits plan | Olera",
+  description: "Programs your family may qualify for, and where to start.",
   robots: { index: false, follow: false },
 };
 
 // Force dynamic — this route reads from the DB on every request and shouldn't
-// be cached at the route level. Per-token caching is handled by Supabase
-// query patterns; the React Server Component renders fresh.
+// be cached at the route level.
 export const dynamic = "force-dynamic";
 
 function getAdminClient() {
@@ -55,35 +60,56 @@ export default async function BenefitsResultsPage({
   const bundle = await lookupResultByToken(db, token);
   if (!bundle) notFound();
 
-  // If a provider was attached at issuance, pull its display info for the
-  // contextual tie-in. Best-effort — null falls back to no tie-in copy.
-  let provider: MatchableProvider | null = null;
-  if (bundle.token.provider_slug) {
-    const { data: providerRow } = await db
-      .from("business_profiles")
-      .select("display_name, care_types, category")
-      .eq("slug", bundle.token.provider_slug)
-      .maybeSingle();
-    if (providerRow) provider = providerRow as MatchableProvider;
-  }
-
   const stateSlug = getStateSlug(bundle.token.state_code);
   if (!stateSlug) notFound();
 
+  const meta = bundle.profile.metadata || {};
+  const relationship =
+    (meta.relationship_to_recipient as string) || (meta.relationship as string) || null;
+
+  // First-step selection reuses the cascade's exact logic (entry-source page →
+  // simplest saved match → state start-here list). Needs the account id, which
+  // the bundle's profile select doesn't carry — one small extra read.
+  let firstStep: FirstStepPick | null = null;
+  const { data: profileRow } = await db
+    .from("business_profiles")
+    .select("account_id")
+    .eq("id", bundle.profile.id)
+    .maybeSingle();
+  if (profileRow?.account_id) {
+    try {
+      firstStep = await selectFirstStepProgram(db, {
+        accountId: profileRow.account_id,
+        stateAbbrev: bundle.token.state_code,
+      });
+    } catch (err) {
+      // The hero degrades to the top match — never 500 the family's page
+      // over a selection failure.
+      console.error("[/m] first-step selection failed:", err);
+    }
+  }
+
+  // "Care Seeker" is the save-results placeholder for families who never gave
+  // a name — greeting them "Hi Care" is worse than no name at all.
+  const displayName = bundle.profile.display_name?.trim() || "";
+  const firstName =
+    displayName && displayName.toLowerCase() !== "care seeker"
+      ? displayName.split(/\s+/)[0]
+      : null;
+
   return (
-    <ResultsSheet
-      mode="page"
-      matches={bundle.matchedPrograms}
-      matchCount={bundle.token.match_count}
+    <BenefitsHome
+      firstName={firstName}
+      stateName={bundle.stateName}
+      stateSlug={stateSlug}
       careNeed={bundle.token.care_need as CareNeed}
-      state={{ name: bundle.stateName, slug: stateSlug }}
-      provider={provider}
-      providerSlug={bundle.token.provider_slug}
-      contactChannel={
-        bundle.profile.preferred_contact_channel ||
-        (bundle.profile.email ? "email" : "sms")
-      }
-      contactDestination={bundle.profile.email || bundle.profile.phone}
+      relationship={relationship}
+      timeline={(meta.timeline as string) || null}
+      payments={Array.isArray(meta.payment_methods) ? (meta.payment_methods as string[]) : null}
+      matches={bundle.matchedPrograms}
+      firstStep={firstStep}
+      callScript={firstStep ? buildCallScript(firstStep.shortName, relationship) : null}
+      cascade={readBenefitsCascade(meta)}
     />
   );
 }

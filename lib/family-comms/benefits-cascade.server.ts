@@ -34,6 +34,12 @@ export interface BenefitsCascadeMeta {
   first_step_state_id?: string;
   first_step_program_name?: string;
   check_sent_at?: string;
+  /** Living-journey page acts (v2): the family tapped "I made the call" /
+   *  checked documents on /m/{token}. Distinct from `outcome` (the check-in
+   *  self-report) — this is the page-observed act. */
+  first_step_done_at?: string;
+  first_step_done_program_id?: string;
+  docs_checked?: string[];
   outcome?: BenefitsOutcomeValue;
   outcome_at?: string;
   /** One-tap "what didn't fit" from the wrong_program landing path. */
@@ -153,8 +159,15 @@ function parseEntrySourceProgram(entrySource: string | null | undefined): { stat
  */
 export async function selectFirstStepProgram(
   db: SupabaseClient,
-  opts: { accountId: string; stateAbbrev: string | null },
+  opts: {
+    accountId: string;
+    stateAbbrev: string | null;
+    /** Program ids to skip — the living journey uses this to pick "up next"
+     *  after the first step is done. */
+    exclude?: string[];
+  },
 ): Promise<FirstStepPick | null> {
+  const excluded = new Set(opts.exclude || []);
   const { data: account } = await db
     .from("accounts")
     .select("user_id, signup_source")
@@ -164,7 +177,7 @@ export async function selectFirstStepProgram(
 
   // 1. Entry-source program page.
   const entry = parseEntrySourceProgram(account.signup_source);
-  if (entry) {
+  if (entry && !excluded.has(entry.programId)) {
     const abbrev = getStateAbbrev(entry.stateId);
     const draft = draftFor(abbrev, entry.programId);
     if (draft) {
@@ -183,7 +196,7 @@ export async function selectFirstStepProgram(
 
   const candidates: { pick: FirstStepPick; rank: number; idx: number }[] = [];
   (saved || []).forEach((row, idx) => {
-    if (!row.program_id || !row.state_id) return;
+    if (!row.program_id || !row.state_id || excluded.has(row.program_id)) return;
     const abbrev = getStateAbbrev(row.state_id);
     const draft = draftFor(abbrev, row.program_id);
     if (!draft) return;
@@ -201,6 +214,7 @@ export async function selectFirstStepProgram(
     const startHere = pipelineDrafts[abbrev]?.stateOverview?.startHere || [];
     if (stateId) {
       for (const s of startHere) {
+        if (excluded.has(s.programId)) continue;
         const draft = draftFor(abbrev, s.programId);
         if (!draft) continue;
         const pick = toPick(draft, abbrev, stateId, "state");

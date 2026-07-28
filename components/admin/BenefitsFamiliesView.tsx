@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 /**
@@ -58,6 +58,15 @@ interface FamilyRow {
     outcomeAt: string | null;
     outcomeReason: string | null;
   };
+  caseStatus: "wants_help" | "silent_after_checkin" | "action_stall" | "attention_stall" | null;
+  caseInfo: { noteCount: number; contactedAt: string | null; resolvedAt: string | null };
+}
+
+interface TimelineEvent {
+  at: string;
+  kind: string;
+  label: string;
+  detail?: string;
 }
 
 interface FamiliesData {
@@ -69,6 +78,7 @@ interface FamiliesData {
     engaged: number;
     enriched: number;
     wantsHelp: number;
+    stuck: Record<string, number>;
   };
   breakdown: {
     topSources: { label: string; path: string | null; count: number }[];
@@ -102,6 +112,61 @@ export default function BenefitsFamiliesView() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // ── Case drill-in state ─────────────────────────────────────────────
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [timelines, setTimelines] = useState<Record<string, TimelineEvent[] | "loading" | "error">>({});
+  const [noteText, setNoteText] = useState("");
+  const [caseBusy, setCaseBusy] = useState(false);
+  const [caseError, setCaseError] = useState<string | null>(null);
+
+  const loadTimeline = useCallback(async (profileId: string) => {
+    setTimelines((t) => ({ ...t, [profileId]: "loading" }));
+    try {
+      const res = await fetch(`/api/admin/benefits/families/${profileId}`);
+      if (!res.ok) throw new Error(String(res.status));
+      const d = await res.json();
+      setTimelines((t) => ({ ...t, [profileId]: d.events as TimelineEvent[] }));
+    } catch {
+      setTimelines((t) => ({ ...t, [profileId]: "error" }));
+    }
+  }, []);
+
+  const toggleExpand = useCallback(
+    (profileId: string) => {
+      setCaseError(null);
+      setNoteText("");
+      if (expanded === profileId) {
+        setExpanded(null);
+        return;
+      }
+      setExpanded(profileId);
+      if (!timelines[profileId] || timelines[profileId] === "error") void loadTimeline(profileId);
+    },
+    [expanded, timelines, loadTimeline],
+  );
+
+  const caseAction = useCallback(
+    async (profileId: string, action: string, text?: string) => {
+      setCaseBusy(true);
+      setCaseError(null);
+      try {
+        const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, text }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        setNoteText("");
+        await Promise.all([fetchData(), loadTimeline(profileId)]);
+      } catch {
+        setCaseError("Couldn't save that. Try again.");
+      } finally {
+        setCaseBusy(false);
+      }
+    },
+    [fetchData, loadTimeline],
+  );
 
   if (loading && !data) {
     return (
@@ -171,10 +236,21 @@ export default function BenefitsFamiliesView() {
           detail={`${summary.enriched} of ${summary.uniqueFamilies} answered follow-up questions`}
         />
         <StatCard
-          label="Wants help"
-          value={summary.wantsHelp ?? 0}
-          detail="asked for a person on the check-in; floated to the top below"
-          detailTone={summary.wantsHelp > 0 ? "down" : "flat"}
+          label="Caseload"
+          value={Object.values(summary.stuck ?? {}).reduce((a, b) => a + b, 0)}
+          detail={
+            Object.keys(summary.stuck ?? {}).length
+              ? [
+                  summary.stuck.wants_help ? `${summary.stuck.wants_help} wants help` : null,
+                  summary.stuck.silent_after_checkin ? `${summary.stuck.silent_after_checkin} silent after check-in` : null,
+                  summary.stuck.action_stall ? `${summary.stuck.action_stall} stalled at the call` : null,
+                  summary.stuck.attention_stall ? `${summary.stuck.attention_stall} never saw their plan` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+              : "stuck families float to the top below as the cascade runs"
+          }
+          detailTone={Object.values(summary.stuck ?? {}).reduce((a, b) => a + b, 0) > 0 ? "down" : "flat"}
         />
       </div>
 
@@ -229,14 +305,20 @@ export default function BenefitsFamiliesView() {
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Came from</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Signals</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Cascade</th>
+                  <th className="text-left px-4 py-2.5 font-medium text-gray-500">Case</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Completed</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {families.map((f) => (
-                  <tr key={f.profileId} className="hover:bg-gray-50">
+                  <Fragment key={f.profileId}>
+                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(f.profileId)}>
                     <td className="px-4 py-3">
-                      <Link href={`/admin/care-seekers/${f.profileId}`} className="font-medium text-gray-900 hover:text-primary-600 transition-colors">
+                      <Link
+                        href={`/admin/care-seekers/${f.profileId}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-medium text-gray-900 hover:text-primary-600 transition-colors"
+                      >
                         {f.displayName || "Unnamed family"}
                       </Link>
                       <p className="text-xs text-gray-400 mt-0.5">
@@ -278,10 +360,29 @@ export default function BenefitsFamiliesView() {
                     <td className="px-4 py-3">
                       <CascadeChip cascade={f.cascade} />
                     </td>
+                    <td className="px-4 py-3">
+                      <CaseChip caseStatus={f.caseStatus} caseInfo={f.caseInfo} />
+                    </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                       {new Date(f.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </td>
                   </tr>
+                  {expanded === f.profileId && (
+                    <tr className="bg-gray-50/60">
+                      <td colSpan={7} className="px-6 py-4">
+                        <CasePanel
+                          timeline={timelines[f.profileId]}
+                          caseInfo={f.caseInfo}
+                          noteText={noteText}
+                          setNoteText={setNoteText}
+                          busy={caseBusy}
+                          error={caseError}
+                          onAction={(action, text) => caseAction(f.profileId, action, text)}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -368,6 +469,134 @@ function CascadeChip({ cascade }: { cascade: FamilyRow["cascade"] }) {
         {chip.label}
       </span>
       {detail && <p className="text-[11px] text-gray-400 mt-1 max-w-[140px] truncate">{detail}</p>}
+    </div>
+  );
+}
+
+const CASE_CHIP: Record<string, { label: string; className: string }> = {
+  wants_help: { label: "Wants help", className: "bg-amber-100 text-amber-800" },
+  silent_after_checkin: { label: "Silent after check-in", className: "bg-rose-50 text-rose-700" },
+  action_stall: { label: "Stalled at the call", className: "bg-orange-50 text-orange-700" },
+  attention_stall: { label: "Never saw plan", className: "bg-gray-100 text-gray-500" },
+};
+
+function CaseChip({
+  caseStatus,
+  caseInfo,
+}: {
+  caseStatus: FamilyRow["caseStatus"];
+  caseInfo: FamilyRow["caseInfo"];
+}) {
+  if (caseInfo.resolvedAt) {
+    return <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 whitespace-nowrap">Resolved</span>;
+  }
+  if (!caseStatus) {
+    return caseInfo.contactedAt ? (
+      <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 whitespace-nowrap">Working</span>
+    ) : (
+      <span className="text-[11px] text-gray-300">—</span>
+    );
+  }
+  const chip = CASE_CHIP[caseStatus];
+  return (
+    <div>
+      <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${chip.className}`}>{chip.label}</span>
+      {caseInfo.noteCount > 0 && (
+        <p className="text-[11px] text-gray-400 mt-1">{caseInfo.noteCount} note{caseInfo.noteCount === 1 ? "" : "s"}</p>
+      )}
+    </div>
+  );
+}
+
+const TIMELINE_ICON: Record<string, string> = {
+  intake: "●",
+  enriched: "✚",
+  email: "✉",
+  email_open: "👁",
+  email_click: "↗",
+  sms: "✆",
+  viewed: "👁",
+  acted: "✓",
+  docs: "☑",
+  outcome: "✦",
+  note: "✎",
+  case: "★",
+};
+
+function CasePanel({
+  timeline,
+  caseInfo,
+  noteText,
+  setNoteText,
+  busy,
+  error,
+  onAction,
+}: {
+  timeline: TimelineEvent[] | "loading" | "error" | undefined;
+  caseInfo: FamilyRow["caseInfo"];
+  noteText: string;
+  setNoteText: (v: string) => void;
+  busy: boolean;
+  error: string | null;
+  onAction: (action: string, text?: string) => void;
+}) {
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 mb-2">Case timeline</p>
+      {timeline === "loading" || timeline === undefined ? (
+        <p className="text-sm text-gray-400 py-2">Loading timeline…</p>
+      ) : timeline === "error" ? (
+        <p className="text-sm text-red-600 py-2">Couldn&apos;t load the timeline. Collapse and reopen to retry.</p>
+      ) : timeline.length === 0 ? (
+        <p className="text-sm text-gray-400 py-2">No recorded touches yet.</p>
+      ) : (
+        <ol className="space-y-1.5 mb-4">
+          {timeline.map((e, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm">
+              <span className="w-9 shrink-0 text-right text-[11px] text-gray-400 pt-0.5">
+                {new Date(e.at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              </span>
+              <span className="w-4 shrink-0 text-center text-gray-400">{TIMELINE_ICON[e.kind] || "·"}</span>
+              <span className="min-w-0">
+                <span className="text-gray-800">{e.label}</span>
+                {e.detail && <span className="block text-[12px] text-gray-400">{e.detail}</span>}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-gray-200 pt-3">
+        <input
+          type="text"
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          placeholder="Add a case note…"
+          className="flex-1 min-w-[220px] rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+        />
+        <button
+          onClick={() => noteText.trim() && onAction("note", noteText.trim())}
+          disabled={busy || !noteText.trim()}
+          className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40"
+        >
+          Save note
+        </button>
+        {caseInfo.resolvedAt ? (
+          <button onClick={() => onAction("reopen")} disabled={busy} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 disabled:opacity-40">
+            Reopen case
+          </button>
+        ) : (
+          <>
+            <button onClick={() => onAction("contacted")} disabled={busy} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 disabled:opacity-40">
+              I contacted them
+            </button>
+            <button onClick={() => onAction("resolved")} disabled={busy} className="rounded-lg border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-700 disabled:opacity-40">
+              Mark resolved
+            </button>
+          </>
+        )}
+        {error && <span className="text-xs text-red-600">{error}</span>}
+      </div>
     </div>
   );
 }

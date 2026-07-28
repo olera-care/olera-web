@@ -23,6 +23,8 @@ export interface BenefitsHomeProps {
   token: string;
   /** "Up next" program shown after the first step is marked done. */
   nextStep: FirstStepPick | null;
+  /** True only when the session user owns this profile. */
+  signedIn?: boolean;
   firstName: string | null;
   stateName: string;
   stateSlug: string;
@@ -111,6 +113,7 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
   const {
     token,
     nextStep,
+    signedIn,
     firstName,
     stateName,
     stateSlug,
@@ -188,6 +191,11 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
         <h1 className="font-serif text-[28px] font-bold leading-tight text-gray-900">
           {firstName ? `Hi ${firstName},` : "Hello,"} here&apos;s your plan.
         </h1>
+        {signedIn && (
+          <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-emerald-700">
+            <span aria-hidden>&#10003;</span> Saved to your account. Your progress here is remembered.
+          </p>
+        )}
         <p className="mt-2 text-[15px] leading-relaxed text-gray-600">
           Based on what you shared with us:
         </p>

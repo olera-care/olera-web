@@ -167,11 +167,14 @@ async function resolveRow(
   }
 
   // Fall back to email lookup via smartlead_data.lead_email
+  // Order by enrolled_at desc to get the most recent enrollment (handles re-enrollments)
   if (email) {
     const { data } = await supabase
       .from("provider_outreach_tracking")
       .select("id, provider_id, stage, smartlead_data")
       .ilike("smartlead_data->>lead_email", email)
+      .not("smartlead_data", "is", null)
+      .order("smartlead_data->enrolled_at", { ascending: false, nullsFirst: false })
       .limit(1);
     const row = (data ?? [])[0] as
       | { id: string; provider_id: string; stage: string; smartlead_data: Record<string, unknown> | null }

@@ -281,7 +281,7 @@ function composePolishedFooterHtml(vars: Record<string, string>): string {
       </td>
       <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
         <p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p>
-        <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · NIH SBIR Researcher</p>
+        <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
       </td>
     </tr>
   </table>
@@ -311,7 +311,7 @@ function composePolishedFooterPlainText(vars: Record<string, string>): string {
     "Logan",
     "",
     "Dr. Logan DuBose",
-    "CRO, Olera · NIH SBIR Researcher",
+    "CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program",
     "",
     "---",
     "Questions? Just reply — it goes straight to our team.",

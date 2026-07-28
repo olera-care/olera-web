@@ -273,6 +273,7 @@ function buildSmartleadFooterHtml(): string {
     `</table>`,
     // Footer links with merge tags
     `<div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
+    `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,
     `<p style="font-size:13px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;">`,
     `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a> · `,
     `<a href="${MERGE_TAGS.removeUrl}" style="color:#9ca3af;text-decoration:underline;">Remove my listing</a> · `,

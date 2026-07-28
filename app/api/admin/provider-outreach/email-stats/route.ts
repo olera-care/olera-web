@@ -81,16 +81,18 @@ export async function GET(request: NextRequest) {
 
     // 1. Query SmartLead touchpoints for email_sent events
     // These have source='smartlead' and sequence_step in details
+    // Filter by source in the query for efficiency
     const { data: smartleadSent } = await db
       .from("provider_outreach_touchpoints")
       .select("details")
       .eq("touchpoint_type", "email_sent")
+      .eq("details->>source", "smartlead")
       .gte("created_at", cutoffIso);
 
     if (smartleadSent) {
       for (const row of smartleadSent) {
         const details = row.details as Record<string, unknown> | null;
-        if (!details || details.source !== "smartlead") continue;
+        if (!details) continue;
 
         const seqStep = details.sequence_step as number | undefined;
         if (!seqStep || !SEQUENCE_STEP_MAP[seqStep]) continue;

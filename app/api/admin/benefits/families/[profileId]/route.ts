@@ -96,6 +96,19 @@ export async function GET(
     // Cascade stamps (SMS mirrors + journey acts)
     push(cascade.first_step_sms_at, "sms", "First-step text sent");
     push(cascade.check_sms_at, "sms", "Check-in text sent");
+
+    // Inbound texts (webhook persists every reply — metadata.sms_inbound)
+    const inbound = Array.isArray(meta.sms_inbound)
+      ? (meta.sms_inbound as { at?: string; body?: string; keyword?: string | null }[])
+      : [];
+    for (const m of inbound) {
+      push(
+        m.at,
+        "sms_in",
+        m.keyword ? `Texted ${m.keyword}` : "Texted us back",
+        m.keyword ? undefined : m.body,
+      );
+    }
     push(
       cascade.first_step_done_at,
       "acted",

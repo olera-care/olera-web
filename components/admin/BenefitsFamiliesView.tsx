@@ -543,6 +543,7 @@ const TIMELINE_ICON: Record<string, string> = {
   email_open: "👁",
   email_click: "↗",
   sms: "✆",
+  sms_in: "💬",
   viewed: "👁",
   acted: "✓",
   docs: "☑",

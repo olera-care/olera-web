@@ -78,3 +78,25 @@ export {
   getAdminColor,
   getAdminColorClasses,
 } from "./admin-colors";
+
+// SmartLead bridge (provider outreach via SmartLead instead of Resend)
+export {
+  type ProviderBridgeRow,
+  type ProviderSkipReason,
+  type ProviderSelectionResult,
+  type ProviderSmartleadData,
+  type LaunchProviderCampaignInput,
+  type LaunchProviderCampaignReport,
+  type EnrollProviderInput,
+  type EnrollProviderResult,
+  type ProviderSmartleadPreview,
+  selectEligibleProviders,
+  providerToLead,
+  providersToLeads,
+  buildProviderEmailSequence,
+  launchProviderCampaign,
+  enrollProviderIntoCampaign,
+  buildProviderSmartleadPreview,
+  generateCampaignName,
+  resolveProviderMailboxPool,
+} from "./smartlead-bridge";

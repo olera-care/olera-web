@@ -717,13 +717,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine which engine will be used and get sender info
+    // Must match getProviderSenderEmails() logic in smartlead-bridge.ts
     const useSmartLead = isSmartleadConfigured();
-    const smartleadSenders = process.env.PROVIDER_OUTREACH_SMARTLEAD_SENDERS ?? "";
-    const senderInfo = useSmartLead && smartleadSenders.trim()
+    const providerSenders = process.env.PROVIDER_OUTREACH_SMARTLEAD_SENDERS ?? "";
+    const generalSenders = process.env.SMARTLEAD_SENDER_EMAILS ?? "";
+    const smartleadSenderList = providerSenders.trim()
+      ? providerSenders.split(",").map((s) => s.trim()).filter(Boolean)
+      : generalSenders.split(",").map((s) => s.trim()).filter(Boolean);
+
+    const senderInfo = useSmartLead && smartleadSenderList.length > 0
       ? {
           engine: "smartlead" as const,
-          from: `Dr. Logan DuBose <${smartleadSenders.split(",")[0].trim()}>`,
-          senders: smartleadSenders.split(",").map((s) => s.trim()).filter(Boolean),
+          from: `Dr. Logan DuBose <${smartleadSenderList[0]}>`,
+          senders: smartleadSenderList,
         }
       : {
           engine: "resend" as const,

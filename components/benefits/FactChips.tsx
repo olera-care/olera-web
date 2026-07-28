@@ -25,6 +25,9 @@ interface FactChipsProps {
   token: string;
   profileId: string;
   facts: KnownFacts;
+  /** True when the payments chip already says Medicaid — the inferred "On
+   *  Medicaid" fact chip would just repeat it. */
+  suppressMedicaidChip?: boolean;
 }
 
 const AGE_LABELS: Record<number, string> = {
@@ -91,7 +94,7 @@ const FIELD_FOR_ASK: Record<Ask, string> = {
   income: "incomeRange",
 };
 
-export default function FactChips({ token, profileId, facts }: FactChipsProps) {
+export default function FactChips({ token, profileId, facts, suppressMedicaidChip }: FactChipsProps) {
   const router = useRouter();
   const [open, setOpen] = useState<Ask | null>(null);
   const [saved, setSaved] = useState<Partial<Record<Ask, string>>>({});
@@ -101,8 +104,9 @@ export default function FactChips({ token, profileId, facts }: FactChipsProps) {
   const knownChips: string[] = [];
   if (facts.age != null) knownChips.push(AGE_LABELS[facts.age] || `Age ${facts.age}`);
   else if (saved.age) knownChips.push(AGE_LABELS[parseInt(saved.age, 10)] || `Age ${saved.age}`);
-  if (facts.medicaidStatus) knownChips.push(MEDICAID_LABELS[facts.medicaidStatus] || "Medicaid: answered");
-  else if (saved.medicaid) knownChips.push(MEDICAID_LABELS[saved.medicaid] || "Medicaid: answered");
+  if (facts.medicaidStatus) {
+    if (!suppressMedicaidChip) knownChips.push(MEDICAID_LABELS[facts.medicaidStatus] || "Medicaid: answered");
+  } else if (saved.medicaid) knownChips.push(MEDICAID_LABELS[saved.medicaid] || "Medicaid: answered");
   if (facts.incomeBand && facts.incomeBand !== "preferNotToSay") {
     knownChips.push(INCOME_LABELS[facts.incomeBand] || "Income: shared");
   } else if (saved.income && saved.income !== "preferNotToSay") {

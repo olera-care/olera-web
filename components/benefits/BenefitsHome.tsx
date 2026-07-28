@@ -222,7 +222,12 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
           ))}
           {/* The living half of the row: held facts as chips, gaps as
               tappable asks. Answering re-runs the server re-rank. */}
-          <FactChips token={token} profileId={profileId} facts={knownFacts} />
+          <FactChips
+            token={token}
+            profileId={profileId}
+            facts={knownFacts}
+            suppressMedicaidChip={!!payments?.some((p) => /medicaid/i.test(p))}
+          />
         </div>
 
         {/* ── Progress strip ──────────────────────────────────────────── */}

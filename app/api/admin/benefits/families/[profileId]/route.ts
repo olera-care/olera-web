@@ -141,6 +141,69 @@ export async function GET(
   }
 }
 
+/**
+ * DELETE — remove a family entirely (profile, account, auth user, tokens,
+ * saved programs, activity). Built for test-data cleanup during heavy QA;
+ * irreversible, so the UI requires typing "delete". Admin-only.
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ profileId: string }> },
+) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const { profileId } = await params;
+    const db = getServiceClient();
+    const { data: profile } = await db
+      .from("business_profiles")
+      .select("id, type, account_id")
+      .eq("id", profileId)
+      .maybeSingle();
+    if (!profile) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (profile.type !== "family") {
+      return NextResponse.json({ error: "Only family profiles can be deleted here" }, { status: 400 });
+    }
+
+    let userId: string | null = null;
+    if (profile.account_id) {
+      const { data: acct } = await db
+        .from("accounts")
+        .select("user_id")
+        .eq("id", profile.account_id)
+        .maybeSingle();
+      userId = acct?.user_id ?? null;
+    }
+
+    const errors: string[] = [];
+    const del = async (label: string, p: PromiseLike<{ error: { message: string } | null }>) => {
+      const { error } = await p;
+      if (error) errors.push(`${label}: ${error.message}`);
+    };
+    await del("activity", db.from("seeker_activity").delete().eq("profile_id", profileId));
+    await del("tokens", db.from("benefits_results_tokens").delete().eq("profile_id", profileId));
+    if (userId) await del("saved_programs", db.from("saved_programs").delete().eq("user_id", userId));
+    await del("profile", db.from("business_profiles").delete().eq("id", profileId));
+    if (profile.account_id) await del("account", db.from("accounts").delete().eq("id", profile.account_id));
+    if (userId) {
+      const { error: authErr } = await db.auth.admin.deleteUser(userId);
+      if (authErr) errors.push(`auth user: ${authErr.message}`);
+    }
+
+    if (errors.length) {
+      console.error("[benefits delete] partial:", errors);
+      return NextResponse.json({ success: false, errors }, { status: 500 });
+    }
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Admin benefits delete error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> },

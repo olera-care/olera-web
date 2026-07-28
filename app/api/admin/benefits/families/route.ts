@@ -5,8 +5,10 @@ import {
   cascadeStatus,
   readBenefitsCase,
   caseStatus,
+  lifecycleStatus,
   type CascadeStatus,
   type CaseStatus,
+  type Lifecycle,
 } from "@/lib/family-comms/benefits-cascade.server";
 
 /**
@@ -70,6 +72,8 @@ interface FamilyRow {
     contactedAt: string | null;
     resolvedAt: string | null;
   };
+  /** The one family-centric status the queue renders + filters on. */
+  lifecycle: Lifecycle;
 }
 
 function chunk<T>(arr: T[], size: number): T[][] {
@@ -176,6 +180,7 @@ export async function GET(request: NextRequest) {
     let enrichedCount = 0;
     let wantsHelp = 0;
     const stuckCounts: Record<string, number> = {};
+    const lifecycleCounts: Record<string, number> = {};
 
     for (const [profileId, ev] of latestByProfile) {
       const meta = ev.metadata as Record<string, unknown>;
@@ -221,6 +226,14 @@ export async function GET(request: NextRequest) {
       const caseMeta = readBenefitsCase(pMeta);
       const cs = caseStatus(cascadeMeta, caseMeta, viewedAtByProfile.get(profileId) ?? null, Date.now());
       if (cs) stuckCounts[cs] = (stuckCounts[cs] ?? 0) + 1;
+      const lifecycle = lifecycleStatus({
+        cascade: cascadeMeta,
+        caseMeta,
+        completedAt: ev.created_at,
+        lastViewedAt: viewedAtByProfile.get(profileId) ?? null,
+        now: Date.now(),
+      });
+      lifecycleCounts[lifecycle.status] = (lifecycleCounts[lifecycle.status] ?? 0) + 1;
 
       families.push({
         profileId,
@@ -249,20 +262,16 @@ export async function GET(request: NextRequest) {
           contactedAt: caseMeta.contacted_at ?? null,
           resolvedAt: caseMeta.resolved_at ?? null,
         },
+        lifecycle,
       });
     }
 
     // Queue order: the caseload floats by severity (wants_help > silent after
     // check-in > action stall > attention stall), everyone else newest-first.
-    const SEVERITY: Record<string, number> = {
-      wants_help: 0,
-      silent_after_checkin: 1,
-      action_stall: 2,
-      attention_stall: 3,
-    };
+    const SEVERITY: Record<string, number> = { needs_help: 0, stalled: 1 };
     families.sort((a, b) => {
-      const ar = a.caseStatus ? SEVERITY[a.caseStatus] : 9;
-      const br = b.caseStatus ? SEVERITY[b.caseStatus] : 9;
+      const ar = SEVERITY[a.lifecycle.status] ?? 9;
+      const br = SEVERITY[b.lifecycle.status] ?? 9;
       if (ar !== br) return ar - br;
       return b.completedAt.localeCompare(a.completedAt);
     });
@@ -277,6 +286,7 @@ export async function GET(request: NextRequest) {
         enriched: enrichedCount,
         wantsHelp,
         stuck: stuckCounts,
+        lifecycle: lifecycleCounts,
       },
       breakdown: {
         topSources: [...bySource.values()].sort((a, b) => b.count - a.count).slice(0, 6),

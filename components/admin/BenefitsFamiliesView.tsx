@@ -60,7 +60,18 @@ interface FamilyRow {
   };
   caseStatus: "wants_help" | "silent_after_checkin" | "action_stall" | "attention_stall" | null;
   caseInfo: { noteCount: number; contactedAt: string | null; resolvedAt: string | null };
+  lifecycle: { status: LifecycleStatus; detail: string | null };
 }
+
+type LifecycleStatus =
+  | "needs_help"
+  | "stalled"
+  | "acting"
+  | "returned"
+  | "working"
+  | "resolved"
+  | "new"
+  | "in_cascade";
 
 interface TimelineEvent {
   at: string;
@@ -79,6 +90,7 @@ interface FamiliesData {
     enriched: number;
     wantsHelp: number;
     stuck: Record<string, number>;
+    lifecycle: Record<string, number>;
   };
   breakdown: {
     topSources: { label: string; path: string | null; count: number }[];
@@ -115,6 +127,7 @@ export default function BenefitsFamiliesView() {
 
   // ── Case drill-in state ─────────────────────────────────────────────
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [filter, setFilter] = useState<LifecycleStatus | "all">("all");
   const [timelines, setTimelines] = useState<Record<string, TimelineEvent[] | "loading" | "error">>({});
   const [noteText, setNoteText] = useState("");
   const [caseBusy, setCaseBusy] = useState(false);
@@ -144,6 +157,28 @@ export default function BenefitsFamiliesView() {
       if (!timelines[profileId] || timelines[profileId] === "error") void loadTimeline(profileId);
     },
     [expanded, timelines, loadTimeline],
+  );
+
+  const deleteFamily = useCallback(
+    async (profileId: string, label: string) => {
+      const typed = window.prompt(
+        `This permanently deletes ${label} — profile, account, sign-in, and all activity. Type "delete" to confirm.`,
+      );
+      if (typed?.trim().toLowerCase() !== "delete") return;
+      setCaseBusy(true);
+      setCaseError(null);
+      try {
+        const res = await fetch(`/api/admin/benefits/families/${profileId}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(String(res.status));
+        setExpanded(null);
+        await fetchData();
+      } catch {
+        setCaseError("Delete failed. The family may be partially removed; check and retry.");
+      } finally {
+        setCaseBusy(false);
+      }
+    },
+    [fetchData],
   );
 
   const caseAction = useCallback(
@@ -291,6 +326,37 @@ export default function BenefitsFamiliesView() {
         </BreakdownCard>
       </div>
 
+      {/* Lifecycle filter */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {(
+          [
+            ["all", "All"],
+            ["needs_help", "Needs help"],
+            ["stalled", "Stalled"],
+            ["acting", "Acting"],
+            ["returned", "Returned"],
+            ["new", "New"],
+            ["in_cascade", "In cascade"],
+            ["working", "Working"],
+            ["resolved", "Resolved"],
+          ] as [LifecycleStatus | "all", string][]
+        ).map(([key, label]) => {
+          const count = key === "all" ? families.length : summary.lifecycle?.[key] ?? 0;
+          if (key !== "all" && count === 0 && filter !== key) return null;
+          return (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                filter === key ? "bg-gray-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {label} <span className={filter === key ? "text-gray-300" : "text-gray-400"}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Family queue */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {families.length === 0 ? (
@@ -303,14 +369,14 @@ export default function BenefitsFamiliesView() {
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Family</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Need</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Came from</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-gray-500">Signals</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-gray-500">Cascade</th>
-                  <th className="text-left px-4 py-2.5 font-medium text-gray-500">Case</th>
+                  <th className="text-left px-4 py-2.5 font-medium text-gray-500">Status</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Completed</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {families.map((f) => (
+                {families
+                  .filter((f) => filter === "all" || f.lifecycle.status === filter)
+                  .map((f) => (
                   <Fragment key={f.profileId}>
                   <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(f.profileId)}>
                     <td className="px-4 py-3">
@@ -350,18 +416,7 @@ export default function BenefitsFamiliesView() {
                           : "direct"}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        <SignalChip active={f.signals.emailOpened} label="Opened" />
-                        <SignalChip active={f.signals.emailClicked} label="Clicked" />
-                        <SignalChip active={f.signals.resultsViewed} label="Viewed" />
-                        <SignalChip active={f.signals.enriched} label="Enriched" />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <CascadeChip cascade={f.cascade} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <CaseChip caseStatus={f.caseStatus} caseInfo={f.caseInfo} />
+                      <LifecycleChip lifecycle={f.lifecycle} noteCount={f.caseInfo.noteCount} />
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                       {new Date(f.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -369,15 +424,17 @@ export default function BenefitsFamiliesView() {
                   </tr>
                   {expanded === f.profileId && (
                     <tr className="bg-gray-50/60">
-                      <td colSpan={7} className="px-6 py-4">
+                      <td colSpan={5} className="px-6 py-4">
                         <CasePanel
                           timeline={timelines[f.profileId]}
                           caseInfo={f.caseInfo}
+                          signals={f.signals}
                           noteText={noteText}
                           setNoteText={setNoteText}
                           busy={caseBusy}
                           error={caseError}
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
+                          onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
                         />
                       </td>
                     </tr>
@@ -437,72 +494,36 @@ function BreakdownRow({ label, count, total }: { label: React.ReactNode; count: 
   );
 }
 
-const CASCADE_CHIP: Record<
-  FamilyRow["cascade"]["status"],
-  { label: string; className: string }
-> = {
-  matched: { label: "Matched", className: "bg-gray-50 text-gray-400" },
-  first_step_sent: { label: "First step sent", className: "bg-blue-50 text-blue-700" },
-  moving: { label: "Moving", className: "bg-emerald-50 text-emerald-700" },
-  wants_help: { label: "Wants help", className: "bg-amber-100 text-amber-800" },
-  wrong_program: { label: "Wrong program", className: "bg-rose-50 text-rose-700" },
+const LIFECYCLE_CHIP: Record<LifecycleStatus, { label: string; className: string }> = {
+  needs_help: { label: "Needs help", className: "bg-amber-100 text-amber-800" },
+  stalled: { label: "Stalled", className: "bg-rose-50 text-rose-700" },
+  acting: { label: "Acting", className: "bg-emerald-50 text-emerald-700" },
+  returned: { label: "Returned", className: "bg-blue-50 text-blue-700" },
+  working: { label: "Working", className: "bg-indigo-50 text-indigo-700" },
+  resolved: { label: "Resolved", className: "bg-emerald-100 text-emerald-800" },
+  new: { label: "New", className: "bg-gray-900 text-white" },
+  in_cascade: { label: "In cascade", className: "bg-gray-100 text-gray-500" },
 };
 
-const REASON_LABELS: Record<string, string> = {
-  already_enrolled: "already enrolled",
-  did_not_qualify: "didn't qualify",
-  too_complicated: "too complicated",
-  other: "something else",
-};
-
-function CascadeChip({ cascade }: { cascade: FamilyRow["cascade"] }) {
-  const chip = CASCADE_CHIP[cascade.status] ?? CASCADE_CHIP.matched;
-  const detail =
-    cascade.status === "first_step_sent" && cascade.firstStepProgram
-      ? cascade.firstStepProgram
-      : cascade.status === "wrong_program" && cascade.outcomeReason
-        ? REASON_LABELS[cascade.outcomeReason] ?? cascade.outcomeReason
-        : null;
+function LifecycleChip({
+  lifecycle,
+  noteCount,
+}: {
+  lifecycle: FamilyRow["lifecycle"];
+  noteCount: number;
+}) {
+  const chip = LIFECYCLE_CHIP[lifecycle.status] ?? LIFECYCLE_CHIP.in_cascade;
   return (
     <div>
-      <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${chip.className}`}>
+      <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap ${chip.className}`}>
         {chip.label}
       </span>
-      {detail && <p className="text-[11px] text-gray-400 mt-1 max-w-[140px] truncate">{detail}</p>}
-    </div>
-  );
-}
-
-const CASE_CHIP: Record<string, { label: string; className: string }> = {
-  wants_help: { label: "Wants help", className: "bg-amber-100 text-amber-800" },
-  silent_after_checkin: { label: "Silent after check-in", className: "bg-rose-50 text-rose-700" },
-  action_stall: { label: "Stalled at the call", className: "bg-orange-50 text-orange-700" },
-  attention_stall: { label: "Never saw plan", className: "bg-gray-100 text-gray-500" },
-};
-
-function CaseChip({
-  caseStatus,
-  caseInfo,
-}: {
-  caseStatus: FamilyRow["caseStatus"];
-  caseInfo: FamilyRow["caseInfo"];
-}) {
-  if (caseInfo.resolvedAt) {
-    return <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 whitespace-nowrap">Resolved</span>;
-  }
-  if (!caseStatus) {
-    return caseInfo.contactedAt ? (
-      <span className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 whitespace-nowrap">Working</span>
-    ) : (
-      <span className="text-[11px] text-gray-300">—</span>
-    );
-  }
-  const chip = CASE_CHIP[caseStatus];
-  return (
-    <div>
-      <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${chip.className}`}>{chip.label}</span>
-      {caseInfo.noteCount > 0 && (
-        <p className="text-[11px] text-gray-400 mt-1">{caseInfo.noteCount} note{caseInfo.noteCount === 1 ? "" : "s"}</p>
+      {(lifecycle.detail || noteCount > 0) && (
+        <p className="text-[11px] text-gray-400 mt-1 max-w-[160px]">
+          {[lifecycle.detail, noteCount > 0 ? `${noteCount} note${noteCount === 1 ? "" : "s"}` : null]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
       )}
     </div>
   );
@@ -526,23 +547,35 @@ const TIMELINE_ICON: Record<string, string> = {
 function CasePanel({
   timeline,
   caseInfo,
+  signals,
   noteText,
   setNoteText,
   busy,
   error,
   onAction,
+  onDelete,
 }: {
   timeline: TimelineEvent[] | "loading" | "error" | undefined;
   caseInfo: FamilyRow["caseInfo"];
+  signals: FamilyRow["signals"];
   noteText: string;
   setNoteText: (v: string) => void;
   busy: boolean;
   error: string | null;
   onAction: (action: string, text?: string) => void;
+  onDelete: () => void;
 }) {
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 mb-2">Case timeline</p>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Case timeline</p>
+        <div className="flex gap-1">
+          <SignalChip active={signals.emailOpened} label="Opened" />
+          <SignalChip active={signals.emailClicked} label="Clicked" />
+          <SignalChip active={signals.resultsViewed} label="Viewed" />
+          <SignalChip active={signals.enriched} label="Enriched" />
+        </div>
+      </div>
       {timeline === "loading" || timeline === undefined ? (
         <p className="text-sm text-gray-400 py-2">Loading timeline…</p>
       ) : timeline === "error" ? (
@@ -596,6 +629,13 @@ function CasePanel({
           </>
         )}
         {error && <span className="text-xs text-red-600">{error}</span>}
+        <button
+          onClick={onDelete}
+          disabled={busy}
+          className="ml-auto rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-40"
+        >
+          Delete family
+        </button>
       </div>
     </div>
   );

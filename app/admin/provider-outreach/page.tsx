@@ -2523,8 +2523,13 @@ export default function ProviderOutreachPage() {
   };
 
   // Fetch sequence preview from launch-sequence API
+  // Preview is limited to first 100 providers (API limit) - launch handles full batching
   const fetchSequencePreview = useCallback(async (providerIds: string[]) => {
     if (providerIds.length === 0) return;
+
+    // Limit preview to first 100 providers to avoid API limit
+    // The launch function handles batching for the full list
+    const previewIds = providerIds.slice(0, 100);
 
     setSequencePreviewLoading(true);
     setSequencePreviewError(null);
@@ -2532,7 +2537,7 @@ export default function ProviderOutreachPage() {
       const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_ids: providerIds, dry_run: true }),
+        body: JSON.stringify({ provider_ids: previewIds, dry_run: true }),
       });
 
       if (res.ok) {
@@ -4603,6 +4608,11 @@ export default function ProviderOutreachPage() {
                       </span>
                     )}
                   </div>
+                  {sequenceConfirmProviders.length > 100 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Preview shows first 100 of {sequenceConfirmProviders.length} providers. All will be processed in batches when launched.
+                    </p>
+                  )}
                 </div>
               )}
 

@@ -62,6 +62,11 @@ function BenefitsOutcomeInner() {
   // wrong_program reason flow
   const [reasonSent, setReasonSent] = useState<string | null>(null);
 
+  // wants_help phone capture
+  const [phoneVal, setPhoneVal] = useState("");
+  const [phoneStatus, setPhoneStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const phoneValid = /^\d{10}$/.test(phoneVal.replace(/\D/g, "").replace(/^1/, "")) || /^1\d{10}$/.test(phoneVal.replace(/\D/g, ""));
+
   const record = useCallback(async () => {
     if (!tok) {
       setStatus("error");
@@ -113,6 +118,21 @@ function BenefitsOutcomeInner() {
       setAaaStatus("error");
     }
   }, [tok, zip]);
+
+  const submitPhone = useCallback(async () => {
+    if (!phoneValid) return;
+    setPhoneStatus("sending");
+    try {
+      const res = await fetch("/api/families/benefits-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tok, phone: phoneVal.trim() }),
+      });
+      setPhoneStatus(res.ok ? "done" : "error");
+    } catch {
+      setPhoneStatus("error");
+    }
+  }, [tok, phoneVal, phoneValid]);
 
   const sendReason = useCallback(
     async (reason: string) => {
@@ -250,6 +270,50 @@ function BenefitsOutcomeInner() {
                     {aaaStatus === "loading" ? "Finding…" : "Find it"}
                   </button>
                 </div>
+              )}
+            </div>
+
+            <div className="rounded-xl border border-gray-200 p-5 mb-4">
+              {phoneStatus === "done" ? (
+                <p className="text-sm text-gray-600 text-center py-1">
+                  Done. We just texted you your results link, and your next steps will come by
+                  text too.
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-gray-900 mb-1">Prefer texts?</p>
+                  <p className="text-sm text-gray-500 mb-3">
+                    We&apos;ll text you your results link now, and your next steps as they&apos;re
+                    ready.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      value={phoneVal}
+                      onChange={(e) => setPhoneVal(e.target.value)}
+                      placeholder="Your mobile number"
+                      className="flex-1 min-w-0 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                    <button
+                      onClick={submitPhone}
+                      disabled={!phoneValid || phoneStatus === "sending"}
+                      className="px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl disabled:opacity-40 hover:bg-gray-700 transition-colors shrink-0"
+                    >
+                      {phoneStatus === "sending" ? "Sending…" : "Text me"}
+                    </button>
+                  </div>
+                  {phoneStatus === "error" && (
+                    <p className="text-xs text-red-600 mt-2">
+                      That didn&apos;t go through. Check the number and try again.
+                    </p>
+                  )}
+                  <p className="text-[11px] leading-relaxed text-gray-400 mt-2.5">
+                    By adding your number you agree to receive care-related texts from Olera.
+                    Reply STOP anytime.
+                  </p>
+                </>
               )}
             </div>
 

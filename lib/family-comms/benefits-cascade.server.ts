@@ -72,6 +72,59 @@ export function cascadeStatus(cascade: BenefitsCascadeMeta): CascadeStatus {
   return "matched";
 }
 
+// ── Case management (the caseload view, TJ 2026-07-28) ──────────────────────
+
+/** Admin case actions stored on the profile: metadata.benefits_case. */
+export interface BenefitsCaseMeta {
+  notes?: { at: string; by: string; text: string }[];
+  contacted_at?: string;
+  resolved_at?: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function readBenefitsCase(profileMeta: Record<string, any> | null | undefined): BenefitsCaseMeta {
+  const raw = profileMeta?.benefits_case;
+  return raw && typeof raw === "object" ? (raw as BenefitsCaseMeta) : {};
+}
+
+/** Stuck states, most severe first. The cascade is the automated first
+ *  responder; after two ignored touches the next touch is a HUMAN — these
+ *  states are the routing. Resolved cases and moving families never float;
+ *  "contacted" suppresses the float for 7 days (the case is being worked). */
+export type CaseStatus =
+  | "wants_help"
+  | "silent_after_checkin"
+  | "action_stall"
+  | "attention_stall";
+
+const CASE_DAY = 24 * 60 * 60 * 1000;
+
+export function caseStatus(
+  cascade: BenefitsCascadeMeta,
+  caseMeta: BenefitsCaseMeta,
+  lastViewedAt: string | null,
+  now: number,
+): CaseStatus | null {
+  if (caseMeta.resolved_at) return null;
+  if (cascade.outcome === "moving" || cascade.first_step_done_at) return null;
+  if (caseMeta.contacted_at && now - new Date(caseMeta.contacted_at).getTime() < 7 * CASE_DAY) {
+    return null;
+  }
+  if (cascade.outcome === "wants_help") return "wants_help";
+  if (cascade.outcome === "wrong_program") return null;
+
+  if (cascade.check_sent_at && now - new Date(cascade.check_sent_at).getTime() >= 4 * CASE_DAY) {
+    return "silent_after_checkin";
+  }
+  if (cascade.first_step_sent_at) {
+    const sentAt = new Date(cascade.first_step_sent_at).getTime();
+    const viewedSinceSend = !!lastViewedAt && new Date(lastViewedAt).getTime() >= sentAt;
+    if (viewedSinceSend && now - sentAt >= 4 * CASE_DAY) return "action_stall";
+    if (!viewedSinceSend && now - sentAt >= 3 * CASE_DAY) return "attention_stall";
+  }
+  return null;
+}
+
 // ── First-step program selection ────────────────────────────────────────────
 
 export interface FirstStepPick {

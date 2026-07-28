@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { readBenefitsCascade, cascadeStatus, type CascadeStatus } from "@/lib/family-comms/benefits-cascade.server";
+import {
+  readBenefitsCascade,
+  cascadeStatus,
+  readBenefitsCase,
+  caseStatus,
+  type CascadeStatus,
+  type CaseStatus,
+} from "@/lib/family-comms/benefits-cascade.server";
 
 /**
  * GET /api/admin/benefits/families?days=30
@@ -54,6 +61,14 @@ interface FamilyRow {
     firstStepSentAt: string | null;
     outcomeAt: string | null;
     outcomeReason: string | null;
+  };
+  /** Stuck-state routing (null = healthy / being worked / resolved) + the
+   *  admin case record. Two ignored automated touches → a human's queue. */
+  caseStatus: CaseStatus | null;
+  caseInfo: {
+    noteCount: number;
+    contactedAt: string | null;
+    resolvedAt: string | null;
   };
 }
 
@@ -121,6 +136,7 @@ export async function GET(request: NextRequest) {
       { display_name: string | null; email: string | null; state: string | null; metadata: Record<string, unknown> }
     >();
     const viewedProfiles = new Set<string>();
+    const viewedAtByProfile = new Map<string, string>();
     for (const ids of chunk(profileIds, 100)) {
       const [{ data: profs }, { data: tokens }] = await Promise.all([
         db.from("business_profiles").select("id, display_name, email, state, metadata").in("id", ids),
@@ -128,7 +144,11 @@ export async function GET(request: NextRequest) {
       ]);
       for (const p of profs ?? []) profiles.set(p.id, p);
       for (const t of tokens ?? []) {
-        if (t.last_viewed_at) viewedProfiles.add(t.profile_id);
+        if (t.last_viewed_at) {
+          viewedProfiles.add(t.profile_id);
+          const prev = viewedAtByProfile.get(t.profile_id);
+          if (!prev || t.last_viewed_at > prev) viewedAtByProfile.set(t.profile_id, t.last_viewed_at);
+        }
       }
     }
 
@@ -155,6 +175,7 @@ export async function GET(request: NextRequest) {
     let engaged = 0;
     let enrichedCount = 0;
     let wantsHelp = 0;
+    const stuckCounts: Record<string, number> = {};
 
     for (const [profileId, ev] of latestByProfile) {
       const meta = ev.metadata as Record<string, unknown>;
@@ -197,6 +218,9 @@ export async function GET(request: NextRequest) {
       const cascadeMeta = readBenefitsCascade(pMeta);
       const status = cascadeStatus(cascadeMeta);
       if (status === "wants_help") wantsHelp++;
+      const caseMeta = readBenefitsCase(pMeta);
+      const cs = caseStatus(cascadeMeta, caseMeta, viewedAtByProfile.get(profileId) ?? null, Date.now());
+      if (cs) stuckCounts[cs] = (stuckCounts[cs] ?? 0) + 1;
 
       families.push({
         profileId,
@@ -219,15 +243,27 @@ export async function GET(request: NextRequest) {
           outcomeAt: cascadeMeta.outcome_at ?? null,
           outcomeReason: cascadeMeta.outcome_reason ?? null,
         },
+        caseStatus: cs,
+        caseInfo: {
+          noteCount: caseMeta.notes?.length ?? 0,
+          contactedAt: caseMeta.contacted_at ?? null,
+          resolvedAt: caseMeta.resolved_at ?? null,
+        },
       });
     }
 
-    // Queue order: "wants_help" floats to the top (the cascade escalation TJ
-    // works personally), everyone else stays newest-first.
+    // Queue order: the caseload floats by severity (wants_help > silent after
+    // check-in > action stall > attention stall), everyone else newest-first.
+    const SEVERITY: Record<string, number> = {
+      wants_help: 0,
+      silent_after_checkin: 1,
+      action_stall: 2,
+      attention_stall: 3,
+    };
     families.sort((a, b) => {
-      const aHelp = a.cascade.status === "wants_help" ? 0 : 1;
-      const bHelp = b.cascade.status === "wants_help" ? 0 : 1;
-      if (aHelp !== bHelp) return aHelp - bHelp;
+      const ar = a.caseStatus ? SEVERITY[a.caseStatus] : 9;
+      const br = b.caseStatus ? SEVERITY[b.caseStatus] : 9;
+      if (ar !== br) return ar - br;
       return b.completedAt.localeCompare(a.completedAt);
     });
 
@@ -240,6 +276,7 @@ export async function GET(request: NextRequest) {
         engaged,
         enriched: enrichedCount,
         wantsHelp,
+        stuck: stuckCounts,
       },
       breakdown: {
         topSources: [...bySource.values()].sort((a, b) => b.count - a.count).slice(0, 6),

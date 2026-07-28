@@ -11,6 +11,13 @@ import {
   readBenefitsCascade,
   type FirstStepPick,
 } from "@/lib/family-comms/benefits-cascade.server";
+import { familyBenefitsFacts } from "@/lib/family-comms/benefits-guidance.server";
+import {
+  hasEligibilityFacts,
+  incomeLimitFromTable,
+  loadSbfEligibility,
+  rankProgramsForFamily,
+} from "@/lib/benefits/eligibility.server";
 import { getStateSlug } from "@/lib/program-data";
 
 /**
@@ -68,6 +75,40 @@ export default async function BenefitsResultsPage({
   const relationship =
     (meta.relationship_to_recipient as string) || (meta.relationship as string) || null;
 
+  // ── Phase 3: real facts re-rank the matches ──────────────────────────
+  // When the family has given eligibility facts (age band / Medicaid /
+  // income band, from the enrichment round or this page's gap chips), the
+  // scored engine's rules reorder the list and demote ruled-out programs
+  // into a labeled group. No facts → the care-need order stands untouched.
+  const facts = familyBenefitsFacts(bundle.profile);
+  let matches = bundle.matchedPrograms;
+  let ruledOut: { program: (typeof matches)[number]; reason: string }[] = [];
+  if (hasEligibilityFacts(facts)) {
+    try {
+      const sbfRows = await loadSbfEligibility(db, bundle.token.state_code);
+      const ranked = rankProgramsForFamily(
+        bundle.matchedPrograms,
+        (p) => ({
+          name: p.name,
+          ageRequirement: p.structuredEligibility?.ageRequirement,
+          eligibilitySummary: p.structuredEligibility?.summary,
+          incomeLimitSingle: incomeLimitFromTable(p.structuredEligibility?.incomeTable),
+        }),
+        sbfRows,
+        facts,
+        bundle.stateName,
+      );
+      matches = ranked.kept.map((r) => r.item);
+      ruledOut = ranked.ruledOut.map((r) => ({
+        program: r.item,
+        reason: r.verdict.reason || "Not a match for your situation",
+      }));
+    } catch (err) {
+      // Ranking is an enhancement — the unranked list is never worth a 500.
+      console.error("[/m] eligibility re-rank failed:", err);
+    }
+  }
+
   // First-step selection reuses the cascade's exact logic (entry-source page →
   // simplest saved match → state start-here list). Needs the account id, which
   // the bundle's profile select doesn't carry — one small extra read.
@@ -106,6 +147,7 @@ export default async function BenefitsResultsPage({
       firstStep = await selectFirstStepProgram(db, {
         accountId: profileRow.account_id,
         stateAbbrev: bundle.token.state_code,
+        facts,
       });
       // "Up next" for the living journey — computed eagerly because the client
       // flips to done optimistically and needs it without a reload.
@@ -114,6 +156,7 @@ export default async function BenefitsResultsPage({
           accountId: profileRow.account_id,
           stateAbbrev: bundle.token.state_code,
           exclude: [firstStep.programId],
+          facts,
         });
       }
     } catch (err) {
@@ -143,7 +186,14 @@ export default async function BenefitsResultsPage({
       relationship={relationship}
       timeline={(meta.timeline as string) || null}
       payments={Array.isArray(meta.payment_methods) ? (meta.payment_methods as string[]) : null}
-      matches={bundle.matchedPrograms}
+      matches={matches}
+      ruledOut={ruledOut}
+      profileId={bundle.profile.id}
+      knownFacts={{
+        age: facts.age,
+        medicaidStatus: facts.medicaidStatus,
+        incomeBand: facts.incomeBand,
+      }}
       firstStep={firstStep}
       callScript={firstStep ? buildCallScript(firstStep.shortName, relationship) : null}
       cascade={readBenefitsCascade(meta)}

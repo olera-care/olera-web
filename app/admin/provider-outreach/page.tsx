@@ -2340,6 +2340,12 @@ export default function ProviderOutreachPage() {
     period_days: number;
   } | null>(null);
   const [emailStatsLoading, setEmailStatsLoading] = useState(false);
+  const [emailStatsError, setEmailStatsError] = useState(false);
+
+  // Email template preview
+  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
@@ -2850,20 +2856,49 @@ export default function ProviderOutreachPage() {
 
     const fetchEmailStats = async () => {
       setEmailStatsLoading(true);
+      setEmailStatsError(false);
       try {
         const res = await fetch("/api/admin/provider-outreach/email-stats?days=30");
         if (res.ok) {
           const data = await res.json();
           setEmailStats(data);
+        } else {
+          setEmailStatsError(true);
         }
       } catch (err) {
         console.error("Failed to fetch email stats:", err);
+        setEmailStatsError(true);
       } finally {
         setEmailStatsLoading(false);
       }
     };
     fetchEmailStats();
   }, [emailStatsExpanded, emailStats]);
+
+  // Effect: fetch email template preview when a template is selected
+  useEffect(() => {
+    if (!previewTemplate) {
+      setPreviewHtml(null);
+      return;
+    }
+
+    const fetchPreview = async () => {
+      setPreviewLoading(true);
+      setPreviewHtml(null); // Clear old preview while loading new one
+      try {
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPreviewHtml(data.html);
+        }
+      } catch (err) {
+        console.error("Failed to fetch template preview:", err);
+      } finally {
+        setPreviewLoading(false);
+      }
+    };
+    fetchPreview();
+  }, [previewTemplate]);
 
   // Effect: fetch provider counts when Add State modal opens
   useEffect(() => {
@@ -3637,9 +3672,24 @@ export default function ProviderOutreachPage() {
         </button>
 
         {emailStatsExpanded && (
-          <div className="mt-4">
+          <div className="mt-4 space-y-6">
+            {/* Stats Table */}
             {emailStatsLoading ? (
               <div className="text-sm text-gray-500">Loading email stats...</div>
+            ) : emailStatsError ? (
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-red-600">Failed to load email stats</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailStats(null);
+                    setEmailStatsError(false);
+                  }}
+                  className="text-teal-700 hover:underline"
+                >
+                  Retry
+                </button>
+              </div>
             ) : emailStats ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
@@ -3678,6 +3728,52 @@ export default function ProviderOutreachPage() {
             ) : (
               <div className="text-sm text-gray-500">No email data available</div>
             )}
+
+            {/* Template Preview */}
+            <div className="border-t border-gray-200 pt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm font-medium text-gray-700">Preview template:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { key: "intro", label: "Day 0" },
+                    { key: "followup", label: "Day 3" },
+                    { key: "demand_loss", label: "Day 7" },
+                    { key: "final", label: "Day 14" },
+                    { key: "nudge", label: "Nudge" },
+                  ].map((t) => (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() => setPreviewTemplate(previewTemplate === t.key ? null : t.key)}
+                      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                        previewTemplate === t.key
+                          ? "bg-gray-900 text-white"
+                          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {previewTemplate && (
+                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                  {previewLoading ? (
+                    <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview...</div>
+                  ) : previewHtml ? (
+                    <iframe
+                      srcDoc={previewHtml}
+                      title="Email preview"
+                      className="w-full h-[480px] bg-white"
+                      sandbox=""
+                    />
+                  ) : (
+                    <div className="px-4 py-8 text-center text-sm text-gray-400">Could not load preview</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

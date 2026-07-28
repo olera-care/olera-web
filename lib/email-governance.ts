@@ -104,6 +104,10 @@ export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   "orientation_intro",
   "family_provider_silent",
   "family_never_engaged",
+  // Benefits Cascade rungs (coordinator B1/B2): the ten-minute first step and
+  // the check-in that's an offer — governed so the per-family cap applies
+  "benefits_first_step",
+  "benefits_check_in",
   "day_10_awaiting",
   "family_reach_out_nudge",
   "family_nudge",

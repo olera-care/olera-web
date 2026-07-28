@@ -41,6 +41,36 @@ export function benefitsResultsSms(p: { matchCount: number; familyPhrase: string
     : `Olera: Your care benefit search is saved. We'll keep looking. View: ${p.url} Reply STOP to opt out.`;
 }
 
+/** Benefits Cascade B1 — the ten-minute first step, texted. Mirrors the
+ *  email; sent only with stored sms_consent. Direct URLs (no magic links —
+ *  length budget). */
+export function benefitsFirstStepSms(p: {
+  programShortName: string;
+  phone: string;
+  topDocs: string[];
+  url: string;
+}): string {
+  const docs = p.topDocs
+    .slice(0, 2)
+    .map((d) => d.toLowerCase().replace(/^(a|an|the)\s+/, ""))
+    .join(" + ");
+  const docLine = docs ? ` Have nearby: ${docs}.` : "";
+  return `Olera: Your first step for ${p.programShortName}: call ${p.phone}.${docLine} Guide: ${p.url} Reply STOP to opt out.`;
+}
+
+/** Benefits Cascade B2 — the check-in, texted. Links to the family's living
+ *  plan page (/m/{token}) where taps are captured. `done` = the family
+ *  already marked the call made, so congratulate instead of asking. */
+export function benefitsCheckInSms(p: {
+  programShortName: string;
+  url: string;
+  done: boolean;
+}): string {
+  return p.done
+    ? `Olera: You started ${p.programShortName}. Your next step is ready on your plan: ${p.url} Reply STOP to opt out.`
+    : `Olera: How's ${p.programShortName} going? Tell us with one tap and see your next step: ${p.url} Reply STOP to opt out.`;
+}
+
 /** Provider alert: a MedJobs student applied. */
 export function medjobsApplicationSms(p: { studentName: string; university?: string | null; url: string }): string {
   return `New MedJobs application from ${p.studentName} (${p.university || "student"}). View: ${p.url}`;

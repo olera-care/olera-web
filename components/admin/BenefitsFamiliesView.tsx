@@ -51,6 +51,13 @@ interface FamilyRow {
     resultsViewed: boolean;
     enriched: boolean;
   };
+  cascade: {
+    status: "matched" | "first_step_sent" | "moving" | "wants_help" | "wrong_program";
+    firstStepProgram: string | null;
+    firstStepSentAt: string | null;
+    outcomeAt: string | null;
+    outcomeReason: string | null;
+  };
 }
 
 interface FamiliesData {
@@ -61,6 +68,7 @@ interface FamiliesData {
     prevCompletions: number;
     engaged: number;
     enriched: number;
+    wantsHelp: number;
   };
   breakdown: {
     topSources: { label: string; path: string | null; count: number }[];
@@ -141,7 +149,7 @@ export default function BenefitsFamiliesView() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <StatCard
           label="Completions"
           value={summary.completions}
@@ -161,6 +169,12 @@ export default function BenefitsFamiliesView() {
           label="Enriched"
           value={`${enrichedPct}%`}
           detail={`${summary.enriched} of ${summary.uniqueFamilies} answered follow-up questions`}
+        />
+        <StatCard
+          label="Wants help"
+          value={summary.wantsHelp ?? 0}
+          detail="asked for a person on the check-in; floated to the top below"
+          detailTone={summary.wantsHelp > 0 ? "down" : "flat"}
         />
       </div>
 
@@ -214,6 +228,7 @@ export default function BenefitsFamiliesView() {
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Need</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Came from</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Signals</th>
+                  <th className="text-left px-4 py-2.5 font-medium text-gray-500">Cascade</th>
                   <th className="text-left px-4 py-2.5 font-medium text-gray-500">Completed</th>
                 </tr>
               </thead>
@@ -259,6 +274,9 @@ export default function BenefitsFamiliesView() {
                         <SignalChip active={f.signals.resultsViewed} label="Viewed" />
                         <SignalChip active={f.signals.enriched} label="Enriched" />
                       </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <CascadeChip cascade={f.cascade} />
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                       {new Date(f.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -314,6 +332,42 @@ function BreakdownRow({ label, count, total }: { label: React.ReactNode; count: 
         <div className="h-full bg-gray-300 rounded-full" style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
+    </div>
+  );
+}
+
+const CASCADE_CHIP: Record<
+  FamilyRow["cascade"]["status"],
+  { label: string; className: string }
+> = {
+  matched: { label: "Matched", className: "bg-gray-50 text-gray-400" },
+  first_step_sent: { label: "First step sent", className: "bg-blue-50 text-blue-700" },
+  moving: { label: "Moving", className: "bg-emerald-50 text-emerald-700" },
+  wants_help: { label: "Wants help", className: "bg-amber-100 text-amber-800" },
+  wrong_program: { label: "Wrong program", className: "bg-rose-50 text-rose-700" },
+};
+
+const REASON_LABELS: Record<string, string> = {
+  already_enrolled: "already enrolled",
+  did_not_qualify: "didn't qualify",
+  too_complicated: "too complicated",
+  other: "something else",
+};
+
+function CascadeChip({ cascade }: { cascade: FamilyRow["cascade"] }) {
+  const chip = CASCADE_CHIP[cascade.status] ?? CASCADE_CHIP.matched;
+  const detail =
+    cascade.status === "first_step_sent" && cascade.firstStepProgram
+      ? cascade.firstStepProgram
+      : cascade.status === "wrong_program" && cascade.outcomeReason
+        ? REASON_LABELS[cascade.outcomeReason] ?? cascade.outcomeReason
+        : null;
+  return (
+    <div>
+      <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${chip.className}`}>
+        {chip.label}
+      </span>
+      {detail && <p className="text-[11px] text-gray-400 mt-1 max-w-[140px] truncate">{detail}</p>}
     </div>
   );
 }

@@ -45,11 +45,16 @@ export default function ConditionalFooter() {
     );
   }
 
-  // Hub / account pages for non-providers — simple footer (legal bar only)
+  // Hub / account pages for non-providers — simple footer (legal bar only).
+  // /m/{token} (benefits results) and /benefits-outcome (check-in landing) are
+  // noindex personal pages: the SEO city/state grid does nothing for search
+  // there and is pure noise for a family mid-task (TJ, 2026-07-28).
   if (
     pathname.startsWith("/portal") ||
     pathname.startsWith("/provider") ||
-    pathname.startsWith("/account")
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/m/") ||
+    pathname.startsWith("/benefits-outcome")
   ) {
     return <SimpleFooter />;
   }

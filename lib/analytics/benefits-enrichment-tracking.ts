@@ -1,11 +1,12 @@
 import { getOrCreateSessionId } from "./session";
 
-export type BenefitsEnrichmentStep = 1 | 2 | 3;
+export type BenefitsEnrichmentStep = 1 | 2 | 3 | 4;
 
 export const BENEFITS_ENRICHMENT_STEP_NAMES: Record<BenefitsEnrichmentStep, string> = {
   1: "recipient",    // Who needs care?
   2: "timeline",     // How soon?
   3: "payment",      // How will you pay?
+  4: "phone",        // Want this by text?
 };
 
 interface BenefitsEnrichmentEventParams {
@@ -58,7 +59,7 @@ export function trackBenefitsEnrichmentStepSkipped(
 }
 
 /**
- * Track when user completes all 3 benefits enrichment steps (answered or skipped)
+ * Track when user completes all benefits enrichment steps (answered or skipped)
  */
 export function trackBenefitsEnrichmentCompleted(
   params: BenefitsEnrichmentEventParams,

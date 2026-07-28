@@ -71,6 +71,7 @@ export default async function BenefitsResultsPage({
   // simplest saved match → state start-here list). Needs the account id, which
   // the bundle's profile select doesn't carry — one small extra read.
   let firstStep: FirstStepPick | null = null;
+  let nextStep: FirstStepPick | null = null;
   const { data: profileRow } = await db
     .from("business_profiles")
     .select("account_id")
@@ -82,6 +83,15 @@ export default async function BenefitsResultsPage({
         accountId: profileRow.account_id,
         stateAbbrev: bundle.token.state_code,
       });
+      // "Up next" for the living journey — computed eagerly because the client
+      // flips to done optimistically and needs it without a reload.
+      if (firstStep) {
+        nextStep = await selectFirstStepProgram(db, {
+          accountId: profileRow.account_id,
+          stateAbbrev: bundle.token.state_code,
+          exclude: [firstStep.programId],
+        });
+      }
     } catch (err) {
       // The hero degrades to the top match — never 500 the family's page
       // over a selection failure.
@@ -99,6 +109,8 @@ export default async function BenefitsResultsPage({
 
   return (
     <BenefitsHome
+      token={token}
+      nextStep={nextStep}
       firstName={firstName}
       stateName={bundle.stateName}
       stateSlug={stateSlug}

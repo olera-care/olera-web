@@ -124,7 +124,16 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     cascade,
   } = props;
 
-  const careLabel = CARE_NEED_LABEL[careNeed] || null;
+  // Family-language chips, not taxonomy: "Paying for care" is our enum label
+  // and confused real families (TJ QA, 2026-07-28). Play back their situation
+  // in their words.
+  const CARE_NEED_CHIP: Record<string, string> = {
+    payingForCare: "Help paying for care",
+    stayingAtHome: "Help staying at home",
+    memoryHealth: "Memory & health support",
+    companionship: "Companionship & support",
+  };
+  const careLabel = CARE_NEED_CHIP[careNeed] || CARE_NEED_LABEL[careNeed] || null;
   const chips = [
     stateName,
     careLabel ? careLabel.charAt(0).toUpperCase() + careLabel.slice(1) : null,

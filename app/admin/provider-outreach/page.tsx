@@ -2403,6 +2403,11 @@ export default function ProviderOutreachPage() {
       valid: number;
       invalid: number;
     };
+    sender?: {
+      engine: "smartlead" | "resend";
+      from: string;
+      senders: string[];
+    };
   } | null>(null);
   const [sequencePreviewLoading, setSequencePreviewLoading] = useState(false);
   const [sequencePreviewError, setSequencePreviewError] = useState<string | null>(null);
@@ -4607,6 +4612,15 @@ export default function ProviderOutreachPage() {
                         <span className="font-medium">{sequencePreviewData.summary.invalid}</span> missing email
                       </span>
                     )}
+                    {sequencePreviewData.sender && (
+                      <span className={`ml-auto px-2 py-0.5 rounded text-xs font-medium ${
+                        sequencePreviewData.sender.engine === "smartlead"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}>
+                        via {sequencePreviewData.sender.engine === "smartlead" ? "SmartLead" : "Resend"}
+                      </span>
+                    )}
                   </div>
                   {sequenceConfirmProviders.length > 100 && (
                     <p className="text-xs text-gray-500 mt-2">
@@ -4782,7 +4796,7 @@ export default function ProviderOutreachPage() {
                                 </div>
                                 <div className="text-xs text-gray-500 space-y-0.5">
                                   <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
-                                  <p><span className="font-medium text-gray-600">From:</span> Dr. Logan DuBose · Olera &lt;noreply@oleracare.com&gt;</p>
+                                  <p><span className="font-medium text-gray-600">From:</span> {sequencePreviewData?.sender?.from ?? "Dr. Logan DuBose · Olera <noreply@oleracare.com>"}</p>
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>

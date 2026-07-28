@@ -10,6 +10,7 @@ import {
   formatGapList,
   getCityViewsBatch,
   PROVIDER_OUTREACH_CADENCE,
+  PROVIDER_OUTREACH_FROM,
 } from "@/lib/provider-outreach";
 import {
   type ProviderBridgeRow,
@@ -715,6 +716,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Determine which engine will be used and get sender info
+    const useSmartLead = isSmartleadConfigured();
+    const smartleadSenders = process.env.PROVIDER_OUTREACH_SMARTLEAD_SENDERS ?? "";
+    const senderInfo = useSmartLead && smartleadSenders.trim()
+      ? {
+          engine: "smartlead" as const,
+          from: `Dr. Logan DuBose <${smartleadSenders.split(",")[0].trim()}>`,
+          senders: smartleadSenders.split(",").map((s) => s.trim()).filter(Boolean),
+        }
+      : {
+          engine: "resend" as const,
+          from: PROVIDER_OUTREACH_FROM,
+          senders: [PROVIDER_OUTREACH_FROM],
+        };
+
     return NextResponse.json({
       dry_run: true,
       providers: previews,
@@ -733,6 +749,7 @@ export async function POST(request: NextRequest) {
         templateKey: step.templateKey,
         description: step.description,
       })),
+      sender: senderInfo,
     });
   } catch (error) {
     console.error("Error in launch-sequence:", error);

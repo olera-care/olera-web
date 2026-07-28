@@ -10,6 +10,7 @@ import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
 import { validateEmailStrict } from "@/lib/email-validation";
 import { generateBenefitsToken } from "@/lib/benefits-token";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 import { getStateSlug } from "@/lib/program-data";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
@@ -782,9 +783,7 @@ export async function POST(req: Request) {
           })
           .join("");
 
-        const matchesUrl = benefitsToken
-          ? `${siteUrl}/m/${benefitsToken}`
-          : `${siteUrl}/portal`;
+        const matchesPath = benefitsToken ? `/m/${benefitsToken}` : "/portal";
 
         // Subject — personalized when relationship known, falls back cleanly.
         const subject =
@@ -799,7 +798,14 @@ export async function POST(req: Request) {
           emailType,
           recipientType: "family",
         });
-        const trackedMatchesUrl = appendTrackingParams(matchesUrl, emailLogId);
+        // Signed-in arrival: route through the one-click auth link so the
+        // family lands on their plan authenticated (continuity into the
+        // portal), same pattern every coordinator email uses.
+        const trackedMatchesUrl = generateFamilyInboxUrl(
+          normalizedEmail,
+          appendTrackingParams(matchesPath, emailLogId),
+          siteUrl,
+        );
 
         // Hero copy adapts to whether we found matches.
         const heroLine =

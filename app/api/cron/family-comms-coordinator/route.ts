@@ -12,6 +12,8 @@ import {
   selectFirstStepProgram,
   buildCallScript,
 } from "@/lib/family-comms/benefits-cascade.server";
+import { sendSMS } from "@/lib/twilio";
+import { benefitsFirstStepSms, benefitsCheckInSms } from "@/lib/sms/templates";
 import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
@@ -36,6 +38,8 @@ import {
   benefitsFirstStepSubject,
   benefitsCheckInEmail,
   benefitsCheckInSubject,
+  benefitsCheckInDoneEmail,
+  benefitsCheckInDoneSubject,
   completionNudge1Email,
   completionNudge2Email,
   completionNudge3Email,
@@ -115,6 +119,7 @@ interface ProfileRow {
   display_name?: string | null;
   email?: string | null;
   phone?: string | null;
+  phone_validity?: string | null;
   slug?: string | null;
   city?: string | null;
   state?: string | null;
@@ -158,6 +163,9 @@ interface RungPlan {
   buildHtml: (emailLogId: string | null, authEmail: string) => string | Promise<string>;
   /** Stamps the existing per-rung dedup flag(s) after a successful send. */
   stamp: (sentAt: string) => Promise<void>;
+  /** Optional companion side effect after a successful send (e.g. the benefits
+   *  rungs' SMS mirror). Failures are logged, never fatal to the run. */
+  afterSend?: (sentAt: string) => Promise<void>;
 }
 
 function norm(rel: ProfileRow | ProfileRow[] | null | undefined): ProfileRow | undefined {
@@ -237,7 +245,7 @@ export async function GET(request: NextRequest) {
     //    connections drive rung 5. day-10 (rung 4) keys off provider-response age, not
     //    connection age, so we pull all pending/accepted inquiries (the rung filters).
     const familySel =
-      "id, display_name, email, phone, city, state, care_types, account_id, metadata, lat, lng, created_at, image_url, description";
+      "id, display_name, email, phone, phone_validity, city, state, care_types, account_id, metadata, lat, lng, created_at, image_url, description";
     const providerSel = "id, display_name, slug, city, state, care_types, metadata";
 
     const { data: inquiryRows, error: inqErr } = await db
@@ -451,6 +459,35 @@ export async function GET(request: NextRequest) {
       // emails (TJ, 2026-07-27). They rejoin rung 6 after resolution.
       const benefitsDoneAt = benefitsCompletedAt(familyMeta);
       const benefitsCascade = readBenefitsCascade(familyMeta);
+      // SMS mirror gate: stored number + explicit sms_consent + not opted out.
+      // Consent is REQUIRED (10DLC posture) — a phone alone never gets texts.
+      const smsEligible =
+        !!fp.phone && !!familyMeta.sms_consent && fp.phone_validity !== "opted_out";
+      const sendCascadeSms = async (
+        body: string,
+        stampKey: "first_step_sms_at" | "check_sms_at",
+      ) => {
+        if (!smsEligible || !fp.phone) return;
+        const r = await sendSMS({ to: fp.phone, body });
+        if (r.success) {
+          familyMeta.benefits_cascade = {
+            ...readBenefitsCascade(familyMeta),
+            [stampKey]: new Date().toISOString(),
+          };
+          await db
+            .from("business_profiles")
+            .update({ metadata: { ...familyMeta } })
+            .eq("id", fam.familyId);
+        } else {
+          console.error(`[family-comms-coordinator] cascade SMS failed:`, r.error);
+          if (r.error?.includes("21610")) {
+            await db
+              .from("business_profiles")
+              .update({ phone_validity: "opted_out" })
+              .eq("id", fam.familyId);
+          }
+        }
+      };
       const benefitsCascadeActive =
         !!benefitsDoneAt &&
         !benefitsCascade.outcome &&
@@ -974,6 +1011,17 @@ export async function GET(request: NextRequest) {
                     .update({ metadata: { ...familyMeta } })
                     .eq("id", fam.familyId);
                 },
+                afterSend: async () => {
+                  await sendCascadeSms(
+                    benefitsFirstStepSms({
+                      programShortName: pick.shortName,
+                      phone: pick.contact.phone,
+                      topDocs: pick.documents,
+                      url: `${siteUrl}${pick.programPath}`,
+                    }),
+                    "first_step_sms_at",
+                  );
+                },
               };
             }
           }
@@ -993,25 +1041,52 @@ export async function GET(request: NextRequest) {
           const sinceStep = now - new Date(benefitsCascade.first_step_sent_at).getTime();
           if (sinceStep >= 3 * DAY && sinceStep <= 14 * DAY) {
             const programShort = benefitsCascade.first_step_program_name || "your program";
+            // Retarget: the living-journey page saw the call happen — congratulate
+            // and point forward instead of asking how it's going.
+            const stepDone = !!benefitsCascade.first_step_done_at;
             return {
               rung: "benefits_check_in",
               emailType: "benefits_check_in",
-              subject: benefitsCheckInSubject(programShort),
-              metadata: { program_id: benefitsCascade.first_step_program_id || null },
+              subject: stepDone
+                ? benefitsCheckInDoneSubject(programShort)
+                : benefitsCheckInSubject(programShort),
+              metadata: {
+                program_id: benefitsCascade.first_step_program_id || null,
+                retargeted_done: stepDone || undefined,
+              },
               buildHtml: (eid) => {
                 const chip = (v: BenefitsOutcomeTokenValue) =>
                   `${siteUrl}${appendTrackingParams(
                     `/benefits-outcome?tok=${generateBenefitsOutcomeToken(fam.familyId, v, authEmailFinal)}`,
                     eid,
                   )}`;
-                return benefitsCheckInEmail({
+                const opts = {
                   familyName,
                   programShortName: programShort,
                   movingUrl: chip("moving"),
                   helpUrl: chip("wants_help"),
                   wrongUrl: chip("wrong_program"),
                   unsubscribeId: fam.familyId,
-                });
+                };
+                return stepDone ? benefitsCheckInDoneEmail(opts) : benefitsCheckInEmail(opts);
+              },
+              afterSend: async () => {
+                const { data: tokenRow } = await db
+                  .from("benefits_results_tokens")
+                  .select("token")
+                  .eq("profile_id", fam.familyId)
+                  .order("created_at", { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+                if (!tokenRow?.token) return;
+                await sendCascadeSms(
+                  benefitsCheckInSms({
+                    programShortName: programShort,
+                    url: `${siteUrl}/m/${tokenRow.token}`,
+                    done: stepDone,
+                  }),
+                  "check_sms_at",
+                );
               },
               stamp: async (sentAt) => {
                 familyMeta.benefits_cascade = {
@@ -1230,6 +1305,13 @@ export async function GET(request: NextRequest) {
 
       const sentAt = new Date().toISOString();
       await plan.stamp(sentAt);
+      if (plan.afterSend) {
+        try {
+          await plan.afterSend(sentAt);
+        } catch (err) {
+          console.error(`[family-comms-coordinator] afterSend failed (${plan.rung}):`, err);
+        }
+      }
       // Unified coordinator stamp on the family profile (subordinated crons read this).
       await db
         .from("business_profiles")

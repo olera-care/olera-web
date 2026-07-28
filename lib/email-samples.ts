@@ -31,6 +31,8 @@ import {
   benefitsFirstStepSubject,
   benefitsCheckInEmail,
   benefitsCheckInSubject,
+  benefitsCheckInDoneEmail,
+  benefitsCheckInDoneSubject,
   type CompareCardItem,
   // family · profile sequences (family-nudges / conversation-stale / lead-family-nudge / matches-nudge)
   completionNudge1Email,
@@ -204,6 +206,21 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     who: "First-step email sent 3–14 days ago, no outcome reported yet, once ever (profile stamp).",
     why: "The check-in that's an offer, not an audit: all three replies point forward (It's moving / I want help / This program isn't right for me). 'I want help' pages the queue owner and floats the family in /admin/benefits. Outcome data is the exhaust of helping.",
     render: () => benefitsCheckInEmail({
+      unsubscribeId: "sample-id",
+      familyName: F.familyName,
+      programShortName: "LIHEAP",
+      movingUrl: "https://olera.care/benefits-outcome?tok=sample-moving",
+      helpUrl: "https://olera.care/benefits-outcome?tok=sample-help",
+      wrongUrl: "https://olera.care/benefits-outcome?tok=sample-wrong",
+    }),
+  },
+  {
+    id: "benefits_check_in_done", audience: "family", group: "Family · Benefits cascade",
+    label: "B2 · Check-in, retargeted (call already made)", subject: benefitsCheckInDoneSubject("LIHEAP"),
+    emailType: "benefits_check_in", cron: "family-comms-coordinator",
+    who: "Same band as B2, but the family marked the call done on their /m plan page (benefits_cascade.first_step_done_at).",
+    why: "The living journey saw the act, so the check-in congratulates instead of asking. Same three forward chips, reframed. Coherence: the system visibly remembers what the family did.",
+    render: () => benefitsCheckInDoneEmail({
       unsubscribeId: "sample-id",
       familyName: F.familyName,
       programShortName: "LIHEAP",

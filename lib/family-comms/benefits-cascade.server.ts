@@ -40,6 +40,9 @@ export interface BenefitsCascadeMeta {
   first_step_done_at?: string;
   first_step_done_program_id?: string;
   docs_checked?: string[];
+  /** SMS mirror stamps (consent-gated companions to the B1/B2 emails). */
+  first_step_sms_at?: string;
+  check_sms_at?: string;
   outcome?: BenefitsOutcomeValue;
   outcome_at?: string;
   /** One-tap "what didn't fit" from the wrong_program landing path. */

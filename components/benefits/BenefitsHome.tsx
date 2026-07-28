@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { WaiverProgram } from "@/data/waiver-library";
 import { CARE_NEED_LABEL, type CareNeed } from "@/lib/benefits/match-care-need";
 import type { FirstStepPick, BenefitsCascadeMeta } from "@/lib/family-comms/benefits-cascade.server";
+import JourneyActions, { type NextStepInfo } from "@/components/benefits/JourneyActions";
 
 /**
  * BenefitsHome — the /m/{token} results page, rebuilt as a guide instead of a
@@ -18,6 +19,10 @@ import type { FirstStepPick, BenefitsCascadeMeta } from "@/lib/family-comms/bene
  */
 
 export interface BenefitsHomeProps {
+  /** The results token — the grant JourneyActions writes with. */
+  token: string;
+  /** "Up next" program shown after the first step is marked done. */
+  nextStep: FirstStepPick | null;
   firstName: string | null;
   stateName: string;
   stateSlug: string;
@@ -104,6 +109,8 @@ function trimDoc(d: string): string {
 
 export default function BenefitsHome(props: BenefitsHomeProps) {
   const {
+    token,
+    nextStep,
     firstName,
     stateName,
     stateSlug,
@@ -117,7 +124,16 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     cascade,
   } = props;
 
-  const careLabel = CARE_NEED_LABEL[careNeed] || null;
+  // Family-language chips, not taxonomy: "Paying for care" is our enum label
+  // and confused real families (TJ QA, 2026-07-28). Play back their situation
+  // in their words.
+  const CARE_NEED_CHIP: Record<string, string> = {
+    payingForCare: "Help paying for care",
+    stayingAtHome: "Help staying at home",
+    memoryHealth: "Memory & health support",
+    companionship: "Companionship & support",
+  };
+  const careLabel = CARE_NEED_CHIP[careNeed] || CARE_NEED_LABEL[careNeed] || null;
   const chips = [
     stateName,
     careLabel ? careLabel.charAt(0).toUpperCase() + careLabel.slice(1) : null,
@@ -137,15 +153,26 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     programs: grouped.get(g)!,
   }));
 
-  // Progress: matched is always done; first step advances with the cascade.
+  // Progress: matched is always done; the first step advances when the family
+  // marks the call done on this page OR self-reports "moving" on the check-in.
   const stepState =
-    cascade.outcome === "moving"
+    cascade.outcome === "moving" || cascade.first_step_done_at
       ? 3
       : cascade.first_step_sent_at || firstStep
         ? 2
         : 1;
 
-  const phoneHref = firstStep ? `tel:${firstStep.contact.phone.replace(/[^\d+]/g, "")}` : "";
+  const nextStepInfo: NextStepInfo | null = nextStep
+    ? {
+        name: stripParen(nextStep.name),
+        shortName: nextStep.shortName,
+        phone: nextStep.contact.phone,
+        programPath: nextStep.programPath,
+        savings: nextStep.savingsRange
+          ? `Typically ${nextStep.savingsRange}`
+          : savingsLine(matches.find((p) => p.id === nextStep.programId)?.savingsRange),
+      }
+    : null;
 
   // The hero needs its "why": drafts often lack a savings range (WAP in GA),
   // but the matched program data usually carries one. Draft wins, match fills.
@@ -201,68 +228,30 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
           })}
         </div>
 
-        {/* ── Start here (the hero holds ONLY the decision + the action;
-               support content lives on the light page below) ─────────── */}
+        {/* ── Start here — the living half of the page. JourneyActions owns
+               the hero, done-state, up-next card, and persisted checklist. ── */}
         {firstStep ? (
-          <>
-            <section className="mt-5 rounded-2xl bg-[#33261e] p-6 text-[#f7f3ee] shadow-sm">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#c9b8a8]">
-                Start here
-              </p>
-              <h2 className="mt-1.5 font-serif text-[22px] font-bold leading-snug">
-                {stripParen(firstStep.name)}
-              </h2>
-              {heroSavings && (
-                <p className="mt-1 text-[14px] font-semibold text-emerald-300">{heroSavings}</p>
-              )}
-              <p className="mt-3 text-[15px] leading-relaxed text-[#e8e0d6]">
-                Apply by phone in about ten minutes.
-              </p>
-              <p className="mt-3 text-[13px] text-[#c9b8a8]">{stripParen(firstStep.contact.label)}</p>
-              <a
-                href={phoneHref}
-                className="mt-2 block rounded-xl bg-[#f7f3ee] px-5 py-3.5 text-center text-[16px] font-bold text-[#33261e] transition-opacity hover:opacity-90"
-              >
-                Call {firstStep.contact.phone}
-              </a>
-              {firstStep.contact.hours && looksLikeHours(firstStep.contact.hours) && (
-                <p className="mt-2 text-center text-[13px] text-[#c9b8a8]">{firstStep.contact.hours}</p>
-              )}
-            </section>
-
-            {/* Support content — light, scannable, out of the hero */}
-            {callScript && (
-              <details className="mt-5 border-b border-gray-200 pb-4">
-                <summary className="cursor-pointer list-none text-[15px] font-semibold text-gray-900 [&::-webkit-details-marker]:hidden">
-                  What to say when they answer <span className="text-gray-400">›</span>
-                </summary>
-                <p className="mt-2 border-l-2 border-gray-300 pl-3 text-[14px] leading-relaxed text-gray-600">
-                  &ldquo;{callScript}&rdquo;
-                </p>
-              </details>
-            )}
-            {firstStep.documents.length > 0 && (
-              <div className="mt-5">
-                <p className="text-[15px] font-semibold text-gray-900">Have these nearby, if you can</p>
-                <ul className="mt-2 space-y-1.5">
-                  {firstStep.documents.map((d) => (
-                    <li key={d} className="text-[14px] leading-relaxed text-gray-600">
-                      <span className="text-emerald-700">&#10003;</span>&nbsp; {trimDoc(d)}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2 text-[13px] text-gray-400">
-                  You can still call if you don&apos;t have everything.
-                </p>
-              </div>
-            )}
-            <Link
-              href={firstStep.programPath}
-              className="mt-4 inline-block text-[14px] font-semibold text-primary-700 underline underline-offset-2"
-            >
-              See the full guide for {firstStep.shortName}
-            </Link>
-          </>
+          <JourneyActions
+            token={token}
+            hero={{
+              programId: firstStep.programId,
+              name: stripParen(firstStep.name),
+              shortName: firstStep.shortName,
+              savings: heroSavings,
+              agencyLabel: stripParen(firstStep.contact.label),
+              phone: firstStep.contact.phone,
+              hours:
+                firstStep.contact.hours && looksLikeHours(firstStep.contact.hours)
+                  ? firstStep.contact.hours
+                  : null,
+              programPath: firstStep.programPath,
+            }}
+            callScript={callScript}
+            documents={firstStep.documents.map(trimDoc)}
+            initialDone={!!cascade.first_step_done_at}
+            initialChecked={cascade.docs_checked || []}
+            nextStep={nextStepInfo}
+          />
         ) : (
           matches[0] && (
             <section className="mt-5 rounded-2xl bg-[#33261e] p-6 text-[#f7f3ee] shadow-sm">

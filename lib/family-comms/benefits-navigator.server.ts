@@ -95,14 +95,23 @@ VOICE
 - Do not open with "I hope this finds you well" or any filler greeting.
 - Anchor trust in what THEY did: name the concrete thing (they used the benefits finder, what they were looking into). Never reveal knowledge they did not give us.
 
+SIMPLICITY (the most important rule)
+- Write like you would text a neighbor you respect. Not like an essay.
+- Keep most sentences under 12 words. One idea per sentence.
+- 90 to 130 words total. If a sentence does not help them make the call, cut it.
+- No stacked clauses. No semicolons. At most one short parenthetical (a program nickname).
+- If the program covers several sub-programs, name ONLY the part that fits this family's facts, and list ONLY that part's documents. Drop the rest entirely. Two or three documents at most.
+- Phrase the call naturally. If the contact label and the phone number say the same thing, say it once ("Call 2-1-1"), never "Call Texas 2-1-1 at 2-1-1".
+- If a savings figure is given, one short sentence at most ("Families that qualify often save $X a year.").
+
 HONESTY RULES (never break these)
 - Only mention facts listed in the FAMILY section. If something is not listed, do not reference it or guess at it.
 - Program details (name, phone number, documents, savings) come from the FIRST STEP section. Use them exactly as given. Never invent numbers, dollar amounts, deadlines, or eligibility claims.
 - Never promise approval, never say they qualify. "Worth a call" is the ceiling.
 - The provider offer, when included, is only an offer to introduce them if they reply. No claims about what providers accept or cost.
 
-STRUCTURE (120-180 words total)
-1. One or two sentences: who you are, and the concrete thing they did. Acknowledge, in plain terms, what they came looking for.
+STRUCTURE (90-130 words total)
+1. One or two sentences: who you are, and the concrete thing they did. Acknowledge, in plain terms, what they came looking for. If FAMILY says the first name is unknown, open with no name at all ("Hi, it's TJ with Olera.") — never guess a name and never use a placeholder.
 2. The one first step, laid out so a call feels doable in ten minutes: the program, who to call and the number, what to have nearby before dialing. Mention the short phone script is written down on their plan page.
 3. ONE of the following, never both, chosen from the data:
    - If MISSING FACTS lists anything: one gentle ask for a single fact, tied to a concrete payoff ("If you tell me X, I can check Y for you").
@@ -112,7 +121,7 @@ STRUCTURE (120-180 words total)
 COMPANION TEXT MESSAGE
 Also draft one short text message. It goes only to families who asked for texts, alongside the email, from the same number that texted their results. Texts get seen when email does not, so this is often the first thing they read.
 - Two or three short sentences, under 240 characters total. It must sound like a person texting, not a notification. Same voice rules as the letter.
-- Say who you are (TJ from Olera), point at the step you emailed them in one clause, and end by inviting them to text back if they get stuck.
+- Say who you are (TJ from Olera), point at the step you emailed them in one clause, and end by inviting them to text back if they get stuck. Same no-name rule: if the first name is unknown, open "Hi, it's TJ from Olera" with no name.
 - Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically).
 
 FORMAT
@@ -176,7 +185,14 @@ export async function composeNavigatorDraft(
     (input.profileMeta.relationship_to_recipient as string) || null;
   const familyPhrase = familyPhraseFromRelationship(relationship);
   const situation = benefitsSituationLine(input.profileMeta);
-  const firstName = input.displayName?.split(/\s+/)[0] || null;
+  // The benefits intake collects NO name — save-results defaults display_name
+  // to "Care Seeker", so a naive split greeted every family "Care," (TJ QA
+  // 2026-07-29). Treat placeholder names as no-name; the letter opens
+  // nameless unless a real name exists (e.g. set later via enrichment).
+  const rawFirst = input.displayName?.split(/\s+/)[0] || null;
+  const PLACEHOLDER_FIRST_NAMES = new Set(["care", "seeker", "family", "guest", "friend", "user", "there"]);
+  const firstName =
+    rawFirst && !PLACEHOLDER_FIRST_NAMES.has(rawFirst.toLowerCase()) ? rawFirst : null;
 
   const missing: string[] = [];
   const pMeta = input.profileMeta as {
@@ -286,10 +302,22 @@ export function pickSnapshot(pick: FirstStepPick): NonNullable<BenefitsNavigator
 // the senior audience, paragraphs as written, one plan link appended
 // deterministically (the model never writes links), unsubscribe footer.
 
+/** tel: href from a human-formatted phone ("2-1-1", "1-877-541-7905"). */
+function telHref(phone: string): string {
+  const digits = phone.replace(/[^\d]/g, "");
+  if (digits.length === 10) return `tel:+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `tel:+${digits}`;
+  return `tel:${digits}`;
+}
+
 export function renderNavigatorEmail(opts: {
   body: string;
   planUrl: string;
   unsubscribeUrl: string;
+  /** The letter's one action, made tappable (TJ design 2026-07-29): a
+   *  70-year-old reading on her phone should never have to memorize a number
+   *  and dial it herself. Colors mirror the /m hero for continuity. */
+  call?: { phone: string } | null;
 }): string {
   const paragraphs = opts.body
     .split(/\n{2,}/)
@@ -302,9 +330,13 @@ export function renderNavigatorEmail(opts: {
           .replace(/\n/g, "<br/>")}</p>`,
     )
     .join("\n");
+  const callButton = opts.call
+    ? `
+  <a href="${telHref(opts.call.phone)}" style="display: block; margin: 24px 0 0; padding: 15px 20px; background: #33261e; color: #f7f3ee; text-align: center; border-radius: 12px; font-size: 17px; font-weight: bold; text-decoration: none; font-family: Arial, sans-serif;">Call ${opts.call.phone}</a>`
+    : "";
   return `
 <div style="max-width: 560px; margin: 0 auto; padding: 32px 24px; font-family: Georgia, 'Times New Roman', serif;">
-  ${paragraphs}
+  ${paragraphs}${callButton}
   <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
     Everything above is also written down for you here:
     <a href="${opts.planUrl}" style="color: #0f766e;">your plan page</a>.

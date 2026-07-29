@@ -871,6 +871,37 @@ async function searchProviders(
     (trackingRows || []).map((t) => [t.provider_id, t])
   );
 
+  // For in_sequence providers, compute emails_sent count (same logic as main query)
+  const inSequenceProviderIds = (trackingRows || [])
+    .filter((t) => t.stage === "in_sequence" && !claimedMap.has(t.provider_id))
+    .map((t) => t.provider_id);
+
+  let emailsSentMap = new Map<string, number>();
+  if (inSequenceProviderIds.length > 0) {
+    // Build map of provider_id -> stage_changed_at for filtering
+    const stageChangedMap = new Map<string, string>();
+    for (const t of trackingRows || []) {
+      if (t.stage === "in_sequence" && t.stage_changed_at) {
+        stageChangedMap.set(t.provider_id, t.stage_changed_at);
+      }
+    }
+
+    const { data: touchpoints } = await db
+      .from("provider_outreach_touchpoints")
+      .select("provider_id, created_at")
+      .in("provider_id", inSequenceProviderIds)
+      .eq("touchpoint_type", "email_sent");
+
+    // Count emails per provider, only those created after entering current sequence
+    for (const tp of touchpoints || []) {
+      const stageChangedAt = stageChangedMap.get(tp.provider_id);
+      if (stageChangedAt && tp.created_at >= stageChangedAt) {
+        const count = emailsSentMap.get(tp.provider_id) || 0;
+        emailsSentMap.set(tp.provider_id, count + 1);
+      }
+    }
+  }
+
   // Get system-wide archived providers (admin_archived = true in business_profiles)
   const { data: adminArchivedBps } = await db
     .from("business_profiles")
@@ -945,6 +976,8 @@ async function searchProviders(
       re_engage_entered_at: tracking?.re_engage_entered_at ?? null,
       // Assignment
       assigned_to: tracking?.assigned_to ?? null,
+      // Sequence progress (for in_sequence)
+      emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
       verification_state: claimInfo?.verification_state || null,
     };
   });

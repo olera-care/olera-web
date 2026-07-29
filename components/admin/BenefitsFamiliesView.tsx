@@ -64,6 +64,17 @@ interface FamilyRow {
   caseStatus: "wants_help" | "silent_after_checkin" | "action_stall" | "attention_stall" | null;
   caseInfo: { noteCount: number; contactedAt: string | null; resolvedAt: string | null };
   lifecycle: { status: LifecycleStatus; detail: string | null };
+  navigator: { status: "pending" | "sent" | "dismissed"; composedAt: string | null } | null;
+}
+
+/** Full draft payload from the per-family GET (list rows carry status only). */
+interface NavigatorDetail {
+  status?: "pending" | "sent" | "dismissed";
+  subject?: string;
+  body?: string;
+  composed_at?: string;
+  sent_at?: string;
+  pick?: { shortName?: string; contactPhone?: string };
 }
 
 type LifecycleStatus =
@@ -138,6 +149,8 @@ export default function BenefitsFamiliesView() {
   const [caseBusy, setCaseBusy] = useState(false);
   const [caseError, setCaseError] = useState<string | null>(null);
 
+  const [navigators, setNavigators] = useState<Record<string, NavigatorDetail | null>>({});
+
   const loadTimeline = useCallback(async (profileId: string) => {
     setTimelines((t) => ({ ...t, [profileId]: "loading" }));
     try {
@@ -145,10 +158,39 @@ export default function BenefitsFamiliesView() {
       if (!res.ok) throw new Error(String(res.status));
       const d = await res.json();
       setTimelines((t) => ({ ...t, [profileId]: d.events as TimelineEvent[] }));
+      setNavigators((n) => ({ ...n, [profileId]: (d.navigator as NavigatorDetail) ?? null }));
     } catch {
       setTimelines((t) => ({ ...t, [profileId]: "error" }));
     }
   }, []);
+
+  // Navigator letter: send (after TJ's read/edit) or dismiss the draft.
+  // Send is outward-facing and irreversible — confirm first, surface the
+  // server's reason on a block (governance cap, missing email).
+  const navigatorAction = useCallback(
+    async (profileId: string, action: "navigator_send" | "navigator_dismiss", subject?: string, letter?: string) => {
+      setCaseBusy(true);
+      setCaseError(null);
+      try {
+        const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, subject, body: letter }),
+        });
+        const d = await res.json().catch(() => null);
+        if (!res.ok) {
+          setCaseError(d?.error || "That didn't go through. Try again.");
+          return;
+        }
+        await Promise.all([fetchData(), loadTimeline(profileId)]);
+      } catch {
+        setCaseError("That didn't go through. Try again.");
+      } finally {
+        setCaseBusy(false);
+      }
+    },
+    [fetchData, loadTimeline],
+  );
 
   const toggleExpand = useCallback(
     (profileId: string) => {
@@ -459,7 +501,17 @@ export default function BenefitsFamiliesView() {
                           : "direct"}
                     </td>
                     <td className="px-4 py-3">
-                      <LifecycleChip lifecycle={f.lifecycle} noteCount={f.caseInfo.noteCount} />
+                      <span className="inline-flex items-center gap-1.5">
+                        <LifecycleChip lifecycle={f.lifecycle} noteCount={f.caseInfo.noteCount} />
+                        {f.navigator?.status === "pending" && (
+                          <span
+                            className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+                            title="A navigator letter is drafted and waiting for your review"
+                          >
+                            ✍ Draft ready
+                          </span>
+                        )}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                       {new Date(f.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -478,6 +530,11 @@ export default function BenefitsFamiliesView() {
                           setNoteText={setNoteText}
                           busy={caseBusy}
                           error={caseError}
+                          navigator={navigators[f.profileId]}
+                          familyLabel={f.displayName || f.email || "this family"}
+                          onNavigator={(action, subject, letter) =>
+                            navigatorAction(f.profileId, action, subject, letter)
+                          }
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
                           onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
                         />
@@ -490,6 +547,78 @@ export default function BenefitsFamiliesView() {
             </table>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The navigator draft queue's editing surface: the AI-composed, TJ-signed
+ * letter, editable in place. Nothing sends until the Send button — and every
+ * edit made here is the concierge feedback loop the draft-queue design exists
+ * to capture.
+ */
+function NavigatorDraftEditor({
+  navigator,
+  familyLabel,
+  busy,
+  onNavigator,
+}: {
+  navigator: NavigatorDetail;
+  familyLabel: string;
+  busy: boolean;
+  onNavigator: (action: "navigator_send" | "navigator_dismiss", subject?: string, letter?: string) => void;
+}) {
+  const [subject, setSubject] = useState(navigator.subject ?? "");
+  const [letter, setLetter] = useState(navigator.body ?? "");
+  return (
+    <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">
+          ✍ Navigator letter — waiting for you
+        </p>
+        <p className="text-[11px] text-amber-700/70">
+          {navigator.pick?.shortName ? `First step: ${navigator.pick.shortName} · ` : ""}
+          drafted {navigator.composed_at ? new Date(navigator.composed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+        </p>
+      </div>
+      <input
+        type="text"
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
+        className="mb-2 w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+        placeholder="Subject"
+      />
+      <textarea
+        value={letter}
+        onChange={(e) => setLetter(e.target.value)}
+        rows={Math.min(14, Math.max(8, letter.split("\n").length + 2))}
+        className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+      />
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          onClick={() => {
+            if (window.confirm(`Send this letter to ${familyLabel}? It goes out under your name, with replies coming back to you.`)) {
+              onNavigator("navigator_send", subject, letter);
+            }
+          }}
+          disabled={busy || letter.trim().length < 40}
+          className="rounded-lg bg-gray-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+        >
+          Send as TJ
+        </button>
+        <button
+          onClick={() => {
+            if (window.confirm("Dismiss this draft? The family will not get a first-step letter unless you contact them another way.")) {
+              onNavigator("navigator_dismiss");
+            }
+          }}
+          disabled={busy}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
+        >
+          Dismiss
+        </button>
+        <p className="text-[11px] text-amber-700/70">Sends the email now (plus the text mirror if they consented).</p>
       </div>
     </div>
   );
@@ -588,6 +717,7 @@ const TIMELINE_ICON: Record<string, string> = {
   outcome: "✦",
   note: "✎",
   case: "★",
+  navigator: "✍",
 };
 
 function CasePanel({
@@ -600,6 +730,9 @@ function CasePanel({
   setNoteText,
   busy,
   error,
+  navigator,
+  familyLabel,
+  onNavigator,
   onAction,
   onDelete,
 }: {
@@ -612,11 +745,22 @@ function CasePanel({
   setNoteText: (v: string) => void;
   busy: boolean;
   error: string | null;
+  navigator: NavigatorDetail | null | undefined;
+  familyLabel: string;
+  onNavigator: (action: "navigator_send" | "navigator_dismiss", subject?: string, letter?: string) => void;
   onAction: (action: string, text?: string) => void;
   onDelete: () => void;
 }) {
   return (
     <div onClick={(e) => e.stopPropagation()}>
+      {navigator?.status === "pending" && navigator.body && (
+        <NavigatorDraftEditor
+          navigator={navigator}
+          familyLabel={familyLabel}
+          busy={busy}
+          onNavigator={onNavigator}
+        />
+      )}
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Case timeline</p>
         <div className="flex gap-1">

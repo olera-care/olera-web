@@ -9,11 +9,15 @@ import type { BenefitsOutcomeTokenValue } from "@/lib/claim-tokens";
 import {
   benefitsCompletedAt,
   readBenefitsCascade,
-  selectFirstStepProgram,
-  buildCallScript,
 } from "@/lib/family-comms/benefits-cascade.server";
+import {
+  composeNavigatorDraft,
+  readBenefitsNavigator,
+  pickSnapshot,
+} from "@/lib/family-comms/benefits-navigator.server";
+import { sendSlackAlert } from "@/lib/slack";
 import { sendSMS } from "@/lib/twilio";
-import { benefitsFirstStepSms, benefitsCheckInSms } from "@/lib/sms/templates";
+import { benefitsCheckInSms } from "@/lib/sms/templates";
 import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
@@ -34,8 +38,6 @@ import {
   familyNeverEngagedSubject,
   day10AwaitingEmail,
   familyPendingReachOutNudgeEmail,
-  benefitsFirstStepEmail,
-  benefitsFirstStepSubject,
   benefitsCheckInEmail,
   benefitsCheckInSubject,
   benefitsCheckInDoneEmail,
@@ -958,84 +960,65 @@ export async function GET(request: NextRequest) {
           };
         }
 
-        // ── Rung B1: benefits first step — intake 48-96h ago, one-shot per family.
-        //    ONE program, its start-here phone, a call script, the top documents.
-        //    Program selection (entry-source page → simplest saved match → state
-        //    start-here list) queries accounts + saved_programs, so the band check
-        //    runs first — only the handful of families in the 48-96h window pay
-        //    for the reads. No qualifying program content → no email (fewer honest
-        //    beats hollow), and the family falls through to later rungs. ──
-        if (benefitsDoneAt && !benefitsCascade.first_step_sent_at && fpr?.account_id) {
+        // ── Rung B1 → NAVIGATOR DRAFT QUEUE (2026-07-29, TJ decision). The
+        //    coordinator no longer auto-sends the first-step email. Instead it
+        //    composes a personal TJ-signed navigator letter (AI-drafted from
+        //    the family's own facts + the verified first-step pick, see
+        //    lib/family-comms/benefits-navigator.server.ts) and parks it in
+        //    /admin/benefits for TJ's approval. Nothing reaches the family
+        //    until TJ sends it; first_step_sent_at is stamped by the admin
+        //    send route, so B2 stays correctly downstream of the REAL send.
+        //    Band: still opens at 48h, but stays open to 10 days — a letter
+        //    approved on day 6 is still a good letter, and the old one-shot
+        //    96h window silently dropped families whenever a run was missed.
+        //    One-shot per family on successful composition; a failed compose
+        //    logs and retries next run. Dry runs skip composition entirely
+        //    (it writes metadata and spends tokens). ──
+        if (
+          benefitsDoneAt &&
+          !benefitsCascade.first_step_sent_at &&
+          fpr?.account_id &&
+          !readBenefitsNavigator(familyMeta).composed_at
+        ) {
           const intakeAge = now - new Date(benefitsDoneAt).getTime();
-          if (intakeAge >= 48 * HOUR && intakeAge <= 96 * HOUR) {
-            const pick = await selectFirstStepProgram(db, {
-              accountId: fpr.account_id,
-              stateAbbrev: fpr.state || null,
-              // Phase 3: skip programs the family's held facts rule out.
-              facts: familyBenefitsFacts(fpr),
-            });
-            if (pick) {
-              const callScript = buildCallScript(
-                pick.shortName,
-                (familyMeta.relationship_to_recipient as string) || null,
-              );
-              return {
-                rung: "benefits_first_step",
-                emailType: "benefits_first_step",
-                subject: benefitsFirstStepSubject(pick.shortName),
-                metadata: { program_id: pick.programId, state_id: pick.stateId, complexity: pick.complexity },
-                buildHtml: (eid) =>
-                  benefitsFirstStepEmail({
-                    familyName,
-                    programName: pick.name,
-                    programShortName: pick.shortName,
-                    savingsRange: pick.savingsRange,
-                    contactLabel: pick.contact.label,
-                    contactPhone: pick.contact.phone,
-                    contactHours: pick.contact.hours,
-                    callScript,
-                    documents: pick.documents,
-                    tip: pick.tip,
-                    // Signed-in arrival: the guide link authenticates on the way in.
-                    programUrl: generateFamilyInboxUrl(
-                      authEmailFinal,
-                      appendTrackingParams(pick.programPath, eid),
-                      siteUrl,
-                    ),
-                    pickedFromEntryPage: pick.source === "entry",
-                    unsubscribeId: fam.familyId,
-                  }),
-                stamp: async (sentAt) => {
-                  // Mutate familyMeta too (archetype pattern): the unified
-                  // coordinator stamp right after this spreads familyMeta into
-                  // its own metadata write — without the mutation it would
-                  // clobber the cascade stamp with the stale copy.
-                  familyMeta.benefits_cascade = {
-                    ...readBenefitsCascade(familyMeta),
-                    first_step_sent_at: sentAt,
-                    first_step_program_id: pick.programId,
-                    first_step_state_id: pick.stateId,
-                    first_step_program_name: pick.shortName,
-                  };
-                  await db
-                    .from("business_profiles")
-                    .update({ metadata: { ...familyMeta } })
-                    .eq("id", fam.familyId);
-                },
-                afterSend: async () => {
-                  await sendCascadeSms(
-                    benefitsFirstStepSms({
-                      programShortName: pick.shortName,
-                      phone: pick.contact.phone,
-                      topDocs: pick.documents,
-                      url: `${siteUrl}${pick.programPath}`,
-                    }),
-                    "first_step_sms_at",
-                  );
-                },
-              };
+          if (intakeAge >= 48 * HOUR && intakeAge <= 10 * DAY && !dryRun) {
+            try {
+              const draft = await composeNavigatorDraft(db, {
+                profileId: fam.familyId,
+                accountId: fpr.account_id,
+                displayName: fpr.display_name || null,
+                state: fpr.state || null,
+                city: fpr.city || null,
+                careTypes: (fpr.care_types as string[] | null) || [],
+                intakeAt: benefitsDoneAt,
+                profileMeta: familyMeta,
+                factsRow: fpr,
+              });
+              if (draft) {
+                // Archetype pattern: mutate familyMeta so the unified
+                // coordinator stamp later can't clobber this with a stale copy.
+                familyMeta.benefits_navigator = {
+                  status: "pending",
+                  composed_at: new Date().toISOString(),
+                  subject: draft.subject,
+                  body: draft.body,
+                  model: "claude-opus-5",
+                  pick: pickSnapshot(draft.pick),
+                  provider_count: draft.providerCount,
+                };
+                await db
+                  .from("business_profiles")
+                  .update({ metadata: { ...familyMeta } })
+                  .eq("id", fam.familyId);
+                bump("benefits_navigator_draft");
+              }
+            } catch (err) {
+              console.error("[family-comms-coordinator] navigator compose failed:", err);
             }
           }
+          // Deliberately NO return: this rung never emails. The family falls
+          // through to later rungs (completion stays suppressed while the
+          // cascade is in flight) and the letter goes out when TJ approves it.
         }
 
         // ── Rung B2: benefits check-in — first step sent 3-14d ago, no outcome,
@@ -1331,6 +1314,19 @@ export async function GET(request: NextRequest) {
 
       bump(plan.rung);
       counts.sent++;
+    }
+
+    // Navigator drafts wait on a human — one aggregate ping so TJ knows the
+    // queue moved without per-family noise. Best-effort, never fails the run.
+    const draftCount = counts.byRung["benefits_navigator_draft"] || 0;
+    if (draftCount > 0) {
+      try {
+        await sendSlackAlert(
+          `📝 ${draftCount} navigator draft${draftCount === 1 ? "" : "s"} ready for review → ${siteUrl}/admin/benefits`,
+        );
+      } catch (err) {
+        console.error("[family-comms-coordinator] draft Slack ping failed:", err);
+      }
     }
 
     return { ok: true, ...counts };

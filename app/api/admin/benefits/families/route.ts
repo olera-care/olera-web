@@ -11,6 +11,7 @@ import {
   type CaseStatus,
   type Lifecycle,
 } from "@/lib/family-comms/benefits-cascade.server";
+import { readBenefitsNavigator } from "@/lib/family-comms/benefits-navigator.server";
 
 /**
  * GET /api/admin/benefits/families?days=30
@@ -32,6 +33,8 @@ import {
 const WINDOW_DAYS = [7, 30, 90] as const;
 
 interface FamilyRow {
+  /** Navigator letter status for the row chip (full draft rides the per-family GET). */
+  navigator: { status: "pending" | "sent" | "dismissed"; composedAt: string | null } | null;
   profileId: string;
   displayName: string | null;
   email: string | null;
@@ -197,6 +200,7 @@ export async function GET(request: NextRequest) {
     let situationCompleteCount = 0;
     let textableCount = 0;
     let wantsHelp = 0;
+    let navigatorPending = 0;
     const stuckCounts: Record<string, number> = {};
     const lifecycleCounts: Record<string, number> = {};
 
@@ -276,7 +280,13 @@ export async function GET(request: NextRequest) {
       });
       lifecycleCounts[lifecycle.status] = (lifecycleCounts[lifecycle.status] ?? 0) + 1;
 
+      const navMeta = readBenefitsNavigator(pMeta);
+      if (navMeta.status === "pending") navigatorPending++;
+
       families.push({
+        navigator: navMeta.status
+          ? { status: navMeta.status, composedAt: navMeta.composed_at ?? null }
+          : null,
         profileId,
         displayName: profile?.display_name ?? null,
         email,
@@ -331,6 +341,7 @@ export async function GET(request: NextRequest) {
         situationComplete: situationCompleteCount,
         textable: textableCount,
         wantsHelp,
+        navigatorPending,
         stuck: stuckCounts,
         lifecycle: lifecycleCounts,
       },

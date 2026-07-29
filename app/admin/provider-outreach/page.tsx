@@ -1563,20 +1563,26 @@ function FollowUpProviderRow({
           {/* Call Script */}
           <details className="mb-4 bg-white border border-gray-200 rounded-lg">
             <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
-              📞 Call Script
+              Call Script
             </summary>
             <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
               <p>
-                &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Dr. Logan DuBose&apos;s office at Olera. We run a referral program that connects families with {provider.provider_category || "care"} providers in {provider.city || "your area"}.&quot;
+                &quot;Hi, is this <span className="font-medium text-gray-800">{provider.provider_name || "the provider"}</span>?&quot;
               </p>
               <p>
-                &quot;We&apos;ve created a profile for you that families visit when searching for care. We&apos;ve been sending emails about claiming it so you can manage it yourself — update your information and respond directly when families reach out.&quot;
+                &quot;This is <span className="font-medium text-gray-800">[Your Name]</span> calling from Dr. DuBose&apos;s office at Olera. I hope you&apos;re doing well.&quot;
               </p>
               <p>
-                &quot;Did those emails come through, or should I send the link to someone else on your team?&quot;
+                &quot;I just wanted to check in because I noticed you&apos;ve had a chance to look through some of the emails we&apos;ve sent about our free referral platform.&quot;
               </p>
-              <p className="text-xs text-gray-400 border-t border-gray-100 pt-2 mt-2">
-                If wrong contact → &quot;Could you give me the contact for whoever handles your online listings?&quot;
+              <p>
+                &quot;I was wondering if you had any questions or if there were any roadblocks stopping you from claiming your profile.&quot;
+              </p>
+              <p>
+                &quot;It only takes about 30 seconds to claim, and I&apos;m happy to walk you through it or answer any questions you have.&quot;
+              </p>
+              <p>
+                &quot;If now isn&apos;t a good time, I&apos;m also happy to resend the claim link or any information you need. What&apos;s the best way I can help?&quot;
               </p>
             </div>
           </details>

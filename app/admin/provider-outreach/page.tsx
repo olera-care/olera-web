@@ -336,6 +336,7 @@ function ProviderContactEditor({
 
   // Call recording state
   const [isRecordingCall, setIsRecordingCall] = useState(false);
+  const [callRecordError, setCallRecordError] = useState(false);
 
   // Check if this is a generic email
   const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded;
@@ -343,6 +344,7 @@ function ProviderContactEditor({
   // Record "I called" touchpoint
   const handleRecordCall = async () => {
     setIsRecordingCall(true);
+    setCallRecordError(false);
     try {
       const res = await fetch("/api/admin/provider-outreach/record-call", {
         method: "POST",
@@ -351,9 +353,12 @@ function ProviderContactEditor({
       });
       if (res.ok) {
         onCallRecorded?.();
+      } else {
+        setCallRecordError(true);
       }
     } catch (err) {
       console.error("Failed to record call:", err);
+      setCallRecordError(true);
     } finally {
       setIsRecordingCall(false);
     }
@@ -732,10 +737,14 @@ function ProviderContactEditor({
                     handleRecordCall();
                   }}
                   disabled={isRecordingCall}
-                  className="shrink-0 px-2 py-0.5 text-xs font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded transition disabled:opacity-50"
-                  title="Record that you called this provider"
+                  className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+                    callRecordError
+                      ? "text-red-600 hover:text-red-700 hover:bg-red-50"
+                      : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+                  }`}
+                  title={callRecordError ? "Failed - click to retry" : "Record that you called this provider"}
                 >
-                  {isRecordingCall ? "..." : "I called"}
+                  {isRecordingCall ? "..." : callRecordError ? "Retry" : "I called"}
                 </button>
               </>
             )}

@@ -277,14 +277,15 @@ function BenefitsOutcomeInner() {
               {phoneStatus === "done" ? (
                 <p className="text-sm text-gray-600 text-center py-1">
                   Done. We just texted your results link. TJ will text your next step from that
-                  same number, and you can text him back.
+                  same number, and you can always text back.
                 </p>
               ) : (
                 <>
                   <p className="text-sm font-semibold text-gray-900 mb-1">Prefer texts?</p>
                   <p className="text-sm text-gray-500 mb-3">
                     We&apos;ll text your results link now. Then TJ from Olera will follow up by
-                    text from this same number, and you can text him back.
+                    text from this same number. You can text back anytime and a real person
+                    will answer.
                   </p>
                   <div className="flex gap-2">
                     <input

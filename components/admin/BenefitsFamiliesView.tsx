@@ -633,7 +633,7 @@ function NavigatorDraftEditor({
       <div className="mt-2 flex items-center gap-2">
         <button
           onClick={() => {
-            if (window.confirm(`Send this letter to ${familyLabel}? It goes out under your name, with replies coming back to you.`)) {
+            if (window.confirm(`Send this letter to ${familyLabel}? It goes out under your name; replies land in the reply-to inbox (support).`)) {
               onNavigator("navigator_send", subject, letter, sms.trim() || undefined);
             }
           }}

@@ -107,7 +107,7 @@ STRUCTURE (120-180 words total)
 3. ONE of the following, never both, chosen from the data:
    - If MISSING FACTS lists anything: one gentle ask for a single fact, tied to a concrete payoff ("If you tell me X, I can check Y for you").
    - Else if the PROVIDER OFFER section allows it: one sentence offering to personally introduce them to a few care providers near them if they reply.
-4. Close in one sentence: they can reply to this email and TJ will read it. Sign off exactly as "TJ" on its own line, with "Olera" on the line after.
+4. Close in one sentence: they can reply to this email and TJ's team reads every reply (phrase it naturally, e.g. "You can reply to this email. My team and I read every reply." — never promise that TJ alone reads it). Sign off exactly as "TJ" on its own line, with "Olera" on the line after.
 
 COMPANION TEXT MESSAGE
 Also draft one short text message. It goes only to families who asked for texts, alongside the email, from the same number that texted their results. Texts get seen when email does not, so this is often the first thing they read.

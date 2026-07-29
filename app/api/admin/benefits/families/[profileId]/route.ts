@@ -119,6 +119,32 @@ export async function GET(
     push(cascade.first_step_sms_at, "sms", "First-step text sent");
     push(cascade.check_sms_at, "sms", "Check-in text sent");
 
+    // Outbound texts from the send ledger (TJ QA 2026-07-29: the instant
+    // results text was invisible here — only a suffix on the enriched row).
+    // SMS ledger rows carry provider_id = the family profile, so this catches
+    // texts the metadata stamps don't cover. Mirror types are skipped (their
+    // stamps above already render them); rows predating the ledger (before
+    // 2026-07-29) never got logged, so old families won't show these.
+    {
+      const { data: smsLogs } = await db
+        .from("email_log")
+        .select("email_type, created_at, status")
+        .eq("channel", "sms")
+        .eq("provider_id", profileId)
+        .eq("status", "sent")
+        .order("created_at");
+      for (const l of smsLogs ?? []) {
+        if (l.email_type === "benefits_results_sms") {
+          push(l.created_at, "sms", "Results link texted");
+        } else if (
+          l.email_type !== "benefits_first_step_sms" &&
+          l.email_type !== "benefits_check_in_sms"
+        ) {
+          push(l.created_at, "sms", `Text sent (${l.email_type})`);
+        }
+      }
+    }
+
     // Inbound texts (webhook persists every reply — metadata.sms_inbound)
     const inbound = Array.isArray(meta.sms_inbound)
       ? (meta.sms_inbound as { at?: string; body?: string; keyword?: string | null }[])

@@ -319,7 +319,10 @@ export default function BenefitsFamiliesView() {
       </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* Caseload card removed (TJ, 2026-07-29 QA): stuck families already
+          float to the top of the list with lifecycle chips — the card was a
+          duplicate signal spending a KPI slot. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           label="Completions"
           value={summary.completions}
@@ -344,23 +347,6 @@ export default function BenefitsFamiliesView() {
           label="Textable"
           value={summary.uniqueFamilies ? `${Math.round(((summary.textable ?? 0) / summary.uniqueFamilies) * 100)}%` : "0%"}
           detail={`${summary.textable ?? 0} of ${summary.uniqueFamilies} with phone + consent (SMS can reach them)`}
-        />
-        <StatCard
-          label="Caseload"
-          value={Object.values(summary.stuck ?? {}).reduce((a, b) => a + b, 0)}
-          detail={
-            Object.keys(summary.stuck ?? {}).length
-              ? [
-                  summary.stuck.wants_help ? `${summary.stuck.wants_help} wants help` : null,
-                  summary.stuck.silent_after_checkin ? `${summary.stuck.silent_after_checkin} silent after check-in` : null,
-                  summary.stuck.action_stall ? `${summary.stuck.action_stall} stalled at the call` : null,
-                  summary.stuck.attention_stall ? `${summary.stuck.attention_stall} never saw their plan` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")
-              : "stuck families float to the top below as the cascade runs"
-          }
-          detailTone={Object.values(summary.stuck ?? {}).reduce((a, b) => a + b, 0) > 0 ? "down" : "flat"}
         />
       </div>
 

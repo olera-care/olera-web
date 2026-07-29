@@ -3943,7 +3943,12 @@ export default function ProviderOutreachPage() {
                       }`}>
                         {STAGE_LABELS[provider.stage]}
                         {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
-                          <span className="ml-1 text-blue-500">({provider.emails_sent}/4)</span>
+                          <span className="ml-1 text-blue-500">
+                            ({provider.emails_sent}/4)
+                            {provider.cycle_number >= 2 && (
+                              <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
+                            )}
+                          </span>
                         )}
                       </span>
                       <AdminChip

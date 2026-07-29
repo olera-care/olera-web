@@ -47,6 +47,9 @@ export interface BenefitsHomeProps {
   firstStep: FirstStepPick | null;
   callScript: string | null;
   cascade: BenefitsCascadeMeta;
+  /** Our texting number, set only for families with sms_consent (they already
+   *  have a thread with it) — renders the "Stuck? Text TJ" line. */
+  textTjNumber?: string | null;
 }
 
 const TIMELINE_LABELS: Record<string, string> = {
@@ -137,6 +140,7 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
     firstStep,
     callScript,
     cascade,
+    textTjNumber,
   } = props;
 
   // Family-language chips, not taxonomy: "Paying for care" is our enum label
@@ -300,6 +304,22 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
               </Link>
             </section>
           )
+        )}
+
+        {/* Help is one tap from where stuckness happens. Only for families
+            who consented to texts — the number already lives in their thread,
+            so this reads as "text the person who texted me", not a stranger. */}
+        {textTjNumber && (
+          <p className="mt-4 text-[14px] leading-relaxed text-gray-500">
+            Stuck or not sure what to say?{" "}
+            <a
+              href={`sms:${textTjNumber}`}
+              className="font-semibold text-gray-800 underline underline-offset-2"
+            >
+              Text TJ
+            </a>{" "}
+            and a real person will answer.
+          </p>
         )}
 
         {/* ── The rest, held not shouted ──────────────────────────────── */}

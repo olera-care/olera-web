@@ -359,12 +359,20 @@ export async function POST(
       const planPath = tokenRow?.token
         ? `/m/${tokenRow.token}`
         : navigator.pick?.programPath || "/benefits";
-      const planUrl = generateFamilyInboxUrl(profile.email, planPath, siteUrl);
+      // #call-script lands the family on the opened script section — the
+      // letter says "the script is written on your plan page", so the tap
+      // should keep that promise, not drop them at the top to go hunting.
+      const planUrl = generateFamilyInboxUrl(
+        profile.email,
+        tokenRow?.token ? `${planPath}#call-script` : planPath,
+        siteUrl,
+      );
 
       const html = renderNavigatorEmail({
         body: letter,
         planUrl,
         unsubscribeUrl: careUnsubscribeUrl(profileId),
+        call: navigator.pick?.contactPhone ? { phone: navigator.pick.contactPhone } : null,
       });
 
       // Same governed type as the old B1 email: the family nudge caps, DNC

@@ -74,6 +74,13 @@ export default async function BenefitsResultsPage({
   const meta = bundle.profile.metadata || {};
   const relationship =
     (meta.relationship_to_recipient as string) || (meta.relationship as string) || null;
+  const cascade = readBenefitsCascade(meta);
+  // Letter/page coherence (TJ design 2026-07-29): once a navigator letter went
+  // out naming a program, this page pins its hero to THAT program.
+  const pinnedProgramId =
+    cascade.first_step_sent_at && cascade.first_step_program_id
+      ? cascade.first_step_program_id
+      : null;
 
   // ── Phase 3: real facts re-rank the matches ──────────────────────────
   // When the family has given eligibility facts (age band / Medicaid /
@@ -103,6 +110,17 @@ export default async function BenefitsResultsPage({
         program: r.item,
         reason: r.verdict.reason || "Not a match for your situation",
       }));
+      // Never contradict a sent letter: if a late-arriving fact ruled out the
+      // program TJ's letter named, keep it in the visible list — a hero that
+      // says "call X" above a bucket that says "X is probably not a fit"
+      // is disorientation at the exact moment we promised orientation.
+      if (pinnedProgramId) {
+        const idx = ruledOut.findIndex((r) => r.program.id === pinnedProgramId);
+        if (idx >= 0) {
+          matches = [ruledOut[idx].program, ...matches];
+          ruledOut.splice(idx, 1);
+        }
+      }
     } catch (err) {
       // Ranking is an enhancement — the unranked list is never worth a 500.
       console.error("[/m] eligibility re-rank failed:", err);
@@ -148,6 +166,9 @@ export default async function BenefitsResultsPage({
         accountId: profileRow.account_id,
         stateAbbrev: bundle.token.state_code,
         facts,
+        pin: pinnedProgramId
+          ? { programId: pinnedProgramId, stateId: cascade.first_step_state_id || null }
+          : null,
       });
       // "Up next" for the living journey — computed eagerly because the client
       // flips to done optimistically and needs it without a reload.
@@ -196,7 +217,8 @@ export default async function BenefitsResultsPage({
       }}
       firstStep={firstStep}
       callScript={firstStep ? buildCallScript(firstStep.shortName, relationship) : null}
-      cascade={readBenefitsCascade(meta)}
+      cascade={cascade}
+      textTjNumber={meta.sms_consent ? process.env.TWILIO_FROM_NUMBER || null : null}
     />
   );
 }

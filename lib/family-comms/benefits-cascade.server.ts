@@ -306,9 +306,25 @@ export async function selectFirstStepProgram(
     /** The family's benefits facts (familyBenefitsFacts over their profile).
      *  Omitted or fact-free → no eligibility screening, selection unchanged. */
     facts?: FamilyBenefitsFacts | null;
+    /** Pin to the program a SENT navigator letter named (benefits_cascade
+     *  first_step_program_id/state_id). Once TJ told the family "start with
+     *  X", the plan page must show X — recomputing could greet them with a
+     *  different program than the letter promised. Bypasses the eligibility
+     *  screen deliberately: TJ approved the letter, and contradicting it is
+     *  worse than a soft rule firing late. Falls through to the normal
+     *  ladder when the pinned program has no callable content. */
+    pin?: { programId: string; stateId: string | null } | null;
   },
 ): Promise<FirstStepPick | null> {
   const excluded = new Set(opts.exclude || []);
+
+  if (opts.pin?.programId && opts.pin.stateId && opts.stateAbbrev && !excluded.has(opts.pin.programId)) {
+    const pinnedDraft = draftFor(opts.stateAbbrev, opts.pin.programId);
+    if (pinnedDraft) {
+      const pinned = toPick(pinnedDraft, opts.stateAbbrev, opts.pin.stateId, "saved");
+      if (pinned) return pinned;
+    }
+  }
 
   // Eligibility screen (conservative: unknown facts and unjoined programs
   // always pass). sbf rows load once, only when there are facts to apply.

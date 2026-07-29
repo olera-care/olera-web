@@ -302,10 +302,22 @@ export function pickSnapshot(pick: FirstStepPick): NonNullable<BenefitsNavigator
 // the senior audience, paragraphs as written, one plan link appended
 // deterministically (the model never writes links), unsubscribe footer.
 
+/** tel: href from a human-formatted phone ("2-1-1", "1-877-541-7905"). */
+function telHref(phone: string): string {
+  const digits = phone.replace(/[^\d]/g, "");
+  if (digits.length === 10) return `tel:+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `tel:+${digits}`;
+  return `tel:${digits}`;
+}
+
 export function renderNavigatorEmail(opts: {
   body: string;
   planUrl: string;
   unsubscribeUrl: string;
+  /** The letter's one action, made tappable (TJ design 2026-07-29): a
+   *  70-year-old reading on her phone should never have to memorize a number
+   *  and dial it herself. Colors mirror the /m hero for continuity. */
+  call?: { phone: string } | null;
 }): string {
   const paragraphs = opts.body
     .split(/\n{2,}/)
@@ -318,9 +330,13 @@ export function renderNavigatorEmail(opts: {
           .replace(/\n/g, "<br/>")}</p>`,
     )
     .join("\n");
+  const callButton = opts.call
+    ? `
+  <a href="${telHref(opts.call.phone)}" style="display: block; margin: 24px 0 0; padding: 15px 20px; background: #33261e; color: #f7f3ee; text-align: center; border-radius: 12px; font-size: 17px; font-weight: bold; text-decoration: none; font-family: Arial, sans-serif;">Call ${opts.call.phone}</a>`
+    : "";
   return `
 <div style="max-width: 560px; margin: 0 auto; padding: 32px 24px; font-family: Georgia, 'Times New Roman', serif;">
-  ${paragraphs}
+  ${paragraphs}${callButton}
   <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
     Everything above is also written down for you here:
     <a href="${opts.planUrl}" style="color: #0f766e;">your plan page</a>.

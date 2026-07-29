@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 
 /**
@@ -53,6 +53,17 @@ export default function JourneyActions(props: JourneyActionsProps) {
   const [saveError, setSaveError] = useState(false);
 
   const phoneHref = `tel:${hero.phone.replace(/[^\d+]/g, "")}`;
+
+  // The navigator letter links here with #call-script ("the script is written
+  // on your plan page"). Landing on a CLOSED <details> would break that
+  // promise — open it and bring it into view when the fragment matches.
+  const scriptRef = useRef<HTMLDetailsElement | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#call-script" && scriptRef.current) {
+      scriptRef.current.open = true;
+      scriptRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
 
   const post = useCallback(
     async (body: Record<string, unknown>) => {
@@ -128,11 +139,11 @@ export default function JourneyActions(props: JourneyActionsProps) {
         <>
           <section className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
             <p className="text-[15px] font-semibold text-emerald-900">
-              &#10003; You started {hero.shortName}
+              &#10003; That call is the hardest step. Well done.
             </p>
             <p className="mt-1 text-[14px] leading-relaxed text-emerald-800">
-              That was the hard part. Agencies usually follow up by mail or phone; keep an eye
-              out, and your{" "}
+              You started {hero.shortName}. Agencies usually follow up by mail or phone; keep an
+              eye out, and your{" "}
               <Link href={hero.programPath} className="underline underline-offset-2">
                 program guide
               </Link>{" "}
@@ -170,7 +181,7 @@ export default function JourneyActions(props: JourneyActionsProps) {
 
       {/* ── What to say (hidden once done) ───────────────────────────── */}
       {!done && callScript && (
-        <details className="mt-5 border-b border-gray-200 pb-4">
+        <details ref={scriptRef} id="call-script" className="mt-5 border-b border-gray-200 pb-4">
           <summary className="cursor-pointer list-none text-[15px] font-semibold text-gray-900 [&::-webkit-details-marker]:hidden">
             What to say when they answer <span className="text-gray-400">›</span>
           </summary>

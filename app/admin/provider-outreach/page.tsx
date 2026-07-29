@@ -287,6 +287,8 @@ function ProviderContactEditor({
   isEmailOverridden,
   onCallRecorded,
   isCallRecorded,
+  onWarningSkipped,
+  isWarningSkipped,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -304,6 +306,10 @@ function ProviderContactEditor({
   onCallRecorded?: () => void;
   /** Whether call has been recorded for this provider */
   isCallRecorded?: boolean;
+  /** Callback when warning is skipped/dismissed */
+  onWarningSkipped?: () => void;
+  /** Whether warning was skipped for this provider */
+  isWarningSkipped?: boolean;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -338,8 +344,8 @@ function ProviderContactEditor({
   const [isRecordingCall, setIsRecordingCall] = useState(false);
   const [callRecordError, setCallRecordError] = useState(false);
 
-  // Check if this is a generic email
-  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded;
+  // Check if this is a generic email (show warning unless called or skipped)
+  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded && !isWarningSkipped;
 
   // Record "I called" touchpoint
   const handleRecordCall = async () => {
@@ -746,6 +752,17 @@ function ProviderContactEditor({
                 >
                   {isRecordingCall ? "..." : callRecordError ? "Retry" : "I called"}
                 </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onWarningSkipped?.();
+                  }}
+                  className="shrink-0 px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
+                  title="Dismiss warning - proceed without calling"
+                >
+                  Skip
+                </button>
               </>
             )}
             {/* Show "Called" checkmark if call was recorded */}
@@ -850,6 +867,8 @@ function CityRow({
 
   // Track providers where admin has recorded a call (for generic email warning)
   const [calledProviders, setCalledProviders] = useState<Set<string>>(new Set());
+  // Track providers where admin skipped the generic email warning
+  const [skippedWarnings, setSkippedWarnings] = useState<Set<string>>(new Set());
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
   const cityProviders = useMemo(
@@ -1222,6 +1241,8 @@ function CityRow({
                             isEmailOverridden={provider.is_email_overridden}
                             isCallRecorded={calledProviders.has(provider.provider_id)}
                             onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
+                            isWarningSkipped={skippedWarnings.has(provider.provider_id)}
+                            onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (

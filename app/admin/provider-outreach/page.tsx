@@ -2317,6 +2317,36 @@ export default function ProviderOutreachPage() {
   // Stats section expanded state
   const [statsExpanded, setStatsExpanded] = useState(false);
 
+  // Email performance stats section
+  const [emailStatsExpanded, setEmailStatsExpanded] = useState(false);
+  const [emailStats, setEmailStats] = useState<{
+    templates: Array<{
+      template_key: string;
+      name: string;
+      sequence_step: number | null;
+      sent: number;
+      opened: number;
+      open_rate: number;
+      clicked: number;
+      click_rate: number;
+    }>;
+    totals: {
+      sent: number;
+      opened: number;
+      open_rate: number;
+      clicked: number;
+      click_rate: number;
+    };
+    period_days: number;
+  } | null>(null);
+  const [emailStatsLoading, setEmailStatsLoading] = useState(false);
+  const [emailStatsError, setEmailStatsError] = useState(false);
+
+  // Email template preview
+  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
 
@@ -2402,6 +2432,11 @@ export default function ProviderOutreachPage() {
       total: number;
       valid: number;
       invalid: number;
+    };
+    sender?: {
+      engine: "smartlead" | "resend";
+      from: string;
+      senders: string[];
     };
   } | null>(null);
   const [sequencePreviewLoading, setSequencePreviewLoading] = useState(false);
@@ -2523,8 +2558,13 @@ export default function ProviderOutreachPage() {
   };
 
   // Fetch sequence preview from launch-sequence API
+  // Preview is limited to first 100 providers (API limit) - launch handles full batching
   const fetchSequencePreview = useCallback(async (providerIds: string[]) => {
     if (providerIds.length === 0) return;
+
+    // Limit preview to first 100 providers to avoid API limit
+    // The launch function handles batching for the full list
+    const previewIds = providerIds.slice(0, 100);
 
     setSequencePreviewLoading(true);
     setSequencePreviewError(null);
@@ -2532,7 +2572,7 @@ export default function ProviderOutreachPage() {
       const res = await fetch("/api/admin/provider-outreach/launch-sequence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_ids: providerIds, dry_run: true }),
+        body: JSON.stringify({ provider_ids: previewIds, dry_run: true }),
       });
 
       if (res.ok) {
@@ -2809,6 +2849,56 @@ export default function ProviderOutreachPage() {
     const interval = setInterval(fetchGlobalFollowUps, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Effect: fetch email performance stats when section is expanded
+  useEffect(() => {
+    if (!emailStatsExpanded || emailStats) return; // Only fetch once when first expanded
+
+    const fetchEmailStats = async () => {
+      setEmailStatsLoading(true);
+      setEmailStatsError(false);
+      try {
+        const res = await fetch("/api/admin/provider-outreach/email-stats?days=30");
+        if (res.ok) {
+          const data = await res.json();
+          setEmailStats(data);
+        } else {
+          setEmailStatsError(true);
+        }
+      } catch (err) {
+        console.error("Failed to fetch email stats:", err);
+        setEmailStatsError(true);
+      } finally {
+        setEmailStatsLoading(false);
+      }
+    };
+    fetchEmailStats();
+  }, [emailStatsExpanded, emailStats]);
+
+  // Effect: fetch email template preview when a template is selected
+  useEffect(() => {
+    if (!previewTemplate) {
+      setPreviewHtml(null);
+      return;
+    }
+
+    const fetchPreview = async () => {
+      setPreviewLoading(true);
+      setPreviewHtml(null); // Clear old preview while loading new one
+      try {
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPreviewHtml(data.html);
+        }
+      } catch (err) {
+        console.error("Failed to fetch template preview:", err);
+      } finally {
+        setPreviewLoading(false);
+      }
+    };
+    fetchPreview();
+  }, [previewTemplate]);
 
   // Effect: fetch provider counts when Add State modal opens
   useEffect(() => {
@@ -3561,6 +3651,132 @@ export default function ProviderOutreachPage() {
           )}
         </div>
       )}
+
+      {/* Email Performance Section */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg
+            className={`w-4 h-4 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span>Email Performance</span>
+          <span className="text-xs text-gray-400">(Last 30 days)</span>
+        </button>
+
+        {emailStatsExpanded && (
+          <div className="mt-4 space-y-6">
+            {/* Stats Table */}
+            {emailStatsLoading ? (
+              <div className="text-sm text-gray-500">Loading email stats...</div>
+            ) : emailStatsError ? (
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-red-600">Failed to load email stats</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmailStats(null);
+                    setEmailStatsError(false);
+                  }}
+                  className="text-teal-700 hover:underline"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : emailStats ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 pr-4 font-medium text-gray-600">Template</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Sent</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Opened</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Open %</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Clicked</th>
+                      <th className="text-right py-2 pl-3 font-medium text-gray-600">Click %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emailStats.templates.map((t) => (
+                      <tr key={t.template_key} className="border-b border-gray-100">
+                        <td className="py-2 pr-4 text-gray-900">{t.name}</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.sent.toLocaleString()}</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.opened.toLocaleString()}</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.open_rate}%</td>
+                        <td className="py-2 px-3 text-right text-gray-700">{t.clicked.toLocaleString()}</td>
+                        <td className="py-2 pl-3 text-right text-gray-700">{t.click_rate}%</td>
+                      </tr>
+                    ))}
+                    <tr className="font-medium bg-gray-50">
+                      <td className="py-2 pr-4 text-gray-900">Total</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.sent.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.opened.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.open_rate}%</td>
+                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.clicked.toLocaleString()}</td>
+                      <td className="py-2 pl-3 text-right text-gray-900">{emailStats.totals.click_rate}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500">No email data available</div>
+            )}
+
+            {/* Template Preview */}
+            <div className="border-t border-gray-200 pt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm font-medium text-gray-700">Preview template:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { key: "intro", label: "Day 0" },
+                    { key: "followup", label: "Day 3" },
+                    { key: "demand_loss", label: "Day 7" },
+                    { key: "final", label: "Day 14" },
+                    { key: "nudge", label: "Nudge" },
+                  ].map((t) => (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() => setPreviewTemplate(previewTemplate === t.key ? null : t.key)}
+                      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                        previewTemplate === t.key
+                          ? "bg-gray-900 text-white"
+                          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {previewTemplate && (
+                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                  {previewLoading ? (
+                    <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview...</div>
+                  ) : previewHtml ? (
+                    <iframe
+                      srcDoc={previewHtml}
+                      title="Email preview"
+                      className="w-full h-[480px] bg-white"
+                      sandbox=""
+                    />
+                  ) : (
+                    <div className="px-4 py-8 text-center text-sm text-gray-400">Could not load preview</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Action Bar (when items selected) - hidden during search since providers may be from different stages */}
       {selectedProviders.size > 0 && !isSearchResult && (
@@ -4602,7 +4818,21 @@ export default function ProviderOutreachPage() {
                         <span className="font-medium">{sequencePreviewData.summary.invalid}</span> missing email
                       </span>
                     )}
+                    {sequencePreviewData.sender && (
+                      <span className={`ml-auto px-2 py-0.5 rounded text-xs font-medium ${
+                        sequencePreviewData.sender.engine === "smartlead"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}>
+                        via {sequencePreviewData.sender.engine === "smartlead" ? "SmartLead" : "Resend"}
+                      </span>
+                    )}
                   </div>
+                  {sequenceConfirmProviders.length > 100 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Preview shows first 100 of {sequenceConfirmProviders.length} providers. All will be processed in batches when launched.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -4772,7 +5002,7 @@ export default function ProviderOutreachPage() {
                                 </div>
                                 <div className="text-xs text-gray-500 space-y-0.5">
                                   <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
-                                  <p><span className="font-medium text-gray-600">From:</span> Dr. Logan DuBose · Olera &lt;noreply@oleracare.com&gt;</p>
+                                  <p><span className="font-medium text-gray-600">From:</span> {sequencePreviewData?.sender?.from ?? "Dr. Logan DuBose · Olera <noreply@oleracare.com>"}</p>
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>

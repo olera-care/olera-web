@@ -141,6 +141,13 @@ export default function AdminEmailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [emailType, setEmailType] = useState("");
+
+  // Deep links (Text campaigns panel, automations detail) arrive as
+  // ?email_type=… — seed the filter once on mount so the link actually filters.
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get("email_type");
+    if (t) setEmailType(t);
+  }, []);
   const [recipientType, setRecipientType] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");

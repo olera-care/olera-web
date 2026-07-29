@@ -383,7 +383,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "benefits-results-texts",
     name: "Benefits results texts",
     description:
-      "Fires alongside the results email when a new family finishes the benefits quiz with a phone on file: a match-count text with their magic results link, or the honest \"saved, still looking\" zero-state. Their first text from us, so it carries Reply STOP. Not logged to email_log — Twilio (the Family Comms delivery panel) is the record.",
+      "Fires alongside the results email when a new family finishes the benefits quiz with a phone on file: a match-count text with their magic results link, or the honest \"saved, still looking\" zero-state. Their first text from us, so it carries Reply STOP. Logged to email_log as benefits_results_sms (channel='sms'); Twilio (the Family Comms delivery panel) remains the delivery-status record.",
     recipientCohort: "New families who completed the benefits quiz and provided a phone (V3 phone-as-optional flow).",
     audience: "Care seekers",
     fn: "event",
@@ -392,6 +392,7 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/admin/family-comms",
     emailTypes: [],
     channels: ["sms"],
+    smsTypes: ["benefits_results_sms"],
     successSignal: "The family opens their results link and starts a program brief or provider search.",
     relatedAdminPath: "/admin/benefits",
   },
@@ -427,7 +428,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "family-comms-coordinator",
     name: "Family comms coordinator — help-cascade arbiter",
     description:
-      "The family-side arbitration brain. One daily cron that picks the single highest-priority message per family per cycle via a fixed ladder: connection rungs (outcome-check → archetype → provider-silent+alternatives → never-engaged → awaiting-match → pending reach-out), then the BENEFITS CASCADE (B1 ten-minute first step at intake+2-3d; B2 check-in at first-step+3d, which retargets to a congratulation when the family marked the call done on their /m plan page; both send a consent-gated SMS mirror alongside the email), then the completion track (Track 2 — suppressed for benefits families while their cascade is in flight). Global stops for unsubscribed / self-reported-yes / active live threads. Sends flow through the per-family nudge cap; ?dry_run=true returns the per-family selection without sending. Run records show per-rung counts (byRung.benefits_first_step etc.).",
+      "The family-side arbitration brain. One daily cron that picks the single highest-priority message per family per cycle via a fixed ladder: connection rungs (outcome-check → archetype → provider-silent+alternatives → never-engaged → awaiting-match → pending reach-out), then the BENEFITS CASCADE (B1 is now the NAVIGATOR DRAFT QUEUE: at intake+2-10d it composes a personal TJ-signed first-step letter and parks it in /admin/benefits — nothing sends until TJ approves it there; B2 check-in fires at first-step+3d after the REAL send, retargeting to a congratulation when the family marked the call done on their /m plan page; the sent letter and B2 both send a consent-gated SMS mirror), then the completion track (Track 2 — suppressed for benefits families while their cascade is in flight). Global stops for unsubscribed / self-reported-yes / active live threads. Sends flow through the per-family nudge cap; ?dry_run=true returns the per-family selection without sending or composing. Run records show per-rung counts (byRung.benefits_navigator_draft, byRung.benefits_check_in etc.).",
     recipientCohort:
       "Every family with an open inquiry/request connection PLUS every benefits-intake family (cascade rungs) PLUS incomplete profiles (completion track); at most one governed email per family per run, chosen by the ladder. SMS mirrors require stored phone + sms_consent.",
     audience: "Care seekers",
@@ -451,6 +452,8 @@ export const CRON_REGISTRY: CronJob[] = [
       "completion_nudge_4",
       "completion_maintenance",
     ],
+    channels: ["email", "sms"],
+    smsTypes: ["benefits_first_step_sms", "benefits_check_in_sms"],
     successSignal: "Family is meaningfully helped (responds, reaches an alternative, starts a benefits application, completes, or publishes).",
     relatedAdminPath: "/admin/benefits",
   },

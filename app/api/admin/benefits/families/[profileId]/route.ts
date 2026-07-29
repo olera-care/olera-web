@@ -5,6 +5,16 @@ import {
   readBenefitsCase,
   type BenefitsCaseMeta,
 } from "@/lib/family-comms/benefits-cascade.server";
+import {
+  readBenefitsNavigator,
+  renderNavigatorEmail,
+} from "@/lib/family-comms/benefits-navigator.server";
+import { sendEmail } from "@/lib/email";
+import { careUnsubscribeUrl } from "@/lib/email-templates";
+import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
+import { getSiteUrl } from "@/lib/site-url";
+import { sendSMS } from "@/lib/twilio";
+import { benefitsFirstStepSms } from "@/lib/sms/templates";
 
 /**
  * Per-family case endpoints for the Benefits caseload view
@@ -109,6 +119,32 @@ export async function GET(
     push(cascade.first_step_sms_at, "sms", "First-step text sent");
     push(cascade.check_sms_at, "sms", "Check-in text sent");
 
+    // Outbound texts from the send ledger (TJ QA 2026-07-29: the instant
+    // results text was invisible here — only a suffix on the enriched row).
+    // SMS ledger rows carry provider_id = the family profile, so this catches
+    // texts the metadata stamps don't cover. Mirror types are skipped (their
+    // stamps above already render them); rows predating the ledger (before
+    // 2026-07-29) never got logged, so old families won't show these.
+    {
+      const { data: smsLogs } = await db
+        .from("email_log")
+        .select("email_type, created_at, status")
+        .eq("channel", "sms")
+        .eq("provider_id", profileId)
+        .eq("status", "sent")
+        .order("created_at");
+      for (const l of smsLogs ?? []) {
+        if (l.email_type === "benefits_results_sms") {
+          push(l.created_at, "sms", "Results link texted");
+        } else if (
+          l.email_type !== "benefits_first_step_sms" &&
+          l.email_type !== "benefits_check_in_sms"
+        ) {
+          push(l.created_at, "sms", `Text sent (${l.email_type})`);
+        }
+      }
+    }
+
     // Inbound texts (webhook persists every reply — metadata.sms_inbound)
     const inbound = Array.isArray(meta.sms_inbound)
       ? (meta.sms_inbound as { at?: string; body?: string; keyword?: string | null }[])
@@ -158,8 +194,14 @@ export async function GET(
     push(caseMeta.contacted_at, "case", "Marked contacted");
     push(caseMeta.resolved_at, "case", "Marked resolved");
 
+    // Navigator letter lifecycle
+    const navigator = readBenefitsNavigator(meta);
+    push(navigator.composed_at, "navigator", "Navigator letter drafted", navigator.pick?.shortName);
+    push(navigator.sent_at, "navigator", "Navigator letter sent by TJ");
+    push(navigator.dismissed_at, "navigator", "Navigator draft dismissed");
+
     events.sort((a, b) => a.at.localeCompare(b.at));
-    return NextResponse.json({ events, caseMeta });
+    return NextResponse.json({ events, caseMeta, navigator });
   } catch (err) {
     console.error("Admin benefits timeline error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -255,19 +297,225 @@ export async function POST(
     const { profileId } = await params;
     const body = await request.json();
     const action: string = body.action || "";
-    if (!["note", "contacted", "resolved", "reopen"].includes(action)) {
+    if (
+      !["note", "contacted", "resolved", "reopen", "navigator_send", "navigator_dismiss", "navigator_test"].includes(
+        action,
+      )
+    ) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
     const db = getServiceClient();
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, metadata")
+      .select("id, email, phone, phone_validity, metadata")
       .eq("id", profileId)
       .maybeSingle();
     if (!profile) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const meta = (profile.metadata as Record<string, unknown>) || {};
+
+    // ── Navigator actions: send (through governance), test-send, or dismiss ──
+    if (
+      action === "navigator_send" ||
+      action === "navigator_dismiss" ||
+      action === "navigator_test"
+    ) {
+      const navigator = readBenefitsNavigator(meta);
+      if (navigator.status !== "pending" || !navigator.body) {
+        return NextResponse.json({ error: "No pending draft for this family" }, { status: 409 });
+      }
+      const now = new Date().toISOString();
+
+      if (action === "navigator_dismiss") {
+        const next = { ...navigator, status: "dismissed" as const, dismissed_at: now };
+        const { error: dErr } = await db
+          .from("business_profiles")
+          .update({ metadata: { ...meta, benefits_navigator: next } })
+          .eq("id", profileId);
+        if (dErr) return NextResponse.json({ error: "Save failed" }, { status: 500 });
+        return NextResponse.json({ success: true, navigator: next });
+      }
+
+      // Both send paths honor TJ's drawer edits.
+      const subject =
+        typeof body.subject === "string" && body.subject.trim()
+          ? body.subject.trim().slice(0, 150)
+          : navigator.subject || "Your first step";
+      const letter =
+        typeof body.body === "string" && body.body.trim().length >= 40
+          ? body.body.trim()
+          : navigator.body;
+
+      const siteUrl = getSiteUrl();
+      const { data: tokenRow } = await db
+        .from("benefits_results_tokens")
+        .select("token")
+        .eq("profile_id", profileId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const planPath = tokenRow?.token
+        ? `/m/${tokenRow.token}`
+        : navigator.pick?.programPath || "/benefits";
+
+      // navigator_test — the exact email, delivered to a reviewer's inbox.
+      // Consumes nothing: no cascade stamps, no navigator status change, no
+      // SMS, no governed email type (so no cap slot). The plan link is the
+      // DIRECT token URL, not the signed-in-arrival wrapper — a magic link
+      // that signs the reviewer in as the family has no business in a test
+      // inbox. Defaults to the signed-in admin's own email.
+      if (action === "navigator_test") {
+        const testEmail =
+          typeof body.testEmail === "string" && /^\S+@\S+\.\S+$/.test(body.testEmail.trim())
+            ? body.testEmail.trim()
+            : user.email || null;
+        if (!testEmail) {
+          return NextResponse.json({ error: "No test email to send to" }, { status: 400 });
+        }
+        const testHtml = renderNavigatorEmail({
+          body: letter,
+          planUrl: `${siteUrl}${planPath}${tokenRow?.token ? "#call-script" : ""}`,
+          unsubscribeUrl: careUnsubscribeUrl(profileId),
+          call: navigator.pick?.contactPhone ? { phone: navigator.pick.contactPhone } : null,
+        });
+        const testResult = await sendEmail({
+          to: testEmail,
+          subject: `[Test] ${subject}`,
+          html: testHtml,
+          emailType: "navigator_test",
+          recipientType: "admin",
+          metadata: { navigator_test: true, family_profile_id: profileId },
+        });
+        if (!testResult.success || testResult.skipped) {
+          return NextResponse.json(
+            { error: `Test send failed: ${testResult.skipReason || testResult.error || "unknown"}` },
+            { status: 502 },
+          );
+        }
+        return NextResponse.json({ success: true, sentTo: testEmail });
+      }
+
+      // navigator_send — the real thing.
+      if (!profile.email) {
+        return NextResponse.json({ error: "Family has no email on file" }, { status: 409 });
+      }
+      // #call-script lands the family on the opened script section — the
+      // letter says "the script is written on your plan page", so the tap
+      // should keep that promise, not drop them at the top to go hunting.
+      const planUrl = generateFamilyInboxUrl(
+        profile.email,
+        tokenRow?.token ? `${planPath}#call-script` : planPath,
+        siteUrl,
+      );
+
+      const html = renderNavigatorEmail({
+        body: letter,
+        planUrl,
+        unsubscribeUrl: careUnsubscribeUrl(profileId),
+        call: navigator.pick?.contactPhone ? { phone: navigator.pick.contactPhone } : null,
+      });
+
+      // Same governed type as the old B1 email: the family nudge caps, DNC
+      // kill switch, and suppression checks all apply inside sendEmail.
+      const result = await sendEmail({
+        to: profile.email,
+        subject,
+        html,
+        emailType: "benefits_first_step",
+        recipientType: "family",
+        recipientProfileId: profileId,
+        replyTo: process.env.BENEFITS_NAVIGATOR_REPLY_TO || undefined,
+        listUnsubscribeUrl: careUnsubscribeUrl(profileId),
+        metadata: { navigator: true, program_id: navigator.pick?.programId || null },
+      });
+      if (!result.success || result.skipped) {
+        return NextResponse.json(
+          { error: `Send blocked: ${result.skipReason || result.error || "unknown"}` },
+          { status: 409 },
+        );
+      }
+
+      // Stamp the cascade exactly as the old B1 rung did — B2 keys off
+      // first_step_sent_at, so the check-in schedules 3d after the REAL send.
+      const cascade = readBenefitsCascade(meta);
+      const nextCascade = {
+        ...cascade,
+        first_step_sent_at: now,
+        first_step_program_id: navigator.pick?.programId,
+        first_step_state_id: navigator.pick?.stateId || undefined,
+        first_step_program_name: navigator.pick?.shortName,
+      };
+      const nextNavigator = {
+        ...navigator,
+        status: "sent" as const,
+        sent_at: now,
+        sent_subject: subject,
+        sent_body: letter,
+      };
+
+      // Consent-gated SMS companion, same gate as the coordinator's cascade
+      // mirror (phone + sms_consent + not opted out). Body preference: TJ's
+      // edited text from the drawer, then the composed TJ-voiced draft, then
+      // the old template as the fallback. The composed text carries a {link}
+      // placeholder (direct URL, not a magic link — SMS length budget) and the
+      // STOP suffix is appended here so the model never writes compliance
+      // copy. Awaited: Vercel kills pending promises after the response.
+      const smsEligible =
+        !!profile.phone && !!meta.sms_consent && profile.phone_validity !== "opted_out";
+      if (smsEligible && profile.phone && navigator.pick) {
+        const smsPlanUrl = `${siteUrl}${planPath}`;
+        const editedSms =
+          typeof body.sms === "string" && body.sms.trim().length >= 20
+            ? body.sms.trim().slice(0, 400)
+            : null;
+        const draftSms = editedSms || navigator.sms || null;
+        // Append the opt-out line only when it isn't already there (the model
+        // is told not to write it, but a disobedient draft or a TJ edit that
+        // includes it must not produce a doubled STOP line).
+        const stopSuffix = draftSms && /reply stop/i.test(draftSms) ? "" : " Reply STOP to opt out.";
+        const smsBody = draftSms
+          ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)}${stopSuffix}`
+          : benefitsFirstStepSms({
+              programShortName: navigator.pick.shortName,
+              phone: navigator.pick.contactPhone,
+              topDocs: navigator.pick.documents,
+              url: `${siteUrl}${navigator.pick.programPath}`,
+            });
+        const sms = await sendSMS({
+          to: profile.phone,
+          body: smsBody,
+          emailType: "benefits_first_step_sms",
+          recipientType: "family",
+          recipientLogProfileId: profileId,
+        });
+        if (sms.success && !sms.skipped) {
+          (nextCascade as Record<string, unknown>).first_step_sms_at = now;
+          (nextNavigator as Record<string, unknown>).sent_sms = smsBody;
+        } else if (sms.error?.includes("21610")) {
+          await db
+            .from("business_profiles")
+            .update({ phone_validity: "opted_out" })
+            .eq("id", profileId);
+        }
+      }
+
+      const { error: sErr } = await db
+        .from("business_profiles")
+        .update({
+          metadata: { ...meta, benefits_cascade: nextCascade, benefits_navigator: nextNavigator },
+        })
+        .eq("id", profileId);
+      if (sErr) {
+        // The email went out; a failed stamp must be visible, not silent.
+        console.error("[navigator send] email sent but stamp failed:", sErr);
+        return NextResponse.json(
+          { error: "Email sent, but recording it failed. Refresh before retrying." },
+          { status: 500 },
+        );
+      }
+      return NextResponse.json({ success: true, navigator: nextNavigator });
+    }
     const caseMeta = readBenefitsCase(meta);
     const now = new Date().toISOString();
     const by = adminUser.display_name || user.email || "admin";

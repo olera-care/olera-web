@@ -16,6 +16,8 @@ import {
   newInquirySms,
   pendingInquirySms,
   benefitsResultsSms,
+  benefitsFirstStepSms,
+  benefitsCheckInSms,
   medjobsApplicationSms,
   verificationCodeSms,
   smsHelpReply,
@@ -164,7 +166,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
     audience: "family",
     group: "Family · Benefits results",
     label: "Benefits results — matches found",
-    emailType: null,
+    emailType: "benefits_results_sms",
     trigger: "Benefits quiz completed with ≥1 program match and a phone provided (fires alongside the results email)",
     who: "A new family who finished the benefits quiz, matched at least one program, and gave a phone number (phone-as-optional V3 flow).",
     why: "The results link is the payoff of the quiz they just took — the magic-token URL (/m/…) signs them straight in. Relationship-aware phrasing ('your mom') within the 160-char budget. Carries 'Reply STOP to opt out' since it's their first text from us.",
@@ -177,12 +179,74 @@ export const SMS_VARIANTS: SmsVariant[] = [
     audience: "family",
     group: "Family · Benefits results",
     label: "Benefits results — saved, no match yet",
-    emailType: null,
+    emailType: "benefits_results_sms",
     trigger: "Benefits quiz completed with zero program matches and a phone provided",
     who: "Same moment as the match text, for families whose answers matched no program yet.",
     why: "An honest zero-state: their search is saved and we keep looking, rather than silence after they handed us a phone number.",
     render: () =>
       benefitsResultsSms({ matchCount: 0, familyPhrase: "your mom", url: "https://olera.care/m/sample" }),
+  },
+
+  // ─────────────── Family · Benefits cascade (coordinator B1/B2 mirrors) ───────────────
+  {
+    id: "sms_benefits_first_step",
+    cron: "family-comms-coordinator",
+    audience: "family",
+    group: "Family · Benefits cascade",
+    label: "First step — navigator companion text",
+    emailType: "benefits_first_step_sms",
+    trigger: "TJ approves and sends a navigator letter from /admin/benefits and the family has a stored phone + sms_consent — the text goes out alongside the email",
+    who: "A benefits-intake family who gave us their number and tapped the text consent ask (enrichment step 4 or the wants-help page). Consent is required — a phone alone never gets this.",
+    why: "The doorbell for the letter: most sends are a TJ-voiced companion text drafted per family with the letter (editable in the drawer, 'text me back' invite, plan link). This preview shows the TEMPLATE FALLBACK used when no companion text was drafted.",
+    gates: [
+      "Requires stored phone + explicit sms_consent (10DLC posture) — never phone presence alone",
+      "Skipped when phone_validity = opted_out (family texted STOP)",
+      "Only sends when TJ sends the navigator letter — never standalone",
+      "Not a governed cap slot of its own: the email's cap slot covers the touch",
+    ],
+    render: () =>
+      benefitsFirstStepSms({
+        programShortName: "LIHEAP",
+        phone: "1-877-555-0142",
+        topDocs: ["Photo ID", "A recent utility bill"],
+        url: "https://olera.care/m/sample",
+      }),
+  },
+  {
+    id: "sms_benefits_check_in",
+    cron: "family-comms-coordinator",
+    audience: "family",
+    group: "Family · Benefits cascade",
+    label: "Check-in (day 5-6) — B2 mirror",
+    emailType: "benefits_check_in_sms",
+    trigger: "The coordinator's B2 rung fires (first step +3d) and the family is text-reachable — mirrors the check-that's-an-offer email",
+    who: "Same consent-gated audience as the first-step mirror, three days after B1.",
+    why: "The check-in's one-tap ask, on the channel they actually open. Links to the living plan (/m) where the taps are captured — never a reply-parse dependency.",
+    gates: [
+      "Requires stored phone + explicit sms_consent (10DLC posture)",
+      "Skipped when phone_validity = opted_out",
+      "Only sends when the B2 email itself sends",
+    ],
+    render: () =>
+      benefitsCheckInSms({ programShortName: "LIHEAP", url: "https://olera.care/m/sample", done: false }),
+  },
+  {
+    id: "sms_benefits_check_in_done",
+    cron: "family-comms-coordinator",
+    audience: "family",
+    group: "Family · Benefits cascade",
+    label: "Check-in — already made the call (retargeted)",
+    emailType: "benefits_check_in_sms",
+    trigger: "B2 fires for a family who already tapped \"I made the call\" on their /m plan — congratulate instead of asking",
+    who: "The consent-gated B2 audience whose benefits_cascade.first_step_done_at is set.",
+    why: "Asking \"how's it going?\" right after they told us they acted reads as not listening. The retarget celebrates the action and points at the next step waiting on their plan.",
+    gates: [
+      "Requires stored phone + explicit sms_consent (10DLC posture)",
+      "Skipped when phone_validity = opted_out",
+      "Only sends when the retargeted B2 email itself sends",
+    ],
+    render: () =>
+      benefitsCheckInSms({ programShortName: "LIHEAP", url: "https://olera.care/m/sample", done: true }),
   },
 
   // ─────────────── Transactional & auto-replies ───────────────
@@ -229,5 +293,6 @@ export const SMS_GROUP_ORDER = [
   "Family · Reply alerts",
   "Provider · Lead alerts",
   "Family · Benefits results",
+  "Family · Benefits cascade",
   "Transactional & auto-replies",
 ] as const;

@@ -10,7 +10,18 @@ import {
   formatGapList,
   getCityViewsBatch,
   PROVIDER_OUTREACH_CADENCE,
+  PROVIDER_OUTREACH_FROM,
 } from "@/lib/provider-outreach";
+import {
+  type ProviderBridgeRow,
+  type ProviderSmartleadData,
+  launchProviderCampaign,
+  enrollProviderIntoCampaign,
+  generateCampaignName,
+  buildProviderSmartleadPreview,
+  resolveProviderMailboxPool,
+} from "@/lib/provider-outreach/smartlead-bridge";
+import { isSmartleadConfigured } from "@/lib/smartlead";
 
 /**
  * POST /api/admin/provider-outreach/launch-sequence
@@ -57,6 +68,8 @@ interface ProviderPreview {
     bodyPreview: string; // First 200 chars of plain text body
     html: string; // Full rendered HTML for preview
   }>;
+  // SmartLead preview (when configured)
+  smartlead_preview?: ReturnType<typeof buildProviderSmartleadPreview>;
 }
 
 export async function POST(request: NextRequest) {
@@ -299,9 +312,55 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Check if SmartLead is configured
+      const useSmartLead = isSmartleadConfigured();
+
+      // SAFEGUARD: If SmartLead is configured, verify prerequisites before proceeding
+      if (useSmartLead) {
+        // Check 1: Verify mailboxes are available
+        const mailboxCheck = await resolveProviderMailboxPool();
+        if (!mailboxCheck.ok) {
+          return NextResponse.json({
+            error: "SmartLead prerequisite check failed",
+            details: {
+              issue: "mailbox_pool",
+              message: mailboxCheck.error,
+              fix: "Ensure PROVIDER_OUTREACH_SMARTLEAD_SENDERS env var is set and those email accounts are connected in SmartLead",
+            },
+            fallback_available: true,
+            fallback_hint: "Set SMARTLEAD_API_KEY to empty to use Resend instead",
+          }, { status: 400 });
+        }
+
+        // Check 2: Verify smartlead_data column exists (migration ran)
+        const { error: schemaError } = await db
+          .from("provider_outreach_tracking")
+          .select("smartlead_data")
+          .limit(1);
+
+        if (schemaError?.message?.includes("smartlead_data")) {
+          return NextResponse.json({
+            error: "SmartLead prerequisite check failed",
+            details: {
+              issue: "database_migration",
+              message: "Column 'smartlead_data' does not exist",
+              fix: "Run migration 069_provider_outreach_smartlead.sql",
+            },
+            fallback_available: true,
+            fallback_hint: "Set SMARTLEAD_API_KEY to empty to use Resend instead",
+          }, { status: 400 });
+        }
+
+        // Log warnings but don't block
+        if (mailboxCheck.pool.warnings.length > 0) {
+          console.warn("[launch-sequence] SmartLead warnings:", mailboxCheck.pool.warnings);
+        }
+      }
+
       // 1. Get or create tracking records and move to in_sequence
       const launchedProviders: string[] = [];
       const failedProviders: Array<{ provider_id: string; error: string }> = [];
+      const trackingRecords: Map<string, { trackingId: string; preview: typeof validPreviews[0] }> = new Map();
 
       for (const preview of validPreviews) {
         try {
@@ -321,7 +380,7 @@ export async function POST(request: NextRequest) {
           // Check if tracking record exists
           const { data: existingTracking } = await db
             .from("provider_outreach_tracking")
-            .select("id, stage, assigned_to")
+            .select("id, stage, assigned_to, smartlead_data")
             .eq("provider_id", preview.provider_id)
             .maybeSingle();
 
@@ -350,13 +409,14 @@ export async function POST(request: NextRequest) {
             const newAssignedTo = existingTracking.assigned_to || effectiveAssignedTo;
 
             // Update to in_sequence with fresh sequence_started_at
-            // (Can't rely on trigger — it only fires if sequence_started_at IS NULL)
+            // Clear smartlead_data for fresh enrollment
             const { error: updateError } = await db
               .from("provider_outreach_tracking")
               .update({
                 stage: "in_sequence",
                 sequence_started_at: new Date().toISOString(),
                 assigned_to: newAssignedTo,
+                smartlead_data: null, // Clear for fresh SmartLead enrollment
               })
               .eq("id", existingTracking.id);
 
@@ -381,10 +441,220 @@ export async function POST(request: NextRequest) {
             trackingId = newTracking.id;
           }
 
-          // 2. Create tasks for each cadence step
+          trackingRecords.set(preview.provider_id, { trackingId, preview });
+        } catch (err) {
+          console.error(`Failed to create tracking for ${preview.provider_id}:`, err);
+          failedProviders.push({
+            provider_id: preview.provider_id,
+            error: err instanceof Error ? err.message : "Unknown error",
+          });
+        }
+      }
+
+      // If SmartLead is configured, enroll via SmartLead
+      // Otherwise, fall back to legacy task-based system
+      if (useSmartLead && trackingRecords.size > 0) {
+        // Group providers by state for per-state campaigns
+        const providersByState = new Map<string, ProviderBridgeRow[]>();
+
+        for (const [providerId, { trackingId, preview }] of trackingRecords) {
+          const state = preview.state || "OTHER";
+
+          // Get the provider data needed for SmartLead
+          const provider = providers?.find((p) => p.provider_id === providerId);
+          if (!provider) continue;
+
+          // Build context for URL generation
+          const context = buildContextFromProvider({
+            provider_id: providerId,
+            name: provider.provider_name,
+            email: provider.email,
+            city: provider.city,
+            state: provider.state,
+            category: provider.provider_category,
+            slug: provider.slug,
+          });
+
+          // Get gap list for this provider
+          const gaps = getProviderGaps({
+            lower_price: provider.lower_price,
+            upper_price: provider.upper_price,
+            contact_for_price: provider.contact_for_price,
+            provider_images: provider.provider_images,
+            phone: provider.phone,
+            provider_description: provider.provider_description,
+          });
+          const gapList = formatGapList(gaps);
+
+          // Get city views
+          const cityViewsKey = `${provider.city}|${provider.provider_category || ""}`;
+          const cityViews = cityViewsMap.get(cityViewsKey) || 0;
+
+          const bridgeRow: ProviderBridgeRow = {
+            tracking_id: trackingId,
+            provider_id: providerId,
+            provider_name: provider.provider_name,
+            email: provider.email,
+            city: provider.city,
+            state: provider.state,
+            category: provider.provider_category,
+            slug: provider.slug,
+            claim_url: context.claim_url,
+            profile_url: context.profile_url,
+            manage_url: context.manage_url,
+            remove_url: context.remove_url,
+            unsubscribe_url: context.unsubscribe_url,
+            gap_list: gapList,
+            city_views: cityViews,
+          };
+
+          if (!providersByState.has(state)) {
+            providersByState.set(state, []);
+          }
+          providersByState.get(state)!.push(bridgeRow);
+        }
+
+        // Launch SmartLead campaigns per state
+        // First, look up existing campaigns for each state to enable reuse (same month)
+        const existingCampaignsByState = new Map<string, number[]>();
+        for (const state of providersByState.keys()) {
+          const campaignName = generateCampaignName(state);
+          // Find tracking records with smartlead_data for the SAME campaign name (same state + month)
+          const { data: existingRecords } = await db
+            .from("provider_outreach_tracking")
+            .select("smartlead_data")
+            .eq("smartlead_data->>campaign_name", campaignName)
+            .not("smartlead_data", "is", null)
+            .limit(10);
+
+          const campaignIds = [...new Set(
+            (existingRecords ?? [])
+              .map((r) => (r.smartlead_data as { campaign_id?: number })?.campaign_id)
+              .filter((id): id is number => id != null)
+          )];
+          if (campaignIds.length > 0) {
+            existingCampaignsByState.set(state, campaignIds);
+          }
+        }
+
+        for (const [state, stateProviders] of providersByState) {
+          const campaignName = generateCampaignName(state);
+          const existingCampaignIds = existingCampaignsByState.get(state) ?? [];
+
+          try {
+            // If we have existing campaigns for this state, try to enroll into them first
+            // Otherwise create a new campaign
+            let report: Awaited<ReturnType<typeof launchProviderCampaign>>;
+
+            if (existingCampaignIds.length > 0 && stateProviders.length === 1) {
+              // Single provider: use enrollProviderIntoCampaign for efficiency
+              const enrollResult = await enrollProviderIntoCampaign({
+                provider: stateProviders[0],
+                campaignName,
+                existingCampaignIds,
+              });
+
+              // Convert single-provider result to batch report format
+              report = {
+                ok: enrollResult.ok,
+                campaign_id: enrollResult.campaign_id,
+                enrolled: enrollResult.enrolled ? 1 : 0,
+                enrolled_tracking_ids: enrollResult.enrolled ? [stateProviders[0].tracking_id] : [],
+                skipped: enrollResult.skipped_reason
+                  ? [{ tracking_id: stateProviders[0].tracking_id, provider_id: stateProviders[0].provider_id, reason: enrollResult.skipped_reason }]
+                  : [],
+                mailbox_warnings: enrollResult.mailbox_warnings,
+                errors: enrollResult.errors,
+              };
+            } else {
+              // Multiple providers or no existing campaigns: batch launch
+              report = await launchProviderCampaign({
+                campaignName,
+                providers: stateProviders,
+              });
+            }
+
+            if (report.ok && report.campaign_id) {
+              // Update tracking records with SmartLead data
+              for (const trackingId of report.enrolled_tracking_ids) {
+                const provider = stateProviders.find((p) => p.tracking_id === trackingId);
+                if (provider) {
+                  const smartleadData: ProviderSmartleadData = {
+                    campaign_id: report.campaign_id,
+                    lead_email: provider.email!,
+                    enrolled_at: new Date().toISOString(),
+                    campaign_name: campaignName,
+                  };
+
+                  await db
+                    .from("provider_outreach_tracking")
+                    .update({ smartlead_data: smartleadData })
+                    .eq("id", trackingId);
+
+                  // Log touchpoint
+                  await db.from("provider_outreach_touchpoints").insert({
+                    provider_id: provider.provider_id,
+                    touchpoint_type: "smartlead_enrolled",
+                    admin_user_id: adminUser.id,
+                    details: {
+                      campaign_id: report.campaign_id,
+                      campaign_name: campaignName,
+                      lead_email: provider.email,
+                    },
+                  });
+
+                  launchedProviders.push(provider.provider_id);
+                }
+              }
+
+              // Handle skipped providers
+              for (const skipped of report.skipped) {
+                failedProviders.push({
+                  provider_id: stateProviders.find((p) => p.tracking_id === skipped.tracking_id)?.provider_id || skipped.tracking_id,
+                  error: `SmartLead: ${skipped.reason}`,
+                });
+              }
+            } else {
+              // Campaign creation failed
+              for (const provider of stateProviders) {
+                failedProviders.push({
+                  provider_id: provider.provider_id,
+                  error: `SmartLead campaign failed: ${report.errors.map((e) => e.message).join(", ")}`,
+                });
+              }
+            }
+          } catch (err) {
+            console.error(`Failed to launch SmartLead campaign for ${state}:`, err);
+            for (const provider of stateProviders) {
+              failedProviders.push({
+                provider_id: provider.provider_id,
+                error: err instanceof Error ? err.message : "SmartLead error",
+              });
+            }
+          }
+        }
+
+        return NextResponse.json({
+          success: true,
+          launched: launchedProviders.length,
+          failed: failedProviders.length,
+          launched_providers: launchedProviders,
+          failed_providers: failedProviders,
+          engine: "smartlead",
+          schedule: PROVIDER_OUTREACH_CADENCE.map((s) => ({
+            day: s.day,
+            templateKey: s.templateKey,
+            description: s.description,
+          })),
+        });
+      }
+
+      // Legacy: Create tasks for each cadence step (when SmartLead not configured)
+      for (const [providerId, { trackingId, preview }] of trackingRecords) {
+        try {
           const taskRows = schedule.map((step) => ({
             tracking_id: trackingId,
-            provider_id: preview.provider_id,
+            provider_id: providerId,
             task_type: "outreach_email_send",
             cadence_day: step.day,
             template_key: step.templateKey,
@@ -405,9 +675,9 @@ export async function POST(request: NextRequest) {
 
           if (tasksError) throw tasksError;
 
-          // 3. Log touchpoint (non-fatal - don't fail the sequence if touchpoint fails)
+          // Log touchpoint (non-fatal - don't fail the sequence if touchpoint fails)
           const { error: touchpointError } = await db.from("provider_outreach_touchpoints").insert({
-            provider_id: preview.provider_id,
+            provider_id: providerId,
             touchpoint_type: "sequence_launched",
             admin_user_id: adminUser.id,
             details: {
@@ -418,15 +688,14 @@ export async function POST(request: NextRequest) {
           });
 
           if (touchpointError) {
-            // Log but don't fail - tracking and tasks are already created
-            console.warn(`[launch-sequence] Failed to log touchpoint for ${preview.provider_id}:`, touchpointError);
+            console.warn(`[launch-sequence] Failed to log touchpoint for ${providerId}:`, touchpointError);
           }
 
-          launchedProviders.push(preview.provider_id);
+          launchedProviders.push(providerId);
         } catch (err) {
-          console.error(`Failed to launch sequence for ${preview.provider_id}:`, err);
+          console.error(`Failed to launch sequence for ${providerId}:`, err);
           failedProviders.push({
-            provider_id: preview.provider_id,
+            provider_id: providerId,
             error: err instanceof Error ? err.message : "Unknown error",
           });
         }
@@ -438,6 +707,7 @@ export async function POST(request: NextRequest) {
         failed: failedProviders.length,
         launched_providers: launchedProviders,
         failed_providers: failedProviders,
+        engine: "resend",
         schedule: schedule.map((s) => ({
           day: s.day,
           templateKey: s.templateKey,
@@ -445,6 +715,27 @@ export async function POST(request: NextRequest) {
         })),
       });
     }
+
+    // Determine which engine will be used and get sender info
+    // Must match getProviderSenderEmails() logic in smartlead-bridge.ts
+    const useSmartLead = isSmartleadConfigured();
+    const providerSenders = process.env.PROVIDER_OUTREACH_SMARTLEAD_SENDERS ?? "";
+    const generalSenders = process.env.SMARTLEAD_SENDER_EMAILS ?? "";
+    const smartleadSenderList = providerSenders.trim()
+      ? providerSenders.split(",").map((s) => s.trim()).filter(Boolean)
+      : generalSenders.split(",").map((s) => s.trim()).filter(Boolean);
+
+    const senderInfo = useSmartLead && smartleadSenderList.length > 0
+      ? {
+          engine: "smartlead" as const,
+          from: `Dr. Logan DuBose <${smartleadSenderList[0]}>`,
+          senders: smartleadSenderList,
+        }
+      : {
+          engine: "resend" as const,
+          from: PROVIDER_OUTREACH_FROM,
+          senders: [PROVIDER_OUTREACH_FROM],
+        };
 
     return NextResponse.json({
       dry_run: true,
@@ -464,6 +755,7 @@ export async function POST(request: NextRequest) {
         templateKey: step.templateKey,
         description: step.description,
       })),
+      sender: senderInfo,
     });
   } catch (error) {
     console.error("Error in launch-sequence:", error);

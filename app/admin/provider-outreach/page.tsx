@@ -153,8 +153,11 @@ interface OutreachProvider {
   re_engage_entered_at: string | null;
   // Assignment
   assigned_to: string | null;
+  // Sequence progress (for in_sequence stage)
+  emails_sent?: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  profile_completeness?: number;
   // Email verification status from email_verifications table
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted
@@ -218,6 +221,31 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
+// Generic email prefixes that suggest the email goes to a shared inbox
+const GENERIC_EMAIL_PREFIXES = [
+  "info",
+  "admin",
+  "contact",
+  "hello",
+  "support",
+  "office",
+  "help",
+  "sales",
+  "enquiries",
+  "inquiries",
+  "general",
+  "reception",
+  "mail",
+  "team",
+];
+
+// Check if an email is a generic inbox (info@, admin@, etc.)
+function isGenericEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const localPart = email.toLowerCase().split("@")[0];
+  return GENERIC_EMAIL_PREFIXES.some((prefix) => localPart === prefix || localPart.startsWith(prefix + "."));
+}
+
 // Labels for why a provider is in the Follow Up queue
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
   sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no engagement
@@ -257,6 +285,10 @@ function ProviderContactEditor({
   onEmailUpdate,
   emailVerificationStatus,
   isEmailOverridden,
+  onCallRecorded,
+  isCallRecorded,
+  onWarningSkipped,
+  isWarningSkipped,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -270,6 +302,14 @@ function ProviderContactEditor({
   emailVerificationStatus?: "valid" | "invalid" | "risky" | "unknown" | null;
   /** Whether email has been manually overridden/trusted */
   isEmailOverridden?: boolean;
+  /** Callback when "I called" is recorded */
+  onCallRecorded?: () => void;
+  /** Whether call has been recorded for this provider */
+  isCallRecorded?: boolean;
+  /** Callback when warning is skipped/dismissed */
+  onWarningSkipped?: () => void;
+  /** Whether warning was skipped for this provider */
+  isWarningSkipped?: boolean;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -299,6 +339,36 @@ function ProviderContactEditor({
   const [locallyOverridden, setLocallyOverridden] = useState(false);
   // Combine database state (prop) with local action state
   const isOverridden = isEmailOverridden || locallyOverridden;
+
+  // Call recording state
+  const [isRecordingCall, setIsRecordingCall] = useState(false);
+  const [callRecordError, setCallRecordError] = useState(false);
+
+  // Check if this is a generic email (show warning unless called or skipped)
+  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded && !isWarningSkipped;
+
+  // Record "I called" touchpoint
+  const handleRecordCall = async () => {
+    setIsRecordingCall(true);
+    setCallRecordError(false);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/record-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      if (res.ok) {
+        onCallRecorded?.();
+      } else {
+        setCallRecordError(true);
+      }
+    } catch (err) {
+      console.error("Failed to record call:", err);
+      setCallRecordError(true);
+    } finally {
+      setIsRecordingCall(false);
+    }
+  };
 
   // Cleanup debounce timeout on unmount
   useEffect(() => {
@@ -533,8 +603,10 @@ function ProviderContactEditor({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      <div className="flex items-center gap-1.5">
+    <div className="flex flex-col gap-1">
+      {/* Row 1: Email + Edit + Phone */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+        <div className="flex items-center gap-1.5">
         {isEditing ? (
           // Edit mode: input + Find + Save + Cancel
           <>
@@ -657,6 +729,15 @@ function ProviderContactEditor({
                 )}
               </>
             ) : null}
+            {/* Show "Called" checkmark if call was recorded */}
+            {isCallRecorded && isGenericEmail(email) && (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600" title="Call verified">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+                Called
+              </span>
+            )}
             {saved && (
               <span className="text-xs text-emerald-600 flex items-center gap-0.5">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -678,7 +759,7 @@ function ProviderContactEditor({
         )}
       </div>
 
-      {/* Phone - inline */}
+      {/* Phone - inline with main row */}
       {phone && (
         <a
           href={`tel:${phone.replace(/\D/g, "")}`}
@@ -687,6 +768,46 @@ function ProviderContactEditor({
         >
           {formatPhone(phone)}
         </a>
+      )}
+      </div>
+
+      {/* Row 2: Generic email warning (separate line for cleaner layout) */}
+      {showGenericWarning && (
+        <div className="flex items-center gap-2 pl-0.5">
+          <span className="inline-flex items-center gap-1 text-xs text-amber-600">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Generic email — have you called?
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRecordCall();
+            }}
+            disabled={isRecordingCall}
+            className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+              callRecordError
+                ? "text-red-600 hover:text-red-700 hover:bg-red-50"
+                : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+            }`}
+            title={callRecordError ? "Failed - click to retry" : "Record that you called this provider"}
+          >
+            {isRecordingCall ? "..." : callRecordError ? "Retry" : "I called"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onWarningSkipped?.();
+            }}
+            className="shrink-0 px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
+            title="Dismiss warning - proceed without calling"
+          >
+            Skip
+          </button>
+        </div>
       )}
     </div>
   );
@@ -747,6 +868,11 @@ function CityRow({
   const [lookupErrors, setLookupErrors] = useState<Map<string, string>>(new Map());
   const lookupAttemptedRef = useRef<Set<string>>(new Set());
   const lookupCancelledRef = useRef(false);
+
+  // Track providers where admin has recorded a call (for generic email warning)
+  const [calledProviders, setCalledProviders] = useState<Set<string>>(new Set());
+  // Track providers where admin skipped the generic email warning
+  const [skippedWarnings, setSkippedWarnings] = useState<Set<string>>(new Set());
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
   const cityProviders = useMemo(
@@ -1004,14 +1130,6 @@ function CityRow({
                         >
                           {provider.provider_name}
                         </Link>
-                        {provider.slug && (
-                          <Link
-                            href={`/admin/directory/${provider.slug}`}
-                            className="text-xs text-gray-400 hover:text-primary-600 shrink-0"
-                          >
-                            View
-                          </Link>
-                        )}
                         <AdminChip
                           adminId={provider.assigned_to}
                           adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
@@ -1083,6 +1201,19 @@ function CityRow({
                               Needs Review
                             </a>
                           )}
+                          {/* Profile completeness */}
+                          {typeof provider.profile_completeness === "number" && (
+                            <span
+                              className={`text-xs font-medium ${
+                                provider.profile_completeness === 100
+                                  ? "text-emerald-600"
+                                  : "text-gray-500"
+                              }`}
+                              title="Profile completeness"
+                            >
+                              {provider.profile_completeness}% complete
+                            </span>
+                          )}
                         </div>
                       ) : lookingUpEmails.has(provider.provider_id) ? (
                         <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -1102,6 +1233,10 @@ function CityRow({
                             onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
                             emailVerificationStatus={provider.email_verification_status}
                             isEmailOverridden={provider.is_email_overridden}
+                            isCallRecorded={calledProviders.has(provider.provider_id)}
+                            onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
+                            isWarningSkipped={skippedWarnings.has(provider.provider_id)}
+                            onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
@@ -1563,20 +1698,26 @@ function FollowUpProviderRow({
           {/* Call Script */}
           <details className="mb-4 bg-white border border-gray-200 rounded-lg">
             <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
-              📞 Call Script
+              Call Script
             </summary>
             <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
               <p>
-                &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Dr. Logan DuBose&apos;s office at Olera. We run a referral program that connects families with {provider.provider_category || "care"} providers in {provider.city || "your area"}.&quot;
+                &quot;Hi, is this <span className="font-medium text-gray-800">{provider.provider_name || "the provider"}</span>?&quot;
               </p>
               <p>
-                &quot;We&apos;ve created a profile for you that families visit when searching for care. We&apos;ve been sending emails about claiming it so you can manage it yourself — update your information and respond directly when families reach out.&quot;
+                &quot;This is <span className="font-medium text-gray-800">[Your Name]</span> calling from Dr. DuBose&apos;s office at Olera. I hope you&apos;re doing well.&quot;
               </p>
               <p>
-                &quot;Did those emails come through, or should I send the link to someone else on your team?&quot;
+                &quot;I just wanted to check in because I noticed you&apos;ve had a chance to look through some of the emails we&apos;ve sent about our free referral platform.&quot;
               </p>
-              <p className="text-xs text-gray-400 border-t border-gray-100 pt-2 mt-2">
-                If wrong contact → &quot;Could you give me the contact for whoever handles your online listings?&quot;
+              <p>
+                &quot;I was wondering if you had any questions or if there were any roadblocks stopping you from claiming your profile.&quot;
+              </p>
+              <p>
+                &quot;It only takes about 30 seconds to claim, and I&apos;m happy to walk you through it or answer any questions you have.&quot;
+              </p>
+              <p>
+                &quot;If now isn&apos;t a good time, I&apos;m also happy to resend the claim link or any information you need. What&apos;s the best way I can help?&quot;
               </p>
             </div>
           </details>
@@ -3923,8 +4064,8 @@ export default function ProviderOutreachPage() {
                     <div className="w-24 text-sm text-gray-600 truncate">
                       {provider.city || "—"}
                     </div>
-                    {/* Stage Badge + Assignment */}
-                    <div className="w-28 flex items-center gap-1.5">
+                    {/* Stage Badge + Sequence Progress + Assignment */}
+                    <div className="w-32 flex items-center gap-1.5">
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
                         provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
                         provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
@@ -3934,6 +4075,14 @@ export default function ProviderOutreachPage() {
                         "bg-gray-100 text-gray-600"
                       }`}>
                         {STAGE_LABELS[provider.stage]}
+                        {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
+                          <span className="ml-1 text-blue-500">
+                            ({provider.emails_sent}/4)
+                            {provider.cycle_number >= 2 && (
+                              <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
+                            )}
+                          </span>
+                        )}
                       </span>
                       <AdminChip
                         adminId={provider.assigned_to}
@@ -4085,6 +4234,35 @@ export default function ProviderOutreachPage() {
         ) : (
           // Normal city-grouped view
           <>
+            {/* Call Script - only show on Ready tab */}
+            {activeTab === "ready" && (
+              <details className="mx-5 mt-2 mb-4 bg-white border border-gray-200 rounded-lg">
+                <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
+                  Call Script (for generic emails)
+                </summary>
+                <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
+                  <p>
+                    &quot;Hi, is this <span className="font-medium text-gray-800">[provider name]</span>? My name is <span className="font-medium text-gray-800">[Your Name]</span>, and I&apos;m calling from Dr. DuBose&apos;s office at Olera.&quot;
+                  </p>
+                  <p>
+                    &quot;Do you have 3 minutes to quickly chat? I promise I&apos;ll be quick.&quot;
+                  </p>
+                  <p>
+                    &quot;We run a free referral program that connects families with <span className="font-medium text-gray-800">[care type]</span> with trusted providers in <span className="font-medium text-gray-800">[city]</span>.&quot;
+                  </p>
+                  <p>
+                    &quot;We&apos;ve already created a profile for your community using publicly available information, and we&apos;d love for you to manage it by adding your own details and photos and get families sent directly to you.&quot;
+                  </p>
+                  <p>
+                    &quot;There&apos;s no cost to claim or update your profile.&quot;
+                  </p>
+                  <p>
+                    &quot;I was hoping to send you some information on how it works. What&apos;s the best email address for me to send that to?&quot;
+                  </p>
+                </div>
+              </details>
+            )}
+
             {/* Header */}
             <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
               <div className="w-5" />
@@ -4330,7 +4508,7 @@ export default function ProviderOutreachPage() {
                     <div className="border-t border-gray-100 my-3" />
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {actionModalProvider.stage !== "not_contacted" && (
+                      {actionModalProvider.stage !== "not_contacted" && actionModalProvider.stage !== "in_sequence" && (
                         <button
                           onClick={() => setPendingStageMove("not_contacted")}
                           disabled={actionLoading}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
+import { pauseLeadInCampaign } from "@/lib/smartlead";
 
 /**
  * POST /api/admin/provider-outreach/update-stage
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Check which providers already have tracking rows
     const { data: existingTracking } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, id, stage")
+      .select("provider_id, id, stage, smartlead_data")
       .in("provider_id", provider_ids);
 
     const existingMap = new Map((existingTracking || []).map((t) => [t.provider_id, t]));
@@ -147,6 +148,26 @@ export async function POST(request: NextRequest) {
           console.log(
             `[provider-outreach/update-stage] Cleaned up ${deletedCount ?? 0} pending task(s) for ${providersLeavingSequence.length} provider(s) leaving in_sequence`
           );
+        }
+      }
+
+      // ── Pause SmartLead leads to stop further emails ──
+      // For providers with smartlead_data, call pauseLeadInCampaign
+      for (const pid of providersLeavingSequence) {
+        const tracking = existingMap.get(pid);
+        const smartleadData = tracking?.smartlead_data as { campaign_id?: number; lead_id?: number } | null;
+        if (smartleadData?.campaign_id && smartleadData?.lead_id) {
+          try {
+            const result = await pauseLeadInCampaign(smartleadData.campaign_id, smartleadData.lead_id);
+            if (result.ok) {
+              console.log(`[provider-outreach/update-stage] Paused SmartLead lead ${smartleadData.lead_id} in campaign ${smartleadData.campaign_id}`);
+            } else {
+              console.warn(`[provider-outreach/update-stage] Failed to pause SmartLead lead: ${result.error}`);
+            }
+          } catch (err) {
+            console.error(`[provider-outreach/update-stage] Error pausing SmartLead lead:`, err);
+            // Non-fatal - continue with stage update
+          }
         }
       }
     }

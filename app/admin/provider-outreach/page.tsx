@@ -153,6 +153,8 @@ interface OutreachProvider {
   re_engage_entered_at: string | null;
   // Assignment
   assigned_to: string | null;
+  // Sequence progress (for in_sequence stage)
+  emails_sent?: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -3929,8 +3931,8 @@ export default function ProviderOutreachPage() {
                     <div className="w-24 text-sm text-gray-600 truncate">
                       {provider.city || "—"}
                     </div>
-                    {/* Stage Badge + Assignment */}
-                    <div className="w-28 flex items-center gap-1.5">
+                    {/* Stage Badge + Sequence Progress + Assignment */}
+                    <div className="w-32 flex items-center gap-1.5">
                       <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
                         provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
                         provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
@@ -3940,6 +3942,9 @@ export default function ProviderOutreachPage() {
                         "bg-gray-100 text-gray-600"
                       }`}>
                         {STAGE_LABELS[provider.stage]}
+                        {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
+                          <span className="ml-1 text-blue-500">({provider.emails_sent}/4)</span>
+                        )}
                       </span>
                       <AdminChip
                         adminId={provider.assigned_to}
@@ -4336,7 +4341,7 @@ export default function ProviderOutreachPage() {
                     <div className="border-t border-gray-100 my-3" />
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {actionModalProvider.stage !== "not_contacted" && (
+                      {actionModalProvider.stage !== "not_contacted" && actionModalProvider.stage !== "in_sequence" && (
                         <button
                           onClick={() => setPendingStageMove("not_contacted")}
                           disabled={actionLoading}

@@ -134,6 +134,8 @@ export interface OutreachProvider {
   re_engage_entered_at: string | null;
   // Assignment
   assigned_to: string | null;
+  // Sequence progress (for in_sequence stage)
+  emails_sent?: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   // Email verification status from email_verifications table
@@ -340,6 +342,22 @@ export async function GET(request: NextRequest) {
       claimedProviderIds = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
     }
 
+    // For in_sequence stage, get email sent counts from touchpoints
+    let emailsSentMap = new Map<string, number>();
+    if (stage === "in_sequence" && providerIds.length > 0) {
+      const { data: touchpoints } = await db
+        .from("provider_outreach_touchpoints")
+        .select("provider_id")
+        .in("provider_id", providerIds)
+        .eq("touchpoint_type", "email_sent");
+
+      // Count emails per provider
+      for (const tp of touchpoints || []) {
+        const count = emailsSentMap.get(tp.provider_id) || 0;
+        emailsSentMap.set(tp.provider_id, count + 1);
+      }
+    }
+
     // Join tracking with provider data
     const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
     const providers = (trackingRows as TrackingRow[])
@@ -372,6 +390,8 @@ export async function GET(request: NextRequest) {
           re_engage_entered_at: t.re_engage_entered_at ?? null,
           // Assignment
           assigned_to: t.assigned_to ?? null,
+          // Sequence progress (for in_sequence)
+          emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)

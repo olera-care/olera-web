@@ -343,18 +343,31 @@ export async function GET(request: NextRequest) {
     }
 
     // For in_sequence stage, get email sent counts from touchpoints
+    // Only count emails sent during the CURRENT sequence (since stage_changed_at)
     let emailsSentMap = new Map<string, number>();
     if (stage === "in_sequence" && providerIds.length > 0) {
+      // Build map of provider_id -> stage_changed_at for filtering
+      const stageChangedMap = new Map<string, string>();
+      for (const t of trackingRows as TrackingRow[]) {
+        if (t.stage_changed_at) {
+          stageChangedMap.set(t.provider_id, t.stage_changed_at);
+        }
+      }
+
       const { data: touchpoints } = await db
         .from("provider_outreach_touchpoints")
-        .select("provider_id")
+        .select("provider_id, created_at")
         .in("provider_id", providerIds)
         .eq("touchpoint_type", "email_sent");
 
-      // Count emails per provider
+      // Count emails per provider, only those created after entering in_sequence
       for (const tp of touchpoints || []) {
-        const count = emailsSentMap.get(tp.provider_id) || 0;
-        emailsSentMap.set(tp.provider_id, count + 1);
+        const stageChangedAt = stageChangedMap.get(tp.provider_id);
+        // Only count if touchpoint was created after entering current sequence
+        if (stageChangedAt && tp.created_at >= stageChangedAt) {
+          const count = emailsSentMap.get(tp.provider_id) || 0;
+          emailsSentMap.set(tp.provider_id, count + 1);
+        }
       }
     }
 

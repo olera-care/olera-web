@@ -1205,10 +1205,8 @@ function CityRow({
                           {typeof provider.profile_completeness === "number" && (
                             <span
                               className={`text-xs font-medium ${
-                                provider.profile_completeness >= 80
+                                provider.profile_completeness === 100
                                   ? "text-emerald-600"
-                                  : provider.profile_completeness >= 50
-                                  ? "text-amber-600"
                                   : "text-gray-500"
                               }`}
                               title="Profile completeness"

@@ -298,7 +298,7 @@ export async function POST(
     const body = await request.json();
     const action: string = body.action || "";
     if (
-      !["note", "contacted", "resolved", "reopen", "navigator_send", "navigator_dismiss"].includes(
+      !["note", "contacted", "resolved", "reopen", "navigator_send", "navigator_dismiss", "navigator_test"].includes(
         action,
       )
     ) {

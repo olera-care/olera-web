@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { calculateProviderCompleteness } from "@/lib/admin/profile-completeness";
 
 /**
  * Batch size for .in() queries to avoid URL length limits.
@@ -138,6 +139,7 @@ export interface OutreachProvider {
   emails_sent?: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  profile_completeness?: number;
   // Email verification status from email_verifications table
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted (from email_overrides table)
@@ -553,9 +555,10 @@ async function getClaimedProviders(
   // Previous approach queried all providers in state (~10k) and used .in() which exceeded URL limits
 
   // Step 1: Get all claimed business_profiles with source_provider_id
+  // Include fields needed for profile completeness calculation
   const { data: claimedBps, error: bpError } = await db
     .from("business_profiles")
-    .select("source_provider_id, created_at, updated_at, verification_state, email")
+    .select("source_provider_id, created_at, updated_at, verification_state, email, phone, website, address, city, state, display_name, description, image_url, care_types, metadata")
     .not("source_provider_id", "is", null)
     .not("account_id", "is", null);
 
@@ -585,16 +588,34 @@ async function getClaimedProviders(
     return [];
   }
 
-  // Create a map of claimed provider_id -> { timestamp, verification_state, email }
+  // Create a map of claimed provider_id -> { timestamp, verification_state, email, profile data }
   const claimedMap = new Map(
-    claimedBps.map((bp) => [
-      bp.source_provider_id,
-      {
-        timestamp: bp.updated_at || bp.created_at,
-        verification_state: bp.verification_state as OutreachProvider["verification_state"],
+    claimedBps.map((bp) => {
+      // Calculate profile completeness
+      const completeness = calculateProviderCompleteness({
+        display_name: bp.display_name as string | null,
+        image_url: bp.image_url as string | null,
+        phone: bp.phone as string | null,
         email: bp.email as string | null,
-      },
-    ])
+        website: bp.website as string | null,
+        address: bp.address as string | null,
+        city: bp.city as string | null,
+        state: bp.state as string | null,
+        description: bp.description as string | null,
+        care_types: bp.care_types as string[] | null,
+        metadata: bp.metadata as Record<string, unknown> | null,
+      });
+
+      return [
+        bp.source_provider_id,
+        {
+          timestamp: bp.updated_at || bp.created_at,
+          verification_state: bp.verification_state as OutreachProvider["verification_state"],
+          email: bp.email as string | null,
+          profile_completeness: completeness.percentage,
+        },
+      ];
+    })
   );
 
   // Build result with business_profiles email taking precedence
@@ -626,6 +647,7 @@ async function getClaimedProviders(
         // Assignment (not applicable for claimed)
         assigned_to: null,
         verification_state: claimInfo?.verification_state || null,
+        profile_completeness: claimInfo?.profile_completeness,
       };
     })
     .sort((a, b) => a.provider_name.localeCompare(b.provider_name));

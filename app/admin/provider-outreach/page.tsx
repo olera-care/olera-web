@@ -157,6 +157,7 @@ interface OutreachProvider {
   emails_sent?: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  profile_completeness?: number;
   // Email verification status from email_verifications table
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted
@@ -1084,6 +1085,21 @@ function CityRow({
                             >
                               Needs Review
                             </a>
+                          )}
+                          {/* Profile completeness */}
+                          {typeof provider.profile_completeness === "number" && (
+                            <span
+                              className={`text-xs font-medium ${
+                                provider.profile_completeness >= 80
+                                  ? "text-emerald-600"
+                                  : provider.profile_completeness >= 50
+                                  ? "text-amber-600"
+                                  : "text-gray-500"
+                              }`}
+                              title="Profile completeness"
+                            >
+                              {provider.profile_completeness}% complete
+                            </span>
                           )}
                         </div>
                       ) : lookingUpEmails.has(provider.provider_id) ? (

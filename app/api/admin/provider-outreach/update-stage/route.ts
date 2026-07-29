@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
-import { pauseLeadInCampaign } from "@/lib/smartlead";
+import { pauseLeadInCampaign, getLeadByEmail } from "@/lib/smartlead";
 
 /**
  * POST /api/admin/provider-outreach/update-stage
@@ -153,16 +153,36 @@ export async function POST(request: NextRequest) {
 
       // ── Pause SmartLead leads to stop further emails ──
       // For providers with smartlead_data, call pauseLeadInCampaign
+      // Note: lead_id may not be stored (addLeads API doesn't return it), so we look it up by email
       for (const pid of providersLeavingSequence) {
         const tracking = existingMap.get(pid);
-        const smartleadData = tracking?.smartlead_data as { campaign_id?: number; lead_id?: number } | null;
-        if (smartleadData?.campaign_id && smartleadData?.lead_id) {
+        const smartleadData = tracking?.smartlead_data as {
+          campaign_id?: number;
+          lead_id?: number;
+          lead_email?: string;
+        } | null;
+
+        if (smartleadData?.campaign_id) {
           try {
-            const result = await pauseLeadInCampaign(smartleadData.campaign_id, smartleadData.lead_id);
-            if (result.ok) {
-              console.log(`[provider-outreach/update-stage] Paused SmartLead lead ${smartleadData.lead_id} in campaign ${smartleadData.campaign_id}`);
+            let leadId = smartleadData.lead_id;
+
+            // If no lead_id stored, look it up by email
+            if (!leadId && smartleadData.lead_email) {
+              const lookup = await getLeadByEmail(smartleadData.lead_email);
+              if (lookup.ok && lookup.data?.id) {
+                leadId = lookup.data.id;
+              }
+            }
+
+            if (leadId) {
+              const result = await pauseLeadInCampaign(smartleadData.campaign_id, leadId);
+              if (result.ok) {
+                console.log(`[provider-outreach/update-stage] Paused SmartLead lead ${leadId} in campaign ${smartleadData.campaign_id}`);
+              } else {
+                console.warn(`[provider-outreach/update-stage] Failed to pause SmartLead lead: ${result.error}`);
+              }
             } else {
-              console.warn(`[provider-outreach/update-stage] Failed to pause SmartLead lead: ${result.error}`);
+              console.warn(`[provider-outreach/update-stage] Could not resolve SmartLead lead_id for ${pid} (email: ${smartleadData.lead_email})`);
             }
           } catch (err) {
             console.error(`[provider-outreach/update-stage] Error pausing SmartLead lead:`, err);

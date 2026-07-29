@@ -36,7 +36,7 @@ import {
   getTemplate,
   type ProviderOutreachTemplateKey,
   type TemplateContext,
-  LOGAN_PHOTO_URL,
+  loganSignatureHtml,
 } from "./templates";
 import { bodyToHtml } from "./email-utils";
 
@@ -259,18 +259,8 @@ function buildSmartleadFooterHtml(): string {
     // Sign-off
     `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
-    // Signature block
-    `<table cellpadding="0" cellspacing="0" style="margin-top:16px;">`,
-    `  <tr>`,
-    `    <td style="vertical-align:top;padding-right:12px;">`,
-    `      <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />`,
-    `    </td>`,
-    `    <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;font-family:Inter,Arial,sans-serif;">`,
-    `      <p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p>`,
-    `      <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>`,
-    `    </td>`,
-    `  </tr>`,
-    `</table>`,
+    // Signature block (shared with Resend emails)
+    loganSignatureHtml(),
     // Footer links with merge tags
     `<div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
     `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,

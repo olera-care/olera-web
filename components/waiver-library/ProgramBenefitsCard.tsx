@@ -717,7 +717,8 @@ export default function ProgramBenefitsCard({
                 navigator's day-2 text arrives pre-introduced (TJ, 2026-07-29). */}
             <p className="text-[13px] text-gray-500 mb-4">
               We&apos;ll text your results link right now. Then TJ from Olera will text you your
-              first step from this same number. You can text back anytime, and he reads it.
+              first step from this same number. You can text back anytime and a real person
+              will answer.
             </p>
             <input
               type="tel"

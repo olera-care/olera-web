@@ -221,6 +221,31 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
+// Generic email prefixes that suggest the email goes to a shared inbox
+const GENERIC_EMAIL_PREFIXES = [
+  "info",
+  "admin",
+  "contact",
+  "hello",
+  "support",
+  "office",
+  "help",
+  "sales",
+  "enquiries",
+  "inquiries",
+  "general",
+  "reception",
+  "mail",
+  "team",
+];
+
+// Check if an email is a generic inbox (info@, admin@, etc.)
+function isGenericEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const localPart = email.toLowerCase().split("@")[0];
+  return GENERIC_EMAIL_PREFIXES.some((prefix) => localPart === prefix || localPart.startsWith(prefix + "."));
+}
+
 // Labels for why a provider is in the Follow Up queue
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
   sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no engagement
@@ -260,6 +285,8 @@ function ProviderContactEditor({
   onEmailUpdate,
   emailVerificationStatus,
   isEmailOverridden,
+  onCallRecorded,
+  isCallRecorded,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -273,6 +300,10 @@ function ProviderContactEditor({
   emailVerificationStatus?: "valid" | "invalid" | "risky" | "unknown" | null;
   /** Whether email has been manually overridden/trusted */
   isEmailOverridden?: boolean;
+  /** Callback when "I called" is recorded */
+  onCallRecorded?: () => void;
+  /** Whether call has been recorded for this provider */
+  isCallRecorded?: boolean;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -302,6 +333,31 @@ function ProviderContactEditor({
   const [locallyOverridden, setLocallyOverridden] = useState(false);
   // Combine database state (prop) with local action state
   const isOverridden = isEmailOverridden || locallyOverridden;
+
+  // Call recording state
+  const [isRecordingCall, setIsRecordingCall] = useState(false);
+
+  // Check if this is a generic email
+  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded;
+
+  // Record "I called" touchpoint
+  const handleRecordCall = async () => {
+    setIsRecordingCall(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/record-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      if (res.ok) {
+        onCallRecorded?.();
+      }
+    } catch (err) {
+      console.error("Failed to record call:", err);
+    } finally {
+      setIsRecordingCall(false);
+    }
+  };
 
   // Cleanup debounce timeout on unmount
   useEffect(() => {
@@ -660,6 +716,38 @@ function ProviderContactEditor({
                 )}
               </>
             ) : null}
+            {/* Generic email warning */}
+            {showGenericWarning && (
+              <>
+                <span className="inline-flex items-center gap-1 text-xs text-amber-600" title="Generic inbox - consider calling first">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Generic
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRecordCall();
+                  }}
+                  disabled={isRecordingCall}
+                  className="shrink-0 px-2 py-0.5 text-xs font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded transition disabled:opacity-50"
+                  title="Record that you called this provider"
+                >
+                  {isRecordingCall ? "..." : "I called"}
+                </button>
+              </>
+            )}
+            {/* Show "Called" checkmark if call was recorded */}
+            {isCallRecorded && isGenericEmail(email) && (
+              <span className="inline-flex items-center gap-1 text-xs text-emerald-600" title="Call verified">
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+                Called
+              </span>
+            )}
             {saved && (
               <span className="text-xs text-emerald-600 flex items-center gap-0.5">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -750,6 +838,9 @@ function CityRow({
   const [lookupErrors, setLookupErrors] = useState<Map<string, string>>(new Map());
   const lookupAttemptedRef = useRef<Set<string>>(new Set());
   const lookupCancelledRef = useRef(false);
+
+  // Track providers where admin has recorded a call (for generic email warning)
+  const [calledProviders, setCalledProviders] = useState<Set<string>>(new Set());
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
   const cityProviders = useMemo(
@@ -1120,6 +1211,8 @@ function CityRow({
                             onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
                             emailVerificationStatus={provider.email_verification_status}
                             isEmailOverridden={provider.is_email_overridden}
+                            isCallRecorded={calledProviders.has(provider.provider_id)}
+                            onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (

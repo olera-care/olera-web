@@ -395,8 +395,12 @@ export async function POST(
             ? body.sms.trim().slice(0, 400)
             : null;
         const draftSms = editedSms || navigator.sms || null;
+        // Append the opt-out line only when it isn't already there (the model
+        // is told not to write it, but a disobedient draft or a TJ edit that
+        // includes it must not produce a doubled STOP line).
+        const stopSuffix = draftSms && /reply stop/i.test(draftSms) ? "" : " Reply STOP to opt out.";
         const smsBody = draftSms
-          ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)} Reply STOP to opt out.`
+          ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)}${stopSuffix}`
           : benefitsFirstStepSms({
               programShortName: navigator.pick.shortName,
               phone: navigator.pick.contactPhone,

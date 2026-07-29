@@ -242,6 +242,10 @@ export async function GET(request: NextRequest) {
     const bump = (rung: string) => {
       counts.byRung[rung] = (counts.byRung[rung] || 0) + 1;
     };
+    // Navigator compose budget (see the B1 rung): drains backlogs over days
+    // instead of blowing the route's maxDuration in one run.
+    const NAVIGATOR_COMPOSES_PER_RUN = 12;
+    let navigatorComposeCount = 0;
 
     // 1. Gather candidates broadly. Inquiry connections drive rungs 1-4 & 6; request
     //    connections drive rung 5. day-10 (rung 4) keys off provider-response age, not
@@ -981,7 +985,22 @@ export async function GET(request: NextRequest) {
           !readBenefitsNavigator(familyMeta).composed_at
         ) {
           const intakeAge = now - new Date(benefitsDoneAt).getTime();
-          if (intakeAge >= 48 * HOUR && intakeAge <= 10 * DAY && !dryRun) {
+          // Budget guards: composition is an LLM call (seconds each). The
+          // 10-day band means the FIRST run after deploy sees the whole
+          // backlog at once — uncapped, that blows the route's 300s
+          // maxDuration and kills every rung after the cutoff point. Cap
+          // composes per run and stop composing past the time guard; skipped
+          // families simply retry next run (their guard key is never set).
+          const composeBudgetLeft = navigatorComposeCount < NAVIGATOR_COMPOSES_PER_RUN;
+          const composeTimeLeft = Date.now() - now < 180_000;
+          if (
+            intakeAge >= 48 * HOUR &&
+            intakeAge <= 10 * DAY &&
+            !dryRun &&
+            composeBudgetLeft &&
+            composeTimeLeft
+          ) {
+            navigatorComposeCount++;
             try {
               const draft = await composeNavigatorDraft(db, {
                 profileId: fam.familyId,
@@ -995,9 +1014,7 @@ export async function GET(request: NextRequest) {
                 factsRow: fpr,
               });
               if (draft) {
-                // Archetype pattern: mutate familyMeta so the unified
-                // coordinator stamp later can't clobber this with a stale copy.
-                familyMeta.benefits_navigator = {
+                const navStamp = {
                   status: "pending",
                   composed_at: new Date().toISOString(),
                   subject: draft.subject,
@@ -1007,9 +1024,23 @@ export async function GET(request: NextRequest) {
                   pick: pickSnapshot(draft.pick),
                   provider_count: draft.providerCount,
                 };
+                // Composition took seconds — the run-start metadata copy may
+                // be stale (a family tapping /m gap chips mid-run would lose
+                // those facts to a blind spread). Re-read fresh metadata and
+                // merge the stamp into THAT; also mutate familyMeta (archetype
+                // pattern) so later stamps this run carry the draft forward.
+                const { data: freshRow } = await db
+                  .from("business_profiles")
+                  .select("metadata")
+                  .eq("id", fam.familyId)
+                  .maybeSingle();
+                const freshMeta =
+                  (freshRow?.metadata as Record<string, unknown> | null) || familyMeta;
+                freshMeta.benefits_navigator = navStamp;
+                familyMeta.benefits_navigator = navStamp;
                 await db
                   .from("business_profiles")
-                  .update({ metadata: { ...familyMeta } })
+                  .update({ metadata: { ...freshMeta } })
                   .eq("id", fam.familyId);
                 bump("benefits_navigator_draft");
               }

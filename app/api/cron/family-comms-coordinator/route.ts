@@ -468,7 +468,16 @@ export async function GET(request: NextRequest) {
         stampKey: "first_step_sms_at" | "check_sms_at",
       ) => {
         if (!smsEligible || !fp.phone) return;
-        const r = await sendSMS({ to: fp.phone, body });
+        // Logged under a distinct *_sms type: visible on /admin/family-comms and
+        // the automations rollup, but NOT in FAMILY_NUDGE_EMAIL_TYPES — the
+        // mirror rides the email's cap slot, it must never consume a second one.
+        const r = await sendSMS({
+          to: fp.phone,
+          body,
+          emailType: stampKey === "first_step_sms_at" ? "benefits_first_step_sms" : "benefits_check_in_sms",
+          recipientType: "family",
+          recipientLogProfileId: fam.familyId,
+        });
         if (r.success) {
           familyMeta.benefits_cascade = {
             ...readBenefitsCascade(familyMeta),

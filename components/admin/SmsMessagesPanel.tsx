@@ -6,13 +6,13 @@ import { SMS_VARIANTS, SMS_GROUP_ORDER, smsSegmentInfo, type SmsVariant } from "
 import SmsPhonePreview from "@/components/admin/SmsPhonePreview";
 
 /**
- * "SMS messages — what we send" panel for /admin/family-comms: the texting
+ * "Text campaigns — what we send" panel for /admin/family-comms: the texting
  * sibling of the email-performance table + EmailTypeDrawer. Every outbound SMS
  * renders from the LIVE template (lib/sms/templates.ts via lib/sms-samples.ts)
- * as a phone-style bubble, with the who/why rationale and the gates the send
- * path applies. No per-type performance strip — Twilio doesn't split delivery
- * by type and most SMS call sites don't log an email_type, so the delivery
- * panel above stays the delivery story.
+ * as a phone-style bubble, with the who/why rationale, the gates the send
+ * path applies, and window send counts for the types that log to email_log
+ * (channel='sms'). Delivery STATUS still lives on the Twilio panel above —
+ * the ledger records attempts, Twilio records what carriers did with them.
  */
 
 const AUDIENCE_CHIP: Record<SmsVariant["audience"], string> = {
@@ -20,15 +20,19 @@ const AUDIENCE_CHIP: Record<SmsVariant["audience"], string> = {
   provider: "bg-sky-50 text-sky-700",
 };
 
+type SmsSendStats = { sent: number; failed: number };
+
 function SmsTypeDrawer({
   variant,
   body,
   senderLast4,
+  stats,
   onClose,
 }: {
   variant: SmsVariant;
   body: string;
   senderLast4?: string | null;
+  stats?: SmsSendStats | null;
   onClose: () => void;
 }) {
   const seg = smsSegmentInfo(body);
@@ -60,6 +64,22 @@ function SmsTypeDrawer({
         </div>
 
         <div className="flex-1 overflow-y-auto">
+          {/* Window sends — from the app ledger (email_log channel='sms'); delivery
+              status stays the Twilio panel's story. */}
+          {variant.emailType && (
+            <div className="flex items-baseline gap-5 border-b border-gray-100 px-5 py-3">
+              <div>
+                <div className="text-lg font-semibold tabular-nums text-gray-900">{(stats?.sent ?? 0).toLocaleString()}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Sent · window</div>
+              </div>
+              {(stats?.failed ?? 0) > 0 && (
+                <div>
+                  <div className="text-lg font-semibold tabular-nums text-rose-600">{stats!.failed.toLocaleString()}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Failed / suppressed</div>
+                </div>
+              )}
+            </div>
+          )}
           {/* Trigger / Who / Why */}
           <div className="space-y-3 border-b border-gray-100 px-5 py-4">
             <div>
@@ -109,7 +129,7 @@ function SmsTypeDrawer({
         {/* Footer */}
         <div className="flex items-center gap-4 border-t border-gray-100 px-5 py-3 text-[12px]">
           {variant.emailType ? (
-            <Link href={`/admin/emails?type=${encodeURIComponent(variant.emailType)}`} className="text-gray-600 hover:text-teal-700">
+            <Link href={`/admin/emails?email_type=${encodeURIComponent(variant.emailType)}`} className="text-gray-600 hover:text-teal-700">
               View sent log
             </Link>
           ) : (
@@ -121,7 +141,14 @@ function SmsTypeDrawer({
   );
 }
 
-export default function SmsMessagesPanel({ senderLast4 }: { senderLast4?: string | null }) {
+export default function SmsMessagesPanel({
+  senderLast4,
+  sentByType,
+}: {
+  senderLast4?: string | null;
+  /** Window send counts per email_type from the summary API (email_log channel='sms'). */
+  sentByType?: Record<string, SmsSendStats>;
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   // Bodies render once from the live templates — pure strings, no fetch.
@@ -159,6 +186,16 @@ export default function SmsMessagesPanel({ senderLast4 }: { senderLast4?: string
                       {v.audience}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-[12px] text-gray-400">{body}</span>
+                    {v.emailType && (
+                      <span
+                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${
+                          (sentByType?.[v.emailType]?.sent ?? 0) > 0 ? "bg-emerald-50 text-emerald-700" : "bg-gray-50 text-gray-400"
+                        }`}
+                        title="Sends in the selected window (app ledger; delivery status lives on the Twilio panel above)"
+                      >
+                        {(sentByType?.[v.emailType]?.sent ?? 0).toLocaleString()} sent
+                      </span>
+                    )}
                     <span className="shrink-0 text-[11px] tabular-nums text-gray-400">
                       {seg.chars}c · {seg.segments} seg
                     </span>
@@ -180,6 +217,7 @@ export default function SmsMessagesPanel({ senderLast4 }: { senderLast4?: string
           variant={open.v}
           body={open.body}
           senderLast4={senderLast4}
+          stats={open.v.emailType ? sentByType?.[open.v.emailType] ?? null : null}
           onClose={() => setOpenId(null)}
         />
       )}

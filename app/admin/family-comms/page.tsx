@@ -39,6 +39,8 @@ interface PerfRow {
 }
 
 interface Summary {
+  /** email_log channel='sms' counts per email_type in the window — per-text chips on the Text campaigns panel. */
+  smsByType?: Record<string, { sent: number; failed: number }>;
   range: { from: string; to: string };
   generatedAt: string;
   totals: { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number };
@@ -115,6 +117,7 @@ function Sparkline({ points, color = "#0d9488" }: { points: (number | null)[]; c
 // "broken?".
 const PERF_GROUP_ORDER = [
   "Guidance cascade — after an inquiry",
+  "Benefits cascade — after intake",
   "Conversations & matches",
   "Profile lifecycle",
   "Campaigns",
@@ -130,6 +133,8 @@ const PERF_GROUPS: Record<string, { group: (typeof PERF_GROUP_ORDER)[number]; or
   family_never_engaged: { group: "Guidance cascade — after an inquiry", order: 5 },
   provider_still_silent: { group: "Guidance cascade — after an inquiry", order: 6 },
   day_10_awaiting: { group: "Guidance cascade — after an inquiry", order: 7 },
+  benefits_first_step: { group: "Benefits cascade — after intake", order: 1 },
+  benefits_check_in: { group: "Benefits cascade — after intake", order: 2 },
   family_reach_out_nudge: { group: "Conversations & matches", order: 1 },
   stale_conversation: { group: "Conversations & matches", order: 2 },
   matches_nudge: { group: "Conversations & matches", order: 3 },
@@ -832,8 +837,8 @@ export default function FamilyCommsAnalyticsPage() {
           {/* SMS messages — the texting sibling of the email previews above.
               Rendered from the live templates (lib/sms/templates.ts), so what
               you preview is exactly what sends. */}
-          <CollapsibleSection title="SMS messages — what we send" storageKey="fc.smsMessages" defaultCollapsed={false}>
-            <SmsMessagesPanel senderLast4={sms?.senderLast4} />
+          <CollapsibleSection title="Text campaigns — what we send" storageKey="fc.smsMessages" defaultCollapsed={false}>
+            <SmsMessagesPanel senderLast4={sms?.senderLast4} sentByType={data?.smsByType} />
           </CollapsibleSection>
 
           {/* Sensor detail */}

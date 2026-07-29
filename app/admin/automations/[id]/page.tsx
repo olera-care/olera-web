@@ -272,6 +272,17 @@ function skipReasonsText(s: Record<string, unknown> | null): string {
   if (!s || !s.skipReasons || typeof s.skipReasons !== "object") return "";
   return Object.entries(s.skipReasons as Record<string, number>).map(([k, v]) => `${k}: ${v}`).join("\n");
 }
+/** Per-rung send counts (coordinator runs write summary.byRung) — the answer to
+ *  "which rungs actually fired this run" that used to be recorded but invisible. */
+function byRungText(s: Record<string, unknown> | null): string {
+  if (!s || !s.byRung || typeof s.byRung !== "object") return "";
+  const entries = Object.entries(s.byRung as Record<string, number>).filter(([, v]) => typeof v === "number" && v > 0);
+  if (entries.length === 0) return "";
+  return entries
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => `${k.replace(/_/g, " ")} ${v}`)
+    .join(" · ");
+}
 function runDotCls(status: string): string {
   if (status === "error") return "bg-red-500";
   if (status === "skipped_paused") return "bg-amber-400";
@@ -556,7 +567,7 @@ export default function AutomationDetailPage() {
               {(data.job.smsTypes?.length ?? 0) > 0 && (
                 <div className="text-gray-600">
                   <span className="text-gray-400">Text types</span>{" "}
-                  {data.job.smsTypes!.map((t) => <Link key={t} href={`/admin/emails?type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
+                  {data.job.smsTypes!.map((t) => <Link key={t} href={`/admin/emails?email_type=${t}`} className="mr-2 text-teal-700 hover:underline">{t}</Link>)}
                 </div>
               )}
               <div className="text-gray-600"><span className="text-gray-400">Schedule</span><br />{data.job.humanSchedule}</div>
@@ -956,14 +967,17 @@ export default function AutomationDetailPage() {
                   <div className="divide-y divide-gray-100">
                     {(showAllRuns ? data.runs : data.runs.slice(0, 15)).map((run) => {
                       const skips = skipReasonsText(run.summary);
+                      const rungs = byRungText(run.summary);
+                      const hoverText = [rungs && `by rung:\n${rungs.split(" · ").join("\n")}`, skips].filter(Boolean).join("\n\n");
                       return (
                         <div key={run.id} className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-gray-50">
                           <span className={`h-2 w-2 shrink-0 rounded-full ${runDotCls(run.status)}`} title={run.status} />
                           <span className="w-24 shrink-0 text-gray-700" title={new Date(run.started_at).toLocaleString()}>{timeAgo(run.started_at)}</span>
                           <span className="w-16 shrink-0 text-xs text-gray-400">{duration(run.started_at, run.finished_at)}</span>
-                          <span className="min-w-0 flex-1 truncate text-gray-600" title={skips || undefined}>
+                          <span className="min-w-0 flex-1 truncate text-gray-600" title={hoverText || undefined}>
                             {run.status === "skipped_paused" ? <span className="text-amber-600">skipped (paused)</span> : run.status === "running" ? <span className="text-blue-600">running…</span> : runResult(run.summary) || (run.status === "ok" ? "completed" : run.status)}
-                            {skips && <span className="ml-1.5 text-gray-300">ⓘ</span>}
+                            {rungs && <span className="ml-1.5 text-gray-400">— {rungs}</span>}
+                            {(skips || rungs) && <span className="ml-1.5 text-gray-300">ⓘ</span>}
                           </span>
                           {run.error && <span className="max-w-[16rem] truncate text-xs text-red-600" title={run.error}>{run.error}</span>}
                           {run.triggered_by !== "cron" && <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500" title={run.triggered_by}>manual</span>}

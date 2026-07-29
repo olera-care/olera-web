@@ -59,6 +59,8 @@ const TYPE_LABELS: Record<string, string> = {
   provider_still_silent: "Day 7 · Provider still silent → trust recovery",
   day_10_awaiting: "Day 10 · Provider replied, family stalled",
   orientation_intro: "Orientation intro — one-time campaign",
+  benefits_first_step: "Day 2-3 · Your ten-minute first step (benefits)",
+  benefits_check_in: "Day 5-6 · How's the application going? (benefits)",
   family_reach_out_nudge: "A provider reached out — reply reminder",
   stale_conversation: "Conversation went quiet — both sides",
   matches_nudge: "Matches sitting inactive",
@@ -534,10 +536,37 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // ── SMS ledger counts per type (window) ─────────────────────────────────
+  // email_log channel='sms' rows, grouped by email_type — powers the per-text
+  // "N sent" chips on the SMS messages panel. Only call sites that pass an
+  // emailType land here (reply alerts, benefits results + cascade mirrors);
+  // delivery STATUS still comes from Twilio (the delivery panel above it).
+  const smsByType: Record<string, { sent: number; failed: number }> = {};
+  {
+    const { data: smsRows, error: smsErr } = await db
+      .from("email_log")
+      .select("email_type, status")
+      .eq("channel", "sms")
+      .gte("created_at", fromISO)
+      .lte("created_at", toISO)
+      .limit(50000);
+    if (smsErr) {
+      console.error("[family-comms-analytics] sms ledger query failed (chips omitted):", smsErr);
+    } else {
+      for (const r of (smsRows as { email_type: string | null; status: string | null }[]) || []) {
+        if (!r.email_type) continue;
+        const slot = (smsByType[r.email_type] ??= { sent: 0, failed: 0 });
+        if (r.status === "failed") slot.failed += 1;
+        else slot.sent += 1;
+      }
+    }
+  }
+
   return NextResponse.json({
     range: { from: fromISO, to: toISO },
     generatedAt: new Date(now).toISOString(),
     totals,
+    smsByType,
     compareClick: {
       sends: compareSends,
       opened: compareSendsOpened,

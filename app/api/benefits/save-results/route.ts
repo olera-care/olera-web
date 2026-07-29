@@ -876,7 +876,15 @@ export async function POST(req: Request) {
         familyPhrase: relationshipFamilyPhrase(relationship),
         url: `${siteUrl}/m/${benefitsToken}`,
       });
-      const result = await sendSMS({ to: normalizedPhone, body });
+      const result = await sendSMS({
+        to: normalizedPhone,
+        body,
+        // Ledger entry (channel='sms') for /admin/family-comms; transactional,
+        // deliberately NOT a governed nudge type.
+        emailType: "benefits_results_sms",
+        recipientType: "family",
+        recipientLogProfileId: familyProfileId,
+      });
       if (!result.success) {
         console.error("[save-results] SMS send failed:", result.error);
         // Twilio error 21610 = recipient texted STOP previously. Update profile.

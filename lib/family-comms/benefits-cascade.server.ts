@@ -530,6 +530,11 @@ export async function captureFamilyPhoneAndTextResults(
       familyPhrase: opts.familyPhrase || "your family",
       url: `${getSiteUrl()}/m/${tokenRow.token}`,
     }),
+    // Ledger entry (channel='sms') so the send shows on /admin/family-comms.
+    // benefits_results_sms is transactional — deliberately NOT a governed type.
+    emailType: "benefits_results_sms",
+    recipientType: "family",
+    recipientLogProfileId: opts.profileId,
   });
   if (!result.success) {
     console.error("[captureFamilyPhone] results SMS failed:", result.error);

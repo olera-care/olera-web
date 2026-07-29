@@ -603,8 +603,10 @@ function ProviderContactEditor({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      <div className="flex items-center gap-1.5">
+    <div className="flex flex-col gap-1">
+      {/* Row 1: Email + Edit + Phone */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+        <div className="flex items-center gap-1.5">
         {isEditing ? (
           // Edit mode: input + Find + Save + Cancel
           <>
@@ -727,44 +729,6 @@ function ProviderContactEditor({
                 )}
               </>
             ) : null}
-            {/* Generic email warning */}
-            {showGenericWarning && (
-              <>
-                <span className="inline-flex items-center gap-1 text-xs text-amber-600" title="Generic inbox - consider calling first">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  Generic
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRecordCall();
-                  }}
-                  disabled={isRecordingCall}
-                  className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
-                    callRecordError
-                      ? "text-red-600 hover:text-red-700 hover:bg-red-50"
-                      : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-                  }`}
-                  title={callRecordError ? "Failed - click to retry" : "Record that you called this provider"}
-                >
-                  {isRecordingCall ? "..." : callRecordError ? "Retry" : "I called"}
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onWarningSkipped?.();
-                  }}
-                  className="shrink-0 px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
-                  title="Dismiss warning - proceed without calling"
-                >
-                  Skip
-                </button>
-              </>
-            )}
             {/* Show "Called" checkmark if call was recorded */}
             {isCallRecorded && isGenericEmail(email) && (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-600" title="Call verified">
@@ -795,7 +759,7 @@ function ProviderContactEditor({
         )}
       </div>
 
-      {/* Phone - inline */}
+      {/* Phone - inline with main row */}
       {phone && (
         <a
           href={`tel:${phone.replace(/\D/g, "")}`}
@@ -804,6 +768,46 @@ function ProviderContactEditor({
         >
           {formatPhone(phone)}
         </a>
+      )}
+      </div>
+
+      {/* Row 2: Generic email warning (separate line for cleaner layout) */}
+      {showGenericWarning && (
+        <div className="flex items-center gap-2 pl-0.5">
+          <span className="inline-flex items-center gap-1 text-xs text-amber-600">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Generic email — have you called?
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRecordCall();
+            }}
+            disabled={isRecordingCall}
+            className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+              callRecordError
+                ? "text-red-600 hover:text-red-700 hover:bg-red-50"
+                : "text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+            }`}
+            title={callRecordError ? "Failed - click to retry" : "Record that you called this provider"}
+          >
+            {isRecordingCall ? "..." : callRecordError ? "Retry" : "I called"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onWarningSkipped?.();
+            }}
+            className="shrink-0 px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
+            title="Dismiss warning - proceed without calling"
+          >
+            Skip
+          </button>
+        </div>
       )}
     </div>
   );
@@ -1126,14 +1130,6 @@ function CityRow({
                         >
                           {provider.provider_name}
                         </Link>
-                        {provider.slug && (
-                          <Link
-                            href={`/admin/directory/${provider.slug}`}
-                            className="text-xs text-gray-400 hover:text-primary-600 shrink-0"
-                          >
-                            View
-                          </Link>
-                        )}
                         <AdminChip
                           adminId={provider.assigned_to}
                           adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}

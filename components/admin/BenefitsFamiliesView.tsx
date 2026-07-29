@@ -172,27 +172,33 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test",
       subject?: string,
       letter?: string,
       sms?: string,
-    ) => {
+      testEmail?: string,
+    ): Promise<boolean> => {
       setCaseBusy(true);
       setCaseError(null);
       try {
         const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, subject, body: letter, sms }),
+          body: JSON.stringify({ action, subject, body: letter, sms, testEmail }),
         });
         const d = await res.json().catch(() => null);
         if (!res.ok) {
           setCaseError(d?.error || "That didn't go through. Try again.");
-          return;
+          return false;
         }
-        await Promise.all([fetchData(), loadTimeline(profileId)]);
+        // Test sends change nothing server-side — skip the refetch churn.
+        if (action !== "navigator_test") {
+          await Promise.all([fetchData(), loadTimeline(profileId)]);
+        }
+        return true;
       } catch {
         setCaseError("That didn't go through. Try again.");
+        return false;
       } finally {
         setCaseBusy(false);
       }
@@ -526,8 +532,8 @@ export default function BenefitsFamiliesView() {
                           error={caseError}
                           navigator={navigators[f.profileId]}
                           familyLabel={f.displayName || f.email || "this family"}
-                          onNavigator={(action, subject, letter, sms) =>
-                            navigatorAction(f.profileId, action, subject, letter, sms)
+                          onNavigator={(action, subject, letter, sms, testEmail) =>
+                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail)
                           }
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
                           onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
@@ -564,15 +570,38 @@ function NavigatorDraftEditor({
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test",
     subject?: string,
     letter?: string,
     sms?: string,
-  ) => void;
+    testEmail?: string,
+  ) => Promise<boolean>;
 }) {
   const [subject, setSubject] = useState(navigator.subject ?? "");
   const [letter, setLetter] = useState(navigator.body ?? "");
   const [sms, setSms] = useState(navigator.sms ?? "");
+  // Test-send: remember the reviewer's address across sessions; empty falls
+  // back server-side to the signed-in admin's own email.
+  const [testEmail, setTestEmail] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return window.localStorage.getItem("olera.navigator.testEmail") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [testState, setTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const sendTest = async () => {
+    setTestState("sending");
+    try {
+      window.localStorage.setItem("olera.navigator.testEmail", testEmail);
+    } catch {
+      /* private mode — remembering is best-effort */
+    }
+    const ok = await onNavigator("navigator_test", subject, letter, undefined, testEmail || undefined);
+    setTestState(ok ? "sent" : "error");
+    if (ok) setTimeout(() => setTestState("idle"), 4000);
+  };
   return (
     <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
       <div className="mb-2 flex items-center justify-between">
@@ -640,6 +669,31 @@ function NavigatorDraftEditor({
           Dismiss
         </button>
         <p className="text-[11px] text-amber-700/70">Sends the email now{textable ? " plus the companion text" : ""}.</p>
+      </div>
+      {/* Test send: the exact email in a reviewer's inbox. Consumes nothing —
+          no stamps, no text, no cap slot; the draft stays pending. */}
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-amber-200/60 pt-3">
+        <input
+          type="email"
+          value={testEmail}
+          onChange={(e) => setTestEmail(e.target.value)}
+          placeholder="Test inbox (blank = your admin email)"
+          className="w-64 rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12px] focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+        />
+        <button
+          onClick={sendTest}
+          disabled={busy || testState === "sending" || letter.trim().length < 40}
+          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 disabled:opacity-40"
+        >
+          {testState === "sending" ? "Sending…" : "Email me a test"}
+        </button>
+        {testState === "sent" && (
+          <span className="text-[12px] font-medium text-emerald-700">Test sent ✓ check your inbox</span>
+        )}
+        <p className="basis-full text-[11px] text-amber-700/60">
+          Sends this letter (with your edits) as a real email to the test inbox. Nothing is
+          recorded, no text goes out, and the draft stays here.
+        </p>
       </div>
     </div>
   );
@@ -769,11 +823,12 @@ function CasePanel({
   navigator: NavigatorDetail | null | undefined;
   familyLabel: string;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test",
     subject?: string,
     letter?: string,
     sms?: string,
-  ) => void;
+    testEmail?: string,
+  ) => Promise<boolean>;
   onAction: (action: string, text?: string) => void;
   onDelete: () => void;
 }) {

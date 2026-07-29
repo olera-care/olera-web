@@ -298,7 +298,7 @@ export async function POST(
     const body = await request.json();
     const action: string = body.action || "";
     if (
-      !["note", "contacted", "resolved", "reopen", "navigator_send", "navigator_dismiss"].includes(
+      !["note", "contacted", "resolved", "reopen", "navigator_send", "navigator_dismiss", "navigator_test"].includes(
         action,
       )
     ) {
@@ -315,8 +315,12 @@ export async function POST(
 
     const meta = (profile.metadata as Record<string, unknown>) || {};
 
-    // ── Navigator actions: send (through governance) or dismiss the draft ──
-    if (action === "navigator_send" || action === "navigator_dismiss") {
+    // ── Navigator actions: send (through governance), test-send, or dismiss ──
+    if (
+      action === "navigator_send" ||
+      action === "navigator_dismiss" ||
+      action === "navigator_test"
+    ) {
       const navigator = readBenefitsNavigator(meta);
       if (navigator.status !== "pending" || !navigator.body) {
         return NextResponse.json({ error: "No pending draft for this family" }, { status: 409 });
@@ -333,10 +337,7 @@ export async function POST(
         return NextResponse.json({ success: true, navigator: next });
       }
 
-      // navigator_send — TJ may have edited subject/body in the drawer.
-      if (!profile.email) {
-        return NextResponse.json({ error: "Family has no email on file" }, { status: 409 });
-      }
+      // Both send paths honor TJ's drawer edits.
       const subject =
         typeof body.subject === "string" && body.subject.trim()
           ? body.subject.trim().slice(0, 150)
@@ -347,8 +348,6 @@ export async function POST(
           : navigator.body;
 
       const siteUrl = getSiteUrl();
-      // Link to the living plan (/m) with signed-in arrival, matching every
-      // other cascade email since #1404.
       const { data: tokenRow } = await db
         .from("benefits_results_tokens")
         .select("token")
@@ -359,6 +358,48 @@ export async function POST(
       const planPath = tokenRow?.token
         ? `/m/${tokenRow.token}`
         : navigator.pick?.programPath || "/benefits";
+
+      // navigator_test — the exact email, delivered to a reviewer's inbox.
+      // Consumes nothing: no cascade stamps, no navigator status change, no
+      // SMS, no governed email type (so no cap slot). The plan link is the
+      // DIRECT token URL, not the signed-in-arrival wrapper — a magic link
+      // that signs the reviewer in as the family has no business in a test
+      // inbox. Defaults to the signed-in admin's own email.
+      if (action === "navigator_test") {
+        const testEmail =
+          typeof body.testEmail === "string" && /^\S+@\S+\.\S+$/.test(body.testEmail.trim())
+            ? body.testEmail.trim()
+            : user.email || null;
+        if (!testEmail) {
+          return NextResponse.json({ error: "No test email to send to" }, { status: 400 });
+        }
+        const testHtml = renderNavigatorEmail({
+          body: letter,
+          planUrl: `${siteUrl}${planPath}${tokenRow?.token ? "#call-script" : ""}`,
+          unsubscribeUrl: careUnsubscribeUrl(profileId),
+          call: navigator.pick?.contactPhone ? { phone: navigator.pick.contactPhone } : null,
+        });
+        const testResult = await sendEmail({
+          to: testEmail,
+          subject: `[Test] ${subject}`,
+          html: testHtml,
+          emailType: "navigator_test",
+          recipientType: "admin",
+          metadata: { navigator_test: true, family_profile_id: profileId },
+        });
+        if (!testResult.success || testResult.skipped) {
+          return NextResponse.json(
+            { error: `Test send failed: ${testResult.skipReason || testResult.error || "unknown"}` },
+            { status: 502 },
+          );
+        }
+        return NextResponse.json({ success: true, sentTo: testEmail });
+      }
+
+      // navigator_send — the real thing.
+      if (!profile.email) {
+        return NextResponse.json({ error: "Family has no email on file" }, { status: 409 });
+      }
       // #call-script lands the family on the opened script section — the
       // letter says "the script is written on your plan page", so the tap
       // should keep that promise, not drop them at the top to go hunting.

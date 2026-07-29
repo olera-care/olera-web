@@ -4236,6 +4236,35 @@ export default function ProviderOutreachPage() {
         ) : (
           // Normal city-grouped view
           <>
+            {/* Call Script - only show on Ready tab */}
+            {activeTab === "ready" && (
+              <details className="mx-5 mt-2 mb-4 bg-white border border-gray-200 rounded-lg">
+                <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
+                  Call Script (for generic emails)
+                </summary>
+                <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
+                  <p>
+                    &quot;Hi, is this <span className="font-medium text-gray-800">[provider name]</span>? My name is <span className="font-medium text-gray-800">[Your Name]</span>, and I&apos;m calling from Dr. DuBose&apos;s office at Olera.&quot;
+                  </p>
+                  <p>
+                    &quot;Do you have 3 minutes to quickly chat? I promise I&apos;ll be quick.&quot;
+                  </p>
+                  <p>
+                    &quot;We run a free referral program that connects families with <span className="font-medium text-gray-800">[care type]</span> with trusted providers in <span className="font-medium text-gray-800">[city]</span>.&quot;
+                  </p>
+                  <p>
+                    &quot;We&apos;ve already created a profile for your community using publicly available information, and we&apos;d love for you to manage it by adding your own details and photos and get families sent directly to you.&quot;
+                  </p>
+                  <p>
+                    &quot;There&apos;s no cost to claim or update your profile.&quot;
+                  </p>
+                  <p>
+                    &quot;I was hoping to send you some information on how it works. What&apos;s the best email address for me to send that to?&quot;
+                  </p>
+                </div>
+              </details>
+            )}
+
             {/* Header */}
             <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
               <div className="w-5" />

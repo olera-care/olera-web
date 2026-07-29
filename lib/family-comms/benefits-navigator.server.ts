@@ -40,6 +40,8 @@ export interface BenefitsNavigatorMeta {
   composed_at?: string;
   subject?: string;
   body?: string;
+  /** TJ-voiced companion text ({link} placeholder; STOP suffix added at send). */
+  sms?: string | null;
   model?: string;
   /** Snapshot of the verified first-step pick so the send path never re-runs
    *  selection (the letter references THIS program; re-picking could drift). */
@@ -59,9 +61,10 @@ export interface BenefitsNavigatorMeta {
   };
   provider_count?: number;
   sent_at?: string;
-  /** Final body as actually sent (TJ may have edited the draft). */
+  /** Final copies as actually sent (TJ may have edited the drafts). */
   sent_subject?: string;
   sent_body?: string;
+  sent_sms?: string;
   dismissed_at?: string;
 }
 
@@ -106,9 +109,16 @@ STRUCTURE (120-180 words total)
    - Else if the PROVIDER OFFER section allows it: one sentence offering to personally introduce them to a few care providers near them if they reply.
 4. Close in one sentence: they can reply to this email and TJ will read it. Sign off exactly as "TJ" on its own line, with "Olera" on the line after.
 
+COMPANION TEXT MESSAGE
+Also draft one short text message. It goes only to families who asked for texts, alongside the email, from the same number that texted their results. Texts get seen when email does not, so this is often the first thing they read.
+- Two or three short sentences, under 240 characters total. It must sound like a person texting, not a notification. Same voice rules as the letter.
+- Say who you are (TJ from Olera), point at the step you emailed them in one clause, and end by inviting them to text back if they get stuck.
+- Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically).
+
 FORMAT
 Return exactly this format, nothing else:
 SUBJECT: <a plain, specific subject line. No clickbait, no colons-and-hype. Something a person would write, like "Your first step for LIHEAP">
+TEXT: <the companion text message on a single line>
 
 <the letter body as plain text paragraphs separated by blank lines. No markdown, no links, no bullet points.>`;
 
@@ -131,6 +141,9 @@ export interface NavigatorComposeInput {
 export interface NavigatorDraft {
   subject: string;
   body: string;
+  /** TJ-voiced companion text (one {link} placeholder; STOP suffix added at
+   *  send). Null when the model omitted it — send falls back to the template. */
+  sms: string | null;
   pick: FirstStepPick;
   providerCount: number;
 }
@@ -234,13 +247,20 @@ export async function composeNavigatorDraft(
   if (response.stop_reason === "refusal") return null;
   const text = response.content.find((b) => b.type === "text");
   const raw = text && text.type === "text" ? text.text.trim() : "";
-  const match = raw.match(/^SUBJECT:\s*(.+)\n+([\s\S]+)$/);
+  const match = raw.match(/^SUBJECT:\s*(.+?)\s*\n+(?:TEXT:\s*(.+?)\s*\n+)?([\s\S]+)$/);
   if (!match) return null;
   const subject = match[1].trim();
-  const body = match[2].trim().replace(/—/g, ", ").replace(/[ \t]+\n/g, "\n");
+  const smsRaw = (match[2] || "").trim();
+  const body = match[3].trim().replace(/—/g, ", ").replace(/[ \t]+\n/g, "\n");
   if (!subject || body.length < 80) return null;
+  // The companion text is optional (send falls back to the template without
+  // it) but never oversized or off-format: cap length, strip stray links.
+  const sms =
+    smsRaw && smsRaw.length >= 40 && smsRaw.includes("{link}") && !/https?:\/\//.test(smsRaw)
+      ? smsRaw.replace(/—/g, ", ").slice(0, 320)
+      : null;
 
-  return { subject, body, pick, providerCount };
+  return { subject, body, sms, pick, providerCount };
 }
 
 /** Serialize the pick for the metadata snapshot (send path re-reads it). */

@@ -379,26 +379,40 @@ export async function POST(
         sent_body: letter,
       };
 
-      // Consent-gated SMS mirror, same rules as the coordinator's cascade
-      // mirror (phone + sms_consent + not opted out). Awaited: Vercel kills
-      // pending promises after the response.
+      // Consent-gated SMS companion, same gate as the coordinator's cascade
+      // mirror (phone + sms_consent + not opted out). Body preference: TJ's
+      // edited text from the drawer, then the composed TJ-voiced draft, then
+      // the old template as the fallback. The composed text carries a {link}
+      // placeholder (direct URL, not a magic link — SMS length budget) and the
+      // STOP suffix is appended here so the model never writes compliance
+      // copy. Awaited: Vercel kills pending promises after the response.
       const smsEligible =
         !!profile.phone && !!meta.sms_consent && profile.phone_validity !== "opted_out";
       if (smsEligible && profile.phone && navigator.pick) {
+        const smsPlanUrl = `${siteUrl}${planPath}`;
+        const editedSms =
+          typeof body.sms === "string" && body.sms.trim().length >= 20
+            ? body.sms.trim().slice(0, 400)
+            : null;
+        const draftSms = editedSms || navigator.sms || null;
+        const smsBody = draftSms
+          ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)} Reply STOP to opt out.`
+          : benefitsFirstStepSms({
+              programShortName: navigator.pick.shortName,
+              phone: navigator.pick.contactPhone,
+              topDocs: navigator.pick.documents,
+              url: `${siteUrl}${navigator.pick.programPath}`,
+            });
         const sms = await sendSMS({
           to: profile.phone,
-          body: benefitsFirstStepSms({
-            programShortName: navigator.pick.shortName,
-            phone: navigator.pick.contactPhone,
-            topDocs: navigator.pick.documents,
-            url: `${siteUrl}${navigator.pick.programPath}`,
-          }),
+          body: smsBody,
           emailType: "benefits_first_step_sms",
           recipientType: "family",
           recipientLogProfileId: profileId,
         });
         if (sms.success && !sms.skipped) {
           (nextCascade as Record<string, unknown>).first_step_sms_at = now;
+          (nextNavigator as Record<string, unknown>).sent_sms = smsBody;
         } else if (sms.error?.includes("21610")) {
           await db
             .from("business_profiles")

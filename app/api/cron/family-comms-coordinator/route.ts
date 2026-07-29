@@ -1002,6 +1002,7 @@ export async function GET(request: NextRequest) {
                   composed_at: new Date().toISOString(),
                   subject: draft.subject,
                   body: draft.body,
+                  sms: draft.sms,
                   model: "claude-opus-5",
                   pick: pickSnapshot(draft.pick),
                   provider_count: draft.providerCount,

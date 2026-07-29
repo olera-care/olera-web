@@ -72,6 +72,8 @@ interface NavigatorDetail {
   status?: "pending" | "sent" | "dismissed";
   subject?: string;
   body?: string;
+  /** TJ-voiced companion text; {link} placeholder is replaced at send. */
+  sms?: string | null;
   composed_at?: string;
   sent_at?: string;
   pick?: { shortName?: string; contactPhone?: string };
@@ -168,14 +170,20 @@ export default function BenefitsFamiliesView() {
   // Send is outward-facing and irreversible — confirm first, surface the
   // server's reason on a block (governance cap, missing email).
   const navigatorAction = useCallback(
-    async (profileId: string, action: "navigator_send" | "navigator_dismiss", subject?: string, letter?: string) => {
+    async (
+      profileId: string,
+      action: "navigator_send" | "navigator_dismiss",
+      subject?: string,
+      letter?: string,
+      sms?: string,
+    ) => {
       setCaseBusy(true);
       setCaseError(null);
       try {
         const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, subject, body: letter }),
+          body: JSON.stringify({ action, subject, body: letter, sms }),
         });
         const d = await res.json().catch(() => null);
         if (!res.ok) {
@@ -532,8 +540,8 @@ export default function BenefitsFamiliesView() {
                           error={caseError}
                           navigator={navigators[f.profileId]}
                           familyLabel={f.displayName || f.email || "this family"}
-                          onNavigator={(action, subject, letter) =>
-                            navigatorAction(f.profileId, action, subject, letter)
+                          onNavigator={(action, subject, letter, sms) =>
+                            navigatorAction(f.profileId, action, subject, letter, sms)
                           }
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
                           onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
@@ -561,16 +569,24 @@ export default function BenefitsFamiliesView() {
 function NavigatorDraftEditor({
   navigator,
   familyLabel,
+  textable,
   busy,
   onNavigator,
 }: {
   navigator: NavigatorDetail;
   familyLabel: string;
+  textable: boolean;
   busy: boolean;
-  onNavigator: (action: "navigator_send" | "navigator_dismiss", subject?: string, letter?: string) => void;
+  onNavigator: (
+    action: "navigator_send" | "navigator_dismiss",
+    subject?: string,
+    letter?: string,
+    sms?: string,
+  ) => void;
 }) {
   const [subject, setSubject] = useState(navigator.subject ?? "");
   const [letter, setLetter] = useState(navigator.body ?? "");
+  const [sms, setSms] = useState(navigator.sms ?? "");
   return (
     <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
       <div className="mb-2 flex items-center justify-between">
@@ -595,11 +611,30 @@ function NavigatorDraftEditor({
         rows={Math.min(14, Math.max(8, letter.split("\n").length + 2))}
         className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400/40"
       />
+      {textable ? (
+        <div className="mt-2">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700/80">
+            Companion text — sends with the email ({"{link}"} becomes their plan link; STOP line added automatically)
+          </p>
+          <textarea
+            value={sms}
+            onChange={(e) => setSms(e.target.value)}
+            rows={2}
+            className="w-full rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[13px] leading-relaxed focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+            placeholder="No text drafted — the standard first-step text will be sent instead."
+          />
+          <p className="text-right text-[10px] tabular-nums text-amber-700/60">{sms.length} chars</p>
+        </div>
+      ) : (
+        <p className="mt-1.5 text-[11px] text-amber-700/60">
+          No text message will go out: this family hasn&apos;t consented to texts.
+        </p>
+      )}
       <div className="mt-2 flex items-center gap-2">
         <button
           onClick={() => {
             if (window.confirm(`Send this letter to ${familyLabel}? It goes out under your name, with replies coming back to you.`)) {
-              onNavigator("navigator_send", subject, letter);
+              onNavigator("navigator_send", subject, letter, sms.trim() || undefined);
             }
           }}
           disabled={busy || letter.trim().length < 40}
@@ -618,7 +653,7 @@ function NavigatorDraftEditor({
         >
           Dismiss
         </button>
-        <p className="text-[11px] text-amber-700/70">Sends the email now (plus the text mirror if they consented).</p>
+        <p className="text-[11px] text-amber-700/70">Sends the email now{textable ? " plus the companion text" : ""}.</p>
       </div>
     </div>
   );
@@ -747,7 +782,12 @@ function CasePanel({
   error: string | null;
   navigator: NavigatorDetail | null | undefined;
   familyLabel: string;
-  onNavigator: (action: "navigator_send" | "navigator_dismiss", subject?: string, letter?: string) => void;
+  onNavigator: (
+    action: "navigator_send" | "navigator_dismiss",
+    subject?: string,
+    letter?: string,
+    sms?: string,
+  ) => void;
   onAction: (action: string, text?: string) => void;
   onDelete: () => void;
 }) {
@@ -757,6 +797,7 @@ function CasePanel({
         <NavigatorDraftEditor
           navigator={navigator}
           familyLabel={familyLabel}
+          textable={reach.textable}
           busy={busy}
           onNavigator={onNavigator}
         />

@@ -389,23 +389,3 @@ export function composeFooterPlainText(vars: Record<string, string>): string {
   ].join("\n");
 }
 
-// ── Legacy exports (for backward compatibility) ──────────────────────────
-
-/**
- * @deprecated Use loganSignatureHtml instead
- */
-export const TJ_PHOTO_URL = LOGAN_PHOTO_URL;
-
-/**
- * @deprecated Use loganSignatureHtml instead
- */
-export function tjSignatureHtml(): string {
-  return loganSignatureHtml();
-}
-
-/**
- * @deprecated Use loganSignaturePlainText instead
- */
-export function tjSignaturePlainText(): string {
-  return loganSignaturePlainText();
-}

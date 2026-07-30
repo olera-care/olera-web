@@ -38,7 +38,7 @@ import {
   type TemplateContext,
   loganSignatureHtml,
 } from "./templates";
-import { bodyToHtml } from "./email-utils";
+import { bodyToHtml, polishedLayout } from "./email-utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -277,11 +277,13 @@ function buildSmartleadFooterHtml(): string {
 
 /**
  * Render a template body to SmartLead HTML with merge tags.
+ * Wraps in polished email layout for consistent Olera branding.
  */
 function toSmartleadHtml(body: string): string {
   const convertedBody = convertToSmartleadTokens(body);
   const bodyHtml = bodyToHtml(convertedBody);
-  return bodyHtml + buildSmartleadFooterHtml();
+  const footerHtml = buildSmartleadFooterHtml();
+  return polishedLayout(bodyHtml, footerHtml);
 }
 
 /**

@@ -51,8 +51,9 @@ function preheaderHtml(text: string): string {
 
 /**
  * Polished email layout wrapper matching Olera email gallery style.
+ * Exported for use by SmartLead bridge to ensure consistent styling.
  */
-function polishedLayout(
+export function polishedLayout(
   body: string,
   footer: string,
   opts?: { preheader?: string; categoryLabel?: string }

@@ -5257,10 +5257,11 @@ export default function ProviderOutreachPage() {
               </button>
               <button
                 onClick={async () => {
-                  // Only include providers that are valid (have email)
-                  const validProviderIds = sequencePreviewData
-                    ? sequencePreviewData.providers.filter(p => p.valid).map(p => p.provider_id)
-                    : sequenceConfirmProviders.map(p => p.provider_id);
+                  // Only include providers that have email (valid for sequence)
+                  // Use ALL selected providers, not just the preview subset (which is limited to 100)
+                  const validProviderIds = sequenceConfirmProviders
+                    .filter(p => p.email)
+                    .map(p => p.provider_id);
 
                   if (validProviderIds.length === 0) return;
 

@@ -54,9 +54,16 @@ export async function GET(request: NextRequest) {
     const allRows = rows ?? [];
 
     // Get unique provider IDs from questions that might need email
+    // Exclude questions that have moved to other tabs (Delivery Issues, No Contact, Not Interested)
     const potentialNeedsEmail = allRows.filter((r) => {
       const meta = r.metadata as Record<string, unknown> | null | undefined;
-      return meta?.needs_provider_email === true && r.status !== "archived" && r.status !== "rejected";
+      if (meta?.needs_provider_email !== true) return false;
+      if (r.status === "archived" || r.status === "rejected") return false;
+      // Exclude questions belonging to other tabs
+      if (meta?.email_dead === true) return false;  // → Delivery Issues tab
+      if (meta?.provider_not_interested === true) return false;  // → Not Interested tab
+      if (meta?.provider_no_contact === true) return false;  // → No Contact tab
+      return true;
     });
     const providerIds = [...new Set(potentialNeedsEmail.map((r) => r.provider_id).filter(Boolean))];
 

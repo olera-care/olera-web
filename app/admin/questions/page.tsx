@@ -1336,28 +1336,9 @@ export default function AdminQuestionsPage() {
                         */}
                         {firstQ.provider_email && !emailIsDead ? (
                           // Case 1: Has working email
-                          // In "Needs Email" tab, show Send Now button for stale flags (email was added elsewhere)
-                          activeTab === "needs_email" ? (
-                            <div className="pt-1">
-                              <div className="flex items-center justify-between gap-3">
-                                <a href={`mailto:${firstQ.provider_email}`} className="text-blue-600 hover:underline truncate">
-                                  {firstQ.provider_email}
-                                </a>
-                                <button
-                                  onClick={() => handleTrustEmail(providerId, !!firstQ.is_account_claimed, firstQ.provider_email)}
-                                  disabled={trustingEmailProviders.has(providerId)}
-                                  className="px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded transition-colors flex-shrink-0 disabled:opacity-50"
-                                  title="Send pending questions to this email"
-                                >
-                                  {trustingEmailProviders.has(providerId) ? "Sending..." : "Send Now"}
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <a href={`mailto:${firstQ.provider_email}`} className="block text-blue-600 hover:underline truncate">
-                              {firstQ.provider_email}
-                            </a>
-                          )
+                          <a href={`mailto:${firstQ.provider_email}`} className="block text-blue-600 hover:underline truncate">
+                            {firstQ.provider_email}
+                          </a>
                         ) : emailIsDead && firstQ.provider_email ? (
                           // Case 2: Delivery issues - has email but it failed
                           editingEmailProviders.has(providerId) ? (

@@ -253,16 +253,17 @@ function convertToSmartleadTokens(text: string): string {
 /**
  * Build the SmartLead footer HTML with Logan signature + compliance links.
  * Uses SmartLead merge tags for dynamic URLs.
+ * NOTE: Join with empty string to avoid extra whitespace in email clients.
  */
 function buildSmartleadFooterHtml(): string {
   return [
     // Sign-off
     `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
+    `<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
     // Signature block (shared with Resend emails)
     loganSignatureHtml(),
     // Footer links with merge tags
-    `<div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
+    `<div style="margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
     `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,
     `<p style="font-size:13px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;">`,
     `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a> · `,
@@ -272,7 +273,7 @@ function buildSmartleadFooterHtml(): string {
     // Mailing address (CAN-SPAM)
     `<p style="font-size:11px;color:#d1d5db;margin:12px 0 0;font-family:Inter,Arial,sans-serif;">Olera · ${MAILING_ADDRESS}</p>`,
     `</div>`,
-  ].join("\n");
+  ].join("");
 }
 
 /**

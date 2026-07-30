@@ -4236,11 +4236,11 @@ export default function ProviderOutreachPage() {
           <>
             {/* Call Script - only show on Ready tab */}
             {activeTab === "ready" && (
-              <details className="mx-5 mt-2 mb-4 bg-white border border-gray-200 rounded-lg">
-                <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
+              <details className="mx-5 mt-2 mb-4">
+                <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
                   Call Script (for generic emails)
                 </summary>
-                <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
+                <div className="pl-4 pt-2 pb-3 text-sm text-gray-600 space-y-3 border-l-2 border-gray-200 ml-1">
                   <p>
                     &quot;Hi, is this <span className="font-medium text-gray-800">[provider name]</span>? My name is <span className="font-medium text-gray-800">[Your Name]</span>, and I&apos;m calling from Dr. DuBose&apos;s office at Olera.&quot;
                   </p>

@@ -97,7 +97,7 @@ export default function AdminAdBoostPage() {
           <span>Clicks</span>
           <span>Questions</span>
           <span>Leads</span>
-          <span>Setup week</span>
+          <span>Flight</span>
           <span className="text-right">Actions</span>
         </div>
 
@@ -211,14 +211,26 @@ function RequestRow({
         {/* The funnel, equal weight: clicks -> questions -> leads. Leads are
             zero for most flights by arithmetic ($50 ~ 25 clicks ~ 0.7 leads),
             so clicks and questions are first-class results, not footnotes. */}
-        <FunnelCell request={request} value={request.ad_landings ?? 0} label="Clicks" />
+        {/* Clicks prefer the ad platform's own number (manual entry — the
+            truth for the whole flight); the landing counter only exists since
+            2026-07-21, so older flights read absurdly low from it. */}
+        <FunnelCell
+          request={request}
+          value={request.ad_clicks ?? request.ad_landings ?? 0}
+          label="Clicks"
+        />
         <FunnelCell request={request} value={request.questions_received ?? 0} label="Questions" />
         <FunnelCell request={request} value={request.delivered ?? 0} label="Leads" emphasize />
 
-        {/* Setup week */}
+        {/* Flight — start (setup week) through the ad platform's end date. */}
         <div className="text-sm text-gray-600">
-          <span className="sm:hidden text-gray-400">Setup week: </span>
+          <span className="sm:hidden text-gray-400">Flight: </span>
           {fmtDateOnly(request.requested_setup_week)}
+          {request.flight_end_date && (
+            <span className="block text-[11px] leading-tight text-gray-400">
+              ends {fmtDateOnly(request.flight_end_date)}
+            </span>
+          )}
         </div>
 
         {/* Actions */}

@@ -16,6 +16,9 @@ export interface CampaignRequest {
    *  concierge confirms before spend). NULL = not chosen / legacy request. */
   intended_monthly_budget: number | null;
   campaign_tag: string | null;
+  /** Last serving day of the ad flight (admin-entered from the ad platform).
+   *  Null = not entered; the queue then shows only the setup week. */
+  flight_end_date: string | null;
   admin_note: string | null;
   created_at: string;
   updated_at: string;

@@ -23,7 +23,7 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, launched_email_sent_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, launched_email_sent_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -240,6 +240,7 @@ export async function POST(request: NextRequest) {
     ad_spend_cents?: unknown;
     ad_clicks?: unknown;
     ad_impressions?: unknown;
+    flight_end_date?: unknown;
   };
   try {
     body = await request.json();
@@ -286,6 +287,19 @@ export async function POST(request: NextRequest) {
   if (body.admin_note !== undefined) {
     update.admin_note =
       typeof body.admin_note === "string" ? body.admin_note : null;
+  }
+
+  if (body.flight_end_date !== undefined) {
+    if (body.flight_end_date === null) {
+      update.flight_end_date = null;
+    } else if (
+      typeof body.flight_end_date !== "string" ||
+      Number.isNaN(new Date(body.flight_end_date).getTime())
+    ) {
+      return NextResponse.json({ error: "flight_end_date must be a date string or null" }, { status: 400 });
+    } else {
+      update.flight_end_date = body.flight_end_date.slice(0, 10);
+    }
   }
 
   if (body.requested_setup_week !== undefined) {

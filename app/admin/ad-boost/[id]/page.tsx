@@ -118,6 +118,7 @@ function Detail({
   const [status, setStatus] = useState(request.status);
   const [channel, setChannel] = useState(request.channel ?? "");
   const [setupWeek, setSetupWeek] = useState(request.requested_setup_week);
+  const [flightEnd, setFlightEnd] = useState(request.flight_end_date ?? "");
   const [tag, setTag] = useState(request.campaign_tag ?? "");
   const [note, setNote] = useState(request.admin_note ?? "");
   const [saving, setSaving] = useState(false);
@@ -156,6 +157,7 @@ function Detail({
     status !== request.status ||
     channel !== (request.channel ?? "") ||
     setupWeek !== request.requested_setup_week ||
+    flightEnd !== (request.flight_end_date ?? "") ||
     tag !== (request.campaign_tag ?? "") ||
     note !== (request.admin_note ?? "");
 
@@ -171,6 +173,7 @@ function Detail({
           status,
           channel: channel || null,
           requested_setup_week: setupWeek,
+          flight_end_date: flightEnd || null,
           campaign_tag: tag || null,
           admin_note: note || null,
         }),
@@ -319,7 +322,7 @@ function Detail({
       {/* Campaign setup */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Campaign setup</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label className="text-sm">
             <span className="block text-gray-500 mb-1">Status</span>
             <select
@@ -350,6 +353,15 @@ function Detail({
               type="date"
               value={setupWeek}
               onChange={(e) => setSetupWeek(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Flight end (from ad platform)</span>
+            <input
+              type="date"
+              value={flightEnd}
+              onChange={(e) => setFlightEnd(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
             />
           </label>

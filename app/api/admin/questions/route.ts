@@ -85,34 +85,43 @@ export async function GET(request: NextRequest) {
       // DEBUG: Log tab count query results
       console.log("[tab-debug] needsEmailQuestions count:", needsEmailQuestions.data?.length ?? 0);
       console.log("[tab-debug] unique provider IDs:", needsEmailProviderIds.length);
-      console.log("[tab-debug] sample provider IDs (first 10):", needsEmailProviderIds.slice(0, 10));
 
       if (needsEmailProviderIds.length > 0) {
-        // Look up providers in business_profiles by BOTH slug AND source_provider_id
-        const bpNeedsEmailOrConditions: string[] = [];
-        bpNeedsEmailOrConditions.push(`slug.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
-        bpNeedsEmailOrConditions.push(`source_provider_id.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
-        const { data: bpForNeedsEmail } = await db
-          .from("business_profiles")
-          .select("slug, email, is_active, source_provider_id, account_id")
-          .or(bpNeedsEmailOrConditions.join(','));
+        // Batch provider lookups to avoid URL length limits (50 IDs per batch)
+        const BATCH_SIZE = 50;
+        const bpForNeedsEmail: { slug: string | null; email: string | null; is_active: boolean | null; source_provider_id: string | null; account_id: string | null }[] = [];
+        const oleraForNeedsEmail: { slug: string | null; email: string | null; provider_id: string | null }[] = [];
 
-        // DEBUG: Log business_profiles found
-        console.log("[tab-debug] business_profiles found:", bpForNeedsEmail?.length ?? 0);
+        for (let i = 0; i < needsEmailProviderIds.length; i += BATCH_SIZE) {
+          const batch = needsEmailProviderIds.slice(i, i + BATCH_SIZE);
 
-        // Build OR conditions for olera-providers query
-        const needsEmailOrConditions: string[] = [];
-        needsEmailOrConditions.push(`slug.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
-        needsEmailOrConditions.push(`provider_id.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
+          // Look up providers in business_profiles
+          const bpOrConditions = [
+            `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
+            `source_provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
+          ];
+          const { data: bpBatch } = await db
+            .from("business_profiles")
+            .select("slug, email, is_active, source_provider_id, account_id")
+            .or(bpOrConditions.join(','));
+          if (bpBatch) bpForNeedsEmail.push(...bpBatch);
 
-        const { data: oleraForNeedsEmail } = await db
-          .from("olera-providers")
-          .select("slug, email, provider_id")
-          .or(needsEmailOrConditions.join(','))
-          .not("deleted", "is", true);
+          // Look up providers in olera-providers
+          const oleraOrConditions = [
+            `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
+            `provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
+          ];
+          const { data: oleraBatch } = await db
+            .from("olera-providers")
+            .select("slug, email, provider_id")
+            .or(oleraOrConditions.join(','))
+            .not("deleted", "is", true);
+          if (oleraBatch) oleraForNeedsEmail.push(...oleraBatch);
+        }
 
-        // DEBUG: Log olera-providers found
-        console.log("[tab-debug] olera-providers found:", oleraForNeedsEmail?.length ?? 0);
+        // DEBUG: Log results
+        console.log("[tab-debug] business_profiles found:", bpForNeedsEmail.length);
+        console.log("[tab-debug] olera-providers found:", oleraForNeedsEmail.length);
 
         // Build olera email lookup
         const oleraEmailMap = new Map<string, string>();
@@ -282,45 +291,37 @@ export async function GET(request: NextRequest) {
         // Get unique provider IDs and check their status
         const providerIds = [...new Set((questionsForCount ?? []).map((q) => q.provider_id).filter(Boolean))];
 
-        // Look up providers in business_profiles by BOTH slug AND source_provider_id
-        const bpCountOrConditions: string[] = [];
-        if (providerIds.length > 0) {
-          bpCountOrConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-          bpCountOrConditions.push(`source_provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-        }
-        const { data: bpProviders } = bpCountOrConditions.length > 0
-          ? await db
-              .from("business_profiles")
-              .select("slug, email, is_active, source_provider_id, account_id")
-              .or(bpCountOrConditions.join(','))
-          : { data: [] };
+        // Batch provider lookups to avoid URL length limits (50 IDs per batch)
+        const BATCH_SIZE = 50;
+        const bpProviders: { slug: string | null; email: string | null; is_active: boolean | null; source_provider_id: string | null; account_id: string | null }[] = [];
+        const oleraProviders: { slug: string | null; email: string | null; provider_id: string | null }[] = [];
 
-        // Collect source_provider_ids for fallback email lookup
-        const sourceProviderIds = (bpProviders ?? [])
-          .filter((p) => p.source_provider_id && !p.email)
-          .map((p) => p.source_provider_id as string);
+        for (let i = 0; i < providerIds.length; i += BATCH_SIZE) {
+          const batch = providerIds.slice(i, i + BATCH_SIZE);
 
-        // Build OR conditions for olera-providers query (only include non-empty arrays)
-        const orConditions: string[] = [];
-        if (providerIds.length > 0) {
-          orConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-        }
-        if (sourceProviderIds.length > 0) {
-          orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
-        }
+          // Look up providers in business_profiles
+          const bpOrConditions = [
+            `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
+            `source_provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
+          ];
+          const { data: bpBatch } = await db
+            .from("business_profiles")
+            .select("slug, email, is_active, source_provider_id, account_id")
+            .or(bpOrConditions.join(','));
+          if (bpBatch) bpProviders.push(...bpBatch);
 
-        // Look up providers in olera-providers (by slug, provider_id, OR source_provider_id for email fallback)
-        // Include provider_id.in.(providerIds) for cases where question.provider_id is the alphanumeric ID
-        if (providerIds.length > 0) {
-          orConditions.push(`provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
+          // Look up providers in olera-providers
+          const oleraOrConditions = [
+            `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
+            `provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
+          ];
+          const { data: oleraBatch } = await db
+            .from("olera-providers")
+            .select("slug, email, provider_id")
+            .or(oleraOrConditions.join(','))
+            .not("deleted", "is", true);
+          if (oleraBatch) oleraProviders.push(...oleraBatch);
         }
-        const { data: oleraProviders } = orConditions.length > 0
-          ? await db
-              .from("olera-providers")
-              .select("slug, email, provider_id")
-              .or(orConditions.join(','))
-              .not("deleted", "is", true)
-          : { data: [] };
 
         // Build olera email lookup by provider_id for fallback
         const oleraEmailByProviderId = new Map<string, string>();
@@ -442,43 +443,37 @@ export async function GET(request: NextRequest) {
       // Get unique provider IDs and check their status
       const providerIds = [...new Set((allNeedsEmailQuestions ?? []).map((q) => q.provider_id).filter(Boolean))];
 
-      // Look up providers in business_profiles by BOTH slug AND source_provider_id
-      const bpFilterOrConditions: string[] = [];
-      if (providerIds.length > 0) {
-        bpFilterOrConditions.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-        bpFilterOrConditions.push(`source_provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-      }
-      const { data: bpProvidersForFilter } = bpFilterOrConditions.length > 0
-        ? await db
-            .from("business_profiles")
-            .select("slug, email, is_active, source_provider_id, account_id")
-            .or(bpFilterOrConditions.join(','))
-        : { data: [] };
+      // Batch provider lookups to avoid URL length limits (50 IDs per batch)
+      const BATCH_SIZE = 50;
+      const bpProvidersForFilter: { slug: string | null; email: string | null; is_active: boolean | null; source_provider_id: string | null; account_id: string | null }[] = [];
+      const oleraProvidersForFilter: { slug: string | null; email: string | null; provider_id: string | null }[] = [];
 
-      // Collect source_provider_ids for fallback email lookup
-      const sourceProviderIdsForFilter = (bpProvidersForFilter ?? [])
-        .filter((p) => p.source_provider_id && !p.email)
-        .map((p) => p.source_provider_id as string);
+      for (let i = 0; i < providerIds.length; i += BATCH_SIZE) {
+        const batch = providerIds.slice(i, i + BATCH_SIZE);
 
-      // Build OR conditions for olera-providers query
-      // Include provider_id.in.(providerIds) for cases where question.provider_id is the alphanumeric ID
-      const orConditionsForFilter: string[] = [];
-      if (providerIds.length > 0) {
-        orConditionsForFilter.push(`slug.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-        orConditionsForFilter.push(`provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
-      }
-      if (sourceProviderIdsForFilter.length > 0) {
-        orConditionsForFilter.push(`provider_id.in.(${sourceProviderIdsForFilter.map(s => `"${s}"`).join(',')})`);
-      }
+        // Look up providers in business_profiles
+        const bpOrConditions = [
+          `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
+          `source_provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
+        ];
+        const { data: bpBatch } = await db
+          .from("business_profiles")
+          .select("slug, email, is_active, source_provider_id, account_id")
+          .or(bpOrConditions.join(','));
+        if (bpBatch) bpProvidersForFilter.push(...bpBatch);
 
-      // Look up providers in olera-providers (by slug, provider_id, OR source_provider_id for email fallback)
-      const { data: oleraProvidersForFilter } = orConditionsForFilter.length > 0
-        ? await db
-            .from("olera-providers")
-            .select("slug, email, provider_id")
-            .or(orConditionsForFilter.join(','))
-            .not("deleted", "is", true)
-        : { data: [] };
+        // Look up providers in olera-providers
+        const oleraOrConditions = [
+          `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
+          `provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
+        ];
+        const { data: oleraBatch } = await db
+          .from("olera-providers")
+          .select("slug, email, provider_id")
+          .or(oleraOrConditions.join(','))
+          .not("deleted", "is", true);
+        if (oleraBatch) oleraProvidersForFilter.push(...oleraBatch);
+      }
 
       // Build olera email lookup by provider_id for fallback
       const oleraEmailByProviderIdForFilter = new Map<string, string>();

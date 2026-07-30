@@ -928,13 +928,14 @@ export default function AdminQuestionsPage() {
   // no emails are sent. Reversible.
   // Trust email for providers with delivery issues
   // This adds the email to email_overrides, allowing emails to be sent without changing the email
-  const handleTrustEmail = async (providerId: string, isClaimed: boolean) => {
+  const handleTrustEmail = async (providerId: string, isClaimed: boolean, email: string | null) => {
     setTrustingEmailProviders((prev) => new Set(prev).add(providerId));
     try {
       const res = await fetch("/api/admin/email-override", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          email: email || undefined, // Pass directly to avoid lookup failures for unclaimed providers
           providerSlug: providerId,
           reason: isClaimed ? "claimed_account" : "admin",
           note: isClaimed
@@ -1096,7 +1097,7 @@ export default function AdminQuestionsPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-8 border-b border-gray-100">
+      <div className="flex gap-1 mb-8 border-b border-gray-100 overflow-x-auto">
         {TABS.map((tab) => {
           const tabCount = tab.value === "unanswered" ? tabCounts.pending
             : tab.value === "needs_email" ? tabCounts.needs_email
@@ -1112,7 +1113,7 @@ export default function AdminQuestionsPage() {
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.value
                   ? "border-gray-900 text-gray-900"
                   : "border-transparent text-gray-400 hover:text-gray-600"
@@ -1399,7 +1400,7 @@ export default function AdminQuestionsPage() {
                                 <div className="flex items-center gap-2">
                                   {/* Trust Email button - for when admin confirms the email is correct */}
                                   <button
-                                    onClick={() => handleTrustEmail(providerId, !!firstQ.is_account_claimed)}
+                                    onClick={() => handleTrustEmail(providerId, !!firstQ.is_account_claimed, firstQ.provider_email)}
                                     disabled={trustingEmailProviders.has(providerId)}
                                     className="px-2.5 py-1 text-xs font-medium text-teal-700 bg-teal-100 hover:bg-teal-200 rounded transition-colors flex-shrink-0 disabled:opacity-50"
                                     title="Mark this email as trusted — bypasses delivery checks and sends pending questions"

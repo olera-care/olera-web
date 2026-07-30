@@ -202,7 +202,7 @@ function followupEmail(): EmailDraft {
     subject: `Your story deserves more than a listing`,
     preheader: `Give families the full picture`,
     body: [
-      `**Families choose people, not listings.**`,
+      `**Families are viewing your page — is it complete?**`,
       ``,
       `Families don't choose care from a list of services. They choose the people and places they trust.`,
       ``,
@@ -258,7 +258,7 @@ function finalEmail(): EmailDraft {
     subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
     preheader: `Give families confidence to reach out`,
     body: [
-      `**Build trust before the first conversation.**`,
+      `**Your page still isn't verified.**`,
       ``,
       `Choosing senior care is one of the biggest decisions a family will ever make. They need to know they're connecting with a real person they can trust.`,
       ``,

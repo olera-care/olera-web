@@ -36,42 +36,48 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Pull questions with provider_id so we can verify provider existence
-    let q = db
+    // Pull ALL questions for the series chart
+    let allQ = db
       .from("provider_questions")
-      .select("created_at, status, metadata, provider_id")
+      .select("created_at, provider_id")
       .order("created_at", { ascending: true })
       .limit(50000);
-    if (queryStart) q = q.gte("created_at", queryStart.toISOString());
-    if (dateTo) q = q.lt("created_at", dateTo);
+    if (queryStart) allQ = allQ.gte("created_at", queryStart.toISOString());
+    if (dateTo) allQ = allQ.lt("created_at", dateTo);
 
-    const { data: rows, error } = await q;
-    if (error) {
-      console.error("Admin questions stats error:", error);
+    // Pull needs_email questions using SAME filters as getTabCounts (Supabase filters, not JS)
+    // This ensures the KPI matches the tab count exactly
+    let needsEmailQ = db
+      .from("provider_questions")
+      .select("created_at, provider_id")
+      .contains("metadata", { needs_provider_email: true })
+      .not("metadata", "cs", '{"email_dead":true}')
+      .not("metadata", "cs", '{"provider_not_interested":true}')
+      .not("metadata", "cs", '{"provider_no_contact":true}')
+      .neq("status", "archived")
+      .neq("status", "rejected")
+      .order("created_at", { ascending: true })
+      .limit(50000);
+    if (queryStart) needsEmailQ = needsEmailQ.gte("created_at", queryStart.toISOString());
+    if (dateTo) needsEmailQ = needsEmailQ.lt("created_at", dateTo);
+
+    const [allResult, needsEmailResult] = await Promise.all([allQ, needsEmailQ]);
+
+    if (allResult.error) {
+      console.error("Admin questions stats error:", allResult.error);
       return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
     }
 
-    const allRows = rows ?? [];
+    const allRows = allResult.data ?? [];
+    const needsEmailRows = needsEmailResult.data ?? [];
 
-    // DEBUG: Log total rows fetched
+    // DEBUG: Log query results
     console.log("[stats-debug] Total rows fetched:", allRows.length);
+    console.log("[stats-debug] needsEmail rows from DB:", needsEmailRows.length);
 
-    // Get unique provider IDs from questions that might need email
-    // Exclude questions that have moved to other tabs (Delivery Issues, No Contact, Not Interested)
-    const potentialNeedsEmail = allRows.filter((r) => {
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      if (meta?.needs_provider_email !== true) return false;
-      if (r.status === "archived" || r.status === "rejected") return false;
-      // Exclude questions belonging to other tabs
-      if (meta?.email_dead === true) return false;  // → Delivery Issues tab
-      if (meta?.provider_not_interested === true) return false;  // → Not Interested tab
-      if (meta?.provider_no_contact === true) return false;  // → No Contact tab
-      return true;
-    });
-    const providerIds = [...new Set(potentialNeedsEmail.map((r) => r.provider_id).filter(Boolean))];
+    const providerIds = [...new Set(needsEmailRows.map((r) => r.provider_id).filter(Boolean))];
 
     // DEBUG: Log filtered counts
-    console.log("[stats-debug] potentialNeedsEmail count:", potentialNeedsEmail.length);
     console.log("[stats-debug] Unique provider IDs:", providerIds.length);
 
     // Look up providers in business_profiles (check email, is_active, and account_id for claimed status)
@@ -203,29 +209,14 @@ export async function GET(request: NextRequest) {
       archived: debugArchived,
     });
 
-    // A question truly needs email if:
-    // 1. metadata.needs_provider_email === true
-    // 2. question status is not archived/rejected
-    // 3. question doesn't belong to another tab (Delivery Issues, Not Interested, No Contact)
-    // 4. provider exists
-    // 5. provider is not archived
-    // 6. provider is not claimed (claimed providers have email from claiming)
-    // 7. provider doesn't already have email
-    const isNeedsEmail = (r: (typeof allRows)[number]) => {
-      const meta = r.metadata as Record<string, unknown> | null | undefined;
-      if (meta?.needs_provider_email !== true) return false;
-      if (r.status === "archived" || r.status === "rejected") return false;
-      // Exclude questions belonging to other tabs (must match potentialNeedsEmail filter)
-      if (meta?.email_dead === true) return false;  // → Delivery Issues tab
-      if (meta?.provider_not_interested === true) return false;  // → Not Interested tab
-      if (meta?.provider_no_contact === true) return false;  // → No Contact tab
-
-      const status = providerStatus.get(r.provider_id);
+    // Check if a provider passes the status filters
+    // (metadata filters already applied by Supabase query)
+    const isProviderValid = (providerId: string) => {
+      const status = providerStatus.get(providerId);
       if (!status?.exists) return false; // Provider doesn't exist
       if (status.isArchived) return false; // Provider is archived
       if (status.isClaimed) return false; // Provider is claimed
       if (status.hasEmail) return false; // Provider already has email
-
       return true;
     };
 
@@ -234,10 +225,11 @@ export async function GET(request: NextRequest) {
 
     // KPI: needs-email count in the current range + prior window for delta
     // Count UNIQUE PROVIDERS (not questions) to match tab count behavior
+    // Use needsEmailRows (already filtered by Supabase) instead of allRows
     const kpiCurrentProviders = new Set<string>();
     const kpiPriorProviders = new Set<string>();
-    for (const r of allRows) {
-      if (!isNeedsEmail(r)) continue;
+    for (const r of needsEmailRows) {
+      if (!isProviderValid(r.provider_id)) continue;
       const t = new Date(r.created_at);
       if (inRange(t)) kpiCurrentProviders.add(r.provider_id);
       else if (inPrior(t)) kpiPriorProviders.add(r.provider_id);

@@ -53,9 +53,6 @@ export async function GET(request: NextRequest) {
 
     const allRows = rows ?? [];
 
-    // DEBUG: Log total rows fetched
-    console.log("[stats-debug] Total rows fetched:", allRows.length);
-
     // Get unique provider IDs from questions that might need email
     // Exclude questions that have moved to other tabs (Delivery Issues, No Contact, Not Interested)
     const potentialNeedsEmail = allRows.filter((r) => {
@@ -69,10 +66,6 @@ export async function GET(request: NextRequest) {
       return true;
     });
     const providerIds = [...new Set(potentialNeedsEmail.map((r) => r.provider_id).filter(Boolean))];
-
-    // DEBUG: Log filtered counts
-    console.log("[stats-debug] potentialNeedsEmail count:", potentialNeedsEmail.length);
-    console.log("[stats-debug] Unique provider IDs:", providerIds.length);
 
     // Look up providers in business_profiles (check email, is_active, and account_id for claimed status)
     // Look up by BOTH slug AND source_provider_id to handle legacy provider IDs
@@ -102,10 +95,6 @@ export async function GET(request: NextRequest) {
           .or(oleraOrConditions.join(','))
           .not("deleted", "is", true)
       : { data: [] };
-
-    // DEBUG: Log lookup results
-    console.log("[stats-debug] business_profiles found:", bpProviders?.length ?? 0);
-    console.log("[stats-debug] olera-providers found:", oleraProviders?.length ?? 0);
 
     // Build olera email lookup by provider_id
     const oleraEmailByProviderId = new Map<string, string>();
@@ -185,22 +174,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // DEBUG: Summarize provider status
-    let debugExists = 0, debugClaimed = 0, debugHasEmail = 0, debugArchived = 0;
-    for (const [, status] of providerStatus) {
-      if (status.exists) debugExists++;
-      if (status.isClaimed) debugClaimed++;
-      if (status.hasEmail) debugHasEmail++;
-      if (status.isArchived) debugArchived++;
-    }
-    console.log("[stats-debug] Provider status summary:", {
-      total: providerStatus.size,
-      exists: debugExists,
-      claimed: debugClaimed,
-      hasEmail: debugHasEmail,
-      archived: debugArchived,
-    });
-
     // A question truly needs email if:
     // 1. metadata.needs_provider_email === true
     // 2. question status is not archived/rejected
@@ -242,13 +215,6 @@ export async function GET(request: NextRequest) {
     }
     const kpiCurrent = kpiCurrentProviders.size;
     const kpiPrior = kpiPriorProviders.size;
-
-    // DEBUG: Final KPI results
-    console.log("[stats-debug] Final KPI:", {
-      kpiCurrent,
-      kpiPrior,
-      providers: Array.from(kpiCurrentProviders).slice(0, 10), // First 10 for inspection
-    });
 
     let delta: number | null = null;
     if (from) {

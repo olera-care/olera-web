@@ -10,8 +10,10 @@
 import { createHmac } from "crypto";
 
 const TOKEN_SECRET = process.env.CLAIM_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-secret";
-// Token expiry: configurable via env var, default 72 hours (3 days)
-const TOKEN_EXPIRY_HOURS = parseInt(process.env.CLAIM_TOKEN_EXPIRY_HOURS || "72", 10);
+// Token expiry: configurable via env var, default 360 hours (15 days)
+// Must cover the full 14-day cold outreach sequence (Day 0, 3, 7, 14) plus buffer
+// since SmartLead uses the same claim_url for all emails in the sequence
+const TOKEN_EXPIRY_HOURS = parseInt(process.env.CLAIM_TOKEN_EXPIRY_HOURS || "360", 10);
 
 interface TokenPayload {
   providerId: string;
@@ -93,29 +95,25 @@ export function validateClaimToken(
 }
 
 /**
- * Generate a claim URL for email campaigns
- * Routes to the provider onboard page which handles the full claim flow
+ * Generate a claim URL for email campaigns (provider cold outreach).
+ * Routes to /api/claim-campaign which handles server-side authentication:
+ *   - Validates token, creates/resolves auth user
+ *   - Establishes session via magic link (server-side)
+ *   - Links profile to account
+ *   - Tracks events and sends Slack notifications
+ *   - Redirects to /provider dashboard
+ *
+ * This ensures one-click access for providers clicking any cold outreach email.
  */
 export function generateClaimUrl(
   providerId: string,
-  providerSlug: string,
+  _providerSlug: string,
   email: string,
-  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care",
-  options?: {
-    headline?: string;
-    message?: string;
-  }
+  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care"
 ): string {
   const token = generateClaimToken(providerId, email);
-  const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
-  url.searchParams.set("action", "campaign");
+  const url = new URL(`${baseUrl}/api/claim-campaign`);
   url.searchParams.set("otk", token);
-  if (options?.headline) {
-    url.searchParams.set("headline", options.headline);
-  }
-  if (options?.message) {
-    url.searchParams.set("message", options.message);
-  }
   return url.toString();
 }
 

@@ -52,6 +52,7 @@ function preheaderHtml(text: string): string {
 /**
  * Polished email layout wrapper matching Olera email gallery style.
  * Exported for use by SmartLead bridge to ensure consistent styling.
+ * NOTE: Minimal whitespace to avoid rendering issues in email clients.
  */
 export function polishedLayout(
   body: string,
@@ -59,43 +60,14 @@ export function polishedLayout(
   opts?: { preheader?: string; categoryLabel?: string }
 ): string {
   const categoryHtml = opts?.categoryLabel
-    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">${opts.categoryLabel}</p>`
+    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 16px;">${opts.categoryLabel}</p>`
     : "";
 
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f9fafb;font-family:${FONT_STACK};">
-  ${preheaderHtml(opts?.preheader ?? "")}
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;">
-    <tr><td align="center">
-      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:520px;width:100%;">
-        <!-- Header -->
-        <tr><td style="padding:24px 32px 16px;">
-          <span style="font-size:18px;font-weight:700;color:${BRAND_COLOR};letter-spacing:-0.3px;">Olera</span>
-        </td></tr>
-        <!-- Body -->
-        <tr><td style="padding:0 32px 24px;">
-          ${categoryHtml}
-          ${body}
-        </td></tr>
-        <!-- Footer -->
-        <tr><td style="padding:0 32px 32px;">
-          ${footer}
-        </td></tr>
-        <!-- Copyright -->
-        <tr><td style="padding:16px 32px;border-top:1px solid #f3f4f6;">
-          <p style="font-size:12px;color:#9ca3af;margin:0;">
-            &copy; ${new Date().getFullYear()} Olera &middot;
-            <a href="${BASE_URL}" style="color:#9ca3af;">olera.care</a>
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+  const preheader = preheaderHtml(opts?.preheader ?? "");
+  const year = new Date().getFullYear();
+
+  // Build HTML without extra whitespace between elements
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:${FONT_STACK};">${preheader}<table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:520px;width:100%;"><tr><td style="padding:24px 32px 16px;"><span style="font-size:18px;font-weight:700;color:${BRAND_COLOR};letter-spacing:-0.3px;">Olera</span></td></tr><tr><td style="padding:0 32px 24px;">${categoryHtml}${body}</td></tr><tr><td style="padding:0 32px 32px;">${footer}</td></tr><tr><td style="padding:16px 32px;border-top:1px solid #f3f4f6;"><p style="font-size:12px;color:#9ca3af;margin:0;">&copy; ${year} Olera &middot; <a href="${BASE_URL}" style="color:#9ca3af;">olera.care</a></p></td></tr></table></td></tr></table></body></html>`;
 }
 
 /**
@@ -118,16 +90,10 @@ function isCtaLink(label: string): boolean {
 
 /**
  * Render a CTA button block (standalone, not inside a paragraph).
+ * NOTE: No leading/trailing newlines to avoid extra whitespace in email clients.
  */
 function renderCtaButton(label: string, href: string): string {
-  return `
-<table cellpadding="0" cellspacing="0" style="margin:20px 0;">
-  <tr>
-    <td style="background:${BRAND_COLOR};border-radius:8px;">
-      <a href="${href}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">${label}</a>
-    </td>
-  </tr>
-</table>`;
+  return `<table cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:${BRAND_COLOR};border-radius:8px;"><a href="${href}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">${label}</a></td></tr></table>`;
 }
 
 /**
@@ -155,8 +121,8 @@ function bodyToPolishedHtml(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // 2) **text** → <strong> with larger font for emphasis (matches other Olera email headlines)
-  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong style="font-size:24px;font-weight:700;color:#111827;line-height:1.3;">${inner}</strong>`);
+  // 2) **text** → <strong> with emphasis styling (18px to stand out without being overwhelming)
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong style="font-size:18px;font-weight:700;color:#111827;line-height:1.4;">${inner}</strong>`);
 
   // 3) Split into paragraphs and process each
   const paragraphs = s.split(/\n{2,}/);
@@ -196,7 +162,8 @@ function bodyToPolishedHtml(text: string): string {
     }
   }
 
-  return outputBlocks.join("\n");
+  // Join without newlines to avoid extra whitespace in email clients
+  return outputBlocks.join("");
 }
 
 /**
@@ -269,29 +236,10 @@ export function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): stri
 /**
  * Compose the polished email footer HTML with Dr. Logan's signature.
  * Uses the shared loganSignatureHtml() from templates.ts for consistency.
+ * NOTE: Single-line HTML to avoid extra whitespace in email clients.
  */
 function composePolishedFooterHtml(vars: Record<string, string>): string {
-  return `
-<!-- Signature -->
-<div style="margin-top:24px;">
-  <p style="font-size:14px;color:#374151;margin:0 0 4px;">Best,</p>
-  <p style="font-size:14px;color:#374151;margin:0;">Logan</p>
-
-  ${loganSignatureHtml()}
-</div>
-
-<!-- Footer Links -->
-<div style="margin-top:24px;padding-top:16px;border-top:1px solid #f3f4f6;">
-  <p style="font-size:12px;color:#6b7280;margin:0 0 8px;">
-    Questions? Just reply — it goes straight to our team.
-  </p>
-  <p style="font-size:12px;color:#9ca3af;margin:0;">
-    <a href="${vars.manage_url}" style="color:#9ca3af;text-decoration:underline;">Manage listing</a> ·
-    <a href="${vars.remove_url}" style="color:#9ca3af;text-decoration:underline;">Remove listing</a> ·
-    <a href="${vars.unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>
-  </p>
-  <p style="font-size:11px;color:#d1d5db;margin:12px 0 0;">Olera · ${vars.mailing_address}</p>
-</div>`;
+  return `<div style="margin-top:24px;"><p style="font-size:14px;color:#374151;margin:0 0 4px;">Best,</p><p style="font-size:14px;color:#374151;margin:0;">Logan</p>${loganSignatureHtml()}</div><div style="margin-top:24px;padding-top:16px;border-top:1px solid #f3f4f6;"><p style="font-size:12px;color:#6b7280;margin:0 0 8px;">Questions? Just reply — it goes straight to our team.</p><p style="font-size:12px;color:#9ca3af;margin:0;"><a href="${vars.manage_url}" style="color:#9ca3af;text-decoration:underline;">Manage listing</a> · <a href="${vars.remove_url}" style="color:#9ca3af;text-decoration:underline;">Remove listing</a> · <a href="${vars.unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></p><p style="font-size:11px;color:#d1d5db;margin:12px 0 0;">Olera · ${vars.mailing_address}</p></div>`;
 }
 
 /**

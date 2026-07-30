@@ -52,26 +52,28 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
   );
 }
 
-/** Live campaign performance — the real story: who visited, who converted.
- *  Visitors + leads on the provider's page since launch (see getCampaignStats),
- *  conversion = leads/visitors. "—" until there's traffic, so day-one shows an
- *  honest empty state rather than a fake 0%. */
+/** Live campaign performance — the funnel at equal weight: who visited, who
+ *  asked, who reached out (see getCampaignStats/getCampaignQuestions). Leads
+ *  are zero for most $50 flights by arithmetic, so questions stand as a
+ *  first-class result — each answered one also builds the page's search
+ *  visibility — instead of a footnote under a big zero. (Replaced the old
+ *  Conversion cell: a percentage over ~20 visitors is noise, and it framed
+ *  every flight as lead-or-failure.) */
 export function CampaignPerformance({
   stats,
 }: {
-  stats: { visitors: number; leads: number; since: string };
+  stats: {
+    visitors: number;
+    leads: number;
+    questions?: { received: number; unanswered: number };
+    since: string;
+  };
 }) {
-  // Cap at 100% — a lead can exist without a matching deduped page_view session
-  // (bot-filtered load, tracker race, cross-session convert), which would
-  // otherwise render a trust-eroding ">100%" to the provider.
-  const conversion =
-    stats.visitors > 0
-      ? Math.min(100, Math.round((stats.leads / stats.visitors) * 100))
-      : null;
+  const questions = stats.questions?.received ?? 0;
   const cells: { label: string; value: string }[] = [
     { label: "Visitors", value: stats.visitors.toLocaleString() },
+    { label: "Questions", value: questions.toLocaleString() },
     { label: "Leads", value: stats.leads.toLocaleString() },
-    { label: "Conversion", value: conversion === null ? "—" : `${conversion}%` },
   ];
   return (
     <div className="mt-8">
@@ -98,6 +100,18 @@ export function CampaignPerformance({
               leads page
             </Link>
             .
+          </>
+        ) : questions > 0 ? (
+          <>
+            Since launch. Every question you answer stays on your page, builds
+            your visibility in search, and helps families beyond the one who
+            asked.{" "}
+            <Link
+              href="/provider/qna"
+              className="text-primary-600 font-medium hover:underline"
+            >
+              Answer questions
+            </Link>
           </>
         ) : (
           <>Since launch. Families will appear here as they arrive.</>
@@ -219,7 +233,12 @@ export function PlanActive({
   celebrate,
 }: {
   request: BoostRequest;
-  campaignStats: { visitors: number; leads: number; since: string } | null;
+  campaignStats: {
+    visitors: number;
+    leads: number;
+    questions?: { received: number; unanswered: number };
+    since: string;
+  } | null;
   celebrate: boolean;
 }) {
   const tier = budgetStop(request.plan_value);
@@ -279,7 +298,12 @@ export function WrapUpMoment({
   error,
 }: {
   request: BoostRequest;
-  campaignStats: { visitors: number; leads: number; since: string } | null;
+  campaignStats: {
+    visitors: number;
+    leads: number;
+    questions?: { received: number; unanswered: number };
+    since: string;
+  } | null;
   receipt?: CampaignReceiptData | null;
   onCheckout: (planValue: number) => void;
   submitting: boolean;

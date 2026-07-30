@@ -416,10 +416,9 @@ export function adBoostTractionEmail(opts: {
   leads: number;
   clicks?: number | null;
   spendCents?: number | null;
+  questionsReceived?: number | null;
 }): string {
   const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : null;
-  const conversion =
-    opts.visitors > 0 ? `${Math.min(100, Math.round((opts.leads / opts.visitors) * 100))}%` : "—";
   const costPerFamily =
     opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
       ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
@@ -441,8 +440,8 @@ export function adBoostTractionEmail(opts: {
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${conversion}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Conversion</p>
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${(opts.questionsReceived ?? 0).toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
         </td>
       </tr>
       <tr>
@@ -460,7 +459,11 @@ export function adBoostTractionEmail(opts: {
         </td>
       </tr>
     </table>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
+      (opts.questionsReceived ?? 0) > 0
+        ? "Questions are a win on their own: every answer stays on your page, builds your visibility in search, and helps families beyond the one who asked. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
+        : "We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
+    }</p>
     <div>${button("View performance", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
@@ -503,9 +506,6 @@ export function adBoostPromoCompleteEmail(opts: {
   if (opts.saves != null && opts.saves > 0) {
     receiptRows.push({ label: "Saved you to their shortlist", value: opts.saves.toLocaleString() });
   }
-  if (opts.questionsReceived != null && opts.questionsReceived > 0) {
-    receiptRows.push({ label: "Asked you a question", value: opts.questionsReceived.toLocaleString() });
-  }
   if (opts.clientOutcomes != null && opts.clientOutcomes > 0) {
     receiptRows.push({
       label: opts.clientOutcomes === 1 ? "Became a paying client" : "Became paying clients",
@@ -546,16 +546,16 @@ export function adBoostPromoCompleteEmail(opts: {
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:0 0 20px;">
       <tr>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
-        </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
-        </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.clicks != null ? opts.clicks.toLocaleString() : "—"}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad clicks</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${(opts.questionsReceived ?? 0).toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
         </td>
       </tr>
       <tr>
@@ -568,8 +568,8 @@ export function adBoostPromoCompleteEmail(opts: {
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / family</p>
         </td>
         <td style="padding:14px;">
-          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">$50</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Starter promo</p>
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
         </td>
       </tr>
     </table>

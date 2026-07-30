@@ -98,6 +98,7 @@ export default function AdBoostPreviewPage() {
   const stats = (leads: number) => ({
     visitors: 19,
     leads,
+    questions: { received: 4, unanswered: 1 },
     since: "2026-06-22T00:00:00Z",
   });
 

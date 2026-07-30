@@ -10,7 +10,7 @@ import {
   sendEmail,
 } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
-import { getCampaignStats } from "./delivered.server";
+import { getCampaignQuestions, getCampaignStats } from "./delivered.server";
 import { getCampaignReceipt } from "./receipts.server";
 
 type AdBoostLifecycleKind = "launched" | "traction" | "promo_complete";
@@ -125,10 +125,11 @@ export async function sendAdBoostLifecycleEmail(opts: {
   const since = new Date(
     opts.request.requested_setup_week || new Date().toISOString(),
   ).toISOString();
-  const stats = await getCampaignStats(db, {
-    providerIdVariants: [opts.request.provider_slug || "", opts.request.provider_id],
-    since,
-  });
+  const providerIdVariants = [opts.request.provider_slug || "", opts.request.provider_id];
+  const [stats, questions] = await Promise.all([
+    getCampaignStats(db, { providerIdVariants, since }),
+    getCampaignQuestions(db, { providerIdVariants, since }),
+  ]);
 
   // The wrap-up email carries the full demand receipt (impressions, saves,
   // questions, reported client outcomes) — the launched/traction emails don't
@@ -185,6 +186,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
             leads: stats.leads,
             clicks: opts.request.ad_clicks,
             spendCents: opts.request.ad_spend_cents,
+            questionsReceived: questions.received,
           })
         : adBoostPromoCompleteEmail({
             providerName: recipient.name,
@@ -196,7 +198,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
             intendedMonthlyBudget: opts.request.intended_monthly_budget,
             impressions: receipt?.google.impressions ?? null,
             saves: receipt?.engagement.saves ?? null,
-            questionsReceived: receipt?.engagement.questionsReceived ?? null,
+            questionsReceived: questions.received,
             clientOutcomes: receipt?.outcomes.client ?? null,
           });
 

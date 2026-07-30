@@ -463,21 +463,16 @@ function Detail({
           </p>
         ) : campaignStats ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Funnel order + equal weight, mirroring CampaignPerformance:
+                clicks and questions are first-class results because leads are
+                zero for most $50 flights by arithmetic. */}
+            <div className="grid grid-cols-3 gap-3">
               <Stat value={campaignStats.visitors.toLocaleString()} label="Visitors" />
-              <Stat value={campaignStats.leads.toLocaleString()} label="Leads" accent />
-              <Stat
-                value={
-                  campaignStats.visitors > 0
-                    ? `${Math.min(100, Math.round((campaignStats.leads / campaignStats.visitors) * 100))}%`
-                    : "—"
-                }
-                label="Conversion"
-              />
               <Stat
                 value={(campaignStats.questions?.received ?? 0).toLocaleString()}
                 label="Questions"
               />
+              <Stat value={campaignStats.leads.toLocaleString()} label="Leads" accent />
             </div>
             {receipt && (
               <p className="mt-3 text-xs text-gray-500">

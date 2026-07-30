@@ -91,9 +91,11 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_130px_70px_140px_170px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_130px_60px_75px_60px_140px_170px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
+          <span>Clicks</span>
+          <span>Questions</span>
           <span>Leads</span>
           <span>Setup week</span>
           <span className="text-right">Actions</span>
@@ -179,7 +181,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_70px_140px_170px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_60px_75px_60px_140px_170px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link
@@ -206,8 +208,12 @@ function RequestRow({
           )}
         </div>
 
-        {/* Leads — since-launch inquiries, same number the provider sees */}
-        <LeadsCell request={request} />
+        {/* The funnel, equal weight: clicks -> questions -> leads. Leads are
+            zero for most flights by arithmetic ($50 ~ 25 clicks ~ 0.7 leads),
+            so clicks and questions are first-class results, not footnotes. */}
+        <FunnelCell request={request} value={request.ad_landings ?? 0} label="Clicks" />
+        <FunnelCell request={request} value={request.questions_received ?? 0} label="Questions" />
+        <FunnelCell request={request} value={request.delivered ?? 0} label="Leads" emphasize />
 
         {/* Setup week */}
         <div className="text-sm text-gray-600">
@@ -258,34 +264,34 @@ function RequestRow({
  *  "the campaign ran and produced nothing". */
 const PRE_LAUNCH_STATUSES = new Set(["pending_profile", "requested", "scheduled"]);
 
-/** Leads on a queue row — the same delivered-families count the detail page
- *  shows under Performance and lists under "Leads (N)". Already on every row
- *  from the list API; this just surfaces it. */
-function LeadsCell({ request }: { request: CampaignRequest }) {
+/** One funnel number on a queue row (clicks / questions / leads), all at the
+ *  same visual weight. Pre-launch rows show an em dash (structural zero, not a
+ *  result); a genuine 0 renders quiet gray so a zero-lead flight with real
+ *  clicks and questions doesn't read as failure. `emphasize` tints non-zero
+ *  leads — the terminal metric — without shrinking the earlier rungs. */
+function FunnelCell({
+  request,
+  value,
+  label,
+  emphasize,
+}: {
+  request: CampaignRequest;
+  value: number;
+  label: string;
+  emphasize?: boolean;
+}) {
   const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
-  const leads = request.delivered ?? 0;
-  const landings = request.ad_landings ?? 0;
-  const questions = request.questions_received ?? 0;
-
+  const tone = preLaunch
+    ? "text-gray-300"
+    : value === 0
+      ? "text-gray-300"
+      : emphasize
+        ? "font-semibold text-primary-700"
+        : "text-gray-700";
   return (
-    <div className={`text-sm tabular-nums ${preLaunch ? "text-gray-300" : "text-gray-600"}`}>
-      <span className="sm:hidden font-normal text-gray-400">Leads: </span>
-      {preLaunch ? "—" : leads}
-      {/* Delivery signal: ad clicks that landed on the page. A live campaign
-          with 0 landings after a day or two is stalled at Google, not
-          unconverting — surface that here instead of a silent zero. */}
-      {!preLaunch && landings > 0 && (
-        <span className="block text-[11px] leading-tight text-gray-400">
-          {landings} click{landings === 1 ? "" : "s"}
-        </span>
-      )}
-      {/* Engagement signal: questions asked since launch — often the only
-          non-zero number on a zero-lead campaign, so it earns a line here. */}
-      {!preLaunch && questions > 0 && (
-        <span className="block text-[11px] leading-tight text-gray-400">
-          {questions} question{questions === 1 ? "" : "s"}
-        </span>
-      )}
+    <div className={`text-sm tabular-nums ${tone}`}>
+      <span className="sm:hidden font-normal text-gray-400">{label}: </span>
+      {preLaunch ? "—" : value.toLocaleString()}
     </div>
   );
 }

@@ -416,10 +416,9 @@ export function adBoostTractionEmail(opts: {
   leads: number;
   clicks?: number | null;
   spendCents?: number | null;
+  questionsReceived?: number | null;
 }): string {
   const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : null;
-  const conversion =
-    opts.visitors > 0 ? `${Math.min(100, Math.round((opts.leads / opts.visitors) * 100))}%` : "—";
   const costPerFamily =
     opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
       ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
@@ -441,8 +440,8 @@ export function adBoostTractionEmail(opts: {
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${conversion}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Conversion</p>
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${(opts.questionsReceived ?? 0).toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
         </td>
       </tr>
       <tr>
@@ -460,7 +459,11 @@ export function adBoostTractionEmail(opts: {
         </td>
       </tr>
     </table>
-    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
+      (opts.questionsReceived ?? 0) > 0
+        ? "Questions are a win on their own: every answer stays on your page, builds your visibility in search, and helps families beyond the one who asked. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
+        : "We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
+    }</p>
     <div>${button("View performance", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
@@ -478,17 +481,55 @@ export function adBoostPromoCompleteEmail(opts: {
   clicks?: number | null;
   spendCents?: number | null;
   intendedMonthlyBudget?: number | null;
+  /** Demand-receipt extras (all optional so older callers keep working). */
+  impressions?: number | null;
+  saves?: number | null;
+  questionsReceived?: number | null;
+  clientOutcomes?: number | null;
 }): string {
   const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : "—";
   const costPerFamily =
     opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
       ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
       : "—";
-  // Zero-lead intros never get a money pitch (matches the boost page's honest
-  // no-ask wrap-up): the email offers another window on us instead of a plan.
   const gotLeads = opts.leads > 0;
+  // The demand receipt: itemized reach lines that make a zero-lead flight read
+  // as real, underfunded demand (families saw you, clicked, saved you) instead
+  // of a silent zero. Rows render only when the number exists.
+  const receiptRows: Array<{ label: string; value: string }> = [];
+  if (opts.impressions != null && opts.impressions > 0) {
+    receiptRows.push({ label: "Times your ad was shown to local families", value: opts.impressions.toLocaleString() });
+  }
+  if (opts.clicks != null && opts.clicks > 0) {
+    receiptRows.push({ label: "Families who clicked through", value: opts.clicks.toLocaleString() });
+  }
+  if (opts.saves != null && opts.saves > 0) {
+    receiptRows.push({ label: "Saved you to their shortlist", value: opts.saves.toLocaleString() });
+  }
+  if (opts.clientOutcomes != null && opts.clientOutcomes > 0) {
+    receiptRows.push({
+      label: opts.clientOutcomes === 1 ? "Became a paying client" : "Became paying clients",
+      value: opts.clientOutcomes.toLocaleString(),
+    });
+  }
+  const receiptBlock =
+    receiptRows.length > 0
+      ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">${receiptRows
+          .map(
+            (r) => `<tr>
+        <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:14px;color:#4b5563;">${r.label}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:16px;font-weight:700;color:#111827;text-align:right;white-space:nowrap;">${r.value}</td>
+      </tr>`,
+          )
+          .join("")}</table>`
+      : "";
+  // The honest volume math for zero-lead flights with known clicks.
+  const mathLine =
+    !gotLeads && opts.clicks != null && opts.clicks > 0
+      ? `<p style="font-size:14px;color:#6b7280;margin:0 0 18px;line-height:1.6;">For context: in senior care, about 1 in every 30 ad clicks becomes an inquiry, and families often compare for weeks before reaching out. Your flight bought ${opts.clicks.toLocaleString()} clicks, so this window came down to volume, not interest. The families above have seen you, and you are now in their consideration set.</p>`
+      : "";
   const budgetLine = !gotLeads
-    ? "Your market was quiet this window. That&rsquo;s on us to improve, not on you to pay for: we&rsquo;ll tune your page, adjust the ads, and run another window on us."
+    ? "We&rsquo;ll tune your page, adjust the ads, and run another window on us. Nothing to pay. If you&rsquo;d rather not wait, a monthly plan runs the same campaign at several times the volume."
     : opts.intendedMonthlyBudget
       ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
       : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
@@ -496,21 +537,25 @@ export function adBoostPromoCompleteEmail(opts: {
   return layout(
     `
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Promotional campaign complete</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your starter campaign is complete</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">The first promotional Find Families campaign for ${escapeHtml(opts.providerName)} has wrapped. Here&rsquo;s the result summary before you decide whether to continue.</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${
+      !gotLeads && opts.impressions != null && opts.impressions > 0
+        ? `Your ad reached ${opts.impressions.toLocaleString()} local families`
+        : "Your starter campaign is complete"
+    }</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">The first promotional Find Families campaign for ${escapeHtml(opts.providerName)} has wrapped. Here&rsquo;s exactly what it bought before you decide whether to continue.</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:0 0 20px;">
       <tr>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
-        </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
-        </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.clicks != null ? opts.clicks.toLocaleString() : "—"}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad clicks</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${(opts.questionsReceived ?? 0).toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
+        </td>
+        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
         </td>
       </tr>
       <tr>
@@ -523,11 +568,13 @@ export function adBoostPromoCompleteEmail(opts: {
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / family</p>
         </td>
         <td style="padding:14px;">
-          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">$50</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Starter promo</p>
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
         </td>
       </tr>
     </table>
+    ${receiptBlock}
+    ${mathLine}
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${budgetLine}</p>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
       gotLeads
@@ -540,6 +587,51 @@ export function adBoostPromoCompleteEmail(opts: {
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
     </div>`,
     `Your starter campaign delivered ${opts.leads.toLocaleString()} families.`,
+  );
+}
+
+/**
+ * Provider lead-outcome check — the provider twin of connectionOutcomeCheckEmail.
+ * Sent ~7 and ~21 days after a campaign-attributed inquiry, asking one thing:
+ * did this family become a client? Three equal-weight chips (no chip styled as
+ * primary, so the answer isn't biased), each linking the /provider/lead-outcome
+ * landing page which records via client POST on mount. Scanners issue GETs and
+ * don't run JS, so they can't false-report an outcome. No family PHI anywhere:
+ * date + care need only.
+ */
+export function adBoostLeadOutcomeEmail(opts: {
+  providerName: string;
+  /** e.g. "Home care" or null when the inquiry carried no care type. */
+  careNeed?: string | null;
+  /** Human date of the inquiry, e.g. "June 27". */
+  leadDate: string;
+  clientUrl: string;
+  talkingUrl: string;
+  noUrl: string;
+  /** True on the ~21 day follow-up so the copy acknowledges the earlier ask. */
+  isFollowUp?: boolean;
+}): string {
+  const chip = (label: string, href: string) =>
+    `<a href="${href}" style="display:block;text-align:center;padding:16px 24px;background:#ffffff;color:${BRAND_COLOR};font-size:15px;font-weight:600;text-decoration:none;border:1.5px solid ${BRAND_COLOR};border-radius:12px;box-shadow:0 1px 2px rgba(42,24,16,0.05);">${escapeHtml(label)}</a>`;
+  const about = opts.careNeed ? ` about ${escapeHtml(opts.careNeed.toLowerCase())}` : "";
+  const opener = opts.isFollowUp
+    ? `A few weeks ago a family reached out${about} through your Find Families campaign (${escapeHtml(opts.leadDate)}). Checking in one more time:`
+    : `On ${escapeHtml(opts.leadDate)}, a family reached out${about} through your Find Families campaign. Quick check-in:`;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families campaign</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 22px;line-height:1.65;">${opener}</p>
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#111827;margin:0 0 18px;line-height:1.3;">Did this family become a client?</p>
+    <div style="margin:0 0 12px;">${chip("Yes, they became a client", opts.clientUrl)}</div>
+    <div style="margin:0 0 12px;">${chip("We're still talking", opts.talkingUrl)}</div>
+    <div style="margin:0 0 12px;">${chip("It didn't work out", opts.noUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.6;">One tap is all it takes. Your answer goes on your campaign results for ${escapeHtml(opts.providerName)}, so the numbers show what actually happened, not just clicks.</p>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">This inquiry was attributed to your Find Families campaign. More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "One tap tells us how the inquiry turned out.",
   );
 }
 

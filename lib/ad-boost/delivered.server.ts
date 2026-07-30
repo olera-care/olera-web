@@ -230,12 +230,19 @@ const CARE_NEED_LABELS: Record<string, string> = {
 };
 
 /** One delivered family behind an Ad Boost campaign — the rows behind the count.
- *  Deliberately NO name / PHI: just date + care need + state + where it came in. */
+ *  Deliberately NO name / PHI: just date + care need + state + where it came in.
+ *  `outcome` is the provider's one-tap self-report ("did this family become a
+ *  client?") from connections.metadata.provider_outcome — the receipt that
+ *  closes the Franchil outcome-blindness gap. Null until they answer. */
+export type ProviderLeadOutcome = "client" | "talking" | "no";
+
 export interface CampaignLead {
   created_at: string;
   careNeed: string | null;
   state: string | null;
   entrySource: string | null;
+  connectionId: string | null;
+  outcome: ProviderLeadOutcome | null;
 }
 
 /** Humanize a connection `care_type`/`care_need` slug (e.g. "home_care" →
@@ -308,17 +315,25 @@ export async function listLeadsByCampaign(
     .map((r) => r.metadata?.connection_id)
     .filter((v): v is string => !!v);
   const careByConn: Record<string, { careNeed: string | null; state: string | null }> = {};
+  const outcomeByConn: Record<string, ProviderLeadOutcome> = {};
   if (connIds.length > 0) {
     const { data: conns } = await db
       .from("connections")
-      .select("id, message")
+      .select("id, message, metadata")
       .in("id", connIds);
-    for (const c of (conns ?? []) as Array<{ id: string; message: string | null }>) {
+    for (const c of (conns ?? []) as Array<{
+      id: string;
+      message: string | null;
+      metadata: { provider_outcome?: { value?: string } } | null;
+    }>) {
       careByConn[c.id] = careFromConnectionMessage(c.message);
+      const v = c.metadata?.provider_outcome?.value;
+      if (v === "client" || v === "talking" || v === "no") outcomeByConn[c.id] = v;
     }
   }
   for (const r of leadRows) {
-    const care = (r.metadata?.connection_id && careByConn[r.metadata.connection_id]) || {
+    const connectionId = r.metadata?.connection_id || null;
+    const care = (connectionId && careByConn[connectionId]) || {
       careNeed: null,
       state: null,
     };
@@ -327,10 +342,13 @@ export async function listLeadsByCampaign(
       careNeed: care.careNeed,
       state: care.state,
       entrySource: "Provider page inquiry",
+      connectionId,
+      outcome: (connectionId && outcomeByConn[connectionId]) || null,
     });
   }
 
-  // Secondary funnel — benefits completions.
+  // Secondary funnel — benefits completions. No connection row exists for
+  // these, so there is nothing to hang a provider outcome on.
   for (const r of (benefitsRes.data ?? []) as Array<{
     created_at: string;
     metadata: { care_need?: string; state?: string; entry_source?: string } | null;
@@ -342,6 +360,8 @@ export async function listLeadsByCampaign(
         : null,
       state: r.metadata?.state ?? null,
       entrySource: r.metadata?.entry_source ?? null,
+      connectionId: null,
+      outcome: null,
     });
   }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { calculateProviderCompleteness } from "@/lib/admin/profile-completeness";
 
 /**
  * Batch size for .in() queries to avoid URL length limits.
@@ -134,8 +135,11 @@ export interface OutreachProvider {
   re_engage_entered_at: string | null;
   // Assignment
   assigned_to: string | null;
+  // Sequence progress (for in_sequence stage)
+  emails_sent?: number;
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
+  profile_completeness?: number;
   // Email verification status from email_verifications table
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted (from email_overrides table)
@@ -340,6 +344,35 @@ export async function GET(request: NextRequest) {
       claimedProviderIds = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
     }
 
+    // For in_sequence stage, get email sent counts from touchpoints
+    // Only count emails sent during the CURRENT sequence (since stage_changed_at)
+    let emailsSentMap = new Map<string, number>();
+    if (stage === "in_sequence" && providerIds.length > 0) {
+      // Build map of provider_id -> stage_changed_at for filtering
+      const stageChangedMap = new Map<string, string>();
+      for (const t of trackingRows as TrackingRow[]) {
+        if (t.stage_changed_at) {
+          stageChangedMap.set(t.provider_id, t.stage_changed_at);
+        }
+      }
+
+      const { data: touchpoints } = await db
+        .from("provider_outreach_touchpoints")
+        .select("provider_id, created_at")
+        .in("provider_id", providerIds)
+        .eq("touchpoint_type", "email_sent");
+
+      // Count emails per provider, only those created after entering in_sequence
+      for (const tp of touchpoints || []) {
+        const stageChangedAt = stageChangedMap.get(tp.provider_id);
+        // Only count if touchpoint was created after entering current sequence
+        if (stageChangedAt && tp.created_at >= stageChangedAt) {
+          const count = emailsSentMap.get(tp.provider_id) || 0;
+          emailsSentMap.set(tp.provider_id, count + 1);
+        }
+      }
+    }
+
     // Join tracking with provider data
     const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
     const providers = (trackingRows as TrackingRow[])
@@ -372,6 +405,8 @@ export async function GET(request: NextRequest) {
           re_engage_entered_at: t.re_engage_entered_at ?? null,
           // Assignment
           assigned_to: t.assigned_to ?? null,
+          // Sequence progress (for in_sequence)
+          emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -520,9 +555,10 @@ async function getClaimedProviders(
   // Previous approach queried all providers in state (~10k) and used .in() which exceeded URL limits
 
   // Step 1: Get all claimed business_profiles with source_provider_id
+  // Include fields needed for profile completeness calculation
   const { data: claimedBps, error: bpError } = await db
     .from("business_profiles")
-    .select("source_provider_id, created_at, updated_at, verification_state, email")
+    .select("source_provider_id, created_at, updated_at, verification_state, email, phone, website, address, city, state, display_name, description, image_url, care_types, metadata")
     .not("source_provider_id", "is", null)
     .not("account_id", "is", null);
 
@@ -552,16 +588,34 @@ async function getClaimedProviders(
     return [];
   }
 
-  // Create a map of claimed provider_id -> { timestamp, verification_state, email }
+  // Create a map of claimed provider_id -> { timestamp, verification_state, email, profile data }
   const claimedMap = new Map(
-    claimedBps.map((bp) => [
-      bp.source_provider_id,
-      {
-        timestamp: bp.updated_at || bp.created_at,
-        verification_state: bp.verification_state as OutreachProvider["verification_state"],
+    claimedBps.map((bp) => {
+      // Calculate profile completeness
+      const completeness = calculateProviderCompleteness({
+        display_name: bp.display_name as string | null,
+        image_url: bp.image_url as string | null,
+        phone: bp.phone as string | null,
         email: bp.email as string | null,
-      },
-    ])
+        website: bp.website as string | null,
+        address: bp.address as string | null,
+        city: bp.city as string | null,
+        state: bp.state as string | null,
+        description: bp.description as string | null,
+        care_types: bp.care_types as string[] | null,
+        metadata: bp.metadata as Record<string, unknown> | null,
+      });
+
+      return [
+        bp.source_provider_id,
+        {
+          timestamp: bp.updated_at || bp.created_at,
+          verification_state: bp.verification_state as OutreachProvider["verification_state"],
+          email: bp.email as string | null,
+          profile_completeness: completeness.percentage,
+        },
+      ];
+    })
   );
 
   // Build result with business_profiles email taking precedence
@@ -593,6 +647,7 @@ async function getClaimedProviders(
         // Assignment (not applicable for claimed)
         assigned_to: null,
         verification_state: claimInfo?.verification_state || null,
+        profile_completeness: claimInfo?.profile_completeness,
       };
     })
     .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
@@ -838,6 +893,37 @@ async function searchProviders(
     (trackingRows || []).map((t) => [t.provider_id, t])
   );
 
+  // For in_sequence providers, compute emails_sent count (same logic as main query)
+  const inSequenceProviderIds = (trackingRows || [])
+    .filter((t) => t.stage === "in_sequence" && !claimedMap.has(t.provider_id))
+    .map((t) => t.provider_id);
+
+  let emailsSentMap = new Map<string, number>();
+  if (inSequenceProviderIds.length > 0) {
+    // Build map of provider_id -> stage_changed_at for filtering
+    const stageChangedMap = new Map<string, string>();
+    for (const t of trackingRows || []) {
+      if (t.stage === "in_sequence" && t.stage_changed_at) {
+        stageChangedMap.set(t.provider_id, t.stage_changed_at);
+      }
+    }
+
+    const { data: touchpoints } = await db
+      .from("provider_outreach_touchpoints")
+      .select("provider_id, created_at")
+      .in("provider_id", inSequenceProviderIds)
+      .eq("touchpoint_type", "email_sent");
+
+    // Count emails per provider, only those created after entering current sequence
+    for (const tp of touchpoints || []) {
+      const stageChangedAt = stageChangedMap.get(tp.provider_id);
+      if (stageChangedAt && tp.created_at >= stageChangedAt) {
+        const count = emailsSentMap.get(tp.provider_id) || 0;
+        emailsSentMap.set(tp.provider_id, count + 1);
+      }
+    }
+  }
+
   // Get system-wide archived providers (admin_archived = true in business_profiles)
   const { data: adminArchivedBps } = await db
     .from("business_profiles")
@@ -912,6 +998,8 @@ async function searchProviders(
       re_engage_entered_at: tracking?.re_engage_entered_at ?? null,
       // Assignment
       assigned_to: tracking?.assigned_to ?? null,
+      // Sequence progress (for in_sequence)
+      emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
       verification_state: claimInfo?.verification_state || null,
     };
   });

@@ -13,11 +13,6 @@ export {
   getTemplate,
   substituteVars,
   buildVars,
-  TJ_PHOTO_URL,
-  tjSignatureHtml,
-  tjSignaturePlainText,
-  composeFooterHtml,
-  composeFooterPlainText,
 } from "./templates";
 
 // Cadence

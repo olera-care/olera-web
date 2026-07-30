@@ -174,6 +174,8 @@ function introEmail(): EmailDraft {
     subject: `A free way for more families to find ${PLACEHOLDER.providerName}`,
     preheader: `No broker, no fee, families come directly to you`,
     body: [
+      `**Your free Olera page is live.**`,
+      ``,
       `We've created a free Olera page for ${PLACEHOLDER.providerName}, giving families an easier way to discover and connect with you.`,
       ``,
       `There's no cost to manage your page and no referral fees. When a family finds you through Olera, they contact your team directly.`,
@@ -200,6 +202,8 @@ function followupEmail(): EmailDraft {
     subject: `Your story deserves more than a listing`,
     preheader: `Give families the full picture`,
     body: [
+      `**Families choose people, not listings.**`,
+      ``,
       `Families don't choose care from a list of services. They choose the people and places they trust.`,
       ``,
       `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that. Show families what makes ${PLACEHOLDER.providerName} different. Add photos, highlight the people behind your care, and showcase what makes your community special.`,
@@ -220,15 +224,15 @@ function followupEmail(): EmailDraft {
  * Has fallback for low view counts (< 10) to avoid showing weak numbers.
  */
 function demandLossEmail(hasDemandData: boolean): EmailDraft {
-  const opener = hasDemandData
-    ? `Families in ${PLACEHOLDER.city} viewed ${PLACEHOLDER.category} providers on Olera ${PLACEHOLDER.cityViews} times in the last 30 days.`
-    : `Families in ${PLACEHOLDER.city} are actively searching for ${PLACEHOLDER.category} providers on Olera.`;
+  const headline = hasDemandData
+    ? `**${PLACEHOLDER.cityViews} families searched for ${PLACEHOLDER.category} near ${PLACEHOLDER.city} this month.**`
+    : `**Families in ${PLACEHOLDER.city} are searching for ${PLACEHOLDER.category} providers.**`;
 
   return {
     subject: `A family has a question. Will you see it?`,
     preheader: `Don't miss families ready to talk`,
     body: [
-      opener,
+      headline,
       ``,
       `Imagine a daughter urgently searching for care for her mom. She finds ${PLACEHOLDER.providerName} and has a question before taking the next step.`,
       ``,
@@ -254,7 +258,7 @@ function finalEmail(): EmailDraft {
     subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
     preheader: `Give families confidence to reach out`,
     body: [
-      `Hi ${PLACEHOLDER.providerName},`,
+      `**Build trust before the first conversation.**`,
       ``,
       `Choosing senior care is one of the biggest decisions a family will ever make. They need to know they're connecting with a real person they can trust.`,
       ``,
@@ -281,7 +285,7 @@ function nudgeEmail(): EmailDraft {
     subject: `Your free Olera page for ${PLACEHOLDER.providerName} is ready`,
     preheader: PREHEADER_NUDGE,
     body: [
-      `Hi ${PLACEHOLDER.providerName},`,
+      `**Your page is ready.**`,
       ``,
       `We've already created a free Olera page for ${PLACEHOLDER.providerName}. It's ready for your team to manage whenever you are.`,
       ``,
@@ -304,96 +308,30 @@ function nudgeEmail(): EmailDraft {
 export const LOGAN_PHOTO_URL =
   "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/team/logan.jpg";
 
+/** Brand color for links */
+const BRAND_COLOR = "#198087";
+
+/** LinkedIn profile URLs */
+const LINKEDIN_LOGAN = "https://www.linkedin.com/in/logan-dubose/";
+const LINKEDIN_TJ = "https://www.linkedin.com/in/tfalohun/";
+
 /**
  * Logan signature block HTML.
- * Photo + name + title + NIH credentials.
+ * Photo + bio with LinkedIn links for both Logan and TJ.
+ * Matches the polished style used in weekly digest emails.
  */
 export function loganSignatureHtml(): string {
   return `
-<table cellpadding="0" cellspacing="0" style="margin-top:16px;">
+<table cellpadding="0" cellspacing="0" style="margin-top:24px;">
   <tr>
     <td style="vertical-align:top;padding-right:12px;">
       <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
     </td>
-    <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;font-family:Inter,Arial,sans-serif;">
-      <p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p>
-      <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
+    <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">
+      <p style="margin:0;">Olera is built by <a href="${LINKEDIN_LOGAN}" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="${LINKEDIN_TJ}" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care easier to understand and compare.</p>
     </td>
   </tr>
 </table>`;
 }
 
-/**
- * Logan signature block plain text (for text/plain MIME alternative)
- */
-export function loganSignaturePlainText(): string {
-  return [
-    ``,
-    `Dr. Logan DuBose`,
-    `CRO, Olera · Researcher funded by NIH SBIR Program`,
-  ].join("\n");
-}
 
-/**
- * Compose the full email footer HTML.
- * Includes: sign-off, Logan signature, footer links, mailing address.
- */
-export function composeFooterHtml(vars: Record<string, string>): string {
-  return [
-    // Sign-off
-    `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
-    // Signature block
-    loganSignatureHtml(),
-    // Footer links
-    `<div style="margin:30px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
-    `<p style="font-size:13px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;">`,
-    `<a href="${vars.manage_url}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a> · `,
-    `<a href="${vars.remove_url}" style="color:#9ca3af;text-decoration:underline;">Remove my listing</a> · `,
-    `<a href="${vars.unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>`,
-    `</p>`,
-    // Mailing address (CAN-SPAM)
-    `<p style="font-size:11px;color:#d1d5db;margin:12px 0 0;font-family:Inter,Arial,sans-serif;">Olera · ${vars.mailing_address}</p>`,
-    `</div>`,
-  ].join("\n");
-}
-
-/**
- * Compose the full email footer plain text.
- */
-export function composeFooterPlainText(vars: Record<string, string>): string {
-  return [
-    ``,
-    `Best,`,
-    `Logan`,
-    loganSignaturePlainText(),
-    ``,
-    `---`,
-    `Manage your listing: ${vars.manage_url}`,
-    `Remove my listing: ${vars.remove_url}`,
-    `Unsubscribe: ${vars.unsubscribe_url}`,
-    ``,
-    `Olera · ${vars.mailing_address}`,
-  ].join("\n");
-}
-
-// ── Legacy exports (for backward compatibility) ──────────────────────────
-
-/**
- * @deprecated Use loganSignatureHtml instead
- */
-export const TJ_PHOTO_URL = LOGAN_PHOTO_URL;
-
-/**
- * @deprecated Use loganSignatureHtml instead
- */
-export function tjSignatureHtml(): string {
-  return loganSignatureHtml();
-}
-
-/**
- * @deprecated Use loganSignaturePlainText instead
- */
-export function tjSignaturePlainText(): string {
-  return loganSignaturePlainText();
-}

@@ -99,18 +99,19 @@ export const CRON_REGISTRY: CronJob[] = [
   },
   {
     id: "ad-boost-profile-reminders",
-    name: "Ad Boost profile reminders",
+    name: "Ad Boost profile reminders + outcome pings",
     description:
-      "Nudges providers whose Ad Boost launch plan is queued because their profile is still below the launch threshold. If a queued provider has become launch-ready, promotes the request instead of sending a reminder.",
+      "Two rungs. 1: nudges providers whose Ad Boost launch plan is queued because their profile is still below the launch threshold (promotes launch-ready requests instead). 2: lead-outcome pings — asks providers, ~7 and ~21 days after a campaign-attributed inquiry, whether the family became a client (one-tap; feeds the campaign receipt).",
     recipientCohort:
-      "Providers with a pending-profile Ad Boost request that is at least 48 hours old and has not received this reminder yet.",
+      "Providers with a pending-profile Ad Boost request at least 48 hours old, and providers of live/ended campaigns with un-reported leads in the 7d/21d windows (max one outcome ping per provider per day).",
     audience: "Providers",
     fn: "nudge",
     schedule: "30 14 * * *",
     humanSchedule: "Daily, 14:30 UTC (~9–10 AM ET)",
     path: "/api/cron/ad-boost-profile-reminders",
-    emailTypes: ["ad_boost_profile_reminder", "ad_boost_ready"],
-    successSignal: "Provider completes the page/verification work and the queued campaign moves into setup.",
+    emailTypes: ["ad_boost_profile_reminder", "ad_boost_ready", "ad_boost_lead_outcome_check"],
+    successSignal:
+      "Queued campaigns move into setup; providers one-tap report lead outcomes that appear on the campaign receipt.",
     relatedAdminPath: "/admin/ad-boost",
   },
   {

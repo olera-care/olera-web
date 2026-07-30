@@ -106,6 +106,8 @@ export async function GET(request: NextRequest) {
     // DEBUG: Log lookup results
     console.log("[stats-debug] business_profiles found:", bpProviders?.length ?? 0);
     console.log("[stats-debug] olera-providers found:", oleraProviders?.length ?? 0);
+    console.log("[stats-debug] Sample provider IDs (first 10):", providerIds.slice(0, 10));
+    console.log("[stats-debug] Sample bpProviders (first 3):", (bpProviders ?? []).slice(0, 3).map(p => ({ slug: p.slug, source_provider_id: p.source_provider_id, account_id: p.account_id })));
 
     // Build olera email lookup by provider_id
     const oleraEmailByProviderId = new Map<string, string>();
@@ -245,6 +247,7 @@ export async function GET(request: NextRequest) {
 
     // DEBUG: Final KPI results
     console.log("[stats-debug] Final KPI:", { kpiCurrent, kpiPrior });
+    console.log("[stats-debug] Sample kpiCurrentProviders (first 10):", Array.from(kpiCurrentProviders).slice(0, 10));
 
     let delta: number | null = null;
     if (from) {

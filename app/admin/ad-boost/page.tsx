@@ -265,6 +265,7 @@ function LeadsCell({ request }: { request: CampaignRequest }) {
   const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
   const leads = request.delivered ?? 0;
   const landings = request.ad_landings ?? 0;
+  const questions = request.questions_received ?? 0;
 
   return (
     <div className={`text-sm tabular-nums ${preLaunch ? "text-gray-300" : "text-gray-600"}`}>
@@ -276,6 +277,13 @@ function LeadsCell({ request }: { request: CampaignRequest }) {
       {!preLaunch && landings > 0 && (
         <span className="block text-[11px] leading-tight text-gray-400">
           {landings} click{landings === 1 ? "" : "s"}
+        </span>
+      )}
+      {/* Engagement signal: questions asked since launch — often the only
+          non-zero number on a zero-lead campaign, so it earns a line here. */}
+      {!preLaunch && questions > 0 && (
+        <span className="block text-[11px] leading-tight text-gray-400">
+          {questions} question{questions === 1 ? "" : "s"}
         </span>
       )}
     </div>

@@ -24,6 +24,7 @@ export interface CampaignRequest {
   /** Manual ad-platform metrics, entered by the operator on the detail page. */
   ad_spend_cents: number | null;
   ad_clicks: number | null;
+  ad_impressions: number | null;
   /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
   plan_status?: "active" | "past_due" | "canceled" | null;
   /** Subscribed monthly plan in whole USD (150/300/600). */
@@ -38,6 +39,9 @@ export interface CampaignRequest {
   /** Families delivered so far (campaign-attributed conversions across the
    *  inquiry + benefits funnels). Attached by the list + detail API branches. */
   delivered?: number;
+  /** Questions received since launch (manageable only — archived/rejected
+   *  excluded). Attached by the list API branch; 0 pre-launch. */
+  questions_received?: number;
 }
 
 /** One delivered family behind a campaign — no PHI, just context. Mirrors
@@ -47,6 +51,9 @@ export interface CampaignLead {
   careNeed: string | null;
   state: string | null;
   entrySource: string | null;
+  connectionId?: string | null;
+  /** Provider one-tap self-report: did this family become a client? */
+  outcome?: "client" | "talking" | "no" | null;
 }
 
 export const STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];

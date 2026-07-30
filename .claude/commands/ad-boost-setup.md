@@ -90,7 +90,7 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 ## Phase 3 — Post-publish (immediately, per campaign)
 
 1. Skip the Google-tag interstitial (attribution = UTM → provider-page cookie, PR #1239 — never install gtag).
-2. **Apply the shared negative list** (`provider managed ads negative keywords`, sharedSetId `12134249254`, **82 terms** as of 2026-07-25) to the new campaign. This covers job-seeker terms, wrong care categories, and ~42 national competitor brands. **Home-care providers only** — see the assisted-living invariant above. Reach it via the campaign's Negative keywords page (`/aw/keywords/negative?campaignId=X`) → Add → "Use negative keyword list".
+2. **Apply the shared negative list** (`provider managed ads negative keywords`, sharedSetId `12134249254`, **97 terms** as of 2026-07-30) to the new campaign. This covers job-seeker terms, wrong care categories, and ~42 national competitor brands. **Home-care providers only** — see the assisted-living invariant above. Reach it via the campaign's Negative keywords page (`/aw/keywords/negative?campaignId=X`) → Add → "Use negative keyword list".
 3. Open campaign Settings and **verify the AI Max toggle is still aria-checked=false**.
 4. **Re-verify account auto-apply is still 0/7 and 0/14** (Phase 1 step 0). Publishing is exactly when Google likes to suggest re-enabling.
 

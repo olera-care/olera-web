@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { BoostRequest } from "@/lib/ad-boost/boost-state";
+import type { BoostRequest, CampaignReceiptData } from "@/lib/ad-boost/boost-state";
 import {
   PlanActive,
   WrapUpMoment,
@@ -16,6 +16,22 @@ import {
  */
 
 type PreviewKey = "wrapup" | "wrapup_one" | "weak" | "celebrate" | "steady";
+
+/** Sample receipts — Miracle-Lightstar-shaped numbers for the zero-lead demand
+ *  receipt, Franchil-shaped for the outcome receipt. */
+const RECEIPT_ZERO: CampaignReceiptData = {
+  google: { impressions: 268, clicks: 20, spendCents: 3735, ctr: 7.5, cpcCents: 187 },
+  engagement: { visitors: 22, saves: 6, questionsReceived: 3 },
+  outcomes: { client: 0, talking: 0, no: 0, unanswered: 0 },
+  expectedLeads: 0.7,
+};
+
+const RECEIPT_STRONG: CampaignReceiptData = {
+  google: { impressions: 64, clicks: 16, spendCents: 3650, ctr: 14.1, cpcCents: 228 },
+  engagement: { visitors: 19, saves: 8, questionsReceived: 4 },
+  outcomes: { client: 1, talking: 1, no: 0, unanswered: 1 },
+  expectedLeads: 0.5,
+};
 
 const SAMPLE_BASE: BoostRequest = {
   id: "preview",
@@ -38,7 +54,7 @@ const PREVIEWS: {
   {
     key: "wrapup",
     label: "Wrap-up · strong",
-    blurb: "The payment ask. Arms after the 3rd lead or the promo-complete email. Sample numbers are Franchil-shaped: 19 visitors, 3 leads.",
+    blurb: "The payment ask, now with the outcome receipt: one lead reported as a paying client (the provider's own one-tap answer), one still talking. Sample numbers are Franchil-shaped: 19 visitors, 3 leads.",
   },
   {
     key: "wrapup_one",
@@ -47,8 +63,8 @@ const PREVIEWS: {
   },
   {
     key: "weak",
-    label: "Wrap-up · zero leads",
-    blurb: "The honest no-ask path. A quiet intro never gets an invoice; we offer another window on us.",
+    label: "Wrap-up · zero leads (demand receipt)",
+    blurb: "The demand receipt: ad reach, clicks, saves and questions prove demand was real, the math line explains the zero, and the plans read as a volume choice. Sample numbers are Miracle-Lightstar-shaped: 268 ad views, 20 clicks, 6 saves, 0 leads.",
   },
   {
     key: "celebrate",
@@ -145,6 +161,7 @@ export default function AdBoostPreviewPage() {
               key="wrapup"
               request={SAMPLE_BASE}
               campaignStats={stats(3)}
+              receipt={RECEIPT_STRONG}
               onCheckout={stubCheckout}
               submitting={fakeSubmitting}
               error={fakeError}
@@ -165,9 +182,10 @@ export default function AdBoostPreviewPage() {
               key="weak"
               request={SAMPLE_BASE}
               campaignStats={stats(0)}
+              receipt={RECEIPT_ZERO}
               onCheckout={stubCheckout}
-              submitting={false}
-              error={null}
+              submitting={fakeSubmitting}
+              error={fakeError}
             />
           )}
           {view === "celebrate" && (

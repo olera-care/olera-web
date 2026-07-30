@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   BOOST_CHANNELS,
   type BoostRequest,
+  type CampaignReceiptData,
 } from "@/lib/ad-boost/boost-state";
 import {
   BUDGET_STOPS,
@@ -107,6 +108,107 @@ export function CampaignPerformance({
 }
 
 /**
+ * The campaign receipt — an itemized "what your flight bought" list. This is
+ * the demand receipt: even a zero-lead window shows real reach (ad views,
+ * clicks, visitors, shortlist saves, questions), the dating-app boost move of
+ * proving you were seen even when nobody matched. Rows render only when the
+ * number exists; Google rows wait for the concierge to enter the dashboard
+ * figures. Outcome lines (became a client / still talking) come from the
+ * provider's own one-tap reports.
+ */
+export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData }) {
+  const { google, engagement, outcomes } = receipt;
+  const rows: { label: string; value: string; sub?: string }[] = [];
+
+  if (google.impressions != null && google.impressions > 0) {
+    rows.push({
+      label: "Times your ad was shown",
+      value: google.impressions.toLocaleString(),
+      sub: "local families searching for care",
+    });
+  }
+  if (google.clicks != null && google.clicks > 0) {
+    rows.push({
+      label: "Clicked through to your page",
+      value: google.clicks.toLocaleString(),
+      sub: google.ctr != null ? `${google.ctr}% click rate` : undefined,
+    });
+  }
+  if (engagement.visitors > 0) {
+    rows.push({ label: "Visited your page", value: engagement.visitors.toLocaleString() });
+  }
+  if (engagement.saves > 0) {
+    rows.push({
+      label: "Saved you to their shortlist",
+      value: engagement.saves.toLocaleString(),
+    });
+  }
+  if (engagement.questionsReceived > 0) {
+    rows.push({
+      label: "Asked you a question",
+      value: engagement.questionsReceived.toLocaleString(),
+    });
+  }
+  if (rows.length === 0 && outcomes.client === 0 && outcomes.talking === 0) return null;
+
+  return (
+    <div className="mt-8">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
+        What your campaign bought
+      </p>
+      <dl className="mt-3 divide-y divide-gray-100 border-y border-gray-100">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-baseline justify-between gap-4 py-3">
+            <dt className="min-w-0 text-sm text-gray-600">
+              {r.label}
+              {r.sub && <span className="ml-2 text-xs text-gray-400">{r.sub}</span>}
+            </dt>
+            <dd className="shrink-0 text-lg font-display font-bold text-gray-900 tabular-nums">
+              {r.value}
+            </dd>
+          </div>
+        ))}
+        {outcomes.client > 0 && (
+          <div className="flex items-baseline justify-between gap-4 py-3">
+            <dt className="min-w-0 text-sm font-medium text-primary-700">
+              Became {outcomes.client === 1 ? "a paying client" : "paying clients"}
+            </dt>
+            <dd className="shrink-0 text-lg font-display font-bold text-primary-700 tabular-nums">
+              {outcomes.client.toLocaleString()}
+            </dd>
+          </div>
+        )}
+        {outcomes.talking > 0 && (
+          <div className="flex items-baseline justify-between gap-4 py-3">
+            <dt className="min-w-0 text-sm text-gray-600">Still in conversation</dt>
+            <dd className="shrink-0 text-lg font-display font-bold text-gray-900 tabular-nums">
+              {outcomes.talking.toLocaleString()}
+            </dd>
+          </div>
+        )}
+      </dl>
+    </div>
+  );
+}
+
+/** The honest volume math for a zero-lead flight, phrased as arithmetic, not
+ *  excuse: leads arrive about 1 per 30 clicks, so N clicks predicts X. Only
+ *  renders when clicks were entered, so it can never speculate. */
+export function ReceiptMathLine({ receipt }: { receipt: CampaignReceiptData }) {
+  const clicks = receipt.google.clicks;
+  if (clicks == null || clicks <= 0) return null;
+  return (
+    <p className="mt-4 text-sm text-gray-500 leading-relaxed max-w-lg">
+      For context: in senior care, about 1 in every 30 ad clicks becomes an
+      inquiry, and families often compare for weeks before reaching out. Your
+      flight bought {clicks.toLocaleString()} {clicks === 1 ? "click" : "clicks"},
+      so this window came down to volume, not interest. The families above have
+      seen you, and you are now in their consideration set.
+    </p>
+  );
+}
+
+/**
  * Plan active — the celebration + steady state after checkout. `celebrate` is
  * the just-returned-from-Stripe moment (may render before the webhook lands,
  * so plan_value can still be null; copy degrades gracefully).
@@ -171,12 +273,14 @@ export function PlanActive({
 export function WrapUpMoment({
   request,
   campaignStats,
+  receipt,
   onCheckout,
   submitting,
   error,
 }: {
   request: BoostRequest;
   campaignStats: { visitors: number; leads: number; since: string } | null;
+  receipt?: CampaignReceiptData | null;
   onCheckout: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
@@ -191,58 +295,8 @@ export function WrapUpMoment({
   );
   const selected = budgetStop(plan);
 
-  // The honest no-ask path: a quiet intro window never gets a money ask.
-  if (leads === 0) {
-    return (
-      <div className="max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
-          Your first campaign, wrapped
-        </p>
-        <h2 className="text-2xl font-display font-semibold text-gray-900">
-          Your market was quiet this time.
-        </h2>
-        <p className="text-gray-500 mt-3 leading-relaxed max-w-lg">
-          No families reached out this window. That&apos;s on us to fix:
-          we&apos;ll tune your page and run another window, on us. Nothing to
-          pay.
-        </p>
-        {campaignStats && campaignStats.visitors > 0 && (
-          <CampaignPerformance stats={campaignStats} />
-        )}
-        <Link
-          href="/provider"
-          className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"
-        >
-          Back to dashboard
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-          </svg>
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-2xl">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
-        Your first campaign, wrapped
-      </p>
-      <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
-        {leads === 1 ? "A family reached out." : `${leads} families reached out.`}
-      </h2>
-      {/* One line of value math — the stat row below does the arguing. */}
-      <p className="text-gray-500 mt-3 leading-relaxed max-w-lg">
-        Referral sites charge $50 to $150 for one shared lead. Yours were
-        free, and only yours.
-      </p>
-
-      {campaignStats && <CampaignPerformance stats={campaignStats} />}
-
-      {/* The decision — eyebrow only; the cards say what plans are. */}
-      <p className="mt-12 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-        Keep it going
-      </p>
-
+  const planSection = (
+    <>
       {/* Single-row plan cards: name · price · estimate. No blurbs here — the
           results above are the pitch (the apply flow keeps its blurbs). */}
       <fieldset className="mt-4">
@@ -329,6 +383,75 @@ export function WrapUpMoment({
           Not now, back to dashboard
         </Link>
       </div>
+    </>
+  );
+
+  // Zero leads = the demand-receipt path. No fake celebration; instead the
+  // itemized proof the ad worked (reach, clicks, saves) + the volume math, the
+  // re-run promise, and the plans as a volume choice, not a victory lap.
+  if (leads === 0) {
+    const impressions = receipt?.google.impressions;
+    return (
+      <div className="max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
+          Your first campaign, wrapped
+        </p>
+        <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
+          {impressions != null && impressions > 0
+            ? `Your ad reached ${impressions.toLocaleString()} local families.`
+            : "Your market saw you this window."}
+        </h2>
+        <p className="text-gray-500 mt-3 leading-relaxed max-w-lg">
+          No inquiries landed this window. Here is exactly what the flight
+          bought, so you can judge it on the numbers.
+        </p>
+
+        {receipt && <CampaignReceiptBlock receipt={receipt} />}
+        {receipt && <ReceiptMathLine receipt={receipt} />}
+
+        <p className="text-gray-500 mt-6 leading-relaxed max-w-lg">
+          We&apos;ll tune your page and run another window on us. Nothing to
+          pay. If you&apos;d rather not wait, a monthly plan runs the same
+          campaign at several times the volume.
+        </p>
+
+        <p className="mt-10 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+          Run it at real volume
+        </p>
+        {planSection}
+      </div>
+    );
+  }
+
+  const clientCount = receipt?.outcomes.client ?? 0;
+  return (
+    <div className="max-w-2xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
+        Your first campaign, wrapped
+      </p>
+      <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
+        {clientCount > 0
+          ? clientCount === 1
+            ? "A family became your client."
+            : `${clientCount} families became your clients.`
+          : leads === 1
+            ? "A family reached out."
+            : `${leads} families reached out.`}
+      </h2>
+      {/* One line of value math — the stat row below does the arguing. */}
+      <p className="text-gray-500 mt-3 leading-relaxed max-w-lg">
+        Referral sites charge $50 to $150 for one shared lead. Yours were
+        free, and only yours.
+      </p>
+
+      {campaignStats && <CampaignPerformance stats={campaignStats} />}
+      {receipt && <CampaignReceiptBlock receipt={receipt} />}
+
+      {/* The decision — eyebrow only; the cards say what plans are. */}
+      <p className="mt-12 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+        Keep it going
+      </p>
+      {planSection}
     </div>
   );
 }

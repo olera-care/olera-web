@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendAdBoostRequestEmail } from "@/lib/ad-boost/notifications.server";
 import { evaluateAdBoostEligibility } from "@/lib/ad-boost/eligibility";
+import { sendDueLeadOutcomePings, type OutcomePingCounts } from "@/lib/ad-boost/outcome-pings.server";
 import { withCronRun } from "@/lib/crons/run";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
 import type { ExtendedMetadata, ReviewsSummary, ResponseRateSummary } from "@/lib/profile-completeness";
@@ -76,6 +77,17 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const cutoff = new Date(Date.now() - REMINDER_AFTER_HOURS * 60 * 60 * 1000).toISOString();
 
+    // Rung 2 of this daily job: lead-outcome pings ("did this family become a
+    // client?") for live/ended campaigns. Runs first and independently — a
+    // failure in either rung must not silently kill the other.
+    let outcomePings: OutcomePingCounts | { error: string };
+    try {
+      outcomePings = await sendDueLeadOutcomePings(db, { dryRun });
+    } catch (err) {
+      console.error("[cron/ad-boost-profile-reminders] outcome pings failed:", err);
+      outcomePings = { error: err instanceof Error ? err.message : "unknown" };
+    }
+
     const counts = {
       processed: 0,
       reminded: 0,
@@ -105,7 +117,7 @@ export async function GET(request: NextRequest) {
     counts.processed = staleRequests.length;
 
     if (staleRequests.length === 0) {
-      return { ok: true, dry_run: dryRun, ...counts };
+      return { ok: true, dry_run: dryRun, ...counts, outcome_pings: outcomePings };
     }
 
     const profileIds = [...new Set(staleRequests.map((r) => r.provider_id).filter(Boolean))];
@@ -311,7 +323,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return { ok: true, dry_run: dryRun, ...counts };
+    return { ok: true, dry_run: dryRun, ...counts, outcome_pings: outcomePings };
   });
 }
 

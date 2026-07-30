@@ -33,6 +33,7 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   "ad_boost_campaign_launched",
   "ad_boost_traction",
   "ad_boost_promo_complete",
+  "ad_boost_lead_outcome_check",
   "connection_request",
   "first_lead_celebration",
   "question_received",

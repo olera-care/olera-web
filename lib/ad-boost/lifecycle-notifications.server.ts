@@ -11,6 +11,7 @@ import {
 } from "@/lib/email";
 import { getSiteUrl } from "@/lib/site-url";
 import { getCampaignStats } from "./delivered.server";
+import { getCampaignReceipt } from "./receipts.server";
 
 type AdBoostLifecycleKind = "launched" | "traction" | "promo_complete";
 
@@ -43,9 +44,12 @@ type CampaignRow = {
   intended_monthly_budget: number | null;
   ad_spend_cents: number | null;
   ad_clicks: number | null;
+  /** Optional: older callers may not select it; the receipt degrades. */
+  ad_impressions?: number | null;
+  created_at?: string;
 };
 
-type ProviderRecipient = {
+export type ProviderRecipient = {
   email: string | null;
   name: string;
   profileId: string;
@@ -53,9 +57,9 @@ type ProviderRecipient = {
   leadsUnsubscribed: boolean;
 };
 
-async function loadProviderRecipient(
+export async function loadProviderRecipient(
   db: ReturnType<typeof getServiceClient>,
-  row: CampaignRow,
+  row: Pick<CampaignRow, "provider_id" | "provider_slug" | "display_name">,
 ): Promise<ProviderRecipient> {
   const fallbackSlug = row.provider_slug || row.provider_id;
   const fallbackName = row.display_name || fallbackSlug;
@@ -126,6 +130,24 @@ export async function sendAdBoostLifecycleEmail(opts: {
     since,
   });
 
+  // The wrap-up email carries the full demand receipt (impressions, saves,
+  // questions, reported client outcomes) — the launched/traction emails don't
+  // need it, so only pay for the queries when the flight is wrapping.
+  const receipt =
+    opts.kind === "promo_complete"
+      ? await getCampaignReceipt(db, {
+          id: opts.request.id,
+          provider_id: opts.request.provider_id,
+          provider_slug: opts.request.provider_slug,
+          campaign_tag: opts.request.campaign_tag,
+          requested_setup_week: opts.request.requested_setup_week,
+          created_at: opts.request.created_at || new Date().toISOString(),
+          ad_impressions: opts.request.ad_impressions ?? null,
+          ad_clicks: opts.request.ad_clicks,
+          ad_spend_cents: opts.request.ad_spend_cents,
+        })
+      : null;
+
   const emailType = EMAIL_TYPE[opts.kind];
   const subject = SUBJECT[opts.kind];
   const metadata = {
@@ -172,6 +194,10 @@ export async function sendAdBoostLifecycleEmail(opts: {
             clicks: opts.request.ad_clicks,
             spendCents: opts.request.ad_spend_cents,
             intendedMonthlyBudget: opts.request.intended_monthly_budget,
+            impressions: receipt?.google.impressions ?? null,
+            saves: receipt?.engagement.saves ?? null,
+            questionsReceived: receipt?.engagement.questionsReceived ?? null,
+            clientOutcomes: receipt?.outcomes.client ?? null,
           });
 
   const result = await sendEmail({

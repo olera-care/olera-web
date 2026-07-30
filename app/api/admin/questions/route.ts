@@ -241,6 +241,8 @@ export async function GET(request: NextRequest) {
           .select("provider_id, metadata")
           .contains("metadata", { needs_provider_email: true })
           .not("metadata", "cs", '{"email_dead":true}')
+          .not("metadata", "cs", '{"provider_not_interested":true}')
+          .not("metadata", "cs", '{"provider_no_contact":true}')
           .neq("status", "archived")
           .neq("status", "rejected");
         if (searchSlugs) {
@@ -391,6 +393,7 @@ export async function GET(request: NextRequest) {
         .contains("metadata", { needs_provider_email: true })
         .not("metadata", "cs", '{"email_dead":true}')
         .not("metadata", "cs", '{"provider_not_interested":true}')
+        .not("metadata", "cs", '{"provider_no_contact":true}')
         .neq("status", "archived")
         .neq("status", "rejected")
         .order("created_at", { ascending: false })

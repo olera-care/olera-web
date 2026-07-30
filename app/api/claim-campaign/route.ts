@@ -70,6 +70,14 @@ export async function GET(request: NextRequest) {
   const { providerId, email } = validation;
   const normalizedEmail = email.trim().toLowerCase();
 
+  // Sanitize providerId to prevent query injection via special characters
+  // Provider IDs should only contain alphanumeric, hyphens, and underscores
+  const sanitizedProviderId = providerId.replace(/[^a-zA-Z0-9\-_]/g, "");
+  if (sanitizedProviderId !== providerId) {
+    console.error("[claim-campaign] providerId contains invalid characters:", providerId);
+    return fallbackToOnboard("invalid providerId", null);
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -99,7 +107,7 @@ export async function GET(request: NextRequest) {
   const { data: bpProfile } = await admin
     .from("business_profiles")
     .select("id, slug, email, account_id, source_provider_id, display_name, city, state, website")
-    .or(`slug.eq.${providerId},source_provider_id.eq.${providerId},id.eq.${providerId}`)
+    .or(`slug.eq.${sanitizedProviderId},source_provider_id.eq.${sanitizedProviderId},id.eq.${sanitizedProviderId}`)
     .in("type", ["organization", "caregiver"])
     .maybeSingle();
 
@@ -111,14 +119,14 @@ export async function GET(request: NextRequest) {
     const { data: oleraProvider } = await admin
       .from("olera-providers")
       .select("provider_id, slug, email, provider_name, city, state, website")
-      .or(`provider_id.eq.${providerId},slug.eq.${providerId}`)
+      .or(`provider_id.eq.${sanitizedProviderId},slug.eq.${sanitizedProviderId}`)
       .maybeSingle();
 
     if (oleraProvider) {
       // Create a temporary profile object - we'll create the real BP after auth
       providerProfile = {
         id: "", // Will be set after BP creation
-        slug: oleraProvider.slug || providerId,
+        slug: oleraProvider.slug || sanitizedProviderId,
         email: oleraProvider.email,
         account_id: null,
         source_provider_id: oleraProvider.provider_id,
@@ -132,10 +140,10 @@ export async function GET(request: NextRequest) {
 
   if (!providerProfile) {
     console.error("[claim-campaign] provider not found");
-    return fallbackToOnboard("provider not found", providerId);
+    return fallbackToOnboard("provider not found", sanitizedProviderId);
   }
 
-  const actualSlug = providerProfile.slug || providerProfile.source_provider_id || providerId;
+  const actualSlug = providerProfile.slug || providerProfile.source_provider_id || sanitizedProviderId;
 
   // Verify the token's email matches the provider's email
   if (providerProfile.email?.toLowerCase() !== normalizedEmail) {
@@ -334,10 +342,9 @@ export async function GET(request: NextRequest) {
 
           if (existingBp) {
             finalProfileId = existingBp.id;
-            // Only mark as new claim if it wasn't already linked to an account
             if (!existingBp.account_id) {
+              // Unclaimed BP from race condition - link it to this account
               isNewClaim = true;
-              // Link it to this account
               await admin
                 .from("business_profiles")
                 .update({
@@ -348,7 +355,13 @@ export async function GET(request: NextRequest) {
                   claim_trust_reason: trustResult.reason,
                 })
                 .eq("id", existingBp.id);
+            } else if (existingBp.account_id === account.id) {
+              // BP already belongs to this account (double-click or retry)
+              // Not a new claim, but ensure active_profile_id is set
+              console.log("[claim-campaign] BP already belongs to this account (race condition retry)");
             }
+            // If existingBp.account_id is set but doesn't match account.id,
+            // someone else claimed it first - we leave it alone
           }
         } else {
           console.error("[claim-campaign] BP creation failed:", bpCreateError.message);
@@ -374,8 +387,21 @@ export async function GET(request: NextRequest) {
         });
       }
     } else if (providerProfile.account_id && providerProfile.account_id !== account.id) {
-      // Profile owned by someone else - still let them in
-      console.warn("[claim-campaign] profile already linked to different account");
+      // Profile owned by someone else - still let the user authenticate
+      // They'll see their own dashboard (possibly empty), not this profile
+      // This is a security boundary: we don't give access to someone else's profile
+      console.warn("[claim-campaign] profile already linked to different account:", {
+        profileId: providerProfile.id,
+        profileAccountId: providerProfile.account_id,
+        requestingAccountId: account.id,
+      });
+      // Set finalProfileId for event tracking, even though they don't own it
+      finalProfileId = providerProfile.id;
+    } else if (providerProfile.account_id === account.id) {
+      // Profile already belongs to this account (returning user)
+      // Not a new claim, but ensure we track their access and set active_profile_id if needed
+      console.log("[claim-campaign] returning user, profile already claimed by this account");
+      finalProfileId = providerProfile.id;
     } else if (!providerProfile.account_id) {
       // Existing BP but unclaimed - run trust scoring and link profile
       isNewClaim = true;
@@ -409,6 +435,8 @@ export async function GET(request: NextRequest) {
         console.error("[claim-campaign] profile link failed:", linkErr.message);
         isNewClaim = false;
       } else {
+        // Set finalProfileId after successful linking
+        finalProfileId = providerProfile.id;
         console.log("[claim-campaign] profile linked with trust level:", trustResult.level);
 
         // Send deferred notifications for pending leads/questions
@@ -426,8 +454,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Set active profile if the account has none yet (for ALL new claims)
-    if (isNewClaim && finalProfileId) {
+    // Set active profile if the account has none yet
+    // This runs for new claims AND returning users who own the profile
+    // (in case active_profile_id was never set for some reason)
+    if (finalProfileId) {
       const { data: accountRow } = await admin
         .from("accounts")
         .select("active_profile_id")
@@ -439,6 +469,7 @@ export async function GET(request: NextRequest) {
           .from("accounts")
           .update({ active_profile_id: finalProfileId })
           .eq("id", account.id);
+        console.log("[claim-campaign] set active_profile_id:", finalProfileId);
       }
     }
   }

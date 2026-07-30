@@ -478,7 +478,21 @@ async function getNotContactedProviders(
       .map((t) => [t.provider_id, t])
   );
 
-  // Step 3: Get all providers in this state (we need to display them anyway)
+  // Step 3: Get city owners for this state (for auto-assignment of new providers)
+  const { data: cityOwners } = await db
+    .from("provider_outreach_city_owners")
+    .select("city, owner_id")
+    .eq("state", state)
+    .not("owner_id", "is", null);
+
+  const cityOwnerMap = new Map<string, string>();
+  for (const co of cityOwners || []) {
+    if (co.city && co.owner_id) {
+      cityOwnerMap.set(co.city, co.owner_id);
+    }
+  }
+
+  // Step 4: Get all providers in this state (we need to display them anyway)
   let providerQuery = db
     .from("olera-providers")
     .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
@@ -500,7 +514,7 @@ async function getNotContactedProviders(
     return [];
   }
 
-  // Step 4: Filter in JavaScript (no large IN clause needed)
+  // Step 5: Filter in JavaScript (no large IN clause needed)
   let result: OutreachProvider[] = (providers as ProviderRow[])
     .filter((p) => !claimedProviderIds.has(p.provider_id) && !trackedProviderIds.has(p.provider_id))
     .map((p) => {
@@ -527,12 +541,12 @@ async function getNotContactedProviders(
         // Re-engage cycle fields
         cycle_number: 1,
         re_engage_entered_at: null,
-        // Assignment
-        assigned_to: tracking?.assigned_to ?? null,
+        // Assignment: use tracking assignment, or fall back to city owner
+        assigned_to: tracking?.assigned_to ?? (p.city ? cityOwnerMap.get(p.city) : null) ?? null,
       };
     });
 
-  // Step 5: Apply email filter if specified (for Needs Email / Ready tabs)
+  // Step 6: Apply email filter if specified (for Needs Email / Ready tabs)
   if (emailFilter === "needs_email") {
     result = result.filter((p) => !p.email || !p.email.trim());
   } else if (emailFilter === "has_email") {

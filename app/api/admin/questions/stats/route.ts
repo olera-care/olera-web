@@ -71,50 +71,37 @@ export async function GET(request: NextRequest) {
     const allRows = allResult.data ?? [];
     const needsEmailRows = needsEmailResult.data ?? [];
 
-    // DEBUG: Log query results
-    console.log("[stats-debug] Total rows fetched:", allRows.length);
-    console.log("[stats-debug] needsEmail rows from DB:", needsEmailRows.length);
-
     const providerIds = [...new Set(needsEmailRows.map((r) => r.provider_id).filter(Boolean))];
 
-    // DEBUG: Log filtered counts
-    console.log("[stats-debug] Unique provider IDs:", providerIds.length);
-
     // Batch provider lookups to avoid URL length limits (50 IDs per batch)
+    // Run bp and olera queries in parallel within each batch for speed
     const BATCH_SIZE = 50;
     const bpProviders: { slug: string | null; email: string | null; is_active: boolean | null; source_provider_id: string | null; account_id: string | null }[] = [];
     const oleraProviders: { slug: string | null; email: string | null; provider_id: string | null }[] = [];
 
+    const statsBatchPromises = [];
     for (let i = 0; i < providerIds.length; i += BATCH_SIZE) {
       const batch = providerIds.slice(i, i + BATCH_SIZE);
-
-      // Look up providers in business_profiles
       const bpOrConditions = [
         `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
         `source_provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
       ];
-      const { data: bpBatch } = await db
-        .from("business_profiles")
-        .select("slug, email, is_active, source_provider_id, account_id")
-        .or(bpOrConditions.join(','));
-      if (bpBatch) bpProviders.push(...bpBatch);
-
-      // Look up providers in olera-providers
       const oleraOrConditions = [
         `slug.in.(${batch.map(s => `"${s}"`).join(',')})`,
         `provider_id.in.(${batch.map(s => `"${s}"`).join(',')})`
       ];
-      const { data: oleraBatch } = await db
-        .from("olera-providers")
-        .select("slug, email, provider_id")
-        .or(oleraOrConditions.join(','))
-        .not("deleted", "is", true);
-      if (oleraBatch) oleraProviders.push(...oleraBatch);
+      statsBatchPromises.push(
+        Promise.all([
+          db.from("business_profiles").select("slug, email, is_active, source_provider_id, account_id").or(bpOrConditions.join(',')),
+          db.from("olera-providers").select("slug, email, provider_id").or(oleraOrConditions.join(',')).not("deleted", "is", true)
+        ])
+      );
     }
-
-    // DEBUG: Log lookup results
-    console.log("[stats-debug] business_profiles found:", bpProviders.length);
-    console.log("[stats-debug] olera-providers found:", oleraProviders.length);
+    const statsBatchResults = await Promise.all(statsBatchPromises);
+    for (const [bpResult, oleraResult] of statsBatchResults) {
+      if (bpResult.data) bpProviders.push(...bpResult.data);
+      if (oleraResult.data) oleraProviders.push(...oleraResult.data);
+    }
 
     // Build olera email lookup by provider_id
     const oleraEmailByProviderId = new Map<string, string>();
@@ -122,16 +109,19 @@ export async function GET(request: NextRequest) {
       if (p.provider_id && p.email) oleraEmailByProviderId.set(p.provider_id, p.email);
     }
 
-    // Reverse lookup: find business_profiles linked via source_provider_id for claim status
+    // Reverse lookup: find business_profiles linked via source_provider_id for claim status (batched)
     const oleraProviderIdsToCheck = (oleraProviders ?? [])
       .map(p => p.provider_id)
       .filter((id): id is string => !!id);
-    const { data: linkedBpForStats } = oleraProviderIdsToCheck.length > 0
-      ? await db
-          .from("business_profiles")
-          .select("source_provider_id, email, account_id")
-          .in("source_provider_id", oleraProviderIdsToCheck)
-      : { data: [] };
+    const linkedBpForStats: { source_provider_id: string | null; email: string | null; account_id: string | null }[] = [];
+    for (let i = 0; i < oleraProviderIdsToCheck.length; i += BATCH_SIZE) {
+      const batch = oleraProviderIdsToCheck.slice(i, i + BATCH_SIZE);
+      const { data } = await db
+        .from("business_profiles")
+        .select("source_provider_id, email, account_id")
+        .in("source_provider_id", batch);
+      if (data) linkedBpForStats.push(...data);
+    }
     const bpBySourceIdForStats = new Map<string, { email: string | null; account_id: string | null }>();
     for (const bp of linkedBpForStats ?? []) {
       if (bp.source_provider_id) {
@@ -194,22 +184,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // DEBUG: Summarize provider status
-    let debugExists = 0, debugClaimed = 0, debugHasEmail = 0, debugArchived = 0;
-    for (const [, status] of providerStatus) {
-      if (status.exists) debugExists++;
-      if (status.isClaimed) debugClaimed++;
-      if (status.hasEmail) debugHasEmail++;
-      if (status.isArchived) debugArchived++;
-    }
-    console.log("[stats-debug] Provider status summary:", {
-      total: providerStatus.size,
-      exists: debugExists,
-      claimed: debugClaimed,
-      hasEmail: debugHasEmail,
-      archived: debugArchived,
-    });
-
     // Check if a provider passes the status filters
     // (metadata filters already applied by Supabase query)
     const isProviderValid = (providerId: string) => {
@@ -237,10 +211,6 @@ export async function GET(request: NextRequest) {
     }
     const kpiCurrent = kpiCurrentProviders.size;
     const kpiPrior = kpiPriorProviders.size;
-
-    // DEBUG: Final KPI results
-    console.log("[stats-debug] Final KPI:", { kpiCurrent, kpiPrior });
-    console.log("[stats-debug] Sample kpiCurrentProviders (first 10):", Array.from(kpiCurrentProviders).slice(0, 10));
 
     let delta: number | null = null;
     if (from) {

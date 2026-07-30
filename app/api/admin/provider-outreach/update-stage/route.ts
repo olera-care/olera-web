@@ -110,9 +110,10 @@ export async function POST(request: NextRequest) {
     const providerMap = new Map(providers.map((p) => [p.provider_id, p]));
 
     // Check which providers already have tracking rows
+    // Include cycle_number for re_engage → not_contacted cycle handling
     const { data: existingTracking } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, id, stage, smartlead_data")
+      .select("provider_id, id, stage, smartlead_data, cycle_number")
       .in("provider_id", provider_ids);
 
     const existingMap = new Map((existingTracking || []).map((t) => [t.provider_id, t]));
@@ -191,6 +192,24 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    // ── Identify providers moving FROM re_engage TO not_contacted ──
+    // These need cycle increment + counter resets in an atomic update
+    const providersLeavingReEngage: Array<{ id: string; provider_id: string; cycle_number: number }> = [];
+    if (stage === "not_contacted") {
+      for (const pid of provider_ids) {
+        const existing = existingMap.get(pid);
+        if (existing && existing.stage === "re_engage") {
+          providersLeavingReEngage.push({
+            id: existing.id,
+            provider_id: pid,
+            cycle_number: (existing.cycle_number as number) ?? 1,
+          });
+        }
+      }
+    }
+    // Set of IDs to exclude from bulk update (handled individually with cycle logic)
+    const reEngageIds = new Set(providersLeavingReEngage.map((p) => p.id));
 
     // Detect archive/unarchive scenarios
     const isArchiving = stage === "archived";
@@ -321,50 +340,85 @@ export async function POST(request: NextRequest) {
 
     // Perform updates
     if (toUpdate.length > 0) {
-      const updateIds = toUpdate.map((t) => t.id);
-
       // Log what we're updating for debugging
       console.log("[update-stage] Updating tracking records:",
         toUpdate.map(t => ({ id: t.id, provider_id: t.provider_id, oldStage: t.oldStage, newStage: stage }))
       );
 
-      const updateData: { stage: OutreachStage; stage_changed_at: string; notes?: string | null; needs_call_reason?: string | null; city?: string | null; state?: string | null } = {
+      // Build base update data (shared fields)
+      const baseUpdateData: Record<string, unknown> = {
         stage: stage as OutreachStage,
         stage_changed_at: nowIso,
       };
 
-      // Also update city/state from provider details to ensure consistency
-      // This fixes cases where tracking record has stale/wrong location data
-      for (const item of toUpdate) {
-        const providerDetails = providerMap.get(item.provider_id);
-        if (providerDetails && toUpdate.length === 1) {
-          // Only set city/state if updating a single provider (bulk updates might have mixed states)
-          updateData.city = providerDetails.city;
-          updateData.state = providerDetails.state;
-        }
-      }
-
       if (notes !== undefined) {
         // For archive/unarchive, combine reason + notes
         if (isArchiving || isUnarchiving) {
-          updateData.notes = reason ? `${reason}${notes?.trim() ? ` - ${notes.trim()}` : ""}` : notes;
+          baseUpdateData.notes = reason ? `${reason}${notes?.trim() ? ` - ${notes.trim()}` : ""}` : notes;
         } else {
-          updateData.notes = notes;
+          baseUpdateData.notes = notes;
         }
       }
       // Set needs_call_reason for moves to needs_call
       if (stage === "needs_call") {
-        updateData.needs_call_reason = "manual";
+        baseUpdateData.needs_call_reason = "manual";
       }
 
-      const { error: updateError } = await db
-        .from("provider_outreach_tracking")
-        .update(updateData)
-        .in("id", updateIds);
+      // ── Handle re_engage → not_contacted with atomic cycle updates ──
+      // These providers need cycle_number increment + counter resets IN THE SAME update as stage change
+      if (providersLeavingReEngage.length > 0) {
+        for (const item of providersLeavingReEngage) {
+          const newCycle = item.cycle_number + 1;
+          const providerDetails = providerMap.get(item.provider_id);
 
-      if (updateError) {
-        console.error("[provider-outreach/update-stage] Update error:", updateError);
-        return NextResponse.json({ error: "Failed to update tracking records" }, { status: 500 });
+          const reEngageUpdateData = {
+            ...baseUpdateData,
+            cycle_number: newCycle,
+            resend_count: 0,
+            re_engage_entered_at: null,
+            ...(providerDetails && { city: providerDetails.city, state: providerDetails.state }),
+          };
+
+          const { error: reEngageError } = await db
+            .from("provider_outreach_tracking")
+            .update(reEngageUpdateData)
+            .eq("id", item.id);
+
+          if (reEngageError) {
+            console.error(`[update-stage] Re-engage update error for ${item.provider_id}:`, reEngageError);
+            return NextResponse.json({ error: "Failed to update re-engage provider" }, { status: 500 });
+          }
+          console.log(`[update-stage] Atomically updated ${item.provider_id}: stage=not_contacted, cycle=${newCycle}`);
+        }
+      }
+
+      // ── Handle remaining providers with bulk update ──
+      const remainingIds = toUpdate
+        .filter((t) => !reEngageIds.has(t.id))
+        .map((t) => t.id);
+
+      if (remainingIds.length > 0) {
+        // Also update city/state from provider details to ensure consistency
+        // This fixes cases where tracking record has stale/wrong location data
+        const remainingItems = toUpdate.filter((t) => !reEngageIds.has(t.id));
+        for (const item of remainingItems) {
+          const providerDetails = providerMap.get(item.provider_id);
+          if (providerDetails && remainingItems.length === 1) {
+            // Only set city/state if updating a single provider (bulk updates might have mixed states)
+            baseUpdateData.city = providerDetails.city;
+            baseUpdateData.state = providerDetails.state;
+          }
+        }
+
+        const { error: updateError } = await db
+          .from("provider_outreach_tracking")
+          .update(baseUpdateData)
+          .in("id", remainingIds);
+
+        if (updateError) {
+          console.error("[provider-outreach/update-stage] Update error:", updateError);
+          return NextResponse.json({ error: "Failed to update tracking records" }, { status: 500 });
+        }
       }
     }
 
@@ -389,11 +443,28 @@ export async function POST(request: NextRequest) {
     // Record permanent event history for all providers whose stage changed
     const touchpointRows: Array<{
       provider_id: string;
-      touchpoint_type: "stage_changed";
-      details: { old_stage: string; new_stage: string; reason?: string; notes?: string };
+      touchpoint_type: string;
+      details: Record<string, unknown>;
       admin_user_id: string;
       created_at: string;
     }> = [];
+
+    // Log cycle_started touchpoints for providers moving from re_engage to not_contacted
+    for (const item of providersLeavingReEngage) {
+      touchpointRows.push({
+        provider_id: item.provider_id,
+        touchpoint_type: "cycle_started",
+        details: {
+          cycle: item.cycle_number + 1,
+          previous_stage: "re_engage",
+          new_stage: "not_contacted",
+          trigger: "manual_stage_move",
+          ...(notes?.trim() && { notes: notes.trim() }),
+        },
+        admin_user_id: adminUser.id,
+        created_at: nowIso,
+      });
+    }
 
     // Providers that had existing tracking rows (stage change from old to new)
     for (const item of toUpdate) {

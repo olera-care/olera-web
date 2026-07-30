@@ -77,9 +77,88 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       );
 
+      // For needs_email, we must filter by provider status (exists, not archived, not claimed, no email)
+      // This matches the display filtering logic
+      let needsEmailCount = 0;
+      const needsEmailProviderIds = [...new Set((needsEmailQuestions.data ?? []).map(q => q.provider_id).filter(Boolean))];
+      if (needsEmailProviderIds.length > 0) {
+        // Look up providers in business_profiles
+        const { data: bpForNeedsEmail } = await db
+          .from("business_profiles")
+          .select("slug, email, is_active, source_provider_id, account_id")
+          .in("slug", needsEmailProviderIds);
+
+        // Build OR conditions for olera-providers query
+        const needsEmailOrConditions: string[] = [];
+        needsEmailOrConditions.push(`slug.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
+        needsEmailOrConditions.push(`provider_id.in.(${needsEmailProviderIds.map(s => `"${s}"`).join(',')})`);
+
+        const { data: oleraForNeedsEmail } = await db
+          .from("olera-providers")
+          .select("slug, email, provider_id")
+          .or(needsEmailOrConditions.join(','))
+          .not("deleted", "is", true);
+
+        // Build olera email lookup
+        const oleraEmailMap = new Map<string, string>();
+        for (const p of oleraForNeedsEmail ?? []) {
+          if (p.provider_id && p.email) oleraEmailMap.set(p.provider_id, p.email);
+        }
+
+        // Reverse lookup for claim status
+        const oleraProviderIdsForNeedsEmail = (oleraForNeedsEmail ?? [])
+          .map(p => p.provider_id)
+          .filter((id): id is string => !!id);
+        const { data: linkedBpForNeedsEmail } = oleraProviderIdsForNeedsEmail.length > 0
+          ? await db
+              .from("business_profiles")
+              .select("source_provider_id, email, account_id")
+              .in("source_provider_id", oleraProviderIdsForNeedsEmail)
+          : { data: [] };
+        const bpBySourceIdNeedsEmail = new Map<string, { email: string | null; account_id: string | null }>();
+        for (const bp of linkedBpForNeedsEmail ?? []) {
+          if (bp.source_provider_id) {
+            bpBySourceIdNeedsEmail.set(bp.source_provider_id, { email: bp.email, account_id: bp.account_id });
+          }
+        }
+
+        // Build provider status map
+        const needsEmailStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean; isClaimed: boolean }>();
+        for (const id of needsEmailProviderIds) {
+          needsEmailStatus.set(id, { exists: false, hasEmail: false, isArchived: false, isClaimed: false });
+        }
+        for (const p of bpForNeedsEmail ?? []) {
+          if (p.slug) {
+            const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailMap.get(p.source_provider_id) : false);
+            const isClaimed = !!p.account_id;
+            needsEmailStatus.set(p.slug, { exists: true, hasEmail, isArchived: p.is_active === false, isClaimed });
+          }
+        }
+        for (const p of oleraForNeedsEmail ?? []) {
+          const linkedBp = p.provider_id ? bpBySourceIdNeedsEmail.get(p.provider_id) : null;
+          const hasEmail = !!p.email || !!linkedBp?.email;
+          const isClaimed = !!linkedBp?.account_id;
+
+          if (p.slug && !needsEmailStatus.get(p.slug)?.exists) {
+            needsEmailStatus.set(p.slug, { exists: true, hasEmail, isArchived: false, isClaimed });
+          }
+          if (p.provider_id && !needsEmailStatus.get(p.provider_id)?.exists) {
+            needsEmailStatus.set(p.provider_id, { exists: true, hasEmail, isArchived: false, isClaimed });
+          }
+        }
+
+        // Count valid providers
+        for (const id of needsEmailProviderIds) {
+          const status = needsEmailStatus.get(id);
+          if (status?.exists && !status.isArchived && !status.isClaimed && !status.hasEmail) {
+            needsEmailCount++;
+          }
+        }
+      }
+
       return {
         pending: truePendingProviders.size,
-        needs_email: countUniqueProviders(needsEmailQuestions.data),
+        needs_email: needsEmailCount,
         delivery_issues: countUniqueProviders(deliveryIssuesQuestions.data),
         no_contact: countUniqueProviders(noContactQuestions.data),
         not_interested: countUniqueProviders(notInterestedQuestions.data),
@@ -164,10 +243,10 @@ export async function GET(request: NextRequest) {
         // Get unique provider IDs and check their status
         const providerIds = [...new Set((questionsForCount ?? []).map((q) => q.provider_id).filter(Boolean))];
 
-        // Look up providers in business_profiles (include source_provider_id for fallback)
+        // Look up providers in business_profiles (include source_provider_id and account_id)
         const { data: bpProviders } = await db
           .from("business_profiles")
-          .select("slug, email, is_active, source_provider_id")
+          .select("slug, email, is_active, source_provider_id, account_id")
           .in("slug", providerIds);
 
         // Collect source_provider_ids for fallback email lookup
@@ -184,7 +263,11 @@ export async function GET(request: NextRequest) {
           orConditions.push(`provider_id.in.(${sourceProviderIds.map(s => `"${s}"`).join(',')})`);
         }
 
-        // Look up providers in olera-providers (by slug OR source_provider_id for email fallback)
+        // Look up providers in olera-providers (by slug, provider_id, OR source_provider_id for email fallback)
+        // Include provider_id.in.(providerIds) for cases where question.provider_id is the alphanumeric ID
+        if (providerIds.length > 0) {
+          orConditions.push(`provider_id.in.(${providerIds.map(s => `"${s}"`).join(',')})`);
+        }
         const { data: oleraProviders } = orConditions.length > 0
           ? await db
               .from("olera-providers")
@@ -199,29 +282,62 @@ export async function GET(request: NextRequest) {
           if (p.provider_id && p.email) oleraEmailByProviderId.set(p.provider_id, p.email);
         }
 
-        // Build provider status map
-        const providerStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean }>();
+        // Reverse lookup: find business_profiles linked via source_provider_id for claim status
+        const oleraProviderIdsToCheck = (oleraProviders ?? [])
+          .map((p) => p.provider_id)
+          .filter((id): id is string => !!id);
+        const { data: linkedBpForCount } = oleraProviderIdsToCheck.length > 0
+          ? await db
+              .from("business_profiles")
+              .select("source_provider_id, email, account_id")
+              .in("source_provider_id", oleraProviderIdsToCheck)
+          : { data: [] };
+        const bpBySourceIdForCount = new Map<string, { email: string | null; account_id: string | null }>();
+        for (const bp of linkedBpForCount ?? []) {
+          if (bp.source_provider_id) {
+            bpBySourceIdForCount.set(bp.source_provider_id, { email: bp.email, account_id: bp.account_id });
+          }
+        }
+
+        // Build provider status map with claimed status
+        const providerStatus = new Map<string, { exists: boolean; hasEmail: boolean; isArchived: boolean; isClaimed: boolean }>();
         for (const id of providerIds) {
-          providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false });
+          providerStatus.set(id, { exists: false, hasEmail: false, isArchived: false, isClaimed: false });
         }
         for (const p of bpProviders ?? []) {
           if (p.slug) {
             // Check business_profiles email first, then fallback to olera-providers via source_provider_id
             const hasEmail = !!p.email || (p.source_provider_id ? !!oleraEmailByProviderId.get(p.source_provider_id) : false);
-            providerStatus.set(p.slug, { exists: true, hasEmail, isArchived: p.is_active === false });
+            const isClaimed = !!(p as any).account_id;
+            providerStatus.set(p.slug, { exists: true, hasEmail, isArchived: p.is_active === false, isClaimed });
           }
         }
         for (const p of oleraProviders ?? []) {
+          // Check if this olera-provider has a linked business_profile (for claim status and email)
+          const linkedBp = p.provider_id ? bpBySourceIdForCount.get(p.provider_id) : null;
+          const hasEmail = !!p.email || !!linkedBp?.email;
+          const isClaimed = !!linkedBp?.account_id;
+
+          // Set status using slug if not already set
           if (p.slug && !providerStatus.get(p.slug)?.exists) {
-            providerStatus.set(p.slug, { exists: true, hasEmail: !!p.email, isArchived: false });
+            providerStatus.set(p.slug, { exists: true, hasEmail, isArchived: false, isClaimed });
+          }
+          // Also set status using provider_id for legacy lookups
+          if (p.provider_id && !providerStatus.get(p.provider_id)?.exists) {
+            providerStatus.set(p.provider_id, { exists: true, hasEmail, isArchived: false, isClaimed });
           }
         }
 
-        // Count only questions where provider exists, not archived, and has no email on file
-        const validCount = (questionsForCount ?? []).filter((q) => {
+        // Count only providers (not questions) where provider exists, not archived, not claimed, and has no email
+        // Claimed providers are excluded because they have email from claiming - stale flags should be cleared
+        const validProviderIds = new Set<string>();
+        for (const q of questionsForCount ?? []) {
           const status = providerStatus.get(q.provider_id);
-          return status?.exists && !status.isArchived && !status.hasEmail;
-        }).length;
+          if (status?.exists && !status.isArchived && !status.isClaimed && !status.hasEmail) {
+            validProviderIds.add(q.provider_id);
+          }
+        }
+        const validCount = validProviderIds.size;
 
         return NextResponse.json({ count: validCount });
       }

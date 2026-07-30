@@ -247,8 +247,9 @@ export interface RenderedEmail {
 
 /**
  * Get category label for the email header based on template type.
+ * Exported for use by SmartLead bridge.
  */
-function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): string {
+export function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): string {
   switch (templateKey) {
     case "intro":
       return "Your Olera Listing";

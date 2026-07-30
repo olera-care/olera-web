@@ -154,8 +154,8 @@ function bodyToPolishedHtml(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // 2) **text** → <strong> with larger font for emphasis
-  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong style="font-size:17px;">${inner}</strong>`);
+  // 2) **text** → <strong> with larger font for emphasis (24px matches other Olera emails)
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong style="font-size:24px;font-weight:700;">${inner}</strong>`);
 
   // 3) Split into paragraphs and process each
   const paragraphs = s.split(/\n{2,}/);

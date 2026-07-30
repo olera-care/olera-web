@@ -5184,11 +5184,12 @@ export default function ProviderOutreachPage() {
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>
-                              {/* Email body - rendered HTML */}
-                              <div
-                                className="p-4 text-sm"
-                                style={{ maxHeight: "300px", overflowY: "auto" }}
-                                dangerouslySetInnerHTML={{ __html: selectedEmail.html }}
+                              {/* Email body - rendered HTML in iframe to isolate from Tailwind CSS */}
+                              <iframe
+                                srcDoc={selectedEmail.html}
+                                title="Email preview"
+                                className="w-full h-[300px] bg-white border-0"
+                                sandbox=""
                               />
                             </div>
                           );

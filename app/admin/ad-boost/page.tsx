@@ -91,11 +91,13 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_130px_70px_140px_170px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_112px_52px_72px_52px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
+          <span>Clicks</span>
+          <span>Questions</span>
           <span>Leads</span>
-          <span>Setup week</span>
+          <span>Flight</span>
           <span className="text-right">Actions</span>
         </div>
 
@@ -179,7 +181,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_70px_140px_170px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_112px_52px_72px_52px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link
@@ -206,45 +208,60 @@ function RequestRow({
           )}
         </div>
 
-        {/* Leads — since-launch inquiries, same number the provider sees */}
-        <LeadsCell request={request} />
+        {/* The funnel, equal weight: clicks -> questions -> leads. Leads are
+            zero for most flights by arithmetic ($50 ~ 25 clicks ~ 0.7 leads),
+            so clicks and questions are first-class results, not footnotes. */}
+        {/* Clicks prefer the ad platform's own number (manual entry — the
+            truth for the whole flight); the landing counter only exists since
+            2026-07-21, so older flights read absurdly low from it. */}
+        <FunnelCell
+          request={request}
+          value={request.ad_clicks ?? request.ad_landings ?? 0}
+          label="Clicks"
+        />
+        <FunnelCell request={request} value={request.questions_received ?? 0} label="Questions" />
+        <FunnelCell request={request} value={request.delivered ?? 0} label="Leads" emphasize />
 
-        {/* Setup week */}
+        {/* Flight — start (setup week) through the ad platform's end date. */}
         <div className="text-sm text-gray-600">
-          <span className="sm:hidden text-gray-400">Setup week: </span>
+          <span className="sm:hidden text-gray-400">Flight: </span>
           {fmtDateOnly(request.requested_setup_week)}
+          {request.flight_end_date && (
+            <span className="block text-[11px] leading-tight text-gray-400">
+              ends {fmtDateOnly(request.flight_end_date)}
+            </span>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-start sm:justify-end gap-1">
+        {/* Actions — icon-only with the browser's delayed tooltip (title) as
+            the long-hover label. Red appears only on trash hover so the
+            destructive action stops being the loudest element in every row. */}
+        <div className="flex items-center justify-start sm:justify-end gap-0.5">
           {isArchived ? (
-            <button
-              type="button"
-              disabled={busy}
+            <IconAction
+              label="Restore from archive"
               onClick={() => setArchived(false)}
-              className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+              busy={busy}
             >
-              {busy ? "…" : "Restore"}
-            </button>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+            </IconAction>
           ) : (
-            <button
-              type="button"
-              disabled={busy}
+            <IconAction
+              label="Archive (hide from queue, reversible)"
               onClick={() => setArchived(true)}
-              className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-40"
+              busy={busy}
             >
-              {busy ? "…" : "Archive"}
-            </button>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+            </IconAction>
           )}
-          <button
-            type="button"
-            disabled={busy}
+          <IconAction
+            label="Delete permanently"
             onClick={remove}
-            className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40"
-            title="Permanently delete this record"
+            busy={busy}
+            danger
           >
-            {busy ? "…" : "Delete"}
-          </button>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+          </IconAction>
         </div>
       </div>
 
@@ -258,26 +275,70 @@ function RequestRow({
  *  "the campaign ran and produced nothing". */
 const PRE_LAUNCH_STATUSES = new Set(["pending_profile", "requested", "scheduled"]);
 
-/** Leads on a queue row — the same delivered-families count the detail page
- *  shows under Performance and lists under "Leads (N)". Already on every row
- *  from the list API; this just surfaces it. */
-function LeadsCell({ request }: { request: CampaignRequest }) {
-  const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
-  const leads = request.delivered ?? 0;
-  const landings = request.ad_landings ?? 0;
-
+/** Icon-only row action. The accessible name lives in aria-label; `title`
+ *  gives the browser's built-in delayed tooltip — hover ~1s and the full
+ *  label appears, no custom tooltip machinery. */
+function IconAction({
+  label,
+  onClick,
+  busy,
+  danger,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  busy: boolean;
+  danger?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={`text-sm tabular-nums ${preLaunch ? "text-gray-300" : "text-gray-600"}`}>
-      <span className="sm:hidden font-normal text-gray-400">Leads: </span>
-      {preLaunch ? "—" : leads}
-      {/* Delivery signal: ad clicks that landed on the page. A live campaign
-          with 0 landings after a day or two is stalled at Google, not
-          unconverting — surface that here instead of a silent zero. */}
-      {!preLaunch && landings > 0 && (
-        <span className="block text-[11px] leading-tight text-gray-400">
-          {landings} click{landings === 1 ? "" : "s"}
-        </span>
-      )}
+    <button
+      type="button"
+      disabled={busy}
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={`rounded-lg p-2 transition-colors disabled:opacity-40 ${
+        danger
+          ? "text-gray-400 hover:text-red-600 hover:bg-red-50"
+          : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+      } ${busy ? "animate-pulse" : ""}`}
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
+        {children}
+      </svg>
+    </button>
+  );
+}
+
+/** One funnel number on a queue row (clicks / questions / leads), all at the
+ *  same visual weight. Pre-launch rows show an em dash (structural zero, not a
+ *  result); a genuine 0 renders quiet gray so a zero-lead flight with real
+ *  clicks and questions doesn't read as failure. `emphasize` tints non-zero
+ *  leads — the terminal metric — without shrinking the earlier rungs. */
+function FunnelCell({
+  request,
+  value,
+  label,
+  emphasize,
+}: {
+  request: CampaignRequest;
+  value: number;
+  label: string;
+  emphasize?: boolean;
+}) {
+  const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
+  const tone = preLaunch
+    ? "text-gray-300"
+    : value === 0
+      ? "text-gray-300"
+      : emphasize
+        ? "font-semibold text-primary-700"
+        : "text-gray-700";
+  return (
+    <div className={`text-sm tabular-nums ${tone}`}>
+      <span className="sm:hidden font-normal text-gray-400">{label}: </span>
+      {preLaunch ? "—" : value.toLocaleString()}
     </div>
   );
 }

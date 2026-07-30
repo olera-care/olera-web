@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { countDeliveredByCampaign, countAdLandingsByCampaign, listLeadsByCampaign, getCampaignStats } from "@/lib/ad-boost/delivered.server";
+import { countDeliveredByCampaign, countAdLandingsByCampaign, listLeadsByCampaign, getCampaignStats, getCampaignQuestions } from "@/lib/ad-boost/delivered.server";
+import { getCampaignReceipt } from "@/lib/ad-boost/receipts.server";
 import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notifications.server";
 
 /**
@@ -22,7 +23,7 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, launched_email_sent_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, launched_email_sent_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -68,31 +69,42 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     const tag = row.campaign_tag || row.id;
-    const [delivered, leads] = await Promise.all([
+    const [delivered, leads, receipt] = await Promise.all([
       countDeliveredByCampaign(db, [tag]),
       listLeadsByCampaign(db, tag),
+      getCampaignReceipt(db, row),
     ]);
 
     // Parity with the provider's own /provider/boost live view: the SAME real
-    // visitors + leads numbers Hilda sees, computed from the same reader, so the
-    // admin queue mirrors the provider's signed-in view (not the legacy
-    // benefits-only `delivered` count). Null until the campaign is live.
-    let campaignStats: { visitors: number; leads: number; since: string } | null = null;
-    if (row.status === "live") {
+    // visitors + leads + questions numbers Hilda sees, computed from the same
+    // readers, so the admin queue mirrors the provider's signed-in view (not
+    // the legacy benefits-only `delivered` count). Null until the campaign is
+    // live or ended (ended keeps stats — the wrap-up leads with them).
+    let campaignStats:
+      | { visitors: number; leads: number; questions: { received: number; unanswered: number }; since: string }
+      | null = null;
+    if (row.status === "live" || row.status === "ended") {
       const since = new Date(
         row.requested_setup_week || row.created_at,
       ).toISOString();
-      const stats = await getCampaignStats(db, {
-        providerIdVariants: [row.provider_slug, row.provider_id],
-        since,
-      });
-      campaignStats = { ...stats, since };
+      const providerIdVariants = [row.provider_slug, row.provider_id];
+      const [stats, questions] = await Promise.all([
+        getCampaignStats(db, { providerIdVariants, since }),
+        getCampaignQuestions(db, { providerIdVariants, since }),
+      ]);
+      campaignStats = { ...stats, questions, since };
     }
 
     return NextResponse.json({
       request: { ...row, delivered: delivered[tag] ?? 0 },
       leads,
       campaignStats,
+      receipt: {
+        google: receipt.google,
+        engagement: receipt.engagement,
+        outcomes: receipt.outcomes,
+        expectedLeads: receipt.expectedLeads,
+      },
     });
   }
 
@@ -130,10 +142,72 @@ export async function GET(request: NextRequest) {
     countAdLandingsByCampaign(db, tags),
   ]);
 
+  // Questions per campaign for the queue rows — same since-launch window the
+  // provider-facing counter uses, batched as ONE query across all campaigns
+  // (per-row getCampaignQuestions would be N round-trips). Pre-launch rows
+  // read 0 and the UI renders a dash.
+  const questionsByRequestId: Record<string, number> = {};
+  {
+    type ListRow = {
+      id: string;
+      provider_id: string | null;
+      provider_slug: string | null;
+      status: string;
+      requested_setup_week: string | null;
+      created_at: string;
+      campaign_tag: string | null;
+    };
+    const launched = (requests as ListRow[]).filter(
+      (r) => r.status === "live" || r.status === "ended",
+    );
+    if (launched.length > 0) {
+      const sinceByRequest = new Map(
+        launched.map((r) => [
+          r.id,
+          new Date(r.requested_setup_week || r.created_at).toISOString(),
+        ]),
+      );
+      const variantToRequestIds = new Map<string, string[]>();
+      for (const r of launched) {
+        for (const v of [r.provider_slug, r.provider_id]) {
+          if (!v) continue;
+          const list = variantToRequestIds.get(v) ?? [];
+          list.push(r.id);
+          variantToRequestIds.set(v, list);
+        }
+      }
+      const minSince = [...sinceByRequest.values()].sort()[0];
+      const { data: qRows } = await db
+        .from("provider_questions")
+        .select("provider_id, status, created_at")
+        .in("provider_id", [...variantToRequestIds.keys()])
+        .gte("created_at", minSince)
+        .limit(5000);
+      for (const q of (qRows ?? []) as Array<{
+        provider_id: string | null;
+        status: string;
+        created_at: string;
+      }>) {
+        if (!q.provider_id || q.status === "archived" || q.status === "rejected") continue;
+        // Compare as epochs, not strings — Postgres returns "+00:00"-suffixed
+        // timestamps while `since` is Z-format, and mixed-format lexicographic
+        // comparison misjudges boundary rows.
+        const qAt = new Date(q.created_at).getTime();
+        for (const requestId of variantToRequestIds.get(q.provider_id) ?? []) {
+          const since = sinceByRequest.get(requestId);
+          if (since && qAt >= new Date(since).getTime()) {
+            questionsByRequestId[requestId] = (questionsByRequestId[requestId] ?? 0) + 1;
+          }
+        }
+      }
+    }
+  }
+
   const withRoi = requests.map((r: { id: string; campaign_tag: string | null }) => ({
     ...r,
     delivered: delivered[r.campaign_tag || r.id] ?? 0,
     ad_landings: adLandings[r.campaign_tag || r.id] ?? 0,
+    questions_received: questionsByRequestId[r.id] ?? 0,
   }));
 
   // Tab counts (active vs archived) so both tabs show a number regardless of
@@ -165,6 +239,8 @@ export async function POST(request: NextRequest) {
     archived?: unknown;
     ad_spend_cents?: unknown;
     ad_clicks?: unknown;
+    ad_impressions?: unknown;
+    flight_end_date?: unknown;
   };
   try {
     body = await request.json();
@@ -213,6 +289,19 @@ export async function POST(request: NextRequest) {
       typeof body.admin_note === "string" ? body.admin_note : null;
   }
 
+  if (body.flight_end_date !== undefined) {
+    if (body.flight_end_date === null) {
+      update.flight_end_date = null;
+    } else if (
+      typeof body.flight_end_date !== "string" ||
+      Number.isNaN(new Date(body.flight_end_date).getTime())
+    ) {
+      return NextResponse.json({ error: "flight_end_date must be a date string or null" }, { status: 400 });
+    } else {
+      update.flight_end_date = body.flight_end_date.slice(0, 10);
+    }
+  }
+
   if (body.requested_setup_week !== undefined) {
     if (typeof body.requested_setup_week !== "string") {
       return NextResponse.json({ error: "requested_setup_week must be a date string" }, { status: 400 });
@@ -224,9 +313,9 @@ export async function POST(request: NextRequest) {
     update.requested_setup_week = body.requested_setup_week.slice(0, 10);
   }
 
-  // Manual performance entry (spend in cents, click count). Either may be null
-  // to clear it; otherwise must be a non-negative integer.
-  for (const field of ["ad_spend_cents", "ad_clicks"] as const) {
+  // Manual performance entry (spend in cents, click count, impressions). Any
+  // may be null to clear it; otherwise must be a non-negative integer.
+  for (const field of ["ad_spend_cents", "ad_clicks", "ad_impressions"] as const) {
     if (body[field] !== undefined) {
       const v = body[field];
       if (v === null) {
@@ -295,7 +384,9 @@ export async function POST(request: NextRequest) {
   }
 
   const metricsWereSaved =
-    body.ad_spend_cents !== undefined || body.ad_clicks !== undefined;
+    body.ad_spend_cents !== undefined ||
+    body.ad_clicks !== undefined ||
+    body.ad_impressions !== undefined;
   const lifecycleSends: Array<Promise<unknown>> = [];
 
   if (data.status === "live" && current.status !== "live") {

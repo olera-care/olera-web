@@ -17,7 +17,26 @@ import {
 /** The exact numbers the provider sees on their own /provider/boost live view
  *  (mirrored here for admin parity). Real visitors + leads on their page since
  *  launch — same shape the boost-state API returns. */
-type ProviderViewStats = { visitors: number; leads: number; since: string };
+type ProviderViewStats = {
+  visitors: number;
+  leads: number;
+  questions?: { received: number; unanswered: number };
+  since: string;
+};
+
+/** Rollup half of the campaign receipt (mirrors CampaignReceiptData). */
+type ReceiptRollup = {
+  google: {
+    impressions: number | null;
+    clicks: number | null;
+    spendCents: number | null;
+    ctr: number | null;
+    cpcCents: number | null;
+  };
+  engagement: { visitors: number; saves: number; questionsReceived: number };
+  outcomes: { client: number; talking: number; no: number; unanswered: number };
+  expectedLeads: number | null;
+};
 
 export default function AdBoostDetailPage() {
   const params = useParams<{ id: string }>();
@@ -27,6 +46,7 @@ export default function AdBoostDetailPage() {
   const [request, setRequest] = useState<CampaignRequest | null>(null);
   const [leads, setLeads] = useState<CampaignLead[]>([]);
   const [campaignStats, setCampaignStats] = useState<ProviderViewStats | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptRollup | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -41,6 +61,7 @@ export default function AdBoostDetailPage() {
       setRequest(json.request as CampaignRequest);
       setLeads((json.leads as CampaignLead[]) ?? []);
       setCampaignStats((json.campaignStats as ProviderViewStats | null) ?? null);
+      setReceipt((json.receipt as ReceiptRollup | null) ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -70,6 +91,7 @@ export default function AdBoostDetailPage() {
           request={request}
           leads={leads}
           campaignStats={campaignStats}
+          receipt={receipt}
           onChanged={load}
           onDeleted={() => router.push("/admin/ad-boost")}
         />
@@ -82,18 +104,21 @@ function Detail({
   request,
   leads,
   campaignStats,
+  receipt,
   onChanged,
   onDeleted,
 }: {
   request: CampaignRequest;
   leads: CampaignLead[];
   campaignStats: ProviderViewStats | null;
+  receipt: ReceiptRollup | null;
   onChanged: () => void;
   onDeleted: () => void;
 }) {
   const [status, setStatus] = useState(request.status);
   const [channel, setChannel] = useState(request.channel ?? "");
   const [setupWeek, setSetupWeek] = useState(request.requested_setup_week);
+  const [flightEnd, setFlightEnd] = useState(request.flight_end_date ?? "");
   const [tag, setTag] = useState(request.campaign_tag ?? "");
   const [note, setNote] = useState(request.admin_note ?? "");
   const [saving, setSaving] = useState(false);
@@ -108,6 +133,9 @@ function Detail({
   const [clicks, setClicks] = useState(
     request.ad_clicks != null ? request.ad_clicks.toString() : "",
   );
+  const [impressions, setImpressions] = useState(
+    request.ad_impressions != null ? request.ad_impressions.toString() : "",
+  );
   const [savingPerf, setSavingPerf] = useState(false);
 
   const isArchived = !!request.deleted_at;
@@ -117,16 +145,19 @@ function Detail({
   const delivered = request.delivered ?? 0;
   const spendNum = spend.trim() === "" ? null : Number(spend);
   const clicksNum = clicks.trim() === "" ? null : Number(clicks);
+  const impressionsNum = impressions.trim() === "" ? null : Number(impressions);
   const costPerFamily =
     spendNum != null && spendNum > 0 && delivered > 0 ? spendNum / delivered : null;
   const perfDirty =
     (request.ad_spend_cents != null ? request.ad_spend_cents / 100 : null) !== spendNum ||
-    (request.ad_clicks ?? null) !== clicksNum;
+    (request.ad_clicks ?? null) !== clicksNum ||
+    (request.ad_impressions ?? null) !== impressionsNum;
 
   const dirty =
     status !== request.status ||
     channel !== (request.channel ?? "") ||
     setupWeek !== request.requested_setup_week ||
+    flightEnd !== (request.flight_end_date ?? "") ||
     tag !== (request.campaign_tag ?? "") ||
     note !== (request.admin_note ?? "");
 
@@ -142,6 +173,7 @@ function Detail({
           status,
           channel: channel || null,
           requested_setup_week: setupWeek,
+          flight_end_date: flightEnd || null,
           campaign_tag: tag || null,
           admin_note: note || null,
         }),
@@ -167,6 +199,10 @@ function Detail({
       setMsg("Clicks must be a non-negative whole number");
       return;
     }
+    if (impressionsNum != null && (!Number.isInteger(impressionsNum) || impressionsNum < 0)) {
+      setMsg("Impressions must be a non-negative whole number");
+      return;
+    }
     setSavingPerf(true);
     setMsg(null);
     try {
@@ -177,6 +213,7 @@ function Detail({
           id: request.id,
           ad_spend_cents: spendNum != null ? Math.round(spendNum * 100) : null,
           ad_clicks: clicksNum,
+          ad_impressions: impressionsNum,
         }),
       });
       if (!res.ok) {
@@ -285,7 +322,7 @@ function Detail({
       {/* Campaign setup */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Campaign setup</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label className="text-sm">
             <span className="block text-gray-500 mb-1">Status</span>
             <select
@@ -316,6 +353,15 @@ function Detail({
               type="date"
               value={setupWeek}
               onChange={(e) => setSetupWeek(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Flight end (from ad platform)</span>
+            <input
+              type="date"
+              value={flightEnd}
+              onChange={(e) => setFlightEnd(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
             />
           </label>
@@ -423,23 +469,33 @@ function Detail({
         <p className="text-xs text-gray-500 mb-4">
           Identical to their signed-in <span className="font-medium">/provider/boost</span> view.
         </p>
-        {request.status !== "live" ? (
+        {request.status !== "live" && request.status !== "ended" ? (
           <p className="text-xs text-gray-400">
             The provider sees these once the campaign status is <span className="font-medium">live</span>.
           </p>
         ) : campaignStats ? (
-          <div className="grid grid-cols-3 gap-3">
-            <Stat value={campaignStats.visitors.toLocaleString()} label="Visitors" />
-            <Stat value={campaignStats.leads.toLocaleString()} label="Leads" accent />
-            <Stat
-              value={
-                campaignStats.visitors > 0
-                  ? `${Math.min(100, Math.round((campaignStats.leads / campaignStats.visitors) * 100))}%`
-                  : "—"
-              }
-              label="Conversion"
-            />
-          </div>
+          <>
+            {/* Funnel order + equal weight, mirroring CampaignPerformance:
+                clicks and questions are first-class results because leads are
+                zero for most $50 flights by arithmetic. */}
+            <div className="grid grid-cols-3 gap-3">
+              <Stat value={campaignStats.visitors.toLocaleString()} label="Visitors" />
+              <Stat
+                value={(campaignStats.questions?.received ?? 0).toLocaleString()}
+                label="Questions"
+              />
+              <Stat value={campaignStats.leads.toLocaleString()} label="Leads" accent />
+            </div>
+            {receipt && (
+              <p className="mt-3 text-xs text-gray-500">
+                Receipt rollup: {receipt.google.impressions != null ? `${receipt.google.impressions.toLocaleString()} ad views · ` : ""}
+                {receipt.engagement.saves} save{receipt.engagement.saves === 1 ? "" : "s"} ·{" "}
+                {receipt.outcomes.client} client{receipt.outcomes.client === 1 ? "" : "s"} reported ·{" "}
+                {receipt.outcomes.talking} still talking ·{" "}
+                {receipt.outcomes.unanswered} unanswered
+              </p>
+            )}
+          </>
         ) : (
           <p className="text-xs text-gray-400">No data yet.</p>
         )}
@@ -459,8 +515,8 @@ function Detail({
           />
         </div>
 
-        {/* Manual entry — spend + clicks from the ad dashboards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Manual entry — spend + clicks + impressions from the ad dashboards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <label className="text-sm">
             <span className="block text-gray-500 mb-1">Ad spend ($)</span>
             <input
@@ -485,6 +541,18 @@ function Detail({
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
             />
           </label>
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Impressions</span>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={impressions}
+              onChange={(e) => setImpressions(e.target.value)}
+              placeholder="0"
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            />
+          </label>
         </div>
         <div className="mt-3 flex items-center gap-3">
           <button
@@ -496,7 +564,8 @@ function Detail({
             {savingPerf ? "Saving…" : "Save metrics"}
           </button>
           <span className="text-xs text-gray-400">
-            Enter spend &amp; clicks from the Google/Meta dashboards. Cost per family is
+            Enter spend, clicks &amp; impressions from the Google/Meta dashboards.
+            Impressions top the provider&apos;s demand receipt; cost per family is
             computed against delivered families.
           </span>
         </div>
@@ -516,9 +585,27 @@ function Detail({
           <div className="divide-y divide-gray-100">
             {leads.map((l, i) => (
               <div key={i} className="flex items-center justify-between gap-3 py-2 text-sm">
-                <span className="text-gray-700">
-                  {l.careNeed ?? "Care inquiry"}
-                  {l.state ? ` · ${l.state}` : ""}
+                <span className="flex min-w-0 items-center gap-2 text-gray-700">
+                  <span className="truncate">
+                    {l.careNeed ?? "Care inquiry"}
+                    {l.state ? ` · ${l.state}` : ""}
+                  </span>
+                  {/* Provider one-tap outcome self-report (7d/21d pings). */}
+                  {l.outcome === "client" && (
+                    <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                      client
+                    </span>
+                  )}
+                  {l.outcome === "talking" && (
+                    <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                      still talking
+                    </span>
+                  )}
+                  {l.outcome === "no" && (
+                    <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+                      didn&apos;t work out
+                    </span>
+                  )}
                 </span>
                 <span className="text-gray-400 text-xs shrink-0">
                   {fmtDateOnly(l.created_at.slice(0, 10))}

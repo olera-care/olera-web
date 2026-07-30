@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { loadAdBoostEligibility } from "@/lib/ad-boost/eligibility.server";
 import { countDeliveredByCampaign, getCampaignStats, getCampaignQuestions } from "@/lib/ad-boost/delivered.server";
+import { getCampaignReceipt } from "@/lib/ad-boost/receipts.server";
 import { sendAdBoostRequestEmail } from "@/lib/ad-boost/notifications.server";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
 import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
@@ -46,7 +47,7 @@ export async function GET() {
 
   let { data: latest } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
     .eq("provider_id", elig.profileId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -68,7 +69,7 @@ export async function GET() {
       })
       .eq("id", latest.id)
       .eq("status", "pending_profile") // guard against a double-promote race
-      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
+      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
       .maybeSingle();
 
     if (promoted) {
@@ -122,6 +123,7 @@ export async function GET() {
   let campaignStats:
     | { visitors: number; leads: number; questions: { received: number; unanswered: number }; since: string }
     | null = null;
+  let receipt: Awaited<ReturnType<typeof getCampaignReceipt>> | null = null;
   // Ended campaigns keep their stats too — the wrap-up moment leads with them.
   if (latest && (latest.status === "live" || latest.status === "ended")) {
     const since = new Date(
@@ -129,12 +131,28 @@ export async function GET() {
     ).toISOString();
     const providerIdVariants = [elig.slug, elig.profileId];
     // Questions are campaign engagement too — counted the same since-launch way
-    // as visitors/leads. Parallel with the page-traffic query.
-    const [stats, questions] = await Promise.all([
+    // as visitors/leads. Parallel with the page-traffic query. The receipt
+    // (demand + outcomes) is composed from the same readers, so every surface
+    // shows one set of numbers.
+    const [stats, questions, fullReceipt] = await Promise.all([
       getCampaignStats(db, { providerIdVariants, since }),
       getCampaignQuestions(db, { providerIdVariants, since }),
+      getCampaignReceipt(db, {
+        id: latest.id,
+        provider_id: elig.profileId,
+        provider_slug: elig.slug,
+        campaign_tag: latest.campaign_tag,
+        requested_setup_week: latest.requested_setup_week,
+        created_at: latest.created_at,
+        ad_impressions: latest.ad_impressions ?? null,
+        ad_clicks: latest.ad_clicks ?? null,
+        ad_spend_cents: latest.ad_spend_cents ?? null,
+      }),
     ]);
     campaignStats = { ...stats, questions, since };
+    // Providers see their leads on /provider/connections — the receipt payload
+    // carries only the rollups.
+    receipt = { ...fullReceipt, leads: [] };
   }
 
   // The wrap-up payment moment (Phase 2) arms on a VALUE EVENT, never a
@@ -167,6 +185,14 @@ export async function GET() {
     delivered,
     campaignStats,
     wrapupReady,
+    receipt: receipt
+      ? {
+          google: receipt.google,
+          engagement: receipt.engagement,
+          outcomes: receipt.outcomes,
+          expectedLeads: receipt.expectedLeads,
+        }
+      : null,
   });
 }
 
@@ -240,7 +266,7 @@ export async function POST(request: NextRequest) {
   // ── Block a duplicate campaign (active OR already queued under-profile) ──
   const { data: existing } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
     .eq("provider_id", elig.profileId)
     .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
@@ -267,7 +293,7 @@ export async function POST(request: NextRequest) {
       intended_monthly_budget: intendedMonthlyBudget,
       status: queued ? "pending_profile" : "requested",
     })
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
     .single();
 
   if (insertError || !inserted) {

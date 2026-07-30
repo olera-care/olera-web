@@ -79,6 +79,32 @@ export interface BoostStateResponse {
    *  campaign ran (live/ended), no active plan, and the value event fired
    *  (3rd lead or concierge marked the promo complete). Server-computed. */
   wrapupReady: boolean;
+  /** The campaign receipt (demand + outcomes), composed server-side by
+   *  getCampaignReceipt. Null until the campaign is live/ended. */
+  receipt: CampaignReceiptData | null;
+}
+
+/** Client mirror of the server CampaignReceipt, minus the per-lead list
+ *  (providers see their leads on /provider/connections; the receipt shows
+ *  the rollup). All Google fields are null until the concierge enters the
+ *  dashboard numbers — absent renders as absent, never estimated. */
+export interface CampaignReceiptData {
+  google: {
+    impressions: number | null;
+    clicks: number | null;
+    spendCents: number | null;
+    /** Percent with 1 decimal, e.g. 5.4. */
+    ctr: number | null;
+    cpcCents: number | null;
+  };
+  engagement: {
+    visitors: number;
+    saves: number;
+    questionsReceived: number;
+  };
+  outcomes: { client: number; talking: number; no: number; unanswered: number };
+  /** Expected leads for the clicks bought (category benchmark ~1 per 30). */
+  expectedLeads: number | null;
 }
 
 const TTL_MS = 60_000;

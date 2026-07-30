@@ -33,9 +33,11 @@ import {
 import {
   CampaignFacts,
   CampaignPerformance,
+  CampaignReceiptBlock,
   PlanActive,
   WrapUpMoment,
 } from "@/components/provider/boost/BoostCampaignViews";
+import type { CampaignReceiptData } from "@/lib/ad-boost/boost-state";
 
 /**
  * Provider Ad Boost — Managed Lead-Gen (concierge v1).
@@ -336,6 +338,7 @@ export default function ProviderBoostPage() {
           <WrapUpMoment
             request={wrapupRequest}
             campaignStats={state.campaignStats}
+            receipt={state.receipt}
             onCheckout={startCheckout}
             submitting={checkoutSubmitting}
             error={checkoutError}
@@ -352,7 +355,7 @@ export default function ProviderBoostPage() {
     return (
       <Shell>
         <div className="mt-2">
-          <CampaignInMotion request={openRequest} campaignStats={state.campaignStats} />
+          <CampaignInMotion request={openRequest} campaignStats={state.campaignStats} receipt={state.receipt} />
         </div>
       </Shell>
     );
@@ -412,9 +415,11 @@ export default function ProviderBoostPage() {
 function CampaignInMotion({
   request,
   campaignStats,
+  receipt,
 }: {
   request: BoostRequest;
   campaignStats: { visitors: number; leads: number; since: string } | null;
+  receipt?: CampaignReceiptData | null;
 }) {
   const label: Record<string, string> = {
     requested: "Launch plan received",
@@ -445,6 +450,10 @@ function CampaignInMotion({
       {/* When live, real performance — visitors + leads on their page since
           launch — is THE focal point (replaces the old benefits-only counter). */}
       {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
+
+      {/* The accruing receipt: ad reach, saves, questions, reported outcomes.
+          Renders only the rows that have numbers, so early days stay honest. */}
+      {isLive && receipt && <CampaignReceiptBlock receipt={receipt} />}
 
       {/* Set up the wrap-up moment BEFORE it arrives: the no-silent-rollover
           promise, planted while the intro is still running. */}

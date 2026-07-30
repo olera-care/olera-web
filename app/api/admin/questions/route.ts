@@ -81,6 +81,12 @@ export async function GET(request: NextRequest) {
       // This matches the display filtering logic
       let needsEmailCount = 0;
       const needsEmailProviderIds = [...new Set((needsEmailQuestions.data ?? []).map(q => q.provider_id).filter(Boolean))];
+
+      // DEBUG: Log tab count query results
+      console.log("[tab-debug] needsEmailQuestions count:", needsEmailQuestions.data?.length ?? 0);
+      console.log("[tab-debug] unique provider IDs:", needsEmailProviderIds.length);
+      console.log("[tab-debug] sample provider IDs (first 10):", needsEmailProviderIds.slice(0, 10));
+
       if (needsEmailProviderIds.length > 0) {
         // Look up providers in business_profiles by BOTH slug AND source_provider_id
         const bpNeedsEmailOrConditions: string[] = [];
@@ -90,6 +96,9 @@ export async function GET(request: NextRequest) {
           .from("business_profiles")
           .select("slug, email, is_active, source_provider_id, account_id")
           .or(bpNeedsEmailOrConditions.join(','));
+
+        // DEBUG: Log business_profiles found
+        console.log("[tab-debug] business_profiles found:", bpForNeedsEmail?.length ?? 0);
 
         // Build OR conditions for olera-providers query
         const needsEmailOrConditions: string[] = [];
@@ -101,6 +110,9 @@ export async function GET(request: NextRequest) {
           .select("slug, email, provider_id")
           .or(needsEmailOrConditions.join(','))
           .not("deleted", "is", true);
+
+        // DEBUG: Log olera-providers found
+        console.log("[tab-debug] olera-providers found:", oleraForNeedsEmail?.length ?? 0);
 
         // Build olera email lookup
         const oleraEmailMap = new Map<string, string>();
@@ -155,6 +167,22 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // DEBUG: Summarize provider status
+        let tabExists = 0, tabClaimed = 0, tabHasEmail = 0, tabArchived = 0;
+        for (const [, status] of needsEmailStatus) {
+          if (status.exists) tabExists++;
+          if (status.isClaimed) tabClaimed++;
+          if (status.hasEmail) tabHasEmail++;
+          if (status.isArchived) tabArchived++;
+        }
+        console.log("[tab-debug] provider status summary:", {
+          total: needsEmailStatus.size,
+          exists: tabExists,
+          claimed: tabClaimed,
+          hasEmail: tabHasEmail,
+          archived: tabArchived,
+        });
+
         // Count valid providers
         for (const id of needsEmailProviderIds) {
           const status = needsEmailStatus.get(id);
@@ -162,6 +190,9 @@ export async function GET(request: NextRequest) {
             needsEmailCount++;
           }
         }
+
+        // DEBUG: Final count
+        console.log("[tab-debug] final needsEmailCount:", needsEmailCount);
       }
 
       return {

@@ -135,7 +135,16 @@ export async function sendDueLeadOutcomePings(
         (!outcome || outcome === "talking")
       ) {
         marker = "provider_outcome_check_21d_sent_at";
-      } else if (ageDays >= PING_1_DAYS && !meta.provider_outcome_check_7d_sent_at && !outcome) {
+      } else if (
+        // The early ping belongs to the 7-21 day window ONLY. Without the
+        // upper bound, a lead that entered the system already past 21 days
+        // would get the 21d ping, then the still-unstamped 7d ping the next
+        // day — a stale third email. Two pings per lead is the ceiling.
+        ageDays >= PING_1_DAYS &&
+        ageDays < PING_2_DAYS &&
+        !meta.provider_outcome_check_7d_sent_at &&
+        !outcome
+      ) {
         marker = "provider_outcome_check_7d_sent_at";
       }
       if (!marker) continue;

@@ -4236,11 +4236,11 @@ export default function ProviderOutreachPage() {
           <>
             {/* Call Script - only show on Ready tab */}
             {activeTab === "ready" && (
-              <details className="mx-5 mt-2 mb-4 bg-white border border-gray-200 rounded-lg">
-                <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
+              <details className="mx-5 mt-2 mb-4">
+                <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
                   Call Script (for generic emails)
                 </summary>
-                <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
+                <div className="pl-4 pt-2 pb-3 text-sm text-gray-600 space-y-3 border-l-2 border-gray-200 ml-1">
                   <p>
                     &quot;Hi, is this <span className="font-medium text-gray-800">[provider name]</span>? My name is <span className="font-medium text-gray-800">[Your Name]</span>, and I&apos;m calling from Dr. DuBose&apos;s office at Olera.&quot;
                   </p>
@@ -5184,11 +5184,12 @@ export default function ProviderOutreachPage() {
                                   <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
                                 </div>
                               </div>
-                              {/* Email body - rendered HTML */}
-                              <div
-                                className="p-4 text-sm"
-                                style={{ maxHeight: "300px", overflowY: "auto" }}
-                                dangerouslySetInnerHTML={{ __html: selectedEmail.html }}
+                              {/* Email body - rendered HTML in iframe to isolate from Tailwind CSS */}
+                              <iframe
+                                srcDoc={selectedEmail.html}
+                                title="Email preview"
+                                className="w-full h-[300px] bg-white border-0"
+                                sandbox=""
                               />
                             </div>
                           );
@@ -5257,10 +5258,11 @@ export default function ProviderOutreachPage() {
               </button>
               <button
                 onClick={async () => {
-                  // Only include providers that are valid (have email)
-                  const validProviderIds = sequencePreviewData
-                    ? sequencePreviewData.providers.filter(p => p.valid).map(p => p.provider_id)
-                    : sequenceConfirmProviders.map(p => p.provider_id);
+                  // Only include providers that have email (valid for sequence)
+                  // Use ALL selected providers, not just the preview subset (which is limited to 100)
+                  const validProviderIds = sequenceConfirmProviders
+                    .filter(p => p.email)
+                    .map(p => p.provider_id);
 
                   if (validProviderIds.length === 0) return;
 

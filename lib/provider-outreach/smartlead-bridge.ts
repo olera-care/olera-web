@@ -38,7 +38,7 @@ import {
   type TemplateContext,
   loganSignatureHtml,
 } from "./templates";
-import { bodyToHtml } from "./email-utils";
+import { bodyToHtml, polishedLayout, getCategoryLabel } from "./email-utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -277,11 +277,15 @@ function buildSmartleadFooterHtml(): string {
 
 /**
  * Render a template body to SmartLead HTML with merge tags.
+ * Wraps in polished email layout for consistent Olera branding.
  */
-function toSmartleadHtml(body: string): string {
+function toSmartleadHtml(body: string, templateKey: ProviderOutreachTemplateKey): string {
   const convertedBody = convertToSmartleadTokens(body);
   const bodyHtml = bodyToHtml(convertedBody);
-  return bodyHtml + buildSmartleadFooterHtml();
+  const footerHtml = buildSmartleadFooterHtml();
+  return polishedLayout(bodyHtml, footerHtml, {
+    categoryLabel: getCategoryLabel(templateKey),
+  });
 }
 
 /**
@@ -327,7 +331,7 @@ export function buildProviderEmailSequence(): SmartleadSequenceStep[] {
       seq_number: i + 1,
       seq_delay_details: { delay_in_days: delay },
       subject: convertToSmartleadTokens(draft.subject),
-      email_body: toSmartleadHtml(draft.body),
+      email_body: toSmartleadHtml(draft.body, cadenceStep.templateKey),
     });
 
     prevDay = cadenceStep.day;

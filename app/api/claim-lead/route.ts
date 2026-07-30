@@ -8,6 +8,7 @@ import {
   type ClaimTrustResult
 } from "@/lib/claim-trust";
 import { sendSlackAlert, slackProviderClaimed, slackSuspiciousClaim } from "@/lib/slack";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
 /**
  * GET /api/claim-lead?connectionId=<id>&otk=<token>
@@ -357,6 +358,20 @@ export async function GET(request: NextRequest) {
         isNewClaim = false; // Failed to claim, don't send notifications
       } else {
         console.log("[claim-lead] profile linked to account with trust level:", trustResult.level);
+
+        // Send deferred notifications for any pending leads/questions
+        // This clears needs_provider_email flags and sends accumulated questions
+        sendDeferredNotificationsForProvider({
+          profileId: providerProfile.id,
+          email: normalizedEmail,
+          providerName: providerProfile.display_name || actualSlug,
+          providerSlug: actualSlug,
+          additionalSlugVariants: providerProfile.source_provider_id
+            ? [providerProfile.source_provider_id]
+            : [],
+        }).catch((err) => {
+          console.error("[claim-lead] deferred notifications failed:", err);
+        });
       }
 
       // Set active profile if the account has none yet

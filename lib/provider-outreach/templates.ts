@@ -202,7 +202,7 @@ function followupEmail(): EmailDraft {
     subject: `Your story deserves more than a listing`,
     preheader: `Give families the full picture`,
     body: [
-      `**Families choose people, not listings.**`,
+      `**Families are viewing your page — is it complete?**`,
       ``,
       `Families don't choose care from a list of services. They choose the people and places they trust.`,
       ``,
@@ -258,7 +258,7 @@ function finalEmail(): EmailDraft {
     subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
     preheader: `Give families confidence to reach out`,
     body: [
-      `**Build trust before the first conversation.**`,
+      `**Your page still isn't verified.**`,
       ``,
       `Choosing senior care is one of the biggest decisions a family will ever make. They need to know they're connecting with a real person they can trust.`,
       ``,
@@ -324,8 +324,8 @@ export function loganSignatureHtml(): string {
   return `
 <table cellpadding="0" cellspacing="0" style="margin-top:24px;">
   <tr>
-    <td style="vertical-align:top;padding-right:12px;">
-      <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
+    <td style="vertical-align:top;padding-right:16px;">
+      <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="64" height="64" style="border-radius:50%;display:block;" />
     </td>
     <td style="vertical-align:top;font-size:13px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">
       <p style="margin:0;">Olera is built by <a href="${LINKEDIN_LOGAN}" style="color:${BRAND_COLOR};text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="${LINKEDIN_TJ}" style="color:${BRAND_COLOR};text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We&rsquo;re working to make senior care easier to understand and compare.</p>

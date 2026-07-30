@@ -79,12 +79,16 @@ export async function POST(request: NextRequest) {
 
     // Analytics trail. Keyed by slug so it aggregates with the campaign's other
     // provider_activity rows; awaited because Vercel kills pending work after
-    // the response.
-    await db.from("provider_activity").insert({
+    // the response. Logged on failure — the CHECK constraint rejects this
+    // event_type until migration 149 is applied, and that must not be silent.
+    const { error: eventErr } = await db.from("provider_activity").insert({
       provider_id: (toProfile?.slug as string) || conn.to_profile_id,
       event_type: "ad_lead_outcome_reported",
       metadata: { value, connection_id: conn.id },
     });
+    if (eventErr) {
+      console.error("[provider/lead-outcome] activity insert failed (migration 149 applied?):", eventErr);
+    }
 
     return NextResponse.json({ success: true, value, providerName });
   } catch (err) {

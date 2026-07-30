@@ -189,9 +189,13 @@ export async function GET(request: NextRequest) {
         created_at: string;
       }>) {
         if (!q.provider_id || q.status === "archived" || q.status === "rejected") continue;
+        // Compare as epochs, not strings — Postgres returns "+00:00"-suffixed
+        // timestamps while `since` is Z-format, and mixed-format lexicographic
+        // comparison misjudges boundary rows.
+        const qAt = new Date(q.created_at).getTime();
         for (const requestId of variantToRequestIds.get(q.provider_id) ?? []) {
           const since = sinceByRequest.get(requestId);
-          if (since && q.created_at >= since) {
+          if (since && qAt >= new Date(since).getTime()) {
             questionsByRequestId[requestId] = (questionsByRequestId[requestId] ?? 0) + 1;
           }
         }

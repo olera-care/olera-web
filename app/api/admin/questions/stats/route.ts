@@ -164,14 +164,19 @@ export async function GET(request: NextRequest) {
     // A question truly needs email if:
     // 1. metadata.needs_provider_email === true
     // 2. question status is not archived/rejected
-    // 3. provider exists
-    // 4. provider is not archived
-    // 5. provider is not claimed (claimed providers have email from claiming)
-    // 6. provider doesn't already have email
+    // 3. question doesn't belong to another tab (Delivery Issues, Not Interested, No Contact)
+    // 4. provider exists
+    // 5. provider is not archived
+    // 6. provider is not claimed (claimed providers have email from claiming)
+    // 7. provider doesn't already have email
     const isNeedsEmail = (r: (typeof allRows)[number]) => {
       const meta = r.metadata as Record<string, unknown> | null | undefined;
       if (meta?.needs_provider_email !== true) return false;
       if (r.status === "archived" || r.status === "rejected") return false;
+      // Exclude questions belonging to other tabs (must match potentialNeedsEmail filter)
+      if (meta?.email_dead === true) return false;  // → Delivery Issues tab
+      if (meta?.provider_not_interested === true) return false;  // → Not Interested tab
+      if (meta?.provider_no_contact === true) return false;  // → No Contact tab
 
       const status = providerStatus.get(r.provider_id);
       if (!status?.exists) return false; // Provider doesn't exist

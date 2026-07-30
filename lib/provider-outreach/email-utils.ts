@@ -18,7 +18,7 @@ import {
   getTemplate,
   substituteVars,
   buildVars,
-  LOGAN_PHOTO_URL,
+  loganSignatureHtml,
 } from "./templates";
 import {
   generateClaimUrl,
@@ -154,8 +154,8 @@ function bodyToPolishedHtml(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  // 2) **text** → <strong>
-  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
+  // 2) **text** → <strong> with larger font for emphasis
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong style="font-size:17px;">${inner}</strong>`);
 
   // 3) Split into paragraphs and process each
   const paragraphs = s.split(/\n{2,}/);
@@ -266,6 +266,7 @@ function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): string {
 
 /**
  * Compose the polished email footer HTML with Dr. Logan's signature.
+ * Uses the shared loganSignatureHtml() from templates.ts for consistency.
  */
 function composePolishedFooterHtml(vars: Record<string, string>): string {
   return `
@@ -274,17 +275,7 @@ function composePolishedFooterHtml(vars: Record<string, string>): string {
   <p style="font-size:14px;color:#374151;margin:0 0 4px;">Best,</p>
   <p style="font-size:14px;color:#374151;margin:0;">Logan</p>
 
-  <table cellpadding="0" cellspacing="0" style="margin-top:16px;">
-    <tr>
-      <td style="vertical-align:top;padding-right:12px;">
-        <img src="${LOGAN_PHOTO_URL}" alt="Dr. Logan DuBose" width="48" height="48" style="border-radius:50%;display:block;" />
-      </td>
-      <td style="vertical-align:middle;font-size:13px;line-height:1.4;color:#374151;">
-        <p style="margin:0;font-weight:600;color:#111827;">Dr. Logan DuBose</p>
-        <p style="margin:2px 0 0;color:#6b7280;">CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program</p>
-      </td>
-    </tr>
-  </table>
+  ${loganSignatureHtml()}
 </div>
 
 <!-- Footer Links -->
@@ -310,8 +301,9 @@ function composePolishedFooterPlainText(vars: Record<string, string>): string {
     "Best,",
     "Logan",
     "",
-    "Dr. Logan DuBose",
-    "CRO, Olera · Researcher funded by NIH Small Business Innovation Research (SBIR) Program",
+    "Olera is built by Dr. Logan DuBose, a physician-researcher funded by NIH SBIR, and TJ Falohun, a PhD researcher in biomedical engineering. We're working to make senior care easier to understand and compare.",
+    "",
+    "LinkedIn: https://www.linkedin.com/in/logan-dubose/",
     "",
     "---",
     "Questions? Just reply — it goes straight to our team.",

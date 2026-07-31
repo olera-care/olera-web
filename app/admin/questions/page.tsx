@@ -720,6 +720,10 @@ export default function AdminQuestionsPage() {
   const [trustedEmailProviders, setTrustedEmailProviders] = useState<Set<string>>(new Set());
   const [pendingDelete, setPendingDelete] = useState<{ providerId: string; providerName: string; questionCount: number } | null>(null);
 
+  // Chart and stats UI state
+  const [chartExpanded, setChartExpanded] = useState(false);
+  const [summaryStats, setSummaryStats] = useState<{ new_today: number; answered_today: number } | null>(null);
+
   function showToast(message: string, type: "success" | "error" = "success") {
     if (toastRef.current) clearTimeout(toastRef.current);
     setToast({ message, type });
@@ -838,6 +842,25 @@ export default function AdminQuestionsPage() {
   useEffect(() => {
     fetchQuestions();
   }, [fetchQuestions]);
+
+  // Fetch summary stats (new_today, answered_today)
+  // Refetch when tab counts change: .all for new questions, .answered for answered questions
+  useEffect(() => {
+    const fetchSummaryStats = async () => {
+      try {
+        const res = await fetch("/api/admin/questions/stats");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.summary) {
+            setSummaryStats(data.summary);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch summary stats:", err);
+      }
+    };
+    fetchSummaryStats();
+  }, [tabCounts.all, tabCounts.answered]);
 
   const handleRemove = async (id: string) => {
     setActionLoading(id);
@@ -1028,14 +1051,63 @@ export default function AdminQuestionsPage() {
 
   return (
     <div>
-      <PulseHeader
-        title="Questions"
-        kpiSuffix="needing email"
-        statsPath="/api/admin/questions/stats"
-        range={range}
-        onRangeChange={setRange}
-        deltaDirection="up-bad"
-      />
+      {/* Header with title and date picker */}
+      <div className="flex items-center justify-between gap-4 mb-5">
+        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Questions</h1>
+      </div>
+
+      {/* Stat Boxes */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers who received new questions today">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">New Today</p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">{summaryStats?.new_today ?? "—"}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">providers</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers with questions but no email on file">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Needs Email</p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">{tabCounts.needs_email.toLocaleString()}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">providers</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers with email delivery issues">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Delivery Issues</p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">{tabCounts.delivery_issues.toLocaleString()}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">providers</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Questions answered by providers today">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Answered Today</p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">{summaryStats?.answered_today ?? "—"}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">by providers</p>
+        </div>
+      </div>
+
+      {/* Collapsible Chart Section */}
+      <div className="mb-6">
+        <button
+          onClick={() => setChartExpanded(!chartExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${chartExpanded ? "rotate-90" : ""}`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+          </svg>
+          {chartExpanded ? "Hide chart" : "Show activity chart"}
+        </button>
+        {chartExpanded && (
+          <div className="mt-3">
+            <PulseHeader
+              title=""
+              kpiSuffix="needing email"
+              statsPath="/api/admin/questions/stats"
+              range={range}
+              onRangeChange={setRange}
+              deltaDirection="up-bad"
+            />
+          </div>
+        )}
+      </div>
 
       {/* Search bar + Export button */}
       <div className="mb-6 flex gap-3">

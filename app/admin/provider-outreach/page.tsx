@@ -2563,6 +2563,18 @@ export default function ProviderOutreachPage() {
         bodyPreview: string;
         html: string;
       }>;
+      // SmartLead-specific preview (shows exact HTML that SmartLead will send)
+      smartlead_preview?: {
+        campaign_name: string;
+        steps: Array<{
+          seq_number: number;
+          cadence_day: number;
+          subject_template: string;
+          subject_preview: string;
+          body_html_template: string;
+          body_html_preview: string;
+        }>;
+      };
     }>;
     cadence: Array<{
       day: number;
@@ -2585,6 +2597,8 @@ export default function ProviderOutreachPage() {
   // For batch preview: which provider to show and which email day
   const [previewProviderId, setPreviewProviderId] = useState<string | null>(null);
   const [previewDay, setPreviewDay] = useState<number>(0);
+  // Toggle between Resend and SmartLead preview modes
+  const [previewEngine, setPreviewEngine] = useState<"resend" | "smartlead">("smartlead");
 
   // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
@@ -5160,6 +5174,17 @@ export default function ProviderOutreachPage() {
                           const selectedEmail = selectedProvider?.emails.find(e => e.day === previewDay);
                           const stepInfo = sequencePreviewData.cadence.find(c => c.day === previewDay);
 
+                          // Get SmartLead preview HTML if available
+                          const smartleadStepIndex = sequencePreviewData.cadence.findIndex(c => c.day === previewDay);
+                          const smartleadStep = selectedProvider?.smartlead_preview?.steps[smartleadStepIndex];
+                          const hasSmartleadPreview = !!smartleadStep?.body_html_preview;
+
+                          // Determine which HTML to show
+                          const showSmartleadHtml = previewEngine === "smartlead" && hasSmartleadPreview;
+                          const previewHtmlToShow = showSmartleadHtml
+                            ? smartleadStep?.body_html_preview
+                            : selectedEmail?.html;
+
                           if (!selectedEmail) return (
                             <div className="rounded-lg bg-gray-50 p-4 border border-gray-100 text-center text-sm text-gray-500">
                               No email preview available
@@ -5177,16 +5202,44 @@ export default function ProviderOutreachPage() {
                                   <span className="text-xs text-gray-400">
                                     {previewDay === 0 ? "Sent immediately" : `Sent ${previewDay} days after start`}
                                   </span>
+                                  {/* Preview engine toggle - only show when SmartLead preview is available */}
+                                  {hasSmartleadPreview && (
+                                    <div className="ml-auto flex items-center gap-1 bg-white border border-gray-200 rounded-md p-0.5">
+                                      <button
+                                        onClick={() => setPreviewEngine("smartlead")}
+                                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                                          previewEngine === "smartlead"
+                                            ? "bg-blue-100 text-blue-700"
+                                            : "text-gray-500 hover:text-gray-700"
+                                        }`}
+                                      >
+                                        SmartLead
+                                      </button>
+                                      <button
+                                        onClick={() => setPreviewEngine("resend")}
+                                        className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                                          previewEngine === "resend"
+                                            ? "bg-gray-200 text-gray-700"
+                                            : "text-gray-500 hover:text-gray-700"
+                                        }`}
+                                      >
+                                        Resend
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="text-xs text-gray-500 space-y-0.5">
                                   <p><span className="font-medium text-gray-600">To:</span> {selectedProvider?.email}</p>
                                   <p><span className="font-medium text-gray-600">From:</span> {sequencePreviewData?.sender?.from ?? "Dr. Logan DuBose · Olera <noreply@oleracare.com>"}</p>
-                                  <p><span className="font-medium text-gray-600">Subject:</span> {selectedEmail.subject}</p>
+                                  <p>
+                                    <span className="font-medium text-gray-600">Subject:</span>{" "}
+                                    {showSmartleadHtml ? smartleadStep?.subject_preview : selectedEmail.subject}
+                                  </p>
                                 </div>
                               </div>
                               {/* Email body - rendered HTML in iframe to isolate from Tailwind CSS */}
                               <iframe
-                                srcDoc={selectedEmail.html}
+                                srcDoc={previewHtmlToShow}
                                 title="Email preview"
                                 className="w-full h-[300px] bg-white border-0"
                                 sandbox=""

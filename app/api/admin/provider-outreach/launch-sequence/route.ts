@@ -272,6 +272,32 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // Build SmartLead-specific preview when SmartLead is configured
+      // This shows exactly what SmartLead will send (different HTML than Resend)
+      let smartleadPreview: ReturnType<typeof buildProviderSmartleadPreview> | undefined;
+      if (useSmartLead) {
+        smartleadPreview = buildProviderSmartleadPreview({
+          provider: {
+            tracking_id: "", // Not needed for preview
+            provider_id: providerId,
+            provider_name: provider.provider_name,
+            email: provider.email,
+            city: provider.city,
+            state: provider.state,
+            category: provider.provider_category,
+            slug: provider.slug,
+            claim_url: context.claim_url,
+            profile_url: context.profile_url,
+            manage_url: context.manage_url,
+            remove_url: context.remove_url,
+            unsubscribe_url: context.unsubscribe_url,
+            gap_list: gapList,
+            city_views: cityViews,
+          },
+          campaignName: `Preview - ${provider.state || "OTHER"}`,
+        });
+      }
+
       previews.push({
         provider_id: providerId,
         provider_name: provider.provider_name,
@@ -282,6 +308,7 @@ export async function POST(request: NextRequest) {
         valid: true,
         errors: [],
         emails,
+        smartlead_preview: smartleadPreview,
       });
       validCount++;
     }

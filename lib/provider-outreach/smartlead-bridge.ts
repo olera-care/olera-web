@@ -382,7 +382,11 @@ export function buildProviderEmailSequence(): SmartleadSequenceStep[] {
       unsubscribe_url: MERGE_TAGS.unsubscribeUrl,
       mailing_address: MAILING_ADDRESS,
       gap_list: MERGE_TAGS.gapList,
-      city_views: 100, // Placeholder for template rendering (will use merge tag)
+      // Use value below threshold (10) to trigger generic fallback text.
+      // SmartLead can't conditionally change email body per-lead, so we use
+      // "Families are searching..." instead of showing specific view counts
+      // that might be weak for low-traffic cities.
+      city_views: 5
     };
 
     const draft = getTemplate(cadenceStep.templateKey, placeholderContext);

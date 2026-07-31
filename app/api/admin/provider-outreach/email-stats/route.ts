@@ -35,6 +35,26 @@ const SEQUENCE_STEP_MAP: Record<number, { template_key: string; name: string }> 
   4: { template_key: "final", name: "Day 14 — Verified Badge" },
 };
 
+// Cadence days for inferring sequence_step from timing
+// If email sent on day X since enrollment, which step is it?
+const CADENCE_DAYS = [0, 3, 7, 14]; // Day 0, 3, 7, 14
+
+/**
+ * Infer sequence_step from days since enrollment.
+ * SmartLead doesn't send sequence_step in webhooks, so we calculate it.
+ * Returns 1-4, or 1 as fallback if timing is unclear.
+ */
+function inferSequenceStep(daysSinceEnrollment: number): number {
+  // Find the closest cadence day that's <= daysSinceEnrollment
+  // Day 0 → step 1, Day 3 → step 2, Day 7 → step 3, Day 14 → step 4
+  for (let i = CADENCE_DAYS.length - 1; i >= 0; i--) {
+    if (daysSinceEnrollment >= CADENCE_DAYS[i]) {
+      return i + 1; // steps are 1-indexed
+    }
+  }
+  return 1; // fallback to intro
+}
+
 // Template key to display info
 const TEMPLATE_INFO: Record<string, { name: string; sequence_step: number | null }> = {
   intro: { name: "Day 0 — Introduction", sequence_step: 1 },
@@ -80,22 +100,67 @@ export async function GET(request: NextRequest) {
     }
 
     // 1. Query SmartLead touchpoints for email_sent events
-    // These have source='smartlead' and sequence_step in details
-    // Filter by source in the query for efficiency
+    // These have source='smartlead'. Note: SmartLead doesn't send sequence_step
+    // in webhooks, so we infer it from timing (enrollment date → email sent date).
     const { data: smartleadSent } = await db
       .from("provider_outreach_touchpoints")
-      .select("details")
+      .select("provider_id, details")
       .eq("touchpoint_type", "email_sent")
       .eq("details->>source", "smartlead")
       .gte("created_at", cutoffIso);
 
-    if (smartleadSent) {
+    if (smartleadSent && smartleadSent.length > 0) {
+      // Collect provider IDs that need enrollment date lookup
+      const providerIdsNeedingLookup = new Set<string>();
+      for (const row of smartleadSent) {
+        const details = row.details as Record<string, unknown> | null;
+        const seqStep = details?.sequence_step as number | undefined;
+        if (!seqStep || !SEQUENCE_STEP_MAP[seqStep]) {
+          providerIdsNeedingLookup.add(row.provider_id);
+        }
+      }
+
+      // Batch lookup enrollment dates for providers with missing sequence_step
+      const enrollmentDates = new Map<string, Date>();
+      if (providerIdsNeedingLookup.size > 0) {
+        const { data: trackingRows } = await db
+          .from("provider_outreach_tracking")
+          .select("provider_id, smartlead_data")
+          .in("provider_id", [...providerIdsNeedingLookup]);
+
+        if (trackingRows) {
+          for (const row of trackingRows) {
+            const slData = row.smartlead_data as { enrolled_at?: string } | null;
+            if (slData?.enrolled_at) {
+              enrollmentDates.set(row.provider_id, new Date(slData.enrolled_at));
+            }
+          }
+        }
+      }
+
+      // Process touchpoints
       for (const row of smartleadSent) {
         const details = row.details as Record<string, unknown> | null;
         if (!details) continue;
 
-        const seqStep = details.sequence_step as number | undefined;
-        if (!seqStep || !SEQUENCE_STEP_MAP[seqStep]) continue;
+        let seqStep = details.sequence_step as number | undefined;
+
+        // If sequence_step is missing, infer from timing
+        if (!seqStep || !SEQUENCE_STEP_MAP[seqStep]) {
+          const enrolledAt = enrollmentDates.get(row.provider_id);
+          const occurredAt = details.occurred_at
+            ? new Date(details.occurred_at as string)
+            : null;
+
+          if (enrolledAt && occurredAt) {
+            const daysSinceEnrollment = Math.floor(
+              (occurredAt.getTime() - enrolledAt.getTime()) / (1000 * 60 * 60 * 24)
+            );
+            seqStep = inferSequenceStep(daysSinceEnrollment);
+          } else {
+            seqStep = 1; // Default to intro if we can't determine
+          }
+        }
 
         const templateKey = SEQUENCE_STEP_MAP[seqStep].template_key;
         statsMap[templateKey].sent += 1;

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.857Z
+ * Last updated: 2026-07-31T08:08:11.777Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1145,7 +1145,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of household gross income for past 30 days (pay stubs, Social Security statements, retirement/pension verification letters)",
         "Social Security cards for all household members",
-        "Copies of deed or mobile home title",
+        "Proof of home ownership, or landlord permission if you rent",
         "Current utility bills (12 months preferred)",
         "Birth certificate and photo ID or passport (proof of U.S. citizenship)",
         "Permanent Resident I-155 Card if applicable (qualified alien status)",
@@ -1225,7 +1225,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.kyhousing.org/Partners/Developers/Single-Family/Weatherization-Assistance/Pages/default.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "ship-medicare-counseling",

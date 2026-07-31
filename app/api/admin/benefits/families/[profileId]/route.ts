@@ -6,6 +6,8 @@ import {
   type BenefitsCaseMeta,
 } from "@/lib/family-comms/benefits-cascade.server";
 import {
+  composeNavigatorDraft,
+  pickSnapshot,
   readBenefitsNavigator,
   renderNavigatorEmail,
 } from "@/lib/family-comms/benefits-navigator.server";
@@ -298,9 +300,16 @@ export async function POST(
     const body = await request.json();
     const action: string = body.action || "";
     if (
-      !["note", "contacted", "resolved", "reopen", "navigator_send", "navigator_dismiss", "navigator_test"].includes(
-        action,
-      )
+      ![
+        "note",
+        "contacted",
+        "resolved",
+        "reopen",
+        "navigator_send",
+        "navigator_dismiss",
+        "navigator_test",
+        "navigator_recompose",
+      ].includes(action)
     ) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
@@ -308,12 +317,73 @@ export async function POST(
     const db = getServiceClient();
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, email, phone, phone_validity, metadata")
+      .select("id, email, phone, phone_validity, metadata, account_id, display_name, state, city, care_types")
       .eq("id", profileId)
       .maybeSingle();
     if (!profile) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const meta = (profile.metadata as Record<string, unknown>) || {};
+
+    // ── Recompose: re-draft a pending letter from current program data.
+    //    Exists for the fact-check loop — after data corrections deploy,
+    //    stale pending drafts re-draft instead of being hand-edited. Sent
+    //    and dismissed stay terminal; TJ's in-drawer edits are discarded
+    //    (the client confirms before calling).
+    if (action === "navigator_recompose") {
+      const navigator = readBenefitsNavigator(meta);
+      if (navigator.status !== "pending" || !navigator.body) {
+        return NextResponse.json({ error: "No pending draft for this family" }, { status: 409 });
+      }
+      const intakeAt = (meta as { benefits_results?: { completed_at?: string } }).benefits_results
+        ?.completed_at;
+      if (!intakeAt || !profile.account_id) {
+        return NextResponse.json({ error: "Family is missing intake data" }, { status: 409 });
+      }
+      const draft = await composeNavigatorDraft(db, {
+        profileId,
+        accountId: profile.account_id,
+        displayName: profile.display_name || null,
+        state: profile.state || null,
+        city: profile.city || null,
+        careTypes: (profile.care_types as string[] | null) || [],
+        intakeAt,
+        profileMeta: meta,
+        factsRow: profile,
+      });
+      if (!draft) {
+        return NextResponse.json(
+          { error: "No qualifying first-step program with current data — the old draft is unchanged. Dismiss it if the program no longer exists." },
+          { status: 409 },
+        );
+      }
+      const navStamp = {
+        status: "pending",
+        composed_at: new Date().toISOString(),
+        subject: draft.subject,
+        body: draft.body,
+        sms: draft.sms,
+        model: "claude-opus-5",
+        pick: pickSnapshot(draft.pick),
+        provider_count: draft.providerCount,
+      };
+      // Composition took seconds — re-read metadata so a mid-compose write
+      // (a family tapping /m gap chips) isn't lost to a blind spread.
+      const { data: freshRow } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", profileId)
+        .maybeSingle();
+      const freshMeta = (freshRow?.metadata as Record<string, unknown> | null) || meta;
+      freshMeta.benefits_navigator = navStamp;
+      const { error: updateErr } = await db
+        .from("business_profiles")
+        .update({ metadata: { ...freshMeta } })
+        .eq("id", profileId);
+      if (updateErr) {
+        return NextResponse.json({ error: "Couldn't save the new draft" }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, navigator: navStamp });
+    }
 
     // ── Navigator actions: send (through governance), test-send, or dismiss ──
     if (

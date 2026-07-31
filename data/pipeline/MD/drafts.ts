@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.859Z
+ * Last updated: 2026-07-31T08:08:11.780Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -560,8 +560,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one has Medicare and struggles with monthly premiums or copayments, Maryland's Medicare Savings Program may cover these costs entirely. The program has three tiers based on income: QMB covers all Medicare premiums, deductibles, and coinsurance; SLMB covers Medicare Part B premiums ($174.70/month in 2025); and QI covers Part B premiums with limited funding.\n\nIncome limits are higher than many people realize because of special deductions. A single person earning up to $1,660/month may qualify for some level of coverage, and Maryland disregards the first $20 of unearned income and $65 of earned income when calculating eligibility. Asset limits are $9,090 for individuals and $13,630 for couples, but your loved one's home, one car, and burial funds don't count.\n\nBecause MSP is automatically checked when anyone applies for Medical Assistance in Maryland, many eligible seniors are already enrolled without realizing it. If your loved one pays Medicare premiums out-of-pocket, it's worth checking whether they qualify.",
-      "savingsRange": "$200 – $2,500/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($174.70/month in 2025) plus potential deductibles and coinsurance coverage",
+      "savingsRange": "$2,400+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB can also cover Part A premiums and cost sharing",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -685,10 +685,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Maryland 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline to find your local Department of Social Services office",
-          "hours": "24 hours, 7 days a week"
+          "label": "Maryland Medicaid MSP line",
+          "phone": "1-800-638-3403",
+          "description": "Medicare Savings Program questions and application help",
+          "hours": "Mon-Fri 8am-5pm ET"
         },
         {
           "label": "Maryland Department of Health",
@@ -762,7 +762,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(410) 767-6860",
       "sourceUrl": "https://health.maryland.gov/mmcp/eligibility/Pages/medicare-savings-programs.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "snap-food-benefits",

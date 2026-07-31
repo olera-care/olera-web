@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.855Z
+ * Last updated: 2026-07-31T08:08:11.776Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1096,9 +1096,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Illinois Weatherization Hotline",
-          "phone": "(877) 411-9276",
-          "description": "Find your local Community Action Agency",
+          "label": "Help Illinois Families",
+          "phone": "1-833-711-0374",
+          "description": "State call center for IHWAP and energy assistance, help in 30 languages",
           "hours": "Business hours"
         },
         {
@@ -1178,7 +1178,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 411-9276",
       "sourceUrl": "https://dceo.illinois.gov/communityservices/homeweatherization.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "ship-medicare-counseling",

@@ -168,6 +168,9 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
  *
  * First touch from Dr. Logan DuBose. Introduces Olera, explains the
  * no-cost/no-referral-fee model, and invites them to review their page.
+ *
+ * Structure: Adjacent lines (no empty string between) = same paragraph.
+ * Empty string = paragraph break. This controls SmartLead spacing.
  */
 function introEmail(): EmailDraft {
   return {
@@ -177,16 +180,16 @@ function introEmail(): EmailDraft {
       `**Your free Olera page is live.**`,
       ``,
       `We've created a free Olera page for ${PLACEHOLDER.providerName}, giving families an easier way to discover and connect with you.`,
-      ``,
-      `There's no cost to manage your page and no referral fees. When a family finds you through Olera, they contact your team directly.`,
+      `There's no cost to manage your page and no referral fees.`,
+      `When a family finds you through Olera, they contact your team directly.`,
       ``,
       `[Review your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. With support from the NIH, we built Olera to make finding trusted senior care easier for families.`,
+      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera.`,
+      `With support from the NIH, we built Olera to make finding trusted senior care easier for families.`,
       ``,
       `We'd love for you to take a look and make sure the page accurately reflects ${PLACEHOLDER.providerName}.`,
-      ``,
-      `Questions or need help getting set up? Just reply. We're happy to help.`,
+      `Questions or need help getting set up? Just reply.`,
     ].join("\n"),
   };
 }
@@ -196,6 +199,8 @@ function introEmail(): EmailDraft {
  *
  * Encourages providers to personalize their page and show what makes
  * them different. Integrates gap_list to highlight what's currently missing.
+ *
+ * Structure: Adjacent lines = same paragraph. Empty string = paragraph break.
  */
 function followupEmail(): EmailDraft {
   return {
@@ -204,13 +209,17 @@ function followupEmail(): EmailDraft {
     body: [
       `**Families are viewing your page — is it complete?**`,
       ``,
-      `Families don't choose care from a list of services. They choose the people and places they trust.`,
+      `Families don't choose care from a list of services.`,
+      `They choose the people and places they trust.`,
       ``,
-      `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that. Show families what makes ${PLACEHOLDER.providerName} different. Add photos, highlight the people behind your care, and showcase what makes your community special.`,
+      `Right now, your page shows ${PLACEHOLDER.gapList}.`,
+      `Your Olera page is your opportunity to change that.`,
+      `Show families what makes ${PLACEHOLDER.providerName} different.`,
       ``,
       `[Personalize your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Help families see why ${PLACEHOLDER.providerName} could be the right place for someone they love. It only takes a few minutes to get started.`,
+      `Add photos, highlight the people behind your care, and showcase what makes your community special.`,
+      `It only takes a few minutes to get started.`,
     ].join("\n"),
   };
 }
@@ -222,6 +231,8 @@ function followupEmail(): EmailDraft {
  * missing family inquiries. Encourages turning on notifications.
  *
  * Has fallback for low view counts (< 10) to avoid showing weak numbers.
+ *
+ * Structure: Adjacent lines = same paragraph. Empty string = paragraph break.
  */
 function demandLossEmail(hasDemandData: boolean): EmailDraft {
   const headline = hasDemandData
@@ -234,14 +245,13 @@ function demandLossEmail(hasDemandData: boolean): EmailDraft {
     body: [
       headline,
       ``,
-      `Imagine a daughter urgently searching for care for her mom. She finds ${PLACEHOLDER.providerName} and has a question before taking the next step.`,
-      ``,
+      `Imagine a daughter urgently searching for care for her mom.`,
+      `She finds ${PLACEHOLDER.providerName} and has a question before taking the next step.`,
       `If she can't reach you, she'll find a provider she can.`,
       ``,
       `[Turn on notifications →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Be the first to know when a family reaches out and respond when it matters most.`,
-      ``,
+      `Be the first to know when a family reaches out.`,
       `Don't miss out on a family who could be ready to choose you.`,
     ].join("\n"),
   };
@@ -252,6 +262,8 @@ function demandLossEmail(hasDemandData: boolean): EmailDraft {
  *
  * Focuses on the Verified badge as a trust signal for families.
  * Simple, focused message about building confidence.
+ *
+ * Structure: Adjacent lines = same paragraph. Empty string = paragraph break.
  */
 function finalEmail(): EmailDraft {
   return {
@@ -260,13 +272,15 @@ function finalEmail(): EmailDraft {
     body: [
       `**Your page still isn't verified.**`,
       ``,
-      `Choosing senior care is one of the biggest decisions a family will ever make. They need to know they're connecting with a real person they can trust.`,
+      `Choosing senior care is one of the biggest decisions a family will ever make.`,
+      `Families need to know they're connecting with a real person they can trust.`,
       ``,
-      `A Verified badge gives them that confidence. It shows that a member of the ${PLACEHOLDER.providerName} team has confirmed the information is accurate, helping build trust before the very first conversation.`,
+      `A Verified badge gives them that confidence.`,
+      `It shows that a member of the ${PLACEHOLDER.providerName} team has confirmed the information is accurate.`,
       ``,
       `[Get your Verified badge →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `It only takes about two minutes and helps families feel at ease when they're ready to take the next step in their care journey.`,
+      `It only takes about two minutes and helps families feel at ease when they're ready to reach out.`,
     ].join("\n"),
   };
 }
@@ -279,6 +293,8 @@ function finalEmail(): EmailDraft {
  *   - Future re-engagement triggers
  *
  * Short and simple: just the claim link, easy to find.
+ *
+ * Structure: Adjacent lines = same paragraph. Empty string = paragraph break.
  */
 function nudgeEmail(): EmailDraft {
   return {
@@ -287,15 +303,18 @@ function nudgeEmail(): EmailDraft {
     body: [
       `**Your page is ready.**`,
       ``,
-      `We've already created a free Olera page for ${PLACEHOLDER.providerName}. It's ready for your team to manage whenever you are.`,
+      `We've already created a free Olera page for ${PLACEHOLDER.providerName}.`,
+      `It's ready for your team to manage whenever you are.`,
       ``,
       `[Open your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `It only takes about two minutes to get started. Once your page is yours, you can start receiving leads, answering questions, and connecting directly with families looking for care.`,
+      `It only takes about two minutes to get started.`,
+      `Once your page is yours, you can start receiving leads, answering questions, and connecting directly with families looking for care.`,
       ``,
-      `No referral fees or brokers in between. The relationship stays directly with your team.`,
+      `No referral fees or brokers in between.`,
+      `The relationship stays directly with your team.`,
       ``,
-      `Questions? Just reply to this email and I'll help personally.`,
+      `Questions? Just reply and I'll help personally.`,
     ].join("\n"),
   };
 }

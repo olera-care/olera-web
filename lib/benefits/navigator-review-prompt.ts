@@ -48,10 +48,20 @@ export interface ReviewItem {
   pick: ReviewPick | null;
 }
 
+/** Words that show up as placeholder "names" in profile data — redacting
+ *  them would mangle ordinary prose ("paying for care" → "paying for
+ *  [first name]"). 17 of the first 18 live drafts had displayName
+ *  "Care Seeker", so this guard is load-bearing, not paranoia. */
+const PLACEHOLDER_NAME_WORDS = new Set(["care", "seeker", "family", "senior", "unnamed", "test"]);
+
 function redact(text: string, firstName: string | null): string {
   if (!firstName || firstName.length < 2) return text;
+  if (PLACEHOLDER_NAME_WORDS.has(firstName.toLowerCase())) return text;
   const escaped = firstName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return text.replace(new RegExp(`\\b${escaped}\\b`, "gi"), "[first name]");
+  // Case-sensitive on purpose: letters use the name properly capitalized,
+  // and a case-insensitive match turns word-names (May, Grace, Will) into
+  // prose-mangling false positives.
+  return text.replace(new RegExp(`\\b${escaped}\\b`, "g"), "[first name]");
 }
 
 function programClaims(pick: ReviewPick, state: string): string {

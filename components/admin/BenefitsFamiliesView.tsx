@@ -153,7 +153,7 @@ export default function BenefitsFamiliesView() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready">("all");
   const [exportState, setExportState] = useState<
-    "idle" | "working" | "error" | { copied: number; failed: number }
+    "idle" | "working" | "error" | { copied: number; failed: number; downloaded: boolean }
   >("idle");
   const [timelines, setTimelines] = useState<Record<string, TimelineEvent[] | "loading" | "error">>({});
   const [noteText, setNoteText] = useState("");
@@ -312,13 +312,19 @@ export default function BenefitsFamiliesView() {
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
    *  strip it from the letter text). */
-  const reviewContextFor = (f: FamilyRow): Omit<ReviewItem, "draft" | "pick"> => ({
-    state: f.state,
-    careNeed: f.careNeed ? CARE_NEED_LABELS[f.careNeed] ?? f.careNeed : null,
-    situation: f.situation,
-    completedAt: f.completedAt,
-    firstName: f.displayName?.trim().split(/\s+/)[0] || null,
-  });
+  const reviewContextFor = (f: FamilyRow): Omit<ReviewItem, "draft" | "pick"> => {
+    // "Care Seeker" is a stored placeholder, not a name — most benefits
+    // profiles carry it. Redacting its "first name" would mangle prose.
+    const name = f.displayName?.trim();
+    const isPlaceholder = !name || name.toLowerCase() === "care seeker";
+    return {
+      state: f.state,
+      careNeed: f.careNeed ? CARE_NEED_LABELS[f.careNeed] ?? f.careNeed : null,
+      situation: f.situation,
+      completedAt: f.completedAt,
+      firstName: isPlaceholder ? null : name.split(/\s+/)[0] || null,
+    };
+  };
 
   /** Batch export: pull every pending draft via the existing per-family GET,
    *  build one paste-ready fact-check prompt, and copy it to the clipboard. */
@@ -346,8 +352,23 @@ export default function BenefitsFamiliesView() {
       );
       const items = results.filter((r): r is ReviewItem => r !== null);
       if (items.length === 0) throw new Error("no drafts loaded");
-      await window.navigator.clipboard.writeText(buildNavigatorReviewPrompt(items));
-      setExportState({ copied: items.length, failed: pending.length - items.length });
+      const prompt = buildNavigatorReviewPrompt(items);
+      let downloaded = false;
+      try {
+        await window.navigator.clipboard.writeText(prompt);
+      } catch {
+        // The fetches can outlive the click's transient user activation
+        // (always in Safari, sometimes in Chromium), which voids clipboard
+        // access. The prompt is built — deliver it as a file instead.
+        const url = URL.createObjectURL(new Blob([prompt], { type: "text/markdown" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "navigator-draft-review.md";
+        a.click();
+        URL.revokeObjectURL(url);
+        downloaded = true;
+      }
+      setExportState({ copied: items.length, failed: pending.length - items.length, downloaded });
       setTimeout(() => setExportState("idle"), 6000);
     } catch {
       setExportState("error");
@@ -491,8 +512,10 @@ export default function BenefitsFamiliesView() {
           <span className="ml-auto flex items-center gap-2">
             {typeof exportState === "object" && (
               <span className="text-[11px] font-medium text-emerald-700">
-                Copied {exportState.copied} draft{exportState.copied === 1 ? "" : "s"} ✓ paste into
-                your AI of choice{exportState.failed > 0 ? ` (${exportState.failed} failed to load)` : ""}
+                {exportState.downloaded ? "Downloaded" : "Copied"} {exportState.copied} draft
+                {exportState.copied === 1 ? "" : "s"} ✓{" "}
+                {exportState.downloaded ? "open the .md file and paste it" : "paste into your AI of choice"}
+                {exportState.failed > 0 ? ` (${exportState.failed} failed to load)` : ""}
               </span>
             )}
             {exportState === "error" && (

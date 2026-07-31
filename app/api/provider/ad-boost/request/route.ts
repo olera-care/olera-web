@@ -47,7 +47,7 @@ export async function GET() {
 
   let { data: latest } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
     .eq("provider_id", elig.profileId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -69,7 +69,7 @@ export async function GET() {
       })
       .eq("id", latest.id)
       .eq("status", "pending_profile") // guard against a double-promote race
-      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
+      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
       .maybeSingle();
 
     if (promoted) {
@@ -191,6 +191,7 @@ export async function GET() {
           engagement: receipt.engagement,
           outcomes: receipt.outcomes,
           expectedLeads: receipt.expectedLeads,
+          week: receipt.week,
         }
       : null,
   });
@@ -266,7 +267,7 @@ export async function POST(request: NextRequest) {
   // ── Block a duplicate campaign (active OR already queued under-profile) ──
   const { data: existing } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
     .eq("provider_id", elig.profileId)
     .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
@@ -293,7 +294,7 @@ export async function POST(request: NextRequest) {
       intended_monthly_budget: intendedMonthlyBudget,
       status: queued ? "pending_profile" : "requested",
     })
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, ad_impressions, ad_clicks, ad_spend_cents")
+    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
     .single();
 
   if (insertError || !inserted) {

@@ -59,6 +59,9 @@ export interface CampaignReceipt {
   /** Expected leads for the clicks bought, per the category benchmark.
    *  Null when clicks were never entered. */
   expectedLeads: number | null;
+  /** Rolling last-7-days momentum (bounded by the launch anchor) — the live
+   *  view's "numbers going up" signal, from real event timestamps. */
+  week: { visitors: number; questions: number; leads: number };
 }
 
 /** The request-row slice the receipt needs. Matches ad_campaign_requests. */
@@ -84,11 +87,18 @@ export async function getCampaignReceipt(
     (v): v is string => typeof v === "string" && v.length > 0,
   );
 
-  const [stats, questions, leads, saves] = await Promise.all([
+  // Momentum window: the last 7 days, clipped to the launch anchor so a
+  // 3-day-old campaign's "this week" never includes pre-launch traffic.
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const weekSince = sevenDaysAgo > since ? sevenDaysAgo : since;
+
+  const [stats, questions, leads, saves, weekStats, weekQuestions] = await Promise.all([
     getCampaignStats(db, { providerIdVariants: variants, since }),
     getCampaignQuestions(db, { providerIdVariants: variants, since }),
     listLeadsByCampaign(db, tag),
     countSaves(db, variants, since),
+    getCampaignStats(db, { providerIdVariants: variants, since: weekSince }),
+    getCampaignQuestions(db, { providerIdVariants: variants, since: weekSince }),
   ]);
 
   const outcomes = { client: 0, talking: 0, no: 0, unanswered: 0 };
@@ -120,6 +130,11 @@ export async function getCampaignReceipt(
     outcomes,
     expectedLeads:
       clicks != null ? Math.round((clicks / CLICKS_PER_LEAD_BENCHMARK) * 10) / 10 : null,
+    week: {
+      visitors: weekStats.visitors,
+      questions: weekQuestions.received,
+      leads: weekStats.leads,
+    },
   };
 }
 

@@ -104,6 +104,7 @@ export async function GET(request: NextRequest) {
         engagement: receipt.engagement,
         outcomes: receipt.outcomes,
         expectedLeads: receipt.expectedLeads,
+        week: receipt.week,
       },
     });
   }

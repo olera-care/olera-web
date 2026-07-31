@@ -531,8 +531,11 @@ function flightProgress(startIso: string, endIso: string): string {
   const total = Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY) + 1);
   const today = new Date();
   const day = Math.floor((today.getTime() - start.getTime()) / DAY) + 1;
+  // Facts row also renders for scheduled campaigns whose end date was entered
+  // at setup — a pre-start flight must not read "Day 1" as if it were running.
+  if (day < 1) return `${total} days · ends ${formatWeek(endIso)}`;
   if (day > total) return `Ended ${formatWeek(endIso)}`;
-  return `Day ${Math.max(1, day)} of ${total} · ends ${formatWeek(endIso)}`;
+  return `Day ${day} of ${total} · ends ${formatWeek(endIso)}`;
 }
 
 /** The "numbers going up" line — rolling last-7-days momentum under the stat

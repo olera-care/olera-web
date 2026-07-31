@@ -4363,7 +4363,11 @@ export default function ProviderOutreachPage() {
               } else if (activeTab === "ready") {
                 displayCities = displayCities.filter((c) => c.has_email > 0);
               }
-              const isLoading = useApiCities ? loadingCities : loadingProviders;
+              // On needs_email/ready tabs, wait for both cities AND providers
+              // because we need cities data for sequence stats even when admin filtered
+              const isLoading = isNotContactedTab(activeTab)
+                ? (loadingCities || loadingProviders)
+                : loadingProviders;
               const emptyMessage = isNotContactedTab(activeTab)
                 ? `No ${activeTab === "needs_email" ? "providers needing email" : "ready providers"} in ${selectedState}`
                 : `No providers in ${UI_TAB_LABELS[activeTab]}`;

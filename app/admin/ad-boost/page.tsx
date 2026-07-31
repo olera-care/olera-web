@@ -142,7 +142,7 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_112px_52px_72px_52px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_140px_52px_72px_52px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
           <span>Clicks</span>
@@ -236,7 +236,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_112px_52px_72px_52px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_140px_52px_72px_52px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link

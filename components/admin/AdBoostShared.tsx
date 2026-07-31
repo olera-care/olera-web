@@ -63,7 +63,7 @@ export const STATUSES = ["pending_profile", "requested", "scheduled", "live", "e
 export const CHANNELS = ["", "google", "meta", "both"];
 
 export const STATUS_LABELS: Record<string, string> = {
-  pending_profile: "Queued",
+  pending_profile: "Waiting on provider",
   requested: "Requested",
   scheduled: "Scheduled",
   live: "Live",

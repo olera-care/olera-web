@@ -452,10 +452,28 @@ export function renderTemplateAsSmartleadHtml(
   const bodyHtml = smartleadBodyToHtml(body);
   const footerHtml = buildSmartleadFooterHtml();
 
-  return {
-    html: bodyHtml + footerHtml,
-    subject,
+  // Substitute SmartLead merge tags in footer for preview
+  // Footer uses {{manage_url}} format which needs to be replaced with actual values
+  let html = bodyHtml + footerHtml;
+  const mergeTagSubstitutions: Record<string, string> = {
+    "{{company_name}}": context.provider_name,
+    "{{city}}": context.city,
+    "{{state}}": context.state,
+    "{{category}}": context.category || "care providers",
+    "{{profile_url}}": context.profile_url,
+    "{{claim_url}}": context.claim_url,
+    "{{manage_url}}": context.manage_url,
+    "{{remove_url}}": context.remove_url,
+    "{{unsubscribe_url}}": context.unsubscribe_url,
+    "{{gap_list}}": context.gap_list || "",
+    "{{city_views}}": String(context.city_views || 0),
   };
+
+  for (const [tag, value] of Object.entries(mergeTagSubstitutions)) {
+    html = html.replace(new RegExp(tag.replace(/[{}]/g, "\\$&"), "g"), value);
+  }
+
+  return { html, subject };
 }
 
 // ── Orchestration ─────────────────────────────────────────────────────────

@@ -71,17 +71,17 @@ const PREVIEWS: {
   },
   {
     key: "weak",
-    label: "Wrap-up · zero leads (demand receipt)",
+    label: "Wrap-up · zero leads",
     blurb: "The demand receipt: ad reach, clicks, saves and questions prove demand was real, the math line explains the zero, and the plans read as a volume choice. Sample numbers are Miracle-Lightstar-shaped: 268 ad views, 20 clicks, 6 saves, 0 leads.",
   },
   {
     key: "celebrate",
-    label: "Plan active · just paid",
+    label: "Plan · just paid",
     blurb: "What they see returning from Stripe Checkout (?subscribed=true), even before the webhook lands.",
   },
   {
     key: "steady",
-    label: "Plan active · steady state",
+    label: "Plan · steady state",
     blurb: "Every later visit to /provider/boost while the plan runs.",
   },
 ];
@@ -119,19 +119,24 @@ export default function AdBoostPreviewPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-5">
+        <Link
+          href="/admin/ad-boost"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-4"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to queue
+        </Link>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">Wrap-up moment — preview</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">What providers see</h1>
           <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700">
             sample data · checkout stubbed
           </span>
         </div>
         <p className="text-gray-500 mt-1 text-sm max-w-2xl">
-          The exact components providers see on /provider/boost (shared code, not
-          a mockup). The wrap-up is the only payment ask in the system; it arms on
-          the 3rd lead or the promo-complete email.{" "}
-          <Link href="/admin/ad-boost" className="text-primary-600 font-medium hover:underline">
-            Back to the queue
-          </Link>
+          The exact /provider/boost components, rendered from shared code against
+          sample data. Nothing here can charge anyone.
         </p>
       </header>
 
@@ -155,7 +160,10 @@ export default function AdBoostPreviewPage() {
           </button>
         ))}
       </div>
-      <p className="text-xs text-gray-400 mb-6 max-w-2xl">
+      <p className="mb-6 max-w-2xl border-l-2 border-primary-200 pl-3 text-xs leading-relaxed text-gray-500">
+        <span className="font-semibold text-gray-700">
+          {PREVIEWS.find((p) => p.key === view)?.label}.
+        </span>{" "}
         {PREVIEWS.find((p) => p.key === view)?.blurb}
       </p>
 

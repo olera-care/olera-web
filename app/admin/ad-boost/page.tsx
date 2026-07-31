@@ -56,7 +56,7 @@ export default function AdminAdBoostPage() {
             href="/admin/ad-boost/preview"
             className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Preview wrap-up moment ↗
+            See what providers see ↗
           </Link>
         </div>
         <p className="text-gray-500 mt-1 text-sm">

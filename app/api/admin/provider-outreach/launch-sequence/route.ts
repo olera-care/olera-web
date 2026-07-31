@@ -151,6 +151,9 @@ export async function POST(request: NextRequest) {
       .map((p) => ({ city: p.city, category: p.provider_category }));
     const cityViewsMap = await getCityViewsBatch(cityViewsPairs, db);
 
+    // Check if SmartLead is configured (affects preview rendering)
+    const useSmartLead = isSmartleadConfigured();
+
     // Build previews for each provider
     const previews: ProviderPreview[] = [];
     let validCount = 0;
@@ -251,13 +254,47 @@ export async function POST(request: NextRequest) {
       const emails: ProviderPreview["emails"] = [];
 
       for (const step of PROVIDER_OUTREACH_CADENCE) {
-        const rendered = renderEmail(step.templateKey, context);
+        // When SmartLead is configured, Day 7 (demand_loss) must use generic headline
+        // because SmartLead can't conditionally change email body per-lead.
+        // Force city_views below threshold (10) to show "Families are searching..."
+        // instead of specific view counts that might not match SmartLead behavior.
+        let stepContext = context;
+        if (useSmartLead && step.templateKey === "demand_loss") {
+          stepContext = { ...context, city_views: 5 };
+        }
+        const rendered = renderEmail(step.templateKey, stepContext);
         emails.push({
           day: step.day,
           templateKey: step.templateKey,
           subject: rendered.subject,
           bodyPreview: rendered.text.substring(0, 200) + "...",
           html: rendered.html,
+        });
+      }
+
+      // Build SmartLead-specific preview when SmartLead is configured
+      // This shows exactly what SmartLead will send (different HTML than Resend)
+      let smartleadPreview: ReturnType<typeof buildProviderSmartleadPreview> | undefined;
+      if (useSmartLead) {
+        smartleadPreview = buildProviderSmartleadPreview({
+          provider: {
+            tracking_id: "", // Not needed for preview
+            provider_id: providerId,
+            provider_name: provider.provider_name,
+            email: provider.email,
+            city: provider.city,
+            state: provider.state,
+            category: provider.provider_category,
+            slug: provider.slug,
+            claim_url: context.claim_url,
+            profile_url: context.profile_url,
+            manage_url: context.manage_url,
+            remove_url: context.remove_url,
+            unsubscribe_url: context.unsubscribe_url,
+            gap_list: gapList,
+            city_views: cityViews,
+          },
+          campaignName: `Preview - ${provider.state || "OTHER"}`,
         });
       }
 
@@ -271,6 +308,7 @@ export async function POST(request: NextRequest) {
         valid: true,
         errors: [],
         emails,
+        smartlead_preview: smartleadPreview,
       });
       validCount++;
     }
@@ -312,10 +350,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Check if SmartLead is configured
-      const useSmartLead = isSmartleadConfigured();
-
       // SAFEGUARD: If SmartLead is configured, verify prerequisites before proceeding
+      // (useSmartLead is already defined at the top of this function)
       if (useSmartLead) {
         // Check 1: Verify mailboxes are available
         const mailboxCheck = await resolveProviderMailboxPool();
@@ -718,7 +754,7 @@ export async function POST(request: NextRequest) {
 
     // Determine which engine will be used and get sender info
     // Must match getProviderSenderEmails() logic in smartlead-bridge.ts
-    const useSmartLead = isSmartleadConfigured();
+    // (useSmartLead is already defined at the top of this function)
     const providerSenders = process.env.PROVIDER_OUTREACH_SMARTLEAD_SENDERS ?? "";
     const generalSenders = process.env.SMARTLEAD_SENDER_EMAILS ?? "";
     const smartleadSenderList = providerSenders.trim()

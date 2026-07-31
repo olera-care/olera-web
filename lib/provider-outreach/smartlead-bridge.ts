@@ -38,7 +38,8 @@ import {
   type TemplateContext,
   loganSignatureHtml,
 } from "./templates";
-import { bodyToHtml, polishedLayout, getCategoryLabel } from "./email-utils";
+// Note: bodyToHtml, smartleadBrandedLayout, getCategoryLabel removed -
+// SmartLead path now uses inline smartleadBodyToHtml (MedJobs pattern)
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -250,43 +251,104 @@ function convertToSmartleadTokens(text: string): string {
     .replace(/\{total\}/g, "");
 }
 
+// ── SmartLead-specific body rendering ─────────────────────────────────────
+// Follows the MedJobs pattern exactly: single <div>, <br><br> for paragraphs,
+// simple <a> tags for links (no table-based buttons). This structure renders
+// reliably in SmartLead without spacing issues.
+
+const SMARTLEAD_BRAND_COLOR = "#198087";
+const SMARTLEAD_LINK_COLOR = "#059669";
+
+/**
+ * SmartLead body renderer matching MedJobs pattern.
+ *
+ * Key differences from Resend bodyToPolishedHtml:
+ * - Single <div> container (not multiple <p> tags)
+ * - Paragraphs separated by <br><br> (not margin-based)
+ * - CTAs are styled <a> links (not table-based buttons)
+ * - This structure is proven to work with SmartLead
+ */
+function smartleadBodyToHtml(text: string): string {
+  // 1) HTML-escape
+  let s = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // 2) [label](url) → <a href>
+  // CTAs (containing → or "claim" or "review") get bold green styling
+  // Regular links get standard green styling
+  s = s.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (_m, label: string, href: string) => {
+      const isCta = label.includes("→") ||
+                    label.toLowerCase().includes("claim") ||
+                    label.toLowerCase().includes("review");
+      if (isCta) {
+        return `<a href="${href}" style="color:${SMARTLEAD_BRAND_COLOR};font-weight:600;text-decoration:none;">${label}</a>`;
+      }
+      return `<a href="${href}" style="color:${SMARTLEAD_LINK_COLOR};font-weight:500;text-decoration:underline;">${label}</a>`;
+    }
+  );
+
+  // 3) **text** → <strong>
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
+
+  // 4) Single-div body: paragraphs joined by <br><br>
+  // This prevents Gmail's auto-trim and keeps consistent spacing
+  const paragraphs = s.split(/\n{2,}/).map((p) => p.replace(/\n/g, "<br>"));
+  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.6;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
+}
+
 /**
  * Build the SmartLead footer HTML with Logan signature + compliance links.
  * Uses SmartLead merge tags for dynamic URLs.
  * NOTE: Join with empty string to avoid extra whitespace in email clients.
  */
 function buildSmartleadFooterHtml(): string {
+  // NOTE: Spacing is carefully calibrated to avoid cumulative margin issues.
+  // - Sign-off "Best," has 16px top margin (space from body)
+  // - "Logan" has 8px bottom margin (tight coupling to signature)
+  // - Signature has 0 margin (set in loganSignatureHtml)
+  // - Footer div has 16px top margin (reasonable gap from signature)
+  // Footer links use &nbsp; to stay on one line in all email clients.
   return [
-    // Sign-off
+    // Sign-off - 16px gap from body content
     `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
     // Signature block (shared with Resend emails)
     loganSignatureHtml(),
-    // Footer links with merge tags
-    `<div style="margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
+    // Footer links with merge tags - reduced margin, inline links with &nbsp;
+    `<div style="margin:16px 0 0;padding:12px 0 0;border-top:1px solid #e5e7eb;">`,
     `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,
-    `<p style="font-size:13px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;">`,
-    `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a> · `,
-    `<a href="${MERGE_TAGS.removeUrl}" style="color:#9ca3af;text-decoration:underline;">Remove my listing</a> · `,
+    `<p style="font-size:12px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;white-space:nowrap;">`,
+    `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a>&nbsp;·&nbsp;`,
+    `<a href="${MERGE_TAGS.removeUrl}" style="color:#9ca3af;text-decoration:underline;">Remove my listing</a>&nbsp;·&nbsp;`,
     `<a href="${MERGE_TAGS.unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>`,
     `</p>`,
     // Mailing address (CAN-SPAM)
-    `<p style="font-size:11px;color:#d1d5db;margin:12px 0 0;font-family:Inter,Arial,sans-serif;">Olera · ${MAILING_ADDRESS}</p>`,
+    `<p style="font-size:11px;color:#d1d5db;margin:8px 0 0;font-family:Inter,Arial,sans-serif;">Olera · ${MAILING_ADDRESS}</p>`,
     `</div>`,
   ].join("");
 }
 
 /**
  * Render a template body to SmartLead HTML with merge tags.
- * Wraps in polished email layout for consistent Olera branding.
+ *
+ * Follows the MedJobs pattern: bodyHtml + footerHtml, NO outer wrapper.
+ * SmartLead strips complex HTML structures, so we keep it simple:
+ * - Single <div> for body (smartleadBodyToHtml)
+ * - Signature table (loganSignatureHtml) - tables work for inline components
+ * - Simple footer links
+ *
+ * This pattern is proven to render correctly in SmartLead → Gmail.
  */
-function toSmartleadHtml(body: string, templateKey: ProviderOutreachTemplateKey): string {
+function toSmartleadHtml(body: string, _templateKey: ProviderOutreachTemplateKey): string {
   const convertedBody = convertToSmartleadTokens(body);
-  const bodyHtml = bodyToHtml(convertedBody);
+  const bodyHtml = smartleadBodyToHtml(convertedBody);
   const footerHtml = buildSmartleadFooterHtml();
-  return polishedLayout(bodyHtml, footerHtml, {
-    categoryLabel: getCategoryLabel(templateKey),
-  });
+  // MedJobs pattern: just body + footer, no wrapper
+  return bodyHtml + footerHtml;
 }
 
 /**
@@ -320,7 +382,11 @@ export function buildProviderEmailSequence(): SmartleadSequenceStep[] {
       unsubscribe_url: MERGE_TAGS.unsubscribeUrl,
       mailing_address: MAILING_ADDRESS,
       gap_list: MERGE_TAGS.gapList,
-      city_views: 100, // Placeholder for template rendering (will use merge tag)
+      // Use value below threshold (10) to trigger generic fallback text.
+      // SmartLead can't conditionally change email body per-lead, so we use
+      // "Families are searching..." instead of showing specific view counts
+      // that might be weak for low-traffic cities.
+      city_views: 5
     };
 
     const draft = getTemplate(cadenceStep.templateKey, placeholderContext);
@@ -339,6 +405,75 @@ export function buildProviderEmailSequence(): SmartleadSequenceStep[] {
   }
 
   return steps;
+}
+
+/**
+ * Render any template as SmartLead HTML (for preview purposes).
+ *
+ * This is used for templates not in the cadence (like "nudge") that still
+ * need SmartLead-style preview in the admin panel.
+ *
+ * @param templateKey - Template to render
+ * @param context - Context with substituted values (not merge tags)
+ * @returns SmartLead-formatted HTML
+ */
+export function renderTemplateAsSmartleadHtml(
+  templateKey: ProviderOutreachTemplateKey,
+  context: TemplateContext
+): { html: string; subject: string } {
+  const draft = getTemplate(templateKey, context);
+
+  // Substitute actual values into template variables
+  let body = draft.body;
+  let subject = draft.subject;
+
+  const substitutions: Record<string, string> = {
+    "{provider_name}": context.provider_name,
+    "{city}": context.city,
+    "{state}": context.state,
+    "{category}": context.category || "care providers",
+    "{profile_url}": context.profile_url,
+    "{claim_url}": context.claim_url,
+    "{manage_url}": context.manage_url,
+    "{remove_url}": context.remove_url,
+    "{unsubscribe_url}": context.unsubscribe_url,
+    "{mailing_address}": context.mailing_address,
+    "{gap_list}": context.gap_list || "",
+    "{city_views}": String(context.city_views || 0),
+  };
+
+  for (const [token, value] of Object.entries(substitutions)) {
+    const regex = new RegExp(token.replace(/[{}]/g, "\\$&"), "g");
+    body = body.replace(regex, value);
+    subject = subject.replace(regex, value);
+  }
+
+  // Render to SmartLead HTML format
+  const bodyHtml = smartleadBodyToHtml(body);
+  const footerHtml = buildSmartleadFooterHtml();
+
+  // Substitute SmartLead merge tags in footer for preview
+  // Footer uses {{manage_url}} format which needs to be replaced with actual values
+  let html = bodyHtml + footerHtml;
+  const mergeTagSubstitutions: Record<string, string> = {
+    "{{company_name}}": context.provider_name,
+    "{{city}}": context.city,
+    "{{state}}": context.state,
+    "{{category}}": context.category || "care providers",
+    "{{profile_url}}": context.profile_url,
+    "{{claim_url}}": context.claim_url,
+    "{{manage_url}}": context.manage_url,
+    "{{remove_url}}": context.remove_url,
+    "{{unsubscribe_url}}": context.unsubscribe_url,
+    "{{gap_list}}": context.gap_list || "",
+    "{{city_views}}": String(context.city_views || 0),
+  };
+
+  for (const [tag, value] of Object.entries(mergeTagSubstitutions)) {
+    html = html.replace(new RegExp(tag.replace(/[{}]/g, "\\$&"), "g"), value);
+  }
+
+  return { html, subject };
 }
 
 // ── Orchestration ─────────────────────────────────────────────────────────

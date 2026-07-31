@@ -102,15 +102,19 @@ export default function PulseHeader({
       {/* v8.10.10: title row only carries page-level controls (title +
           optional actions like Add Stakeholder). The date picker moved
           into the stats card below — it controls the data shown there,
-          so it belongs with the data, not with the page actions. */}
-      <div className="flex items-center justify-between gap-4 mb-5">
-        <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">{title}</h1>
-        {actions && (
-          <div className="flex shrink-0 items-center gap-3">
-            {actions}
-          </div>
-        )}
-      </div>
+          so it belongs with the data, not with the page actions.
+          v8.11.0: Conditionally render title row only when title is provided,
+          allowing embedding the stats card without a duplicate title. */}
+      {(title || actions) && (
+        <div className="flex items-center justify-between gap-4 mb-5">
+          {title && <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">{title}</h1>}
+          {actions && (
+            <div className="flex shrink-0 items-center gap-3">
+              {actions}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="rounded-2xl border border-gray-100 bg-white px-6 pt-6 pb-5">
         <div className="flex items-start justify-between gap-4">

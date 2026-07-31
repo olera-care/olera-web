@@ -8,6 +8,7 @@ import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
  * Returns stats for the PulseHeader. Two metrics from one query:
  *  - `total` / `delta`: needs-email backlog in the range (KPI)
  *  - `series`: ALL question creations per bucket (platform pulse chart)
+ *  - `summary`: { new_today, answered_today } for stat boxes
  *
  * The KPI and the chart are intentionally different metrics. Needs-email is
  * the operator action queue; the pulse chart shows overall platform activity
@@ -226,7 +227,35 @@ export async function GET(request: NextRequest) {
     const seriesStart = from ?? seriesTimestamps[0] ?? now;
     const series = buildSeries(seriesTimestamps, seriesStart, to, bucket);
 
-    return NextResponse.json({ total: kpiCurrent, delta, series, bucket });
+    // Summary stats: new_today and answered_today
+    // Use UTC midnight to avoid timezone drift between server and database
+    const todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayIso = todayStart.toISOString();
+
+    // Questions created today (regardless of status)
+    const { count: newTodayCount } = await db
+      .from("provider_questions")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", todayIso);
+
+    // Questions answered today (approximation using updated_at)
+    // Note: updated_at changes on ANY edit, not just when answered. Without an
+    // answered_at timestamp, this is the best approximation. May slightly
+    // overcount if answered questions are edited after the fact.
+    const { count: answeredTodayCount } = await db
+      .from("provider_questions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "answered")
+      .not("answer", "is", null)
+      .gte("updated_at", todayIso);
+
+    const summary = {
+      new_today: newTodayCount ?? 0,
+      answered_today: answeredTodayCount ?? 0,
+    };
+
+    return NextResponse.json({ total: kpiCurrent, delta, series, bucket, summary });
   } catch (err) {
     console.error("Admin questions stats fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

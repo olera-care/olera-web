@@ -2487,6 +2487,9 @@ export default function ProviderOutreachPage() {
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  // Preview engine for template preview section (separate from sequence preview)
+  const [templatePreviewEngine, setTemplatePreviewEngine] = useState<"smartlead" | "resend">("smartlead");
+  const [templatePreviewSmartleadConfigured, setTemplatePreviewSmartleadConfigured] = useState(false);
 
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
@@ -3041,10 +3044,11 @@ export default function ProviderOutreachPage() {
       setPreviewLoading(true);
       setPreviewHtml(null); // Clear old preview while loading new one
       try {
-        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}`);
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=${templatePreviewEngine}`);
         if (res.ok) {
           const data = await res.json();
           setPreviewHtml(data.html);
+          setTemplatePreviewSmartleadConfigured(data.smartlead_configured ?? false);
         }
       } catch (err) {
         console.error("Failed to fetch template preview:", err);
@@ -3053,7 +3057,7 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchPreview();
-  }, [previewTemplate]);
+  }, [previewTemplate, templatePreviewEngine]);
 
   // Effect: fetch provider counts when Add State modal opens
   useEffect(() => {
@@ -3914,6 +3918,34 @@ export default function ProviderOutreachPage() {
 
               {previewTemplate && (
                 <div className="rounded-xl border border-gray-200 overflow-hidden">
+                  {/* Preview engine toggle - show when SmartLead is configured */}
+                  {templatePreviewSmartleadConfigured && (
+                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Preview rendering:</span>
+                      <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-md p-0.5">
+                        <button
+                          onClick={() => setTemplatePreviewEngine("smartlead")}
+                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                            templatePreviewEngine === "smartlead"
+                              ? "bg-blue-100 text-blue-700"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          SmartLead
+                        </button>
+                        <button
+                          onClick={() => setTemplatePreviewEngine("resend")}
+                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
+                            templatePreviewEngine === "resend"
+                              ? "bg-gray-200 text-gray-700"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          Resend
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {previewLoading ? (
                     <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview...</div>
                   ) : previewHtml ? (

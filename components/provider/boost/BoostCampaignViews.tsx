@@ -634,11 +634,12 @@ export function CampaignInMotion({
           {showPlans ? (
             <>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-                Start a monthly plan early
+                Keep it running without a gap
               </p>
               <p className="mt-2 text-sm text-gray-500 leading-relaxed max-w-md">
-                Your free intro keeps running either way; the plan takes over
-                when it ends, at several times the volume.
+                Your free intro keeps running either way. When it ends, the
+                plan takes over the same day, at several times the volume, so
+                families keep arriving with no interruption.
               </p>
               <PlanChooser
                 request={request}
@@ -655,13 +656,25 @@ export function CampaignInMotion({
               </button>
             </>
           ) : (
-            <button
-              type="button"
-              onClick={() => setShowPlans(true)}
-              className="text-sm font-medium text-primary-600 hover:underline"
-            >
-              Like what you&apos;re seeing? Start a monthly plan early
-            </button>
+            <>
+              {/* Continuity frame, anchored to the real end date when we have
+                  one. The reason to act now is the flight clock above, not
+                  manufactured urgency. */}
+              <button
+                type="button"
+                onClick={() => setShowPlans(true)}
+                className="text-sm font-medium text-primary-600 hover:underline"
+              >
+                {request.flight_end_date
+                  ? `Keep your campaign running past ${formatWeek(request.flight_end_date)}`
+                  : "Start a monthly plan early"}
+              </button>
+              <p className="mt-1.5 text-xs text-gray-400 leading-relaxed max-w-md">
+                The ads stop when your free intro ends. Starting a plan now
+                means no gap: the campaign keeps running and families keep
+                arriving.
+              </p>
+            </>
           )}
         </div>
       )}

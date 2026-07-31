@@ -71,6 +71,32 @@ export function polishedLayout(
 }
 
 /**
+ * SmartLead-compatible branded layout.
+ *
+ * SmartLead strips <!DOCTYPE>, <html>, <head>, and <body> tags from emails.
+ * This function creates the branded Olera layout using ONLY table structure,
+ * which SmartLead preserves. The result is the same visual appearance as
+ * polishedLayout() but compatible with SmartLead's email processing.
+ *
+ * Used by the SmartLead bridge instead of polishedLayout().
+ */
+export function smartleadBrandedLayout(
+  body: string,
+  footer: string,
+  opts?: { categoryLabel?: string }
+): string {
+  const categoryHtml = opts?.categoryLabel
+    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 16px;">${opts.categoryLabel}</p>`
+    : "";
+
+  const year = new Date().getFullYear();
+
+  // Table structure only - no DOCTYPE/html/head/body tags
+  // SmartLead will wrap this in its own document structure
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;font-family:${FONT_STACK};"><tr><td align="center"><table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:520px;width:100%;"><tr><td style="padding:24px 32px 16px;"><span style="font-size:18px;font-weight:700;color:${BRAND_COLOR};letter-spacing:-0.3px;">Olera</span></td></tr><tr><td style="padding:0 32px 24px;">${categoryHtml}${body}</td></tr><tr><td style="padding:0 32px 32px;">${footer}</td></tr><tr><td style="padding:16px 32px;border-top:1px solid #f3f4f6;"><p style="font-size:12px;color:#9ca3af;margin:0;">&copy; ${year} Olera &middot; <a href="${BASE_URL}" style="color:#9ca3af;">olera.care</a></p></td></tr></table></td></tr></table>`;
+}
+
+/**
  * Check if a link label indicates it's a CTA (call-to-action).
  * CTAs are rendered as prominent teal buttons instead of inline links.
  *

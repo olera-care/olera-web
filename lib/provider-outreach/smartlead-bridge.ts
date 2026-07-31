@@ -38,7 +38,7 @@ import {
   type TemplateContext,
   loganSignatureHtml,
 } from "./templates";
-import { bodyToHtml, polishedLayout, getCategoryLabel } from "./email-utils";
+import { bodyToHtml, smartleadBrandedLayout, getCategoryLabel } from "./email-utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -278,13 +278,17 @@ function buildSmartleadFooterHtml(): string {
 
 /**
  * Render a template body to SmartLead HTML with merge tags.
- * Wraps in polished email layout for consistent Olera branding.
+ *
+ * Uses smartleadBrandedLayout() instead of polishedLayout() because SmartLead
+ * strips <!DOCTYPE>, <html>, <head>, and <body> tags. The branded layout uses
+ * only table structure which SmartLead preserves, giving us the Olera look
+ * (white card container, logo header, footer) in SmartLead-sent emails.
  */
 function toSmartleadHtml(body: string, templateKey: ProviderOutreachTemplateKey): string {
   const convertedBody = convertToSmartleadTokens(body);
   const bodyHtml = bodyToHtml(convertedBody);
   const footerHtml = buildSmartleadFooterHtml();
-  return polishedLayout(bodyHtml, footerHtml, {
+  return smartleadBrandedLayout(bodyHtml, footerHtml, {
     categoryLabel: getCategoryLabel(templateKey),
   });
 }

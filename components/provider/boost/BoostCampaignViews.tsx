@@ -37,6 +37,15 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
   if (budget) facts.push({ label: "Plan", value: budget });
+  // Flight time context — the "day N of M" that makes a live campaign feel
+  // like a running clock instead of a static state. Only when the end date
+  // has been entered from the ad platform.
+  if (request.flight_end_date) {
+    facts.push({
+      label: "Flight",
+      value: flightProgress(request.requested_setup_week, request.flight_end_date),
+    });
+  }
 
   // Flex + flex-1 (not a fixed grid) so 1, 2, or 3 facts always fill the width
   // evenly — older requests with no channel/budget never leave empty cells.
@@ -289,27 +298,22 @@ export function PlanActive({
  * provider's own numbers, then one calm plan choice -> Stripe Checkout.
  * Zero leads = the honest no-ask path: we re-run on us, nothing to pay.
  */
-export function WrapUpMoment({
+/**
+ * The plan cards + de-risk promises + checkout CTA, extracted so the wrap-up
+ * moment and the live view's early-upgrade path stay one implementation.
+ * Owns its own selection state; defaults to the signup intent, else Starter.
+ */
+export function PlanChooser({
   request,
-  campaignStats,
-  receipt,
   onCheckout,
   submitting,
   error,
 }: {
   request: BoostRequest;
-  campaignStats: {
-    visitors: number;
-    leads: number;
-    questions?: { received: number; unanswered: number };
-    since: string;
-  } | null;
-  receipt?: CampaignReceiptData | null;
   onCheckout: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
 }) {
-  const leads = campaignStats?.leads ?? 0;
   const paidStops = BUDGET_STOPS.filter((b) => b.sublabel !== "on us");
   // Default to what they said they intended at signup, else Starter.
   const [plan, setPlan] = useState<number>(() =>
@@ -319,7 +323,7 @@ export function WrapUpMoment({
   );
   const selected = budgetStop(plan);
 
-  const planSection = (
+  return (
     <>
       {/* Single-row plan cards: name · price · estimate. No blurbs here — the
           results above are the pitch (the apply flow keeps its blurbs). */}
@@ -398,7 +402,40 @@ export function WrapUpMoment({
       <p className="mt-3 text-sm text-gray-500">
         Nothing is charged until you confirm on the next screen.
       </p>
+    </>
+  );
+}
 
+/**
+ * The wrap-up moment — the FEATURED payment ask. Arms on a value event (3rd
+ * lead, or concierge marked the promo complete). Leads with the provider's
+ * own numbers, then one calm plan choice -> Stripe Checkout. The live view
+ * carries a quieter always-available PlanChooser behind a disclosure.
+ */
+export function WrapUpMoment({
+  request,
+  campaignStats,
+  receipt,
+  onCheckout,
+  submitting,
+  error,
+}: {
+  request: BoostRequest;
+  campaignStats: {
+    visitors: number;
+    leads: number;
+    questions?: { received: number; unanswered: number };
+    since: string;
+  } | null;
+  receipt?: CampaignReceiptData | null;
+  onCheckout: (planValue: number) => void;
+  submitting: boolean;
+  error: string | null;
+}) {
+  const leads = campaignStats?.leads ?? 0;
+  const planSection = (
+    <>
+      <PlanChooser request={request} onCheckout={onCheckout} submitting={submitting} error={error} />
       <div className="mt-10">
         <Link
           href="/provider"
@@ -476,6 +513,181 @@ export function WrapUpMoment({
         Keep it going
       </p>
       {planSection}
+    </div>
+  );
+}
+
+/** "Day 12 of 28 · ends Aug 3" from the setup week + the ad platform's end
+ *  date. Parses date parts locally (no TZ drift, same rule as formatWeek). */
+function flightProgress(startIso: string, endIso: string): string {
+  const parse = (d: string) => {
+    const [y, m, day] = d.split("-").map(Number);
+    return y && m && day ? new Date(y, m - 1, day) : null;
+  };
+  const start = parse(startIso);
+  const end = parse(endIso);
+  if (!start || !end) return formatWeek(endIso);
+  const DAY = 24 * 60 * 60 * 1000;
+  const total = Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY) + 1);
+  const today = new Date();
+  const day = Math.floor((today.getTime() - start.getTime()) / DAY) + 1;
+  // Facts row also renders for scheduled campaigns whose end date was entered
+  // at setup — a pre-start flight must not read "Day 1" as if it were running.
+  if (day < 1) return `${total} days · ends ${formatWeek(endIso)}`;
+  if (day > total) return `Ended ${formatWeek(endIso)}`;
+  return `Day ${day} of ${total} · ends ${formatWeek(endIso)}`;
+}
+
+/** The "numbers going up" line — rolling last-7-days momentum under the stat
+ *  row. Renders nothing when the week was quiet (no fake motion). */
+function MomentumLine({ week }: { week: CampaignReceiptData["week"] }) {
+  if (!week) return null;
+  const parts: string[] = [];
+  if (week.leads > 0) parts.push(`${week.leads} new ${week.leads === 1 ? "lead" : "leads"}`);
+  if (week.questions > 0)
+    parts.push(`${week.questions} ${week.questions === 1 ? "question" : "questions"}`);
+  if (week.visitors > 0)
+    parts.push(`${week.visitors} ${week.visitors === 1 ? "visitor" : "visitors"}`);
+  if (parts.length === 0) return null;
+  return (
+    <p className="mt-3 text-sm font-medium text-primary-700">
+      ↑ This week: {parts.join(" · ")}
+    </p>
+  );
+}
+
+/**
+ * The live / in-motion campaign view — where conviction builds. The wrap-up
+ * converts providers who already decided; this view is where they watch the
+ * numbers move (momentum line, accruing receipt, flight clock) and can start
+ * a plan EARLY through a quiet disclosure instead of waiting for the wrap-up.
+ * Shared with the admin preview gallery so TJ sees exactly what providers see.
+ */
+export function CampaignInMotion({
+  request,
+  campaignStats,
+  receipt,
+  onCheckout,
+  submitting,
+  error,
+}: {
+  request: BoostRequest;
+  campaignStats: {
+    visitors: number;
+    leads: number;
+    questions?: { received: number; unanswered: number };
+    since: string;
+  } | null;
+  receipt?: CampaignReceiptData | null;
+  onCheckout: (planValue: number) => void;
+  submitting: boolean;
+  error: string | null;
+}) {
+  const [showPlans, setShowPlans] = useState(false);
+  const label: Record<string, string> = {
+    requested: "Launch plan received",
+    scheduled: "Setup scheduled",
+    live: "Your campaign is live",
+  };
+  const isLive = request.status === "live";
+  return (
+    <div className="max-w-2xl">
+      <div className="flex items-center gap-2.5 mb-3">
+        <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+        <span className="text-sm font-semibold text-primary-700">
+          {label[request.status] ?? "In progress"}
+        </span>
+      </div>
+      <h2 className="text-2xl font-display font-semibold text-gray-900">
+        {isLive ? "Your campaign is live." : "We\u2019re on it."}
+      </h2>
+      <p className="text-gray-500 mt-3 leading-relaxed">
+        {isLive
+          ? "Here\u2019s how your campaign is performing. Families arrive on your dashboard as they come in."
+          : "We\u2019ll send over the launch plan before anything goes live, confirm the details, then families arrive on your dashboard as they come in."}
+      </p>
+
+      {/* The campaign they committed to — week, channel, budget, flight clock. */}
+      <CampaignFacts request={request} />
+
+      {/* When live, real performance — the funnel at equal weight — is THE
+          focal point, with the week's momentum right under it. */}
+      {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
+      {isLive && receipt && <MomentumLine week={receipt.week} />}
+
+      {/* The accruing receipt: ad reach, saves, questions, reported outcomes. */}
+      {isLive && receipt && <CampaignReceiptBlock receipt={receipt} />}
+
+      {/* Set up the wrap-up moment BEFORE it arrives: the no-silent-rollover
+          promise, planted while the intro is still running. */}
+      {isLive && !request.plan_status && !showPlans && (
+        <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
+          When your intro wraps, your results will be right here and you choose
+          whether to keep going. Nothing switches to a paid plan on its own.
+        </p>
+      )}
+
+      {/* The early-upgrade path: a quiet disclosure, never a hard ask — the
+          wrap-up stays the featured moment. Checkout accepts live campaigns. */}
+      {isLive && !request.plan_status && (
+        <div className="mt-8 border-t border-gray-100 pt-6">
+          {showPlans ? (
+            <>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+                Keep it running without a gap
+              </p>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed max-w-md">
+                Your free intro keeps running either way. When it ends, the
+                plan takes over the same day, at several times the volume, so
+                families keep arriving with no interruption.
+              </p>
+              <PlanChooser
+                request={request}
+                onCheckout={onCheckout}
+                submitting={submitting}
+                error={error}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPlans(false)}
+                className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Maybe later
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Continuity frame, anchored to the real end date when we have
+                  one. The reason to act now is the flight clock above, not
+                  manufactured urgency. */}
+              <button
+                type="button"
+                onClick={() => setShowPlans(true)}
+                className="text-sm font-medium text-primary-600 hover:underline"
+              >
+                {request.flight_end_date
+                  ? `Keep your campaign running past ${formatWeek(request.flight_end_date)}`
+                  : "Start a monthly plan early"}
+              </button>
+              <p className="mt-1.5 text-xs text-gray-400 leading-relaxed max-w-md">
+                The ads stop when your free intro ends. Starting a plan now
+                means no gap: the campaign keeps running and families keep
+                arriving.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
+      <Link
+        href="/provider"
+        className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"
+      >
+        Back to dashboard
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
+      </Link>
     </div>
   );
 }

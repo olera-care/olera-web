@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { BoostRequest, CampaignReceiptData } from "@/lib/ad-boost/boost-state";
 import {
+  CampaignInMotion,
   PlanActive,
   WrapUpMoment,
 } from "@/components/provider/boost/BoostCampaignViews";
@@ -15,7 +16,7 @@ import {
  * checkout button is stubbed: nothing here can charge anyone.
  */
 
-type PreviewKey = "wrapup" | "wrapup_one" | "weak" | "celebrate" | "steady";
+type PreviewKey = "live" | "wrapup" | "wrapup_one" | "weak" | "celebrate" | "steady";
 
 /** Sample receipts — Miracle-Lightstar-shaped numbers for the zero-lead demand
  *  receipt, Franchil-shaped for the outcome receipt. */
@@ -24,6 +25,7 @@ const RECEIPT_ZERO: CampaignReceiptData = {
   engagement: { visitors: 22, saves: 6, questionsReceived: 3 },
   outcomes: { client: 0, talking: 0, no: 0, unanswered: 0 },
   expectedLeads: 0.7,
+  week: { visitors: 9, questions: 2, leads: 0 },
 };
 
 const RECEIPT_STRONG: CampaignReceiptData = {
@@ -31,6 +33,7 @@ const RECEIPT_STRONG: CampaignReceiptData = {
   engagement: { visitors: 19, saves: 8, questionsReceived: 4 },
   outcomes: { client: 1, talking: 1, no: 0, unanswered: 1 },
   expectedLeads: 0.5,
+  week: { visitors: 7, questions: 1, leads: 1 },
 };
 
 const SAMPLE_BASE: BoostRequest = {
@@ -52,6 +55,11 @@ const PREVIEWS: {
   blurb: string;
 }[] = [
   {
+    key: "live",
+    label: "Live · mid-flight",
+    blurb: "The in-campaign view where conviction builds: momentum line under the stat row, accruing receipt, flight clock in the facts row, and the quiet early-upgrade disclosure (\u201cStart a monthly plan early\u201d) so a provider can subscribe before the wrap-up.",
+  },
+  {
     key: "wrapup",
     label: "Wrap-up · strong",
     blurb: "The payment ask, now with the outcome receipt: one lead reported as a paying client (the provider's own one-tap answer), one still talking. Sample numbers are Franchil-shaped: 19 visitors, 3 leads.",
@@ -63,17 +71,17 @@ const PREVIEWS: {
   },
   {
     key: "weak",
-    label: "Wrap-up · zero leads (demand receipt)",
+    label: "Wrap-up · zero leads",
     blurb: "The demand receipt: ad reach, clicks, saves and questions prove demand was real, the math line explains the zero, and the plans read as a volume choice. Sample numbers are Miracle-Lightstar-shaped: 268 ad views, 20 clicks, 6 saves, 0 leads.",
   },
   {
     key: "celebrate",
-    label: "Plan active · just paid",
+    label: "Plan · just paid",
     blurb: "What they see returning from Stripe Checkout (?subscribed=true), even before the webhook lands.",
   },
   {
     key: "steady",
-    label: "Plan active · steady state",
+    label: "Plan · steady state",
     blurb: "Every later visit to /provider/boost while the plan runs.",
   },
 ];
@@ -110,25 +118,29 @@ export default function AdBoostPreviewPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-      <header className="mb-5">
+      <header className="mb-4">
+        <Link
+          href="/admin/ad-boost"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-3"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to queue
+        </Link>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">Wrap-up moment — preview</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">What providers see</h1>
           <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700">
             sample data · checkout stubbed
           </span>
         </div>
         <p className="text-gray-500 mt-1 text-sm max-w-2xl">
-          The exact components providers see on /provider/boost (shared code, not
-          a mockup). The wrap-up is the only payment ask in the system; it arms on
-          the 3rd lead or the promo-complete email.{" "}
-          <Link href="/admin/ad-boost" className="text-primary-600 font-medium hover:underline">
-            Back to the queue
-          </Link>
+          The exact /provider/boost components, shared code against sample data.
         </p>
       </header>
 
       {/* State picker */}
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-1.5 mb-2">
         {PREVIEWS.map((p) => (
           <button
             key={p.key}
@@ -137,7 +149,7 @@ export default function AdBoostPreviewPage() {
               setView(p.key);
               setFakeError(null);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors ${
               view === p.key
                 ? "bg-primary-600 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -147,7 +159,10 @@ export default function AdBoostPreviewPage() {
           </button>
         ))}
       </div>
-      <p className="text-xs text-gray-400 mb-6 max-w-2xl">
+      <p className="mt-3 mb-5 max-w-2xl border-l-2 border-primary-200 pl-3 text-xs leading-relaxed text-gray-500">
+        <span className="font-semibold text-gray-700">
+          {PREVIEWS.find((p) => p.key === view)?.label}.
+        </span>{" "}
         {PREVIEWS.find((p) => p.key === view)?.blurb}
       </p>
 
@@ -157,6 +172,17 @@ export default function AdBoostPreviewPage() {
           provider view · /provider/boost
         </div>
         <div className="bg-gradient-to-b from-vanilla-50 via-white to-white px-6 sm:px-10 py-10">
+          {view === "live" && (
+            <CampaignInMotion
+              key="live"
+              request={{ ...SAMPLE_BASE, flight_end_date: "2026-08-03", promo_complete_email_sent_at: null }}
+              campaignStats={stats(1)}
+              receipt={RECEIPT_STRONG}
+              onCheckout={stubCheckout}
+              submitting={fakeSubmitting}
+              error={fakeError}
+            />
+          )}
           {view === "wrapup" && (
             <WrapUpMoment
               key="wrapup"

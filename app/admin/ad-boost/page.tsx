@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   type CampaignRequest,
+  STATUS_LABELS,
   StatusBadge,
   channelLabel,
   fmtDateOnly,
@@ -15,6 +16,7 @@ export default function AdminAdBoostPage() {
   const [counts, setCounts] = useState({ active: 0, archived: 0 });
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"active" | "archived">("active");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -44,6 +46,17 @@ export default function AdminAdBoostPage() {
     { value: "archived" as const, label: "Archived", count: counts.archived },
   ];
 
+  // Status chips are built from the loaded rows (only statuses that exist),
+  // so the row stays as small as the data allows. Client-side filter — the
+  // list API already returns everything.
+  const statusCounts = new Map<string, number>();
+  for (const r of requests ?? []) {
+    statusCounts.set(r.status, (statusCounts.get(r.status) ?? 0) + 1);
+  }
+  const statusChips = Object.keys(STATUS_LABELS).filter((st) => statusCounts.has(st));
+  const visibleRequests =
+    requests && statusFilter ? requests.filter((r) => r.status === statusFilter) : requests;
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       <header className="mb-5">
@@ -56,7 +69,7 @@ export default function AdminAdBoostPage() {
             href="/admin/ad-boost/preview"
             className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Preview wrap-up moment ↗
+            See what providers see ↗
           </Link>
         </div>
         <p className="text-gray-500 mt-1 text-sm">
@@ -71,7 +84,10 @@ export default function AdminAdBoostPage() {
           <button
             key={t.value}
             type="button"
-            onClick={() => setView(t.value)}
+            onClick={() => {
+              setView(t.value);
+              setStatusFilter(null);
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
               view === t.value
                 ? "bg-primary-600 text-white"
@@ -86,12 +102,47 @@ export default function AdminAdBoostPage() {
         ))}
       </div>
 
+      {/* Status filter — chips only for statuses present in the loaded list,
+          so the row stays as small as the data allows. */}
+      {statusChips.length > 1 && (
+        <div className="flex flex-wrap items-center gap-1.5 mb-4">
+          <button
+            type="button"
+            onClick={() => setStatusFilter(null)}
+            className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+              statusFilter === null
+                ? "bg-gray-800 text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            All
+          </button>
+          {statusChips.map((st) => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === st ? null : st)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                statusFilter === st
+                  ? "bg-gray-800 text-white"
+                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              {STATUS_LABELS[st] ?? st}
+              <span className={statusFilter === st ? "ml-1 text-white/60" : "ml-1 text-gray-400"}>
+                {statusCounts.get(st)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_112px_52px_72px_52px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_140px_52px_72px_52px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
           <span>Clicks</span>
@@ -104,13 +155,17 @@ export default function AdminAdBoostPage() {
         {!requests && !error && (
           <p className="text-gray-400 text-sm px-4 py-6">Loading…</p>
         )}
-        {requests && requests.length === 0 && (
+        {visibleRequests && visibleRequests.length === 0 && (
           <p className="text-gray-400 text-sm px-4 py-6">
-            {view === "archived" ? "No archived requests." : "No campaign requests yet."}
+            {statusFilter
+              ? `No ${(STATUS_LABELS[statusFilter] ?? statusFilter).toLowerCase()} requests.`
+              : view === "archived"
+                ? "No archived requests."
+                : "No campaign requests yet."}
           </p>
         )}
 
-        {requests?.map((r) => (
+        {visibleRequests?.map((r) => (
           <RequestRow key={`${r.id}-${r.updated_at}`} request={r} onChanged={load} />
         ))}
       </div>
@@ -181,7 +236,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_112px_52px_72px_52px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_140px_52px_72px_52px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link

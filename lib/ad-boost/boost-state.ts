@@ -41,6 +41,9 @@ export interface BoostRequest {
   /** Idempotency marker for the promo-complete email; doubles as the concierge
    *  "intro is wrapped" signal that arms the wrap-up ask. */
   promo_complete_email_sent_at: string | null;
+  /** Last serving day of the ad flight (admin-entered from the ad platform).
+   *  Powers the live view's "Day N of M" time context. Null = not entered. */
+  flight_end_date?: string | null;
 }
 
 export interface BoostStateResponse {
@@ -105,6 +108,9 @@ export interface CampaignReceiptData {
   outcomes: { client: number; talking: number; no: number; unanswered: number };
   /** Expected leads for the clicks bought (category benchmark ~1 per 30). */
   expectedLeads: number | null;
+  /** Rolling last-7-days momentum, computed from real event timestamps — the
+   *  live view's "numbers going up" signal. Null when the campaign is over. */
+  week: { visitors: number; questions: number; leads: number } | null;
 }
 
 const TTL_MS = 60_000;

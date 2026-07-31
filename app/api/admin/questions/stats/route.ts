@@ -8,6 +8,7 @@ import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
  * Returns stats for the PulseHeader. Two metrics from one query:
  *  - `total` / `delta`: needs-email backlog in the range (KPI)
  *  - `series`: ALL question creations per bucket (platform pulse chart)
+ *  - `summary`: { new_today, answered_today } for stat boxes
  *
  * The KPI and the chart are intentionally different metrics. Needs-email is
  * the operator action queue; the pulse chart shows overall platform activity
@@ -226,7 +227,32 @@ export async function GET(request: NextRequest) {
     const seriesStart = from ?? seriesTimestamps[0] ?? now;
     const series = buildSeries(seriesTimestamps, seriesStart, to, bucket);
 
-    return NextResponse.json({ total: kpiCurrent, delta, series, bucket });
+    // Summary stats: new_today and answered_today
+    // Use UTC midnight to avoid timezone drift between server and database
+    const todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const todayIso = todayStart.toISOString();
+
+    // Providers who received new questions today (unique provider count)
+    const { data: newTodayData } = await db
+      .from("provider_questions")
+      .select("provider_id")
+      .gte("created_at", todayIso);
+    const newTodayCount = new Set((newTodayData ?? []).map(q => q.provider_id).filter(Boolean)).size;
+
+    // Questions answered by providers today (using answered_at timestamp)
+    const { count: answeredTodayCount } = await db
+      .from("provider_questions")
+      .select("id", { count: "exact", head: true })
+      .not("answered_at", "is", null)
+      .gte("answered_at", todayIso);
+
+    const summary = {
+      new_today: newTodayCount ?? 0,
+      answered_today: answeredTodayCount ?? 0,
+    };
+
+    return NextResponse.json({ total: kpiCurrent, delta, series, bucket, summary });
   } catch (err) {
     console.error("Admin questions stats fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

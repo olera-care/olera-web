@@ -407,6 +407,75 @@ export function buildProviderEmailSequence(): SmartleadSequenceStep[] {
   return steps;
 }
 
+/**
+ * Render any template as SmartLead HTML (for preview purposes).
+ *
+ * This is used for templates not in the cadence (like "nudge") that still
+ * need SmartLead-style preview in the admin panel.
+ *
+ * @param templateKey - Template to render
+ * @param context - Context with substituted values (not merge tags)
+ * @returns SmartLead-formatted HTML
+ */
+export function renderTemplateAsSmartleadHtml(
+  templateKey: ProviderOutreachTemplateKey,
+  context: TemplateContext
+): { html: string; subject: string } {
+  const draft = getTemplate(templateKey, context);
+
+  // Substitute actual values into template variables
+  let body = draft.body;
+  let subject = draft.subject;
+
+  const substitutions: Record<string, string> = {
+    "{provider_name}": context.provider_name,
+    "{city}": context.city,
+    "{state}": context.state,
+    "{category}": context.category || "care providers",
+    "{profile_url}": context.profile_url,
+    "{claim_url}": context.claim_url,
+    "{manage_url}": context.manage_url,
+    "{remove_url}": context.remove_url,
+    "{unsubscribe_url}": context.unsubscribe_url,
+    "{mailing_address}": context.mailing_address,
+    "{gap_list}": context.gap_list || "",
+    "{city_views}": String(context.city_views || 0),
+  };
+
+  for (const [token, value] of Object.entries(substitutions)) {
+    const regex = new RegExp(token.replace(/[{}]/g, "\\$&"), "g");
+    body = body.replace(regex, value);
+    subject = subject.replace(regex, value);
+  }
+
+  // Render to SmartLead HTML format
+  const bodyHtml = smartleadBodyToHtml(body);
+  const footerHtml = buildSmartleadFooterHtml();
+
+  // Substitute SmartLead merge tags in footer for preview
+  // Footer uses {{manage_url}} format which needs to be replaced with actual values
+  let html = bodyHtml + footerHtml;
+  const mergeTagSubstitutions: Record<string, string> = {
+    "{{company_name}}": context.provider_name,
+    "{{city}}": context.city,
+    "{{state}}": context.state,
+    "{{category}}": context.category || "care providers",
+    "{{profile_url}}": context.profile_url,
+    "{{claim_url}}": context.claim_url,
+    "{{manage_url}}": context.manage_url,
+    "{{remove_url}}": context.remove_url,
+    "{{unsubscribe_url}}": context.unsubscribe_url,
+    "{{gap_list}}": context.gap_list || "",
+    "{{city_views}}": String(context.city_views || 0),
+  };
+
+  for (const [tag, value] of Object.entries(mergeTagSubstitutions)) {
+    html = html.replace(new RegExp(tag.replace(/[{}]/g, "\\$&"), "g"), value);
+  }
+
+  return { html, subject };
+}
+
 // ── Orchestration ─────────────────────────────────────────────────────────
 
 /**

@@ -5,6 +5,8 @@ import {
   renderEmail,
   type TemplateContext,
 } from "@/lib/provider-outreach";
+import { renderTemplateAsSmartleadHtml } from "@/lib/provider-outreach/smartlead-bridge";
+import { isSmartleadConfigured } from "@/lib/smartlead";
 
 /**
  * GET /api/admin/provider-outreach/template-preview
@@ -13,11 +15,15 @@ import {
  *
  * Query params:
  *   - template: string (required) - Template key: intro, followup, demand_loss, final, nudge
+ *   - engine: "smartlead" | "resend" (optional) - Which rendering engine to use
+ *     Defaults to "smartlead" when SmartLead is configured, otherwise "resend"
  *
  * Returns:
  *   - html: string - Fully rendered HTML email
  *   - subject: string - Email subject line
  *   - template_key: string - The template key
+ *   - engine: string - Which engine was used for rendering
+ *   - smartlead_configured: boolean - Whether SmartLead is configured
  */
 
 const VALID_TEMPLATES: ProviderOutreachTemplateKey[] = [
@@ -61,6 +67,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const template = searchParams.get("template") as ProviderOutreachTemplateKey | null;
+    const engineParam = searchParams.get("engine") as "smartlead" | "resend" | null;
 
     if (!template || !VALID_TEMPLATES.includes(template)) {
       return NextResponse.json(
@@ -69,13 +76,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Render the email with sample context
+    const smartleadConfigured = isSmartleadConfigured();
+    // Default to SmartLead when configured, otherwise Resend
+    const engine = engineParam || (smartleadConfigured ? "smartlead" : "resend");
+
+    // Use SmartLead rendering for ALL templates when requested
+    // This includes nudge (which isn't in the cadence but should preview correctly)
+    if (engine === "smartlead") {
+      const rendered = renderTemplateAsSmartleadHtml(template, SAMPLE_CONTEXT);
+
+      return NextResponse.json({
+        html: rendered.html,
+        subject: rendered.subject,
+        template_key: template,
+        engine: "smartlead",
+        smartlead_configured: smartleadConfigured,
+      });
+    }
+
+    // Resend rendering
     const rendered = renderEmail(template, SAMPLE_CONTEXT);
 
     return NextResponse.json({
       html: rendered.html,
       subject: rendered.subject,
       template_key: template,
+      engine: "resend",
+      smartlead_configured: smartleadConfigured,
     });
   } catch (error) {
     console.error("Error in template-preview:", error);

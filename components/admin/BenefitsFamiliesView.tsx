@@ -2,6 +2,11 @@
 
 import { Fragment, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  buildNavigatorReviewPrompt,
+  type ReviewItem,
+  type ReviewPick,
+} from "@/lib/benefits/navigator-review-prompt";
 
 /**
  * Benefits Families — the queue-shaped view of benefits intake completions.
@@ -76,7 +81,8 @@ interface NavigatorDetail {
   sms?: string | null;
   composed_at?: string;
   sent_at?: string;
-  pick?: { shortName?: string; contactPhone?: string };
+  /** Full pickSnapshot from metadata — the letter's verifiable claims. */
+  pick?: ReviewPick;
 }
 
 type LifecycleStatus =
@@ -145,7 +151,10 @@ export default function BenefitsFamiliesView() {
 
   // ── Case drill-in state ─────────────────────────────────────────────
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [filter, setFilter] = useState<LifecycleStatus | "all">("all");
+  const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready">("all");
+  const [exportState, setExportState] = useState<
+    "idle" | "working" | "error" | { copied: number; failed: number; downloaded: boolean }
+  >("idle");
   const [timelines, setTimelines] = useState<Record<string, TimelineEvent[] | "loading" | "error">>({});
   const [noteText, setNoteText] = useState("");
   const [caseBusy, setCaseBusy] = useState(false);
@@ -172,7 +181,7 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss" | "navigator_test",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
       subject?: string,
       letter?: string,
       sms?: string,
@@ -298,6 +307,79 @@ export default function BenefitsFamiliesView() {
   if (!data) return null;
 
   const { summary, breakdown, families } = data;
+  const draftReadyCount = families.filter((f) => f.navigator?.status === "pending").length;
+
+  /** Redacted review context for the AI fact-check prompt — never carries
+   *  the family's name or email (the name is passed only so the builder can
+   *  strip it from the letter text). */
+  const reviewContextFor = (f: FamilyRow): Omit<ReviewItem, "draft" | "pick"> => {
+    // "Care Seeker" is a stored placeholder, not a name — most benefits
+    // profiles carry it. Redacting its "first name" would mangle prose.
+    const name = f.displayName?.trim();
+    const isPlaceholder = !name || name.toLowerCase() === "care seeker";
+    return {
+      state: f.state,
+      careNeed: f.careNeed ? CARE_NEED_LABELS[f.careNeed] ?? f.careNeed : null,
+      situation: f.situation,
+      completedAt: f.completedAt,
+      firstName: isPlaceholder ? null : name.split(/\s+/)[0] || null,
+    };
+  };
+
+  /** Batch export: pull every pending draft via the existing per-family GET,
+   *  build one paste-ready fact-check prompt, and copy it to the clipboard. */
+  const exportPendingDrafts = async () => {
+    setExportState("working");
+    try {
+      const pending = families.filter((f) => f.navigator?.status === "pending");
+      const results = await Promise.all(
+        pending.map(async (f) => {
+          try {
+            const res = await fetch(`/api/admin/benefits/families/${f.profileId}`);
+            if (!res.ok) return null;
+            const d = await res.json();
+            const nav = d.navigator as NavigatorDetail | undefined;
+            if (nav?.status !== "pending" || !nav.body) return null;
+            return {
+              ...reviewContextFor(f),
+              draft: { subject: nav.subject ?? "", body: nav.body, sms: nav.sms ?? null },
+              pick: nav.pick ?? null,
+            } satisfies ReviewItem;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      const items = results.filter((r): r is ReviewItem => r !== null);
+      if (items.length === 0) throw new Error("no drafts loaded");
+      const prompt = buildNavigatorReviewPrompt(items);
+      let downloaded = false;
+      try {
+        await window.navigator.clipboard.writeText(prompt);
+      } catch {
+        // The fetches can outlive the click's transient user activation
+        // (always in Safari, sometimes in Chromium), which voids clipboard
+        // access. The prompt is built — deliver it as a file instead.
+        const url = URL.createObjectURL(new Blob([prompt], { type: "text/markdown" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "navigator-draft-review.md";
+        a.click();
+        URL.revokeObjectURL(url);
+        downloaded = true;
+      }
+      setExportState({ copied: items.length, failed: pending.length - items.length, downloaded });
+      setTimeout(() => setExportState("idle"), 6000);
+    } catch {
+      setExportState("error");
+    }
+  };
+  const matchesFilter = (f: FamilyRow) =>
+    filter === "all"
+      ? true
+      : filter === "draft_ready"
+        ? f.navigator?.status === "pending"
+        : f.lifecycle.status === filter;
   const delta = summary.completions - summary.prevCompletions;
   const engagedPct = summary.uniqueFamilies ? Math.round((summary.engaged / summary.uniqueFamilies) * 100) : 0;
   const enrichedPct = summary.uniqueFamilies ? Math.round((summary.enriched / summary.uniqueFamilies) * 100) : 0;
@@ -398,6 +480,7 @@ export default function BenefitsFamiliesView() {
         {(
           [
             ["all", "All"],
+            ["draft_ready", "Draft ready"],
             ["needs_help", "Needs help"],
             ["stalled", "Stalled"],
             ["acting", "Acting"],
@@ -406,9 +489,12 @@ export default function BenefitsFamiliesView() {
             ["in_cascade", "In cascade"],
             ["working", "Working"],
             ["resolved", "Resolved"],
-          ] as [LifecycleStatus | "all", string][]
+          ] as [LifecycleStatus | "all" | "draft_ready", string][]
         ).map(([key, label]) => {
-          const count = key === "all" ? families.length : summary.lifecycle?.[key] ?? 0;
+          const count =
+            key === "all" ? families.length
+            : key === "draft_ready" ? draftReadyCount
+            : summary.lifecycle?.[key] ?? 0;
           if (key !== "all" && count === 0 && filter !== key) return null;
           return (
             <button
@@ -422,6 +508,31 @@ export default function BenefitsFamiliesView() {
             </button>
           );
         })}
+        {draftReadyCount > 0 && (
+          <span className="ml-auto flex items-center gap-2">
+            {typeof exportState === "object" && (
+              <span className="text-[11px] font-medium text-emerald-700">
+                {exportState.downloaded ? "Downloaded" : "Copied"} {exportState.copied} draft
+                {exportState.copied === 1 ? "" : "s"} ✓{" "}
+                {exportState.downloaded ? "open the .md file and paste it" : "paste into your AI of choice"}
+                {exportState.failed > 0 ? ` (${exportState.failed} failed to load)` : ""}
+              </span>
+            )}
+            {exportState === "error" && (
+              <span className="text-[11px] font-medium text-red-600">
+                Couldn&apos;t build the export. Try again.
+              </span>
+            )}
+            <button
+              onClick={exportPendingDrafts}
+              disabled={exportState === "working"}
+              title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
+              className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {exportState === "working" ? "Building…" : `Copy AI review prompt (${draftReadyCount})`}
+            </button>
+          </span>
+        )}
       </div>
 
       {/* Family queue */}
@@ -441,7 +552,7 @@ export default function BenefitsFamiliesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {families.filter((f) => filter === "all" || f.lifecycle.status === filter).length === 0 && (
+                {families.filter(matchesFilter).length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">
                       No families in this status right now.
@@ -449,7 +560,7 @@ export default function BenefitsFamiliesView() {
                   </tr>
                 )}
                 {families
-                  .filter((f) => filter === "all" || f.lifecycle.status === filter)
+                  .filter(matchesFilter)
                   .map((f) => (
                   <Fragment key={f.profileId}>
                   <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(f.profileId)}>
@@ -531,6 +642,7 @@ export default function BenefitsFamiliesView() {
                           busy={caseBusy}
                           error={caseError}
                           navigator={navigators[f.profileId]}
+                          reviewContext={reviewContextFor(f)}
                           familyLabel={f.displayName || f.email || "this family"}
                           onNavigator={(action, subject, letter, sms, testEmail) =>
                             navigatorAction(f.profileId, action, subject, letter, sms, testEmail)
@@ -560,17 +672,19 @@ export default function BenefitsFamiliesView() {
  */
 function NavigatorDraftEditor({
   navigator,
+  reviewContext,
   familyLabel,
   textable,
   busy,
   onNavigator,
 }: {
   navigator: NavigatorDetail;
+  reviewContext: Omit<ReviewItem, "draft" | "pick">;
   familyLabel: string;
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
     subject?: string,
     letter?: string,
     sms?: string,
@@ -591,6 +705,25 @@ function NavigatorDraftEditor({
     }
   });
   const [testState, setTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  // Copy a single-draft fact-check prompt (with TJ's in-place edits) for
+  // pasting into an external AI before sending.
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+  const copyReviewPrompt = async () => {
+    try {
+      const prompt = buildNavigatorReviewPrompt([
+        {
+          ...reviewContext,
+          draft: { subject, body: letter, sms: sms.trim() || null },
+          pick: navigator.pick ?? null,
+        },
+      ]);
+      await window.navigator.clipboard.writeText(prompt);
+      setCopyState("copied");
+      setTimeout(() => setCopyState("idle"), 4000);
+    } catch {
+      setCopyState("error");
+    }
+  };
   const sendTest = async () => {
     setTestState("sending");
     try {
@@ -668,6 +801,18 @@ function NavigatorDraftEditor({
         >
           Dismiss
         </button>
+        <button
+          onClick={() => {
+            if (window.confirm("Re-draft this letter from current program data? Your edits to this draft will be discarded.")) {
+              onNavigator("navigator_recompose");
+            }
+          }}
+          disabled={busy}
+          title="Re-drafts the letter from today's program data — use after fact-check corrections deploy, so stale phone numbers and figures don't need hand-editing"
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
+        >
+          {busy ? "Working…" : "Recompose"}
+        </button>
         <p className="text-[11px] text-amber-700/70">Sends the email now{textable ? " plus the companion text" : ""}.</p>
       </div>
       {/* Test send: the exact email in a reviewer's inbox. Consumes nothing —
@@ -687,6 +832,16 @@ function NavigatorDraftEditor({
         >
           {testState === "sending" ? "Sending…" : "Email me a test"}
         </button>
+        <button
+          onClick={copyReviewPrompt}
+          title="Copies a fact-check prompt for this letter (with your edits) — paste into ChatGPT or Perplexity to verify the phone number, program facts, and fit"
+          className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700"
+        >
+          {copyState === "copied" ? "Copied ✓" : "Copy AI review prompt"}
+        </button>
+        {copyState === "error" && (
+          <span className="text-[12px] font-medium text-red-600">Copy failed — try again.</span>
+        )}
         {testState === "sent" && (
           <span className="text-[12px] font-medium text-emerald-700">Test sent ✓ check your inbox</span>
         )}
@@ -806,6 +961,7 @@ function CasePanel({
   busy,
   error,
   navigator,
+  reviewContext,
   familyLabel,
   onNavigator,
   onAction,
@@ -821,9 +977,10 @@ function CasePanel({
   busy: boolean;
   error: string | null;
   navigator: NavigatorDetail | null | undefined;
+  reviewContext: Omit<ReviewItem, "draft" | "pick">;
   familyLabel: string;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
     subject?: string,
     letter?: string,
     sms?: string,
@@ -836,7 +993,9 @@ function CasePanel({
     <div onClick={(e) => e.stopPropagation()}>
       {navigator?.status === "pending" && navigator.body && (
         <NavigatorDraftEditor
+          key={navigator.composed_at}
           navigator={navigator}
+          reviewContext={reviewContext}
           familyLabel={familyLabel}
           textable={reach.textable}
           busy={busy}

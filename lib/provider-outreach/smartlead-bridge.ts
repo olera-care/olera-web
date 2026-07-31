@@ -306,22 +306,28 @@ function smartleadBodyToHtml(text: string): string {
  * NOTE: Join with empty string to avoid extra whitespace in email clients.
  */
 function buildSmartleadFooterHtml(): string {
+  // NOTE: Spacing is carefully calibrated to avoid cumulative margin issues.
+  // - Sign-off "Best," has 16px top margin (space from body)
+  // - "Logan" has 8px bottom margin (tight coupling to signature)
+  // - Signature has 0 margin (set in loganSignatureHtml)
+  // - Footer div has 16px top margin (reasonable gap from signature)
+  // Footer links use &nbsp; to stay on one line in all email clients.
   return [
-    // Sign-off
+    // Sign-off - 16px gap from body content
     `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
     // Signature block (shared with Resend emails)
     loganSignatureHtml(),
-    // Footer links with merge tags
-    `<div style="margin:24px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">`,
+    // Footer links with merge tags - reduced margin, inline links with &nbsp;
+    `<div style="margin:16px 0 0;padding:12px 0 0;border-top:1px solid #e5e7eb;">`,
     `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,
-    `<p style="font-size:13px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;">`,
-    `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a> · `,
-    `<a href="${MERGE_TAGS.removeUrl}" style="color:#9ca3af;text-decoration:underline;">Remove my listing</a> · `,
+    `<p style="font-size:12px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;white-space:nowrap;">`,
+    `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a>&nbsp;·&nbsp;`,
+    `<a href="${MERGE_TAGS.removeUrl}" style="color:#9ca3af;text-decoration:underline;">Remove my listing</a>&nbsp;·&nbsp;`,
     `<a href="${MERGE_TAGS.unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>`,
     `</p>`,
     // Mailing address (CAN-SPAM)
-    `<p style="font-size:11px;color:#d1d5db;margin:12px 0 0;font-family:Inter,Arial,sans-serif;">Olera · ${MAILING_ADDRESS}</p>`,
+    `<p style="font-size:11px;color:#d1d5db;margin:8px 0 0;font-family:Inter,Arial,sans-serif;">Olera · ${MAILING_ADDRESS}</p>`,
     `</div>`,
   ].join("");
 }

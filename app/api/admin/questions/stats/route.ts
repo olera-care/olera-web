@@ -233,22 +233,19 @@ export async function GET(request: NextRequest) {
     todayStart.setUTCHours(0, 0, 0, 0);
     const todayIso = todayStart.toISOString();
 
-    // Questions created today (regardless of status)
-    const { count: newTodayCount } = await db
+    // Providers who received new questions today (unique provider count)
+    const { data: newTodayData } = await db
       .from("provider_questions")
-      .select("id", { count: "exact", head: true })
+      .select("provider_id")
       .gte("created_at", todayIso);
+    const newTodayCount = new Set((newTodayData ?? []).map(q => q.provider_id).filter(Boolean)).size;
 
-    // Questions answered today (approximation using updated_at)
-    // Note: updated_at changes on ANY edit, not just when answered. Without an
-    // answered_at timestamp, this is the best approximation. May slightly
-    // overcount if answered questions are edited after the fact.
+    // Questions answered by providers today (using answered_at timestamp)
     const { count: answeredTodayCount } = await db
       .from("provider_questions")
       .select("id", { count: "exact", head: true })
-      .eq("status", "answered")
-      .not("answer", "is", null)
-      .gte("updated_at", todayIso);
+      .not("answered_at", "is", null)
+      .gte("answered_at", todayIso);
 
     const summary = {
       new_today: newTodayCount ?? 0,

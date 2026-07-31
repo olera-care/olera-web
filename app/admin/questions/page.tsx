@@ -1049,9 +1049,6 @@ export default function AdminQuestionsPage() {
     }
   };
 
-  // Calculate "needs action" = needs_email + delivery_issues + no_contact
-  const needsActionCount = tabCounts.needs_email + tabCounts.delivery_issues + tabCounts.no_contact;
-
   return (
     <div>
       {/* Header with title and date picker */}
@@ -1061,25 +1058,25 @@ export default function AdminQuestionsPage() {
 
       {/* Stat Boxes */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Questions received today">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers who received new questions today">
           <p className="text-xs font-medium uppercase tracking-wide text-gray-500">New Today</p>
           <p className="mt-1 text-2xl font-semibold text-gray-900">{summaryStats?.new_today ?? "—"}</p>
-          <p className="mt-0.5 text-[11px] text-gray-500">questions received</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">providers</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Questions that need attention (needs email + delivery issues + no contact)">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Needs Action</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{needsActionCount.toLocaleString()}</p>
-          <p className="mt-0.5 text-[11px] text-gray-500">awaiting response</p>
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers with questions but no email on file">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Needs Email</p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">{tabCounts.needs_email.toLocaleString()}</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">providers</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Questions with email delivery issues">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers with email delivery issues">
           <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Delivery Issues</p>
           <p className="mt-1 text-2xl font-semibold text-gray-900">{tabCounts.delivery_issues.toLocaleString()}</p>
-          <p className="mt-0.5 text-[11px] text-gray-500">email problems</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">providers</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Questions answered today">
+        <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Questions answered by providers today">
           <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Answered Today</p>
           <p className="mt-1 text-2xl font-semibold text-gray-900">{summaryStats?.answered_today ?? "—"}</p>
-          <p className="mt-0.5 text-[11px] text-gray-500">responses sent</p>
+          <p className="mt-0.5 text-[11px] text-gray-500">by providers</p>
         </div>
       </div>
 

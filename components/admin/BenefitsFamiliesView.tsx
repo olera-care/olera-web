@@ -181,7 +181,7 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss" | "navigator_test",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
       subject?: string,
       letter?: string,
       sms?: string,
@@ -684,7 +684,7 @@ function NavigatorDraftEditor({
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
     subject?: string,
     letter?: string,
     sms?: string,
@@ -800,6 +800,18 @@ function NavigatorDraftEditor({
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
         >
           Dismiss
+        </button>
+        <button
+          onClick={() => {
+            if (window.confirm("Re-draft this letter from current program data? Your edits to this draft will be discarded.")) {
+              onNavigator("navigator_recompose");
+            }
+          }}
+          disabled={busy}
+          title="Re-drafts the letter from today's program data — use after fact-check corrections deploy, so stale phone numbers and figures don't need hand-editing"
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
+        >
+          {busy ? "Working…" : "Recompose"}
         </button>
         <p className="text-[11px] text-amber-700/70">Sends the email now{textable ? " plus the companion text" : ""}.</p>
       </div>
@@ -968,7 +980,7 @@ function CasePanel({
   reviewContext: Omit<ReviewItem, "draft" | "pick">;
   familyLabel: string;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
     subject?: string,
     letter?: string,
     sms?: string,
@@ -981,6 +993,7 @@ function CasePanel({
     <div onClick={(e) => e.stopPropagation()}>
       {navigator?.status === "pending" && navigator.body && (
         <NavigatorDraftEditor
+          key={navigator.composed_at}
           navigator={navigator}
           reviewContext={reviewContext}
           familyLabel={familyLabel}

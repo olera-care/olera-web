@@ -95,9 +95,10 @@ export async function GET(request: NextRequest) {
         if (!details) continue;
 
         const seqStep = details.sequence_step as number | undefined;
-        if (!seqStep || !SEQUENCE_STEP_MAP[seqStep]) continue;
+        // Default to step 1 (intro) if sequence_step is missing
+        const effectiveStep = seqStep && SEQUENCE_STEP_MAP[seqStep] ? seqStep : 1;
 
-        const templateKey = SEQUENCE_STEP_MAP[seqStep].template_key;
+        const templateKey = SEQUENCE_STEP_MAP[effectiveStep].template_key;
         statsMap[templateKey].sent += 1;
 
         // Check for opens/clicks in the details (updated by webhook)

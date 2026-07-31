@@ -38,7 +38,8 @@ import {
   type TemplateContext,
   loganSignatureHtml,
 } from "./templates";
-import { bodyToHtml, smartleadBrandedLayout, getCategoryLabel } from "./email-utils";
+// Note: bodyToHtml, smartleadBrandedLayout, getCategoryLabel removed -
+// SmartLead path now uses inline smartleadBodyToHtml (MedJobs pattern)
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -250,6 +251,55 @@ function convertToSmartleadTokens(text: string): string {
     .replace(/\{total\}/g, "");
 }
 
+// ── SmartLead-specific body rendering ─────────────────────────────────────
+// Follows the MedJobs pattern exactly: single <div>, <br><br> for paragraphs,
+// simple <a> tags for links (no table-based buttons). This structure renders
+// reliably in SmartLead without spacing issues.
+
+const SMARTLEAD_BRAND_COLOR = "#198087";
+const SMARTLEAD_LINK_COLOR = "#059669";
+
+/**
+ * SmartLead body renderer matching MedJobs pattern.
+ *
+ * Key differences from Resend bodyToPolishedHtml:
+ * - Single <div> container (not multiple <p> tags)
+ * - Paragraphs separated by <br><br> (not margin-based)
+ * - CTAs are styled <a> links (not table-based buttons)
+ * - This structure is proven to work with SmartLead
+ */
+function smartleadBodyToHtml(text: string): string {
+  // 1) HTML-escape
+  let s = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // 2) [label](url) → <a href>
+  // CTAs (containing → or "claim" or "review") get bold green styling
+  // Regular links get standard green styling
+  s = s.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (_m, label: string, href: string) => {
+      const isCta = label.includes("→") ||
+                    label.toLowerCase().includes("claim") ||
+                    label.toLowerCase().includes("review");
+      if (isCta) {
+        return `<a href="${href}" style="color:${SMARTLEAD_BRAND_COLOR};font-weight:600;text-decoration:none;">${label}</a>`;
+      }
+      return `<a href="${href}" style="color:${SMARTLEAD_LINK_COLOR};font-weight:500;text-decoration:underline;">${label}</a>`;
+    }
+  );
+
+  // 3) **text** → <strong>
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong>${inner}</strong>`);
+
+  // 4) Single-div body: paragraphs joined by <br><br>
+  // This prevents Gmail's auto-trim and keeps consistent spacing
+  const paragraphs = s.split(/\n{2,}/).map((p) => p.replace(/\n/g, "<br>"));
+  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.6;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
+}
+
 /**
  * Build the SmartLead footer HTML with Logan signature + compliance links.
  * Uses SmartLead merge tags for dynamic URLs.
@@ -279,18 +329,20 @@ function buildSmartleadFooterHtml(): string {
 /**
  * Render a template body to SmartLead HTML with merge tags.
  *
- * Uses smartleadBrandedLayout() instead of polishedLayout() because SmartLead
- * strips <!DOCTYPE>, <html>, <head>, and <body> tags. The branded layout uses
- * only table structure which SmartLead preserves, giving us the Olera look
- * (white card container, logo header, footer) in SmartLead-sent emails.
+ * Follows the MedJobs pattern: bodyHtml + footerHtml, NO outer wrapper.
+ * SmartLead strips complex HTML structures, so we keep it simple:
+ * - Single <div> for body (smartleadBodyToHtml)
+ * - Signature table (loganSignatureHtml) - tables work for inline components
+ * - Simple footer links
+ *
+ * This pattern is proven to render correctly in SmartLead → Gmail.
  */
-function toSmartleadHtml(body: string, templateKey: ProviderOutreachTemplateKey): string {
+function toSmartleadHtml(body: string, _templateKey: ProviderOutreachTemplateKey): string {
   const convertedBody = convertToSmartleadTokens(body);
-  const bodyHtml = bodyToHtml(convertedBody);
+  const bodyHtml = smartleadBodyToHtml(convertedBody);
   const footerHtml = buildSmartleadFooterHtml();
-  return smartleadBrandedLayout(bodyHtml, footerHtml, {
-    categoryLabel: getCategoryLabel(templateKey),
-  });
+  // MedJobs pattern: just body + footer, no wrapper
+  return bodyHtml + footerHtml;
 }
 
 /**

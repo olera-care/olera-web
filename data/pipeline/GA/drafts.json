@@ -846,8 +846,8 @@
         ]
       },
       "intro": "If your loved one struggles with high heating or cooling bills, LIHEAP can provide $350-400 paid directly to their energy company each year. Because the program prioritizes seniors age 60+, your loved one gets first access to appointment slots and receives the maximum $400 benefit amount.\n\nThe program covers one heating benefit and one cooling benefit per year, with payments going straight to the utility company, your loved one never handles the money directly. Because each county has its own Community Action Agency with separate budgets and waitlists, availability varies significantly by location.\n\nYour loved one's energy company must be a registered LIHEAP vendor, and household income must be at or below 60% of Georgia's median income for their household size. Applications require scheduled appointments and operate first-come, first-served until county funds run out.",
-      "savingsRange": "$350 – $400/year",
-      "savingsSource": "Direct payments to energy suppliers, with seniors 60+ receiving maximum $400",
+      "savingsRange": "$400-$810 heating and $400-$500 cooling per year (FY2026)",
+      "savingsSource": "LIHEAP Clearinghouse Georgia FY2026: heating $400-$810, cooling $400-$500, crisis up to $810/$500",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -916,7 +916,10 @@
         "Most recent gas bill showing name, address, account number, and amount due",
         "Most recent electric bill showing name, address, account number, and amount due",
         "Verification of age if required for priority consideration",
-        "Signed letter if a representative is applying on behalf of the household member"
+        "Signed letter if a representative is applying on behalf of the household member",
+        "Most recent heating or cooling bill",
+        "Social Security numbers for all household members",
+        "Proof of citizenship or qualified immigration status"
       ],
       "contacts": [
         {
@@ -990,7 +993,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "weatherization-assistance-program",

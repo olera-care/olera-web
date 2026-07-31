@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-05-20T14:47:24.768Z
+ * Last updated: 2026-07-31T08:08:11.769Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -320,9 +320,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "California Department of Aging",
+          "label": "California Department of Aging (general line)",
           "phone": "(916) 419-7500",
-          "description": "Find local MSSP providers and general program information",
+          "description": "CDA's general information line — ask for the MSSP site serving your county; the local site takes applications",
           "hours": "Mon-Fri 8am-5pm PT"
         },
         {
@@ -333,6 +333,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Applications go through your county's local MSSP site. Find it via aging.ca.gov -> Find Services in My County.",
         "Not all California counties have MSSP providers, Alpine, Colusa, El Dorado, Placer, Sacramento, Sutter, Yolo, and Yuba are served by California Health Collaborative, while Los Angeles and Ventura have different arrangements",
         "The nurse assessment is comprehensive and may take 2-3 hours, prepare a quiet space and have your loved one's medications and medical records readily available",
         "If your loved one's proposed care plan would cost more than nursing home placement, they won't qualify regardless of their functional needs",
@@ -391,7 +392,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(916) 419-7500",
       "sourceUrl": "https://www.dhcs.ca.gov/services/medi-cal/Pages/MSSPMedi-CalWaiver.aspx",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "cbas-adult-day-services",

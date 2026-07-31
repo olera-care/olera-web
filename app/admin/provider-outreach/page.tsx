@@ -75,6 +75,9 @@ interface CityStats {
   total: number;
   has_email: number;
   needs_email: number;
+  // Conversion tracking (cumulative)
+  in_sequence?: number;           // Providers that ever entered sequence
+  claimed_from_sequence?: number; // Providers that claimed after being in sequence
 }
 
 // Funnel stat component for metrics display
@@ -1065,6 +1068,20 @@ function CityRow({
             <div className="text-center">
               <span className="font-semibold text-gray-900 tabular-nums">{city.total}</span>
               <span className="text-gray-400 ml-1">{city.total === 1 ? "provider" : "providers"}</span>
+            </div>
+          )}
+
+          {/* Conversion tracking - show on needs_email and ready tabs */}
+          {(activeTab === "needs_email" || activeTab === "ready") && (city.in_sequence ?? 0) > 0 && (
+            <div className="flex items-center gap-3 text-xs border-l border-gray-200 pl-4">
+              <div className="flex items-center gap-1">
+                <span className="text-gray-400">Sequenced:</span>
+                <span className="font-medium text-gray-600 tabular-nums">{city.in_sequence}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-400">Claimed:</span>
+                <span className="font-medium text-emerald-600 tabular-nums">{city.claimed_from_sequence ?? 0}</span>
+              </div>
             </div>
           )}
         </div>

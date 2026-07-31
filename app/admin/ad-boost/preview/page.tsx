@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { BoostRequest, CampaignReceiptData } from "@/lib/ad-boost/boost-state";
 import {
+  CampaignInMotion,
   PlanActive,
   WrapUpMoment,
 } from "@/components/provider/boost/BoostCampaignViews";
@@ -15,7 +16,7 @@ import {
  * checkout button is stubbed: nothing here can charge anyone.
  */
 
-type PreviewKey = "wrapup" | "wrapup_one" | "weak" | "celebrate" | "steady";
+type PreviewKey = "live" | "wrapup" | "wrapup_one" | "weak" | "celebrate" | "steady";
 
 /** Sample receipts — Miracle-Lightstar-shaped numbers for the zero-lead demand
  *  receipt, Franchil-shaped for the outcome receipt. */
@@ -24,6 +25,7 @@ const RECEIPT_ZERO: CampaignReceiptData = {
   engagement: { visitors: 22, saves: 6, questionsReceived: 3 },
   outcomes: { client: 0, talking: 0, no: 0, unanswered: 0 },
   expectedLeads: 0.7,
+  week: { visitors: 9, questions: 2, leads: 0 },
 };
 
 const RECEIPT_STRONG: CampaignReceiptData = {
@@ -31,6 +33,7 @@ const RECEIPT_STRONG: CampaignReceiptData = {
   engagement: { visitors: 19, saves: 8, questionsReceived: 4 },
   outcomes: { client: 1, talking: 1, no: 0, unanswered: 1 },
   expectedLeads: 0.5,
+  week: { visitors: 7, questions: 1, leads: 1 },
 };
 
 const SAMPLE_BASE: BoostRequest = {
@@ -51,6 +54,11 @@ const PREVIEWS: {
   label: string;
   blurb: string;
 }[] = [
+  {
+    key: "live",
+    label: "Live · mid-flight",
+    blurb: "The in-campaign view where conviction builds: momentum line under the stat row, accruing receipt, flight clock in the facts row, and the quiet early-upgrade disclosure (\u201cStart a monthly plan early\u201d) so a provider can subscribe before the wrap-up.",
+  },
   {
     key: "wrapup",
     label: "Wrap-up · strong",
@@ -157,6 +165,17 @@ export default function AdBoostPreviewPage() {
           provider view · /provider/boost
         </div>
         <div className="bg-gradient-to-b from-vanilla-50 via-white to-white px-6 sm:px-10 py-10">
+          {view === "live" && (
+            <CampaignInMotion
+              key="live"
+              request={{ ...SAMPLE_BASE, flight_end_date: "2026-08-03", promo_complete_email_sent_at: null }}
+              campaignStats={stats(1)}
+              receipt={RECEIPT_STRONG}
+              onCheckout={stubCheckout}
+              submitting={fakeSubmitting}
+              error={fakeError}
+            />
+          )}
           {view === "wrapup" && (
             <WrapUpMoment
               key="wrapup"

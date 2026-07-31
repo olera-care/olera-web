@@ -32,12 +32,10 @@ import {
 } from "@/lib/ad-boost/estimate";
 import {
   CampaignFacts,
-  CampaignPerformance,
-  CampaignReceiptBlock,
+  CampaignInMotion,
   PlanActive,
   WrapUpMoment,
 } from "@/components/provider/boost/BoostCampaignViews";
-import type { CampaignReceiptData } from "@/lib/ad-boost/boost-state";
 
 /**
  * Provider Ad Boost — Managed Lead-Gen (concierge v1).
@@ -355,7 +353,14 @@ export default function ProviderBoostPage() {
     return (
       <Shell>
         <div className="mt-2">
-          <CampaignInMotion request={openRequest} campaignStats={state.campaignStats} receipt={state.receipt} />
+          <CampaignInMotion
+            request={openRequest}
+            campaignStats={state.campaignStats}
+            receipt={state.receipt}
+            onCheckout={startCheckout}
+            submitting={checkoutSubmitting}
+            error={checkoutError}
+          />
         </div>
       </Shell>
     );
@@ -411,71 +416,6 @@ export default function ProviderBoostPage() {
 }
 
 // ───────────────────────────────────────────────────────────── States
-
-function CampaignInMotion({
-  request,
-  campaignStats,
-  receipt,
-}: {
-  request: BoostRequest;
-  campaignStats: { visitors: number; leads: number; since: string } | null;
-  receipt?: CampaignReceiptData | null;
-}) {
-  const label: Record<string, string> = {
-    requested: "Launch plan received",
-    scheduled: "Setup scheduled",
-    live: "Your campaign is live",
-  };
-  const isLive = request.status === "live";
-  return (
-    <div className="max-w-2xl">
-      <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-        <span className="text-sm font-semibold text-primary-700">
-          {label[request.status] ?? "In progress"}
-        </span>
-      </div>
-      <h2 className="text-2xl font-display font-semibold text-gray-900">
-        {isLive ? "Your campaign is live." : "We’re on it."}
-      </h2>
-      <p className="text-gray-500 mt-3 leading-relaxed">
-        {isLive
-          ? "Here’s how your campaign is performing — and families arrive on your dashboard as they come in."
-          : "We’ll send over the launch plan before anything goes live, confirm the details, then families arrive on your dashboard as they come in."}
-      </p>
-
-      {/* The campaign they committed to — week, channel, budget. */}
-      <CampaignFacts request={request} />
-
-      {/* When live, real performance — visitors + leads on their page since
-          launch — is THE focal point (replaces the old benefits-only counter). */}
-      {isLive && campaignStats && <CampaignPerformance stats={campaignStats} />}
-
-      {/* The accruing receipt: ad reach, saves, questions, reported outcomes.
-          Renders only the rows that have numbers, so early days stay honest. */}
-      {isLive && receipt && <CampaignReceiptBlock receipt={receipt} />}
-
-      {/* Set up the wrap-up moment BEFORE it arrives: the no-silent-rollover
-          promise, planted while the intro is still running. */}
-      {isLive && !request.plan_status && (
-        <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
-          When your intro wraps, your results will be right here and you choose
-          whether to keep going. Nothing switches to a paid plan on its own.
-        </p>
-      )}
-
-      <Link
-        href="/provider"
-        className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"
-      >
-        Back to dashboard
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-        </svg>
-      </Link>
-    </div>
-  );
-}
 
 /**
  * Standing order queued under 70% OR unverified. This is the page that used to

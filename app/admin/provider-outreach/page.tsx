@@ -132,6 +132,20 @@ function computeCityStatsFromProviders(providers: OutreachProvider[]): CityStats
     .sort((a, b) => b.total - a.total); // Sort by total descending
 }
 
+// Helper to merge sequence stats from API into computed city stats
+// Used when admin filter is active but we still want conversion tracking
+function mergeSequenceStats(computedCities: CityStats[], apiCities: CityStats[]): CityStats[] {
+  const apiCityMap = new Map(apiCities.map((c) => [c.city, c]));
+  return computedCities.map((city) => {
+    const apiCity = apiCityMap.get(city.city);
+    return {
+      ...city,
+      in_sequence: apiCity?.in_sequence ?? 0,
+      claimed_from_sequence: apiCity?.claimed_from_sequence ?? 0,
+    };
+  });
+}
+
 interface OutreachProvider {
   provider_id: string;
   provider_name: string;
@@ -4336,9 +4350,14 @@ export default function ProviderOutreachPage() {
             {(() => {
               // For needs_email/ready tabs: use cities API data when no admin filter,
               // otherwise compute from providers (which are already filtered by assigned_to)
+              // but merge in sequence stats from API for conversion tracking
               // For other stages: always compute from providers
               const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
-              let displayCities = useApiCities ? cities : computeCityStatsFromProviders(providers);
+              let displayCities = useApiCities
+                ? cities
+                : isNotContactedTab(activeTab)
+                  ? mergeSequenceStats(computeCityStatsFromProviders(providers), cities)
+                  : computeCityStatsFromProviders(providers);
               if (activeTab === "needs_email") {
                 displayCities = displayCities.filter((c) => c.needs_email > 0);
               } else if (activeTab === "ready") {

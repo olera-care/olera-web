@@ -145,7 +145,7 @@ export default function BenefitsFamiliesView() {
 
   // ── Case drill-in state ─────────────────────────────────────────────
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [filter, setFilter] = useState<LifecycleStatus | "all">("all");
+  const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready">("all");
   const [timelines, setTimelines] = useState<Record<string, TimelineEvent[] | "loading" | "error">>({});
   const [noteText, setNoteText] = useState("");
   const [caseBusy, setCaseBusy] = useState(false);
@@ -298,6 +298,13 @@ export default function BenefitsFamiliesView() {
   if (!data) return null;
 
   const { summary, breakdown, families } = data;
+  const draftReadyCount = families.filter((f) => f.navigator?.status === "pending").length;
+  const matchesFilter = (f: FamilyRow) =>
+    filter === "all"
+      ? true
+      : filter === "draft_ready"
+        ? f.navigator?.status === "pending"
+        : f.lifecycle.status === filter;
   const delta = summary.completions - summary.prevCompletions;
   const engagedPct = summary.uniqueFamilies ? Math.round((summary.engaged / summary.uniqueFamilies) * 100) : 0;
   const enrichedPct = summary.uniqueFamilies ? Math.round((summary.enriched / summary.uniqueFamilies) * 100) : 0;
@@ -398,6 +405,7 @@ export default function BenefitsFamiliesView() {
         {(
           [
             ["all", "All"],
+            ["draft_ready", "Draft ready"],
             ["needs_help", "Needs help"],
             ["stalled", "Stalled"],
             ["acting", "Acting"],
@@ -406,9 +414,12 @@ export default function BenefitsFamiliesView() {
             ["in_cascade", "In cascade"],
             ["working", "Working"],
             ["resolved", "Resolved"],
-          ] as [LifecycleStatus | "all", string][]
+          ] as [LifecycleStatus | "all" | "draft_ready", string][]
         ).map(([key, label]) => {
-          const count = key === "all" ? families.length : summary.lifecycle?.[key] ?? 0;
+          const count =
+            key === "all" ? families.length
+            : key === "draft_ready" ? draftReadyCount
+            : summary.lifecycle?.[key] ?? 0;
           if (key !== "all" && count === 0 && filter !== key) return null;
           return (
             <button
@@ -441,7 +452,7 @@ export default function BenefitsFamiliesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {families.filter((f) => filter === "all" || f.lifecycle.status === filter).length === 0 && (
+                {families.filter(matchesFilter).length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">
                       No families in this status right now.
@@ -449,7 +460,7 @@ export default function BenefitsFamiliesView() {
                   </tr>
                 )}
                 {families
-                  .filter((f) => filter === "all" || f.lifecycle.status === filter)
+                  .filter(matchesFilter)
                   .map((f) => (
                   <Fragment key={f.profileId}>
                   <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(f.profileId)}>

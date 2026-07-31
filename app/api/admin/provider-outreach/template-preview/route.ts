@@ -29,6 +29,9 @@ const VALID_TEMPLATES: ProviderOutreachTemplateKey[] = [
 ];
 
 // Sample context for preview rendering
+// NOTE: city_views set to 5 (below threshold of 10) to match SmartLead behavior.
+// SmartLead uses generic "Families are searching..." headline since it can't
+// conditionally change email body per-lead. Preview should reflect this.
 const SAMPLE_CONTEXT: TemplateContext = {
   provider_name: "Sunrise Senior Care",
   city: "Austin",
@@ -41,7 +44,7 @@ const SAMPLE_CONTEXT: TemplateContext = {
   unsubscribe_url: "https://olera.care/unsubscribe/sample-token",
   mailing_address: "340 S Lemon Ave #1439, Walnut, CA 91789",
   gap_list: "no pricing, no photos, and no description",
-  city_views: 127,
+  city_views: 5, // Below threshold to show generic headline (matches SmartLead)
 };
 
 export async function GET(request: NextRequest) {

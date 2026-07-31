@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.773Z
+ * Last updated: 2026-07-31T11:43:07.989Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -908,7 +908,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid U.S. issued photo ID",
+        "Picture ID (any government-issued photo ID)",
         "Social Security cards for all household members",
         "Proof of income for all household members 18+ from the last 30 days (pay stubs, Social Security award letters, pension statements)",
         "Zero-income form if anyone has no income (completed at appointment)",
@@ -916,8 +916,6 @@ export const drafts: PipelineStateDrafts = {
         "Most recent electric bill showing name, address, account number, and amount due",
         "Verification of age if required for priority consideration",
         "Signed letter if a representative is applying on behalf of the household member",
-        "Most recent heating or cooling bill",
-        "Social Security numbers for all household members",
         "Proof of citizenship or qualified immigration status"
       ],
       "contacts": [

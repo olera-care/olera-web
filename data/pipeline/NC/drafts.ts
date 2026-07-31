@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.784Z
+ * Last updated: 2026-07-31T11:43:08.001Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2557,8 +2557,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one needs the level of care typically provided in an adult care home but wants to stay in their own home, North Carolina's State-County Special Assistance - In Home provides monthly cash payments to make this possible. The program pays up to $1,326/month for basic needs (food, shelter, clothing) or up to $1,700/month for parents with Alzheimer's or dementia.\n\nYour loved one must be 65+ or disabled, with income below federal poverty levels, and a doctor must verify they need adult care home-level care using an FL-2 form. Because this program automatically includes Medicaid eligibility, your loved one gets both cash assistance and healthcare coverage. The state eliminated waitlists in recent years, so eligible applicants get approved without delay.\n\nThis program requires exhausting other Medicaid and community resources first, and includes mandatory case management with monthly contact, quarterly visits, and annual assessments.",
-      "savingsRange": "Up to $16,764-$21,504/year in 2026",
-      "savingsSource": "NCDHHS 2026 SAIH rates: $1,397/month basic, $1,792/month enhanced maximums; the actual payment is the maximum minus countable income, plus a $70 personal-needs allowance",
+      "savingsRange": "Up to $16,764/year (basic) or $21,504/year (enhanced care) in 2026",
+      "savingsSource": "NCDHHS 2026 SAIH maximum rates: $1,397/month basic tier, $1,792/month enhanced-care tier; actual payment is the applicable maximum minus countable income, plus a $70 personal-needs allowance",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [

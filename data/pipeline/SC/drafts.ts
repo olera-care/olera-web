@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.873Z
+ * Last updated: 2026-07-31T08:08:11.792Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1471,7 +1471,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "SC Legal Services",
           "phone": "1-888-346-5592",
           "description": "Statewide legal aid intake line",
-          "hours": "Business hours (specific hours vary by office)"
+          "hours": "Telephone intake Mon-Thu 9am-6pm"
         },
         {
           "label": "SC Bar Pro Bono Program",
@@ -1523,7 +1523,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-888-346-5592",
       "sourceUrl": "https://aging.sc.gov/programs-initiatives/legal-assistance-older-adults",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "long-term-care-ombudsman",
@@ -1895,16 +1896,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "SC DSS ESAP line",
+          "phone": "1-888-898-0055",
+          "description": "Request an ESAP application by mail or get application help",
+          "hours": "Mon-Fri business hours"
+        },
+        {
           "label": "South Carolina DSS",
           "phone": null,
           "description": "Contact your local DSS office for ESAP applications and interviews",
           "hours": "Varies by office"
-        },
-        {
-          "label": "South Carolina 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline for information about social services including food assistance",
-          "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
@@ -1965,7 +1966,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://dss.sc.gov/assistance-programs/snap/how-do-i-apply/help-for-the-elderly/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "senior-farmers-market-nutrition",

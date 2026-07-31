@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.869Z
+ * Last updated: 2026-07-31T08:08:11.789Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -593,8 +593,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles with Medicare costs, Ohio's Medicare Savings Programs can eliminate their Medicare Part B premiums ($185/month in 2025) and potentially all Medicare copayments and deductibles. These federal programs have three tiers based on income: QMB covers the most costs for those with income up to $1,350/month, SLMB covers Part B premiums for income up to $1,620/month, and QI-1 also covers premiums for income up to $1,824/month.\n\nBecause these programs work with Medicare, your loved one keeps their current doctors and coverage, the program simply pays what Medicare doesn't cover. For someone on QMB, this eliminates all out-of-pocket costs for Medicare-covered services, which can save thousands annually.\n\nQI-1 has limited federal funding and operates first-come, first-served, so slots can fill up. The program reopens each January with priority for current recipients who reapply.",
-      "savingsRange": "$2,220 – $5,000+/year in 2025",
-      "savingsSource": "Part B premiums ($2,220/year) plus potential elimination of all Medicare deductibles and copayments for QMB recipients",
+      "savingsRange": "$2,435+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB can also cover Part A premiums and Medicare cost sharing",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -816,7 +816,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-324-8680",
       "sourceUrl": "https://insurance.ohio.gov/consumers/medicare/msp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "snap-food-benefits",

@@ -702,8 +702,8 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, SNAP provides monthly funds loaded onto an EBT card (Lone Star Card) for food purchases. In Texas, seniors can receive up to $298/month for a single person ($516 for couples), with the average senior getting around $188/month.\n\nBecause your loved one is 60+, they only need to pass the net income test (after deducting medical expenses over $35/month and high shelter costs), making qualification easier than for younger adults. Income limit: $1,305/month for one person or $1,766/month for two people after deductions. Social Security, pensions, and disability benefits count as income, but your loved one can still qualify if they have significant medical or housing expenses.\n\nTexas requires an asset test ($4,500 limit for households with a member aged 60+ or with a disability), but this exempts their primary home, most vehicles, household goods, and some retirement savings. The Lone Star Card (EBT) works like a debit card at grocery stores but cannot be used for alcohol, tobacco, or hot prepared foods.",
-      "savingsRange": "$2,256 – $3,576/year",
-      "savingsSource": "Average senior benefit of $188/month to maximum benefit of $298/month",
+      "savingsRange": "Up to $3,576/year for one person (FY2026 maximum)",
+      "savingsSource": "USDA FY2026 maximum allotment for a 1-person household is $298/month; actual amounts vary widely by income and deductions",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -874,7 +874,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://www.yourtexasbenefits.com",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-10"
+      "draftedAt": "2026-04-10",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "liheap-energy-assistance",

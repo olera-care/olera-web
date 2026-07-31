@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-06-23T04:17:17.511Z
+ * Last updated: 2026-07-31T08:08:11.772Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -978,8 +978,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$2,000 directly to their utility company. The maximum benefit reaches $2,000 for those in a crisis, such as facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. LIHEAP is active in all 67 Florida counties; you apply through the agency designated for your loved one's specific county. Heating assistance generally runs through March 31, and cooling assistance opens April 1.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
-      "savingsRange": "$400 – $2,000/year in 2026",
-      "savingsSource": "Payment ranges from Florida LIHEAP providers",
+      "savingsRange": "Varies by county and available funding",
+      "savingsSource": "FloridaCommerce: benefit amounts vary by county and funding; assistance may be available more than once a year",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1077,21 +1077,18 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Names, dates of birth, and Social Security numbers for all household members",
-        "Photo ID (Florida driver's license, state ID, passport, birth certificate, or naturalization certificate)",
-        "Citizenship or immigration documents for at least one household member",
-        "Income proof from the last 30 days (pay stubs, Social Security award letters, SSI/SSDI letters, VA benefits letter, W-2, or employer letter)",
-        "Recent electric or gas utility bill in household member's name",
-        "Lease agreement if utility bill is not in your loved one's name",
-        "Disconnection notice if facing shutoff (for crisis assistance)",
-        "SNAP, SSI, or TANF benefit letters if receiving these programs",
-        "Self-Declaration of Income Form if other income proof unavailable"
+        "Most recent energy bill",
+        "Final termination notice, if you received one",
+        "Proof of income for all household members",
+        "Photo ID for the applicant",
+        "Social Security cards or numbers for all household members",
+        "Proof of U.S. citizenship or permanent residence"
       ],
       "contacts": [
         {
-          "label": "Florida 2-1-1",
+          "label": "2-1-1 (provider locator)",
           "phone": "2-1-1",
-          "description": "Free helpline to find your county's LIHEAP provider",
+          "description": "Ask for your county's LIHEAP provider agency's number — the county provider takes the application, not 2-1-1",
           "hours": "24 hours, 7 days a week"
         },
         {
@@ -1114,6 +1111,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Applications go through your county's LIHEAP provider agency (community action agency or county human services). Find yours in the FloridaCommerce provider directory at floridajobs.org.",
         "Crisis assistance up to $2,000 requires proof of emergency like a disconnection notice and may be processed faster than regular assistance",
         "You must report ALL household incomes, even for non-citizens or roommates who share the utility bill",
         "Some counties require you to pay your current utility bill before the LIHEAP benefit is awarded",
@@ -1172,7 +1170,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://floridaliheap.com",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-31"
     },
     {
       "id": "weatherization-assistance-program",

@@ -89,6 +89,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ── Clean up pending tasks ──
+    // Delete any pending tasks to prevent orphaned records
+    const { error: taskCleanupError, count: deletedTaskCount } = await db
+      .from("provider_outreach_tasks")
+      .delete()
+      .eq("tracking_id", tracking.id)
+      .eq("status", "pending");
+
+    if (taskCleanupError) {
+      console.error("[provider-outreach/remove] Task cleanup error:", taskCleanupError);
+      // Non-fatal - continue with removal
+    } else if (deletedTaskCount && deletedTaskCount > 0) {
+      console.log(`[provider-outreach/remove] Cleaned up ${deletedTaskCount} pending task(s)`);
+    }
+
     // Log the removal event BEFORE deleting (so we have the provider_id reference)
     // Use "stage_changed" type since "removed_from_outreach" isn't in the CHECK constraint
     const { error: touchpointError } = await db

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import { pauseLeadInCampaign, getLeadByEmail } from "@/lib/smartlead";
 
 /**
  * POST /api/admin/provider-outreach/remove
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record to log what we're removing
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, city, state")
+      .select("id, provider_id, stage, city, state, smartlead_data")
       .eq("provider_id", provider_id)
       .single();
 
@@ -51,6 +52,42 @@ export async function POST(request: NextRequest) {
     }
 
     const oldStage = tracking.stage;
+
+    // ── Pause SmartLead lead to stop further emails ──
+    // If provider was in SmartLead sequence, pause the lead so emails stop
+    const smartleadData = tracking.smartlead_data as {
+      campaign_id?: number;
+      lead_id?: number;
+      lead_email?: string;
+    } | null;
+
+    if (smartleadData?.campaign_id) {
+      try {
+        let leadId = smartleadData.lead_id;
+
+        // If no lead_id stored, look it up by email
+        if (!leadId && smartleadData.lead_email) {
+          const lookup = await getLeadByEmail(smartleadData.lead_email);
+          if (lookup.ok && lookup.data?.id) {
+            leadId = lookup.data.id;
+          }
+        }
+
+        if (leadId) {
+          const result = await pauseLeadInCampaign(smartleadData.campaign_id, leadId);
+          if (result.ok) {
+            console.log(`[provider-outreach/remove] Paused SmartLead lead ${leadId} in campaign ${smartleadData.campaign_id}`);
+          } else {
+            console.warn(`[provider-outreach/remove] Failed to pause SmartLead lead: ${result.error}`);
+          }
+        } else {
+          console.warn(`[provider-outreach/remove] Could not resolve SmartLead lead_id for ${provider_id} (email: ${smartleadData.lead_email})`);
+        }
+      } catch (err) {
+        console.error(`[provider-outreach/remove] Error pausing SmartLead lead:`, err);
+        // Non-fatal - continue with removal
+      }
+    }
 
     // Log the removal event BEFORE deleting (so we have the provider_id reference)
     // Use "stage_changed" type since "removed_from_outreach" isn't in the CHECK constraint

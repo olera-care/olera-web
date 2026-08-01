@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AZ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T01:31:59.307Z
+ * Last updated: 2026-08-01T08:54:06.255Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -929,7 +929,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Health-e-Arizona Plus (DES)",
           "phone": "1-855-432-7587",
-          "description": "Arizona SNAP program questions and assistance",
+          "description": "Mails applications and conducts eligibility interviews by phone. Applications are submitted online, by mail or fax, or in person.",
           "hours": "Mon-Fri 7am-3pm (phone applications)"
         },
         {
@@ -946,6 +946,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "If every applying household member is 60 or older with no earned income, the Elderly Simplified Application Project (ESAP) takes applications fully by phone at 1-855-234-4960.",
         "Households with someone 60+ get special treatment, they can qualify using only net income and asset tests, bypassing the $2,412 gross income limit entirely",
         "Arizona has expanded eligibility beyond federal SNAP requirements, so income limits are higher than in many other states",
         "Medical expenses are fully deductible from gross income, seniors with high healthcare costs should document everything",

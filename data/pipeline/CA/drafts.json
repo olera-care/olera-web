@@ -2093,8 +2093,8 @@
         ]
       },
       "intro": "If your loved one is 65+, disabled, or blind and receives federal SSI (Supplemental Security Income), California automatically provides an additional cash payment called State Supplementary Payment (SSP). This means your loved one gets more money each month, up to $239.94 extra for an individual or $607.83 extra for couples in 2026.\n\nThe total monthly payment becomes $1,206.94 for individuals or $2,057.83 for couples when combining federal SSI and California's SSP supplement. Because SSP follows SSI eligibility automatically, your loved one doesn't need to apply separately, if they qualify for SSI, they get SSP.\n\nTo qualify, your loved one must have very limited income (generally under $1,207/month after disregards) and assets under $2,000 for individuals or $3,000 for couples. The payment is reduced dollar-for-dollar by other countable income, and living arrangements can affect the amount.",
-      "savingsRange": "$2,879 – $7,294/year in 2026",
-      "savingsSource": "Maximum SSP benefits: $239.94/month individual ($2,879/year) to $607.83/month couple ($7,294/year)",
+      "savingsRange": "$2,879-$7,585/year in 2026 (depends on living situation)",
+      "savingsSource": "DHCS SSI/SSP payment standards eff. 2026-01-01: individual SSP $239.94-$632.07/month by living arrangement",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [

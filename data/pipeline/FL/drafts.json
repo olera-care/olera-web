@@ -526,8 +526,8 @@
         "stateVariation": true
       },
       "intro": "If you're looking for a way to ease the financial pressure on your loved one, Florida's Medicare Savings Programs can be a true lifesaver. For 2026, these programs can stop the $202.90 monthly Part B premium from being taken out of their Social Security check, putting over $2,400 back in their pocket annually. Depending on their income, they might even qualify for the QMB level, which covers almost all out-of-pocket medical costs — meaning doctors can no longer bill them for Medicare deductibles or copays.\n\nEnrolling is one of the kindest things you can do to protect their health and savings. Beyond the premium relief, qualifying for any of these programs automatically triggers \"Extra Help\" with prescription costs, which can save them thousands more at the pharmacy. As long as your loved one is a Florida resident with Medicare Part A and meets certain income and asset limits (their home and one car typically won't count), this support is waiting for them. It's a wonderful way to ensure they get the care they deserve without the constant worry of medical bills.",
-      "savingsRange": "$1,000 – $3,000+/year in 2026",
-      "savingsSource": "Part B premium savings plus potential deductible/copay coverage",
+      "savingsRange": "$2,435+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB can also cover deductibles and cost sharing",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -656,6 +656,7 @@
         }
       ],
       "applicationNotes": [
+        "Florida SHINE (the state Medicare counseling program, via the Department of Elder Affairs) can screen for the right MSP category and help with the DCF application for free.",
         "QI program funding is finite, even if you meet all requirements, you may be denied if annual funds are exhausted, so apply early in the calendar year",
         "Income limits include a $20 general exclusion for unearned income, meaning your loved one can have $20 more in unearned income and still qualify",
         "Household size affects income limits and includes all blood relatives or spouses who depend on your loved one for at least half their support",

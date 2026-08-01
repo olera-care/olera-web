@@ -31,3 +31,4 @@ The external reviewer is a lead generator, not an authority. It was right about 
 
 - **MA Frail Elder Waiver, 60-month bank statements**: ChatGPT calls it institutional-lookback conflation (45-day current statements per MassHealth verification list); FEW-specific sources say 60 months is required. Unresolved as of 2026-07-31 — data unchanged, letters should soften to "recent bank statements."
 - Recurring report themes worth watching: 2-1-1 given as an application door; "families that qualify often save $X" phrasing on figures that are maximums; entry-source inferred as the family's need ("paying for care" ≠ energy bills).
+- **Seasonality**: LIHEAP-class programs have application windows (IA: Nov 1–Apr 30, October for 60+; TN: fall portal opening). A letter composed off-season sends a family to call about a program that isn't taking applications — check the window and add a timing sentence, or question the pick. Found 2026-08-01.

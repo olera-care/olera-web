@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.877Z
+ * Last updated: 2026-08-01T01:31:59.331Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -194,7 +194,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(833) 522-5582",
       "sourceUrl": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "adult-services-program",

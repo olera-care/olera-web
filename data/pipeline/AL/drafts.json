@@ -977,7 +977,8 @@
       "phone": "(334) 242-5100",
       "sourceUrl": "https://adeca.alabama.gov/liheap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "weatherization-assistance-program",

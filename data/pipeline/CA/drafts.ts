@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.769Z
+ * Last updated: 2026-08-01T01:31:59.307Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -28,8 +28,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one has Medicare and limited income, California's Medicare Savings Programs can eliminate their monthly Medicare costs entirely. The highest tier (QMB) covers all Medicare Part A and Part B premiums, deductibles, and copays for people earning under $1,330/month. Mid-tier programs (SLMB and QI) cover Part B premiums for those earning up to $1,796/month.\n\nUnlike federal programs, California allows up to $130,000 in assets for singles ($195,000 for couples), so your loved one's home and savings likely won't disqualify them. Because this works like automatic Medigap coverage, your loved one won't get surprise medical bills, providers cannot legally charge QMB recipients for Medicare cost-sharing.\n\nThe program is administered county-by-county through local social services agencies. QI funding comes from a limited federal block grant, so it may have waitlists or temporary closures when funds run out.",
-      "savingsRange": "$2,434 – $4,000+/year",
-      "savingsSource": "Medicare Part B premiums plus potential deductibles and copays",
+      "savingsRange": "$2,435+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB-level coverage can also pay Medicare cost sharing",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -119,19 +119,20 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "HICAP (free Medicare counseling)",
+          "phone": "1-800-434-0222",
+          "description": "California's free statewide Medicare counseling program. They screen for Medicare Savings Programs and help you apply through your county Medi-Cal office.",
+          "hours": "Mon-Fri business hours"
+        },
+        {
           "label": "Your county social services",
           "phone": null,
           "description": "Find your local Medi-Cal office through county website or DHCS directory",
           "hours": "Varies by county"
-        },
-        {
-          "label": "California 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline to find local social services offices",
-          "hours": "24/7"
         }
       ],
       "applicationNotes": [
+        "Applications go through your county Medi-Cal office (form MC 14A by mail, by phone, online, or in person). HICAP counselors help with the paperwork for free.",
         "California became a Part A Buy-In state in January 2025, QMB recipients are now automatically enrolled in Medicare Part A if eligible",
         "Providers cannot legally bill QMB recipients for Medicare deductibles or copays, but choose providers who accept Medi-Cal to avoid billing confusion",
         "Income limits update every April 1st based on Federal Poverty Level changes",
@@ -212,7 +213,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "mssp-waiver",
@@ -2261,7 +2263,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 772-1213",
       "sourceUrl": "https://www.cdss.ca.gov/inforesources/cdss-programs/ssi-ssp/ssi-ssp-eligibility-summary",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "property-tax-postponement",

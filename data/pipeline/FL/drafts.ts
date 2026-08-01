@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.772Z
+ * Last updated: 2026-08-01T01:31:59.309Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -732,7 +732,7 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-05-05"
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "snap-food-benefits",

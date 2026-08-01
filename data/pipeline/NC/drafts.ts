@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T11:43:08.001Z
+ * Last updated: 2026-08-01T00:30:08.402Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2633,15 +2633,21 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Wake County Health & Human Services",
+          "phone": "919-212-7000",
+          "description": "Main line. Ask for Adult Services about State-County Special Assistance In-Home.",
+          "hours": "Mon-Fri 8am-5:15pm"
+        },
+        {
           "label": "Wake County DSS (Information)",
           "phone": "(919) 250-3835",
-          "description": "Catherine Goldman for State-County Special Assistance information",
+          "description": "Catherine Goldman for State-County Special Assistance information (direct staff line, may change. The main line above always routes.)",
           "hours": "Business hours"
         },
         {
           "label": "Wake County DSS (Applications)",
           "phone": "(919) 212-7549",
-          "description": "Tracy Gregory for State-County Special Assistance applications",
+          "description": "Tracy Gregory for State-County Special Assistance applications (direct staff line, may change. The main line above always routes.)",
           "hours": "Business hours"
         },
         {

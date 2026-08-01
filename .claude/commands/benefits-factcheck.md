@@ -14,6 +14,7 @@ The external reviewer is a lead generator, not an authority. It was right about 
 
 3. **Apply to `data/pipeline/<ST>/drafts.json`** (the source of truth — `drafts.ts` is generated). Write a Node script that locates programs by id/name regex and **fails loudly when a target isn't found**; never silently skip. Conventions:
    - `contacts[0]` is the letter's call anchor — the program's application door, not a generic referral line. 2-1-1 is only acceptable when it genuinely handles the program (TX SNAP) or is honestly labeled as a locator (FL LIHEAP).
+   - **Institutional front doors over named-person desk lines.** "Currently published" is not a high enough bar for a phone verdict: the pipeline scraped staff-directory lines (Wake County 2026-07-31 — both top contacts were individual supervisors' desks, "confirmed" by two audit rounds because NCDHHS publishes them). A desk line rots when one person changes roles; a main line survives reorgs. Verify the number is an organization's line; demote desk lines to secondary with a "may change" note, and have the letter call the main line and ask for the unit.
    - `savingsRange` must be a verified figure with its basis in `savingsSource` — maximums labeled as maximums, never "typical" ranges without official support.
    - Stamp `lastVerifiedDate: <today>` on every corrected program.
    - A program that doesn't exist as a consumer benefit gets **removed** — saved references drop out gracefully (`draftFor` returns null) and the page 404s.

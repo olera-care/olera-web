@@ -25,6 +25,67 @@ const CARE_NEED_LABELS: Record<string, string> = {
   companionship: "Companionship",
 };
 
+// ── Scheduling timezone ─────────────────────────────────────────────────
+// Scheduled sends are anchored to US Eastern Time, NOT the admin's browser
+// timezone — TJ schedules from anywhere in the world (Thailand, 2026-08),
+// but every family is in the US and the cron/quiet-hours conventions in this
+// codebase are already documented in ET. Flip SCHEDULE_TZ to
+// "America/Chicago" if the anchor should ever move to Central.
+const SCHEDULE_TZ = "America/New_York";
+
+/** Wall-clock parts of a UTC instant in the schedule timezone. */
+function tzWallClock(at: Date): { y: number; m: number; d: number; h: number; min: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SCHEDULE_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(at);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  // Some engines render midnight as "24" with hour12: false.
+  return { y: get("year"), m: get("month"), d: get("day"), h: get("hour") % 24, min: get("minute") };
+}
+
+/** datetime-local input (interpreted as ET wall-clock) → UTC ISO. The loop
+ *  converges on the right DST offset in 1-2 passes. */
+function etInputToUtcIso(input: string): string | null {
+  const m = input.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const [y, mo, d, h, min] = m.slice(1).map(Number);
+  const target = Date.UTC(y, mo - 1, d, h, min);
+  let utc = target;
+  for (let i = 0; i < 3; i++) {
+    const w = tzWallClock(new Date(utc));
+    const cur = Date.UTC(w.y, w.m - 1, w.d, w.h, w.min);
+    if (cur === target) break;
+    utc += target - cur;
+  }
+  return new Date(utc).toISOString();
+}
+
+/** UTC instant → datetime-local input string in ET wall-clock. */
+function toEtInputValue(at: Date): string {
+  const w = tzWallClock(at);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${w.y}-${pad(w.m)}-${pad(w.d)}T${pad(w.h)}:${pad(w.min)}`;
+}
+
+/** Display a stored UTC ISO in ET, labeled so no one mistakes it for local. */
+function formatEt(iso: string): string {
+  return (
+    new Date(iso).toLocaleString("en-US", {
+      timeZone: SCHEDULE_TZ,
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }) + " ET"
+  );
+}
+
 const TIMELINE_LABELS: Record<string, string> = {
   asap: "ASAP",
   within_month: "Within a month",
@@ -179,7 +240,7 @@ export default function BenefitsFamiliesView() {
 
   // ── Case drill-in state ─────────────────────────────────────────────
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready">("all");
+  const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready" | "scheduled">("all");
   const [exportState, setExportState] = useState<
     "idle" | "working" | "error" | { copied: number; failed: number; downloaded: boolean }
   >("idle");
@@ -336,7 +397,15 @@ export default function BenefitsFamiliesView() {
   if (!data) return null;
 
   const { summary, breakdown, families } = data;
-  const draftReadyCount = families.filter((f) => f.navigator?.status === "pending").length;
+  // "Draft ready" = pending and un-scheduled (waiting on TJ). Scheduled
+  // drafts get their own chip — they're committed, not waiting. The AI-review
+  // export still covers BOTH: a scheduled letter hasn't sent yet, so a
+  // fact-check catching an error before the fire is exactly the point.
+  const pendingDraftCount = families.filter((f) => f.navigator?.status === "pending").length;
+  const scheduledCount = families.filter(
+    (f) => f.navigator?.status === "pending" && f.navigator.scheduledAt,
+  ).length;
+  const draftReadyCount = pendingDraftCount - scheduledCount;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -413,8 +482,10 @@ export default function BenefitsFamiliesView() {
     filter === "all"
       ? true
       : filter === "draft_ready"
-        ? f.navigator?.status === "pending"
-        : f.lifecycle.status === filter;
+        ? f.navigator?.status === "pending" && !f.navigator.scheduledAt
+        : filter === "scheduled"
+          ? f.navigator?.status === "pending" && !!f.navigator.scheduledAt
+          : f.lifecycle.status === filter;
   // Prior-window delta only exists for bounded ranges (null = all time).
   const delta = summary.prevCompletions === null ? null : summary.completions - summary.prevCompletions;
   const priorLabel = data.days ? `prior ${data.days}d` : "prior period";
@@ -510,6 +581,7 @@ export default function BenefitsFamiliesView() {
           [
             ["all", "All"],
             ["draft_ready", "Draft ready"],
+            ["scheduled", "Scheduled"],
             ["needs_help", "Needs help"],
             ["stalled", "Stalled"],
             ["acting", "Acting"],
@@ -518,11 +590,12 @@ export default function BenefitsFamiliesView() {
             ["in_cascade", "In cascade"],
             ["working", "Working"],
             ["resolved", "Resolved"],
-          ] as [LifecycleStatus | "all" | "draft_ready", string][]
+          ] as [LifecycleStatus | "all" | "draft_ready" | "scheduled", string][]
         ).map(([key, label]) => {
           const count =
             key === "all" ? families.length
             : key === "draft_ready" ? draftReadyCount
+            : key === "scheduled" ? scheduledCount
             : summary.lifecycle?.[key] ?? 0;
           if (key !== "all" && count === 0 && filter !== key) return null;
           return (
@@ -537,7 +610,7 @@ export default function BenefitsFamiliesView() {
             </button>
           );
         })}
-        {draftReadyCount > 0 && (
+        {pendingDraftCount > 0 && (
           <span className="ml-auto flex items-center gap-2">
             {typeof exportState === "object" && (
               <span className="text-[11px] font-medium text-emerald-700">
@@ -558,7 +631,7 @@ export default function BenefitsFamiliesView() {
               title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
               className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
-              {exportState === "working" ? "Building…" : `Copy AI review prompt (${draftReadyCount})`}
+              {exportState === "working" ? "Building…" : `Copy AI review prompt (${pendingDraftCount})`}
             </button>
           </span>
         )}
@@ -659,7 +732,7 @@ export default function BenefitsFamiliesView() {
                           ) : f.navigator.scheduledAt ? (
                             <span
                               className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
-                              title={`Sends automatically around ${new Date(f.navigator.scheduledAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`}
+                              title={`Sends automatically around ${formatEt(f.navigator.scheduledAt)}`}
                             >
                               ⏱ Scheduled
                             </span>
@@ -753,13 +826,15 @@ function NavigatorDraftEditor({
     setSaveState(ok ? "saved" : "error");
     if (ok) setTimeout(() => setSaveState("idle"), 4000);
   };
-  // Schedule: datetime-local is TJ's browser-local time; sent as UTC ISO.
+  // Schedule: the datetime-local input is EASTERN wall-clock (never the
+  // admin's browser timezone — see the SCHEDULE_TZ note up top); converted
+  // to UTC ISO before it goes to the server.
   const [scheduleAt, setScheduleAt] = useState("");
   const [scheduleState, setScheduleState] = useState<"idle" | "working">("idle");
   const scheduleSend = async () => {
     if (!scheduleAt) return;
-    const when = new Date(scheduleAt);
-    if (isNaN(when.getTime())) return;
+    const iso = etInputToUtcIso(scheduleAt);
+    if (!iso) return;
     setScheduleState("working");
     await onNavigator(
       "navigator_schedule",
@@ -767,16 +842,12 @@ function NavigatorDraftEditor({
       letter,
       sms.trim() || undefined,
       undefined,
-      when.toISOString(),
+      iso,
     );
     setScheduleState("idle");
   };
-  /** datetime-local min: now + 1h, in local-time format (not UTC ISO). */
-  const scheduleMin = () => {
-    const d = new Date(Date.now() + 60 * 60 * 1000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
+  /** datetime-local min: now + 1h, expressed in ET wall-clock. */
+  const scheduleMin = () => toEtInputValue(new Date(Date.now() + 60 * 60 * 1000));
   // Test-send: remember the reviewer's address across sessions; empty falls
   // back server-side to the signed-in admin's own email.
   const [testEmail, setTestEmail] = useState(() => {
@@ -887,7 +958,8 @@ function NavigatorDraftEditor({
         </button>
         <button
           onClick={() => {
-            if (window.confirm("Dismiss this draft? The family will not get a first-step letter unless you contact them another way.")) {
+            const scheduleNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
+            if (window.confirm(`Dismiss this draft? The family will not get a first-step letter unless you contact them another way.${scheduleNote}`)) {
               onNavigator("navigator_dismiss");
             }
           }}
@@ -898,7 +970,8 @@ function NavigatorDraftEditor({
         </button>
         <button
           onClick={() => {
-            if (window.confirm("Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.")) {
+            const recomposeNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
+            if (window.confirm(`Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`)) {
               onNavigator("navigator_recompose");
             }
           }}
@@ -919,13 +992,7 @@ function NavigatorDraftEditor({
         {navigator.scheduled_at ? (
           <>
             <span className="text-[12px] font-medium text-blue-800">
-              ⏱ Scheduled for{" "}
-              {new Date(navigator.scheduled_at).toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
+              ⏱ Scheduled for {formatEt(navigator.scheduled_at)}
             </span>
             <button
               onClick={() => onNavigator("navigator_unschedule")}
@@ -935,8 +1002,8 @@ function NavigatorDraftEditor({
               Cancel schedule
             </button>
             <p className="basis-full text-[11px] text-amber-700/60">
-              Sends automatically within the hour of that time (shown in your local time).
-              Sending caps are re-checked at fire time; a blocked send shows up here.
+              Sends automatically within the hour of that time (US Eastern). Sending caps are
+              re-checked at fire time; a blocked send shows up here.
             </p>
           </>
         ) : (
@@ -948,6 +1015,7 @@ function NavigatorDraftEditor({
               onChange={(e) => setScheduleAt(e.target.value)}
               className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12px] focus:outline-none focus:ring-2 focus:ring-amber-400/40"
             />
+            <span className="text-[11px] font-semibold text-amber-700">US Eastern</span>
             <button
               onClick={scheduleSend}
               disabled={busy || scheduleState === "working" || !scheduleAt || letter.trim().length < 40}
@@ -956,8 +1024,8 @@ function NavigatorDraftEditor({
               {scheduleState === "working" ? "Scheduling…" : "Schedule send"}
             </button>
             <p className="basis-full text-[11px] text-amber-700/60">
-              Saves your edits and sends automatically within an hour of the chosen time (your
-              local time){textable ? ", companion text included (held to daytime hours)" : ""}.
+              Time is US Eastern, wherever you are. Saves your edits and sends automatically
+              within an hour of the chosen time{textable ? ", companion text included (held to daytime hours)" : ""}.
             </p>
           </>
         )}

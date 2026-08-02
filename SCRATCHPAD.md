@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-08-02 — Ad Boost session: fresh Google Ads sync + Edmonds Villa published (first assisted-living campaign)
+
+**Queue data sync:** Verified `/admin/ad-boost` renders the DB exactly (row-for-row vs Supabase + GA4 cross-check), but manual `ad_clicks`/`ad_impressions`/`ad_spend_cents` were weeks stale for live campaigns. Pulled all-time per-campaign numbers from Google Ads UI and updated all 7 rows (biggest: HomeWell 7→13 clicks, Legacy Haven 2→5, spend roughly doubled on both). GA4 sessions run ~1.5-2x recorded ad clicks per campaign (repeat visits + auto-tagging splitting each campaign into TWO GA rows: Ads campaign-name row + raw utm tag row). Three flights end Aug 3 (Impact, Miracle, HomeWell) — one final refresh before wrap-ups.
+
+**Campaign:** "Edmonds Villa AFH – Edmonds – Aug 2026", ID **24094557242** (request `473473e2`, tag `edmonds-villa-edmonds-aug26`). $50 total, Maximize clicks + **$0.50 CPC cap**, Search-only, 20mi around **Edmonds WA, Presence-only**, EN+ES, AI Max off, 13 phrase keywords, 13 headlines + 4 descriptions (policy audit PASS), display path `/Adult-Home/Edmonds`. Serves **Aug 3 → Aug 31**. **First residential-care (adult family home) campaign** — AL-style keywords (adult family home / assisted living / senior care × Edmonds, Lynnwood, Shoreline, Mountlake Terrace), **48 campaign-level negatives built fresh** (home-care terms/brands + senior-living operators + brokers + job-seeker) — shared home-care list deliberately NOT applied per SOP invariant. No memory-care/dementia terms in ads despite it being their specialty (health-in-personalized-advertising policy). RN-owned, 6 beds, from $9.5K/mo, Medicaid accepted → copy leans on those. Auto-apply verified 0/7 + 0/14 pre and post.
+
+**Session gotchas learned:** Review-summary page shows STALE values (claimed "All countries", "AI Max on", "Ads: None" — all false on the actual settings pages; verify at the source before panicking). Two "Confirm it's you" walls this session (budget step + mid-edit); second one left "Changes failed to save" in the sidebar — cleared by re-visiting Budget and re-submitting Next. Radius location picker needs REAL clicks on the suggestion list (synthetic mouse events don't register; the option only enters the a11y tree in the snapshot taken immediately after fill).
+
+**Deferred:** search-terms harvest Aug 6-9 (mandatory); flip request row → live via admin UI once serving (sends launch email); step-up conversation (requested Google+Meta, ran $50 Google intro).
+
 ### 2026-07-31 → 08-02 — Benefits fact-check loop SHIPPED + first real send wave (19 letters out)
 
 **The loop is live in prod** (PRs #1431 + #1432 → promote #1435, main `33f0bbc4`): Draft-ready filter chip, batch/per-draft "Copy AI review prompt" export, Recompose action, `/benefits-factcheck` repo command. Workflow: export → ChatGPT/Codex researches → `/benefits-factcheck <report>` (Claude re-verifies vs PRIMARY sources, patches `data/pipeline` + pending letters in DB) → merge/promote → recompose → TJ voice-checks → Send as TJ.

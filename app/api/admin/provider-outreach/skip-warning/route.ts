@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 /**
- * POST /api/admin/provider-outreach/record-call
+ * POST /api/admin/provider-outreach/skip-warning
  *
- * Record that an admin called a provider (for generic email verification).
+ * Record that an admin skipped the generic email warning for a provider.
  * - Creates a touchpoint for audit trail
- * - Sets generic_email_called_at on tracking record for state persistence
+ * - Sets generic_email_skipped_at on tracking record for state persistence
  *
  * Request body:
  *   - provider_id: string (required)
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const nowIso = new Date().toISOString();
 
     // Insert touchpoint for audit trail
-    // Use "call_attempted" (exists in DB constraint)
+    // Use "call_attempted" (exists in DB constraint) with outcome indicating skip
     const { error: touchpointError } = await db
       .from("provider_outreach_touchpoints")
       .insert({
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         touchpoint_type: "call_attempted",
         details: {
           trigger: "generic_email_warning",
-          outcome: "verified_email_recipient",
+          outcome: "warning_skipped",
           ...(notes?.trim() && { notes: notes.trim() }),
         },
         admin_user_id: adminUser.id,
@@ -51,11 +51,11 @@ export async function POST(request: NextRequest) {
       });
 
     if (touchpointError) {
-      console.error("[record-call] Touchpoint insert error:", touchpointError);
-      return NextResponse.json({ error: "Failed to record call" }, { status: 500 });
+      console.error("[skip-warning] Touchpoint insert error:", touchpointError);
+      return NextResponse.json({ error: "Failed to record skip" }, { status: 500 });
     }
 
-    // Update tracking record to persist the called state
+    // Update tracking record to persist the skipped state
     // This enables the state to survive page refreshes
     const { data: existingTracking } = await db
       .from("provider_outreach_tracking")
@@ -67,11 +67,11 @@ export async function POST(request: NextRequest) {
       // Update existing tracking record
       const { error: updateError } = await db
         .from("provider_outreach_tracking")
-        .update({ generic_email_called_at: nowIso })
+        .update({ generic_email_skipped_at: nowIso })
         .eq("id", existingTracking.id);
 
       if (updateError) {
-        console.error("[record-call] Tracking update error:", updateError);
+        console.error("[skip-warning] Tracking update error:", updateError);
         // Non-fatal - touchpoint was recorded, just log the error
       }
     } else {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
 
       if (provider) {
-        // Create new tracking record with the called flag
+        // Create new tracking record with the skipped flag
         const { error: insertError } = await db
           .from("provider_outreach_tracking")
           .insert({
@@ -91,11 +91,11 @@ export async function POST(request: NextRequest) {
             stage: "not_contacted",
             city: provider.city,
             state: provider.state,
-            generic_email_called_at: nowIso,
+            generic_email_skipped_at: nowIso,
           });
 
         if (insertError) {
-          console.error("[record-call] Tracking insert error:", insertError);
+          console.error("[skip-warning] Tracking insert error:", insertError);
           // Non-fatal - touchpoint was recorded
         }
       }
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("[record-call] Error:", err);
+    console.error("[skip-warning] Error:", err);
     return NextResponse.json(
       { error: `Internal server error: ${err instanceof Error ? err.message : String(err)}` },
       { status: 500 }

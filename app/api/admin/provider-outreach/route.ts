@@ -108,6 +108,9 @@ interface TrackingRow {
   re_engage_entered_at: string | null;
   // Assignment
   assigned_to: string | null;
+  // Generic email warning state (persisted for page refresh)
+  generic_email_called_at: string | null;
+  generic_email_skipped_at: string | null;
 }
 
 export interface OutreachProvider {
@@ -144,6 +147,9 @@ export interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted (from email_overrides table)
   is_email_overridden?: boolean;
+  // Generic email warning state (persisted for page refresh)
+  generic_email_called_at?: string | null;
+  generic_email_skipped_at?: string | null;
 }
 
 /**
@@ -439,6 +445,9 @@ export async function GET(request: NextRequest) {
           assigned_to: t.assigned_to ?? null,
           // Sequence progress (for in_sequence)
           emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
+          // Generic email warning state (persisted for page refresh)
+          generic_email_called_at: t.generic_email_called_at ?? null,
+          generic_email_skipped_at: t.generic_email_skipped_at ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -485,7 +494,7 @@ async function getNotContactedProviders(
   // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state, admin_hidden")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at")
     .eq("state", state);
 
   if (trackingError) {
@@ -588,6 +597,9 @@ async function getNotContactedProviders(
         re_engage_entered_at: null,
         // Assignment: use tracking assignment, or fall back to city owner
         assigned_to: tracking?.assigned_to ?? (p.city ? cityOwnerMap.get(p.city) : null) ?? null,
+        // Generic email warning state (from tracking if exists)
+        generic_email_called_at: tracking?.generic_email_called_at ?? null,
+        generic_email_skipped_at: tracking?.generic_email_skipped_at ?? null,
       };
     });
 
@@ -707,6 +719,9 @@ async function getClaimedProviders(
         assigned_to: null,
         verification_state: claimInfo?.verification_state || null,
         profile_completeness: claimInfo?.profile_completeness,
+        // Generic email warning state (not applicable for claimed)
+        generic_email_called_at: null,
+        generic_email_skipped_at: null,
       };
     })
     .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
@@ -803,6 +818,9 @@ async function getHiddenProviders(
         cycle_number: t.cycle_number ?? 1,
         re_engage_entered_at: t.re_engage_entered_at ?? null,
         assigned_to: t.assigned_to ?? null,
+        // Generic email warning state (persisted for page refresh)
+        generic_email_called_at: t.generic_email_called_at ?? null,
+        generic_email_skipped_at: t.generic_email_skipped_at ?? null,
       };
     })
     .filter((p): p is OutreachProvider => p !== null)
@@ -891,6 +909,9 @@ async function getArchivedProviders(
         re_engage_entered_at: t.re_engage_entered_at ?? null,
         // Assignment
         assigned_to: t.assigned_to ?? null,
+        // Generic email warning state
+        generic_email_called_at: t.generic_email_called_at ?? null,
+        generic_email_skipped_at: t.generic_email_skipped_at ?? null,
       });
     }
   }
@@ -983,6 +1004,9 @@ async function getArchivedProviders(
           re_engage_entered_at: null,
           // Assignment (not applicable for system-archived)
           assigned_to: null,
+          // Generic email warning state (not applicable for system-archived)
+          generic_email_called_at: null,
+          generic_email_skipped_at: null,
         });
       }
     }
@@ -1044,7 +1068,7 @@ async function searchProviders(
   // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, admin_hidden")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at")
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
@@ -1169,6 +1193,9 @@ async function searchProviders(
       // Sequence progress (for in_sequence)
       emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
       verification_state: claimInfo?.verification_state || null,
+      // Generic email warning state (from tracking if available)
+      generic_email_called_at: tracking?.generic_email_called_at ?? null,
+      generic_email_skipped_at: tracking?.generic_email_skipped_at ?? null,
     };
   });
 

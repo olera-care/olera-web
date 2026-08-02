@@ -165,6 +165,9 @@ interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted
   is_email_overridden?: boolean;
+  // Generic email warning state (persisted for page refresh)
+  generic_email_called_at?: string | null;
+  generic_email_skipped_at?: string | null;
 }
 
 interface ActiveState {
@@ -350,6 +353,10 @@ function ProviderContactEditor({
   const [isRecordingCall, setIsRecordingCall] = useState(false);
   const [callRecordError, setCallRecordError] = useState(false);
 
+  // Skip warning state
+  const [isSkippingWarning, setIsSkippingWarning] = useState(false);
+  const [skipError, setSkipError] = useState(false);
+
   // Check if this is a generic email (show warning unless called or skipped)
   const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded && !isWarningSkipped;
 
@@ -373,6 +380,29 @@ function ProviderContactEditor({
       setCallRecordError(true);
     } finally {
       setIsRecordingCall(false);
+    }
+  };
+
+  // Record "Skip" (persist to database)
+  const handleSkipWarning = async () => {
+    setIsSkippingWarning(true);
+    setSkipError(false);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/skip-warning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      if (res.ok) {
+        onWarningSkipped?.();
+      } else {
+        setSkipError(true);
+      }
+    } catch (err) {
+      console.error("Failed to skip warning:", err);
+      setSkipError(true);
+    } finally {
+      setIsSkippingWarning(false);
     }
   };
 
@@ -806,12 +836,17 @@ function ProviderContactEditor({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onWarningSkipped?.();
+              handleSkipWarning();
             }}
-            className="shrink-0 px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
-            title="Dismiss warning - proceed without calling"
+            disabled={isSkippingWarning}
+            className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+              skipError
+                ? "text-red-600 hover:text-red-700 hover:bg-red-50"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            }`}
+            title={skipError ? "Failed - click to retry" : "Dismiss warning - proceed without calling"}
           >
-            Skip
+            {isSkippingWarning ? "..." : skipError ? "Retry" : "Skip"}
           </button>
         </div>
       )}
@@ -1239,9 +1274,9 @@ function CityRow({
                             onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
                             emailVerificationStatus={provider.email_verification_status}
                             isEmailOverridden={provider.is_email_overridden}
-                            isCallRecorded={calledProviders.has(provider.provider_id)}
+                            isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
                             onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
-                            isWarningSkipped={skippedWarnings.has(provider.provider_id)}
+                            isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
                             onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
                           />
                           {/* Show lookup result if no email */}

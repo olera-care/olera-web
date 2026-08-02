@@ -717,6 +717,8 @@ async function getClaimedProviders(
 /**
  * Get providers that have been hidden from outreach (admin_hidden = true).
  * Used for viewing and recovering accidentally hidden providers.
+ *
+ * Excludes claimed providers (they belong in Claimed tab, not Hidden).
  */
 async function getHiddenProviders(
   db: ReturnType<typeof getServiceClient>,
@@ -758,13 +760,27 @@ async function getHiddenProviders(
     throw new Error("Failed to fetch provider details");
   }
 
+  // Exclude providers who have since claimed (they belong in Claimed tab)
+  let claimedProviderIds = new Set<string>();
+  if (providerIds.length > 0) {
+    const { data: claimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .in("source_provider_id", providerIds)
+      .not("account_id", "is", null);
+
+    claimedProviderIds = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
+  }
+
   const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
 
-  // Build result
+  // Build result (excluding claimed providers)
   const providers = (trackingRows as TrackingRow[])
     .map((t): OutreachProvider | null => {
       const p = providerMap.get(t.provider_id);
       if (!p) return null;
+      // Skip if provider has claimed - they belong in Claimed tab now
+      if (claimedProviderIds.has(p.provider_id)) return null;
 
       return {
         provider_id: p.provider_id,
@@ -1389,7 +1405,8 @@ async function getStageCounts(
   counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed - additionalSystemArchived - hiddenNotOtherwiseExcluded);
 
   // Count hidden providers (for the Hidden tab)
-  counts.hidden = hiddenProviderIds.size;
+  // Exclude claimed providers - they belong in Claimed tab, not Hidden
+  counts.hidden = [...hiddenProviderIds].filter(id => !claimedProviderIds.has(id)).length;
 
   // Step 8: Calculate needs_email and ready counts (subsets of not_contacted)
   // We need to query providers to check email status

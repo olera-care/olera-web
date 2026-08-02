@@ -27,7 +27,8 @@ const OUTREACH_STAGES = [
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
-type UITab = "needs_email" | "ready" | Exclude<OutreachStage, "not_contacted">;
+// "hidden" is a special tab for viewing admin-hidden providers
+type UITab = "needs_email" | "ready" | "hidden" | Exclude<OutreachStage, "not_contacted">;
 
 const UI_TABS: UITab[] = [
   "needs_email",
@@ -38,6 +39,7 @@ const UI_TABS: UITab[] = [
   "not_interested",  // Soft terminal
   "claimed",
   "archived",  // Hard terminal
+  "hidden",  // Admin-hidden providers (for recovery)
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -49,6 +51,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
+  hidden: "Hidden",
 };
 
 // Database stage labels (for search results showing provider's actual stage)
@@ -162,6 +165,9 @@ interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted
   is_email_overridden?: boolean;
+  // Generic email warning state (persisted for page refresh)
+  generic_email_called_at?: string | null;
+  generic_email_skipped_at?: string | null;
 }
 
 interface ActiveState {
@@ -185,12 +191,15 @@ interface ActiveState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Map UI tab to API parameters (stage + optional email_filter)
-function getApiParamsForTab(tab: UITab): { stage: OutreachStage; emailFilter?: "needs_email" | "has_email" } {
+function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
   if (tab === "needs_email") {
     return { stage: "not_contacted", emailFilter: "needs_email" };
   }
   if (tab === "ready") {
     return { stage: "not_contacted", emailFilter: "has_email" };
+  }
+  if (tab === "hidden") {
+    return { stage: "hidden" };
   }
   return { stage: tab as OutreachStage };
 }
@@ -289,6 +298,7 @@ function ProviderContactEditor({
   isCallRecorded,
   onWarningSkipped,
   isWarningSkipped,
+  stage,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -310,6 +320,8 @@ function ProviderContactEditor({
   onWarningSkipped?: () => void;
   /** Whether warning was skipped for this provider */
   isWarningSkipped?: boolean;
+  /** Provider's current stage - warning not shown for claimed providers */
+  stage?: OutreachStage;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -344,8 +356,13 @@ function ProviderContactEditor({
   const [isRecordingCall, setIsRecordingCall] = useState(false);
   const [callRecordError, setCallRecordError] = useState(false);
 
-  // Check if this is a generic email (show warning unless called or skipped)
-  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded && !isWarningSkipped;
+  // Skip warning state
+  const [isSkippingWarning, setIsSkippingWarning] = useState(false);
+  const [skipError, setSkipError] = useState(false);
+
+  // Check if this is a generic email (show warning unless called, skipped, or claimed)
+  // Don't show for claimed providers - they've already verified themselves
+  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded && !isWarningSkipped && stage !== "claimed";
 
   // Record "I called" touchpoint
   const handleRecordCall = async () => {
@@ -367,6 +384,29 @@ function ProviderContactEditor({
       setCallRecordError(true);
     } finally {
       setIsRecordingCall(false);
+    }
+  };
+
+  // Record "Skip" (persist to database)
+  const handleSkipWarning = async () => {
+    setIsSkippingWarning(true);
+    setSkipError(false);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/skip-warning", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      if (res.ok) {
+        onWarningSkipped?.();
+      } else {
+        setSkipError(true);
+      }
+    } catch (err) {
+      console.error("Failed to skip warning:", err);
+      setSkipError(true);
+    } finally {
+      setIsSkippingWarning(false);
     }
   };
 
@@ -800,12 +840,17 @@ function ProviderContactEditor({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onWarningSkipped?.();
+              handleSkipWarning();
             }}
-            className="shrink-0 px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
-            title="Dismiss warning - proceed without calling"
+            disabled={isSkippingWarning}
+            className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+              skipError
+                ? "text-red-600 hover:text-red-700 hover:bg-red-50"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            }`}
+            title={skipError ? "Failed - click to retry" : "Dismiss warning - proceed without calling"}
           >
-            Skip
+            {isSkippingWarning ? "..." : skipError ? "Retry" : "Skip"}
           </button>
         </div>
       )}
@@ -1233,10 +1278,11 @@ function CityRow({
                             onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
                             emailVerificationStatus={provider.email_verification_status}
                             isEmailOverridden={provider.is_email_overridden}
-                            isCallRecorded={calledProviders.has(provider.provider_id)}
+                            isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
                             onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
-                            isWarningSkipped={skippedWarnings.has(provider.provider_id)}
+                            isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
                             onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
+                            stage={provider.stage}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
@@ -1267,20 +1313,22 @@ function CityRow({
                       </button>
                     )}
 
-                    {/* Remove from outreach (trash icon) */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemoveProvider(provider);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
-                      title="Remove from outreach"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    {/* Remove from outreach (trash icon) - hide on Hidden tab since they're already removed */}
+                    {activeTab !== "hidden" && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveProvider(provider);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
+                        title="Remove from outreach"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -2410,10 +2458,11 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes needs_email and ready for UI tabs)
+  // Stage counts (includes needs_email, ready, and hidden for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     needs_email: number;
     ready: number;
+    hidden: number;
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
@@ -2425,6 +2474,7 @@ export default function ProviderOutreachPage() {
     archived: 0,
     needs_email: 0,
     ready: 0,
+    hidden: 0,
   });
 
   // Follow-ups due today with admin breakdown
@@ -2562,6 +2612,13 @@ export default function ProviderOutreachPage() {
     stage: string;
   } | null>(null);
   const [removingProvider, setRemovingProvider] = useState(false);
+
+  // Unhide from outreach confirmation state
+  const [pendingUnhide, setPendingUnhide] = useState<{
+    providerId: string;
+    providerName: string;
+  } | null>(null);
+  const [unhidingProvider, setUnhidingProvider] = useState(false);
 
   // Sequence confirmation modal state
   const [showSequenceConfirm, setShowSequenceConfirm] = useState(false);
@@ -2730,6 +2787,43 @@ export default function ProviderOutreachPage() {
       showToast(message, "error");
     } finally {
       setRemovingProvider(false);
+    }
+  };
+
+  // Unhide provider (restore from admin_hidden state to Ready)
+  const handleUnhideProvider = async () => {
+    if (!pendingUnhide) return;
+
+    setUnhidingProvider(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/unhide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: pendingUnhide.providerId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to unhide provider");
+      }
+
+      // Remove from local state (they'll appear in Ready tab now)
+      setProviders((prev) => prev.filter((p) => p.provider_id !== pendingUnhide.providerId));
+
+      // Update hidden count, refresh cities for accurate Ready/Needs Email counts
+      setStageCounts((prev) => ({
+        ...prev,
+        hidden: Math.max(0, (prev.hidden || 0) - 1),
+      }));
+      fetchCities();
+
+      showToast(`Restored ${pendingUnhide.providerName} to Ready`, "success");
+      setPendingUnhide(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to unhide provider";
+      showToast(message, "error");
+    } finally {
+      setUnhidingProvider(false);
     }
   };
 
@@ -3204,6 +3298,7 @@ export default function ProviderOutreachPage() {
         archived: 0,
         needs_email: 0,
         ready: 0,
+        hidden: 0,
       });
       prevStateRef.current = selectedState;
     }
@@ -4616,7 +4711,7 @@ export default function ProviderOutreachPage() {
                 )}
 
                 {/* Archive - only show if NOT already archived */}
-                {actionModalProvider.stage !== "archived" && (
+                {actionModalProvider.stage !== "archived" && activeTab !== "hidden" && (
                   <button
                     onClick={() => setSelectedAction("archived")}
                     className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
@@ -4630,6 +4725,33 @@ export default function ProviderOutreachPage() {
                       <div>
                         <p className="font-medium text-gray-900">Archive</p>
                         <p className="text-xs text-gray-500">Stop all outreach to this provider</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Unhide - only show when viewing Hidden tab */}
+                {activeTab === "hidden" && (
+                  <button
+                    onClick={() => {
+                      setPendingUnhide({
+                        providerId: actionModalProvider.provider_id,
+                        providerName: actionModalProvider.provider_name,
+                      });
+                      closeActionModal();
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-emerald-500 mt-0.5">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">Unhide</p>
+                        <p className="text-xs text-gray-500">Restore to Ready for re-launch</p>
                       </div>
                     </div>
                   </button>
@@ -4674,19 +4796,19 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Move to Stage Section */}
-                {!["claimed", "archived"].includes(actionModalProvider.stage) && (
+                {/* Move to Stage Section - hide for claimed, archived, and when viewing hidden tab */}
+                {!["claimed", "archived"].includes(actionModalProvider.stage) && activeTab !== "hidden" && (
                   <>
                     <div className="border-t border-gray-100 my-3" />
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {actionModalProvider.stage !== "not_contacted" && actionModalProvider.stage !== "in_sequence" && (
+                      {actionModalProvider.stage !== "not_contacted" && (
                         <button
                           onClick={() => setPendingStageMove("not_contacted")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
-                          Ready
+                          {actionModalProvider.stage === "in_sequence" ? "Reset to Ready" : "Ready"}
                         </button>
                       )}
                       {actionModalProvider.stage !== "needs_call" && (
@@ -4735,10 +4857,13 @@ export default function ProviderOutreachPage() {
                   "bg-gray-50 border-gray-300"
                 }`}>
                   <p className="text-sm font-medium text-gray-900">
-                    Move to {
-                      pendingStageMove === "not_contacted" ? "Ready" :
-                      pendingStageMove === "needs_call" ? "Follow Up" :
-                      "Not Interested"
+                    {pendingStageMove === "not_contacted" && actionModalProvider.stage === "in_sequence"
+                      ? "Reset to Ready"
+                      : `Move to ${
+                          pendingStageMove === "not_contacted" ? "Ready" :
+                          pendingStageMove === "needs_call" ? "Follow Up" :
+                          "Not Interested"
+                        }`
                     }
                   </p>
                   <p className="text-xs text-gray-600 mt-0.5">
@@ -4755,6 +4880,12 @@ export default function ProviderOutreachPage() {
                           <span className="text-gray-400 mt-0.5">•</span>
                           Provider will be moved back to the Ready queue
                         </li>
+                        {actionModalProvider.stage === "in_sequence" && (
+                          <li className="flex items-start gap-2 text-sm text-gray-600">
+                            <span className="text-gray-400 mt-0.5">•</span>
+                            Email sequence will be stopped in SmartLead
+                          </li>
+                        )}
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
                           Any scheduled outreach tasks will be cleared
@@ -5791,6 +5922,38 @@ export default function ProviderOutreachPage() {
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {removingProvider ? "Removing..." : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unhide provider confirmation dialog */}
+      {pendingUnhide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Unhide provider</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              This provider will be restored to the Ready tab so they can be re-launched into a sequence.
+            </p>
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-900">{pendingUnhide.providerName}</p>
+              <p className="mt-1 text-xs text-gray-500">Will restore to: Ready</p>
+            </div>
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setPendingUnhide(null)}
+                disabled={unhidingProvider}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUnhideProvider}
+                disabled={unhidingProvider}
+                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              >
+                {unhidingProvider ? "Restoring..." : "Unhide"}
               </button>
             </div>
           </div>

@@ -298,7 +298,10 @@ export async function GET(request: NextRequest) {
     }
 
     // For other stages: query tracking but exclude providers who have since claimed
-    trackingQuery = trackingQuery.eq("stage", stage);
+    // Also exclude admin_hidden providers (removed from outreach view)
+    trackingQuery = trackingQuery
+      .eq("stage", stage)
+      .or("admin_hidden.is.null,admin_hidden.eq.false");
 
     if (city) {
       trackingQuery = trackingQuery.eq("city", city);
@@ -320,12 +323,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ providers: [], stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
-    // Get provider details for tracked providers
+    // Get provider details for tracked providers (exclude deleted)
     const providerIds = trackingRows.map((t) => t.provider_id);
     const { data: providerRows, error: provError } = await db
       .from("olera-providers")
       .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
-      .in("provider_id", providerIds);
+      .in("provider_id", providerIds)
+      .or("deleted.is.null,deleted.eq.false");
 
     if (provError) {
       console.error("[provider-outreach] Provider query error:", provError);
@@ -450,17 +454,28 @@ async function getNotContactedProviders(
   );
 
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
+  // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state, admin_hidden")
     .eq("state", state);
 
   if (trackingError) {
     console.error("[getNotContactedProviders] Tracking query error:", trackingError);
   }
 
+  // Collect hidden provider IDs (these should be excluded regardless of stage)
+  const hiddenProviderIds = new Set(
+    (trackedInState || [])
+      .filter((t) => t.admin_hidden === true)
+      .map((t) => t.provider_id)
+  );
+
   // Log tracking records with non-not_contacted stages (these should be excluded)
-  const nonNotContactedTracking = (trackedInState || []).filter((t) => t.stage !== "not_contacted");
+  // Exclude hidden providers from this set since they're already excluded
+  const nonNotContactedTracking = (trackedInState || []).filter(
+    (t) => t.stage !== "not_contacted" && t.admin_hidden !== true
+  );
   if (nonNotContactedTracking.length > 0) {
     console.log(`[getNotContactedProviders] Found ${nonNotContactedTracking.length} tracked providers with non-not_contacted stage for state=${state}:`,
       nonNotContactedTracking.slice(0, 10).map(t => ({ provider_id: t.provider_id, stage: t.stage, tracking_state: t.state }))
@@ -472,9 +487,10 @@ async function getNotContactedProviders(
   );
 
   // Build map for not_contacted tracking records (for tracking_id)
+  // Exclude hidden providers - they shouldn't appear in the list at all
   const notContactedMap = new Map(
     (trackedInState || [])
-      .filter((t) => t.stage === "not_contacted")
+      .filter((t) => t.stage === "not_contacted" && t.admin_hidden !== true)
       .map((t) => [t.provider_id, t])
   );
 
@@ -515,8 +531,9 @@ async function getNotContactedProviders(
   }
 
   // Step 5: Filter in JavaScript (no large IN clause needed)
+  // Exclude claimed, tracked (in other stages), and hidden providers
   let result: OutreachProvider[] = (providers as ProviderRow[])
-    .filter((p) => !claimedProviderIds.has(p.provider_id) && !trackedProviderIds.has(p.provider_id))
+    .filter((p) => !claimedProviderIds.has(p.provider_id) && !trackedProviderIds.has(p.provider_id) && !hiddenProviderIds.has(p.provider_id))
     .map((p) => {
       const tracking = notContactedMap.get(p.provider_id);
       return {
@@ -686,11 +703,13 @@ async function getArchivedProviders(
   const archivedProviderMap = new Map<string, OutreachProvider>();
 
   // Step 1: Get providers from tracking table with stage = archived (hard terminal only)
+  // Exclude admin_hidden providers (they're hidden from all tabs)
   let trackingQuery = db
     .from("provider_outreach_tracking")
     .select("*")
     .eq("state", state)
-    .eq("stage", "archived");
+    .eq("stage", "archived")
+    .or("admin_hidden.is.null,admin_hidden.eq.false");
 
   if (city) {
     trackingQuery = trackingQuery.eq("city", city);
@@ -897,11 +916,18 @@ async function searchProviders(
     ])
   );
 
-  // Get tracking data for all matched providers
+  // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, admin_hidden")
     .in("provider_id", providerIds);
+
+  // Collect hidden provider IDs to exclude from results
+  const hiddenProviderIds = new Set(
+    (trackingRows || [])
+      .filter((t) => t.admin_hidden === true)
+      .map((t) => t.provider_id)
+  );
 
   const trackingMap = new Map(
     (trackingRows || []).map((t) => [t.provider_id, t])
@@ -955,8 +981,10 @@ async function searchProviders(
     ])
   );
 
-  // Build results with stage info
-  const result: OutreachProvider[] = (providers as ProviderRow[]).map((p) => {
+  // Build results with stage info (exclude hidden providers)
+  const result: OutreachProvider[] = (providers as ProviderRow[])
+    .filter((p) => !hiddenProviderIds.has(p.provider_id))
+    .map((p) => {
     const claimInfo = claimedMap.get(p.provider_id);
     const tracking = trackingMap.get(p.provider_id);
     const adminArchived = adminArchivedMap.get(p.provider_id);
@@ -1100,18 +1128,28 @@ async function getStageCounts(
   counts.claimed = claimedProviderIds.size;
 
   // Step 3: Get all tracking rows for this state (small set, filtered by state)
+  // Include admin_hidden to filter out hidden providers from counts
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, stage")
+    .select("provider_id, stage, admin_hidden")
     .eq("state", state);
 
   // Collect all tracked provider IDs and their stages
   const trackedProviderIds = new Set<string>();
+  // Track hidden providers separately (to exclude from not_contacted counts)
+  const hiddenProviderIds = new Set<string>();
   const stageCounts: Record<string, number> = {};
 
   if (trackingRows) {
     for (const row of trackingRows) {
       const stage = row.stage as string;
+      const isHidden = row.admin_hidden === true;
+
+      // Track hidden providers (regardless of stage) for exclusion from not_contacted counts
+      if (isHidden) {
+        hiddenProviderIds.add(row.provider_id);
+        continue; // Skip counting hidden providers entirely
+      }
 
       // Skip not_contacted and claimed - they're calculated separately
       if (stage === "not_contacted" || stage === "claimed") {
@@ -1225,19 +1263,25 @@ async function getStageCounts(
   }
   counts.archived += additionalSystemArchived;
 
-  // Step 7: Calculate not_contacted = total - claimed - tracked (only existing, non-claimed, non-system-archived) - system-archived
+  // Step 7: Calculate not_contacted = total - claimed - tracked (only existing, non-claimed, non-system-archived) - system-archived - hidden
   const trackedExistingNotClaimed = [...existingTrackedIds].filter(
     (id) => !claimedProviderIds.has(id) && !systemArchivedProviderIds.has(id)
   ).length;
-  counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed - additionalSystemArchived);
+  // Hidden providers who aren't already excluded by other means (avoid double-counting)
+  // A hidden provider might also be claimed or system-archived
+  const hiddenNotOtherwiseExcluded = [...hiddenProviderIds].filter(
+    (id) => !claimedProviderIds.has(id) && !systemArchivedProviderIds.has(id)
+  ).length;
+  counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed - additionalSystemArchived - hiddenNotOtherwiseExcluded);
 
   // Step 8: Calculate needs_email and ready counts (subsets of not_contacted)
   // We need to query providers to check email status
-  // Build exclusion sets for efficient filtering
+  // Build exclusion sets for efficient filtering (includes hidden providers)
   const excludedIds = new Set([
     ...claimedProviderIds,
     ...existingTrackedIds,  // Already tracked in a stage
     ...systemArchivedProviderIds,
+    ...hiddenProviderIds,   // Admin-hidden from outreach view
   ]);
 
   // Query providers with email vs without email
@@ -1312,12 +1356,13 @@ async function getAdminCounts(
     return {};
   }
 
-  // For active stages: query tracking table
+  // For active stages: query tracking table (exclude hidden providers)
   let query = db
     .from("provider_outreach_tracking")
     .select("assigned_to")
     .eq("state", state)
-    .eq("stage", stage);
+    .eq("stage", stage)
+    .or("admin_hidden.is.null,admin_hidden.eq.false");
 
   // For needs_call (Follow Up), only count providers with due_date <= today
   if (stage === "needs_call") {
@@ -1414,12 +1459,14 @@ async function getFollowUpsTodayStats(
   );
 
   // Query follow-ups due today (need provider_id to check exclusions)
+  // Exclude admin_hidden providers
   const { data: trackingRows, error } = await db
     .from("provider_outreach_tracking")
     .select("provider_id, assigned_to")
     .eq("state", state)
     .eq("stage", "needs_call")
-    .lte("due_date", today);
+    .lte("due_date", today)
+    .or("admin_hidden.is.null,admin_hidden.eq.false");
 
   if (error || !trackingRows) {
     console.error("[follow-ups-today] Query error:", error);

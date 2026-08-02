@@ -199,6 +199,11 @@ export async function GET(
     // Navigator letter lifecycle
     const navigator = readBenefitsNavigator(meta);
     push(navigator.composed_at, "navigator", "Navigator letter drafted", navigator.pick?.shortName);
+    push(
+      navigator.edited_at,
+      "navigator",
+      `Draft edits saved${navigator.edited_by ? ` by ${navigator.edited_by}` : ""}`,
+    );
     push(navigator.sent_at, "navigator", "Navigator letter sent by TJ");
     push(navigator.dismissed_at, "navigator", "Navigator draft dismissed");
 
@@ -309,6 +314,7 @@ export async function POST(
         "navigator_dismiss",
         "navigator_test",
         "navigator_recompose",
+        "navigator_save",
       ].includes(action)
     ) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
@@ -323,6 +329,61 @@ export async function POST(
     if (!profile) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const meta = (profile.metadata as Record<string, unknown>) || {};
+
+    // ── Save: persist TJ's in-drawer edits so they survive collapsing the
+    //    row, filter changes, and refreshes. Edits live in edited_* fields
+    //    BESIDE the AI originals — the diff is the concierge learning signal.
+    //    Send and the AI-review exports prefer saved edits; recompose clears
+    //    them (the letter they edited no longer exists).
+    if (action === "navigator_save") {
+      const navigator = readBenefitsNavigator(meta);
+      if (navigator.status !== "pending" || !navigator.body) {
+        return NextResponse.json({ error: "No pending draft for this family" }, { status: 409 });
+      }
+      const editedBody =
+        typeof body.body === "string" && body.body.trim().length >= 40 ? body.body.trim() : null;
+      if (!editedBody) {
+        return NextResponse.json({ error: "Letter is too short to save" }, { status: 400 });
+      }
+      const editedSubject =
+        typeof body.subject === "string" && body.subject.trim()
+          ? body.subject.trim().slice(0, 150)
+          : navigator.subject;
+      const editedSms =
+        typeof body.sms === "string" && body.sms.trim() ? body.sms.trim().slice(0, 400) : null;
+
+      // Fresh-read merge: a coordinator run or a family tapping /m gap chips
+      // mid-edit must not be clobbered by the request-start metadata copy.
+      const { data: freshRow } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", profileId)
+        .maybeSingle();
+      const freshMeta = (freshRow?.metadata as Record<string, unknown> | null) || meta;
+      const freshNav = readBenefitsNavigator(freshMeta);
+      if (freshNav.status !== "pending") {
+        return NextResponse.json(
+          { error: "This draft was sent or dismissed elsewhere. Refresh to see its state." },
+          { status: 409 },
+        );
+      }
+      const next = {
+        ...freshNav,
+        edited_subject: editedSubject,
+        edited_body: editedBody,
+        edited_sms: editedSms,
+        edited_at: new Date().toISOString(),
+        edited_by: adminUser.display_name || user.email || "admin",
+      };
+      const { error: saveErr } = await db
+        .from("business_profiles")
+        .update({ metadata: { ...freshMeta, benefits_navigator: next } })
+        .eq("id", profileId);
+      if (saveErr) {
+        return NextResponse.json({ error: "Couldn't save the draft" }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, navigator: next });
+    }
 
     // ── Recompose: re-draft a pending letter from current program data.
     //    Exists for the fact-check loop — after data corrections deploy,
@@ -407,15 +468,16 @@ export async function POST(
         return NextResponse.json({ success: true, navigator: next });
       }
 
-      // Both send paths honor TJ's drawer edits.
+      // Both send paths honor TJ's drawer edits: what the request carries
+      // first, then saved edits, then the AI original.
       const subject =
         typeof body.subject === "string" && body.subject.trim()
           ? body.subject.trim().slice(0, 150)
-          : navigator.subject || "Your first step";
+          : navigator.edited_subject || navigator.subject || "Your first step";
       const letter =
         typeof body.body === "string" && body.body.trim().length >= 40
           ? body.body.trim()
-          : navigator.body;
+          : navigator.edited_body || navigator.body;
 
       const siteUrl = getSiteUrl();
       const { data: tokenRow } = await db
@@ -539,7 +601,7 @@ export async function POST(
           typeof body.sms === "string" && body.sms.trim().length >= 20
             ? body.sms.trim().slice(0, 400)
             : null;
-        const draftSms = editedSms || navigator.sms || null;
+        const draftSms = editedSms || navigator.edited_sms || navigator.sms || null;
         // Append the opt-out line only when it isn't already there (the model
         // is told not to write it, but a disobedient draft or a TJ edit that
         // includes it must not produce a doubled STOP line).

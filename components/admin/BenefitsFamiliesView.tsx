@@ -2,6 +2,10 @@
 
 import { Fragment, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import DateRangePopover, {
+  resolveRange,
+  type DateRangeValue,
+} from "@/components/admin/DateRangePopover";
 import {
   buildNavigatorReviewPrompt,
   type ReviewItem,
@@ -79,6 +83,11 @@ interface NavigatorDetail {
   body?: string;
   /** TJ-voiced companion text; {link} placeholder is replaced at send. */
   sms?: string | null;
+  /** Saved in-drawer edits — preferred over the AI originals everywhere. */
+  edited_subject?: string;
+  edited_body?: string;
+  edited_sms?: string | null;
+  edited_at?: string;
   composed_at?: string;
   sent_at?: string;
   /** Full pickSnapshot from metadata — the letter's verifiable claims. */
@@ -103,11 +112,14 @@ interface TimelineEvent {
 }
 
 interface FamiliesData {
-  days: number;
+  /** Window length in days; null = all time (no prior-window comparison). */
+  days: number | null;
+  /** True when the 500-row fetch cap cut the list (counts stay exact). */
+  truncated: boolean;
   summary: {
     completions: number;
     uniqueFamilies: number;
-    prevCompletions: number;
+    prevCompletions: number | null;
     engaged: number;
     enriched: number;
     situationComplete: number;
@@ -125,7 +137,7 @@ interface FamiliesData {
 }
 
 export default function BenefitsFamiliesView() {
-  const [days, setDays] = useState(30);
+  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
   const [data, setData] = useState<FamiliesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +146,14 @@ export default function BenefitsFamiliesView() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/benefits/families?days=${days}`);
+      const { from, to } = resolveRange(range);
+      const params = new URLSearchParams();
+      if (from) params.set("from", from);
+      if (to) params.set("to", to);
+      // "All time" resolves to no bounds — flag it explicitly so the server
+      // doesn't mistake it for a legacy no-param call (which defaults to 30d).
+      if (!from && !to) params.set("all", "1");
+      const res = await fetch(`/api/admin/benefits/families?${params.toString()}`);
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       setData(await res.json());
     } catch (err) {
@@ -143,7 +162,7 @@ export default function BenefitsFamiliesView() {
     } finally {
       setLoading(false);
     }
-  }, [days]);
+  }, [range]);
 
   useEffect(() => {
     fetchData();
@@ -181,7 +200,7 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save",
       subject?: string,
       letter?: string,
       sms?: string,
@@ -340,9 +359,15 @@ export default function BenefitsFamiliesView() {
             const d = await res.json();
             const nav = d.navigator as NavigatorDetail | undefined;
             if (nav?.status !== "pending" || !nav.body) return null;
+            // Saved edits are the letter that would actually send — fact-check
+            // those, not the superseded AI originals.
             return {
               ...reviewContextFor(f),
-              draft: { subject: nav.subject ?? "", body: nav.body, sms: nav.sms ?? null },
+              draft: {
+                subject: nav.edited_subject ?? nav.subject ?? "",
+                body: nav.edited_body ?? nav.body,
+                sms: nav.edited_sms ?? nav.sms ?? null,
+              },
               pick: nav.pick ?? null,
             } satisfies ReviewItem;
           } catch {
@@ -380,29 +405,21 @@ export default function BenefitsFamiliesView() {
       : filter === "draft_ready"
         ? f.navigator?.status === "pending"
         : f.lifecycle.status === filter;
-  const delta = summary.completions - summary.prevCompletions;
+  // Prior-window delta only exists for bounded ranges (null = all time).
+  const delta = summary.prevCompletions === null ? null : summary.completions - summary.prevCompletions;
+  const priorLabel = data.days ? `prior ${data.days}d` : "prior period";
   const engagedPct = summary.uniqueFamilies ? Math.round((summary.engaged / summary.uniqueFamilies) * 100) : 0;
   const enrichedPct = summary.uniqueFamilies ? Math.round((summary.enriched / summary.uniqueFamilies) * 100) : 0;
 
   return (
     <div className="space-y-6">
-      {/* Window toggle */}
-      <div className="flex items-center justify-between">
+      {/* Window picker */}
+      <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-gray-500">
           Families who completed a benefits intake, newest first. Rows open the full care-seeker record.
         </p>
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
-          {[7, 30, 90].map((d) => (
-            <button
-              key={d}
-              onClick={() => setDays(d)}
-              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-                days === d ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"
-              }`}
-            >
-              {d}d
-            </button>
-          ))}
+        <div className="shrink-0">
+          <DateRangePopover value={range} onChange={setRange} />
         </div>
       </div>
 
@@ -415,11 +432,13 @@ export default function BenefitsFamiliesView() {
           label="Completions"
           value={summary.completions}
           detail={
-            delta === 0
-              ? `same as prior ${data.days}d`
-              : `${delta > 0 ? "+" : ""}${delta} vs prior ${data.days}d`
+            delta === null
+              ? "all time"
+              : delta === 0
+                ? `same as ${priorLabel}`
+                : `${delta > 0 ? "+" : ""}${delta} vs ${priorLabel}`
           }
-          detailTone={delta > 0 ? "up" : delta < 0 ? "down" : "flat"}
+          detailTone={delta !== null && delta > 0 ? "up" : delta !== null && delta < 0 ? "down" : "flat"}
         />
         <StatCard
           label="Engaged"
@@ -536,6 +555,11 @@ export default function BenefitsFamiliesView() {
       </div>
 
       {/* Family queue */}
+      {data.truncated && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+          Long range: showing the newest 500 completions. The counts above cover the whole range.
+        </p>
+      )}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {families.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-12">No completions in this window</p>
@@ -684,16 +708,25 @@ function NavigatorDraftEditor({
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save",
     subject?: string,
     letter?: string,
     sms?: string,
     testEmail?: string,
   ) => Promise<boolean>;
 }) {
-  const [subject, setSubject] = useState(navigator.subject ?? "");
-  const [letter, setLetter] = useState(navigator.body ?? "");
-  const [sms, setSms] = useState(navigator.sms ?? "");
+  // Saved edits win over the AI originals — reopening a row after a save
+  // shows what TJ left, not what the model wrote.
+  const [subject, setSubject] = useState(navigator.edited_subject ?? navigator.subject ?? "");
+  const [letter, setLetter] = useState(navigator.edited_body ?? navigator.body ?? "");
+  const [sms, setSms] = useState(navigator.edited_sms ?? navigator.sms ?? "");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const saveDraft = async () => {
+    setSaveState("saving");
+    const ok = await onNavigator("navigator_save", subject, letter, sms.trim() || undefined);
+    setSaveState(ok ? "saved" : "error");
+    if (ok) setTimeout(() => setSaveState("idle"), 4000);
+  };
   // Test-send: remember the reviewer's address across sessions; empty falls
   // back server-side to the signed-in admin's own email.
   const [testEmail, setTestEmail] = useState(() => {
@@ -744,6 +777,9 @@ function NavigatorDraftEditor({
         <p className="text-[11px] text-amber-700/70">
           {navigator.pick?.shortName ? `First step: ${navigator.pick.shortName} · ` : ""}
           drafted {navigator.composed_at ? new Date(navigator.composed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : ""}
+          {navigator.edited_at
+            ? ` · edited ${new Date(navigator.edited_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+            : ""}
         </p>
       </div>
       <input
@@ -791,6 +827,14 @@ function NavigatorDraftEditor({
           Send as TJ
         </button>
         <button
+          onClick={saveDraft}
+          disabled={busy || saveState === "saving" || letter.trim().length < 40}
+          title="Saves your edits so they survive closing this row or refreshing. Nothing is sent."
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
+        >
+          {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save draft"}
+        </button>
+        <button
           onClick={() => {
             if (window.confirm("Dismiss this draft? The family will not get a first-step letter unless you contact them another way.")) {
               onNavigator("navigator_dismiss");
@@ -803,7 +847,7 @@ function NavigatorDraftEditor({
         </button>
         <button
           onClick={() => {
-            if (window.confirm("Re-draft this letter from current program data? Your edits to this draft will be discarded.")) {
+            if (window.confirm("Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.")) {
               onNavigator("navigator_recompose");
             }
           }}
@@ -814,6 +858,9 @@ function NavigatorDraftEditor({
           {busy ? "Working…" : "Recompose"}
         </button>
         <p className="text-[11px] text-amber-700/70">Sends the email now{textable ? " plus the companion text" : ""}.</p>
+        {saveState === "error" && (
+          <span className="text-[11px] font-medium text-red-600">Couldn&apos;t save. Try again.</span>
+        )}
       </div>
       {/* Test send: the exact email in a reviewer's inbox. Consumes nothing —
           no stamps, no text, no cap slot; the draft stays pending. */}
@@ -980,7 +1027,7 @@ function CasePanel({
   reviewContext: Omit<ReviewItem, "draft" | "pick">;
   familyLabel: string;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save",
     subject?: string,
     letter?: string,
     sms?: string,

@@ -658,9 +658,15 @@ export async function POST(req: Request) {
   mark("saved_programs_done");
 
   // ═══════════════════════════════════════════════════════════════════
-  // 5. Log seeker activity event + fire Slack alert (fire-and-forget)
+  // 5. Log seeker activity event + fire Slack alert
   // ═══════════════════════════════════════════════════════════════════
-  db.from("seeker_activity").insert({
+  // AWAITED, not fire-and-forget: Vercel can terminate the function before a
+  // dangling promise resolves, silently dropping the event. The admin
+  // Families queue is built from these events, so a dropped insert makes the
+  // family invisible there (2 of 220 completions were lost this way —
+  // discovered 2026-08-01 when two composed navigator drafts had no queue
+  // row to send them from).
+  await db.from("seeker_activity").insert({
     profile_id: familyProfileId,
     event_type: "benefits_completed",
     metadata: {
@@ -682,6 +688,8 @@ export async function POST(req: Request) {
     },
   }).then(({ error }: { error: { message: string } | null }) => {
     if (error) console.error("[seeker_activity] benefits_completed insert failed:", error);
+  }, (err: unknown) => {
+    console.error("[seeker_activity] benefits_completed insert threw:", err);
   });
 
   // Fire Slack alert for real-time visibility

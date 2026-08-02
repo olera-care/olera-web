@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.874Z
+ * Last updated: 2026-08-01T01:31:59.329Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -400,8 +400,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles to pay heating or cooling bills, Tennessee LIHEAP provides one-time payments of $174-$1,000 sent directly to their utility company. Your loved one can receive help once per year from up to two different programs (regular assistance, crisis assistance, or summer cooling).\n\nYour loved one qualifies if their monthly gross income is below $2,671 (single person) or $3,492 (two people), or if they receive SNAP, SSI, TANF, or certain Veterans benefits. No asset limits apply, your loved one can own a home, car, or have savings and still qualify.\n\nBecause LIHEAP uses federal funding that isn't always guaranteed, eligible applicants are placed on a waitlist until funds become available. Crisis situations (like disconnection notices) get priority treatment.",
-      "savingsRange": "$174 – $1,000/year in 2026",
-      "savingsSource": "One-time payment amounts from THDA LIHEAP program guidelines",
+      "savingsRange": "$174-$750/year (2025-26 program year)",
+      "savingsSource": "THDA: assistance ranges $174-$750 depending on household energy burden",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -493,10 +493,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Tennessee 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free referral service to find your local LIHEAP agency",
-          "hours": "24 hours, 7 days a week"
+          "label": "Tennessee Housing Development Agency (LIHEAP)",
+          "phone": "1-800-228-8432",
+          "description": "THDA runs Tennessee LIHEAP. They can point you to the agency serving your county and say whether applications are open.",
+          "hours": "Mon-Fri business hours"
         },
         {
           "label": "THDA Information Line",
@@ -512,6 +512,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Applications for each program year go through the THDA online portal (opens in the fall) or your local agency. Ask the local agency whether funds are open right now.",
         "Crisis cases with active disconnection notices may get expedited processing within 48 hours while regular applications wait for federal funding",
         "Your loved one can receive help from up to two of the three programs (regular, crisis, summer cooling) in the same year, but only once per program",
         "Each of Tennessee's 19 local agencies has different application processes and waitlist lengths, contact your specific county agency for current status",
@@ -561,7 +562,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(615) 815-2200",
       "sourceUrl": "https://thda.org/help-for-homeowners/low-income-home-energy-assistance-program-liheap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "ship-medicare-counseling",

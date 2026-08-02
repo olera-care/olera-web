@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.877Z
+ * Last updated: 2026-08-01T08:54:06.306Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -94,27 +94,18 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for all household members",
-        "Medicare card (both parts A and B)",
-        "Birth certificate or passport as proof of age",
-        "Proof of Virginia residency (utility bill, lease, or state-issued document)",
-        "Most recent Social Security award letter",
-        "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
-        "Property documents (deeds, tax statements)",
-        "Life insurance policies with cash values",
-        "Vehicle titles and registration",
-        "Medical records documenting daily care needs",
-        "Current medication list and prescribing physician information",
-        "Documentation of any home health services currently received",
-        "Legal documents if someone else is applying on their behalf"
+        "Legal names, dates of birth, and Social Security numbers for applicants",
+        "Income and employer information",
+        "Other health insurance information, including Medicare",
+        "Immigration information, if applicable",
+        "Resource and asset information (asked of applicants 65+ or seeking long-term services)"
       ],
       "contacts": [
         {
           "label": "Cover Virginia Call Center",
           "phone": "(833) 522-5582",
-          "description": "Medicaid applications and benefits questions",
-          "hours": "Monday-Friday business hours"
+          "description": "Takes the Medicaid application. The waiver ALSO requires a long-term services and supports screening, requested through the local Department of Social Services.",
+          "hours": "Mon-Fri 8am-7pm ET"
         },
         {
           "label": "Cover Virginia TDD",
@@ -136,6 +127,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "CCC+ has two parts: the Medicaid application (Cover Virginia) and a long-term services and supports screening through the local Department of Social Services. Both are required; start them in parallel.",
         "You must meet Virginia Medicaid financial eligibility first, applying over income/asset limits leads to automatic denial",
         "A dementia diagnosis alone does not qualify, your loved one must meet clinical level of care through the assessment process",
         "You can apply for CCC+ while on developmental disability waiver waitlists, as services are more limited but available immediately",
@@ -194,7 +186,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(833) 522-5582",
       "sourceUrl": "https://www.dmas.virginia.gov/for-members/benefits-and-services/waivers/ccc-plus-waiver/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "adult-services-program",

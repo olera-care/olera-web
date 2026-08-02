@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.870Z
+ * Last updated: 2026-08-01T01:31:59.325Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -576,7 +576,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "405-522-7044",
       "sourceUrl": "https://oklahoma.gov/ohca/individuals/programs-of-all-inclusive-care-for-the-elderly-pace.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "medicare-savings-programs",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AZ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.848Z
+ * Last updated: 2026-08-01T08:54:06.255Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -817,8 +817,8 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true
       },
       "intro": "If your loved one is struggling to afford groceries on a fixed income, Arizona's SNAP program (called Nutrition Assistance or NA) provides monthly benefits loaded onto an EBT card for food purchases. Arizona has expanded eligibility beyond federal requirements, making it easier for seniors to qualify, households with someone 60+ can bypass the gross income test entirely and qualify using only net income after deductions for medical expenses, housing costs, and taxes.\n\nBenefits range from a minimum of $24/month to $300+ depending on household size and income. Because Arizona counts medical expenses as deductions, a senior with high healthcare costs may qualify even with income that seems too high at first glance. The program covers most food items at grocery stores but cannot be used for alcohol, tobacco, or hot prepared foods.",
-      "savingsRange": "$288 – $3,600/year in 2026",
-      "savingsSource": "Minimum $24/month to estimated maximum based on household size",
+      "savingsRange": "Up to $3,576/year for one person (FY2026 maximum)",
+      "savingsSource": "USDA FY2026 maximum allotment for a 1-person household is $298/month; amounts vary by income and deductions",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -927,10 +927,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Arizona SNAP Hotline",
+          "label": "Health-e-Arizona Plus (DES)",
           "phone": "1-855-432-7587",
-          "description": "Arizona SNAP program questions and assistance",
-          "hours": "Business hours"
+          "description": "Mails applications and conducts eligibility interviews by phone. Applications are submitted online, by mail or fax, or in person.",
+          "hours": "Mon-Fri 7am-3pm (phone applications)"
         },
         {
           "label": "Family Assistance Administration",
@@ -946,6 +946,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "If every applying household member is 60 or older with no earned income, the Elderly Simplified Application Project (ESAP) takes applications fully by phone at 1-855-234-4960.",
         "Households with someone 60+ get special treatment, they can qualify using only net income and asset tests, bypassing the $2,412 gross income limit entirely",
         "Arizona has expanded eligibility beyond federal SNAP requirements, so income limits are higher than in many other states",
         "Medical expenses are fully deductible from gross income, seniors with high healthcare costs should document everything",
@@ -996,7 +997,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-855-432-7587",
       "sourceUrl": "https://arizonaselfhelp.org",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "liheap-energy-assistance",

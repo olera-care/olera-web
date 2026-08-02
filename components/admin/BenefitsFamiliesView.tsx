@@ -174,6 +174,29 @@ type LifecycleStatus =
   | "new"
   | "in_cascade";
 
+type QueueFilter = LifecycleStatus | "all" | "draft_ready" | "scheduled";
+
+const QUEUE_FILTERS: QueueFilter[] = [
+  "all",
+  "draft_ready",
+  "scheduled",
+  "needs_help",
+  "stalled",
+  "acting",
+  "returned",
+  "new",
+  "in_cascade",
+  "working",
+  "resolved",
+];
+
+/** Read the active queue filter from the URL so a refresh lands back on it. */
+function filterFromUrl(): QueueFilter {
+  if (typeof window === "undefined") return "all";
+  const status = new URLSearchParams(window.location.search).get("status");
+  return QUEUE_FILTERS.includes(status as QueueFilter) ? (status as QueueFilter) : "all";
+}
+
 interface TimelineEvent {
   at: string;
   kind: string;
@@ -240,7 +263,19 @@ export default function BenefitsFamiliesView() {
 
   // ── Case drill-in state ─────────────────────────────────────────────
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready" | "scheduled">("all");
+  // The active filter lives in the URL (?status=draft_ready) so a refresh
+  // keeps TJ on the queue he was working, instead of dumping him back on All.
+  const [filter, setFilterState] = useState<QueueFilter>(filterFromUrl);
+  const setFilter = useCallback((next: QueueFilter) => {
+    setFilterState(next);
+    const url = new URL(window.location.href);
+    if (next === "all") url.searchParams.delete("status");
+    else url.searchParams.set("status", next);
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
+  // "What's working" breakdown — collapsed by default; the family queue below
+  // is where the actual work happens.
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [exportState, setExportState] = useState<
     "idle" | "working" | "error" | { copied: number; failed: number; downloaded: boolean }
   >("idle");
@@ -538,41 +573,60 @@ export default function BenefitsFamiliesView() {
         />
       </div>
 
-      {/* What's working */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <BreakdownCard title="Top entry pages">
-          {breakdown.topSources.map((s) => (
-            <BreakdownRow
-              key={s.path ?? "direct"}
-              label={
-                s.path ? (
-                  <a href={s.path} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 transition-colors">
-                    {s.label}
-                  </a>
-                ) : (
-                  s.label
-                )
-              }
-              count={s.count}
-              total={summary.uniqueFamilies}
-            />
-          ))}
-        </BreakdownCard>
-        <BreakdownCard title="Top states">
-          {breakdown.topStates.map((s) => (
-            <BreakdownRow key={s.state} label={s.state} count={s.count} total={summary.uniqueFamilies} />
-          ))}
-        </BreakdownCard>
-        <BreakdownCard title="Care needs">
-          {breakdown.careNeeds.map((c) => (
-            <BreakdownRow
-              key={c.careNeed}
-              label={CARE_NEED_LABELS[c.careNeed] ?? c.careNeed}
-              count={c.count}
-              total={summary.uniqueFamilies}
-            />
-          ))}
-        </BreakdownCard>
+      {/* What's working — collapsed by default so the queue stays above the fold */}
+      <div>
+        <button
+          onClick={() => setBreakdownOpen((o) => !o)}
+          className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg
+            className={`w-3 h-3 transition-transform duration-200 ${breakdownOpen ? "rotate-90" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+          Top entry pages · Top states · Care needs
+        </button>
+        {breakdownOpen && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            <BreakdownCard title="Top entry pages">
+              {breakdown.topSources.map((s) => (
+                <BreakdownRow
+                  key={s.path ?? "direct"}
+                  label={
+                    s.path ? (
+                      <a href={s.path} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 transition-colors">
+                        {s.label}
+                      </a>
+                    ) : (
+                      s.label
+                    )
+                  }
+                  count={s.count}
+                  total={summary.uniqueFamilies}
+                />
+              ))}
+            </BreakdownCard>
+            <BreakdownCard title="Top states">
+              {breakdown.topStates.map((s) => (
+                <BreakdownRow key={s.state} label={s.state} count={s.count} total={summary.uniqueFamilies} />
+              ))}
+            </BreakdownCard>
+            <BreakdownCard title="Care needs">
+              {breakdown.careNeeds.map((c) => (
+                <BreakdownRow
+                  key={c.careNeed}
+                  label={CARE_NEED_LABELS[c.careNeed] ?? c.careNeed}
+                  count={c.count}
+                  total={summary.uniqueFamilies}
+                />
+              ))}
+            </BreakdownCard>
+          </div>
+        )}
       </div>
 
       {/* Lifecycle filter */}
@@ -590,7 +644,7 @@ export default function BenefitsFamiliesView() {
             ["in_cascade", "In cascade"],
             ["working", "Working"],
             ["resolved", "Resolved"],
-          ] as [LifecycleStatus | "all" | "draft_ready" | "scheduled", string][]
+          ] as [QueueFilter, string][]
         ).map(([key, label]) => {
           const count =
             key === "all" ? families.length

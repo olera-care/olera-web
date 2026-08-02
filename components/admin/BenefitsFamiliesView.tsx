@@ -240,7 +240,7 @@ export default function BenefitsFamiliesView() {
 
   // ── Case drill-in state ─────────────────────────────────────────────
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready">("all");
+  const [filter, setFilter] = useState<LifecycleStatus | "all" | "draft_ready" | "scheduled">("all");
   const [exportState, setExportState] = useState<
     "idle" | "working" | "error" | { copied: number; failed: number; downloaded: boolean }
   >("idle");
@@ -397,7 +397,15 @@ export default function BenefitsFamiliesView() {
   if (!data) return null;
 
   const { summary, breakdown, families } = data;
-  const draftReadyCount = families.filter((f) => f.navigator?.status === "pending").length;
+  // "Draft ready" = pending and un-scheduled (waiting on TJ). Scheduled
+  // drafts get their own chip — they're committed, not waiting. The AI-review
+  // export still covers BOTH: a scheduled letter hasn't sent yet, so a
+  // fact-check catching an error before the fire is exactly the point.
+  const pendingDraftCount = families.filter((f) => f.navigator?.status === "pending").length;
+  const scheduledCount = families.filter(
+    (f) => f.navigator?.status === "pending" && f.navigator.scheduledAt,
+  ).length;
+  const draftReadyCount = pendingDraftCount - scheduledCount;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -474,8 +482,10 @@ export default function BenefitsFamiliesView() {
     filter === "all"
       ? true
       : filter === "draft_ready"
-        ? f.navigator?.status === "pending"
-        : f.lifecycle.status === filter;
+        ? f.navigator?.status === "pending" && !f.navigator.scheduledAt
+        : filter === "scheduled"
+          ? f.navigator?.status === "pending" && !!f.navigator.scheduledAt
+          : f.lifecycle.status === filter;
   // Prior-window delta only exists for bounded ranges (null = all time).
   const delta = summary.prevCompletions === null ? null : summary.completions - summary.prevCompletions;
   const priorLabel = data.days ? `prior ${data.days}d` : "prior period";
@@ -571,6 +581,7 @@ export default function BenefitsFamiliesView() {
           [
             ["all", "All"],
             ["draft_ready", "Draft ready"],
+            ["scheduled", "Scheduled"],
             ["needs_help", "Needs help"],
             ["stalled", "Stalled"],
             ["acting", "Acting"],
@@ -579,11 +590,12 @@ export default function BenefitsFamiliesView() {
             ["in_cascade", "In cascade"],
             ["working", "Working"],
             ["resolved", "Resolved"],
-          ] as [LifecycleStatus | "all" | "draft_ready", string][]
+          ] as [LifecycleStatus | "all" | "draft_ready" | "scheduled", string][]
         ).map(([key, label]) => {
           const count =
             key === "all" ? families.length
             : key === "draft_ready" ? draftReadyCount
+            : key === "scheduled" ? scheduledCount
             : summary.lifecycle?.[key] ?? 0;
           if (key !== "all" && count === 0 && filter !== key) return null;
           return (
@@ -598,7 +610,7 @@ export default function BenefitsFamiliesView() {
             </button>
           );
         })}
-        {draftReadyCount > 0 && (
+        {pendingDraftCount > 0 && (
           <span className="ml-auto flex items-center gap-2">
             {typeof exportState === "object" && (
               <span className="text-[11px] font-medium text-emerald-700">
@@ -619,7 +631,7 @@ export default function BenefitsFamiliesView() {
               title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
               className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
-              {exportState === "working" ? "Building…" : `Copy AI review prompt (${draftReadyCount})`}
+              {exportState === "working" ? "Building…" : `Copy AI review prompt (${pendingDraftCount})`}
             </button>
           </span>
         )}
@@ -946,7 +958,8 @@ function NavigatorDraftEditor({
         </button>
         <button
           onClick={() => {
-            if (window.confirm("Dismiss this draft? The family will not get a first-step letter unless you contact them another way.")) {
+            const scheduleNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
+            if (window.confirm(`Dismiss this draft? The family will not get a first-step letter unless you contact them another way.${scheduleNote}`)) {
               onNavigator("navigator_dismiss");
             }
           }}
@@ -957,7 +970,8 @@ function NavigatorDraftEditor({
         </button>
         <button
           onClick={() => {
-            if (window.confirm("Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.")) {
+            const recomposeNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
+            if (window.confirm(`Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`)) {
               onNavigator("navigator_recompose");
             }
           }}

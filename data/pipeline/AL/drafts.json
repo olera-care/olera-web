@@ -808,8 +808,8 @@
         ]
       },
       "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, Alabama LIHEAP provides direct payments to utility companies. The program pays up to $580 toward heating costs and $520 toward cooling costs annually, you get one heating payment and one cooling payment per year, with emergency crisis assistance up to $1,100 for heating emergencies.\n\nBecause LIHEAP operates through local Community Action Agencies rather than a central state office, you must apply through your county's specific agency. Priority goes to households with seniors 60+, disabled members, young children, or those facing disconnection. Income limits are set at 150% of the federal poverty level, $2,152/month for a single person in 2026.\n\nFunds are limited and distributed first-come, first-served. Applications typically open in late December or early January, with high demand during winter months when heating assistance applications surge.",
-      "savingsRange": "$280 – $1,680/year in 2026",
-      "savingsSource": "Minimum heating ($280) + cooling ($320) to maximum heating ($580) + cooling ($520) + crisis assistance ($1,100)",
+      "savingsRange": "$280-$580 per benefit (FY2026)",
+      "savingsSource": "ADECA FY2026 LIHEAP State Plan: regular benefit $280-$580, plus a $50 high-energy benefit and funding-contingent $100 supplement where applicable",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -902,20 +902,21 @@
         "Declaration of Household Income form if anyone has zero income",
         "Doctor's statement if applying for medical cooling or heating needs",
         "Disconnection notice if applying for crisis assistance",
-        "Signed statement if someone else is applying on behalf of the household member"
+        "Signed statement if someone else is applying on behalf of the household member",
+        "Most recent heating or cooling bill"
       ],
       "contacts": [
         {
-          "label": "Alabama Department of Economic & Community Affairs",
-          "phone": "(334) 242-5100",
-          "description": "State LIHEAP program information",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "label": "2-1-1 Alabama (agency locator)",
+          "phone": "2-1-1",
+          "description": "Ask for your county Community Action Agency. That local office takes LIHEAP applications.",
+          "hours": "24 hours, 7 days a week"
         },
         {
-          "label": "Alabama 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free referral to local Community Action Agency",
-          "hours": "24 hours, 7 days a week"
+          "label": "ADECA (program information only)",
+          "phone": "(334) 242-5100",
+          "description": "State administrator. ADECA does not schedule appointments or accept applications; apply through your county Community Action Agency.",
+          "hours": "Mon-Fri 8am-5pm CT"
         }
       ],
       "applicationNotes": [
@@ -977,7 +978,8 @@
       "phone": "(334) 242-5100",
       "sourceUrl": "https://adeca.alabama.gov/liheap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "weatherization-assistance-program",

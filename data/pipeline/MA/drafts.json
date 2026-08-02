@@ -17,8 +17,8 @@
         "stateVariation": true
       },
       "intro": "If your loved one is on Medicare and earning less than $2,993/month (or $4,058 for a married couple), Massachusetts can pay their Medicare premiums, deductibles, and copays. This program saves eligible seniors up to $3,000 per year in out-of-pocket medical costs.\n\nThe program has three tiers based on income. At the lowest income level (QMB), Massachusetts pays all Medicare premiums plus every deductible, coinsurance, and copay, your loved one shows both their Medicare and MassHealth cards and pays nothing. At higher income levels, the state covers Medicare Part B premiums and provides prescription drug savings. Since March 2024, there's no asset test for basic eligibility, meaning your loved one's house and savings don't count against them.\n\nBecause this program automatically enrolls your loved one in Medicare Part D Extra Help for prescription savings and connects them to additional MassHealth benefits, one application can unlock multiple forms of financial assistance.",
-      "savingsRange": "$3,000/year",
-      "savingsSource": "Medicare premiums, deductibles, and copays covered by MassHealth",
+      "savingsRange": "$2,435+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); MassHealth Senior Buy-In can also cover Medicare cost sharing",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -187,7 +187,8 @@
       "phone": "(800) 841-2900",
       "sourceUrl": "https://www.mass.gov/info-details/get-help-paying-medicare-costs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "frail-elder-waiver",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.854Z
+ * Last updated: 2026-08-01T01:31:59.312Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -908,9 +908,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Iowa 2-1-1 Helpline",
+          "label": "Iowa 2-1-1 (agency locator)",
           "phone": "2-1-1",
-          "description": "Find your local community action agency and get application help",
+          "description": "Ask for your local community action agency. That office takes LIHEAP applications.",
           "hours": "24 hours, 7 days a week"
         },
         {
@@ -927,6 +927,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Applications run November 1 through April 30. Households with a member who is 60 or older or has a disability can apply starting in October. Your community action agency takes the application.",
         "Income limits may be up to 200% of federal poverty guidelines at some agencies, verify current limits with your local community action agency since guidelines update annually",
         "If roommates share the same utility bill, they count as household members which may affect income limits",
         "This is a one-time annual payment, not ongoing monthly assistance, budget accordingly for the rest of the heating season",
@@ -977,7 +978,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://iuc.iowa.gov/customer-assistance/how-do-i-apply-energy-assistance-liheap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "shiip-medicare-counseling",

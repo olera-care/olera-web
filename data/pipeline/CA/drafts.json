@@ -23,8 +23,8 @@
         ]
       },
       "intro": "If your loved one has Medicare and limited income, California's Medicare Savings Programs can eliminate their monthly Medicare costs entirely. The highest tier (QMB) covers all Medicare Part A and Part B premiums, deductibles, and copays for people earning under $1,330/month. Mid-tier programs (SLMB and QI) cover Part B premiums for those earning up to $1,796/month.\n\nUnlike federal programs, California allows up to $130,000 in assets for singles ($195,000 for couples), so your loved one's home and savings likely won't disqualify them. Because this works like automatic Medigap coverage, your loved one won't get surprise medical bills, providers cannot legally charge QMB recipients for Medicare cost-sharing.\n\nThe program is administered county-by-county through local social services agencies. QI funding comes from a limited federal block grant, so it may have waitlists or temporary closures when funds run out.",
-      "savingsRange": "$2,434 – $4,000+/year",
-      "savingsSource": "Medicare Part B premiums plus potential deductibles and copays",
+      "savingsRange": "$2,435+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB-level coverage can also pay Medicare cost sharing",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -114,19 +114,20 @@
       ],
       "contacts": [
         {
+          "label": "HICAP (free Medicare counseling)",
+          "phone": "1-800-434-0222",
+          "description": "California's free statewide Medicare counseling program. They screen for Medicare Savings Programs and help you apply through your county Medi-Cal office.",
+          "hours": "Mon-Fri business hours"
+        },
+        {
           "label": "Your county social services",
           "phone": null,
           "description": "Find your local Medi-Cal office through county website or DHCS directory",
           "hours": "Varies by county"
-        },
-        {
-          "label": "California 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline to find local social services offices",
-          "hours": "24/7"
         }
       ],
       "applicationNotes": [
+        "Applications go through your county Medi-Cal office (form MC 14A by mail, by phone, online, or in person). HICAP counselors help with the paperwork for free.",
         "California became a Part A Buy-In state in January 2025, QMB recipients are now automatically enrolled in Medicare Part A if eligible",
         "Providers cannot legally bill QMB recipients for Medicare deductibles or copays, but choose providers who accept Medi-Cal to avoid billing confusion",
         "Income limits update every April 1st based on Federal Poverty Level changes",
@@ -207,7 +208,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "mssp-waiver",
@@ -2091,8 +2093,8 @@
         ]
       },
       "intro": "If your loved one is 65+, disabled, or blind and receives federal SSI (Supplemental Security Income), California automatically provides an additional cash payment called State Supplementary Payment (SSP). This means your loved one gets more money each month, up to $239.94 extra for an individual or $607.83 extra for couples in 2026.\n\nThe total monthly payment becomes $1,206.94 for individuals or $2,057.83 for couples when combining federal SSI and California's SSP supplement. Because SSP follows SSI eligibility automatically, your loved one doesn't need to apply separately, if they qualify for SSI, they get SSP.\n\nTo qualify, your loved one must have very limited income (generally under $1,207/month after disregards) and assets under $2,000 for individuals or $3,000 for couples. The payment is reduced dollar-for-dollar by other countable income, and living arrangements can affect the amount.",
-      "savingsRange": "$2,879 – $7,294/year in 2026",
-      "savingsSource": "Maximum SSP benefits: $239.94/month individual ($2,879/year) to $607.83/month couple ($7,294/year)",
+      "savingsRange": "$2,879-$7,585/year in 2026 (depends on living situation)",
+      "savingsSource": "DHCS SSI/SSP payment standards eff. 2026-01-01: individual SSP $239.94-$632.07/month by living arrangement",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -2256,7 +2258,8 @@
       "phone": "(800) 772-1213",
       "sourceUrl": "https://www.cdss.ca.gov/inforesources/cdss-programs/ssi-ssp/ssi-ssp-eligibility-summary",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-01"
     },
     {
       "id": "property-tax-postponement",

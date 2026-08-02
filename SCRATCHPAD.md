@@ -7,7 +7,17 @@
 
 ## Current Focus
 
-### 2026-07-26/27 — Ad Boost: Pacesetter PUBLISHED (24072567829) + Franchil post-mortem changes the roadmap
+### 2026-07-31 → 08-02 — Benefits fact-check loop SHIPPED + first real send wave (19 letters out)
+
+**The loop is live in prod** (PRs #1431 + #1432 → promote #1435, main `33f0bbc4`): Draft-ready filter chip, batch/per-draft "Copy AI review prompt" export, Recompose action, `/benefits-factcheck` repo command. Workflow: export → ChatGPT/Codex researches → `/benefits-factcheck <report>` (Claude re-verifies vs PRIMARY sources, patches `data/pipeline` + pending letters in DB) → merge/promote → recompose → TJ voice-checks → Send as TJ.
+
+**Four verification rounds ran.** R1: hallucinated CO "Older Coloradans Cash Fund" REMOVED (SB21-290: fund pays AAAs, not people; our data said `savingsVerified:true` — aggregator echo chamber), 4 wrong phone doors (MD/SC/IL/FL/CA), stale savings → 11 states corrected. R2 (vs revised letters): GA "U.S. photo ID" nit, NC savings tiers, core-eligibility asks reframed (SC ESAP 65+, CA MSSP Medi-Cal, MA FEW 60+). R3 (Claude solo on 9 post-audit programs): CA MSP 2-1-1 → HICAP 800-434-0222, TN 2-1-1 → THDA, IA/TN **seasonality** (Aug letters for Nov-opening programs), AZ hours. R4 (ChatGPT cross-check of R3): **external reviewer right on all 4 disagreements** — AL ADECA does NOT take applications (county CAA door), AZ general line ≠ phone applications (ESAP 855-234-4960 is), CA SSP 2026 ceiling $7,585, VA CCC+ is TWO-part (Cover VA Medicaid app + LTSS screening via local DSS). Lesson encoded: **search-summary contamination — phone numbers survive WebSearch summaries, routing/"call X to apply" claims don't; fetch the operator's page.** Also: desk-line rule (Wake County was a named supervisor's line; institutional front doors only), no-name-rule redaction guard (displayName "Care Seeker" on ~all benefits families).
+
+**Sends:** 19 navigator letters out (2 → 21 total ever), incl. first companion SMS to a real family (wisewilliams13). 9 pending, all 4-rounds-verified, send-ready. B2 check-ins for the send wave land ~Aug 3-4; replies → support@olera.care.
+
+**Bug found+fixed:** `benefits_completed` event insert was fire-and-forget → Vercel dropped 2 of 220, making those families INVISIBLE in the admin queue while the coordinator (metadata-driven) still drafted letters for them. Events backfilled; fix = await (PR #1445). Test identities purged (crinkle + botch_belugas ×2 — shared TJ's test phone +14107907596).
+
+**OPEN:** PRs **#1438** (data corrections r2-r4 + command lessons) and **#1445** (event await) → /pr-merge, then promote so nightly composes draw corrected data. MA FEW 60-month bank-statement dispute unresolved (auditor says 45-day conflation; FEW-specific sources say 60mo — data unchanged). Composer-rail candidates from the audits: seasonality-aware picks, entry-source ≠ need inference, "often save $X" phrasing.
 
 **Campaign:** "Pacesetter Home Services – Dallas GA – Jul 2026", ID **24072567829**. $50 total, Maximize clicks + $2.50 CPC cap, Search-only, 20mi around **ZIP 30132 Presence-only**, EN+ES, AI Max off, 13 phrase keywords, 13 headlines + 4 descriptions (policy audit PASS, 0 violations), tag `pacesetter-dallas-ga-jul26`, display path `/Home-Care/Dallas-GA`. Serves **Jul 27 → Aug 24**. Shared negative list (82 terms) applied; account auto-apply re-verified 0/7 + 0/14.
 
@@ -3507,7 +3517,9 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Session Log
 
-### 2026-07-10 — Q&A provider email open/click tracking fix
+### 2026-07-31/08-01 — Benefits fact-check loop: built, shipped, ran 4 rounds, 19 letters sent
+
+Built the navigator-letter verification loop end to end and ran it same-day. Shipped (#1431/#1432 → main via #1435): Draft-ready filter, AI review-prompt export (batch + drawer), Recompose action, `/benefits-factcheck` command. Data: removed hallucinated CO Cash Fund, fixed 5 wrong/weak phone doors + stale savings across 11 states (R1), then R2-R4 refinements incl. HICAP/THDA/CAA doors, seasonality notes, VA two-step process. Letters: 19 sent (first companion SMS included), 9 pending fully verified; all patches applied directly to `business_profiles.metadata.benefits_navigator` (message layer = DB, no deploy). Fixed fire-and-forget `benefits_completed` insert (#1445) after 2 invisible-family cases; backfilled events. Files: `components/admin/BenefitsFamiliesView.tsx`, `app/api/admin/benefits/families/[profileId]/route.ts`, `lib/benefits/navigator-review-prompt.ts`, `.claude/commands/benefits-factcheck.md`, `data/pipeline/{11 states}`, `app/api/benefits/save-results/route.ts`. Why the loop shape: external AI (ChatGPT) researches broadly, Claude re-verifies against primary sources only (aggregator echo chambers defeat source-counting), TJ gates every send.
 
 Investigated why Admin Analytics showed `question_received` provider emails at
 508 sent / 463 delivered / 0 opened / 0 clicked while weekly digest tracking

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
+import { useToast } from "@/components/admin/Toast";
 
 interface AdminSidebarProps {
   adminUser: AdminUser;
@@ -199,10 +200,38 @@ const mobileNavItems: (NavItem & { icon: React.ReactNode })[] = [
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
 
+// Every page a hover-star can pin. Pinned hrefs are stored per admin
+// (admin_users.favorites) and resolve their labels here — a retired route
+// simply stops rendering, no cleanup needed.
+const pinnableItems: NavItem[] = [
+  ...navSections.flatMap((s) => s.items),
+  ...medjobsItems,
+  { label: "Young Caregivers", href: "/admin/young-caregivers" },
+];
+
 function getInitials(email: string): string {
   const local = email.split("@")[0];
   if (!local) return "?";
   return local.slice(0, 2).toUpperCase();
+}
+
+function Star({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      className="w-3.5 h-3.5"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth={1.5}
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+      />
+    </svg>
+  );
 }
 
 function Chevron({ open }: { open: boolean }) {
@@ -220,6 +249,33 @@ function Chevron({ open }: { open: boolean }) {
 
 export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const pathname = usePathname();
+  const toast = useToast();
+
+  // Pinned pages — per admin, DB-backed (admin_users.favorites) so pins
+  // follow the person across devices. Optimistic toggle, revert on failure.
+  const [favorites, setFavorites] = useState<string[]>(() => adminUser.favorites ?? []);
+  const toggleFavorite = useCallback(
+    async (href: string) => {
+      const prev = favorites;
+      const next = prev.includes(href) ? prev.filter((f) => f !== href) : [...prev, href];
+      setFavorites(next);
+      try {
+        const res = await fetch("/api/admin/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ favorites: next }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+      } catch {
+        setFavorites(prev);
+        toast("Couldn't save that pin. Try again.", { variant: "error" });
+      }
+    },
+    [favorites, toast],
+  );
+  const pinnedItems = favorites
+    .map((href) => pinnableItems.find((i) => i.href === href))
+    .filter((i): i is NavItem => !!i);
 
   // v9.0 Phase 7: medjobs section toggles open/close. Defaults open
   // since the section is the primary daily-use surface.
@@ -349,6 +405,44 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
             </button>
           </div>
 
+          {/* Pinned — this admin's personal shortcut layer. Hidden until
+              they star something, so unpinning everything removes it. */}
+          {pinnedItems.length > 0 && (
+            <div className="mb-3">
+              <p className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                Pinned
+              </p>
+              <div className="space-y-px">
+                {pinnedItems.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <div key={item.href} className="relative group/item">
+                      <Link
+                        href={item.href}
+                        className={[
+                          "block pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                          active
+                            ? "text-gray-900 font-medium bg-gray-100"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                        ].join(" ")}
+                      >
+                        {item.label}
+                      </Link>
+                      <button
+                        onClick={() => toggleFavorite(item.href)}
+                        title="Unpin"
+                        aria-label={`Unpin ${item.label}`}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-amber-400 opacity-0 group-hover/item:opacity-100 hover:text-amber-500 transition-opacity duration-100"
+                      >
+                        <Star filled />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Collapsible sections */}
           {navSections.map((section) => {
             const isOpen = !collapsed[section.key] || activeSectionKey === section.key;
@@ -367,19 +461,32 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                   <div className="mt-0.5 space-y-px">
                     {section.items.map((item) => {
                       const active = isActive(item.href);
+                      const pinned = favorites.includes(item.href);
                       return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className={[
-                            "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
-                            active
-                              ? "text-gray-900 font-medium bg-gray-100"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                          ].join(" ")}
-                        >
-                          {item.label}
-                        </Link>
+                        <div key={item.href} className="relative group/item">
+                          <Link
+                            href={item.href}
+                            className={[
+                              "block pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                              active
+                                ? "text-gray-900 font-medium bg-gray-100"
+                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                            ].join(" ")}
+                          >
+                            {item.label}
+                          </Link>
+                          <button
+                            onClick={() => toggleFavorite(item.href)}
+                            title={pinned ? "Unpin" : "Pin to top"}
+                            aria-label={`${pinned ? "Unpin" : "Pin"} ${item.label}`}
+                            className={[
+                              "absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover/item:opacity-100 transition-opacity duration-100",
+                              pinned ? "text-amber-400 hover:text-amber-500" : "text-gray-300 hover:text-amber-400",
+                            ].join(" ")}
+                          >
+                            <Star filled={pinned} />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -423,36 +530,49 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                           ? String(entry.total)
                           : null
                     : null;
+                  const pinned = favorites.includes(item.href);
                   return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={[
-                        "flex items-center justify-between pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
-                        active
-                          ? hasUnread
-                            ? "bg-gray-100 font-semibold text-gray-900"
-                            : "bg-gray-100 font-medium text-gray-900"
-                          : hasUnread
-                            ? "font-semibold text-gray-900 hover:bg-gray-50"
-                            : "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
-                      ].join(" ")}
-                    >
-                      <span>{item.label}</span>
-                      {fraction != null && (
-                        <span
-                          className={[
-                            "ml-2 text-[11px] tabular-nums rounded px-1 transition-colors duration-500",
-                            hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
-                            countsKey && pulseKeys.has(countsKey)
-                              ? "bg-emerald-100"
-                              : "bg-transparent",
-                          ].join(" ")}
-                        >
-                          {fraction}
-                        </span>
-                      )}
-                    </Link>
+                    <div key={item.href} className="relative group/item">
+                      <Link
+                        href={item.href}
+                        className={[
+                          "flex items-center justify-between pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                          active
+                            ? hasUnread
+                              ? "bg-gray-100 font-semibold text-gray-900"
+                              : "bg-gray-100 font-medium text-gray-900"
+                            : hasUnread
+                              ? "font-semibold text-gray-900 hover:bg-gray-50"
+                              : "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                        ].join(" ")}
+                      >
+                        <span>{item.label}</span>
+                        {fraction != null && (
+                          <span
+                            className={[
+                              "ml-2 text-[11px] tabular-nums rounded px-1 transition-colors duration-500",
+                              hasUnread ? "font-semibold text-gray-900" : "text-gray-400",
+                              countsKey && pulseKeys.has(countsKey)
+                                ? "bg-emerald-100"
+                                : "bg-transparent",
+                            ].join(" ")}
+                          >
+                            {fraction}
+                          </span>
+                        )}
+                      </Link>
+                      <button
+                        onClick={() => toggleFavorite(item.href)}
+                        title={pinned ? "Unpin" : "Pin to top"}
+                        aria-label={`${pinned ? "Unpin" : "Pin"} ${item.label}`}
+                        className={[
+                          "absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover/item:opacity-100 transition-opacity duration-100",
+                          pinned ? "text-amber-400 hover:text-amber-500" : "text-gray-300 hover:text-amber-400",
+                        ].join(" ")}
+                      >
+                        <Star filled={pinned} />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -460,11 +580,11 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
           </div>
 
           {/* Young Caregivers section */}
-          <div key="young-caregivers" className="mt-1">
+          <div key="young-caregivers" className="mt-1 relative group/item">
             <Link
               href="/admin/young-caregivers"
               className={[
-                "w-full flex items-center px-2.5 py-1.5 rounded-md text-sm font-semibold transition-colors duration-100",
+                "w-full flex items-center px-2.5 pr-8 py-1.5 rounded-md text-sm font-semibold transition-colors duration-100",
                 isActive("/admin/young-caregivers")
                   ? "bg-gray-100 text-gray-900"
                   : "text-gray-800 hover:bg-gray-50",
@@ -472,6 +592,19 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
             >
               Young Caregivers
             </Link>
+            <button
+              onClick={() => toggleFavorite("/admin/young-caregivers")}
+              title={favorites.includes("/admin/young-caregivers") ? "Unpin" : "Pin to top"}
+              aria-label={`${favorites.includes("/admin/young-caregivers") ? "Unpin" : "Pin"} Young Caregivers`}
+              className={[
+                "absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover/item:opacity-100 transition-opacity duration-100",
+                favorites.includes("/admin/young-caregivers")
+                  ? "text-amber-400 hover:text-amber-500"
+                  : "text-gray-300 hover:text-amber-400",
+              ].join(" ")}
+            >
+              <Star filled={favorites.includes("/admin/young-caregivers")} />
+            </button>
           </div>
         </nav>
 

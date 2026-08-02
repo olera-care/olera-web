@@ -706,6 +706,8 @@ export interface AdminUser {
   email: string;
   /** Added in migration 144; used to attribute admin actions (case notes). */
   display_name?: string | null;
+  /** Added in migration 151; pinned sidebar pages (array of /admin hrefs). */
+  favorites?: string[] | null;
   role: AdminRole;
   granted_by: string | null;
   created_at: string;

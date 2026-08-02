@@ -459,6 +459,24 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/benefits",
   },
   {
+    id: "benefits-navigator-scheduler",
+    name: "Benefits navigator — scheduled sends",
+    description:
+      "Fires navigator letters TJ scheduled from /admin/benefits at/after their chosen time (hourly = 'within the hour'). Runs the SAME send path as the manual Send-as-TJ button: governance caps, DNC, and suppression re-checked at fire time; consent-gated SMS companion respects the recipient's quiet hours (parked in sms_queue when the fire lands outside 8am–8pm their time). A blocked fire clears the schedule, stamps the reason on the draft (visible in the queue), and pings Slack — it never retries silently into the same cap. Transport errors keep the schedule and retry next hour.",
+    recipientCohort:
+      "Benefits families with a pending navigator draft whose metadata.benefits_navigator.scheduled_at is due.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "10 * * * *",
+    humanSchedule: "Hourly, at :10",
+    path: "/api/cron/benefits-navigator-scheduler",
+    emailTypes: ["benefits_first_step"],
+    channels: ["email", "sms"],
+    smsTypes: ["benefits_first_step_sms"],
+    successSignal: "Scheduled letters land at the time TJ picked without governance surprises; blocked fires surface in the queue instead of vanishing.",
+    relatedAdminPath: "/admin/benefits",
+  },
+  {
     id: "provider-still-silent",
     name: "Provider STILL silent — trust recovery",
     description: "Daily: sends Email #6 when provider STILL hasn't responded after 7+ days. Trust recovery email — acknowledges failure, actively intervenes with responsive alternatives + personal support fallback. Family-level intelligence.",

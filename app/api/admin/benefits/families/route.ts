@@ -14,7 +14,8 @@ import {
 import { readBenefitsNavigator } from "@/lib/family-comms/benefits-navigator.server";
 
 /**
- * GET /api/admin/benefits/families?days=30
+ * GET /api/admin/benefits/families?from=<ISO>&to=<ISO>
+ *     (legacy: ?days=7|30|90 · all-time: ?all=1 · default: last 30 days)
  *
  * Read layer for the Benefits Families queue. Aggregates what the intake
  * flow already captures — no new instrumentation:
@@ -34,7 +35,14 @@ const WINDOW_DAYS = [7, 30, 90] as const;
 
 interface FamilyRow {
   /** Navigator letter status for the row chip (full draft rides the per-family GET). */
-  navigator: { status: "pending" | "sent" | "dismissed"; composedAt: string | null } | null;
+  navigator: {
+    status: "pending" | "sent" | "dismissed";
+    composedAt: string | null;
+    /** Set while a scheduled send is pending — the chip shows ⏱ instead of ✍. */
+    scheduledAt: string | null;
+    /** A scheduled fire was blocked (reason rides the per-family GET). */
+    scheduleFailed: boolean;
+  } | null;
   profileId: string;
   displayName: string | null;
   email: string | null;
@@ -107,35 +115,69 @@ export async function GET(request: NextRequest) {
     const adminUser = await getAdminUser(user.id);
     if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
-    const daysParam = Number(request.nextUrl.searchParams.get("days"));
-    const days = (WINDOW_DAYS as readonly number[]).includes(daysParam) ? daysParam : 30;
-    const since = new Date(Date.now() - days * 86400e3).toISOString();
-    const prevSince = new Date(Date.now() - days * 2 * 86400e3).toISOString();
+    // Range resolution: explicit from/to ISO bounds (the DateRangePopover
+    // sends these), ?all=1 for unbounded, legacy ?days for old callers,
+    // default = last 30 days. The prior-window delta compares an equal-length
+    // window immediately before `from` — meaningless for all-time, so it goes
+    // null there and the client hides it.
+    const search = request.nextUrl.searchParams;
+    const parseIso = (s: string | null): Date | null => {
+      if (!s) return null;
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    let fromDate = parseIso(search.get("from"));
+    let toDate = parseIso(search.get("to"));
+    if (!fromDate && !search.get("all")) {
+      const daysParam = Number(search.get("days"));
+      const fallbackDays = (WINDOW_DAYS as readonly number[]).includes(daysParam) ? daysParam : 30;
+      fromDate = new Date(Date.now() - fallbackDays * 86400e3);
+      toDate = null;
+    }
+    if (fromDate && toDate && toDate <= fromDate) toDate = null;
+    const windowMs = fromDate ? (toDate ?? new Date()).getTime() - fromDate.getTime() : null;
+    const days = windowMs ? Math.max(1, Math.round(windowMs / 86400e3)) : null;
+    const since = fromDate?.toISOString() ?? null;
+    const until = toDate?.toISOString() ?? null;
+    const prevSince =
+      fromDate && windowMs ? new Date(fromDate.getTime() - windowMs).toISOString() : null;
 
     const db = getServiceClient();
 
-    const [{ data: events, error: eventsErr }, { count: windowCount }, { count: prevCount }] = await Promise.all([
-      db
-        .from("seeker_activity")
-        .select("profile_id, created_at, metadata")
-        .eq("event_type", "benefits_completed")
-        .gte("created_at", since)
+    const bounded = <T extends { gte(c: string, v: string): T; lt(c: string, v: string): T }>(q: T): T => {
+      let out = q;
+      if (since) out = out.gte("created_at", since);
+      if (until) out = out.lt("created_at", until);
+      return out;
+    };
+
+    const [{ data: events, error: eventsErr }, { count: windowCount }, prevRes] = await Promise.all([
+      bounded(
+        db
+          .from("seeker_activity")
+          .select("profile_id, created_at, metadata")
+          .eq("event_type", "benefits_completed"),
+      )
         .order("created_at", { ascending: false })
         .limit(500),
       // True completion count — the row fetch above caps at 500, so counts
       // must not come from events.length or growth silently under-reports.
-      db
-        .from("seeker_activity")
-        .select("id", { count: "exact", head: true })
-        .eq("event_type", "benefits_completed")
-        .gte("created_at", since),
-      db
-        .from("seeker_activity")
-        .select("id", { count: "exact", head: true })
-        .eq("event_type", "benefits_completed")
-        .gte("created_at", prevSince)
-        .lt("created_at", since),
+      bounded(
+        db
+          .from("seeker_activity")
+          .select("id", { count: "exact", head: true })
+          .eq("event_type", "benefits_completed"),
+      ),
+      prevSince && since
+        ? db
+            .from("seeker_activity")
+            .select("id", { count: "exact", head: true })
+            .eq("event_type", "benefits_completed")
+            .gte("created_at", prevSince)
+            .lt("created_at", since)
+        : Promise.resolve({ count: null }),
     ]);
+    const prevCount = prevRes.count;
     if (eventsErr) throw eventsErr;
 
     // One row per family — keep the latest completion per profile.
@@ -285,7 +327,12 @@ export async function GET(request: NextRequest) {
 
       families.push({
         navigator: navMeta.status
-          ? { status: navMeta.status, composedAt: navMeta.composed_at ?? null }
+          ? {
+              status: navMeta.status,
+              composedAt: navMeta.composed_at ?? null,
+              scheduledAt: navMeta.scheduled_at ?? null,
+              scheduleFailed: Boolean(navMeta.schedule_failed_reason),
+            }
           : null,
         profileId,
         displayName: profile?.display_name ?? null,
@@ -332,10 +379,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       days,
+      // The row fetch caps at 500 — flag it so the client can say so instead
+      // of silently presenting a truncated table as complete.
+      truncated: (events ?? []).length >= 500,
       summary: {
         completions: windowCount ?? (events ?? []).length,
         uniqueFamilies: families.length,
-        prevCompletions: prevCount ?? 0,
+        prevCompletions: prevCount,
         engaged,
         enriched: enrichedCount,
         situationComplete: situationCompleteCount,

@@ -298,6 +298,7 @@ function ProviderContactEditor({
   isCallRecorded,
   onWarningSkipped,
   isWarningSkipped,
+  stage,
 }: {
   providerId: string;
   providerSlug?: string | null;
@@ -319,6 +320,8 @@ function ProviderContactEditor({
   onWarningSkipped?: () => void;
   /** Whether warning was skipped for this provider */
   isWarningSkipped?: boolean;
+  /** Provider's current stage - warning not shown for claimed providers */
+  stage?: OutreachStage;
 }) {
   const [email, setEmail] = useState(initialEmail || suggestedEmail || "");
   const [isEditing, setIsEditing] = useState(!initialEmail); // Start in edit mode if no email
@@ -357,8 +360,9 @@ function ProviderContactEditor({
   const [isSkippingWarning, setIsSkippingWarning] = useState(false);
   const [skipError, setSkipError] = useState(false);
 
-  // Check if this is a generic email (show warning unless called or skipped)
-  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded && !isWarningSkipped;
+  // Check if this is a generic email (show warning unless called, skipped, or claimed)
+  // Don't show for claimed providers - they've already verified themselves
+  const showGenericWarning = !isEditing && email && isGenericEmail(email) && !isCallRecorded && !isWarningSkipped && stage !== "claimed";
 
   // Record "I called" touchpoint
   const handleRecordCall = async () => {
@@ -1278,6 +1282,7 @@ function CityRow({
                             onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
                             isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
                             onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
+                            stage={provider.stage}
                           />
                           {/* Show lookup result if no email */}
                           {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (

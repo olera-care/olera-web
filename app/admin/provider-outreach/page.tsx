@@ -4680,13 +4680,13 @@ export default function ProviderOutreachPage() {
                     <div className="border-t border-gray-100 my-3" />
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {actionModalProvider.stage !== "not_contacted" && actionModalProvider.stage !== "in_sequence" && (
+                      {actionModalProvider.stage !== "not_contacted" && (
                         <button
                           onClick={() => setPendingStageMove("not_contacted")}
                           disabled={actionLoading}
                           className="px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
-                          Ready
+                          {actionModalProvider.stage === "in_sequence" ? "Reset to Ready" : "Ready"}
                         </button>
                       )}
                       {actionModalProvider.stage !== "needs_call" && (

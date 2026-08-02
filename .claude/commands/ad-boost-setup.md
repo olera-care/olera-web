@@ -12,7 +12,7 @@ Canonical references (read if uncertain, don't re-derive):
 
 ## Locked invariants (never re-derive, never ask)
 
-- Google Search only at **$50 campaign total** (skip Meta even if they requested "both"), ~4-week flight starting next Monday-ish (match the setup-week convention in the request row).
+- Google Search only at **$50 campaign total** (skip Meta even if they requested "both"), **2-week flight** starting next Monday-ish (Mon → Sun, 14 days, match the setup-week convention in the request row). TJ set this 2026-08-02: two weeks means we learn faster and providers don't lose interest waiting a month for results. Campaigns launched before that date keep their original 4-week flights — do not shorten live campaigns.
 - **Maximize clicks with $2.50 max CPC cap** — never Maximize conversions.
 - Search-only: Search Partners OFF, Display Network OFF.
 - Geo: provider's city + **20 mi radius**, **Presence only** (not presence-or-interest). If the provider's address is far from the city center (check lat/lng), center on their **ZIP + 20mi** instead.
@@ -94,7 +94,7 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 3. Open campaign Settings and **verify the AI Max toggle is still aria-checked=false**.
 4. **Re-verify account auto-apply is still 0/7 and 0/14** (Phase 1 step 0). Publishing is exactly when Google likes to suggest re-enabling.
 
-## Phase 3.5 — Search-terms harvest (MANDATORY, 3-7 days after launch)
+## Phase 3.5 — Search-terms harvest (MANDATORY, 3-5 days after launch — on a 2-week flight, day 7 is already halfway through)
 
 **Do not skip this. It is where the actual money is being lost, and it is the single highest-value recurring chore in the whole product.**
 

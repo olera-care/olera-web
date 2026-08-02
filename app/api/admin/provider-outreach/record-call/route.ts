@@ -34,13 +34,15 @@ export async function POST(request: NextRequest) {
     const nowIso = new Date().toISOString();
 
     // Insert touchpoint
+    // Use "call_attempted" (exists in DB constraint) instead of "call_verified" (doesn't exist)
     const { error: touchpointError } = await db
       .from("provider_outreach_touchpoints")
       .insert({
         provider_id,
-        touchpoint_type: "call_verified",
+        touchpoint_type: "call_attempted",
         details: {
           trigger: "generic_email_warning",
+          outcome: "verified_email_recipient",
           ...(notes?.trim() && { notes: notes.trim() }),
         },
         admin_user_id: adminUser.id,

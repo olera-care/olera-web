@@ -60,6 +60,15 @@ export interface BenefitsNavigatorMeta {
     source: string;
   };
   provider_count?: number;
+  /** TJ's saved in-drawer edits. The AI originals above stay untouched — the
+   *  edit-vs-original diff is the concierge learning signal the draft queue
+   *  exists to capture. Send and the AI-review exports prefer these. Cleared
+   *  by recompose (the letter they edited no longer exists). */
+  edited_subject?: string;
+  edited_body?: string;
+  edited_sms?: string | null;
+  edited_at?: string;
+  edited_by?: string;
   sent_at?: string;
   /** Final copies as actually sent (TJ may have edited the drafts). */
   sent_subject?: string;

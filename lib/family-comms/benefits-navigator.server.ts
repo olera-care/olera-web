@@ -69,7 +69,18 @@ export interface BenefitsNavigatorMeta {
   edited_sms?: string | null;
   edited_at?: string;
   edited_by?: string;
+  /** Scheduled send: the letter (saved edits included) goes out automatically
+   *  at/after this UTC instant via the benefits-navigator-scheduler cron.
+   *  Cleared on manual send, dismiss, recompose, or a blocked fire. */
+  scheduled_at?: string;
+  scheduled_by?: string;
+  /** A scheduled fire that was blocked (governance cap, no email, …) — the
+   *  draft stays pending and the reason surfaces in the admin queue. */
+  schedule_failed_at?: string;
+  schedule_failed_reason?: string;
   sent_at?: string;
+  /** Who fired the send: TJ's button or the scheduler cron. */
+  sent_via?: "admin" | "scheduler";
   /** Final copies as actually sent (TJ may have edited the drafts). */
   sent_subject?: string;
   sent_body?: string;

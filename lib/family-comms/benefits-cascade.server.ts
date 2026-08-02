@@ -52,6 +52,9 @@ export interface BenefitsCascadeMeta {
   docs_checked?: string[];
   /** SMS mirror stamps (consent-gated companions to the B1/B2 emails). */
   first_step_sms_at?: string;
+  /** Scheduled navigator sends that fired outside the recipient's quiet
+   *  hours park the companion text in sms_queue — this is its due time. */
+  first_step_sms_queued_for?: string;
   check_sms_at?: string;
   outcome?: BenefitsOutcomeValue;
   outcome_at?: string;

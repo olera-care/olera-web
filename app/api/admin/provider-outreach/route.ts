@@ -108,6 +108,9 @@ interface TrackingRow {
   re_engage_entered_at: string | null;
   // Assignment
   assigned_to: string | null;
+  // Generic email warning state (persisted for page refresh)
+  generic_email_called_at: string | null;
+  generic_email_skipped_at: string | null;
 }
 
 export interface OutreachProvider {
@@ -144,6 +147,9 @@ export interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted (from email_overrides table)
   is_email_overridden?: boolean;
+  // Generic email warning state (persisted for page refresh)
+  generic_email_called_at?: string | null;
+  generic_email_skipped_at?: string | null;
 }
 
 /**
@@ -216,7 +222,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const state = searchParams.get("state");
-    const stage = (searchParams.get("stage") || "not_contacted") as OutreachStage;
+    // Allow "hidden" as a special stage for viewing admin-hidden providers
+    const stage = (searchParams.get("stage") || "not_contacted") as OutreachStage | "hidden";
     const city = searchParams.get("city");
     const search = (searchParams.get("search") || "").trim().toLowerCase();
     // email_filter: "needs_email" | "has_email" - only applies to not_contacted stage
@@ -243,13 +250,16 @@ export async function GET(request: NextRequest) {
         console.error("[provider-outreach] getStageCounts error:", err);
         return {
           not_contacted: 0, in_sequence: 0, needs_call: 0, re_engage: 0,
-          not_interested: 0, claimed: 0, archived: 0, needs_email: 0, ready: 0,
+          not_interested: 0, claimed: 0, archived: 0, needs_email: 0, ready: 0, hidden: 0,
         };
       }),
-      getAdminCounts(db, state, stage, emailFilter).catch((err) => {
-        console.error("[provider-outreach] getAdminCounts error:", err);
-        return {};
-      }),
+      // Admin counts are not applicable for "hidden" stage - skip the call
+      stage === "hidden"
+        ? Promise.resolve({})
+        : getAdminCounts(db, state, stage, emailFilter).catch((err) => {
+            console.error("[provider-outreach] getAdminCounts error:", err);
+            return {};
+          }),
       getFollowUpsTodayStats(db, state).catch((err) => {
         console.error("[provider-outreach] getFollowUpsTodayStats error:", err);
         return { total: 0, by_admin: [] };
@@ -290,6 +300,13 @@ export async function GET(request: NextRequest) {
       .select("*")
       .eq("state", state);
 
+    // When querying "hidden", show admin_hidden providers for recovery
+    if (stage === "hidden") {
+      const providers = await getHiddenProviders(db, state, city);
+      const enriched = await enrichWithEmailVerification(db, providers);
+      return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
+    }
+
     // When querying "archived", use special function that merges tracking + system-wide archived
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
@@ -298,7 +315,10 @@ export async function GET(request: NextRequest) {
     }
 
     // For other stages: query tracking but exclude providers who have since claimed
-    trackingQuery = trackingQuery.eq("stage", stage);
+    // Also exclude admin_hidden providers (removed from outreach view)
+    trackingQuery = trackingQuery
+      .eq("stage", stage)
+      .or("admin_hidden.is.null,admin_hidden.eq.false");
 
     if (city) {
       trackingQuery = trackingQuery.eq("city", city);
@@ -320,12 +340,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ providers: [], stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
-    // Get provider details for tracked providers
+    // Get provider details for tracked providers (exclude deleted)
     const providerIds = trackingRows.map((t) => t.provider_id);
     const { data: providerRows, error: provError } = await db
       .from("olera-providers")
       .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
-      .in("provider_id", providerIds);
+      .in("provider_id", providerIds)
+      .or("deleted.is.null,deleted.eq.false");
 
     if (provError) {
       console.error("[provider-outreach] Provider query error:", provError);
@@ -342,6 +363,21 @@ export async function GET(request: NextRequest) {
         .not("account_id", "is", null);
 
       claimedProviderIds = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
+    }
+
+    // Exclude system-archived providers (they belong in "Archived" tab now)
+    // System-archived = admin_archived=true in business_profiles (from Questions/Connections)
+    let systemArchivedProviderIds = new Set<string>();
+    if (providerIds.length > 0) {
+      const { data: archivedBps } = await db
+        .from("business_profiles")
+        .select("source_provider_id")
+        .in("source_provider_id", providerIds)
+        .filter("metadata->>admin_archived", "eq", "true");
+
+      systemArchivedProviderIds = new Set(
+        (archivedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
+      );
     }
 
     // For in_sequence stage, get email sent counts from touchpoints
@@ -381,6 +417,8 @@ export async function GET(request: NextRequest) {
         if (!p) return null;
         // Skip if provider has claimed - they belong in Claimed tab now
         if (claimedProviderIds.has(p.provider_id)) return null;
+        // Skip if provider is system-archived - they belong in Archived tab now
+        if (systemArchivedProviderIds.has(p.provider_id)) return null;
         return {
           provider_id: p.provider_id,
           provider_name: p.provider_name,
@@ -407,6 +445,9 @@ export async function GET(request: NextRequest) {
           assigned_to: t.assigned_to ?? null,
           // Sequence progress (for in_sequence)
           emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
+          // Generic email warning state (persisted for page refresh)
+          generic_email_called_at: t.generic_email_called_at ?? null,
+          generic_email_skipped_at: t.generic_email_skipped_at ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -450,17 +491,28 @@ async function getNotContactedProviders(
   );
 
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
+  // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at")
     .eq("state", state);
 
   if (trackingError) {
     console.error("[getNotContactedProviders] Tracking query error:", trackingError);
   }
 
+  // Collect hidden provider IDs (these should be excluded regardless of stage)
+  const hiddenProviderIds = new Set(
+    (trackedInState || [])
+      .filter((t) => t.admin_hidden === true)
+      .map((t) => t.provider_id)
+  );
+
   // Log tracking records with non-not_contacted stages (these should be excluded)
-  const nonNotContactedTracking = (trackedInState || []).filter((t) => t.stage !== "not_contacted");
+  // Exclude hidden providers from this set since they're already excluded
+  const nonNotContactedTracking = (trackedInState || []).filter(
+    (t) => t.stage !== "not_contacted" && t.admin_hidden !== true
+  );
   if (nonNotContactedTracking.length > 0) {
     console.log(`[getNotContactedProviders] Found ${nonNotContactedTracking.length} tracked providers with non-not_contacted stage for state=${state}:`,
       nonNotContactedTracking.slice(0, 10).map(t => ({ provider_id: t.provider_id, stage: t.stage, tracking_state: t.state }))
@@ -472,9 +524,10 @@ async function getNotContactedProviders(
   );
 
   // Build map for not_contacted tracking records (for tracking_id)
+  // Exclude hidden providers - they shouldn't appear in the list at all
   const notContactedMap = new Map(
     (trackedInState || [])
-      .filter((t) => t.stage === "not_contacted")
+      .filter((t) => t.stage === "not_contacted" && t.admin_hidden !== true)
       .map((t) => [t.provider_id, t])
   );
 
@@ -515,8 +568,9 @@ async function getNotContactedProviders(
   }
 
   // Step 5: Filter in JavaScript (no large IN clause needed)
+  // Exclude claimed, tracked (in other stages), and hidden providers
   let result: OutreachProvider[] = (providers as ProviderRow[])
-    .filter((p) => !claimedProviderIds.has(p.provider_id) && !trackedProviderIds.has(p.provider_id))
+    .filter((p) => !claimedProviderIds.has(p.provider_id) && !trackedProviderIds.has(p.provider_id) && !hiddenProviderIds.has(p.provider_id))
     .map((p) => {
       const tracking = notContactedMap.get(p.provider_id);
       return {
@@ -543,6 +597,9 @@ async function getNotContactedProviders(
         re_engage_entered_at: null,
         // Assignment: use tracking assignment, or fall back to city owner
         assigned_to: tracking?.assigned_to ?? (p.city ? cityOwnerMap.get(p.city) : null) ?? null,
+        // Generic email warning state (from tracking if exists)
+        generic_email_called_at: tracking?.generic_email_called_at ?? null,
+        generic_email_skipped_at: tracking?.generic_email_skipped_at ?? null,
       };
     });
 
@@ -662,11 +719,114 @@ async function getClaimedProviders(
         assigned_to: null,
         verification_state: claimInfo?.verification_state || null,
         profile_completeness: claimInfo?.profile_completeness,
+        // Generic email warning state (not applicable for claimed)
+        generic_email_called_at: null,
+        generic_email_skipped_at: null,
       };
     })
     .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
   return result;
+}
+
+/**
+ * Get providers that have been hidden from outreach (admin_hidden = true).
+ * Used for viewing and recovering accidentally hidden providers.
+ *
+ * Excludes claimed providers (they belong in Claimed tab, not Hidden).
+ */
+async function getHiddenProviders(
+  db: ReturnType<typeof getServiceClient>,
+  state: string,
+  city: string | null
+): Promise<OutreachProvider[]> {
+  // Query tracking records where admin_hidden = true
+  let trackingQuery = db
+    .from("provider_outreach_tracking")
+    .select("*")
+    .eq("state", state)
+    .eq("admin_hidden", true);
+
+  if (city) {
+    trackingQuery = trackingQuery.eq("city", city);
+  }
+
+  const { data: trackingRows, error: trackingError } = await trackingQuery;
+
+  if (trackingError) {
+    console.error("[getHiddenProviders] Tracking query error:", trackingError);
+    throw new Error("Failed to query hidden providers");
+  }
+
+  if (!trackingRows || trackingRows.length === 0) {
+    return [];
+  }
+
+  // Get provider details
+  const providerIds = trackingRows.map((t) => t.provider_id);
+  const { data: providerRows, error: provError } = await db
+    .from("olera-providers")
+    .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+    .in("provider_id", providerIds)
+    .or("deleted.is.null,deleted.eq.false");
+
+  if (provError) {
+    console.error("[getHiddenProviders] Provider query error:", provError);
+    throw new Error("Failed to fetch provider details");
+  }
+
+  // Exclude providers who have since claimed (they belong in Claimed tab)
+  let claimedProviderIds = new Set<string>();
+  if (providerIds.length > 0) {
+    const { data: claimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .in("source_provider_id", providerIds)
+      .not("account_id", "is", null);
+
+    claimedProviderIds = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
+  }
+
+  const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
+
+  // Build result (excluding claimed providers)
+  const providers = (trackingRows as TrackingRow[])
+    .map((t): OutreachProvider | null => {
+      const p = providerMap.get(t.provider_id);
+      if (!p) return null;
+      // Skip if provider has claimed - they belong in Claimed tab now
+      if (claimedProviderIds.has(p.provider_id)) return null;
+
+      return {
+        provider_id: p.provider_id,
+        provider_name: p.provider_name,
+        provider_category: p.provider_category,
+        city: p.city,
+        state: p.state,
+        email: p.email,
+        phone: p.phone,
+        website: p.website,
+        slug: p.slug,
+        tracking_id: t.id,
+        stage: t.stage as OutreachStage,
+        stage_changed_at: t.stage_changed_at,
+        notes: t.notes,
+        due_date: t.due_date,
+        resend_count: t.resend_count ?? 0,
+        no_answer_count: t.no_answer_count ?? 0,
+        needs_call_reason: t.needs_call_reason ?? null,
+        cycle_number: t.cycle_number ?? 1,
+        re_engage_entered_at: t.re_engage_entered_at ?? null,
+        assigned_to: t.assigned_to ?? null,
+        // Generic email warning state (persisted for page refresh)
+        generic_email_called_at: t.generic_email_called_at ?? null,
+        generic_email_skipped_at: t.generic_email_skipped_at ?? null,
+      };
+    })
+    .filter((p): p is OutreachProvider => p !== null)
+    .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+
+  return providers;
 }
 
 /**
@@ -686,11 +846,13 @@ async function getArchivedProviders(
   const archivedProviderMap = new Map<string, OutreachProvider>();
 
   // Step 1: Get providers from tracking table with stage = archived (hard terminal only)
+  // Exclude admin_hidden providers (they're hidden from all tabs)
   let trackingQuery = db
     .from("provider_outreach_tracking")
     .select("*")
     .eq("state", state)
-    .eq("stage", "archived");
+    .eq("stage", "archived")
+    .or("admin_hidden.is.null,admin_hidden.eq.false");
 
   if (city) {
     trackingQuery = trackingQuery.eq("city", city);
@@ -747,6 +909,9 @@ async function getArchivedProviders(
         re_engage_entered_at: t.re_engage_entered_at ?? null,
         // Assignment
         assigned_to: t.assigned_to ?? null,
+        // Generic email warning state
+        generic_email_called_at: t.generic_email_called_at ?? null,
+        generic_email_skipped_at: t.generic_email_skipped_at ?? null,
       });
     }
   }
@@ -839,6 +1004,9 @@ async function getArchivedProviders(
           re_engage_entered_at: null,
           // Assignment (not applicable for system-archived)
           assigned_to: null,
+          // Generic email warning state (not applicable for system-archived)
+          generic_email_called_at: null,
+          generic_email_skipped_at: null,
         });
       }
     }
@@ -897,11 +1065,18 @@ async function searchProviders(
     ])
   );
 
-  // Get tracking data for all matched providers
+  // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at")
     .in("provider_id", providerIds);
+
+  // Collect hidden provider IDs to exclude from results
+  const hiddenProviderIds = new Set(
+    (trackingRows || [])
+      .filter((t) => t.admin_hidden === true)
+      .map((t) => t.provider_id)
+  );
 
   const trackingMap = new Map(
     (trackingRows || []).map((t) => [t.provider_id, t])
@@ -955,13 +1130,16 @@ async function searchProviders(
     ])
   );
 
-  // Build results with stage info
-  const result: OutreachProvider[] = (providers as ProviderRow[]).map((p) => {
+  // Build results with stage info (exclude hidden providers)
+  const result: OutreachProvider[] = (providers as ProviderRow[])
+    .filter((p) => !hiddenProviderIds.has(p.provider_id))
+    .map((p) => {
     const claimInfo = claimedMap.get(p.provider_id);
     const tracking = trackingMap.get(p.provider_id);
     const adminArchived = adminArchivedMap.get(p.provider_id);
 
-    // Determine stage - claimed takes precedence, then check tracking and system archive
+    // Determine stage - claimed takes precedence, then system-archived, then tracking
+    // Priority order matches getStageCounts: claimed > adminArchived > tracking stage
     let stage: OutreachStage;
     let stageChangedAt: string | null = null;
     let notes: string | null = null;
@@ -969,13 +1147,8 @@ async function searchProviders(
     if (claimInfo) {
       stage = "claimed";
       stageChangedAt = claimInfo.timestamp;
-    } else if (tracking) {
-      // not_interested is now a distinct soft-terminal stage
-      stage = tracking.stage as OutreachStage;
-      stageChangedAt = tracking.stage_changed_at;
-      notes = tracking.notes;
     } else if (adminArchived) {
-      // System-wide archived (from Questions/Connections)
+      // System-wide archived (from Questions/Connections) takes precedence over tracking stage
       stage = "archived";
       const meta = adminArchived.metadata ?? {};
       stageChangedAt = (meta.admin_archived_at as string) || adminArchived.updated_at || null;
@@ -984,6 +1157,11 @@ async function searchProviders(
       if (archiveReason) {
         notes = archiveNotes ? `${archiveReason} - ${archiveNotes}` : archiveReason;
       }
+    } else if (tracking) {
+      // not_interested is now a distinct soft-terminal stage
+      stage = tracking.stage as OutreachStage;
+      stageChangedAt = tracking.stage_changed_at;
+      notes = tracking.notes;
     } else {
       stage = "not_contacted";
     }
@@ -1015,6 +1193,9 @@ async function searchProviders(
       // Sequence progress (for in_sequence)
       emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
       verification_state: claimInfo?.verification_state || null,
+      // Generic email warning state (from tracking if available)
+      generic_email_called_at: tracking?.generic_email_called_at ?? null,
+      generic_email_skipped_at: tracking?.generic_email_skipped_at ?? null,
     };
   });
 
@@ -1037,6 +1218,8 @@ interface StageCounts extends Record<OutreachStage, number> {
   // Additional counts for email-based filtering of not_contacted
   needs_email: number;
   ready: number;  // has_email
+  // Hidden providers (admin_hidden = true)
+  hidden: number;
 }
 
 async function getStageCounts(
@@ -1054,6 +1237,8 @@ async function getStageCounts(
     // Additional email-based counts
     needs_email: 0,
     ready: 0,
+    // Hidden providers
+    hidden: 0,
   };
 
   // Step 1: Get total provider count for this state (just count, not all IDs)
@@ -1100,18 +1285,28 @@ async function getStageCounts(
   counts.claimed = claimedProviderIds.size;
 
   // Step 3: Get all tracking rows for this state (small set, filtered by state)
+  // Include admin_hidden to filter out hidden providers from counts
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, stage")
+    .select("provider_id, stage, admin_hidden")
     .eq("state", state);
 
   // Collect all tracked provider IDs and their stages
   const trackedProviderIds = new Set<string>();
+  // Track hidden providers separately (to exclude from not_contacted counts)
+  const hiddenProviderIds = new Set<string>();
   const stageCounts: Record<string, number> = {};
 
   if (trackingRows) {
     for (const row of trackingRows) {
       const stage = row.stage as string;
+      const isHidden = row.admin_hidden === true;
+
+      // Track hidden providers (regardless of stage) for exclusion from not_contacted counts
+      if (isHidden) {
+        hiddenProviderIds.add(row.provider_id);
+        continue; // Skip counting hidden providers entirely
+      }
 
       // Skip not_contacted and claimed - they're calculated separately
       if (stage === "not_contacted" || stage === "claimed") {
@@ -1225,19 +1420,29 @@ async function getStageCounts(
   }
   counts.archived += additionalSystemArchived;
 
-  // Step 7: Calculate not_contacted = total - claimed - tracked (only existing, non-claimed, non-system-archived) - system-archived
+  // Step 7: Calculate not_contacted = total - claimed - tracked (only existing, non-claimed, non-system-archived) - system-archived - hidden
   const trackedExistingNotClaimed = [...existingTrackedIds].filter(
     (id) => !claimedProviderIds.has(id) && !systemArchivedProviderIds.has(id)
   ).length;
-  counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed - additionalSystemArchived);
+  // Hidden providers who aren't already excluded by other means (avoid double-counting)
+  // A hidden provider might also be claimed or system-archived
+  const hiddenNotOtherwiseExcluded = [...hiddenProviderIds].filter(
+    (id) => !claimedProviderIds.has(id) && !systemArchivedProviderIds.has(id)
+  ).length;
+  counts.not_contacted = Math.max(0, totalProviders - counts.claimed - trackedExistingNotClaimed - additionalSystemArchived - hiddenNotOtherwiseExcluded);
+
+  // Count hidden providers (for the Hidden tab)
+  // Exclude claimed providers - they belong in Claimed tab, not Hidden
+  counts.hidden = [...hiddenProviderIds].filter(id => !claimedProviderIds.has(id)).length;
 
   // Step 8: Calculate needs_email and ready counts (subsets of not_contacted)
   // We need to query providers to check email status
-  // Build exclusion sets for efficient filtering
+  // Build exclusion sets for efficient filtering (includes hidden providers)
   const excludedIds = new Set([
     ...claimedProviderIds,
     ...existingTrackedIds,  // Already tracked in a stage
     ...systemArchivedProviderIds,
+    ...hiddenProviderIds,   // Admin-hidden from outreach view
   ]);
 
   // Query providers with email vs without email
@@ -1312,12 +1517,13 @@ async function getAdminCounts(
     return {};
   }
 
-  // For active stages: query tracking table
+  // For active stages: query tracking table (exclude hidden providers)
   let query = db
     .from("provider_outreach_tracking")
     .select("assigned_to")
     .eq("state", state)
-    .eq("stage", stage);
+    .eq("stage", stage)
+    .or("admin_hidden.is.null,admin_hidden.eq.false");
 
   // For needs_call (Follow Up), only count providers with due_date <= today
   if (stage === "needs_call") {
@@ -1414,12 +1620,14 @@ async function getFollowUpsTodayStats(
   );
 
   // Query follow-ups due today (need provider_id to check exclusions)
+  // Exclude admin_hidden providers
   const { data: trackingRows, error } = await db
     .from("provider_outreach_tracking")
     .select("provider_id, assigned_to")
     .eq("state", state)
     .eq("stage", "needs_call")
-    .lte("due_date", today);
+    .lte("due_date", today)
+    .or("admin_hidden.is.null,admin_hidden.eq.false");
 
   if (error || !trackingRows) {
     console.error("[follow-ups-today] Query error:", error);

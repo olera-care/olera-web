@@ -21,7 +21,9 @@ import {
   createCampaign,
   ensureCampaignWebhook,
   buildSmartleadWebhookUrl,
+  getLeadByEmail,
   listEmailAccounts,
+  resumeLeadInCampaign,
   saveSequence,
   setCampaignSchedule,
   setCampaignStatus,
@@ -577,6 +579,57 @@ function chunk<T>(arr: T[], size: number): T[][] {
 }
 
 /**
+ * Resume paused leads in a campaign.
+ *
+ * When a provider is "Reset to Ready", their SmartLead lead is paused via
+ * pauseLeadInCampaign(). If they're later re-launched, addLeads() returns
+ * already_added_to_campaign > 0 but the lead remains paused.
+ *
+ * This function looks up each lead by email and resumes them.
+ * Resuming an active lead is a no-op, so this is safe to call for all leads.
+ *
+ * @param campaignId - SmartLead campaign ID
+ * @param leads - Array of leads that may need resuming
+ * @returns Number of leads successfully resumed
+ */
+async function resumePausedLeads(
+  campaignId: number,
+  leads: SmartleadLead[]
+): Promise<{ resumed: number; failed: number; errors: string[] }> {
+  let resumed = 0;
+  let failed = 0;
+  const errors: string[] = [];
+
+  for (const lead of leads) {
+    try {
+      // Look up lead by email to get SmartLead lead_id
+      const lookup = await getLeadByEmail(lead.email);
+      if (!lookup.ok || !lookup.data?.id) {
+        // Lead not found - this is fine, they may not have been added before
+        continue;
+      }
+
+      const leadId = lookup.data.id;
+
+      // Resume the lead (no-op if already active)
+      const resumeResult = await resumeLeadInCampaign(campaignId, leadId);
+      if (resumeResult.ok) {
+        resumed++;
+        console.log(`[provider-smartlead-bridge] Resumed lead ${leadId} (${lead.email}) in campaign ${campaignId}`);
+      } else {
+        failed++;
+        errors.push(`Failed to resume ${lead.email}: ${resumeResult.error}`);
+      }
+    } catch (err) {
+      failed++;
+      errors.push(`Error resuming ${lead.email}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return { resumed, failed, errors };
+}
+
+/**
  * Whether to auto-start campaigns (default: PAUSED for warmup sign-off).
  */
 function autoStartEnabled(): boolean {
@@ -679,6 +732,22 @@ export async function launchProviderCampaign(
         const trackingId = lead.custom_fields?.tracking_id;
         if (trackingId) successfulTrackingIds.add(trackingId);
       }
+
+      // Resume any paused leads (from previous "Reset to Ready" actions)
+      // addLeads returns already_added_to_campaign when leads exist but may be paused
+      const alreadyAdded = res.data?.already_added_to_campaign ?? 0;
+      if (alreadyAdded > 0) {
+        console.log(`[provider-smartlead-bridge] ${alreadyAdded} lead(s) already in campaign, attempting resume...`);
+        const resumeResult = await resumePausedLeads(campaignId, group);
+        if (resumeResult.resumed > 0) {
+          console.log(`[provider-smartlead-bridge] Resumed ${resumeResult.resumed} paused lead(s)`);
+        }
+        if (resumeResult.errors.length > 0) {
+          for (const err of resumeResult.errors) {
+            console.warn(`[provider-smartlead-bridge] Resume warning: ${err}`);
+          }
+        }
+      }
     } else {
       report.errors.push({ stage: `addLeads[${group.length}]`, message: res.error ?? "addLeads failed" });
     }
@@ -755,6 +824,17 @@ export async function enrollProviderIntoCampaign(
       result.campaign_id = campaignId;
       result.enrolled = true;
       result.ok = true;
+
+      // Resume if lead was previously paused (from "Reset to Ready")
+      const alreadyAdded = added.data?.already_added_to_campaign ?? 0;
+      if (alreadyAdded > 0) {
+        console.log(`[provider-smartlead-bridge] Lead already in campaign ${campaignId}, attempting resume...`);
+        const resumeResult = await resumePausedLeads(campaignId, [lead]);
+        if (resumeResult.resumed > 0) {
+          console.log(`[provider-smartlead-bridge] Resumed paused lead for ${lead.email}`);
+        }
+      }
+
       return result;
     }
     // 404 means campaign was deleted, try next
@@ -812,6 +892,16 @@ export async function enrollProviderIntoCampaign(
     return result;
   }
   result.enrolled = true;
+
+  // Resume if lead was previously paused (edge case: new campaign but lead exists globally)
+  const alreadyAdded = added.data?.already_added_to_campaign ?? 0;
+  if (alreadyAdded > 0) {
+    console.log(`[provider-smartlead-bridge] Lead already added to new campaign ${campaignId}, attempting resume...`);
+    const resumeResult = await resumePausedLeads(campaignId, [lead]);
+    if (resumeResult.resumed > 0) {
+      console.log(`[provider-smartlead-bridge] Resumed paused lead for ${lead.email}`);
+    }
+  }
 
   // Finalize
   const schedRes = await setCampaignSchedule(campaignId, input.schedule ?? defaultSchedule());

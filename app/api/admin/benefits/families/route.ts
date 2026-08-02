@@ -35,7 +35,14 @@ const WINDOW_DAYS = [7, 30, 90] as const;
 
 interface FamilyRow {
   /** Navigator letter status for the row chip (full draft rides the per-family GET). */
-  navigator: { status: "pending" | "sent" | "dismissed"; composedAt: string | null } | null;
+  navigator: {
+    status: "pending" | "sent" | "dismissed";
+    composedAt: string | null;
+    /** Set while a scheduled send is pending — the chip shows ⏱ instead of ✍. */
+    scheduledAt: string | null;
+    /** A scheduled fire was blocked (reason rides the per-family GET). */
+    scheduleFailed: boolean;
+  } | null;
   profileId: string;
   displayName: string | null;
   email: string | null;
@@ -320,7 +327,12 @@ export async function GET(request: NextRequest) {
 
       families.push({
         navigator: navMeta.status
-          ? { status: navMeta.status, composedAt: navMeta.composed_at ?? null }
+          ? {
+              status: navMeta.status,
+              composedAt: navMeta.composed_at ?? null,
+              scheduledAt: navMeta.scheduled_at ?? null,
+              scheduleFailed: Boolean(navMeta.schedule_failed_reason),
+            }
           : null,
         profileId,
         displayName: profile?.display_name ?? null,

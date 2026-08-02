@@ -73,7 +73,12 @@ interface FamilyRow {
   caseStatus: "wants_help" | "silent_after_checkin" | "action_stall" | "attention_stall" | null;
   caseInfo: { noteCount: number; contactedAt: string | null; resolvedAt: string | null };
   lifecycle: { status: LifecycleStatus; detail: string | null };
-  navigator: { status: "pending" | "sent" | "dismissed"; composedAt: string | null } | null;
+  navigator: {
+    status: "pending" | "sent" | "dismissed";
+    composedAt: string | null;
+    scheduledAt: string | null;
+    scheduleFailed: boolean;
+  } | null;
 }
 
 /** Full draft payload from the per-family GET (list rows carry status only). */
@@ -88,6 +93,10 @@ interface NavigatorDetail {
   edited_body?: string;
   edited_sms?: string | null;
   edited_at?: string;
+  /** Scheduled send: fires within the hour of this UTC instant. */
+  scheduled_at?: string;
+  schedule_failed_at?: string;
+  schedule_failed_reason?: string;
   composed_at?: string;
   sent_at?: string;
   /** Full pickSnapshot from metadata — the letter's verifiable claims. */
@@ -200,11 +209,12 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
       subject?: string,
       letter?: string,
       sms?: string,
       testEmail?: string,
+      scheduledAt?: string,
     ): Promise<boolean> => {
       setCaseBusy(true);
       setCaseError(null);
@@ -212,7 +222,7 @@ export default function BenefitsFamiliesView() {
         const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, subject, body: letter, sms, testEmail }),
+          body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt }),
         });
         const d = await res.json().catch(() => null);
         if (!res.ok) {
@@ -638,14 +648,29 @@ export default function BenefitsFamiliesView() {
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center gap-1.5">
                         <LifecycleChip lifecycle={f.lifecycle} noteCount={f.caseInfo.noteCount} />
-                        {f.navigator?.status === "pending" && (
-                          <span
-                            className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
-                            title="A navigator letter is drafted and waiting for your review"
-                          >
-                            ✍ Draft ready
-                          </span>
-                        )}
+                        {f.navigator?.status === "pending" &&
+                          (f.navigator.scheduleFailed ? (
+                            <span
+                              className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700"
+                              title="A scheduled send was blocked — open the row for the reason"
+                            >
+                              ⚠ Schedule blocked
+                            </span>
+                          ) : f.navigator.scheduledAt ? (
+                            <span
+                              className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
+                              title={`Sends automatically around ${new Date(f.navigator.scheduledAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`}
+                            >
+                              ⏱ Scheduled
+                            </span>
+                          ) : (
+                            <span
+                              className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+                              title="A navigator letter is drafted and waiting for your review"
+                            >
+                              ✍ Draft ready
+                            </span>
+                          ))}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
@@ -668,8 +693,8 @@ export default function BenefitsFamiliesView() {
                           navigator={navigators[f.profileId]}
                           reviewContext={reviewContextFor(f)}
                           familyLabel={f.displayName || f.email || "this family"}
-                          onNavigator={(action, subject, letter, sms, testEmail) =>
-                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail)
+                          onNavigator={(action, subject, letter, sms, testEmail, scheduledAt) =>
+                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt)
                           }
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
                           onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
@@ -708,11 +733,12 @@ function NavigatorDraftEditor({
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
     subject?: string,
     letter?: string,
     sms?: string,
     testEmail?: string,
+    scheduledAt?: string,
   ) => Promise<boolean>;
 }) {
   // Saved edits win over the AI originals — reopening a row after a save
@@ -726,6 +752,30 @@ function NavigatorDraftEditor({
     const ok = await onNavigator("navigator_save", subject, letter, sms.trim() || undefined);
     setSaveState(ok ? "saved" : "error");
     if (ok) setTimeout(() => setSaveState("idle"), 4000);
+  };
+  // Schedule: datetime-local is TJ's browser-local time; sent as UTC ISO.
+  const [scheduleAt, setScheduleAt] = useState("");
+  const [scheduleState, setScheduleState] = useState<"idle" | "working">("idle");
+  const scheduleSend = async () => {
+    if (!scheduleAt) return;
+    const when = new Date(scheduleAt);
+    if (isNaN(when.getTime())) return;
+    setScheduleState("working");
+    await onNavigator(
+      "navigator_schedule",
+      subject,
+      letter,
+      sms.trim() || undefined,
+      undefined,
+      when.toISOString(),
+    );
+    setScheduleState("idle");
+  };
+  /** datetime-local min: now + 1h, in local-time format (not UTC ISO). */
+  const scheduleMin = () => {
+    const d = new Date(Date.now() + 60 * 60 * 1000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
   // Test-send: remember the reviewer's address across sessions; empty falls
   // back server-side to the signed-in admin's own email.
@@ -817,7 +867,8 @@ function NavigatorDraftEditor({
       <div className="mt-2 flex items-center gap-2">
         <button
           onClick={() => {
-            if (window.confirm(`Send this letter to ${familyLabel}? It goes out under your name; replies land in the reply-to inbox (support).`)) {
+            const scheduledNote = navigator.scheduled_at ? " This replaces the scheduled send." : "";
+            if (window.confirm(`Send this letter to ${familyLabel}? It goes out under your name; replies land in the reply-to inbox (support).${scheduledNote}`)) {
               onNavigator("navigator_send", subject, letter, sms.trim() || undefined);
             }
           }}
@@ -860,6 +911,61 @@ function NavigatorDraftEditor({
         <p className="text-[11px] text-amber-700/70">Sends the email now{textable ? " plus the companion text" : ""}.</p>
         {saveState === "error" && (
           <span className="text-[11px] font-medium text-red-600">Couldn&apos;t save. Try again.</span>
+        )}
+      </div>
+      {/* Schedule: park the letter for the hourly scheduler cron. Scheduling
+          saves the on-screen edits atomically — what fires is what you see. */}
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-amber-200/60 pt-3">
+        {navigator.scheduled_at ? (
+          <>
+            <span className="text-[12px] font-medium text-blue-800">
+              ⏱ Scheduled for{" "}
+              {new Date(navigator.scheduled_at).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </span>
+            <button
+              onClick={() => onNavigator("navigator_unschedule")}
+              disabled={busy}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 disabled:opacity-40"
+            >
+              Cancel schedule
+            </button>
+            <p className="basis-full text-[11px] text-amber-700/60">
+              Sends automatically within the hour of that time (shown in your local time).
+              Sending caps are re-checked at fire time; a blocked send shows up here.
+            </p>
+          </>
+        ) : (
+          <>
+            <input
+              type="datetime-local"
+              value={scheduleAt}
+              min={scheduleMin()}
+              onChange={(e) => setScheduleAt(e.target.value)}
+              className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-[12px] focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+            />
+            <button
+              onClick={scheduleSend}
+              disabled={busy || scheduleState === "working" || !scheduleAt || letter.trim().length < 40}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 disabled:opacity-40"
+            >
+              {scheduleState === "working" ? "Scheduling…" : "Schedule send"}
+            </button>
+            <p className="basis-full text-[11px] text-amber-700/60">
+              Saves your edits and sends automatically within an hour of the chosen time (your
+              local time){textable ? ", companion text included (held to daytime hours)" : ""}.
+            </p>
+          </>
+        )}
+        {navigator.schedule_failed_reason && (
+          <p className="basis-full text-[11px] font-medium text-red-600">
+            Last scheduled send was blocked: {navigator.schedule_failed_reason}. Reschedule or
+            send manually.
+          </p>
         )}
       </div>
       {/* Test send: the exact email in a reviewer's inbox. Consumes nothing —
@@ -1027,11 +1133,12 @@ function CasePanel({
   reviewContext: Omit<ReviewItem, "draft" | "pick">;
   familyLabel: string;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
     subject?: string,
     letter?: string,
     sms?: string,
     testEmail?: string,
+    scheduledAt?: string,
   ) => Promise<boolean>;
   onAction: (action: string, text?: string) => void;
   onDelete: () => void;

@@ -405,7 +405,10 @@ export async function sendDeferredNotificationsForProvider(
         try {
           providerUrl = generateNotificationUrl(slug, email, "question", q.id, siteUrl);
           providerUrl = appendTrackingParams(providerUrl, emailLogId);
-        } catch {
+        } catch (tokenErr) {
+          // Untokenized fallback = the recipient hits a sign-in wall they can't
+          // pass. Should never happen — make it loud if it does.
+          console.error("[deferred-notifications] generateNotificationUrl failed — sending UNTOKENIZED link:", tokenErr);
           providerUrl = appendTrackingParams(`${siteUrl}/provider/${slug}/onboard?action=question&actionId=${q.id}`, emailLogId);
         }
 

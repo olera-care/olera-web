@@ -14,6 +14,7 @@ import {
   type ClaimTrustResult,
 } from "@/lib/claim-trust";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
+import { logOneClickFailed } from "@/lib/one-click-telemetry";
 
 export const maxDuration = 60; // room for the background warm-on-claim compute (~16s)
 
@@ -97,6 +98,12 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (!verifiedCode) {
+      await logOneClickFailed({
+        providerId,
+        stage: "finalize",
+        reason: "verification_expired_or_id_mismatch",
+        email: user.email,
+      });
       return NextResponse.json(
         { error: "Verification required or expired. Please verify again." },
         { status: 403 }
@@ -155,6 +162,12 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (existingProfileOfDifferentType) {
+      await logOneClickFailed({
+        providerId,
+        stage: "finalize",
+        reason: `account_type_mismatch:${existingProfileOfDifferentType.type}`,
+        email: user.email,
+      });
       return NextResponse.json(
         {
           error: "This email is already used for a different account type. Please use a different email to claim this listing.",
@@ -241,6 +254,12 @@ export async function POST(request: Request) {
 
       if (updateErr) {
         console.error("Failed to update profile:", updateErr);
+        await logOneClickFailed({
+          providerId,
+          stage: "finalize",
+          reason: "profile_update_failed",
+          email: user.email,
+        });
         return NextResponse.json({ error: "Failed to claim listing." }, { status: 500 });
       }
       profileSlug = existingProfile.slug;
@@ -254,6 +273,12 @@ export async function POST(request: Request) {
         .single();
 
       if (!provider) {
+        await logOneClickFailed({
+          providerId,
+          stage: "finalize",
+          reason: "provider_not_found",
+          email: user.email,
+        });
         return NextResponse.json({ error: "Provider not found." }, { status: 404 });
       }
 
@@ -321,6 +346,12 @@ export async function POST(request: Request) {
 
       if (insertErr || !newProfile) {
         console.error("Failed to create profile:", insertErr);
+        await logOneClickFailed({
+          providerId,
+          stage: "finalize",
+          reason: `profile_insert_failed:${insertErr?.code || "unknown"}`,
+          email: user.email,
+        });
         return NextResponse.json({ error: "Failed to create listing." }, { status: 500 });
       }
       profileId = newProfile.id;

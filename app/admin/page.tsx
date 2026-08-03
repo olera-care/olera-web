@@ -268,7 +268,7 @@ export default function AdminOverviewPage() {
   function renderCard(card: StatCard) {
     const showWarning = card.isWarning && typeof card.value === "number" && card.value > 0;
     return (
-      <Link key={card.href} href={card.href} className="block">
+      <Link key={card.label} href={card.href} className="block">
         <div
           className={[
             "p-5 rounded-xl border transition-colors",

@@ -6,6 +6,7 @@ import {
   type ClaimTrustResult,
 } from "@/lib/claim-trust";
 import { sendSlackAlert, slackSuspiciousClaim } from "@/lib/slack";
+import { logOneClickFailed } from "@/lib/one-click-telemetry";
 
 export const maxDuration = 30;
 
@@ -68,6 +69,20 @@ export async function POST(request: Request) {
       console.warn(
         "[auto-sign-in] no verified email for claim session — refusing to mint session"
       );
+      // Recover the provider from ANY code row for this session (even expired)
+      // so the failure event is attributable to a provider when possible.
+      const { data: anyRow } = await supabaseAdmin
+        .from("claim_verification_codes")
+        .select("provider_id")
+        .eq("claim_session", claimSession)
+        .limit(1)
+        .maybeSingle();
+      await logOneClickFailed({
+        providerId: anyRow?.provider_id,
+        stage: "auto_sign_in",
+        reason: anyRow ? "verification_expired" : "verification_missing",
+        email: typeof bodyEmail === "string" ? bodyEmail : null,
+      });
       return NextResponse.json({ error: "Verification required" }, { status: 403 });
     }
 
@@ -107,6 +122,11 @@ export async function POST(request: Request) {
         userId = linkData?.user?.id;
       } else {
         console.error("Auto-sign-in: createUser failed:", createError.message);
+        await logOneClickFailed({
+          stage: "auto_sign_in",
+          reason: `create_user_failed:${createError.status || "unknown"}`,
+          email: normalizedEmail,
+        });
         return NextResponse.json(
           { error: "Failed to create account" },
           { status: 500 }
@@ -117,6 +137,11 @@ export async function POST(request: Request) {
     }
 
     if (!userId) {
+      await logOneClickFailed({
+        stage: "auto_sign_in",
+        reason: "user_unresolved",
+        email: normalizedEmail,
+      });
       return NextResponse.json(
         { error: "Could not resolve user" },
         { status: 500 }
@@ -133,6 +158,11 @@ export async function POST(request: Request) {
 
     if (linkError || !signInLink?.properties?.hashed_token) {
       console.error("Auto-sign-in: generateLink failed:", linkError?.message);
+      await logOneClickFailed({
+        stage: "auto_sign_in",
+        reason: `generate_link_failed:${linkError?.status || "unknown"}`,
+        email: normalizedEmail,
+      });
       return NextResponse.json(
         { error: "Failed to generate sign-in token" },
         { status: 500 }

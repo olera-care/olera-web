@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     query = query.gte("created_at", fromDate);
   }
   if (toDate) {
-    query = query.lte("created_at", toDate);
+    query = query.lt("created_at", toDate);
   }
 
   // Search by reviewer name or provider_id (slug)

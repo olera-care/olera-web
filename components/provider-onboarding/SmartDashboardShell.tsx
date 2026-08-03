@@ -140,6 +140,8 @@ interface SmartDashboardShellProps {
   notificationData?: NotificationData | null;
   /** Whether the user is currently signed in */
   isSignedIn?: boolean;
+  /** Failed-token context for the link-expired recovery state */
+  resendContext?: { token: string; action: string | null; actionId: string | null; slug: string } | null;
 }
 
 // ============================================================
@@ -153,6 +155,7 @@ export default function SmartDashboardShell({
   preVerifiedEmail,
   notificationData,
   isSignedIn = false,
+  resendContext = null,
 }: SmartDashboardShellProps) {
   const { setForceHidden } = useNavbar();
 
@@ -205,6 +208,7 @@ export default function SmartDashboardShell({
               preVerifiedEmail={preVerifiedEmail}
               notificationData={notificationData}
               isSignedIn={isSignedIn}
+              resendContext={resendContext}
             />
           </div>
         ) : (
@@ -221,6 +225,7 @@ export default function SmartDashboardShell({
               preVerifiedEmail={preVerifiedEmail}
               notificationData={notificationData}
               isSignedIn={isSignedIn}
+              resendContext={resendContext}
             />
           </div>
         )}

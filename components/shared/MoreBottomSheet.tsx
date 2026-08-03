@@ -13,6 +13,8 @@ interface MoreBottomSheetProps {
   qnaCount: number;
   /** New leads count */
   leadsCount: number;
+  /** Whether the signed-in account may access the admin dashboard. */
+  isAdmin: boolean;
 }
 
 interface MenuItem {
@@ -21,6 +23,7 @@ interface MenuItem {
   href: string;
   icon: React.ReactNode;
   getBadge?: (props: MoreBottomSheetProps) => number;
+  adminOnly?: boolean;
 }
 
 const MENU_ITEMS: MenuItem[] = [
@@ -74,6 +77,17 @@ const MENU_ITEMS: MenuItem[] = [
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+      </svg>
+    ),
+  },
+  {
+    key: "admin",
+    label: "Admin Dashboard",
+    href: "/admin",
+    adminOnly: true,
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
       </svg>
     ),
   },
@@ -165,7 +179,7 @@ export default function MoreBottomSheet(props: MoreBottomSheetProps) {
 
         {/* Menu items */}
         <div className="px-3 pb-4">
-          {MENU_ITEMS.map((item) => {
+          {MENU_ITEMS.filter((item) => !item.adminOnly || props.isAdmin).map((item) => {
             const badge = item.getBadge?.(props) ?? 0;
             return (
               <Link

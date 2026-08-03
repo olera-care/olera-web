@@ -47,6 +47,7 @@ const PROVIDER_ACTION_EVENT_TYPES = [
   "provider_saved",
   "claim_completed",
   "suspicious_claim",
+  "one_click_failed",
   // Dashboard / activation funnel
   "dashboard_arrival",
   "provider_picker_impression",
@@ -84,7 +85,7 @@ const PROVIDER_ACTION_EVENT_TYPES = [
 function applyCategoryFilter(query: any, category: ProviderCategoryKey) {
   if (category === "flags") {
     return query.or(
-      "event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)"
+      "event_type.eq.suspicious_claim,event_type.eq.one_click_failed,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)"
     );
   }
   return query.in("event_type", eventTypesForCategory(category));
@@ -135,6 +136,13 @@ export async function GET(request: NextRequest) {
     const eventParam = searchParams.get("event");
     const exactEvent =
       eventParam && PROVIDER_ACTION_EVENT_TYPES.includes(eventParam) ? eventParam : null;
+    // Sub-drill-down for magic-link failures: filter by metadata.stage.
+    // Only meaningful alongside event=one_click_failed.
+    const stageParam = searchParams.get("stage");
+    const stage =
+      exactEvent === "one_click_failed" && stageParam && ONE_CLICK_FAILURE_STAGES.includes(stageParam)
+        ? stageParam
+        : null;
     const seekerExactEvent =
       eventParam && SEEKER_ALL_EVENT_TYPES.includes(eventParam) ? eventParam : null;
     const days = parseInt(searchParams.get("days") || "30", 10);
@@ -166,15 +174,15 @@ export async function GET(request: NextRequest) {
     // Orientation summary — per-category counts, or per-event counts when a
     // category is given (drill-down chip row).
     if (view === "summary") {
-      return handleProviderSummary(db, sinceISO, category);
+      return handleProviderSummary(db, sinceISO, category, exactEvent);
     }
 
     // Provider views (default + backward compat)
     if (view === "providers" || view === "people") {
-      return handleProvidersView(db, { ...opts, emailType: eventType, category, exactEvent });
+      return handleProvidersView(db, { ...opts, emailType: eventType, category, exactEvent, stage });
     }
 
-    return handleFeedView(db, { ...opts, emailType: eventType, category, exactEvent });
+    return handleFeedView(db, { ...opts, emailType: eventType, category, exactEvent, stage });
   } catch (err) {
     console.error("Admin activity error:", err);
     return NextResponse.json(
@@ -185,17 +193,50 @@ export async function GET(request: NextRequest) {
 }
 
 /**
+ * Failure stages recorded on one_click_failed events (see
+ * lib/one-click-telemetry.ts). Fixed set — used for the stage drill-down chips
+ * and to validate the ?stage= feed filter.
+ */
+const ONE_CLICK_FAILURE_STAGES = [
+  "validate_token",
+  "auto_sign_in",
+  "finalize",
+  "client_auto_sign_in_http",
+  "client_verify_otp",
+  "client_finalize_http",
+  "client_exception",
+  "claim_lead",
+  "claim_campaign",
+  "claim_complete",
+];
+
+/**
  * Per-category counts for the Providers orientation strip. One exact head-count
  * query per category, run in parallel — accurate beyond the 5000-row aggregation
  * cap, and cheap (no rows transferred). Returns counts in PROVIDER_CATEGORIES
  * order plus the grand total of provider actions in the window.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleProviderSummary(db: any, sinceISO: string, category: ProviderCategoryKey | null) {
+async function handleProviderSummary(db: any, sinceISO: string, category: ProviderCategoryKey | null, exactEvent: string | null = null) {
+  // Stage breakdown for the magic-link failure drill-down: per-stage counts so
+  // "which hop is eating providers" is readable at a glance, no row-scrolling.
+  if (exactEvent === "one_click_failed") {
+    const stages = await Promise.all(
+      ONE_CLICK_FAILURE_STAGES.map(async (stage) => {
+        const { count } = await db
+          .from("provider_activity")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", sinceISO)
+          .eq("event_type", "one_click_failed")
+          .eq("metadata->>stage", stage);
+        return { stage, count: count || 0 };
+      })
+    );
+    return NextResponse.json({ event: "one_click_failed", stages });
+  }
+
   // Drill-down: per-event-type counts within one category (the sub-chip row).
-  // "flags" has no useful sub-breakdown (it's already a narrow overlay), so it
-  // falls through to the category-level summary.
-  if (category && category !== "flags") {
+  if (category) {
     const types = eventTypesForCategory(category);
     const events = await Promise.all(
       types.map(async (et) => {
@@ -238,13 +279,14 @@ async function handleFeedView(db: any, opts: {
   emailType: string | null;
   category: ProviderCategoryKey | null;
   exactEvent: string | null;
+  stage?: string | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, exactEvent, stage, sinceISO, search, limit, offset, countOnly } = opts;
   // Provider feed — existing behavior
 
   // If searching, find matching provider IDs first (check both tables)
@@ -300,6 +342,9 @@ async function handleFeedView(db: any, opts: {
   // Drill-down to one exact action takes precedence over its category.
   if (exactEvent) {
     query = query.eq("event_type", exactEvent);
+    // Magic-link failure stage drill-down (validated against the fixed stage
+    // list in GET — only ever set alongside event=one_click_failed).
+    if (stage) query = query.eq("metadata->>stage", stage);
   } else if (category) {
     // Category navigation (orientation tiles) narrows to a taxonomy bucket.
     query = applyCategoryFilter(query, category);
@@ -414,13 +459,14 @@ async function handleProvidersView(db: any, opts: {
   emailType: string | null;
   category: ProviderCategoryKey | null;
   exactEvent: string | null;
+  stage?: string | null;
   sinceISO: string;
   search: string;
   limit: number;
   offset: number;
   countOnly: boolean;
 }) {
-  const { emailType, category, exactEvent, sinceISO, search, limit, offset, countOnly } = opts;
+  const { emailType, category, exactEvent, stage, sinceISO, search, limit, offset, countOnly } = opts;
 
   // Use raw SQL via RPC for aggregation — Supabase JS doesn't support GROUP BY
   // Fallback: fetch all activity and aggregate in JS (fine for current scale).
@@ -447,6 +493,7 @@ async function handleProvidersView(db: any, opts: {
   }
   if (exactEvent) {
     query = query.eq("event_type", exactEvent);
+    if (stage) query = query.eq("metadata->>stage", stage);
   } else if (category) {
     query = applyCategoryFilter(query, category);
   }

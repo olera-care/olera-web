@@ -54,13 +54,30 @@ export async function GET(request: NextRequest) {
 
   // Fall back to the onboard page (manual sign-in) when auth fails — never a
   // dead end. Mirrors claim-lead's fallback behaviour.
-  const fallbackToOnboard = (reason: string, slug?: string | null) => {
+  const fallbackToOnboard = async (reason: string, slug?: string | null) => {
     console.log("[claim-complete] falling back to onboard:", { reason, slug, section });
+
+    // Server-side visibility — these fallbacks were the invisible leak that
+    // stranded providers at a sign-in wall (see one_click_failed telemetry).
+    const { logOneClickFailed } = await import("@/lib/one-click-telemetry");
+    await logOneClickFailed({
+      providerId: slug,
+      stage: "claim_complete",
+      reason,
+      action: "manage",
+    });
+
     if (!slug) {
       return NextResponse.redirect(`${siteUrl}/`, { status: 303 });
     }
+    // Forward the otk: with it, the onboard page runs the client-side
+    // one-click flow (valid token) or the link-expired recovery card (dead
+    // token) instead of a sign-in wall the provider can't pass.
     const fallbackUrl = new URL(`${siteUrl}/provider/${slug}/onboard`);
     fallbackUrl.searchParams.set("action", "manage");
+    if (token) {
+      fallbackUrl.searchParams.set("otk", token);
+    }
     return NextResponse.redirect(fallbackUrl.toString(), { status: 303 });
   };
 
@@ -89,11 +106,18 @@ export async function GET(request: NextRequest) {
 
   const admin = createClient(supabaseUrl, serviceKey);
 
-  // 2. Resolve the provider's business_profile (token's providerId is the slug)
+  // 2. Resolve the provider's business_profile (token's providerId is the slug).
+  //    `id` is a uuid column: including id.eq for a non-UUID value makes
+  //    Postgres reject the ENTIRE .or() with a uuid cast error, which read as
+  //    "provider not found" and sent the provider to the fallback wall.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const bpFilter = UUID_RE.test(providerSlug)
+    ? `slug.eq.${providerSlug},source_provider_id.eq.${providerSlug},id.eq.${providerSlug}`
+    : `slug.eq.${providerSlug},source_provider_id.eq.${providerSlug}`;
   const { data: providerProfile, error: profileError } = await admin
     .from("business_profiles")
     .select("id, slug, email, account_id, source_provider_id, display_name, city, state, website")
-    .or(`slug.eq.${providerSlug},source_provider_id.eq.${providerSlug},id.eq.${providerSlug}`)
+    .or(bpFilter)
     .in("type", ["organization", "caregiver"])
     .maybeSingle();
 

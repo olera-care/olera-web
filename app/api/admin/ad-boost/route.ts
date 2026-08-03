@@ -37,9 +37,29 @@ export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams;
   const db = getServiceClient();
 
-  // Revenue summary (?revenue_only=true) for the admin Overview MRR card:
-  // paying campaigns (active + past_due — past_due still bills, Stripe is
-  // dunning it) and their combined monthly value.
+  // Current Ad Boost cohort for the admin Overview card. Count providers, not
+  // request rows, because a provider can run more than one campaign over time.
+  // A paid plan remains part of the program even if its introductory campaign
+  // row has already moved to `ended`.
+  if (params.get("program_count_only") === "true") {
+    const { data: rows, error: programErr } = await db
+      .from("ad_campaign_requests")
+      .select("provider_id")
+      .is("deleted_at", null)
+      .or(
+        "status.in.(pending_profile,requested,scheduled,live),plan_status.in.(active,past_due)",
+      );
+    if (programErr) {
+      console.error("[admin/ad-boost] program count failed:", programErr);
+      return NextResponse.json({ error: programErr.message }, { status: 500 });
+    }
+    const providers = new Set((rows ?? []).map((row) => row.provider_id)).size;
+    return NextResponse.json({ providers });
+  }
+
+  // Revenue summary for admin surfaces that need subscription detail: paying
+  // campaigns (active + past_due — past_due still bills while Stripe duns it)
+  // and their combined monthly value.
   if (params.get("revenue_only") === "true") {
     const { data: rows, error: revErr } = await db
       .from("ad_campaign_requests")

@@ -62,6 +62,7 @@ export type ActionCardState =
   | "pre-verified"
   | "already-claimed"
   | "dispute-submitted"
+  | "link-expired"
   // Notification states (from email links)
   | "notification-lead"
   | "notification-question"
@@ -83,6 +84,8 @@ interface ActionCardProps {
   notificationData?: NotificationData | null;
   /** Whether the user is currently signed in */
   isSignedIn?: boolean;
+  /** Failed-token context for the link-expired recovery state */
+  resendContext?: { token: string; action: string | null; actionId: string | null; slug: string } | null;
 }
 
 // ============================================================
@@ -115,6 +118,9 @@ const TOOLTIP_CONTENT: Record<ActionCardState, { text: string; showTos?: boolean
   },
   "dispute-submitted": {
     text: "Our team will review your dispute and contact you at the email provided.",
+  },
+  "link-expired": {
+    text: "Email links expire for security. We can send a fresh one to the email we have on file for this listing.",
   },
   "notification-lead": {
     text: "A family is interested in your services. Sign in to respond.",
@@ -665,9 +671,15 @@ export default function ActionCard({
   highlighted = false,
   notificationData,
   isSignedIn = false,
+  resendContext = null,
 }: ActionCardProps) {
   // Current state
   const [state, setState] = useState<ActionCardState>(initialState);
+
+  // Link-expired recovery state
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [resendError, setResendError] = useState("");
+  const [resendEmailHint, setResendEmailHint] = useState<string | null>(null);
 
   // Track when inline question response is submitted (for dissolve + profile preview)
   const [questionAnswered, setQuestionAnswered] = useState(false);
@@ -1265,6 +1277,109 @@ export default function ActionCard({
   // ════════════════════════════════════════════════════════════
   // RENDER: Pre-verified State (from email campaign token)
   // ════════════════════════════════════════════════════════════
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: Link Expired (dead magic link → one-tap fresh link)
+  // ════════════════════════════════════════════════════════════
+
+  if (state === "link-expired") {
+    const handleResend = async () => {
+      if (!resendContext || resendStatus === "sending") return;
+      setResendStatus("sending");
+      setResendError("");
+      try {
+        const res = await fetch("/api/claim/resend-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: resendContext.token,
+            slug: resendContext.slug,
+            action: resendContext.action,
+            actionId: resendContext.actionId,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.sent) {
+          setResendStatus("idle");
+          setResendError(data.error || "We couldn't send a new link. Please try signing in instead.");
+          return;
+        }
+        setResendEmailHint(data.emailHint || null);
+        setResendStatus("sent");
+      } catch {
+        setResendStatus("idle");
+        setResendError("Something went wrong. Please try again.");
+      }
+    };
+
+    const questionText =
+      notificationData?.type === "question" ? notificationData.question : null;
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {resendStatus === "sent" ? (
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5">
+              Fresh link sent
+            </h3>
+            <p className="text-[15px] text-gray-500">
+              Check your inbox{resendEmailHint ? (
+                <> at <span className="font-semibold text-gray-700">{resendEmailHint}</span></>
+              ) : null}. The new link signs you straight in.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm border border-amber-100/60">
+                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
+                This link has expired
+                <InfoTooltip content={TOOLTIP_CONTENT["link-expired"].text} />
+              </h3>
+              <p className="text-[15px] text-gray-500">
+                No problem — we can email a fresh one to the address on file for{" "}
+                <span className="font-semibold text-gray-700">{provider.provider_name}</span>.
+              </p>
+            </div>
+
+            {questionText && (
+              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                <p className="text-[15px] text-gray-600 italic leading-relaxed">&ldquo;{questionText}&rdquo;</p>
+                <p className="text-xs text-gray-400 mt-2">A family is waiting for your answer.</p>
+              </div>
+            )}
+
+            {resendError && (
+              <p className="text-sm text-red-600 mb-4 text-center">{resendError}</p>
+            )}
+
+            <button
+              onClick={handleResend}
+              disabled={resendStatus === "sending"}
+              className="w-full sm:max-w-[280px] sm:mx-auto block py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+            >
+              {resendStatus === "sending" ? "Sending..." : "Email me a fresh link"}
+            </button>
+            <button
+              onClick={onClaimClick}
+              className="w-full sm:max-w-[280px] sm:mx-auto block mt-3 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Or sign in manually
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (state === "pre-verified") {
     return (

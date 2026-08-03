@@ -46,13 +46,28 @@ export async function GET(request: NextRequest) {
   console.log("[claim-campaign] route hit", { hasToken: !!token });
 
   // Helper to fall back to onboard page when auth fails
-  const fallbackToOnboard = (reason: string, slug?: string | null) => {
+  const fallbackToOnboard = async (reason: string, slug?: string | null) => {
+    // Server-side visibility — these fallbacks were the invisible leak that
+    // stranded providers at a sign-in wall (see one_click_failed telemetry).
+    const { logOneClickFailed } = await import("@/lib/one-click-telemetry");
+    await logOneClickFailed({
+      providerId: slug,
+      stage: "claim_campaign",
+      reason,
+      action: "campaign",
+    });
     console.log("[claim-campaign] falling back to onboard:", { reason, slug });
     if (!slug) {
       return NextResponse.redirect(`${siteUrl}/`, { status: 303 });
     }
+    // Forward the otk: with it, the onboard page runs the client-side
+    // one-click flow (valid token) or the link-expired recovery card (dead
+    // token) instead of a sign-in wall the provider can't pass.
     const fallbackUrl = new URL(`${siteUrl}/provider/${slug}/onboard`);
     fallbackUrl.searchParams.set("action", "claim");
+    if (token) {
+      fallbackUrl.searchParams.set("otk", token);
+    }
     return NextResponse.redirect(fallbackUrl.toString(), { status: 303 });
   };
 
@@ -103,11 +118,19 @@ export async function GET(request: NextRequest) {
     website: string | null;
   } | null = null;
 
-  // Try business_profiles first (claimed or unclaimed profiles)
+  // Try business_profiles first (claimed or unclaimed profiles).
+  // `id` is a uuid column: including id.eq for a non-UUID value (slug or
+  // short-code provider_id — the normal case for outreach tokens) makes
+  // Postgres reject the ENTIRE .or() with a uuid cast error, silently
+  // skipping existing profiles and walling BP-only providers.
+  const CAMPAIGN_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const bpFilter = CAMPAIGN_UUID_RE.test(sanitizedProviderId)
+    ? `slug.eq.${sanitizedProviderId},source_provider_id.eq.${sanitizedProviderId},id.eq.${sanitizedProviderId}`
+    : `slug.eq.${sanitizedProviderId},source_provider_id.eq.${sanitizedProviderId}`;
   const { data: bpProfile } = await admin
     .from("business_profiles")
     .select("id, slug, email, account_id, source_provider_id, display_name, city, state, website")
-    .or(`slug.eq.${sanitizedProviderId},source_provider_id.eq.${sanitizedProviderId},id.eq.${sanitizedProviderId}`)
+    .or(bpFilter)
     .in("type", ["organization", "caregiver"])
     .maybeSingle();
 

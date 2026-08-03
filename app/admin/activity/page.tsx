@@ -426,6 +426,18 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
                     <span> &middot; {String((event.metadata as Record<string, string>).trust_reason)}</span>
                   )}
                 </p>
+              ) : event.event_type === "one_click_failed" ? (
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  <span className="font-medium text-red-700">
+                    {String((event.metadata as Record<string, string>)?.stage || "unknown stage")}
+                  </span>
+                  {(event.metadata as Record<string, string>)?.reason && (
+                    <span> &middot; {String((event.metadata as Record<string, string>).reason)}</span>
+                  )}
+                  {(event.metadata as Record<string, string>)?.email_masked && (
+                    <span> &middot; {String((event.metadata as Record<string, string>).email_masked)}</span>
+                  )}
+                </p>
               ) : event.event_type === "one_click_access" && (event.metadata as Record<string, string>)?.trust_level ? (
                 <p className="text-xs text-gray-500 mt-0.5 truncate">
                   <span className="text-gray-600">
@@ -456,6 +468,7 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
             <span
               className={`text-xs shrink-0 ${
                 event.event_type === "suspicious_claim" ||
+                event.event_type === "one_click_failed" ||
                 (event.event_type === "one_click_access" &&
                   (event.metadata as Record<string, string>)?.trust_level === "low")
                   ? "font-medium text-red-600"
@@ -790,6 +803,9 @@ export default function ActivityCenterPage() {
   // contaminate.
   const [providerCategory, setProviderCategory] = useState<ProviderCategoryKey | "">(initialProviderCategory);
   const [providerEvent, setProviderEvent] = useState<string>("");
+  // Magic-link failure stage drill-down (active when providerEvent === one_click_failed).
+  const [providerStage, setProviderStage] = useState<string>("");
+  const [stageCounts, setStageCounts] = useState<Record<string, number> | null>(null);
   const [categorySummary, setCategorySummary] = useState<Record<string, number> | null>(null);
   const [summaryTotal, setSummaryTotal] = useState<number | null>(null);
   const [subCounts, setSubCounts] = useState<Record<string, number> | null>(null);
@@ -847,12 +863,16 @@ export default function ActivityCenterPage() {
   useEffect(() => {
     setPage(0);
     setSelectedIds(new Set());
-  }, [timeWindow, providerCategory, providerEvent, familyCategory, familyEvent, search]);
+  }, [timeWindow, providerCategory, providerEvent, providerStage, familyCategory, familyEvent, search]);
 
   // Changing a category clears the drill-down selection from the prior category.
   useEffect(() => {
     setProviderEvent("");
   }, [providerCategory]);
+  // Changing the drill-down event clears the stage sub-filter.
+  useEffect(() => {
+    setProviderStage("");
+  }, [providerEvent]);
   useEffect(() => {
     setFamilyEvent("");
   }, [familyCategory]);
@@ -874,8 +894,10 @@ export default function ActivityCenterPage() {
       }
 
       if (actor === "providers") {
-        if (providerEvent) params.set("event", providerEvent);
-        else if (providerCategory) params.set("category", providerCategory);
+        if (providerEvent) {
+          params.set("event", providerEvent);
+          if (providerEvent === "one_click_failed" && providerStage) params.set("stage", providerStage);
+        } else if (providerCategory) params.set("category", providerCategory);
       } else {
         if (familyEvent) params.set("event", familyEvent);
         else if (familyCategory) params.set("category", familyCategory);
@@ -908,12 +930,12 @@ export default function ActivityCenterPage() {
     } finally {
       setLoading(false);
     }
-  }, [actor, subView, timeWindow, providerCategory, providerEvent, familyCategory, familyEvent, search, page]);
+  }, [actor, subView, timeWindow, providerCategory, providerEvent, providerStage, familyCategory, familyEvent, search, page]);
 
-  // Per-event counts for the drill-down chip row — fetched when a (non-flags)
-  // category is selected. Cancelled on change to avoid out-of-order responses.
+  // Per-event counts for the drill-down chip row — fetched when a category is
+  // selected. Cancelled on change to avoid out-of-order responses.
   useEffect(() => {
-    if (actor !== "providers" || !providerCategory || providerCategory === "flags") {
+    if (actor !== "providers" || !providerCategory) {
       setSubCounts(null);
       return;
     }
@@ -934,6 +956,31 @@ export default function ActivityCenterPage() {
       cancelled = true;
     };
   }, [actor, providerCategory, timeWindow]);
+
+  // Per-stage counts for the magic-link failure drill-down — the aggregate view
+  // that answers "which hop is failing" without scrolling the feed.
+  useEffect(() => {
+    if (actor !== "providers" || providerEvent !== "one_click_failed") {
+      setStageCounts(null);
+      return;
+    }
+    let cancelled = false;
+    setStageCounts(null);
+    fetch(`/api/admin/activity?actor=providers&view=summary&event=one_click_failed&days=${timeWindow}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        const m: Record<string, number> = {};
+        for (const s of d.stages || []) m[s.stage] = s.count;
+        setStageCounts(m);
+      })
+      .catch(() => {
+        if (!cancelled) setStageCounts(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, providerEvent, timeWindow]);
 
   // Per-category counts for the providers orientation strip. Refetched on time-
   // window change (and after deletes); independent of the feed pagination/filter
@@ -1114,11 +1161,25 @@ export default function ActivityCenterPage() {
     ...PROVIDER_CATEGORIES.map((c) => ({ key: c.key, label: c.label, count: categorySummary?.[c.key] ?? 0, blurb: c.blurb })),
   ];
   const providerSubItems: StatItem[] =
-    providerCategory && providerCategory !== "flags"
+    providerCategory
       ? PROVIDER_CATEGORY_MAP[providerCategory].eventTypes.map((et) => ({
           key: et, label: providerEventLabel(et), count: subCounts?.[et] ?? 0,
         }))
       : [];
+  // Stage chips for the magic-link failure drill-down: where in the pipeline
+  // the link died. Keys match lib/one-click-telemetry.ts stages.
+  const stageItems: StatItem[] = [
+    { key: "validate_token", label: "Bad or expired token" },
+    { key: "auto_sign_in", label: "Sign-in refused" },
+    { key: "finalize", label: "Claim failed" },
+    { key: "client_auto_sign_in_http", label: "Sign-in request error" },
+    { key: "client_verify_otp", label: "Session verify failed" },
+    { key: "client_finalize_http", label: "Claim request error" },
+    { key: "client_exception", label: "Browser error" },
+    { key: "claim_lead", label: "Lead link fallback" },
+    { key: "claim_campaign", label: "Outreach link fallback" },
+    { key: "claim_complete", label: "Digest link fallback" },
+  ].map((s) => ({ ...s, count: stageCounts?.[s.key] ?? 0 }));
   const familyStatItems: StatItem[] = [
     { key: "", label: "All activity", count: familySummaryTotal ?? 0 },
     ...SEEKER_CATEGORIES.map((c) => ({ key: c.key, label: c.label, count: familySummary?.[c.key] ?? 0, blurb: c.blurb })),
@@ -1220,8 +1281,14 @@ export default function ActivityCenterPage() {
           }}
           loading={actor === "providers" ? categorySummary === null : familySummary === null}
         />
-        {actor === "providers" && providerCategory && providerCategory !== "flags" && (
+        {actor === "providers" && providerCategory && (
           <SubFilterRow items={providerSubItems} selected={providerEvent} onSelect={setProviderEvent} loading={subCounts === null} />
+        )}
+        {actor === "providers" && providerEvent === "one_click_failed" && (
+          <div className="flex items-center gap-x-4">
+            <span className="text-[11px] text-gray-300">stage</span>
+            <SubFilterRow items={stageItems} selected={providerStage} onSelect={setProviderStage} loading={stageCounts === null} />
+          </div>
         )}
         {actor === "families" && familyCategory && (
           <SubFilterRow items={familySubItems} selected={familyEvent} onSelect={setFamilyEvent} loading={familySubCounts === null} />

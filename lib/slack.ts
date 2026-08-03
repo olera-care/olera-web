@@ -427,6 +427,62 @@ export function slackOneClickAccess(opts: {
   };
 }
 
+/**
+ * 🔗💥 A magic-link sign-in failed — a provider clicked an email link and the
+ * one-click pipeline broke somewhere. Counterpart to slackOneClickAccess.
+ * Fired from lib/one-click-telemetry.ts (server stages) and
+ * /api/activity/track (client stages).
+ */
+export function slackOneClickFailed(opts: {
+  providerSlug: string;
+  stage: string;
+  reason?: string | null;
+  action?: string | null;
+  emailMasked?: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const stageLabels: Record<string, string> = {
+    validate_token: "Bad or expired token",
+    auto_sign_in: "Sign-in refused",
+    finalize: "Claim failed",
+    client_auto_sign_in_http: "Sign-in request error",
+    client_verify_otp: "Session verify failed",
+    client_finalize_http: "Claim request error",
+    client_exception: "Browser error",
+  };
+  const stageLabel = stageLabels[opts.stage] || opts.stage;
+  const reason = (opts.reason || "").slice(0, 120);
+  const fields: { type: string; text: string }[] = [
+    { type: "mrkdwn", text: `*Provider:*\n<${siteUrl}/provider/${opts.providerSlug}|${opts.providerSlug}>` },
+    { type: "mrkdwn", text: `*Stage:*\n${stageLabel}` },
+  ];
+  if (reason) fields.push({ type: "mrkdwn", text: `*Reason:*\n${reason}` });
+  if (opts.action) fields.push({ type: "mrkdwn", text: `*From email:*\n${opts.action}` });
+  if (opts.emailMasked) fields.push({ type: "mrkdwn", text: `*Recipient:*\n${opts.emailMasked}` });
+  return {
+    text: `Magic link failed: ${opts.providerSlug} (${stageLabel})`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🔗 Magic Link Failed", emoji: true },
+      },
+      {
+        type: "section",
+        fields,
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${siteUrl}/admin/activity?actor=providers&category=flags|All failures in the Activity Center>`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 export function slackReviewsCtaClicked(opts: {
   providerName: string;
   providerSlug: string;

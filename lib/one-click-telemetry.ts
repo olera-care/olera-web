@@ -11,6 +11,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { sendSlackAlert, slackOneClickFailed } from "@/lib/slack";
 
 export type OneClickFailureStage =
   | "validate_token"
@@ -62,6 +63,22 @@ export async function logOneClickFailed(params: {
     });
     if (error) {
       console.error("[one-click-telemetry] insert failed:", error.message);
+    }
+
+    // Real-time visibility: every failure pings Slack (awaited — Vercel kills
+    // pending promises after the response). Client stages alert from
+    // /api/activity/track instead, so no failure double-pings.
+    try {
+      const alert = slackOneClickFailed({
+        providerSlug: params.providerId || "unknown",
+        stage: params.stage,
+        reason: params.reason,
+        action: params.action,
+        emailMasked: maskEmail(params.email),
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch (slackErr) {
+      console.error("[one-click-telemetry] Slack alert failed:", slackErr);
     }
   } catch (err) {
     console.error("[one-click-telemetry] error:", err);

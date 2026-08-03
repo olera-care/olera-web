@@ -441,6 +441,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 🔗 Magic-link failure reported from the browser (client-side stages —
+    // verifyOtp, fetch errors). Server-side stages alert from
+    // lib/one-click-telemetry.ts, so each failure pings exactly once.
+    if (event_type === "one_click_failed") {
+      try {
+        const { sendSlackAlert, slackOneClickFailed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, string>) || {};
+        const alert = slackOneClickFailed({
+          providerSlug: provider_id,
+          stage: meta.stage || "unknown",
+          reason: meta.reason || null,
+          action: meta.action || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
     // Send Slack alert when a provider clicks the reviews CTA
     if (event_type === "reviews_cta_clicked") {
       try {

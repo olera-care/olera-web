@@ -55,6 +55,9 @@ export default function AdminOverviewPage() {
   const [totalQuestions, setTotalQuestions] = useState<StatValue>(null);
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<StatValue>(null);
   const [totalReviews, setTotalReviews] = useState<StatValue>(null);
+  const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
+  const [benefitsRequested, setBenefitsRequested] = useState<StatValue>(null);
+  const [providerAccountsClaimed, setProviderAccountsClaimed] = useState<StatValue>(null);
   const [liveProviders, setLiveProviders] = useState<StatValue>(null);
   const [adBoostProviders, setAdBoostProviders] = useState<StatValue>(null);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
@@ -107,6 +110,9 @@ export default function AdminOverviewPage() {
     setTotalQuestions(null);
     setTotalInquiries(null);
     setTotalReviews(null);
+    setLeadsReceived(null);
+    setBenefitsRequested(null);
+    setProviderAccountsClaimed(null);
 
     const questionParams = new URLSearchParams({ count_only: "true" });
     const connectionParams = new URLSearchParams({ submitted_count_only: "true" });
@@ -144,6 +150,23 @@ export default function AdminOverviewPage() {
         setTotalReviews(undefined);
       });
 
+    const networkHealthParams = new URLSearchParams();
+    if (from) networkHealthParams.set("date_from", from);
+    if (to) networkHealthParams.set("date_to", to);
+    fetch(`/api/admin/network-health?${networkHealthParams}`, { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("network health failed")))
+      .then((data) => {
+        setLeadsReceived(data?.leadsReceived ?? 0);
+        setBenefitsRequested(data?.benefitsRequested ?? 0);
+        setProviderAccountsClaimed(data?.providerAccountsClaimed ?? 0);
+      })
+      .catch((fetchError: unknown) => {
+        if ((fetchError as Error)?.name === "AbortError") return;
+        setLeadsReceived(undefined);
+        setBenefitsRequested(undefined);
+        setProviderAccountsClaimed(undefined);
+      });
+
     return () => controller.abort();
   }, [activityRange]);
 
@@ -153,6 +176,16 @@ export default function AdminOverviewPage() {
     const params = dateRangeSearchParams(activityRange);
     for (const [key, value] of Object.entries(extra ?? {})) params.set(key, value);
     return `${path}?${params}`;
+  }
+
+  // Analytics predates the shared admin range convention and still calls its
+  // preset key `preset`; translate it without losing custom boundaries.
+  function analyticsHref() {
+    const params = dateRangeSearchParams(activityRange);
+    const preset = params.get("range") ?? activityRange.preset;
+    params.delete("range");
+    params.set("preset", preset);
+    return `/admin/analytics?${params}`;
   }
 
   const activityCards: StatCard[] = [
@@ -174,12 +207,33 @@ export default function AdminOverviewPage() {
       subtitle: `Submitted · ${selectedRangeLabel}`,
       href: activityHref("/admin/reviews"),
     },
+    {
+      label: "Leads Received",
+      value: leadsReceived,
+      subtitle: `Inquiries + Q&A captures · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+    },
+    {
+      label: "Benefits Requested",
+      value: benefitsRequested,
+      subtitle: `Completed benefits intakes · ${selectedRangeLabel}`,
+      href: activityHref("/admin/benefits"),
+    },
+    {
+      label: "Provider Accounts Claimed",
+      value: providerAccountsClaimed,
+      subtitle: `New claims · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+    },
   ];
 
   const hasUnavailableStats = [
     totalQuestions,
     totalInquiries,
     totalReviews,
+    leadsReceived,
+    benefitsRequested,
+    providerAccountsClaimed,
     adBoostProviders,
     unverifiedClaims,
     needsEmail,

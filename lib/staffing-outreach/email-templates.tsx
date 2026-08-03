@@ -142,7 +142,7 @@ export function followUpReminderEmail(opts: {
   const body = `
     <p>Hi,</p>
     <p>Just following up on my email from last week about Dr. Logan DuBose's student caregiver program at ${escapeHtml(opts.universityName)}.</p>
-    <p>We're connecting pre-nursing and pre-med students with home care agencies like ${escapeHtml(opts.providerName)} for PRN shifts. It's free to browse and interview — you only pay when you hire — happy to share more details if you can point me to the right person.</p>
+    <p>We're connecting pre-nursing and pre-med students with home care agencies like ${escapeHtml(opts.providerName)} for PRN shifts. The pilot is free for your agency — no cost to browse, interview, or hire — happy to share more details if you can point me to the right person.</p>
     <p style="margin:20px 0 0;">Thanks,<br/>${escapeHtml(opts.adminFirstName)}, Olera</p>
     <p style="font-size:13px;color:#9ca3af;margin:20px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
@@ -173,7 +173,7 @@ export function postConsentStep1Email(opts: {
     ${videoEmbed(opts.demoVideoUrl)}
     <p>Pre-nursing and pre-med students from ${escapeHtml(opts.universityName)} pick up PRN shifts at agencies like ${escapeHtml(opts.providerName)}. We screen them, you interview them, they show up.</p>
     ${button("Activate Your Account", opts.activationUrl)}
-    <p>Full details attached — free to browse and interview, $200 only when you hire (refunded if they work under 15 hours). Feel free to reach out with any questions. If you're interested, I'd love to meet to talk more about the program.</p>
+    <p>Full details attached — the pilot is free for your agency, with no cost to browse, interview, or hire. Feel free to reach out with any questions. If you're interested, I'd love to meet to talk more about the program.</p>
     <p style="margin:20px 0 0;">— Logan</p>
     <p style="font-size:13px;color:#9ca3af;margin:20px 0 0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>

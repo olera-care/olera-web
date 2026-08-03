@@ -190,16 +190,16 @@ export default function AdminOverviewPage() {
       href: analyticsHref(),
     },
     {
-      label: "Leads Received",
-      value: leadsReceived,
-      subtitle: `Inquiries + Q&A captures · ${selectedRangeLabel}`,
-      href: analyticsHref(),
-    },
-    {
       label: "Questions asked",
       value: totalQuestions,
       subtitle: `Every submission · ${selectedRangeLabel}`,
       href: activityHref("/admin/questions", { tab: "all" }),
+    },
+    {
+      label: "Leads Received",
+      value: leadsReceived,
+      subtitle: `Inquiries + Q&A captures · ${selectedRangeLabel}`,
+      href: analyticsHref(),
     },
     {
       label: "Benefits Requested",

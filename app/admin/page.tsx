@@ -52,7 +52,6 @@ export default function AdminOverviewPage() {
   const [activityRange, setActivityRange] = useUrlDateRangeState(DEFAULT_ACTIVITY_RANGE);
   // Each stat loads independently — no more Promise.all blocking
   const [unverifiedClaims, setUnverifiedClaims] = useState<StatValue>(null);
-  const [totalInquiries, setTotalInquiries] = useState<StatValue>(null);
   const [needsEmail, setNeedsEmail] = useState<StatValue>(null);
   const [totalQuestions, setTotalQuestions] = useState<StatValue>(null);
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<StatValue>(null);
@@ -112,7 +111,6 @@ export default function AdminOverviewPage() {
     const { from, to } = resolveRange(activityRange);
 
     setTotalQuestions(null);
-    setTotalInquiries(null);
     setTotalReviews(null);
     setProviderPageViews(null);
     setLeadsReceived(null);
@@ -120,16 +118,13 @@ export default function AdminOverviewPage() {
     setProviderAccountsClaimed(null);
 
     const questionParams = new URLSearchParams({ count_only: "true" });
-    const connectionParams = new URLSearchParams({ submitted_count_only: "true" });
     const reviewParams = new URLSearchParams({ status: "all", limit: "1" });
     if (from) {
       questionParams.set("date_from", from);
-      connectionParams.set("date_from", from);
       reviewParams.set("from_date", from);
     }
     if (to) {
       questionParams.set("date_to", to);
-      connectionParams.set("date_to", to);
       reviewParams.set("to_date", to);
     }
 
@@ -138,14 +133,6 @@ export default function AdminOverviewPage() {
       .catch((fetchError: unknown) => {
         if ((fetchError as Error)?.name === "AbortError") return;
         setTotalQuestions(undefined);
-      });
-
-    fetch(`/api/admin/connections?${connectionParams}`, { signal: controller.signal })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error("connections counts failed")))
-      .then((data) => setTotalInquiries(data?.total ?? 0))
-      .catch((fetchError: unknown) => {
-        if ((fetchError as Error)?.name === "AbortError") return;
-        setTotalInquiries(undefined);
       });
 
     fetchCount(`/api/admin/reviews?${reviewParams}`, "count", controller.signal)
@@ -221,12 +208,6 @@ export default function AdminOverviewPage() {
       href: activityHref("/admin/benefits"),
     },
     {
-      label: "Total Inquiries",
-      value: totalInquiries,
-      subtitle: `Connections · ${selectedRangeLabel}`,
-      href: activityHref("/admin/connections", { filter: "all" }),
-    },
-    {
       label: "Reviews received",
       value: totalReviews,
       subtitle: `Submitted · ${selectedRangeLabel}`,
@@ -246,7 +227,6 @@ export default function AdminOverviewPage() {
 
   const hasUnavailableStats = [
     totalQuestions,
-    totalInquiries,
     totalReviews,
     providerPageViews,
     leadsReceived,

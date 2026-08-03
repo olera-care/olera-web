@@ -222,7 +222,7 @@ export const PROVIDER_EVENT_LABELS: Record<string, string> = {
   your_market_playbook_clicked: "Tapped a Growth playbook step",
   // Trust flags
   suspicious_claim: "Flagged claim attempt",
-  one_click_failed: "Magic link failed",
+  one_click_failed: "Magic link sign-in failed",
 };
 
 /** Friendly phrase for a feed row; falls back to a de-snaked label. */

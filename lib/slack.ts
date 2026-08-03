@@ -460,11 +460,11 @@ export function slackOneClickFailed(opts: {
   if (opts.action) fields.push({ type: "mrkdwn", text: `*From email:*\n${opts.action}` });
   if (opts.emailMasked) fields.push({ type: "mrkdwn", text: `*Recipient:*\n${opts.emailMasked}` });
   return {
-    text: `Magic link failed: ${opts.providerSlug} (${stageLabel})`,
+    text: `Magic link sign-in failed: ${opts.providerSlug} (${stageLabel})`,
     blocks: [
       {
         type: "header",
-        text: { type: "plain_text", text: "🔗 Magic Link Failed", emoji: true },
+        text: { type: "plain_text", text: "🔗 Magic Link Sign-In Failed", emoji: true },
       },
       {
         type: "section",

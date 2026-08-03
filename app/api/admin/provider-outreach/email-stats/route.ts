@@ -143,6 +143,10 @@ export async function GET(request: NextRequest) {
         const details = row.details as Record<string, unknown> | null;
         if (!details) continue;
 
+        // Synthetic touchpoints were created from open/click events when EMAIL_SENT was missing.
+        // Don't count them as "sent" to avoid inflating the count, but DO count their opens/clicks.
+        const isSynthetic = details.synthetic === true;
+
         let seqStep = details.sequence_step as number | undefined;
 
         // If sequence_step is missing, infer from timing
@@ -163,9 +167,13 @@ export async function GET(request: NextRequest) {
         }
 
         const templateKey = SEQUENCE_STEP_MAP[seqStep].template_key;
-        statsMap[templateKey].sent += 1;
 
-        // Check for opens/clicks in the details (updated by webhook)
+        // Only count as "sent" if it's a real EMAIL_SENT touchpoint, not synthetic
+        if (!isSynthetic) {
+          statsMap[templateKey].sent += 1;
+        }
+
+        // Always count opens/clicks, even from synthetic touchpoints
         const openCount = Number(details.open_count ?? 0);
         const clickCount = Number(details.click_count ?? 0);
 

@@ -57,9 +57,12 @@ export default function AdminOverviewPage() {
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<StatValue>(null);
   const [totalReviews, setTotalReviews] = useState<StatValue>(null);
   const [providerPageViews, setProviderPageViews] = useState<StatValue>(null);
+  const [questionsAnswered, setQuestionsAnswered] = useState<StatValue>(null);
   const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
   const [benefitsRequested, setBenefitsRequested] = useState<StatValue>(null);
   const [providerAccountsClaimed, setProviderAccountsClaimed] = useState<StatValue>(null);
+  const [referralSourcesContacted, setReferralSourcesContacted] = useState<StatValue>(null);
+  const [referralPartnersGained, setReferralPartnersGained] = useState<StatValue>(null);
   const [liveProviders, setLiveProviders] = useState<StatValue>(null);
   const [adBoostProviders, setAdBoostProviders] = useState<StatValue>(null);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
@@ -113,9 +116,12 @@ export default function AdminOverviewPage() {
     setTotalQuestions(null);
     setTotalReviews(null);
     setProviderPageViews(null);
+    setQuestionsAnswered(null);
     setLeadsReceived(null);
     setBenefitsRequested(null);
     setProviderAccountsClaimed(null);
+    setReferralSourcesContacted(null);
+    setReferralPartnersGained(null);
 
     const questionParams = new URLSearchParams({ count_only: "true" });
     const reviewParams = new URLSearchParams({ status: "all", limit: "1" });
@@ -149,16 +155,22 @@ export default function AdminOverviewPage() {
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("network health failed")))
       .then((data) => {
         setProviderPageViews(data?.providerPageViews ?? 0);
+        setQuestionsAnswered(data?.questionsAnswered ?? 0);
         setLeadsReceived(data?.leadsReceived ?? 0);
         setBenefitsRequested(data?.benefitsRequested ?? 0);
         setProviderAccountsClaimed(data?.providerAccountsClaimed ?? 0);
+        setReferralSourcesContacted(data?.referralSourcesContacted ?? 0);
+        setReferralPartnersGained(data?.referralPartnersGained ?? 0);
       })
       .catch((fetchError: unknown) => {
         if ((fetchError as Error)?.name === "AbortError") return;
         setProviderPageViews(undefined);
+        setQuestionsAnswered(undefined);
         setLeadsReceived(undefined);
         setBenefitsRequested(undefined);
         setProviderAccountsClaimed(undefined);
+        setReferralSourcesContacted(undefined);
+        setReferralPartnersGained(undefined);
       });
 
     return () => controller.abort();
@@ -196,6 +208,12 @@ export default function AdminOverviewPage() {
       href: activityHref("/admin/questions", { tab: "all" }),
     },
     {
+      label: "Questions answered",
+      value: questionsAnswered,
+      subtitle: `Unique questions with answers · ${selectedRangeLabel}`,
+      href: activityHref("/admin/questions", { tab: "answered" }),
+    },
+    {
       label: "Leads Received",
       value: leadsReceived,
       subtitle: `Inquiries + Q&A captures · ${selectedRangeLabel}`,
@@ -206,6 +224,18 @@ export default function AdminOverviewPage() {
       value: benefitsRequested,
       subtitle: `Completed benefits intakes · ${selectedRangeLabel}`,
       href: activityHref("/admin/benefits"),
+    },
+    {
+      label: "Referral sources contacted",
+      value: referralSourcesContacted,
+      subtitle: `Your Market outreach · ${selectedRangeLabel}`,
+      href: "/admin/market-outreach",
+    },
+    {
+      label: "Referral partners gained",
+      value: referralPartnersGained,
+      subtitle: `Sources marked “They’ll refer me” · ${selectedRangeLabel}`,
+      href: "/admin/market-outreach",
     },
     {
       label: "Reviews received",
@@ -229,9 +259,12 @@ export default function AdminOverviewPage() {
     totalQuestions,
     totalReviews,
     providerPageViews,
+    questionsAnswered,
     leadsReceived,
     benefitsRequested,
     providerAccountsClaimed,
+    referralSourcesContacted,
+    referralPartnersGained,
     adBoostProviders,
     unverifiedClaims,
     needsEmail,

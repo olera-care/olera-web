@@ -361,7 +361,7 @@ export async function POST(request: NextRequest) {
       }
       if (at.getTime() < Date.now() - 60_000) {
         return NextResponse.json(
-          { error: "Launch email time is in the past — pick a future US Eastern time" },
+          { error: "Launch email time is in the past. Pick a future US Eastern time." },
           { status: 400 },
         );
       }

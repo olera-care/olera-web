@@ -57,6 +57,29 @@ export async function GET(request: NextRequest) {
 
     for (const row of due ?? []) {
       const name = row.display_name || row.provider_slug || row.id;
+
+      // Re-check right before sending — the admin can cancel the schedule (or
+      // end the campaign) while this run is mid-loop, and a stale list row
+      // must not fire. Same guard as the benefits navigator scheduler.
+      const { data: fresh } = await db
+        .from("ad_campaign_requests")
+        .select("status, deleted_at, launched_email_sent_at, launched_email_scheduled_at")
+        .eq("id", row.id)
+        .maybeSingle();
+      // Epoch comparison, not string: Postgres returns "+00:00"-suffixed
+      // timestamps while nowIso is Z-format, and mixed-format lexicographic
+      // comparison misjudges boundary rows.
+      if (
+        !fresh ||
+        fresh.status !== "live" ||
+        fresh.deleted_at != null ||
+        fresh.launched_email_sent_at != null ||
+        fresh.launched_email_scheduled_at == null ||
+        new Date(fresh.launched_email_scheduled_at).getTime() > Date.now()
+      ) {
+        continue;
+      }
+
       try {
         const result = await sendAdBoostLifecycleEmail({ request: row, kind: "launched" });
         if (result.sent || result.skipped === "already_sent") {

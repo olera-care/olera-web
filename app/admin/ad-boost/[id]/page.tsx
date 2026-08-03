@@ -160,6 +160,12 @@ function Detail({
     (request.ad_clicks ?? null) !== clicksNum ||
     (request.ad_impressions ?? null) !== impressionsNum;
 
+  // The schedule field only participates in dirty/save while its block is
+  // shown (live + email unsent) — otherwise a time typed before switching
+  // status away would silently ride along on an unrelated save.
+  const launchEmailEditable = !request.launched_email_sent_at && status === "live";
+  const launchEmailDirty = launchEmailEditable && launchEmailAt !== storedLaunchEmailAt;
+
   const dirty =
     status !== request.status ||
     channel !== (request.channel ?? "") ||
@@ -167,7 +173,7 @@ function Detail({
     flightEnd !== (request.flight_end_date ?? "") ||
     tag !== (request.campaign_tag ?? "") ||
     note !== (request.admin_note ?? "") ||
-    launchEmailAt !== storedLaunchEmailAt;
+    launchEmailDirty;
 
   const save = async () => {
     setSaving(true);
@@ -187,7 +193,7 @@ function Detail({
           // Only when touched: re-sending a stored time would trip the
           // route's not-in-the-past validation between due time and the
           // hourly cron fire.
-          ...(launchEmailAt !== storedLaunchEmailAt
+          ...(launchEmailDirty
             ? {
                 launched_email_scheduled_at: launchEmailAt
                   ? etInputToUtcIso(launchEmailAt)
@@ -413,7 +419,7 @@ function Detail({
             is saved (today's behavior); a time (US Eastern wall-clock, so the
             flip can happen from any timezone) hands the send to the hourly
             ad-boost-launch-scheduler cron instead. */}
-        {!request.launched_email_sent_at && status === "live" && (
+        {launchEmailEditable && (
           <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50/40 px-3 py-2.5">
             <span className="block text-sm font-medium text-gray-700 mb-1.5">
               Launch email to provider

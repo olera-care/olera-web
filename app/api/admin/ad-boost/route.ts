@@ -11,7 +11,10 @@ import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notification
  * POST   — update one request: status lifecycle + campaign_tag / channel / note /
  *          setup week. Moving a request to `live` without a campaign_tag auto-sets
  *          it to the request id, so there's always a stable UTM tag to attribute
- *          delivered families against (Phase 3 ROI).
+ *          delivered families against (Phase 3 ROI). The live flip emails the
+ *          provider immediately unless launched_email_scheduled_at is set —
+ *          then the hourly ad-boost-launch-scheduler cron owns the send
+ *          (send_launch_email: true fires it now and clears the schedule).
  * DELETE — hard-delete one request by id (?id= or JSON body). Used to clear out
  *          test runs from the queue; real campaigns should be `cancelled`/`ended`
  *          via POST instead, but this is a deliberate scrub.
@@ -23,7 +26,7 @@ const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "en
 const VALID_CHANNELS = ["google", "meta", "both"];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, launched_email_sent_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -242,6 +245,8 @@ export async function POST(request: NextRequest) {
     ad_clicks?: unknown;
     ad_impressions?: unknown;
     flight_end_date?: unknown;
+    launched_email_scheduled_at?: unknown;
+    send_launch_email?: unknown;
   };
   try {
     body = await request.json();
@@ -332,6 +337,48 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Launch-email schedule (UTC ISO; the admin UI collects it as US Eastern).
+  // A set time makes the live flip store the schedule instead of emailing the
+  // provider immediately — the hourly ad-boost-launch-scheduler cron delivers
+  // it once due. Null clears the schedule (the email then only goes out via
+  // an explicit send_launch_email).
+  if (body.launched_email_scheduled_at !== undefined) {
+    if (body.launched_email_scheduled_at === null) {
+      update.launched_email_scheduled_at = null;
+    } else {
+      if (typeof body.launched_email_scheduled_at !== "string") {
+        return NextResponse.json(
+          { error: "launched_email_scheduled_at must be an ISO timestamp or null" },
+          { status: 400 },
+        );
+      }
+      const at = new Date(body.launched_email_scheduled_at);
+      if (Number.isNaN(at.getTime())) {
+        return NextResponse.json(
+          { error: "launched_email_scheduled_at is not a valid timestamp" },
+          { status: 400 },
+        );
+      }
+      if (at.getTime() < Date.now() - 60_000) {
+        return NextResponse.json(
+          { error: "Launch email time is in the past — pick a future US Eastern time" },
+          { status: 400 },
+        );
+      }
+      if (at.getTime() > Date.now() + 30 * 24 * 60 * 60 * 1000) {
+        return NextResponse.json(
+          { error: "Launch email time is more than 30 days out" },
+          { status: 400 },
+        );
+      }
+      update.launched_email_scheduled_at = at.toISOString();
+    }
+  }
+
+  if (body.send_launch_email !== undefined && body.send_launch_email !== true) {
+    return NextResponse.json({ error: "send_launch_email must be true when present" }, { status: 400 });
+  }
+
   // Soft delete (archive) / restore. `archived: true` sets deleted_at = now() so
   // the request drops out of the default queue but the record is kept; `false`
   // clears it (restore). Hard delete is the separate DELETE handler.
@@ -355,6 +402,34 @@ export async function POST(request: NextRequest) {
   }
   if (!current) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Scheduling and send-now only make sense while the launch email is unsent.
+  // The idempotency marker would make a stray schedule harmless (the cron
+  // filters on launched_email_sent_at IS NULL), but reject it here so the UI
+  // can't show a scheduled time that will never fire.
+  if (current.launched_email_sent_at) {
+    if (typeof update.launched_email_scheduled_at === "string") {
+      return NextResponse.json(
+        { error: "Launch email already sent — nothing to schedule" },
+        { status: 400 },
+      );
+    }
+    if (body.send_launch_email === true) {
+      return NextResponse.json({ error: "Launch email already sent" }, { status: 400 });
+    }
+  }
+
+  const effectiveStatus = (update.status as string | undefined) ?? current.status;
+  if (body.send_launch_email === true) {
+    if (effectiveStatus !== "live") {
+      return NextResponse.json(
+        { error: "Campaign must be live to send the launch email" },
+        { status: 400 },
+      );
+    }
+    // Sending now supersedes any stored schedule.
+    update.launched_email_scheduled_at = null;
   }
 
   // When launching (status -> live) with no tag yet, default the campaign_tag to
@@ -390,7 +465,12 @@ export async function POST(request: NextRequest) {
     body.ad_impressions !== undefined;
   const lifecycleSends: Array<Promise<unknown>> = [];
 
-  if (data.status === "live" && current.status !== "live") {
+  // Going live emails the provider immediately UNLESS a launch-email time is
+  // in play (set in this save or already stored) — then the hourly cron owns
+  // the send. `send_launch_email: true` is the explicit fire-now override.
+  const launchEmailScheduled = data.launched_email_scheduled_at != null;
+  const wentLive = data.status === "live" && current.status !== "live";
+  if ((wentLive && !launchEmailScheduled) || body.send_launch_email === true) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "launched" }));
   }
 

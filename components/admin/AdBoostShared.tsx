@@ -28,6 +28,12 @@ export interface CampaignRequest {
   ad_spend_cents: number | null;
   ad_clicks: number | null;
   ad_impressions: number | null;
+  /** When the campaign-launched provider email actually went out. NULL on
+   *  pre-launch rows, and on live rows whose email is scheduled or failed. */
+  launched_email_sent_at?: string | null;
+  /** Optional future send time for the launched email (UTC; picked as US
+   *  Eastern in the detail page). NULL = send immediately on the live flip. */
+  launched_email_scheduled_at?: string | null;
   /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
   plan_status?: "active" | "past_due" | "canceled" | null;
   /** Subscribed monthly plan in whole USD (150/300/600). */

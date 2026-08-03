@@ -13,6 +13,7 @@ import {
   fmtTimestamp,
   fmtDateOnly,
 } from "@/components/admin/AdBoostShared";
+import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 
 /** The exact numbers the provider sees on their own /provider/boost live view
  *  (mirrored here for admin parity). Real visitors + leads on their page since
@@ -121,6 +122,12 @@ function Detail({
   const [flightEnd, setFlightEnd] = useState(request.flight_end_date ?? "");
   const [tag, setTag] = useState(request.campaign_tag ?? "");
   const [note, setNote] = useState(request.admin_note ?? "");
+  // Launch-email schedule: datetime-local as US EASTERN wall-clock (TJ
+  // schedules from anywhere in the world — see lib/eastern-time.ts).
+  const storedLaunchEmailAt = request.launched_email_scheduled_at
+    ? toEtInputValue(new Date(request.launched_email_scheduled_at))
+    : "";
+  const [launchEmailAt, setLaunchEmailAt] = useState(storedLaunchEmailAt);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -159,7 +166,8 @@ function Detail({
     setupWeek !== request.requested_setup_week ||
     flightEnd !== (request.flight_end_date ?? "") ||
     tag !== (request.campaign_tag ?? "") ||
-    note !== (request.admin_note ?? "");
+    note !== (request.admin_note ?? "") ||
+    launchEmailAt !== storedLaunchEmailAt;
 
   const save = async () => {
     setSaving(true);
@@ -176,6 +184,16 @@ function Detail({
           flight_end_date: flightEnd || null,
           campaign_tag: tag || null,
           admin_note: note || null,
+          // Only when touched: re-sending a stored time would trip the
+          // route's not-in-the-past validation between due time and the
+          // hourly cron fire.
+          ...(launchEmailAt !== storedLaunchEmailAt
+            ? {
+                launched_email_scheduled_at: launchEmailAt
+                  ? etInputToUtcIso(launchEmailAt)
+                  : null,
+              }
+            : {}),
         }),
       });
       if (!res.ok) {
@@ -225,6 +243,29 @@ function Detail({
       setMsg(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSavingPerf(false);
+    }
+  };
+
+  const sendLaunchNow = async () => {
+    if (!window.confirm(`Email ${name} that their campaign is live, right now?`)) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/ad-boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: request.id, send_launch_email: true }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Send failed");
+      }
+      setLaunchEmailAt("");
+      onChanged();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -366,6 +407,58 @@ function Detail({
             />
           </label>
         </div>
+
+        {/* Launch email timing: shown while the "campaign is live" provider
+            email hasn't gone out. Empty = it fires the moment the live status
+            is saved (today's behavior); a time (US Eastern wall-clock, so the
+            flip can happen from any timezone) hands the send to the hourly
+            ad-boost-launch-scheduler cron instead. */}
+        {!request.launched_email_sent_at && status === "live" && (
+          <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50/40 px-3 py-2.5">
+            <span className="block text-sm font-medium text-gray-700 mb-1.5">
+              Launch email to provider
+            </span>
+            {request.launched_email_scheduled_at && (
+              <p className="text-xs text-blue-700 mb-2">
+                ⏱ Scheduled for {formatEt(request.launched_email_scheduled_at)}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="datetime-local"
+                value={launchEmailAt}
+                min={toEtInputValue(new Date(Date.now() + 5 * 60 * 1000))}
+                onChange={(e) => setLaunchEmailAt(e.target.value)}
+                className="rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white text-sm"
+              />
+              <span className="text-xs font-medium text-gray-500">US Eastern</span>
+              {launchEmailAt && (
+                <button
+                  type="button"
+                  onClick={() => setLaunchEmailAt("")}
+                  className="text-xs font-medium text-gray-500 hover:text-gray-700 underline"
+                >
+                  Clear
+                </button>
+              )}
+              {request.status === "live" && (
+                <button
+                  type="button"
+                  disabled={busy || saving}
+                  onClick={sendLaunchNow}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Send now
+                </button>
+              )}
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">
+              Time is US Eastern, wherever you are. Empty means the email goes out the
+              moment you save the live status; with a time set, it sends within an hour
+              of that time instead. Save changes to apply.
+            </p>
+          </div>
+        )}
 
         <label className="block text-sm mt-3">
           <span className="block text-gray-500 mb-1">Campaign tag (utm_campaign)</span>

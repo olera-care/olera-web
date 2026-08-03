@@ -17,6 +17,8 @@ const DEFAULT_ACTIVITY_RANGE: DateRangeValue = {
   customTo: "",
 };
 
+const PRIMARY_ACTIVITY_CARD_COUNT = 4;
+
 type StatValue = number | null | undefined;
 
 interface StatCard {
@@ -62,6 +64,7 @@ export default function AdminOverviewPage() {
   const [liveProviders, setLiveProviders] = useState<StatValue>(null);
   const [adBoostProviders, setAdBoostProviders] = useState<StatValue>(null);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
+  const [showAllActivity, setShowAllActivity] = useState(false);
   const [pausedAutomations, setPausedAutomations] = useState<number>(0);
 
   useEffect(() => {
@@ -200,10 +203,22 @@ export default function AdminOverviewPage() {
       href: analyticsHref(),
     },
     {
+      label: "Leads Received",
+      value: leadsReceived,
+      subtitle: `Inquiries + Q&A captures · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+    },
+    {
       label: "Questions asked",
       value: totalQuestions,
       subtitle: `Every submission · ${selectedRangeLabel}`,
       href: activityHref("/admin/questions", { tab: "all" }),
+    },
+    {
+      label: "Benefits Requested",
+      value: benefitsRequested,
+      subtitle: `Completed benefits intakes · ${selectedRangeLabel}`,
+      href: activityHref("/admin/benefits"),
     },
     {
       label: "Total Inquiries",
@@ -218,24 +233,16 @@ export default function AdminOverviewPage() {
       href: activityHref("/admin/reviews"),
     },
     {
-      label: "Leads Received",
-      value: leadsReceived,
-      subtitle: `Inquiries + Q&A captures · ${selectedRangeLabel}`,
-      href: analyticsHref(),
-    },
-    {
-      label: "Benefits Requested",
-      value: benefitsRequested,
-      subtitle: `Completed benefits intakes · ${selectedRangeLabel}`,
-      href: activityHref("/admin/benefits"),
-    },
-    {
       label: "Provider Accounts Claimed",
       value: providerAccountsClaimed,
       subtitle: `New claims · ${selectedRangeLabel}`,
       href: analyticsHref(),
     },
   ];
+  const visibleActivityCards = showAllActivity
+    ? activityCards
+    : activityCards.slice(0, PRIMARY_ACTIVITY_CARD_COUNT);
+  const hiddenActivityCardCount = activityCards.length - PRIMARY_ACTIVITY_CARD_COUNT;
 
   const hasUnavailableStats = [
     totalQuestions,
@@ -330,8 +337,20 @@ export default function AdminOverviewPage() {
           <DateRangePopover value={activityRange} onChange={setActivityRange} />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {activityCards.map((card) => renderCard(card))}
+          {visibleActivityCards.map((card) => renderCard(card))}
         </div>
+        {hiddenActivityCardCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAllActivity((visible) => !visible)}
+            aria-expanded={showAllActivity}
+            className="mt-4 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            {showAllActivity
+              ? "Collapse activity"
+              : `See all activity (${hiddenActivityCardCount} more) →`}
+          </button>
+        )}
       </section>
 
       {/* Current-state metrics intentionally do not follow the activity filter. */}

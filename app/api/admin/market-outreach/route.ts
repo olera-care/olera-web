@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
-const VIEW_EVENT = "market_diagnostic_viewed_no_leads";
+const LEGACY_VIEW_EVENT = "market_diagnostic_viewed_no_leads";
+const GROWTH_VIEW_EVENT = "your_market_viewed";
+const REFERRAL_VIEW_EVENT = "referral_source_viewed";
+const REFERRAL_CALL_EVENT = "referral_call_clicked";
 const ACTION_EVENT = "market_outreach_status_updated";
+const VIEW_EVENTS = new Set([LEGACY_VIEW_EVENT, GROWTH_VIEW_EVENT, REFERRAL_VIEW_EVENT]);
+const RELEVANT_EVENTS = [
+  LEGACY_VIEW_EVENT,
+  GROWTH_VIEW_EVENT,
+  REFERRAL_VIEW_EVENT,
+  REFERRAL_CALL_EVENT,
+  ACTION_EVENT,
+];
 const WORKED_STATUSES = new Set(["contacted", "responded", "referring"]);
 
 type OutreachStatus = "to_contact" | "contacted" | "responded" | "referring" | "dismissed";
@@ -52,6 +63,7 @@ type ProviderAccumulator = {
   claim_state: string | null;
   viewed_at: string | null;
   last_action_at: string | null;
+  referral_call_count: number;
   status_counts: Record<OutreachStatus, number>;
   targets: Array<{
     id: string;
@@ -95,6 +107,7 @@ function makeAccumulator(key: string): ProviderAccumulator {
     claim_state: null,
     viewed_at: null,
     last_action_at: null,
+    referral_call_count: 0,
     status_counts: makeEmptyCounts(),
     targets: [],
   };
@@ -105,6 +118,7 @@ function deriveStage(provider: ProviderAccumulator): QueueStage {
     provider.status_counts.contacted +
     provider.status_counts.responded +
     provider.status_counts.referring;
+  const hasStarted = worked > 0 || provider.referral_call_count > 0;
 
   if (provider.status_counts.responded > 0 || provider.status_counts.referring > 0) {
     return "momentum";
@@ -116,7 +130,7 @@ function deriveStage(provider: ProviderAccumulator): QueueStage {
     return "stale";
   }
 
-  if (worked > 0) return "started";
+  if (hasStarted) return "started";
   return "not_started";
 }
 
@@ -156,7 +170,7 @@ export async function GET() {
       db
         .from("provider_activity")
         .select("provider_id, profile_id, event_type, metadata, created_at")
-        .in("event_type", [VIEW_EVENT, ACTION_EVENT])
+        .in("event_type", RELEVANT_EVENTS)
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(10000),
@@ -272,8 +286,11 @@ export async function GET() {
       acc.state = asString(metadata.state) ?? acc.state;
       acc.email = asString(metadata.email) ?? acc.email;
 
-      if (row.event_type === VIEW_EVENT) {
+      if (row.event_type && VIEW_EVENTS.has(row.event_type)) {
         acc.viewed_at = latest(acc.viewed_at, row.created_at);
+      } else if (row.event_type === REFERRAL_CALL_EVENT) {
+        acc.referral_call_count += 1;
+        acc.last_action_at = latest(acc.last_action_at, row.created_at);
       } else if (row.event_type === ACTION_EVENT) {
         acc.last_action_at = latest(acc.last_action_at, row.created_at);
       }
@@ -319,6 +336,7 @@ export async function GET() {
           stage,
           viewed_at: provider.viewed_at,
           last_action_at: provider.last_action_at,
+          referral_call_count: provider.referral_call_count,
           total_targets: provider.targets.length,
           worked_targets: worked,
           status_counts: provider.status_counts,
@@ -391,12 +409,12 @@ export async function DELETE(request: Request) {
         .from("provider_activity")
         .delete()
         .eq("profile_id", profileId)
-        .in("event_type", [VIEW_EVENT, ACTION_EVENT]),
+        .in("event_type", RELEVANT_EVENTS),
       db
         .from("provider_activity")
         .delete()
         .eq("provider_id", profileId)
-        .in("event_type", [VIEW_EVENT, ACTION_EVENT]),
+        .in("event_type", RELEVANT_EVENTS),
     ]);
 
     if (activityError1 || activityError2) {

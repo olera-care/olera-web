@@ -61,7 +61,8 @@ export default function AdminOverviewPage() {
   const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
   const [benefitsRequested, setBenefitsRequested] = useState<StatValue>(null);
   const [providerAccountsClaimed, setProviderAccountsClaimed] = useState<StatValue>(null);
-  const [referralSourcesContacted, setReferralSourcesContacted] = useState<StatValue>(null);
+  const [referralSourcesReviewed, setReferralSourcesReviewed] = useState<StatValue>(null);
+  const [referralCallsStarted, setReferralCallsStarted] = useState<StatValue>(null);
   const [referralPartnersGained, setReferralPartnersGained] = useState<StatValue>(null);
   const [liveProviders, setLiveProviders] = useState<StatValue>(null);
   const [adBoostProviders, setAdBoostProviders] = useState<StatValue>(null);
@@ -120,7 +121,8 @@ export default function AdminOverviewPage() {
     setLeadsReceived(null);
     setBenefitsRequested(null);
     setProviderAccountsClaimed(null);
-    setReferralSourcesContacted(null);
+    setReferralSourcesReviewed(null);
+    setReferralCallsStarted(null);
     setReferralPartnersGained(null);
 
     const questionParams = new URLSearchParams({ count_only: "true" });
@@ -159,7 +161,8 @@ export default function AdminOverviewPage() {
         setLeadsReceived(data?.leadsReceived ?? 0);
         setBenefitsRequested(data?.benefitsRequested ?? 0);
         setProviderAccountsClaimed(data?.providerAccountsClaimed ?? 0);
-        setReferralSourcesContacted(data?.referralSourcesContacted ?? 0);
+        setReferralSourcesReviewed(data?.referralSourcesReviewed ?? 0);
+        setReferralCallsStarted(data?.referralCallsStarted ?? 0);
         setReferralPartnersGained(data?.referralPartnersGained ?? 0);
       })
       .catch((fetchError: unknown) => {
@@ -169,7 +172,8 @@ export default function AdminOverviewPage() {
         setLeadsReceived(undefined);
         setBenefitsRequested(undefined);
         setProviderAccountsClaimed(undefined);
-        setReferralSourcesContacted(undefined);
+        setReferralSourcesReviewed(undefined);
+        setReferralCallsStarted(undefined);
         setReferralPartnersGained(undefined);
       });
 
@@ -226,10 +230,16 @@ export default function AdminOverviewPage() {
       href: activityHref("/admin/benefits"),
     },
     {
-      label: "Referral sources contacted",
-      value: referralSourcesContacted,
-      subtitle: `Your Market outreach · ${selectedRangeLabel}`,
-      href: "/admin/market-outreach",
+      label: "Referral sources reviewed",
+      value: referralSourcesReviewed,
+      subtitle: `Unique local opportunities opened · ${selectedRangeLabel}`,
+      href: activityHref("/admin/activity", { actor: "providers", view: "feed", event_type: "referral_source_viewed" }),
+    },
+    {
+      label: "Referral calls started",
+      value: referralCallsStarted,
+      subtitle: `Call links tapped in Growth · ${selectedRangeLabel}`,
+      href: activityHref("/admin/activity", { actor: "providers", view: "feed", event_type: "referral_call_clicked" }),
     },
     {
       label: "Referral partners gained",
@@ -263,7 +273,8 @@ export default function AdminOverviewPage() {
     leadsReceived,
     benefitsRequested,
     providerAccountsClaimed,
-    referralSourcesContacted,
+    referralSourcesReviewed,
+    referralCallsStarted,
     referralPartnersGained,
     adBoostProviders,
     unverifiedClaims,

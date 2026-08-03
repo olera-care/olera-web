@@ -21,6 +21,7 @@ type QueueProvider = {
   stage: Exclude<QueueStage, "all">;
   viewed_at: string | null;
   last_action_at: string | null;
+  referral_call_count: number;
   total_targets: number;
   worked_targets: number;
   status_counts: Record<OutreachStatus, number>;
@@ -299,7 +300,7 @@ export default function AdminMarketOutreachPage() {
                 {filtered.map((provider) => {
                   const activitySearch = provider.provider_id ?? provider.name;
                   const activityHref = `/admin/activity?actor=providers&view=feed&event_type=market_outreach_status_updated&search=${encodeURIComponent(activitySearch)}&days=90`;
-                  const viewedHref = `/admin/activity?actor=providers&view=feed&event_type=market_diagnostic_viewed_no_leads&search=${encodeURIComponent(activitySearch)}&days=90`;
+                  const growthHref = `/admin/activity?actor=providers&view=feed&category=growth&search=${encodeURIComponent(activitySearch)}&days=90`;
 
                   return (
                     <tr key={provider.key} className="align-top hover:bg-gray-50">
@@ -320,6 +321,11 @@ export default function AdminMarketOutreachPage() {
                         <div className="mb-2 font-medium text-gray-900">
                           {provider.worked_targets} / {provider.total_targets} worked
                         </div>
+                        {provider.referral_call_count > 0 && (
+                          <div className="mb-2 text-xs font-medium text-primary-700">
+                            {provider.referral_call_count} call {provider.referral_call_count === 1 ? "tap" : "taps"}
+                          </div>
+                        )}
                         <StatusCounts counts={provider.status_counts} />
                       </td>
                       <td className="px-4 py-4">
@@ -350,8 +356,8 @@ export default function AdminMarketOutreachPage() {
                           <Link href={activityHref} className="text-xs font-medium text-gray-600 hover:text-gray-900">
                             Outreach activity
                           </Link>
-                          <Link href={viewedHref} className="text-xs font-medium text-gray-600 hover:text-gray-900">
-                            Growth views
+                          <Link href={growthHref} className="text-xs font-medium text-gray-600 hover:text-gray-900">
+                            Growth activity
                           </Link>
                           <button
                             type="button"

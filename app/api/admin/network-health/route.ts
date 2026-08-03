@@ -4,6 +4,7 @@ import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 type ReferralActivityRow = {
   profile_id: string | null;
   provider_id: string | null;
+  event_type: string;
   metadata: Record<string, unknown> | null;
 };
 
@@ -57,8 +58,12 @@ export async function GET(request: NextRequest) {
     .eq("event_type", "claim_completed");
   let referralActivityQuery = db
     .from("provider_activity")
-    .select("profile_id, provider_id, metadata")
-    .eq("event_type", "market_outreach_status_updated")
+    .select("profile_id, provider_id, event_type, metadata")
+    .in("event_type", [
+      "referral_source_viewed",
+      "referral_call_clicked",
+      "market_outreach_status_updated",
+    ])
     .limit(10000);
 
   if (from) {
@@ -92,25 +97,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Your Market records status transitions, not individual family referrals.
-  // Count the first meaningful outreach to each source and the sources newly
-  // marked "They'll refer me" without double-counting subsequent status edits.
-  const contactedSources = new Set<string>();
+  // This is a provider business-development funnel, not a count of family
+  // referrals. Reviews are deduped by provider + local source; call taps are
+  // activity volume; gained partners are self-reported status outcomes.
+  const reviewedSources = new Set<string>();
+  let referralCallsStarted = 0;
   const gainedPartners = new Set<string>();
   for (const row of (referralActivity.data ?? []) as ReferralActivityRow[]) {
     const metadata = row.metadata ?? {};
     const targetId = typeof metadata.target_id === "string" ? metadata.target_id : null;
-    const status = typeof metadata.status === "string" ? metadata.status : null;
-    const previousStatus = typeof metadata.previous_status === "string" ? metadata.previous_status : null;
     const providerId = row.profile_id ?? row.provider_id;
-    if (!providerId || !targetId || !status) continue;
+    if (!providerId || !targetId) continue;
 
     const key = `${providerId}:${targetId}`;
-    const isFirstOutreach = previousStatus === null || previousStatus === "to_contact";
-    if (isFirstOutreach && ["contacted", "responded", "referring"].includes(status)) {
-      contactedSources.add(key);
+    if (row.event_type === "referral_source_viewed") {
+      reviewedSources.add(key);
+      continue;
     }
-    if (status === "referring") gainedPartners.add(key);
+    if (row.event_type === "referral_call_clicked") {
+      referralCallsStarted += 1;
+      continue;
+    }
+
+    const status = typeof metadata.status === "string" ? metadata.status : null;
+    if (row.event_type === "market_outreach_status_updated" && status === "referring") {
+      gainedPartners.add(key);
+    }
   }
 
   return NextResponse.json({
@@ -119,7 +131,8 @@ export async function GET(request: NextRequest) {
     questionsAnswered: questionsAnswered.count ?? 0,
     benefitsRequested: benefits.count ?? 0,
     providerAccountsClaimed: claims.count ?? 0,
-    referralSourcesContacted: contactedSources.size,
+    referralSourcesReviewed: reviewedSources.size,
+    referralCallsStarted,
     referralPartnersGained: gainedPartners.size,
   });
 }

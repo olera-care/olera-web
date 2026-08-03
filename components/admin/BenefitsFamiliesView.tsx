@@ -12,6 +12,7 @@ import {
   type ReviewPick,
 } from "@/lib/benefits/navigator-review-prompt";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
+import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 
 /**
  * Benefits Families — the queue-shaped view of benefits intake completions.
@@ -24,6 +25,12 @@ const CARE_NEED_LABELS: Record<string, string> = {
   payingForCare: "Paying for care",
   memoryHealth: "Memory & health",
   companionship: "Companionship",
+};
+
+const DEFAULT_BENEFITS_RANGE: DateRangeValue = {
+  preset: "30d",
+  customFrom: "",
+  customTo: "",
 };
 
 // Scheduling timezone: sends are anchored to US Eastern wall-clock — the
@@ -174,7 +181,7 @@ interface FamiliesData {
 }
 
 export default function BenefitsFamiliesView() {
-  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
+  const [range, setRange] = useUrlDateRangeState(DEFAULT_BENEFITS_RANGE);
   const [data, setData] = useState<FamiliesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

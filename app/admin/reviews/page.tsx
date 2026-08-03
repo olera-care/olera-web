@@ -4,10 +4,12 @@ import { useEffect, useState, useCallback } from "react";
 import DateRangePopover, { type DateRangeValue, resolveRange } from "@/components/admin/DateRangePopover";
 import CollapsibleSection from "@/components/admin/CollapsibleSection";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 
 // ── Types ──
 
 type MainTab = "all" | "flagged" | "removed" | "providers";
+const DEFAULT_REVIEWS_RANGE: DateRangeValue = { preset: "all", customFrom: "", customTo: "" };
 
 interface AdminReview {
   id: string;
@@ -83,11 +85,7 @@ export default function AdminReviewsPage() {
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [statsError, setStatsError] = useState(false);
   const [search, setSearch] = useState("");
-  const [dateRange, setDateRange] = useState<DateRangeValue>({
-    preset: "all",
-    customFrom: "",
-    customTo: "",
-  });
+  const [dateRange, setDateRange] = useUrlDateRangeState(DEFAULT_REVIEWS_RANGE);
 
   // No-email signals state
   const [noEmailSignals, setNoEmailSignals] = useState<NoEmailSignal[]>([]);

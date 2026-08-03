@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import PulseHeader from "@/components/admin/PulseHeader";
 import { useUrlFilterState } from "@/hooks/useUrlFilterState";
+import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import ConnectionRow, { type ConnectionRowData } from "@/components/admin/ConnectionRow";
 
@@ -11,6 +12,7 @@ type Engagement = { email_clicked: boolean; lead_opened: boolean; contact_reveal
 
 // Direction type for inbound/outbound toggle
 type Direction = "inbound" | "outbound";
+const DEFAULT_CONNECTIONS_RANGE: DateRangeValue = { preset: "all", customFrom: "", customTo: "" };
 
 interface WorkflowCounts {
   all: number;
@@ -513,11 +515,7 @@ function OutboundConnectionRow({ connection, onDelete }: { connection: OutboundC
 }
 
 export default function ConnectionsTrackerPage() {
-  const [range, setRange] = useState<DateRangeValue>({
-    preset: "all",
-    customFrom: "",
-    customTo: "",
-  });
+  const [range, setRange] = useUrlDateRangeState(DEFAULT_CONNECTIONS_RANGE);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   // Direction + status tab live in the URL (?direction= / ?filter=) so

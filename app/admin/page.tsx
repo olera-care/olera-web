@@ -56,8 +56,7 @@ export default function AdminOverviewPage() {
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<StatValue>(null);
   const [totalReviews, setTotalReviews] = useState<StatValue>(null);
   const [liveProviders, setLiveProviders] = useState<StatValue>(null);
-  const [adBoostMrr, setAdBoostMrr] = useState<StatValue>(null);
-  const [adBoostPaying, setAdBoostPaying] = useState<number>(0);
+  const [adBoostProviders, setAdBoostProviders] = useState<StatValue>(null);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
   const [pausedAutomations, setPausedAutomations] = useState<number>(0);
 
@@ -82,14 +81,11 @@ export default function AdminOverviewPage() {
       .then(setLiveProviders)
       .catch(() => setLiveProviders(undefined));
 
-    // Ad Boost revenue — paying plans + MRR (webhook-written, always current).
-    fetch("/api/admin/ad-boost?revenue_only=true")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("ad-boost revenue failed"))))
-      .then((d) => {
-        setAdBoostMrr(d?.mrr ?? 0);
-        setAdBoostPaying(d?.paying ?? 0);
-      })
-      .catch(() => setAdBoostMrr(undefined));
+    // Current Ad Boost cohort — distinct providers queued, active, or paying.
+    fetch("/api/admin/ad-boost?program_count_only=true")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("ad-boost program count failed"))))
+      .then((d) => setAdBoostProviders(d?.providers ?? 0))
+      .catch(() => setAdBoostProviders(undefined));
 
     // Audit log
     fetch("/api/admin/audit?limit=10")
@@ -184,7 +180,7 @@ export default function AdminOverviewPage() {
     totalQuestions,
     totalInquiries,
     totalReviews,
-    adBoostMrr,
+    adBoostProviders,
     unverifiedClaims,
     needsEmail,
     questionsNeedEmail,
@@ -193,9 +189,9 @@ export default function AdminOverviewPage() {
 
   const currentCards: StatCard[] = [
     {
-      label: "Ad Boost MRR ($/mo)",
-      value: adBoostMrr,
-      subtitle: adBoostPaying > 0 ? `${adBoostPaying} paying provider${adBoostPaying === 1 ? "" : "s"}` : "No paying plans yet",
+      label: "Ad Boost Providers",
+      value: adBoostProviders,
+      subtitle: "Queued or currently active",
       href: "/admin/ad-boost",
     },
     { label: "Unverified Claims", value: unverifiedClaims, subtitle: "Claimed, not yet verified", href: "/admin/verification" },

@@ -69,6 +69,27 @@ function getActionRedirectUrl(
   return "/provider";
 }
 
+// Fire-and-forget client-side failure telemetry for the one-click pipeline.
+// Server-side stages log themselves; these cover the hops that only exist in
+// the browser (verifyOtp, fetch failures). See migration 155.
+function trackOneClickFailure(
+  providerSlug: string,
+  stage: string,
+  reason: string,
+  action?: string | null,
+  actionId?: string | null
+) {
+  fetch("/api/activity/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider_id: providerSlug,
+      event_type: "one_click_failed",
+      metadata: { stage, reason, action: action || null, action_id: actionId || null },
+    }),
+  }).catch(() => {});
+}
+
 export default function ProviderOnboardPage() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -122,6 +143,14 @@ export default function ProviderOnboardPage() {
   const [actionCardState, setActionCardState] = useState<ActionCardState>("claim-form");
   const [notificationData, setNotificationData] = useState<NotificationData | null>(null);
   const [preVerifiedEmail, setPreVerifiedEmail] = useState<string | null>(null);
+  // Failed-token context: set when the otk is invalid/expired so the ActionCard
+  // can offer a one-tap fresh link instead of a dead sign-in wall.
+  const [resendContext, setResendContext] = useState<{
+    token: string;
+    action: string | null;
+    actionId: string | null;
+    slug: string;
+  } | null>(null);
   const initRef = useRef(false);
   const finalizeRef = useRef(false);
 
@@ -465,54 +494,81 @@ export default function ProviderOnboardPage() {
                     }
                   }
 
-                  // Auto-sign-in with the verified email
+                  // Auto-sign-in with the verified email. One retry after a
+                  // short pause — a transient auth hiccup here used to dump
+                  // the provider at a sign-in wall they can't get past.
                   console.log("[OneClick] Starting auto-sign-in for", verifiedEmail);
-                  const signInRes = await fetch("/api/auth/auto-sign-in", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email: verifiedEmail,
-                      claimSession: claimSessionData.sessionId,
-                    }),
-                  });
-                  const signInData = await signInRes.json();
+                  const attemptSignIn = async () => {
+                    const signInRes = await fetch("/api/auth/auto-sign-in", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        email: verifiedEmail,
+                        claimSession: claimSessionData.sessionId,
+                      }),
+                    });
+                    const signInData = await signInRes.json();
+                    if (!signInRes.ok || !signInData.tokenHash) {
+                      return { ok: false as const, status: signInRes.status, error: signInData.error };
+                    }
+                    // Establish session (implicit flow — no PKCE)
+                    const authClient = createAuthClient();
+                    const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
+                      token_hash: signInData.tokenHash,
+                      type: "magiclink",
+                    });
+                    if (otpError || !otpData?.session) {
+                      return { ok: false as const, status: 0, error: `verifyOtp: ${otpError?.message}` };
+                    }
+                    return { ok: true as const, signInData, session: otpData.session };
+                  };
 
-                  if (!signInRes.ok || !signInData.tokenHash) {
-                    console.warn("[OneClick] auto-sign-in failed:", signInData.error || signInRes.status);
+                  let attempt = await attemptSignIn();
+                  if (!attempt.ok) {
+                    console.warn("[OneClick] sign-in attempt 1 failed:", attempt.error || attempt.status);
+                    await new Promise((r) => setTimeout(r, 1500));
+                    attempt = await attemptSignIn();
+                  }
+                  if (!attempt.ok) {
+                    console.warn("[OneClick] auto-sign-in failed:", attempt.error || attempt.status);
+                    trackOneClickFailure(
+                      slug,
+                      attempt.status === 0 ? "client_verify_otp" : "client_auto_sign_in_http",
+                      String(attempt.error || attempt.status),
+                      actionParam,
+                      actionIdParam
+                    );
                     return;
                   }
-
-                  // Establish session (implicit flow — no PKCE)
-                  const authClient = createAuthClient();
-                  const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
-                    token_hash: signInData.tokenHash,
-                    type: "magiclink",
-                  });
-
-                  if (otpError || !otpData?.session) {
-                    console.warn("[OneClick] verifyOtp failed:", otpError?.message);
-                    return;
-                  }
+                  const { signInData, session: authSession } = attempt;
 
                   // Transfer session to SSR client
                   await createClient().auth.setSession({
-                    access_token: otpData.session.access_token,
-                    refresh_token: otpData.session.refresh_token,
+                    access_token: authSession.access_token,
+                    refresh_token: authSession.refresh_token,
                   });
                   console.log("[OneClick] Session established");
 
-                  // Finalize claim (creates account + links profile for first-time providers)
+                  // Finalize claim (creates account + links profile for first-time providers).
+                  // Use the CANONICAL provider id from validate-token — that's the id
+                  // the claim_verification_codes row was written under. Posting
+                  // foundProvider.provider_id breaks for BP-only providers, where the
+                  // two resolution ladders disagree and finalize 403s silently.
                   if (!tokenResult.alreadyClaimed) {
                     const finalizeRes = await fetch("/api/claim/finalize", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        providerId: foundProvider.provider_id,
+                        providerId: tokenResult.providerId || foundProvider.provider_id,
                         claimSession: claimSessionData.sessionId,
                         pendingClaim: pendingClaimParam, // For alternate email claims
                       }),
                     });
                     console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status, pendingClaimParam ? "(pending)" : "");
+                    if (!finalizeRes.ok && finalizeRes.status !== 409) {
+                      // 409 = already claimed / type mismatch — server logged it.
+                      trackOneClickFailure(slug, "client_finalize_http", String(finalizeRes.status), actionParam, actionIdParam);
+                    }
                   }
 
                   // Refresh auth state + switch to provider profile
@@ -554,6 +610,7 @@ export default function ProviderOnboardPage() {
                   }
                 } catch (err) {
                   console.warn("[OneClick] Background sign-in error:", err);
+                  trackOneClickFailure(slug, "client_exception", String(err), actionParam, actionIdParam);
                 }
               })();
 
@@ -576,11 +633,27 @@ export default function ProviderOnboardPage() {
             setStep("dashboard");
             return;
           } else {
-            // Token invalid/expired - fall through to normal flow
+            // Token invalid/expired. The old behavior silently fell through to
+            // the generic sign-in wall, which providers can't get past (they
+            // don't have a password — the link WAS their sign-in). Instead,
+            // offer a one-tap fresh link to the on-file address.
+            // 404 = provider genuinely unknown → fall through to normal flow.
             console.warn("[ProviderOnboard] Token invalid:", tokenResult.error);
+            if (tokenRes.status !== 404) {
+              setResendContext({
+                token: tokenParam,
+                action: actionParam,
+                actionId: actionIdParam,
+                slug,
+              });
+              setActionCardState("link-expired");
+              setStep("dashboard");
+              return;
+            }
           }
         } catch (err) {
           console.error("[ProviderOnboard] Failed to validate token:", err);
+          trackOneClickFailure(slug, "client_exception", "validate_token_fetch_failed", actionParam, actionIdParam);
           // Fall through to normal flow
         }
       }
@@ -975,6 +1048,7 @@ export default function ProviderOnboardPage() {
       notificationData={notificationData}
       isSignedIn={!!user}
       preVerifiedEmail={preVerifiedEmail || undefined}
+      resendContext={resendContext}
     />
   );
 }

@@ -10,6 +10,23 @@
 import { createHmac } from "crypto";
 
 const TOKEN_SECRET = process.env.CLAIM_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "fallback-secret";
+// Every secret a token may have been signed with. New tokens always sign with
+// TOKEN_SECRET; validation accepts any candidate so that setting a dedicated
+// CLAIM_TOKEN_SECRET (or rotating the service-role key) doesn't invalidate
+// links already sitting in provider inboxes.
+const CANDIDATE_SECRETS = [
+  TOKEN_SECRET,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  "fallback-secret",
+].filter((s, i, arr): s is string => !!s && arr.indexOf(s) === i);
+
+function hmacSignature(data: string, secret: string): string {
+  return createHmac("sha256", secret).update(data).digest("hex").slice(0, 32);
+}
+
+function signatureMatches(data: string, signature: string): boolean {
+  return CANDIDATE_SECRETS.some((secret) => hmacSignature(data, secret) === signature);
+}
 // Token expiry: configurable via env var, default 360 hours (15 days)
 // Must cover the full 14-day cold outreach sequence (Day 0, 3, 7, 14) plus buffer
 // since SmartLead uses the same claim_url for all emails in the sequence
@@ -30,7 +47,7 @@ interface TokenData extends TokenPayload {
  */
 function generateSignature(payload: TokenPayload): string {
   const data = `${payload.providerId}:${payload.email}:${payload.expiresAt}`;
-  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+  return hmacSignature(data, TOKEN_SECRET);
 }
 
 /**
@@ -83,14 +100,35 @@ export function validateClaimToken(
     }
 
     // Verify signature - still return providerId/email for fallback redirects
-    const expectedSignature = generateSignature({ providerId, email, expiresAt });
-    if (signature !== expectedSignature) {
+    if (!signatureMatches(`${providerId}:${email}:${expiresAt}`, signature)) {
       return { valid: false, error: "Invalid token signature", providerId, email };
     }
 
     return { valid: true, providerId, email };
   } catch {
     return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+/**
+ * Decode + verify a claim token's signature while TOLERATING expiry.
+ * Used by the resend-link recovery flow: an expired link is legitimate proof
+ * the caller received one of our emails, but a forged payload is not — so the
+ * signature must still match. Never use this to grant access; it only gates
+ * whether we'll email a fresh link to the provider's on-file address.
+ */
+export function decodeClaimTokenAllowExpired(
+  token: string
+): { ok: true; providerId: string; email: string; expired: boolean } | { ok: false } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData: TokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8"));
+    const { providerId, email, expiresAt, signature } = tokenData;
+    if (!providerId || !email || !expiresAt || !signature) return { ok: false };
+    if (!signatureMatches(`${providerId}:${email}:${expiresAt}`, signature)) return { ok: false };
+    return { ok: true, providerId, email, expired: Date.now() > expiresAt };
+  } catch {
+    return { ok: false };
   }
 }
 
@@ -319,9 +357,12 @@ interface IntroTokenData extends IntroTokenPayload {
   signature: string;
 }
 
+function introSignatureData(p: IntroTokenPayload): string {
+  return `intro:${p.familyProfileId}:${p.targetProviderId}:${p.sourceConnectionId}:${p.email}:${p.expiresAt}`;
+}
+
 function generateIntroSignature(p: IntroTokenPayload): string {
-  const data = `intro:${p.familyProfileId}:${p.targetProviderId}:${p.sourceConnectionId}:${p.email}:${p.expiresAt}`;
-  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+  return hmacSignature(introSignatureData(p), TOKEN_SECRET);
 }
 
 export function generateIntroToken(
@@ -353,8 +394,9 @@ export function validateIntroToken(
       return { valid: false, error: "Invalid token format" };
     }
     if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
-    const expected = generateIntroSignature({ familyProfileId, targetProviderId, sourceConnectionId, email, expiresAt });
-    if (signature !== expected) return { valid: false, error: "Invalid token signature" };
+    if (!signatureMatches(introSignatureData({ familyProfileId, targetProviderId, sourceConnectionId, email, expiresAt }), signature)) {
+      return { valid: false, error: "Invalid token signature" };
+    }
     return { valid: true, familyProfileId, targetProviderId, sourceConnectionId, email };
   } catch {
     return { valid: false, error: "Failed to parse token" };
@@ -404,9 +446,12 @@ interface QuizTokenData extends QuizTokenPayload {
   signature: string;
 }
 
+function quizSignatureData(p: QuizTokenPayload): string {
+  return `quiz:${p.familyProfileId}:${p.question}:${p.answer}:${p.email}:${p.expiresAt}`;
+}
+
 function generateQuizSignature(p: QuizTokenPayload): string {
-  const data = `quiz:${p.familyProfileId}:${p.question}:${p.answer}:${p.email}:${p.expiresAt}`;
-  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+  return hmacSignature(quizSignatureData(p), TOKEN_SECRET);
 }
 
 export function generateQuizToken(
@@ -438,8 +483,9 @@ export function validateQuizToken(
       return { valid: false, error: "Invalid token format" };
     }
     if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
-    const expected = generateQuizSignature({ familyProfileId, question, answer, email, expiresAt });
-    if (signature !== expected) return { valid: false, error: "Invalid token signature" };
+    if (!signatureMatches(quizSignatureData({ familyProfileId, question, answer, email, expiresAt }), signature)) {
+      return { valid: false, error: "Invalid token signature" };
+    }
     return { valid: true, familyProfileId, question, answer, email };
   } catch {
     return { valid: false, error: "Failed to parse token" };
@@ -476,9 +522,12 @@ interface BenefitsOutcomeTokenPayload {
   expiresAt: number;
 }
 
+function benefitsOutcomeSignatureData(p: BenefitsOutcomeTokenPayload): string {
+  return `boutcome:${p.familyProfileId}:${p.value}:${p.email}:${p.expiresAt}`;
+}
+
 function generateBenefitsOutcomeSignature(p: BenefitsOutcomeTokenPayload): string {
-  const data = `boutcome:${p.familyProfileId}:${p.value}:${p.email}:${p.expiresAt}`;
-  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+  return hmacSignature(benefitsOutcomeSignatureData(p), TOKEN_SECRET);
 }
 
 export function generateBenefitsOutcomeToken(
@@ -514,7 +563,7 @@ export function validateBenefitsOutcomeToken(
       return { valid: false, error: "Invalid outcome value" };
     }
     if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
-    if (signature !== generateBenefitsOutcomeSignature({ familyProfileId, value, email, expiresAt })) {
+    if (!signatureMatches(benefitsOutcomeSignatureData({ familyProfileId, value, email, expiresAt }), signature)) {
       return { valid: false, error: "Invalid token signature" };
     }
     return { valid: true, familyProfileId, value, email };
@@ -537,9 +586,12 @@ interface BriefTokenPayload {
   expiresAt: number;
 }
 
+function briefSignatureData(p: BriefTokenPayload): string {
+  return `brief:${p.familyProfileId}:${p.email}:${p.expiresAt}`;
+}
+
 function generateBriefSignature(p: BriefTokenPayload): string {
-  const data = `brief:${p.familyProfileId}:${p.email}:${p.expiresAt}`;
-  return createHmac("sha256", TOKEN_SECRET).update(data).digest("hex").slice(0, 32);
+  return hmacSignature(briefSignatureData(p), TOKEN_SECRET);
 }
 
 export function generateBriefToken(familyProfileId: string, email: string): string {
@@ -562,7 +614,7 @@ export function validateBriefToken(
     const { familyProfileId, email, expiresAt, signature } = tokenData;
     if (!familyProfileId || !email || !expiresAt || !signature) return { valid: false, error: "Invalid token format" };
     if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
-    if (signature !== generateBriefSignature({ familyProfileId, email, expiresAt })) return { valid: false, error: "Invalid token signature" };
+    if (!signatureMatches(briefSignatureData({ familyProfileId, email, expiresAt }), signature)) return { valid: false, error: "Invalid token signature" };
     return { valid: true, familyProfileId, email };
   } catch {
     return { valid: false, error: "Failed to parse token" };

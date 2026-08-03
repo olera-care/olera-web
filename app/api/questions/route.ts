@@ -416,7 +416,10 @@ export async function POST(request: NextRequest) {
             newQuestion.id,
             siteUrl
           );
-        } catch {
+        } catch (tokenErr) {
+          // Untokenized fallback = the recipient hits a sign-in wall they can't
+          // pass. Should never happen — make it loud if it does.
+          console.error("[questions] generateNotificationUrl failed — sending UNTOKENIZED link:", tokenErr);
           providerUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=question&actionId=${newQuestion.id}`;
         }
 

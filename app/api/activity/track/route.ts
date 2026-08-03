@@ -14,6 +14,7 @@ const PROVIDER_EVENT_TYPES = [
   "question_responded",
   "review_viewed",
   "one_click_access",
+  "one_click_failed",         // Magic-link pipeline failure (client-side stages; migration 155)
   "contact_revealed",
   "phone_clicked",            // Provider copied phone number from lead drawer
   "email_link_clicked",       // Provider copied email address from lead drawer
@@ -433,6 +434,25 @@ export async function POST(request: NextRequest) {
           actionId: meta.action_id,
           trustLevel,
           trustReason: meta.trust_reason || null,
+        });
+        await sendSlackAlert(alert.text, alert.blocks);
+      } catch {
+        // Non-critical — activity already logged
+      }
+    }
+
+    // 🔗 Magic-link failure reported from the browser (client-side stages —
+    // verifyOtp, fetch errors). Server-side stages alert from
+    // lib/one-click-telemetry.ts, so each failure pings exactly once.
+    if (event_type === "one_click_failed") {
+      try {
+        const { sendSlackAlert, slackOneClickFailed } = await import("@/lib/slack");
+        const meta = (metadata as Record<string, string>) || {};
+        const alert = slackOneClickFailed({
+          providerSlug: provider_id,
+          stage: meta.stage || "unknown",
+          reason: meta.reason || null,
+          action: meta.action || null,
         });
         await sendSlackAlert(alert.text, alert.blocks);
       } catch {

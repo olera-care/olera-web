@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { validateClaimToken } from "@/lib/claim-tokens";
+import { logOneClickFailed } from "@/lib/one-click-telemetry";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -43,6 +44,14 @@ export async function POST(request: Request) {
     const result = validateClaimToken(token);
 
     if (!result.valid) {
+      await logOneClickFailed({
+        providerId: result.providerId,
+        stage: "validate_token",
+        reason: result.error,
+        action,
+        actionId,
+        email: result.email,
+      });
       return NextResponse.json({ valid: false, error: result.error }, { status: 400 });
     }
 
@@ -110,12 +119,28 @@ export async function POST(request: Request) {
     }
 
     if (!providerName) {
+      await logOneClickFailed({
+        providerId,
+        stage: "validate_token",
+        reason: "provider_not_found",
+        action,
+        actionId,
+        email,
+      });
       return NextResponse.json({ valid: false, error: "Provider not found." }, { status: 404 });
     }
 
     // Email must still match (in case it was updated since token was generated)
     // For BP-only providers, the email in the token is what we sent to — trust it
     if (providerEmail && providerEmail.toLowerCase() !== email.toLowerCase() && !isBusinessProfile) {
+      await logOneClickFailed({
+        providerId: providerSlug || providerId,
+        stage: "validate_token",
+        reason: "email_changed",
+        action,
+        actionId,
+        email,
+      });
       return NextResponse.json(
         { valid: false, error: "Provider email has changed. Please request a new link." },
         { status: 400 }
@@ -136,20 +161,29 @@ export async function POST(request: Request) {
 
     // Create a pre-verified record in claim_verification_codes.
     // Use canonicalProviderId (UUID/BP id) so it matches what finalize queries with.
-    try {
-      await db.from("claim_verification_codes").insert({
-        provider_id: canonicalProviderId,
-        claim_session: claimSession,
-        code: "TOKEN",
-        // Persist the verified email so /api/auth/auto-sign-in mints a session
-        // for THIS email only (not a caller-supplied one). The token email was
-        // already matched against the provider's on-file email above.
-        email: email.toLowerCase(),
-        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        verified_at: new Date().toISOString(),
+    const { error: codeInsertErr } = await db.from("claim_verification_codes").insert({
+      provider_id: canonicalProviderId,
+      claim_session: claimSession,
+      code: "TOKEN",
+      // Persist the verified email so /api/auth/auto-sign-in mints a session
+      // for THIS email only (not a caller-supplied one). The token email was
+      // already matched against the provider's on-file email above.
+      email: email.toLowerCase(),
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      verified_at: new Date().toISOString(),
+    });
+    // Duplicates (same session re-validating) are fine; anything else means
+    // auto-sign-in will 403 next — record it so the failure is attributable.
+    if (codeInsertErr && codeInsertErr.code !== "23505") {
+      console.error("[validate-token] claim_verification_codes insert failed:", codeInsertErr.message);
+      await logOneClickFailed({
+        providerId: providerSlug || providerId,
+        stage: "validate_token",
+        reason: `code_insert_failed:${codeInsertErr.code || "unknown"}`,
+        action,
+        actionId,
+        email,
       });
-    } catch {
-      // May fail if duplicate — that's fine
     }
 
     // Fetch notification data server-side (service role key bypasses RLS).

@@ -25,6 +25,7 @@ interface StatCard {
   label: string;
   /** null = loading, undefined = failed, number = loaded */
   value: StatValue;
+  displayValue?: string;
   subtitle: string;
   href: string;
   isWarning?: boolean;
@@ -58,6 +59,8 @@ export default function AdminOverviewPage() {
   const [totalReviews, setTotalReviews] = useState<StatValue>(null);
   const [providerPageViews, setProviderPageViews] = useState<StatValue>(null);
   const [questionsAnswered, setQuestionsAnswered] = useState<StatValue>(null);
+  const [questionAnswerRate, setQuestionAnswerRate] = useState<StatValue>(null);
+  const [meaningfullyActiveProviders, setMeaningfullyActiveProviders] = useState<StatValue>(null);
   const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
   const [benefitsRequested, setBenefitsRequested] = useState<StatValue>(null);
   const [providerAccountsClaimed, setProviderAccountsClaimed] = useState<StatValue>(null);
@@ -68,6 +71,9 @@ export default function AdminOverviewPage() {
   const [referralPartnersGained, setReferralPartnersGained] = useState<StatValue>(null);
   const [liveProviders, setLiveProviders] = useState<StatValue>(null);
   const [adBoostProviders, setAdBoostProviders] = useState<StatValue>(null);
+  const [activeCareRequests, setActiveCareRequests] = useState<StatValue>(null);
+  const [careRequestsReached, setCareRequestsReached] = useState<StatValue>(null);
+  const [careRequestReachRate, setCareRequestReachRate] = useState<StatValue>(null);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
   const [showAllActivity, setShowAllActivity] = useState(false);
   const [pausedAutomations, setPausedAutomations] = useState<number>(0);
@@ -99,6 +105,19 @@ export default function AdminOverviewPage() {
       .then((d) => setAdBoostProviders(d?.providers ?? 0))
       .catch(() => setAdBoostProviders(undefined));
 
+    fetch("/api/admin/marketplace-health")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("marketplace health failed"))))
+      .then((d) => {
+        setActiveCareRequests(d?.activeCareRequests ?? 0);
+        setCareRequestsReached(d?.careRequestsReached ?? 0);
+        setCareRequestReachRate(d?.careRequestReachRate ?? 0);
+      })
+      .catch(() => {
+        setActiveCareRequests(undefined);
+        setCareRequestsReached(undefined);
+        setCareRequestReachRate(undefined);
+      });
+
     // Audit log
     fetch("/api/admin/audit?limit=10")
       .then((r) => r.ok ? r.json() : { entries: [] })
@@ -120,6 +139,8 @@ export default function AdminOverviewPage() {
     setTotalReviews(null);
     setProviderPageViews(null);
     setQuestionsAnswered(null);
+    setQuestionAnswerRate(null);
+    setMeaningfullyActiveProviders(null);
     setLeadsReceived(null);
     setBenefitsRequested(null);
     setProviderAccountsClaimed(null);
@@ -129,31 +150,6 @@ export default function AdminOverviewPage() {
     setReferralCallsStarted(null);
     setReferralPartnersGained(null);
 
-    const questionParams = new URLSearchParams({ count_only: "true" });
-    const reviewParams = new URLSearchParams({ status: "all", limit: "1" });
-    if (from) {
-      questionParams.set("date_from", from);
-      reviewParams.set("from_date", from);
-    }
-    if (to) {
-      questionParams.set("date_to", to);
-      reviewParams.set("to_date", to);
-    }
-
-    fetchCount(`/api/admin/questions?${questionParams}`, "count", controller.signal)
-      .then(setTotalQuestions)
-      .catch((fetchError: unknown) => {
-        if ((fetchError as Error)?.name === "AbortError") return;
-        setTotalQuestions(undefined);
-      });
-
-    fetchCount(`/api/admin/reviews?${reviewParams}`, "count", controller.signal)
-      .then(setTotalReviews)
-      .catch((fetchError: unknown) => {
-        if ((fetchError as Error)?.name === "AbortError") return;
-        setTotalReviews(undefined);
-      });
-
     const networkHealthParams = new URLSearchParams();
     if (from) networkHealthParams.set("date_from", from);
     if (to) networkHealthParams.set("date_to", to);
@@ -161,11 +157,15 @@ export default function AdminOverviewPage() {
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("network health failed")))
       .then((data) => {
         setProviderPageViews(data?.providerPageViews ?? 0);
+        setTotalQuestions(data?.questionsAsked ?? 0);
         setQuestionsAnswered(data?.questionsAnswered ?? 0);
+        setQuestionAnswerRate(data?.questionAnswerRate ?? 0);
+        setMeaningfullyActiveProviders(data?.meaningfullyActiveProviders ?? 0);
         setLeadsReceived(data?.leadsReceived ?? 0);
         setBenefitsRequested(data?.benefitsRequested ?? 0);
         setProviderAccountsClaimed(data?.providerAccountsClaimed ?? 0);
         setEmailClicks(data?.emailClicks ?? 0);
+        setTotalReviews(data?.reviewsReceived ?? 0);
         setReferralSourcesReviewed(data?.referralSourcesReviewed ?? 0);
         setReferralCallsStarted(data?.referralCallsStarted ?? 0);
         setReferralPartnersGained(data?.referralPartnersGained ?? 0);
@@ -173,11 +173,15 @@ export default function AdminOverviewPage() {
       .catch((fetchError: unknown) => {
         if ((fetchError as Error)?.name === "AbortError") return;
         setProviderPageViews(undefined);
+        setTotalQuestions(undefined);
         setQuestionsAnswered(undefined);
+        setQuestionAnswerRate(undefined);
+        setMeaningfullyActiveProviders(undefined);
         setLeadsReceived(undefined);
         setBenefitsRequested(undefined);
         setProviderAccountsClaimed(undefined);
         setEmailClicks(undefined);
+        setTotalReviews(undefined);
         setReferralSourcesReviewed(undefined);
         setReferralCallsStarted(undefined);
         setReferralPartnersGained(undefined);
@@ -224,27 +228,37 @@ export default function AdminOverviewPage() {
 
   const activityCards: StatCard[] = [
     {
-      label: "Provider Page Views",
-      value: providerPageViews,
-      subtitle: `Public profile loads · ${selectedRangeLabel}`,
-      href: analyticsHref(),
-    },
-    {
       label: "Questions asked",
       value: totalQuestions,
       subtitle: `Every submission · ${selectedRangeLabel}`,
       href: activityHref("/admin/questions", { tab: "all" }),
     },
     {
-      label: "Questions answered",
-      value: questionsAnswered,
-      subtitle: `Unique questions with answers · ${selectedRangeLabel}`,
-      href: activityHref("/admin/questions", { tab: "answered" }),
-    },
-    {
       label: "Leads Received",
       value: leadsReceived,
       subtitle: `Inquiries + Q&A captures · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+    },
+    {
+      label: "Active Providers",
+      value: meaningfullyActiveProviders,
+      subtitle: `Took a meaningful platform action · ${selectedRangeLabel}`,
+      href: activityHref("/admin/activity", { actor: "providers", view: "people" }),
+    },
+    {
+      label: "Question Answer Rate",
+      value: questionAnswerRate,
+      displayValue: typeof questionAnswerRate === "number" ? `${questionAnswerRate.toLocaleString()}%` : undefined,
+      subtitle:
+        typeof questionsAnswered === "number" && typeof totalQuestions === "number"
+          ? `${questionsAnswered.toLocaleString()} of ${totalQuestions.toLocaleString()} submissions answered · ${selectedRangeLabel}`
+          : `Submitted-question cohort · ${selectedRangeLabel}`,
+      href: activityHref("/admin/questions", { tab: "answered" }),
+    },
+    {
+      label: "Provider Page Views",
+      value: providerPageViews,
+      subtitle: `Public profile loads · ${selectedRangeLabel}`,
       href: analyticsHref(),
     },
     {
@@ -306,6 +320,8 @@ export default function AdminOverviewPage() {
     totalReviews,
     providerPageViews,
     questionsAnswered,
+    questionAnswerRate,
+    meaningfullyActiveProviders,
     leadsReceived,
     benefitsRequested,
     providerAccountsClaimed,
@@ -319,9 +335,28 @@ export default function AdminOverviewPage() {
     needsEmail,
     questionsNeedEmail,
     liveProviders,
+    activeCareRequests,
+    careRequestsReached,
+    careRequestReachRate,
   ].some((value) => value === undefined);
 
   const currentCards: StatCard[] = [
+    {
+      label: "Active Care Requests",
+      value: activeCareRequests,
+      subtitle: "Families currently looking for care",
+      href: "/admin/demand",
+    },
+    {
+      label: "Care Requests Reached",
+      value: careRequestReachRate,
+      displayValue: typeof careRequestReachRate === "number" ? `${careRequestReachRate.toLocaleString()}%` : undefined,
+      subtitle:
+        typeof careRequestsReached === "number" && typeof activeCareRequests === "number"
+          ? `${careRequestsReached.toLocaleString()} of ${activeCareRequests.toLocaleString()} received provider outreach`
+          : "Active requests receiving provider outreach",
+      href: "/admin/activity?actor=providers&view=feed&category=outbound",
+    },
     {
       label: "Ad Boost Providers",
       value: adBoostProviders,
@@ -360,7 +395,7 @@ export default function AdminOverviewPage() {
                 showWarning ? "text-amber-600" : "text-gray-900",
               ].join(" ")}
             >
-              {card.value.toLocaleString()}
+              {card.displayValue ?? card.value.toLocaleString()}
             </p>
           )}
           <p className="text-[13px] text-gray-400">{card.subtitle}</p>

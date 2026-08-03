@@ -107,6 +107,11 @@ interface TrackingRow {
   re_engage_entered_at: string | null;
   // Assignment
   assigned_to: string | null;
+  // Fax finder results
+  fax_number: string | null;
+  fax_source_url: string | null;
+  fax_confidence: string | null;
+  fax_found_at: string | null;
 }
 
 export interface OutreachProvider {
@@ -140,6 +145,11 @@ export interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted (from email_overrides table)
   is_email_overridden?: boolean;
+  // Fax finder results
+  fax_number?: string | null;
+  fax_source_url?: string | null;
+  fax_confidence?: string | null;
+  fax_found_at?: string | null;
 }
 
 /**
@@ -372,6 +382,11 @@ export async function GET(request: NextRequest) {
           re_engage_entered_at: t.re_engage_entered_at ?? null,
           // Assignment
           assigned_to: t.assigned_to ?? null,
+          // Fax finder results
+          fax_number: t.fax_number ?? null,
+          fax_source_url: t.fax_source_url ?? null,
+          fax_confidence: t.fax_confidence ?? null,
+          fax_found_at: t.fax_found_at ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -417,7 +432,7 @@ async function getNotContactedProviders(
   // Step 2: Get all tracked provider IDs for this state (filtered by state, small set)
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state, fax_number, fax_source_url, fax_confidence, fax_found_at")
     .eq("state", state);
 
   if (trackingError) {
@@ -494,6 +509,10 @@ async function getNotContactedProviders(
         re_engage_entered_at: null,
         // Assignment
         assigned_to: tracking?.assigned_to ?? null,
+        fax_number: tracking?.fax_number ?? null,
+        fax_source_url: tracking?.fax_source_url ?? null,
+        fax_confidence: tracking?.fax_confidence ?? null,
+        fax_found_at: tracking?.fax_found_at ?? null,
       };
     });
 
@@ -678,6 +697,11 @@ async function getArchivedProviders(
         re_engage_entered_at: t.re_engage_entered_at ?? null,
         // Assignment
         assigned_to: t.assigned_to ?? null,
+        // Fax finder results
+        fax_number: t.fax_number ?? null,
+        fax_source_url: t.fax_source_url ?? null,
+        fax_confidence: t.fax_confidence ?? null,
+        fax_found_at: t.fax_found_at ?? null,
       });
     }
   }
@@ -831,7 +855,7 @@ async function searchProviders(
   // Get tracking data for all matched providers
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, fax_number, fax_source_url, fax_confidence, fax_found_at")
     .in("provider_id", providerIds);
 
   const trackingMap = new Map(
@@ -913,6 +937,10 @@ async function searchProviders(
       // Assignment
       assigned_to: tracking?.assigned_to ?? null,
       verification_state: claimInfo?.verification_state || null,
+      fax_number: tracking?.fax_number ?? null,
+      fax_source_url: tracking?.fax_source_url ?? null,
+      fax_confidence: tracking?.fax_confidence ?? null,
+      fax_found_at: tracking?.fax_found_at ?? null,
     };
   });
 

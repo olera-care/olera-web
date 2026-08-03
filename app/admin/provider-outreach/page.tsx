@@ -1871,7 +1871,6 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Re-Engage Queue Component
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -3474,25 +3473,28 @@ export default function ProviderOutreachPage() {
       {/* Stage Tabs - only show when a state is selected */}
       {selectedState && (
         <div className="flex items-center justify-between mb-6 border-b border-gray-100">
-          <div className="flex gap-1 overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.value
-                    ? "border-gray-900 text-gray-900"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className="ml-1.5 text-xs text-gray-400 tabular-nums">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="flex gap-1 overflow-x-auto items-center">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                    isActive
+                      ? "border-gray-900 text-gray-900"
+                      : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  {tab.label}
+                  {tab.count > 0 && (
+                    <span className="ml-1.5 text-xs tabular-nums text-gray-400">
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

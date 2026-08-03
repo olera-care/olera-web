@@ -56,6 +56,11 @@ export async function GET(request: NextRequest) {
     .from("provider_activity")
     .select("id", { count: "exact", head: true })
     .eq("event_type", "claim_completed");
+  let emailClicksQuery = db
+    .from("email_log")
+    .select("id", { count: "exact", head: true })
+    .eq("channel", "email")
+    .not("first_clicked_at", "is", null);
   let referralActivityQuery = db
     .from("provider_activity")
     .select("profile_id, provider_id, event_type, metadata")
@@ -72,6 +77,7 @@ export async function GET(request: NextRequest) {
     questionsAnsweredQuery = questionsAnsweredQuery.gte("answered_at", from);
     benefitsQuery = benefitsQuery.gte("created_at", from);
     claimsQuery = claimsQuery.gte("created_at", from);
+    emailClicksQuery = emailClicksQuery.gte("first_clicked_at", from);
     referralActivityQuery = referralActivityQuery.gte("created_at", from);
   }
   if (to) {
@@ -80,18 +86,20 @@ export async function GET(request: NextRequest) {
     questionsAnsweredQuery = questionsAnsweredQuery.lt("answered_at", to);
     benefitsQuery = benefitsQuery.lt("created_at", to);
     claimsQuery = claimsQuery.lt("created_at", to);
+    emailClicksQuery = emailClicksQuery.lt("first_clicked_at", to);
     referralActivityQuery = referralActivityQuery.lt("created_at", to);
   }
 
-  const [pageViews, leads, questionsAnswered, benefits, claims, referralActivity] = await Promise.all([
+  const [pageViews, leads, questionsAnswered, benefits, claims, emailClicks, referralActivity] = await Promise.all([
     pageViewsQuery,
     leadsQuery,
     questionsAnsweredQuery,
     benefitsQuery,
     claimsQuery,
+    emailClicksQuery,
     referralActivityQuery,
   ]);
-  const error = pageViews.error ?? leads.error ?? questionsAnswered.error ?? benefits.error ?? claims.error ?? referralActivity.error;
+  const error = pageViews.error ?? leads.error ?? questionsAnswered.error ?? benefits.error ?? claims.error ?? emailClicks.error ?? referralActivity.error;
   if (error) {
     console.error("[admin/network-health] count failed:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -131,6 +139,7 @@ export async function GET(request: NextRequest) {
     questionsAnswered: questionsAnswered.count ?? 0,
     benefitsRequested: benefits.count ?? 0,
     providerAccountsClaimed: claims.count ?? 0,
+    emailClicks: emailClicks.count ?? 0,
     referralSourcesReviewed: reviewedSources.size,
     referralCallsStarted,
     referralPartnersGained: gainedPartners.size,

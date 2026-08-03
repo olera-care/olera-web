@@ -61,6 +61,8 @@ export default function AdminOverviewPage() {
   const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
   const [benefitsRequested, setBenefitsRequested] = useState<StatValue>(null);
   const [providerAccountsClaimed, setProviderAccountsClaimed] = useState<StatValue>(null);
+  const [emailClicks, setEmailClicks] = useState<StatValue>(null);
+  const [textMessagesReceived, setTextMessagesReceived] = useState<StatValue>(null);
   const [referralSourcesReviewed, setReferralSourcesReviewed] = useState<StatValue>(null);
   const [referralCallsStarted, setReferralCallsStarted] = useState<StatValue>(null);
   const [referralPartnersGained, setReferralPartnersGained] = useState<StatValue>(null);
@@ -121,6 +123,8 @@ export default function AdminOverviewPage() {
     setLeadsReceived(null);
     setBenefitsRequested(null);
     setProviderAccountsClaimed(null);
+    setEmailClicks(null);
+    setTextMessagesReceived(null);
     setReferralSourcesReviewed(null);
     setReferralCallsStarted(null);
     setReferralPartnersGained(null);
@@ -161,6 +165,7 @@ export default function AdminOverviewPage() {
         setLeadsReceived(data?.leadsReceived ?? 0);
         setBenefitsRequested(data?.benefitsRequested ?? 0);
         setProviderAccountsClaimed(data?.providerAccountsClaimed ?? 0);
+        setEmailClicks(data?.emailClicks ?? 0);
         setReferralSourcesReviewed(data?.referralSourcesReviewed ?? 0);
         setReferralCallsStarted(data?.referralCallsStarted ?? 0);
         setReferralPartnersGained(data?.referralPartnersGained ?? 0);
@@ -172,9 +177,28 @@ export default function AdminOverviewPage() {
         setLeadsReceived(undefined);
         setBenefitsRequested(undefined);
         setProviderAccountsClaimed(undefined);
+        setEmailClicks(undefined);
         setReferralSourcesReviewed(undefined);
         setReferralCallsStarted(undefined);
         setReferralPartnersGained(undefined);
+      });
+
+    const smsParams = new URLSearchParams({ count_only: "true" });
+    if (from) smsParams.set("date_from", from);
+    if (to) smsParams.set("date_to", to);
+    if (!from && !to && activityRange.preset === "all") smsParams.set("all_time", "true");
+    fetch(`/api/admin/family-comms-analytics/sms?${smsParams}`, { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("SMS received count failed")))
+      .then((data) => {
+        if (data?.configured === false || data?.error || data?.truncated) {
+          setTextMessagesReceived(undefined);
+          return;
+        }
+        setTextMessagesReceived(data?.received ?? 0);
+      })
+      .catch((fetchError: unknown) => {
+        if ((fetchError as Error)?.name === "AbortError") return;
+        setTextMessagesReceived(undefined);
       });
 
     return () => controller.abort();
@@ -230,6 +254,18 @@ export default function AdminOverviewPage() {
       href: activityHref("/admin/benefits"),
     },
     {
+      label: "Emails clicked",
+      value: emailClicks,
+      subtitle: `Unique emails with a recorded click · ${selectedRangeLabel}`,
+      href: "/admin/family-comms",
+    },
+    {
+      label: "Text messages received",
+      value: textMessagesReceived,
+      subtitle: `Inbound to Olera’s SMS number · ${selectedRangeLabel}`,
+      href: "/admin/family-comms",
+    },
+    {
       label: "Referral sources reviewed",
       value: referralSourcesReviewed,
       subtitle: `Unique local opportunities opened · ${selectedRangeLabel}`,
@@ -273,6 +309,8 @@ export default function AdminOverviewPage() {
     leadsReceived,
     benefitsRequested,
     providerAccountsClaimed,
+    emailClicks,
+    textMessagesReceived,
     referralSourcesReviewed,
     referralCallsStarted,
     referralPartnersGained,

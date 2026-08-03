@@ -7,6 +7,7 @@ import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangeP
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 import { useUrlFilterState } from "@/hooks/useUrlFilterState";
+import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 import { formatAge } from "@/lib/connection-temperature";
 
 interface EmailLogEntry {
@@ -685,6 +686,7 @@ function groupQuestionsByProvider(questions: Question[]): Map<string, Question[]
 }
 
 const PAGE_SIZE = 50;
+const DEFAULT_QUESTIONS_RANGE: DateRangeValue = { preset: "all", customFrom: "", customTo: "" };
 
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -694,7 +696,7 @@ export default function AdminQuestionsPage() {
   const activeTab: TabValue = TABS.some((t) => t.value === tabParam) ? tabParam : "needs_email";
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
-  const [range, setRange] = useState<DateRangeValue>({ preset: "all", customFrom: "", customTo: "" });
+  const [range, setRange] = useUrlDateRangeState(DEFAULT_QUESTIONS_RANGE);
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; delivery_issues: number; no_contact: number; not_interested: number; archived: number; answered: number; all: number }>({ pending: 0, needs_email: 0, delivery_issues: 0, no_contact: 0, not_interested: 0, archived: 0, answered: 0, all: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

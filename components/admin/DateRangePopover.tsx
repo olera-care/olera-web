@@ -15,6 +15,9 @@ export interface ResolvedRange {
   to: string | null;
 }
 
+/** All admin reporting windows use Olera's Texas business timezone. */
+export const ADMIN_REPORTING_TIME_ZONE = "America/Chicago";
+
 const PRESETS: { label: string; value: DatePreset }[] = [
   { label: "All time", value: "all" },
   { label: "Today", value: "today" },
@@ -25,34 +28,147 @@ const PRESETS: { label: string; value: DatePreset }[] = [
   { label: "Last 12 months", value: "1y" },
 ];
 
-export function resolveRange(value: DateRangeValue): ResolvedRange {
+type CalendarDate = { year: number; month: number; day: number };
+
+function calendarDateInTimeZone(date: Date, timeZone: string): CalendarDate {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((p) => p.type === type)?.value);
+  return { year: part("year"), month: part("month"), day: part("day") };
+}
+
+function addCalendarDays(date: CalendarDate, days: number): CalendarDate {
+  const shifted = new Date(Date.UTC(date.year, date.month - 1, date.day + days));
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+  };
+}
+
+function parseCalendarDate(value: string): CalendarDate {
+  const [year, month, day] = value.split("-").map(Number);
+  return { year, month, day };
+}
+
+function isValidCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const { year, month, day } = parseCalendarDate(value);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() + 1 === month && parsed.getUTCDate() === day;
+}
+
+/** Convert midnight in an IANA timezone to its exact UTC instant.
+ *
+ * Intl exposes timezone-aware formatting but not construction. Iterating the
+ * observed offset handles both CST/CDT and date ranges that cross a DST change.
+ */
+function startOfDayInTimeZone(date: CalendarDate, timeZone: string): Date {
+  const wallClockUtc = Date.UTC(date.year, date.month - 1, date.day);
+  let candidate = wallClockUtc;
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+
+  for (let i = 0; i < 3; i++) {
+    const parts = formatter.formatToParts(new Date(candidate));
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      Number(parts.find((p) => p.type === type)?.value);
+    const representedAsUtc = Date.UTC(
+      part("year"),
+      part("month") - 1,
+      part("day"),
+      part("hour"),
+      part("minute"),
+      part("second")
+    );
+    const next = wallClockUtc - (representedAsUtc - candidate);
+    if (next === candidate) break;
+    candidate = next;
+  }
+
+  return new Date(candidate);
+}
+
+export function resolveRange(
+  value: DateRangeValue,
+  timeZone = ADMIN_REPORTING_TIME_ZONE
+): ResolvedRange {
   if (value.preset === "custom" && value.customFrom) {
-    const start = new Date(value.customFrom + "T00:00:00");
+    const startDate = parseCalendarDate(value.customFrom);
     const endBase = value.customTo || value.customFrom;
-    const end = new Date(endBase + "T00:00:00");
-    end.setDate(end.getDate() + 1);
+    const endDate = addCalendarDays(parseCalendarDate(endBase), 1);
+    const start = startOfDayInTimeZone(startDate, timeZone);
+    const end = startOfDayInTimeZone(endDate, timeZone);
     return { from: start.toISOString(), to: end.toISOString() };
   }
 
   if (value.preset === "all") return { from: null, to: null };
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = calendarDateInTimeZone(now, timeZone);
 
   if (value.preset === "today") {
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return { from: today.toISOString(), to: tomorrow.toISOString() };
+    return {
+      from: startOfDayInTimeZone(today, timeZone).toISOString(),
+      to: now.toISOString(),
+    };
   }
   if (value.preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return { from: yesterday.toISOString(), to: today.toISOString() };
+    const yesterday = addCalendarDays(today, -1);
+    return {
+      from: startOfDayInTimeZone(yesterday, timeZone).toISOString(),
+      to: startOfDayInTimeZone(today, timeZone).toISOString(),
+    };
   }
   const days = value.preset === "7d" ? 7 : value.preset === "30d" ? 30 : value.preset === "90d" ? 90 : 365;
-  const start = new Date(today);
-  start.setDate(start.getDate() - days);
-  return { from: start.toISOString(), to: null };
+  // Calendar windows include today, so "Last 30 days" starts 29 dates ago.
+  const start = addCalendarDays(today, -(days - 1));
+  return {
+    from: startOfDayInTimeZone(start, timeZone).toISOString(),
+    to: now.toISOString(),
+  };
+}
+
+export function dateRangeSearchParams(value: DateRangeValue): URLSearchParams {
+  const params = new URLSearchParams({ range: value.preset });
+  if (value.preset === "custom") {
+    if (value.customFrom) params.set("from", value.customFrom);
+    if (value.customTo) params.set("to", value.customTo);
+  }
+  return params;
+}
+
+export function dateRangeFromSearchParams(
+  searchParams: Pick<URLSearchParams, "get">,
+  fallback: DateRangeValue
+): DateRangeValue {
+  const preset = searchParams.get("range");
+  if (!preset) return fallback;
+  if (preset === "custom") {
+    const customFrom = searchParams.get("from") ?? "";
+    const customTo = searchParams.get("to") ?? "";
+    const validFrom = isValidCalendarDate(customFrom);
+    const validTo = !customTo || isValidCalendarDate(customTo);
+    const ordered = !customTo || customTo >= customFrom;
+    return validFrom && validTo && ordered ? { preset, customFrom, customTo } : fallback;
+  }
+  if (PRESETS.some((option) => option.value === preset)) {
+    return { preset: preset as DatePreset, customFrom: "", customTo: "" };
+  }
+  return fallback;
 }
 
 export function rangeLabel(value: DateRangeValue): string {
@@ -111,10 +227,12 @@ export default function DateRangePopover({
   };
 
   const applyCustom = () => {
-    if (!draftFrom) return;
+    if (!draftFrom || (draftTo && draftTo < draftFrom)) return;
     onChange({ preset: "custom", customFrom: draftFrom, customTo: draftTo });
     setOpen(false);
   };
+
+  const customRangeInvalid = !draftFrom || (!!draftTo && draftTo < draftFrom);
 
   return (
     <div ref={containerRef} className="relative">
@@ -188,7 +306,7 @@ export default function DateRangePopover({
               <button
                 type="button"
                 onClick={applyCustom}
-                disabled={!draftFrom}
+                disabled={customRangeInvalid}
                 className="px-3.5 h-8 text-xs font-medium text-white bg-gray-900 rounded-full hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Apply

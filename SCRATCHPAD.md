@@ -7,6 +7,14 @@
 
 ## Current Focus
 
+### 2026-08-03 — Admin Overview activity reporting + mobile admin access (`codex/admin-overview-activity`)
+
+Reworked `/admin` Overview into two clear groups: date-filtered **Activity** (questions asked, total inquiries, reviews received) and unfiltered **Current operations**. Activity defaults to Last 30 days, uses America/Chicago reporting boundaries with DST-safe custom-range validation, counts every submitted question, and uses an exact inquiry count rather than the operational query's 3,000-row cap. The selected range persists in the URL and carries into the corresponding all-records drilldowns (`tab=all` for questions, `filter=all` for inquiries); unavailable metrics render as unavailable, never as zero.
+
+Also restored **Admin Dashboard** access in both responsive navigation variants: the full-screen mobile menu now checks admin access for every profile mode, and the bottom-tab More sheet receives the same gated admin item. Changed the admin Overview/questions/connections/reviews pages, connections/reviews APIs, `DateRangePopover`, new `useUrlDateRangeState`, and shared `Navbar`/`MoreBottomSheet`.
+
+**Validation:** `npx --no-install tsc --noEmit`, targeted ESLint, `git diff --check`, and focused Central-time/DST/malformed-range tests pass. Production compilation and TypeScript pass; local static generation is blocked by missing Supabase environment variables on the unrelated `/caregiver-support/medicaid-5-year-look-back-rule` route. **Next:** preview-QA presets/custom ranges and drilldowns, then verify Admin Dashboard in both mobile navigation variants. PR targets `staging`.
+
 ### 2026-08-02 — Ad Boost session: fresh Google Ads sync + Edmonds Villa published (first assisted-living campaign)
 
 **Queue data sync:** Verified `/admin/ad-boost` renders the DB exactly (row-for-row vs Supabase + GA4 cross-check), but manual `ad_clicks`/`ad_impressions`/`ad_spend_cents` were weeks stale for live campaigns. Pulled all-time per-campaign numbers from Google Ads UI and updated all 7 rows (biggest: HomeWell 7→13 clicks, Legacy Haven 2→5, spend roughly doubled on both). GA4 sessions run ~1.5-2x recorded ad clicks per campaign (repeat visits + auto-tagging splitting each campaign into TWO GA rows: Ads campaign-name row + raw utm tag row). Three flights end Aug 3 (Impact, Miracle, HomeWell) — one final refresh before wrap-ups.

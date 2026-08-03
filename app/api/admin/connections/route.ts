@@ -50,6 +50,7 @@ function parseArchiveReason(value: unknown): ArchiveReason | null {
  *   - search         case-insensitive match on family or provider display name
  *   - date_from/to   filter by connection created_at
  *   - limit/offset   pagination (default 50 / 0)
+ *   - submitted_count_only  exact count of inbound inquiry submissions in the range
  *
  * Temperature is computed in-memory (the thread lives in metadata JSONB, so it
  * can't be a SQL filter) over a capped active set, exactly like the needs-email
@@ -208,8 +209,28 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(Number(searchParams.get("limit")) || 50, 200);
     const offset = Number(searchParams.get("offset")) || 0;
     const countOnly = searchParams.get("count_only") === "true";
+    const submittedCountOnly = searchParams.get("submitted_count_only") === "true";
 
     const db = getServiceClient();
+
+    // Reporting fast path: an inquiry is activity when it is submitted. Do not
+    // apply the operational tracker's current workflow/archive/provider-state
+    // filters, and do not inherit its 3,000-row processing cap.
+    if (submittedCountOnly) {
+      let submittedQuery = db
+        .from("connections")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "inquiry");
+      if (dateFrom) submittedQuery = submittedQuery.gte("created_at", dateFrom);
+      if (dateTo) submittedQuery = submittedQuery.lt("created_at", dateTo);
+
+      const { count, error: submittedCountError } = await submittedQuery;
+      if (submittedCountError) {
+        console.error("[connections] submitted count error:", submittedCountError);
+        return NextResponse.json({ error: "Failed to count submitted inquiries" }, { status: 500 });
+      }
+      return NextResponse.json({ total: count ?? 0 });
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // OUTBOUND CONNECTIONS (provider-initiated via "Find Families")
@@ -245,7 +266,7 @@ export async function GET(request: NextRequest) {
         .limit(FETCH_CAP);
 
       if (dateFrom) outboundQuery = outboundQuery.gte("created_at", dateFrom);
-      if (dateTo) outboundQuery = outboundQuery.lte("created_at", dateTo);
+      if (dateTo) outboundQuery = outboundQuery.lt("created_at", dateTo);
 
       const { data: outboundRows, error: outboundError } = await outboundQuery;
       if (outboundError) {
@@ -402,7 +423,7 @@ export async function GET(request: NextRequest) {
     // - engagementCounts.archived can be computed for all tabs
     // - The correct connections are shown per tab
     if (dateFrom) q = q.gte("created_at", dateFrom);
-    if (dateTo) q = q.lte("created_at", dateTo);
+    if (dateTo) q = q.lt("created_at", dateTo);
 
     const { data: rows, error } = await q;
     if (error) {

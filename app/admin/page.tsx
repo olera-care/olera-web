@@ -3,10 +3,26 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import DateRangePopover, {
+  dateRangeSearchParams,
+  rangeLabel,
+  resolveRange,
+  type DateRangeValue,
+} from "@/components/admin/DateRangePopover";
+import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
+
+const DEFAULT_ACTIVITY_RANGE: DateRangeValue = {
+  preset: "30d",
+  customFrom: "",
+  customTo: "",
+};
+
+type StatValue = number | null | undefined;
 
 interface StatCard {
   label: string;
-  value: number | null;
+  /** null = loading, undefined = failed, number = loaded */
+  value: StatValue;
   subtitle: string;
   href: string;
   isWarning?: boolean;
@@ -23,64 +39,48 @@ interface AuditEntry {
 }
 
 /** Fetch a count from an admin API endpoint */
-async function fetchCount(url: string, key = "count"): Promise<number> {
-  const res = await fetch(url);
+async function fetchCount(url: string, key = "count", signal?: AbortSignal): Promise<number> {
+  const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`${url} failed`);
   const data = await res.json();
   return data[key] ?? 0;
 }
 
 export default function AdminOverviewPage() {
+  const [activityRange, setActivityRange] = useUrlDateRangeState(DEFAULT_ACTIVITY_RANGE);
   // Each stat loads independently — no more Promise.all blocking
-  const [unverifiedClaims, setUnverifiedClaims] = useState<number | null>(null);
-  const [totalInquiries, setTotalInquiries] = useState<number | null>(null);
-  const [needsEmail, setNeedsEmail] = useState<number | null>(null);
-  const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
-  const [questionsNeedEmail, setQuestionsNeedEmail] = useState<number | null>(null);
-  const [totalReviews, setTotalReviews] = useState<number | null>(null);
-  const [liveProviders, setLiveProviders] = useState<number | null>(null);
-  const [adBoostMrr, setAdBoostMrr] = useState<number | null>(null);
+  const [unverifiedClaims, setUnverifiedClaims] = useState<StatValue>(null);
+  const [totalInquiries, setTotalInquiries] = useState<StatValue>(null);
+  const [needsEmail, setNeedsEmail] = useState<StatValue>(null);
+  const [totalQuestions, setTotalQuestions] = useState<StatValue>(null);
+  const [questionsNeedEmail, setQuestionsNeedEmail] = useState<StatValue>(null);
+  const [totalReviews, setTotalReviews] = useState<StatValue>(null);
+  const [liveProviders, setLiveProviders] = useState<StatValue>(null);
+  const [adBoostMrr, setAdBoostMrr] = useState<StatValue>(null);
   const [adBoostPaying, setAdBoostPaying] = useState<number>(0);
   const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showAllStats, setShowAllStats] = useState(false);
   const [pausedAutomations, setPausedAutomations] = useState<number>(0);
 
   useEffect(() => {
-    // Fire all fetches independently — each card updates on its own
+    // Current-state metrics do not change meaning when the activity range changes.
     fetch("/api/admin/verification?counts_only=true")
       .then((r) => r.ok ? r.json() : Promise.reject(new Error("verification counts failed")))
       .then((d) => setUnverifiedClaims(d?.counts?.unverified_claims ?? 0))
-      .catch(() => { setUnverifiedClaims(0); setError("Some data failed to load."); });
+      .catch(() => setUnverifiedClaims(undefined));
 
-    // Fetch connections counts (total + needs_email) in one call
+    // Needs Email is a current backlog, not a period total.
     fetch("/api/admin/connections?count_only=true")
       .then((r) => r.ok ? r.json() : Promise.reject(new Error("connections counts failed")))
-      .then((d) => {
-        setTotalInquiries(d?.total ?? 0);
-        setNeedsEmail(d?.engagementCounts?.needs_email ?? 0);
-      })
-      .catch(() => {
-        setTotalInquiries(0);
-        setNeedsEmail(0);
-        setError("Some data failed to load.");
-      });
-
-    fetchCount("/api/admin/questions?count_only=true")
-      .then(setTotalQuestions)
-      .catch(() => { setTotalQuestions(0); setError("Some data failed to load."); });
+      .then((d) => setNeedsEmail(d?.engagementCounts?.needs_email ?? 0))
+      .catch(() => setNeedsEmail(undefined));
 
     fetchCount("/api/admin/questions?needs_email=true&count_only=true")
       .then(setQuestionsNeedEmail)
-      .catch(() => { setQuestionsNeedEmail(0); setError("Some data failed to load."); });
-
-    fetchCount("/api/admin/reviews?status=all&limit=1")
-      .then(setTotalReviews)
-      .catch(() => { setTotalReviews(0); setError("Some data failed to load."); });
+      .catch(() => setQuestionsNeedEmail(undefined));
 
     fetchCount("/api/admin/directory?tab=published&count_only=true", "total")
       .then(setLiveProviders)
-      .catch(() => { setLiveProviders(0); setError("Some data failed to load."); });
+      .catch(() => setLiveProviders(undefined));
 
     // Ad Boost revenue — paying plans + MRR (webhook-written, always current).
     fetch("/api/admin/ad-boost?revenue_only=true")
@@ -89,7 +89,7 @@ export default function AdminOverviewPage() {
         setAdBoostMrr(d?.mrr ?? 0);
         setAdBoostPaying(d?.paying ?? 0);
       })
-      .catch(() => { setAdBoostMrr(0); setError("Some data failed to load."); });
+      .catch(() => setAdBoostMrr(undefined));
 
     // Audit log
     fetch("/api/admin/audit?limit=10")
@@ -104,7 +104,94 @@ export default function AdminOverviewPage() {
       .catch(() => setPausedAutomations(0));
   }, []);
 
-  const primaryCards: StatCard[] = [
+  useEffect(() => {
+    const controller = new AbortController();
+    const { from, to } = resolveRange(activityRange);
+
+    setTotalQuestions(null);
+    setTotalInquiries(null);
+    setTotalReviews(null);
+
+    const questionParams = new URLSearchParams({ count_only: "true" });
+    const connectionParams = new URLSearchParams({ submitted_count_only: "true" });
+    const reviewParams = new URLSearchParams({ status: "all", limit: "1" });
+    if (from) {
+      questionParams.set("date_from", from);
+      connectionParams.set("date_from", from);
+      reviewParams.set("from_date", from);
+    }
+    if (to) {
+      questionParams.set("date_to", to);
+      connectionParams.set("date_to", to);
+      reviewParams.set("to_date", to);
+    }
+
+    fetchCount(`/api/admin/questions?${questionParams}`, "count", controller.signal)
+      .then(setTotalQuestions)
+      .catch((fetchError: unknown) => {
+        if ((fetchError as Error)?.name === "AbortError") return;
+        setTotalQuestions(undefined);
+      });
+
+    fetch(`/api/admin/connections?${connectionParams}`, { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("connections counts failed")))
+      .then((data) => setTotalInquiries(data?.total ?? 0))
+      .catch((fetchError: unknown) => {
+        if ((fetchError as Error)?.name === "AbortError") return;
+        setTotalInquiries(undefined);
+      });
+
+    fetchCount(`/api/admin/reviews?${reviewParams}`, "count", controller.signal)
+      .then(setTotalReviews)
+      .catch((fetchError: unknown) => {
+        if ((fetchError as Error)?.name === "AbortError") return;
+        setTotalReviews(undefined);
+      });
+
+    return () => controller.abort();
+  }, [activityRange]);
+
+  const selectedRangeLabel = rangeLabel(activityRange);
+
+  function activityHref(path: string, extra?: Record<string, string>) {
+    const params = dateRangeSearchParams(activityRange);
+    for (const [key, value] of Object.entries(extra ?? {})) params.set(key, value);
+    return `${path}?${params}`;
+  }
+
+  const activityCards: StatCard[] = [
+    {
+      label: "Questions asked",
+      value: totalQuestions,
+      subtitle: `Every submission · ${selectedRangeLabel}`,
+      href: activityHref("/admin/questions", { tab: "all" }),
+    },
+    {
+      label: "Total Inquiries",
+      value: totalInquiries,
+      subtitle: `Connections · ${selectedRangeLabel}`,
+      href: activityHref("/admin/connections", { filter: "all" }),
+    },
+    {
+      label: "Reviews received",
+      value: totalReviews,
+      subtitle: `Submitted · ${selectedRangeLabel}`,
+      href: activityHref("/admin/reviews"),
+    },
+  ];
+
+  const hasUnavailableStats = [
+    totalQuestions,
+    totalInquiries,
+    totalReviews,
+    adBoostMrr,
+    unverifiedClaims,
+    needsEmail,
+    questionsNeedEmail,
+    liveProviders,
+  ].some((value) => value === undefined);
+
+  const currentCards: StatCard[] = [
     {
       label: "Ad Boost MRR ($/mo)",
       value: adBoostMrr,
@@ -112,19 +199,13 @@ export default function AdminOverviewPage() {
       href: "/admin/ad-boost",
     },
     { label: "Unverified Claims", value: unverifiedClaims, subtitle: "Claimed, not yet verified", href: "/admin/verification" },
-    { label: "Total Inquiries", value: totalInquiries, subtitle: "All connections", href: "/admin/connections" },
     { label: "Needs Email", value: needsEmail, subtitle: "Connections needing email", href: "/admin/connections?filter=needs_email", isWarning: true },
-    { label: "Questions", value: totalQuestions, subtitle: "Total asked", href: "/admin/questions" },
     { label: "Q&A Needs Email", value: questionsNeedEmail, subtitle: "Questions blocked", href: "/admin/questions", isWarning: true },
     { label: "Provider Directory", value: liveProviders, subtitle: "Live listings", href: "/admin/directory" },
   ];
 
-  const secondaryCards: StatCard[] = [
-    { label: "Reviews", value: totalReviews, subtitle: "Total reviews", href: "/admin/reviews" },
-  ];
-
   function renderCard(card: StatCard) {
-    const showWarning = card.isWarning && card.value !== null && card.value > 0;
+    const showWarning = card.isWarning && typeof card.value === "number" && card.value > 0;
     return (
       <Link key={card.href} href={card.href} className="block">
         <div
@@ -140,6 +221,8 @@ export default function AdminOverviewPage() {
             <div className="h-9 flex items-center">
               <div className="w-12 h-6 bg-gray-100 rounded animate-pulse" />
             </div>
+          ) : card.value === undefined ? (
+            <p className="text-lg font-medium text-gray-400 mb-1">Unavailable</p>
           ) : (
             <p
               className={[
@@ -170,28 +253,36 @@ export default function AdminOverviewPage() {
         </Link>
       )}
 
-      {error && (
+      {hasUnavailableStats && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
-          {error}
+          Some data failed to load. Unavailable cards are not reported as zero.
         </div>
       )}
 
-      {/* Stats grid — each card loads independently */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-4">
-        {primaryCards.map((card) => renderCard(card))}
-        {showAllStats && secondaryCards.map((card) => renderCard(card))}
-      </div>
-
-      {secondaryCards.length > 0 && (
-        <div className="mb-8">
-          <button
-            onClick={() => setShowAllStats((v) => !v)}
-            className="text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
-          >
-            {showAllStats ? "Show less" : `See all stats (${secondaryCards.length} more) →`}
-          </button>
+      {/* Period-based activity metrics */}
+      <section className="mb-10">
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">Activity</h2>
+            <p className="text-sm text-gray-400 mt-0.5">Reporting in Central Time</p>
+          </div>
+          <DateRangePopover value={activityRange} onChange={setActivityRange} />
         </div>
-      )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {activityCards.map((card) => renderCard(card))}
+        </div>
+      </section>
+
+      {/* Current-state metrics intentionally do not follow the activity filter. */}
+      <section className="mb-10">
+        <div className="mb-4">
+          <h2 className="text-lg font-medium text-gray-900">Current operations</h2>
+          <p className="text-sm text-gray-400 mt-0.5">Live totals and action queues right now</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {currentCards.map((card) => renderCard(card))}
+        </div>
+      </section>
 
       {/* Recent Activity */}
       <div>

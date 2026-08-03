@@ -114,13 +114,14 @@ export default function PilotTermsModal({
           </p>
           <ul className="space-y-2.5 text-sm text-gray-700">
             <ReassuranceBullet>
-              <span className="font-semibold">Free to browse and interview</span>{" "}
-              — no payment information needed to start.
+              <span className="font-semibold">Free during the pilot</span> —
+              browse, interview, and hire at no cost, with no payment information
+              needed.
             </ReassuranceBullet>
             <ReassuranceBullet>
-              <span className="font-semibold">$200 once per hire</span>, refunded
-              in full if they work under 15 hours — you only pay for placements
-              that stick.
+              <span className="font-semibold">Optional check-ins</span> — we may
+              ask for short feedback to improve the program; taking part is
+              always your choice.
             </ReassuranceBullet>
             <ReassuranceBullet>
               <span className="font-semibold">No obligation to hire</span> anyone

@@ -1176,6 +1176,9 @@ export default function ActivityCenterPage() {
     { key: "client_verify_otp", label: "Session verify failed" },
     { key: "client_finalize_http", label: "Claim request error" },
     { key: "client_exception", label: "Browser error" },
+    { key: "claim_lead", label: "Lead link fallback" },
+    { key: "claim_campaign", label: "Outreach link fallback" },
+    { key: "claim_complete", label: "Digest link fallback" },
   ].map((s) => ({ ...s, count: stageCounts?.[s.key] ?? 0 }));
   const familyStatItems: StatItem[] = [
     { key: "", label: "All activity", count: familySummaryTotal ?? 0 },

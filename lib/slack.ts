@@ -449,6 +449,9 @@ export function slackOneClickFailed(opts: {
     client_verify_otp: "Session verify failed",
     client_finalize_http: "Claim request error",
     client_exception: "Browser error",
+    claim_lead: "Lead link fallback",
+    claim_campaign: "Outreach link fallback",
+    claim_complete: "Digest link fallback",
   };
   const stageLabel = stageLabels[opts.stage] || opts.stage;
   const reason = (opts.reason || "").slice(0, 120);

@@ -2571,6 +2571,9 @@ export default function ProviderOutreachPage() {
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  // Export CSV state
+  const [exporting, setExporting] = useState(false);
+
   // Add State modal state
   const [showAddStateModal, setShowAddStateModal] = useState(false);
   const [addStateSearch, setAddStateSearch] = useState("");
@@ -3310,6 +3313,50 @@ export default function ProviderOutreachPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Export CSV handler
+  async function handleExport(type: "providers" | "city_assignments" = "providers") {
+    if (!selectedState) return;
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("state", selectedState);
+      params.set("tab", activeTab);
+      params.set("type", type);
+      // Handle "unassigned" specially - pass as a flag, not as assigned_to value
+      if (selectedAdminFilter === "unassigned") {
+        params.set("unassigned", "true");
+      } else if (selectedAdminFilter) {
+        params.set("assigned_to", selectedAdminFilter);
+      }
+      if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+
+      const res = await fetch(`/api/admin/provider-outreach/export?${params}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || "Export failed", "error");
+        return;
+      }
+
+      const exportCount = res.headers.get("X-Export-Count");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || "olera-provider-outreach.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      const count = exportCount ? parseInt(exportCount, 10) : 0;
+      showToast(`Exported ${count.toLocaleString()} ${type === "city_assignments" ? "cities" : "providers"}`, "success");
+    } catch {
+      showToast("Export failed. Please try again.", "error");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   // Handle adding a state
   const handleAddState = async (stateCode: string) => {
     setAddingState(stateCode);
@@ -3658,6 +3705,40 @@ export default function ProviderOutreachPage() {
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Export CSV button with optional city assignments button */}
+            {selectedState && (
+              <div className="flex items-center">
+                <button
+                  onClick={() => handleExport("providers")}
+                  disabled={exporting || loadingProviders}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    activeTab === "needs_email" || activeTab === "ready"
+                      ? "rounded-l-lg border-r-0"
+                      : "rounded-lg"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {exporting ? "Exporting..." : "Export CSV"}
+                </button>
+                {/* City assignments export - only show on needs_email/ready tabs */}
+                {(activeTab === "needs_email" || activeTab === "ready") && (
+                  <button
+                    onClick={() => handleExport("city_assignments")}
+                    disabled={exporting || loadingCities}
+                    className="px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-r-lg hover:border-gray-300 hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Export city assignments"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </button>
                 )}

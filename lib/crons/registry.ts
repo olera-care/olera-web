@@ -115,6 +115,23 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/ad-boost",
   },
   {
+    id: "ad-boost-launch-scheduler",
+    name: "Ad Boost — scheduled launch emails",
+    description:
+      "Fires the campaign-launched provider email at the US Eastern time the admin picked when flipping a campaign to live (hourly = 'within the hour'). Same idempotent send path as the immediate flip — launched_email_sent_at reserves the send, so it can never double-fire even alongside the Send-now button. Permanent blocks (no provider email, unsubscribed, suppression) clear the schedule and ping Slack; transport errors keep it and retry next hour.",
+    recipientCohort:
+      "Providers of live campaigns whose launch email is unsent and whose launched_email_scheduled_at is due.",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "20 * * * *",
+    humanSchedule: "Hourly, at :20",
+    path: "/api/cron/ad-boost-launch-scheduler",
+    emailTypes: ["ad_boost_campaign_launched"],
+    successSignal:
+      "Launch emails land in the provider's US morning even when the campaign is flipped live from another timezone.",
+    relatedAdminPath: "/admin/ad-boost",
+  },
+  {
     id: "ad-boost-emails",
     name: "Ad Boost emails",
     description:

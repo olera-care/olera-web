@@ -115,6 +115,10 @@
     {
       "path": "/api/cron/benefits-navigator-scheduler",
       "schedule": "10 * * * *"
+    },
+    {
+      "path": "/api/cron/ad-boost-launch-scheduler",
+      "schedule": "20 * * * *"
     }
   ]
 }

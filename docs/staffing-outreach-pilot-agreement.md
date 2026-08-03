@@ -1,4 +1,4 @@
-# Student Caregiver Program — Provider Service Agreement (source)
+# Student Caregiver Program — Provider Pilot Agreement (source)
 
 This is the canonical text for the Olera Student Caregiver Program
 provider service agreement that gets attached to the Step 1 post-consent
@@ -30,7 +30,7 @@ re-upload (overwriting the same path so URL stays stable).
 
 ---
 
-## Student Caregiver Program — Provider Service Agreement
+## Student Caregiver Program — Provider Pilot Agreement
 
 **Olera, Inc. — Student Caregiver Program**
 
@@ -50,11 +50,11 @@ website (https://olera.care/medjobs/candidates), where Provider may
 review student profiles, invite candidates to interview, and make hiring
 offers. Provider is free to browse, interview, and connect at no cost.
 
-**Cost.** There is no fee to browse, interview, or connect with students,
-and no payment information is required to create an account or review
-candidates. Provider pays Olera a one-time placement fee of $200 for each
-student it hires, invoiced after the hire. If a hired student works fewer
-than fifteen (15) hours, Olera refunds that placement fee in full.
+**Cost.** This pilot is free for the Provider. There is no fee to browse,
+interview, connect with, or hire students during the pilot, and no payment
+information is required at any point. If both parties choose to continue
+the program beyond the pilot, any terms — including fees, if any — will be
+agreed in writing separately.
 
 **Feedback and research participation (optional).** Olera may request
 feedback on the Provider's experience during participation, the

@@ -55,6 +55,7 @@ export default function AdminOverviewPage() {
   const [totalQuestions, setTotalQuestions] = useState<StatValue>(null);
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<StatValue>(null);
   const [totalReviews, setTotalReviews] = useState<StatValue>(null);
+  const [providerPageViews, setProviderPageViews] = useState<StatValue>(null);
   const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
   const [benefitsRequested, setBenefitsRequested] = useState<StatValue>(null);
   const [providerAccountsClaimed, setProviderAccountsClaimed] = useState<StatValue>(null);
@@ -110,6 +111,7 @@ export default function AdminOverviewPage() {
     setTotalQuestions(null);
     setTotalInquiries(null);
     setTotalReviews(null);
+    setProviderPageViews(null);
     setLeadsReceived(null);
     setBenefitsRequested(null);
     setProviderAccountsClaimed(null);
@@ -156,12 +158,14 @@ export default function AdminOverviewPage() {
     fetch(`/api/admin/network-health?${networkHealthParams}`, { signal: controller.signal })
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("network health failed")))
       .then((data) => {
+        setProviderPageViews(data?.providerPageViews ?? 0);
         setLeadsReceived(data?.leadsReceived ?? 0);
         setBenefitsRequested(data?.benefitsRequested ?? 0);
         setProviderAccountsClaimed(data?.providerAccountsClaimed ?? 0);
       })
       .catch((fetchError: unknown) => {
         if ((fetchError as Error)?.name === "AbortError") return;
+        setProviderPageViews(undefined);
         setLeadsReceived(undefined);
         setBenefitsRequested(undefined);
         setProviderAccountsClaimed(undefined);
@@ -189,6 +193,12 @@ export default function AdminOverviewPage() {
   }
 
   const activityCards: StatCard[] = [
+    {
+      label: "Provider Page Views",
+      value: providerPageViews,
+      subtitle: `Public profile loads · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+    },
     {
       label: "Questions asked",
       value: totalQuestions,
@@ -231,6 +241,7 @@ export default function AdminOverviewPage() {
     totalQuestions,
     totalInquiries,
     totalReviews,
+    providerPageViews,
     leadsReceived,
     benefitsRequested,
     providerAccountsClaimed,
@@ -318,7 +329,7 @@ export default function AdminOverviewPage() {
           </div>
           <DateRangePopover value={activityRange} onChange={setActivityRange} />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {activityCards.map((card) => renderCard(card))}
         </div>
       </section>

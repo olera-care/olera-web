@@ -25,6 +25,12 @@ export async function GET(request: NextRequest) {
   }
 
   const db = getServiceClient();
+  let pageViewsQuery = db
+    .from("provider_activity")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", "page_view")
+    .not("metadata->>session_id", "is", null)
+    .neq("metadata->>session_id", "");
   let leadsQuery = db
     .from("provider_activity")
     .select("id", { count: "exact", head: true })
@@ -39,28 +45,32 @@ export async function GET(request: NextRequest) {
     .eq("event_type", "claim_completed");
 
   if (from) {
+    pageViewsQuery = pageViewsQuery.gte("created_at", from);
     leadsQuery = leadsQuery.gte("created_at", from);
     benefitsQuery = benefitsQuery.gte("created_at", from);
     claimsQuery = claimsQuery.gte("created_at", from);
   }
   if (to) {
+    pageViewsQuery = pageViewsQuery.lt("created_at", to);
     leadsQuery = leadsQuery.lt("created_at", to);
     benefitsQuery = benefitsQuery.lt("created_at", to);
     claimsQuery = claimsQuery.lt("created_at", to);
   }
 
-  const [leads, benefits, claims] = await Promise.all([
+  const [pageViews, leads, benefits, claims] = await Promise.all([
+    pageViewsQuery,
     leadsQuery,
     benefitsQuery,
     claimsQuery,
   ]);
-  const error = leads.error ?? benefits.error ?? claims.error;
+  const error = pageViews.error ?? leads.error ?? benefits.error ?? claims.error;
   if (error) {
     console.error("[admin/network-health] count failed:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({
+    providerPageViews: pageViews.count ?? 0,
     leadsReceived: leads.count ?? 0,
     benefitsRequested: benefits.count ?? 0,
     providerAccountsClaimed: claims.count ?? 0,

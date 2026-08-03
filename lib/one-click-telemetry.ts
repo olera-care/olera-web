@@ -20,7 +20,11 @@ export type OneClickFailureStage =
   | "client_auto_sign_in_http"
   | "client_verify_otp"
   | "client_finalize_http"
-  | "client_exception";
+  | "client_exception"
+  // Server-side GET claim routes falling back to the onboard page
+  | "claim_lead"
+  | "claim_campaign"
+  | "claim_complete";
 
 export function maskEmail(email: string | null | undefined): string | null {
   if (!email) return null;

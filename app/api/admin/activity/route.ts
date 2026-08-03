@@ -205,6 +205,9 @@ const ONE_CLICK_FAILURE_STAGES = [
   "client_verify_otp",
   "client_finalize_http",
   "client_exception",
+  "claim_lead",
+  "claim_campaign",
+  "claim_complete",
 ];
 
 /**

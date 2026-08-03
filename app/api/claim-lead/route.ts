@@ -55,6 +55,17 @@ export async function GET(request: NextRequest) {
   const fallbackToOnboard = async (reason: string, slug?: string | null) => {
     console.log("[claim-lead] falling back to onboard:", { reason, slug, connectionId });
 
+    // Server-side visibility — these fallbacks were the invisible leak that
+    // stranded providers at a sign-in wall (see one_click_failed telemetry).
+    const { logOneClickFailed } = await import("@/lib/one-click-telemetry");
+    await logOneClickFailed({
+      providerId: slug,
+      stage: "claim_lead",
+      reason,
+      action: "lead",
+      actionId: connectionId,
+    });
+
     // Track lead_opened even on fallback (if we have enough info)
     if (slug && connectionId) {
       try {
@@ -83,11 +94,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${siteUrl}/`, { status: 303 });
     }
 
-    // Redirect to onboard page where they can claim their account
+    // Redirect to onboard page where they can claim their account.
+    // Forward the otk: with it, the onboard page runs the client-side
+    // one-click flow (valid token) or the link-expired recovery card
+    // (dead token). Without it, the provider gets a sign-in wall they
+    // can't pass — the link WAS their sign-in.
     const fallbackUrl = new URL(`${siteUrl}/provider/${slug}/onboard`);
     fallbackUrl.searchParams.set("action", "lead");
     if (connectionId) {
       fallbackUrl.searchParams.set("actionId", connectionId);
+    }
+    if (token) {
+      fallbackUrl.searchParams.set("otk", token);
     }
     return NextResponse.redirect(fallbackUrl.toString(), { status: 303 });
   };
@@ -121,11 +139,19 @@ export async function GET(request: NextRequest) {
   const admin = createClient(supabaseUrl, serviceKey);
 
   // 2. Look up the provider's business_profile by slug
-  //    The token's providerId is actually the provider slug
+  //    The token's providerId is actually the provider slug.
+  //    `id` is a uuid column: including id.eq for a non-UUID value makes
+  //    Postgres reject the ENTIRE .or() with a uuid cast error, which read
+  //    as "provider not found" and sent every lead email to the fallback
+  //    wall (119 recorded fallbacks, all "provider not found").
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const bpFilter = UUID_RE.test(providerSlug)
+    ? `slug.eq.${providerSlug},source_provider_id.eq.${providerSlug},id.eq.${providerSlug}`
+    : `slug.eq.${providerSlug},source_provider_id.eq.${providerSlug}`;
   const { data: providerProfile, error: profileError } = await admin
     .from("business_profiles")
     .select("id, slug, email, account_id, source_provider_id, display_name, city, state, website")
-    .or(`slug.eq.${providerSlug},source_provider_id.eq.${providerSlug},id.eq.${providerSlug}`)
+    .or(bpFilter)
     .in("type", ["organization", "caregiver"])
     .maybeSingle();
 

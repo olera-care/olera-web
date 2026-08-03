@@ -426,6 +426,18 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
                     <span> &middot; {String((event.metadata as Record<string, string>).trust_reason)}</span>
                   )}
                 </p>
+              ) : event.event_type === "one_click_failed" ? (
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  <span className="font-medium text-red-700">
+                    {String((event.metadata as Record<string, string>)?.stage || "unknown stage")}
+                  </span>
+                  {(event.metadata as Record<string, string>)?.reason && (
+                    <span> &middot; {String((event.metadata as Record<string, string>).reason)}</span>
+                  )}
+                  {(event.metadata as Record<string, string>)?.email_masked && (
+                    <span> &middot; {String((event.metadata as Record<string, string>).email_masked)}</span>
+                  )}
+                </p>
               ) : event.event_type === "one_click_access" && (event.metadata as Record<string, string>)?.trust_level ? (
                 <p className="text-xs text-gray-500 mt-0.5 truncate">
                   <span className="text-gray-600">
@@ -456,6 +468,7 @@ function ProviderFeedView({ events, loading, total, page, setPage, pageSize, sel
             <span
               className={`text-xs shrink-0 ${
                 event.event_type === "suspicious_claim" ||
+                event.event_type === "one_click_failed" ||
                 (event.event_type === "one_click_access" &&
                   (event.metadata as Record<string, string>)?.trust_level === "low")
                   ? "font-medium text-red-600"

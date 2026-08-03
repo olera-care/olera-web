@@ -143,11 +143,12 @@ export const PROVIDER_CATEGORIES: ProviderCategoryMeta[] = [
     key: "flags",
     label: "Trust flags",
     emoji: "🚩",
-    blurb: "Suspicious claims and low-trust sign-ins",
+    blurb: "Suspicious claims, low-trust sign-ins, and broken magic links",
     // NOTE: the API also folds low-trust one_click_access into this bucket via a
     // metadata check (see categorySummaryFilter / handleFeedView). Listing only
-    // suspicious_claim here keeps the event→category map unambiguous.
-    eventTypes: ["suspicious_claim"],
+    // suspicious_claim + one_click_failed here keeps the event→category map
+    // unambiguous.
+    eventTypes: ["suspicious_claim", "one_click_failed"],
     tileActive: "border-red-300 bg-red-50",
     badge: "bg-red-50 text-red-700",
     dot: "bg-red-400",
@@ -221,6 +222,7 @@ export const PROVIDER_EVENT_LABELS: Record<string, string> = {
   your_market_playbook_clicked: "Tapped a Growth playbook step",
   // Trust flags
   suspicious_claim: "Flagged claim attempt",
+  one_click_failed: "Magic link failed",
 };
 
 /** Friendly phrase for a feed row; falls back to a de-snaked label. */

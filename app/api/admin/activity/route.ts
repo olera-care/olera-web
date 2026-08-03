@@ -47,6 +47,7 @@ const PROVIDER_ACTION_EVENT_TYPES = [
   "provider_saved",
   "claim_completed",
   "suspicious_claim",
+  "one_click_failed",
   // Dashboard / activation funnel
   "dashboard_arrival",
   "provider_picker_impression",
@@ -84,7 +85,7 @@ const PROVIDER_ACTION_EVENT_TYPES = [
 function applyCategoryFilter(query: any, category: ProviderCategoryKey) {
   if (category === "flags") {
     return query.or(
-      "event_type.eq.suspicious_claim,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)"
+      "event_type.eq.suspicious_claim,event_type.eq.one_click_failed,and(event_type.eq.one_click_access,metadata->>trust_level.eq.low)"
     );
   }
   return query.in("event_type", eventTypesForCategory(category));

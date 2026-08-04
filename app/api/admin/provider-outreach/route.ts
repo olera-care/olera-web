@@ -106,6 +106,7 @@ interface TrackingRow {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  re_engage_channel: string | null;
   // Assignment
   assigned_to: string | null;
   // Generic email warning state (persisted for page refresh)

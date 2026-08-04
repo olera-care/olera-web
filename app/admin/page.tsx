@@ -560,7 +560,18 @@ export default function AdminOverviewPage() {
         </div>
       )}
 
-      {/* Period-based activity metrics */}
+      {/* Current-state metrics intentionally do not follow the activity filter. */}
+      <section className="mb-10">
+        <div className="mb-4">
+          <h2 className="text-lg font-medium text-gray-900">Current operations</h2>
+          <p className="text-sm text-gray-400 mt-0.5">Live totals and action queues right now</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {currentCards.map((card) => renderCard(card))}
+        </div>
+      </section>
+
+      {/* Period-based activity metrics and selected trend */}
       <section className="mb-10">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
           <div>
@@ -591,17 +602,6 @@ export default function AdminOverviewPage() {
           data={trendData}
           loading={trendLoading}
         />
-      </section>
-
-      {/* Current-state metrics intentionally do not follow the activity filter. */}
-      <section className="mb-10">
-        <div className="mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Current operations</h2>
-          <p className="text-sm text-gray-400 mt-0.5">Live totals and action queues right now</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {currentCards.map((card) => renderCard(card))}
-        </div>
       </section>
 
       {/* Recent Activity */}

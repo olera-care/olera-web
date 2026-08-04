@@ -90,7 +90,21 @@ interface FamilyRow {
     composedAt: string | null;
     scheduledAt: string | null;
     scheduleFailed: boolean;
+    firstStep: string | null;
   } | null;
+}
+
+/** Next 10am US Eastern as a datetime-local value — the batch default. A
+ *  morning slot beats "whenever TJ happens to click" (the Aug 1 wave landed
+ *  ~9pm ET because sends fire at click time). */
+function nextEasternMorning(): string {
+  const today = toEtInputValue(new Date()).slice(0, 10);
+  const todayTen = etInputToUtcIso(`${today}T10:00`);
+  if (todayTen && new Date(todayTen).getTime() > Date.now() + 60 * 60_000) {
+    return `${today}T10:00`;
+  }
+  const tomorrow = toEtInputValue(new Date(Date.now() + 24 * 60 * 60_000)).slice(0, 10);
+  return `${tomorrow}T10:00`;
 }
 
 /** Full draft payload from the per-family GET (list rows carry status only). */
@@ -236,6 +250,55 @@ export default function BenefitsFamiliesView() {
   const [caseError, setCaseError] = useState<string | null>(null);
 
   const [navigators, setNavigators] = useState<Record<string, NavigatorDetail | null>>({});
+
+  // ── Batch scheduling (Schedule all / Unschedule all) ────────────────
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [batchExcluded, setBatchExcluded] = useState<Set<string>>(new Set());
+  const [batchTime, setBatchTime] = useState("");
+  const [batchState, setBatchState] = useState<
+    "idle" | "working" | "error" | { ok: number; skipped: number; unscheduled?: boolean }
+  >("idle");
+
+  const openBatchModal = () => {
+    setBatchExcluded(new Set());
+    setBatchTime(nextEasternMorning());
+    setBatchState("idle");
+    setBatchOpen(true);
+  };
+
+  const runBatch = async (action: "navigator_schedule_all" | "navigator_unschedule_all", profileIds: string[], scheduledAt?: string) => {
+    setBatchState("working");
+    // Chunk to keep each request small: the server caps a call at 100 ids,
+    // and a full backlog in one request (2 DB round-trips per row) would
+    // brush the route's execution limit.
+    const CHUNK = 25;
+    let ok = 0;
+    let skipped = 0;
+    try {
+      for (let i = 0; i < profileIds.length; i += CHUNK) {
+        const res = await fetch("/api/admin/benefits/families", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, profileIds: profileIds.slice(i, i + CHUNK), scheduledAt }),
+        });
+        const d = await res.json();
+        if (!res.ok || !d.success) throw new Error(d.error || "batch failed");
+        ok += d.ok;
+        skipped += d.skipped;
+      }
+      setBatchState({ ok, skipped, unscheduled: action === "navigator_unschedule_all" });
+      await fetchData();
+      setTimeout(() => setBatchState("idle"), 8000);
+      return true;
+    } catch (err) {
+      // A later chunk can fail after earlier ones landed — refresh so the
+      // chips show what actually got scheduled instead of a stale count.
+      console.error("Batch schedule failed:", err);
+      setBatchState("error");
+      await fetchData();
+      return false;
+    }
+  };
 
   const loadTimeline = useCallback(async (profileId: string) => {
     setTimelines((t) => ({ ...t, [profileId]: "loading" }));
@@ -638,9 +701,142 @@ export default function BenefitsFamiliesView() {
             >
               {exportState === "working" ? "Building…" : `Copy AI review prompt (${pendingDraftCount})`}
             </button>
+            {typeof batchState === "object" && (
+              <span className="text-[11px] font-medium text-emerald-700">
+                {batchState.unscheduled ? "Unscheduled" : "Scheduled"} {batchState.ok} letter
+                {batchState.ok === 1 ? "" : "s"} ✓
+                {batchState.skipped > 0 ? ` (${batchState.skipped} skipped)` : ""}
+              </span>
+            )}
+            {draftReadyCount > 0 && (
+              <button
+                onClick={openBatchModal}
+                title="Schedule every draft-ready letter for one send time — each goes through the same caps and checks as a hand send"
+                className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
+              >
+                Schedule all ({draftReadyCount})
+              </button>
+            )}
+            {scheduledCount > 0 && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm(`Cancel all ${scheduledCount} scheduled sends? The drafts stay pending.`)) return;
+                  await runBatch(
+                    "navigator_unschedule_all",
+                    families
+                      .filter((f) => f.navigator?.status === "pending" && f.navigator.scheduledAt)
+                      .map((f) => f.profileId),
+                  );
+                }}
+                disabled={batchState === "working"}
+                className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Unschedule all ({scheduledCount})
+              </button>
+            )}
           </span>
         )}
       </div>
+
+      {/* Schedule-all confirm modal: every draft-ready letter listed with an
+          opt-out — this is where pick-fit-flagged drafts get pulled from the
+          batch. Bodies are never touched; each letter sends its saved edits. */}
+      {batchOpen && (() => {
+        const batchRows = families.filter(
+          (f) => f.navigator?.status === "pending" && !f.navigator.scheduledAt,
+        );
+        const includedCount = batchRows.length - batchExcluded.size;
+        const toggleExcluded = (id: string) => {
+          setBatchExcluded((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+          });
+        };
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => batchState !== "working" && setBatchOpen(false)}>
+            <div className="w-full max-w-lg rounded-xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="border-b border-gray-100 px-5 py-4">
+                <h3 className="text-sm font-semibold text-gray-900">Schedule {includedCount} letter{includedCount === 1 ? "" : "s"}</h3>
+                <p className="mt-1 text-xs text-gray-500">
+                  Each letter sends its saved text through the normal caps and checks, at most 20 per hour
+                  starting at the chosen time. Uncheck any you want to hold back.
+                </p>
+              </div>
+              <ul className="max-h-64 overflow-y-auto divide-y divide-gray-50 px-5 py-2">
+                {batchRows.map((f) => (
+                  <li key={f.profileId} className="flex items-center gap-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={!batchExcluded.has(f.profileId)}
+                      onChange={() => toggleExcluded(f.profileId)}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span className="min-w-0 flex-1 truncate text-xs text-gray-700">
+                      {f.email || f.displayName || f.profileId}
+                    </span>
+                    <span className="shrink-0 text-[11px] text-gray-400">
+                      {f.navigator?.firstStep || "—"}{f.state ? ` · ${f.state}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="border-t border-gray-100 px-5 py-4 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="datetime-local"
+                    value={batchTime}
+                    onChange={(e) => setBatchTime(e.target.value)}
+                    className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs"
+                  />
+                  <span className="text-[11px] font-semibold text-amber-700">US Eastern</span>
+                  <button
+                    onClick={() => setBatchTime(nextEasternMorning())}
+                    className="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] text-gray-600 hover:bg-gray-50"
+                  >
+                    Next 10am ET
+                  </button>
+                  <button
+                    onClick={() => setBatchTime(toEtInputValue(new Date(Date.now() + 2 * 60_000)))}
+                    title="Fires on the next hourly run"
+                    className="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] text-gray-600 hover:bg-gray-50"
+                  >
+                    ASAP
+                  </button>
+                </div>
+                {batchState === "error" && (
+                  <p className="text-xs font-medium text-red-600">Couldn&apos;t schedule the batch. Try again.</p>
+                )}
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => setBatchOpen(false)}
+                    disabled={batchState === "working"}
+                    className="rounded-full px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const iso = etInputToUtcIso(batchTime);
+                      if (!iso || includedCount === 0) return;
+                      const ids = batchRows
+                        .filter((f) => !batchExcluded.has(f.profileId))
+                        .map((f) => f.profileId);
+                      const ok = await runBatch("navigator_schedule_all", ids, iso);
+                      if (ok) setBatchOpen(false);
+                    }}
+                    disabled={batchState === "working" || includedCount === 0 || !etInputToUtcIso(batchTime)}
+                    className="rounded-full bg-gray-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    {batchState === "working" ? "Scheduling…" : `Schedule ${includedCount} for ${batchTime ? formatEt(etInputToUtcIso(batchTime) || new Date().toISOString()) : "…"}`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Family queue */}
       {data.truncated && (

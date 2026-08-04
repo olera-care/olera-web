@@ -155,6 +155,10 @@ interface OutreachProvider {
   cycle_number: number;
   re_engage_entered_at: string | null;
   re_engage_channel: string | null;
+  // Enrichment fields for alternative channels
+  fax_number: string | null;
+  fax_confidence: string | null;
+  mail_address: string | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
@@ -1677,6 +1681,13 @@ function FollowUpProviderRow({
               </span>
             ) : null;
           })()}
+        </div>
+
+        {/* Enrichment Indicators */}
+        <div className="w-28 shrink-0 flex flex-wrap gap-1 text-[10px] text-gray-500">
+          {provider.fax_number && <span>Has Fax</span>}
+          {provider.mail_address && <span>Has Address</span>}
+          {provider.website && <span>Has Website</span>}
         </div>
 
         {/* Due Date Badge */}

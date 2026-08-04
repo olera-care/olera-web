@@ -386,189 +386,6 @@
       "draftedAt": "2026-04-13"
     },
     {
-      "id": "pace-comprehensive-care",
-      "name": "Arizona PACE (Program of All-Inclusive Care for the Elderly)",
-      "shortName": "Arizona PACE",
-      "tagline": "All-in-one medical care and daily support for parents who need nursing home level care but want to stay home.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "PACE service areas in Arizona",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your loved one needs nursing home level care but wants to stay at home, Arizona PACE provides all medical care, medications, therapies, meals, and personal care through one coordinated team. Because PACE covers everything under one program, your loved one won't need separate doctors, specialists, or care coordinators, one interdisciplinary team manages it all.\n\nYour loved one must be 55+ and certified by Arizona's Medicaid agency (AHCCCS) as needing nursing home level of care (daily help with bathing, dressing, medication management, or other essential activities). If they qualify for both Medicare and Medicaid, all services are free with no copays or deductibles. If they have Medicare only, private pay costs approximately $7,000+ per month.\n\nPACE is only available in specific service areas across Arizona, not statewide. Most participants (90%+) are dually eligible for Medicare and Medicaid, making this essentially a free comprehensive care program for qualifying seniors.",
-      "savingsRange": "",
-      "savingsSource": "Free service for Medicare/Medicaid dual eligibles",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 55+",
-          "Need nursing home level care",
-          "Live in PACE service area",
-          "Not in Medicare Advantage",
-          "Able to live safely at home with support"
-        ],
-        "ageRequirement": "55+",
-        "incomeTable": null,
-        "assetLimits": {
-          "individual": 2000,
-          "couple": null,
-          "countedAssets": [
-            "Bank accounts",
-            "Investments",
-            "Property beyond home"
-          ],
-          "exemptAssets": [
-            "Primary home",
-            "One vehicle"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": "Must be certified by AHCCCS as needing nursing home level of care (requires daily assistance with activities like bathing, dressing, eating, medication management, or mobility)",
-        "otherRequirements": [
-          "Live in a PACE organization service area",
-          "Able to live safely in the community with PACE services",
-          "Cannot be enrolled in Medicare Advantage, hospice, or Medicare prescription drug plans",
-          "Must agree to receive all care through PACE team only"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call the AHCCCS helpline at (877) 382-2363 to start the nursing home certification process, then contact your local PACE organization.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Check if PACE is available in your area",
-            "description": "Use the National PACE Association finder at npaonline.org to see if there's a PACE organization serving your loved one's address. PACE is not available statewide in Arizona."
-          },
-          {
-            "step": 2,
-            "title": "Get nursing home level certification",
-            "description": "Call AHCCCS at (877) 382-2363 to begin the certification process. Your loved one must be assessed and certified as needing nursing home level care, even if they plan to pay privately."
-          },
-          {
-            "step": 3,
-            "title": "Contact your local PACE organization",
-            "description": "Once you confirm PACE availability in your area, contact that specific PACE center directly. Each organization handles its own enrollment and has different wait times."
-          },
-          {
-            "step": 4,
-            "title": "Complete health assessment",
-            "description": "PACE staff will conduct a comprehensive assessment of your loved one's medical, functional, and social needs to develop their care plan."
-          },
-          {
-            "step": 5,
-            "title": "Disenroll from conflicting programs",
-            "description": "Your loved one must disenroll from Medicare Advantage, Medicare prescription drug plans, hospice, or other conflicting programs before PACE enrollment is complete."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Start the AHCCCS certification process early, this clinical assessment is required even for private-pay participants and can take time to complete.",
-        "urls": [
-          {
-            "label": "Find Arizona PACE Organizations",
-            "url": "https://www.npaonline.org"
-          }
-        ]
-      },
-      "documentsNeeded": [
-        "Medicare card (Parts A and B)",
-        "Medicaid card if applicable",
-        "Social Security award letter",
-        "Birth certificate or passport for age verification",
-        "Proof of Arizona residency (utility bill, lease agreement, or state ID)",
-        "Complete list of current medications with dosages",
-        "Recent medical records and hospital discharge summaries",
-        "Contact information for all current doctors and specialists",
-        "Insurance cards for any supplemental coverage",
-        "Bank statements for all accounts (last 3 months)",
-        "Income documentation (Social Security, pension, retirement statements)",
-        "Property documents if applying for ALTCS coverage",
-        "Legal documents for power of attorney or guardianship if applicable"
-      ],
-      "contacts": [
-        {
-          "label": "AHCCCS Helpline",
-          "phone": "(877) 382-2363",
-          "description": "Arizona Medicaid agency for nursing home certification",
-          "hours": "Business hours"
-        },
-        {
-          "label": "National PACE Association",
-          "phone": null,
-          "description": "Find local PACE organizations at npaonline.org",
-          "hours": null
-        }
-      ],
-      "applicationNotes": [
-        "Even private-pay participants must complete the AHCCCS nursing home level certification, this clinical assessment is mandatory for all PACE enrollment",
-        "Your loved one cannot be enrolled in Medicare Advantage and PACE simultaneously, they must choose one or the other",
-        "PACE is voluntary but comprehensive, once enrolled, your loved one must receive all covered services through the PACE team only",
-        "Wait times and availability vary significantly by PACE organization and location within Arizona"
-      ],
-      "relatedPrograms": [
-        "Arizona Long Term Care System (ALTCS)",
-        "AHCCCS (Arizona Medicaid)",
-        "Medicare Extra Help"
-      ],
-      "contentSections": [],
-      "faqs": [
-        {
-          "question": "Can my loved one keep their current doctors if they join PACE?",
-          "answer": "No, PACE participants must receive all covered medical care through the PACE interdisciplinary team. Your loved one will be assigned new doctors, specialists, and care coordinators who work together at the PACE center. This coordination is how PACE manages comprehensive care, but it means leaving current providers."
-        },
-        {
-          "question": "What if my loved one has Medicare but doesn't qualify for Medicaid, can they still get PACE?",
-          "answer": "Yes, but they'll pay private fees of approximately $7,000+ per month. They still need AHCCCS certification for nursing home level of care, but the financial eligibility doesn't matter for private-pay participants. Only about 10% of PACE participants pay privately."
-        },
-        {
-          "question": "How do I know if PACE is available where my loved one lives?",
-          "answer": "PACE is not available statewide in Arizona, only in specific service areas where PACE organizations operate. Use the finder at npaonline.org to search by your loved one's zip code. If no PACE organization serves their area, they cannot access this program."
-        },
-        {
-          "question": "Can my loved one leave PACE if they don't like it?",
-          "answer": "Yes, PACE participation is voluntary and your loved one can disenroll at any time. However, they'll need to find new doctors, re-enroll in Medicare Advantage or other coverage they left, and coordinate their own care again. There's no penalty for leaving."
-        },
-        {
-          "question": "What happens if my loved one needs to move to a different area of Arizona?",
-          "answer": "If they move outside their current PACE service area, they'll need to disenroll and find a new PACE organization in their new location, if one exists there. PACE enrollment is tied to specific geographic service areas, not the state overall."
-        },
-        {
-          "question": "Does PACE cover emergency care if my loved one is traveling?",
-          "answer": "Yes, emergency and urgent care is covered anywhere in the United States. However, routine care must still be provided through their home PACE center. For extended travel, they should coordinate with their PACE care team in advance."
-        },
-        {
-          "question": "Can I apply for PACE while my loved one is still in the hospital?",
-          "answer": "Yes, and this is often the best time to start the process. Hospital discharge planners can help initiate PACE enrollment, and the nursing home level certification may be easier to complete while your loved one is receiving intensive medical care."
-        },
-        {
-          "question": "What if my loved one needs more care than PACE can provide at home?",
-          "answer": "PACE covers nursing home care when needed, participants don't lose coverage if they require facility-based care temporarily or permanently. The PACE team coordinates all levels of care from home services to nursing home placement as needs change."
-        }
-      ],
-      "layoutIntent": {
-        "aboutHighlight": "coverage",
-        "eligibilityDisplay": "simple-list",
-        "applyDisplay": "step-journey",
-        "hasLocationFinder": true,
-        "hasDocumentChecklist": true,
-        "visualTone": "editorial"
-      },
-      "icon": "Stethoscope",
-      "phone": "(877) 382-2363",
-      "sourceUrl": "https://www.azahcccs.gov",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
-    },
-    {
       "id": "medicare-savings-programs",
       "name": "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
@@ -590,8 +407,8 @@
         ]
       },
       "intro": "If your loved one is on Medicare and has limited income, Arizona's Medicare Savings Programs can pay their Medicare costs. The programs cover Medicare Part B premiums (~$185/month in 2026), deductibles, and copays depending on income level. Your loved one automatically gets Extra Help with prescription drug costs, capping generic medications at $12.65 each.\n\nThere are three programs based on income: QMB covers the most costs for those under $1,330/month income, SLMB covers Part B premiums for those under $1,596/month, and QI covers Part B premiums for those under $1,796/month (single person). Arizona has no asset limits, making these programs easier to qualify for than in many states. Because these programs coordinate with Medicare rather than replacing it, your loved one keeps their Medicare benefits while getting help with the costs.",
-      "savingsRange": "$2,220 – $4,500/year in 2026",
-      "savingsSource": "Part B premium savings alone ($185/month × 12 = $2,220); QMB participants save additional amounts on deductibles and copays",
+      "savingsRange": "$2,435+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB can also cover deductibles and cost sharing",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -693,7 +510,7 @@
           "label": "AHCCCS Customer Service",
           "phone": "(855) 432-7587",
           "description": "Medicare Savings Program applications and questions",
-          "hours": "Mon-Fri 8am-6pm MST"
+          "hours": "Mon-Fri 8am-5pm MST"
         },
         {
           "label": "Medicare General Information",
@@ -798,7 +615,8 @@
       "phone": "(855) 432-7587",
       "sourceUrl": "https://www.azahcccs.gov/PlansProviders/FeeForServiceHealthPlans/MedicareSavingsPrograms/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "snap-food-benefits",
@@ -1013,8 +831,8 @@
         ]
       },
       "intro": "If your loved one struggles with electric or gas bills, LIHEAP can provide up to $640 per year toward heating and cooling costs. Because this program prioritizes households with adults 60+, disabled individuals, veterans, or children under 6, your elderly loved one likely qualifies for priority processing ahead of general applicants.\n\nLIHEAP operates on seasonal windows, heating assistance runs December through March, while cooling assistance runs April through October or November depending on your county. The program also offers crisis benefits up to $500 for emergency situations like utility shutoffs or equipment failures.\n\nBecause funding is limited and distributed first-come-first-served within priority groups, apply early when your loved one's season opens. There are no asset limits, but gross monthly income must stay below $2,807 for a single person or $3,671 for a couple.",
-      "savingsRange": "$160 – $640/year in 2026",
-      "savingsSource": "Standard benefit up to $640 per year for heating or cooling (minimum $160). Crisis benefit up to $500 for energy emergencies.",
+      "savingsRange": "Up to $640/year in 2026",
+      "savingsSource": "DES: regular assistance up to $640 once per year, plus supplemental crisis assistance up to $500 for energy emergencies",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1103,7 +921,8 @@
         "Income verification for all adults 18+ from last 30 days (pay stubs, Social Security award letters, pension statements)",
         "Current electric bill showing account number and balance",
         "Current gas or propane bill showing account number and balance",
-        "Utility disconnection notice or delinquent bill (if applying for crisis assistance)"
+        "Utility disconnection notice or delinquent bill (if applying for crisis assistance)",
+        "Current utility bills for the home"
       ],
       "contacts": [
         {
@@ -1184,7 +1003,8 @@
       "phone": "(866) 494-1981",
       "sourceUrl": "https://des.az.gov/liheap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "weatherization-assistance-program",

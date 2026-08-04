@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.878Z
+ * Last updated: 2026-08-04T11:02:39.942Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -970,8 +970,8 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true
       },
       "intro": "If your loved one lives in Washington and earns less than $2,608 per month (or $3,525 for a two-person household), they may qualify for monthly food assistance through the Basic Food Program. This is Washington's version of SNAP that provides $292-$1,158 monthly on an EBT card to buy groceries at most stores.\n\nUnlike other benefit programs, your loved one's house, car, and savings don't count against eligibility, only monthly income matters. However, significant changes are coming: starting July 2025, adults aged 18-64 must work at least 80 hours per month to qualify unless they have children under 14 or qualify for other exemptions.\n\nThe program requires an in-person interview after you apply, but the application itself can be completed online at washingtonconnection.org. Benefits are calculated based on household size, income, and living expenses like rent and utilities.",
-      "savingsRange": "$3,504 – $13,896/year in 2025",
-      "savingsSource": "Maximum monthly benefits from Washington State Department of Social and Health Services",
+      "savingsRange": "Up to $298/month for one person (FY2026 maximum)",
+      "savingsSource": "USDA FY2026 maximum allotments: $298/month for one person, up to $1,183/month for five; actual amounts depend on income and deductions",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1082,10 +1082,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Help Me Grow Washington Hotline",
-          "phone": "(800) 322-2588",
-          "description": "Application assistance and general program information",
-          "hours": "Business hours"
+          "label": "DSHS Basic Food",
+          "phone": "(877) 501-2233",
+          "description": "Washington DSHS line for Basic Food applications and phone interviews",
+          "hours": "Mon-Fri business hours"
         },
         {
           "label": "Washington 2-1-1",
@@ -1153,7 +1153,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 322-2588",
       "sourceUrl": "https://kingcounty.gov/en/dept/dph/health-safety/health-centers-programs-services/access-outreach-program/basic-food-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "liheap-energy-assistance",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T08:54:06.258Z
+ * Last updated: 2026-08-04T11:02:39.919Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -643,9 +643,9 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "Florida Department of Children & Families (DCF)",
-          "phone": "1-866-762-2237",
+          "phone": "(850) 300-4323",
           "description": "Best for applying for the program or checking the status of an existing application. Alternate: 1-850-300-4323.",
-          "hours": "Monday–Friday, 8:00 AM–5:00 PM ET"
+          "hours": "Mon-Fri 8am-5pm ET"
         },
         {
           "label": "Medicare.gov Helpline",
@@ -733,7 +733,7 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-08-01"
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "snap-food-benefits",
@@ -753,8 +753,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Maximum benefit: $298/month for a single person, $546 for two people.\n\nFlorida uses a senior-friendly income test: the gross limit is 200% of the federal poverty level ($2,610/month for one person in 2026), nearly double the 130% limit most states apply to working-age households. On top of that, reporting medical expenses above $35/month, Medicare premiums, prescriptions, out-of-pocket costs, lowers the 'countable income' used to calculate the actual benefit.\n\nThe program covers fruits, vegetables, meat, dairy, and grains. As of April 20, 2026, Florida's Healthy SNAP rules also prohibit soda, energy drinks, candy, and ultra-processed shelf-stable desserts. Benefits are calculated as the maximum allotment minus 30% of net income, a single senior with $800/month net income receives $298 − $240 = $58/month.",
-      "savingsRange": "$58 – $298/month in 2025",
-      "savingsSource": "Maximum SNAP allotments minus 30% of net income calculation",
+      "savingsRange": "Up to $298/month for one person (FY2026 maximum)",
+      "savingsSource": "USDA FY2026 allotments: minimum benefit $24/month for 1-2 person households, one-person maximum $298/month; amounts depend on income and deductions",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -947,7 +947,7 @@ export const drafts: PipelineStateDrafts = {
       "draftedAt": "2026-04-13",
       "reviewedBy": "TJ",
       "reviewedAt": "2026-04-20",
-      "lastVerifiedDate": "2026-04-20"
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "liheap-energy-assistance",

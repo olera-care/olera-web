@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.794Z
+ * Last updated: 2026-08-04T11:02:39.940Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -12,8 +12,8 @@ export const drafts: PipelineStateDrafts = {
   "programs": [
     {
       "id": "medicaid-buy-in-qmb-slmb-qi",
-      "name": "Medicare Savings Programs (QMB, SLMB, QI) & Medicaid Buy-In for Children (MBIC)",
-      "shortName": "Medicaid Buy-In Programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
       "tagline": "Estimated 2026 savings: $2,434–$5,000+/year. Based on the 2026 Medicare Part B premium of $202.90/month plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs.",
       "programType": "benefit",
       "complexity": "deep",
@@ -28,8 +28,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If you have a disabled child whose family earns too much for regular Medicaid, or an elderly loved one struggling with Medicare premiums and co-pays, these Texas programs can provide critical health coverage. MBIC (Medicaid Buy-In for Children) offers full Medicaid benefits for disabled children in families earning up to $8,250 monthly for a family of four. You'll pay a sliding-scale premium based on your income and existing insurance, but your child gets comprehensive coverage including doctor visits, hospital care, therapies, and prescriptions.\n\nFor elderly loved ones on Medicare, three related programs help with costs. QMB (Qualified Medicare Beneficiary) pays all Medicare premiums and cost-sharing for individuals with monthly income under $1,350. SLMB (Specified Low-Income Medicare Beneficiary) covers Medicare Part B premiums ($202.90/month in 2026) for those earning up to $1,616 monthly. QI (Qualifying Individual) also covers Part B premiums for those earning up to $1,816 but operates on a first-come, first-served basis.\n\nAll programs require Texas residency and have specific asset limits of $9,950 for individuals or $14,910 for couples (Medicare Savings Programs only — MBIC has no asset test), though your home and one car are typically excluded. Because these programs have strict disability requirements and precise income thresholds, gather documentation carefully before applying at YourTexasBenefits.com.",
-      "savingsRange": "$2,434 – $5,000+/year in 2026",
-      "savingsSource": "Medicare Part B premium ($202.90/month) plus potential cost-sharing savings for QMB; MBIC comprehensive coverage value varies by child's needs",
+      "savingsRange": "$2,435+/year in 2026",
+      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB can also cover deductibles and cost sharing",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -142,7 +142,6 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Child's disability determination letter or SSI award letter (for MBIC)",
         "Medicare card showing Parts A and B (for QMB/SLMB/QI)",
         "Proof of Texas residency (utility bill, lease agreement, or state-issued document)",
         "Citizenship or immigration documents for all household members",
@@ -159,16 +158,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Texas 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free 24/7 helpline for application help and benefits information",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
           "label": "HHSC Benefits Hotline",
           "phone": "(877) 541-7905",
           "description": "Medicaid and health benefits questions",
           "hours": "Mon-Fri 8am-6pm CT"
+        },
+        {
+          "label": "Texas 2-1-1",
+          "phone": "2-1-1",
+          "description": "Free 24/7 helpline for application help and benefits information",
+          "hours": "24 hours, 7 days a week"
         },
         {
           "label": "Medicare Rights Center",
@@ -269,7 +268,7 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-05-05"
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "star-plus-medicaid-hcbs",
@@ -605,8 +604,8 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "Bienvivir PACE (El Paso)",
-          "phone": "(915) 562-3444 ext. 2300",
-          "description": "El Paso PACE provider. The 2026 intake/enrollment extension is 2300 (previously 1442).",
+          "phone": "(915) 562-3444",
+          "description": "Bienvivir serves the El Paso area only. Call the main line and ask for PACE enrollment.",
           "hours": "Monday–Friday, 8:00 AM–5:00 PM CT"
         },
         {
@@ -687,7 +686,7 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-05-05"
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "snap-food-benefits",
@@ -1480,10 +1479,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Meals on Wheels America Finder",
-          "phone": "1-800-458-9858",
-          "description": "National helpline and online tool to find your local provider",
-          "hours": "Available 24/7 at mealsonwheelsamerica.org"
+          "label": "Texas ADRC (finds your local Meals on Wheels)",
+          "phone": "1-855-937-2372",
+          "description": "Statewide Aging and Disability Resource Center line. They connect you with the Meals on Wheels provider serving your loved one's area; each local provider handles its own intake. You can also search mealsonwheelsamerica.org.",
+          "hours": "Mon-Fri business hours"
         },
         {
           "label": "Tarrant County",
@@ -1554,7 +1553,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.mealsonwheelsamerica.org/find-meals-and-services/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-10"
+      "draftedAt": "2026-04-10",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "cba-waiver",
@@ -1770,8 +1770,8 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "community-caregiver-support",
-      "name": "Community Caregiver Support Program",
-      "shortName": "Caregiver Support",
+      "name": "Family Caregiver Support Program",
+      "shortName": "Family Caregiver Support",
       "tagline": "Get help coordinating care for your aging loved one through local support centers across Texas.",
       "programType": "benefit",
       "complexity": "medium",
@@ -1865,14 +1865,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "documentsNeeded": [
-        "Valid government-issued photo ID for your loved one",
-        "Proof of Texas residency (utility bill, lease, or driver's license)",
-        "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
-        "Medicare card and any other health insurance cards",
-        "List of current medications and medical conditions"
-      ],
+      "documentsNeeded": [],
       "contacts": [
         {
           "label": "Aging and Disability Resource Centers",
@@ -1936,7 +1929,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-855-937-2372",
       "sourceUrl": "https://www.hhs.texas.gov/services/health/support-caregivers",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-10"
+      "draftedAt": "2026-04-10",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "legal-aid-seniors-aaa",

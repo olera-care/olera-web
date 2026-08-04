@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T01:31:59.312Z
+ * Last updated: 2026-08-04T11:02:39.922Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -904,7 +904,8 @@ export const drafts: PipelineStateDrafts = {
         "Unemployment or veteran's assistance statements from previous 30 days",
         "Most recent federal income tax return (for self-employed or farmers)",
         "Utility Account Holder Authorization Form (if applicable)",
-        "Declaration of No Household Income Form (if no one has income)"
+        "Declaration of No Household Income Form (if no one has income)",
+        "Valid photo ID for the applicant"
       ],
       "contacts": [
         {
@@ -979,7 +980,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://iuc.iowa.gov/customer-assistance/how-do-i-apply-energy-assistance-liheap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-01"
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "shiip-medicare-counseling",

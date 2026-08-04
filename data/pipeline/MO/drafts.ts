@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.861Z
+ * Last updated: 2026-08-04T11:02:39.928Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -327,10 +327,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Missouri 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free 24/7 helpline for social services and program information",
-          "hours": "24 hours, 7 days a week"
+          "label": "Missouri HCBS Call Center",
+          "phone": "(866) 835-3505",
+          "description": "State intake line for Home and Community Based Services referrals, including this waiver",
+          "hours": "Mon-Fri 8:30am-3pm CT"
         },
         {
           "label": "MO HealthNet Customer Service",
@@ -398,7 +398,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/mhd/waiver/structured-family-caregiving",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "pace-elderly-care",

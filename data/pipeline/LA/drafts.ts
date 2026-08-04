@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.858Z
+ * Last updated: 2026-08-04T11:02:39.925Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1660,10 +1660,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Office of Aging and Adult Services",
-          "phone": "(866) 783-5553",
-          "description": "Community Choices Waiver information and local RCC referrals",
-          "hours": "Business hours"
+          "label": "Louisiana Options in Long-Term Care",
+          "phone": "(877) 456-1146",
+          "description": "Statewide screening line for OAAS home- and community-based support, including respite for caregivers. They can also point you to your parish Council on Aging, which runs local caregiver voucher services.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "OAAS Aging and Adult Services Helpline",
+          "phone": "(866) 758-5035",
+          "description": "General information about Louisiana aging and adult services programs",
+          "hours": "Mon-Fri business hours"
         },
         {
           "label": "Healthy Louisiana Medicaid",
@@ -1673,6 +1679,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Caregiver voucher services are run by parish Councils on Aging, so availability and rules vary by parish",
         "Priority groups (ALS diagnosis, abuse/neglect referrals, nursing home residents) get served first, others wait on first-come, first-served basis",
         "Not all family members can be paid caregivers, spouses may have restrictions and you must live with the care recipient",
         "This is not a standalone voucher program but consumer-directed care within the Community Choices Waiver",
@@ -1730,7 +1737,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 783-5553",
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     }
   ],
   "stateOverview": {

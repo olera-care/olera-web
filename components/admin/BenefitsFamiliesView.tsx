@@ -268,21 +268,34 @@ export default function BenefitsFamiliesView() {
 
   const runBatch = async (action: "navigator_schedule_all" | "navigator_unschedule_all", profileIds: string[], scheduledAt?: string) => {
     setBatchState("working");
+    // Chunk to keep each request small: the server caps a call at 100 ids,
+    // and a full backlog in one request (2 DB round-trips per row) would
+    // brush the route's execution limit.
+    const CHUNK = 25;
+    let ok = 0;
+    let skipped = 0;
     try {
-      const res = await fetch("/api/admin/benefits/families", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, profileIds, scheduledAt }),
-      });
-      const d = await res.json();
-      if (!res.ok || !d.success) throw new Error(d.error || "batch failed");
-      setBatchState({ ok: d.ok, skipped: d.skipped, unscheduled: action === "navigator_unschedule_all" });
+      for (let i = 0; i < profileIds.length; i += CHUNK) {
+        const res = await fetch("/api/admin/benefits/families", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, profileIds: profileIds.slice(i, i + CHUNK), scheduledAt }),
+        });
+        const d = await res.json();
+        if (!res.ok || !d.success) throw new Error(d.error || "batch failed");
+        ok += d.ok;
+        skipped += d.skipped;
+      }
+      setBatchState({ ok, skipped, unscheduled: action === "navigator_unschedule_all" });
       await fetchData();
       setTimeout(() => setBatchState("idle"), 8000);
       return true;
     } catch (err) {
+      // A later chunk can fail after earlier ones landed — refresh so the
+      // chips show what actually got scheduled instead of a stale count.
       console.error("Batch schedule failed:", err);
       setBatchState("error");
+      await fetchData();
       return false;
     }
   };

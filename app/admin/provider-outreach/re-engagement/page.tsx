@@ -3338,7 +3338,7 @@ export default function ReEngagementPage() {
       }
 
       // Fetch QR scan events from provider_activity (non-blocking)
-      const allSlugs = merged.map((p) => p.slug).filter(Boolean) as string[];
+      const allSlugs = apiProviders.map((p) => p.slug).filter(Boolean) as string[];
       if (allSlugs.length > 0) {
         try {
           const scanRes = await fetch("/api/admin/provider-outreach/qr-scans", {
@@ -3351,7 +3351,7 @@ export default function ReEngagementPage() {
               scans: Record<string, { source: string; scanned_at: string }[]>;
             };
             // Build slug → provider_id lookup
-            const slugToId = new Map(merged.map((p) => [p.slug, p.provider_id]));
+            const slugToId = new Map(apiProviders.map((p) => [p.slug, p.provider_id]));
             setFaxAnalyticsMap((prev) => {
               const next = new Map(prev);
               for (const [slug, scanList] of Object.entries(scans)) {

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T11:43:07.989Z
+ * Last updated: 2026-08-04T11:02:39.920Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -12,8 +12,8 @@ export const drafts: PipelineStateDrafts = {
   "programs": [
     {
       "id": "ccsp-home-care",
-      "name": "Community Care Services Program (CCSP)",
-      "shortName": "CCSP Home Care",
+      "name": "Elderly and Disabled Waiver Program (EDWP)",
+      "shortName": "Elderly and Disabled Waiver",
       "tagline": "Home care services to help your loved one avoid nursing home placement while staying on Medicaid",
       "programType": "benefit",
       "complexity": "deep",
@@ -111,20 +111,10 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts A and B)",
-        "Proof of Georgia residency (utility bill, lease, or state-issued document)",
-        "Most recent Social Security award letter",
-        "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
-        "Investment documents (stocks, bonds, annuities, trust agreements)",
-        "Property documents (deeds, tax statements)",
-        "Life insurance policies with face values",
-        "Vehicle titles and registration",
-        "Pre-need burial contracts or irrevocable burial trusts",
-        "Medical records documenting functional impairment",
-        "Physician statement confirming need for intermediate nursing facility level of care",
-        "Verification of citizenship or legal residency"
+        "Verification of income (Social Security award letter, pension statements)",
+        "Verification of assets, such as bank accounts or property",
+        "Verification of citizenship",
+        "Doctor approval for intermediate nursing home care and for developing a care plan"
       ],
       "contacts": [
         {
@@ -147,6 +137,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "This program was formerly called the Community Care Services Program (CCSP) — some agencies still use the old name",
         "You may be potentially Medicaid eligible only after CCSP admission, the functional assessment comes before financial eligibility",
         "The home may be subject to Medicaid Estate Recovery after your loved one's death, even though it's exempt during benefits",
         "Regional variations exist in providers and waitlist times, some Area Agencies have more immediate availability than others",
@@ -205,7 +196,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 552-4464",
       "sourceUrl": "https://aging.georgia.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "home-community-based-services",

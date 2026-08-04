@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T01:31:59.329Z
+ * Last updated: 2026-08-04T11:02:39.940Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -211,8 +211,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and struggling to afford groceries, Tennessee SNAP can provide monthly money loaded onto an EBT card for food purchases. Unlike younger adults, seniors face no asset limits and no work requirements, their house, car, and retirement accounts don't count against them.\n\nBenefit amounts depend on household size and net income after deductions. A typical 2-person elderly household receives around $415/month, but amounts vary based on medical expenses over $35/month, shelter costs, and other allowable deductions. Because Tennessee excludes sugary foods from SNAP purchases, the money goes toward nutritious groceries like meat, dairy, produce, and pantry staples.\n\nThe key advantage for seniors: Tennessee exempts households with anyone 60+ from the gross income test, focusing only on net income after deductions. Many seniors who think they earn \"too much\" actually qualify once medical expenses, utility costs, and the standard deduction are subtracted.",
-      "savingsRange": "$100 – $415/month in 2026",
-      "savingsSource": "Example 2-person elderly household receiving $415/month after deductions",
+      "savingsRange": "Up to $546/month for two people (FY2026 maximum)",
+      "savingsSource": "USDA FY2026 allotments: minimum benefit $24/month for 1-2 person households; maximums $298 for one person, $546 for two; amounts depend on income and deductions",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -380,7 +380,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 311-4287",
       "sourceUrl": "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "liheap-energy-assistance",
@@ -1567,6 +1568,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "OPTIONS has a waitlist (the state reported more people waiting than enrolled in 2026) — ask where your loved one would stand and what happens while waiting",
         "This is NOT the same as TennCare CHOICES, OPTIONS has no asset limits but may require cost-sharing if income is above poverty level",
         "Each regional Area Agency manages its own waiting list and providers, availability varies significantly by county",
         "If your loved one's health has recently declined or they've been hospitalized, mention this during screening as it may affect priority placement",
@@ -1617,7 +1619,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 836-6678",
       "sourceUrl": "https://www.ftaaad.org/options-subpage",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "senior-advocate-program",

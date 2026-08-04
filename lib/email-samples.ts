@@ -11,6 +11,7 @@
  * Constraints: fixtures MUST be deterministic (no Date.now / Math.random / new Date)
  * and PII-free. Image URLs use the Supabase-hosted stock set (email-proxy safe).
  */
+import { journeysForCron } from "@/lib/family-comms/journey";
 import {
   // family · compare cascade (coordinator)
   connectionOutcomeCheckEmail,
@@ -804,6 +805,42 @@ export function variantsForCron(cronId: string): EmailVariant[] {
 /** Does this cron send this variant? (primary owner or alsoCrons). */
 export function variantBelongsToCron(v: EmailVariant, cronId: string): boolean {
   return v.cron === cronId || !!v.alsoCrons?.includes(cronId);
+}
+
+/**
+ * ALL emails a page's journeys touch, in journey order — so an automation page
+ * shows the family's full email sequence (first step → check-in), not just the
+ * emails this one cron fires. Mirrors smsVariantsForJourneys; ownership is
+ * carried per-chip by the detail API (`mine` / owner fields) so nothing is
+ * misattributed. Falls back to the cron's own variants when it has no journeys.
+ */
+export function variantsForJourneys(cronId: string): EmailVariant[] {
+  const journeys = journeysForCron(cronId);
+  // Time-ordered journeys first so chips read in the order families get them.
+  const ordered = [...journeys].sort((a, b) => (a.ordering === "time" ? 0 : 1) - (b.ordering === "time" ? 0 : 1));
+  const types: string[] = [];
+  for (const j of ordered) {
+    for (const s of j.steps) {
+      if (s.emailType && !types.includes(s.emailType)) types.push(s.emailType);
+    }
+  }
+  const out: EmailVariant[] = [];
+  for (const t of types) {
+    for (const v of EMAIL_VARIANTS) {
+      if (v.emailType === t && !out.includes(v)) out.push(v);
+    }
+  }
+  for (const v of variantsForCron(cronId)) {
+    if (!out.includes(v)) out.push(v);
+  }
+  return out;
+}
+
+/** May this cron's detail page preview this variant? Own sends, plus emails a
+ *  journey shown on this page names (rendered with "sent by" attribution). */
+export function variantAllowedForCron(v: EmailVariant, cronId: string): boolean {
+  if (variantBelongsToCron(v, cronId)) return true;
+  return journeysForCron(cronId).some((j) => j.steps.some((s) => s.emailType === v.emailType));
 }
 
 /**

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob, jobChannels } from "@/lib/crons/registry";
-import { variantsForCron } from "@/lib/email-samples";
+import { variantsForJourneys, variantBelongsToCron } from "@/lib/email-samples";
 import { smsLabelForType } from "@/lib/sms-samples";
 
 /**
@@ -181,12 +181,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const windowDays = ALLOWED_WINDOWS.includes(daysParam) ? daysParam : 30;
   const job = getCronJob(id);
   if (!job) return NextResponse.json({ error: "Unknown automation" }, { status: 404 });
-  const samplePreviewTypes = variantsForCron(id).map((v) => ({
-    id: v.id,
-    label: v.label,
-    subject: v.subject,
-    emailType: v.emailType,
-  }));
+  // Journey-aware: the chips cover the family's full email sequence, with
+  // ownership carried per-chip so emails another cron fires render attributed.
+  const samplePreviewTypes = variantsForJourneys(id).map((v) => {
+    const mine = variantBelongsToCron(v, id);
+    const owner = !mine && v.cron ? getCronJob(v.cron) : null;
+    return {
+      id: v.id,
+      label: v.label,
+      subject: v.subject,
+      emailType: v.emailType,
+      mine,
+      ownerCron: owner?.id ?? null,
+      ownerName: owner ? owner.name.split(" — ")[0] : null,
+    };
+  });
   const sampleLabelByEmailType = new Map(samplePreviewTypes.map((v) => [v.emailType, v.label]));
 
   const db = getServiceClient();

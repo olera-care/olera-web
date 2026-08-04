@@ -47,6 +47,11 @@ interface SamplePreviewType {
   label: string;
   subject: string;
   emailType: string;
+  // Journey-aware ownership: false = another automation fires this email; it's
+  // shown here so the full sequence is visible, with attribution.
+  mine?: boolean;
+  ownerCron?: string | null;
+  ownerName?: string | null;
 }
 interface DetailResponse {
   job: {
@@ -812,9 +817,10 @@ export default function AutomationDetailPage() {
               {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
               {(() => {
                 const isDigest = data.job.id === "weekly-provider-digest";
-                const sampleTypes = isDigest
-                  ? DIGEST_SAMPLES.map((s) => ({ id: s.key, label: s.label }))
-                  : data.samplePreviewTypes.map((s) => ({ id: s.id, label: s.label }));
+                type SampleChip = { id: string; label: string; mine: boolean; ownerCron?: string | null; ownerName?: string | null };
+                const sampleTypes: SampleChip[] = isDigest
+                  ? DIGEST_SAMPLES.map((s) => ({ id: s.key, label: s.label, mine: true }))
+                  : data.samplePreviewTypes.map((s) => ({ id: s.id, label: s.label, mine: s.mine !== false, ownerCron: s.ownerCron, ownerName: s.ownerName }));
                 if (sampleTypes.length === 0 && data.previewTypes.length === 0) return null;
                 const isLatestSel = previewType?.startsWith(LATEST_PREFIX) ?? false;
                 const sampleSel = !isLatestSel && sampleTypes.some((s) => s.id === previewType);
@@ -857,12 +863,36 @@ export default function AutomationDetailPage() {
                     {sampleTypes.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 border-b border-gray-100 bg-gray-50/40 px-4 py-2">
                         {sampleTypes.map((s) => (
-                          <button key={s.id} onClick={() => { setPreviewType(s.id); setPreviewExpanded(false); }} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${previewType === s.id ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
+                          <button
+                            key={s.id}
+                            onClick={() => { setPreviewType(s.id); setPreviewExpanded(false); }}
+                            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                              previewType === s.id
+                                ? "bg-gray-900 text-white"
+                                : s.mine
+                                  ? "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                                  : "border border-dashed border-gray-200 bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                            }`}
+                            title={s.mine ? undefined : "Sent by another automation — shown for the full sequence"}
+                          >
                             {s.label}
                           </button>
                         ))}
                       </div>
                     )}
+                    {(() => {
+                      const activeChip = sampleTypes.find((s) => s.id === previewType);
+                      if (!activeChip || activeChip.mine || !activeChip.ownerCron) return null;
+                      return (
+                        <div className="border-b border-gray-100 bg-amber-50/40 px-4 py-1.5 text-xs text-gray-500">
+                          Sent by{" "}
+                          <Link href={`/admin/automations/${activeChip.ownerCron}`} className="font-medium text-teal-700 hover:underline">
+                            {activeChip.ownerName ?? activeChip.ownerCron}
+                          </Link>{" "}
+                          — shown here so the full email sequence is visible in one place.
+                        </div>
+                      );
+                    })()}
                     {preview && typeof preview === "object" && (preview.from || preview.preheader) && (
                       <div className="space-y-0.5 border-b border-gray-100 px-4 py-2 text-xs text-gray-400">
                         {preview.from && <div className="truncate"><span className="font-medium text-gray-500">From</span> <code className="text-gray-600">{preview.from}</code></div>}

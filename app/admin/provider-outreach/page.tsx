@@ -154,6 +154,7 @@ interface OutreachProvider {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  re_engage_channel: string | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
@@ -2474,6 +2475,10 @@ export default function ProviderOutreachPage() {
   const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
 
+  // Channel filter state (for Alternative Channels tab)
+  type ChannelFilter = "all" | "email" | "fax" | "linkedin" | "direct_mail";
+  const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
+
   // All admins for name lookup (fetched once)
   interface AdminUser {
     id: string;
@@ -4009,7 +4014,13 @@ export default function ProviderOutreachPage() {
             {tabs.map((tab) => (
               <button
                 key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
+                onClick={() => {
+                  setActiveTab(tab.value);
+                  // Reset channel filter when leaving Alternative Channels tab
+                  if (tab.value !== "re_engage") {
+                    setSelectedChannelFilter("all");
+                  }
+                }}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.value
                     ? "border-gray-900 text-gray-900"
@@ -4621,10 +4632,48 @@ export default function ProviderOutreachPage() {
             adminNameLookup={adminNameLookup}
           />
         ) : activeTab === "re_engage" ? (
-          // Re-Engage tab: cycle-aware queue view
-          <ReEngageQueue
-            providers={providers}
-            loading={loadingProviders}
+          // Alternative Channels tab: cycle-aware queue view with channel filter
+          <>
+            {/* Channel filter chips */}
+            <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+              <span className="text-xs text-gray-500 mr-1">Channel:</span>
+              {(["all", "email", "fax", "linkedin", "direct_mail"] as const).map((channel) => {
+                const count = channel === "all"
+                  ? providers.length
+                  : providers.filter((p) =>
+                      channel === "email"
+                        ? !p.re_engage_channel || p.re_engage_channel === "re_engage"
+                        : p.re_engage_channel === channel
+                    ).length;
+                const label = channel === "all" ? "All" :
+                  channel === "email" ? "Email" :
+                  channel === "fax" ? "Fax" :
+                  channel === "linkedin" ? "LinkedIn" : "Direct Mail";
+                const isSelected = selectedChannelFilter === channel;
+                return (
+                  <button
+                    key={channel}
+                    onClick={() => setSelectedChannelFilter(channel)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      isSelected
+                        ? "bg-gray-800 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+            <ReEngageQueue
+              providers={
+                selectedChannelFilter === "all"
+                  ? providers
+                  : selectedChannelFilter === "email"
+                    ? providers.filter((p) => !p.re_engage_channel || p.re_engage_channel === "re_engage")
+                    : providers.filter((p) => p.re_engage_channel === selectedChannelFilter)
+              }
+              loading={loadingProviders}
             onReEngageAction={(providerId, result) => {
               // Mark as recently moved to filter from stale API responses
               markAsRecentlyMoved(providerId);
@@ -4646,6 +4695,7 @@ export default function ProviderOutreachPage() {
             }}
             adminNameLookup={adminNameLookup}
           />
+          </>
         ) : (
           // Normal city-grouped view
           <>

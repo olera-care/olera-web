@@ -171,10 +171,24 @@ export function lifecycleStatus(opts: {
   caseMeta: BenefitsCaseMeta;
   completedAt: string;
   lastViewedAt: string | null;
+  /** Latest real (non-keyword) inbound SMS — metadata.sms_inbound. */
+  lastInboundTextAt?: string | null;
   now: number;
 }): Lifecycle {
   const { cascade, caseMeta, completedAt, lastViewedAt, now } = opts;
   if (caseMeta.resolved_at) return { status: "resolved", detail: null };
+  // A family who texted back is a human waiting on a human — float them like
+  // wants_help instead of letting the view-based clocks call them "stalled".
+  // Logging a contact after the text clears it; a NEWER text re-floats (which
+  // is why this outranks the contacted-within-7d "working" check). 7-day
+  // bound so a long-handled reply doesn't float forever.
+  if (
+    opts.lastInboundTextAt &&
+    now - new Date(opts.lastInboundTextAt).getTime() < 7 * CASE_DAY &&
+    (!caseMeta.contacted_at || caseMeta.contacted_at < opts.lastInboundTextAt)
+  ) {
+    return { status: "needs_help", detail: "texted back" };
+  }
   if (caseMeta.contacted_at && now - new Date(caseMeta.contacted_at).getTime() < 7 * CASE_DAY) {
     return { status: "working", detail: "contacted" };
   }

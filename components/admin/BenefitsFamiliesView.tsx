@@ -92,6 +92,8 @@ interface FamilyRow {
     scheduleFailed: boolean;
     firstStep: string | null;
   } | null;
+  /** Latest real inbound SMS — the 💬 chip (webhook writes metadata.sms_inbound). */
+  inboundText: { at: string; body: string | null } | null;
 }
 
 /** Next 10am US Eastern as a datetime-local value — the batch default. A
@@ -922,6 +924,17 @@ export default function BenefitsFamiliesView() {
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center gap-1.5">
                         <LifecycleChip lifecycle={f.lifecycle} noteCount={f.caseInfo.noteCount} />
+                        {/* Real reply in the last 14 days — the message itself
+                            rides the tooltip; the full thread is the timeline. */}
+                        {f.inboundText &&
+                          Date.now() - new Date(f.inboundText.at).getTime() < 14 * 24 * 60 * 60 * 1000 && (
+                            <span
+                              className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 whitespace-nowrap"
+                              title={`${formatEt(f.inboundText.at)} — "${f.inboundText.body ?? ""}"`}
+                            >
+                              💬 Texted back
+                            </span>
+                          )}
                         {f.navigator?.status === "pending" &&
                           (f.navigator.scheduleFailed ? (
                             <span

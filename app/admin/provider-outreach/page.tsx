@@ -1808,25 +1808,22 @@ function FollowUpProviderRow({
             </div>
           </details>
 
-          {/* Outcome Buttons - subtle outlined tags */}
-          {/* Note: No "Claimed" button - auto-claim detection handles this automatically */}
-          {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
+          {/* Outcome Buttons - plain uniform style */}
+          {/* Note: "Not interested" is accessible via info icon action modal */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Send claim email (→ Alternative Channels) */}
             <button
               onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link, then move to Alternative Channels"}
+              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link"}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
                 resendDisabled
                   ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
-                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
+                  : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
               }`}
             >
-              📧 Send email{resendDisabled && " (max)"}
+              Send email{resendDisabled && " (max)"}
             </button>
 
-            {/* Wrong contact */}
             <button
               onClick={() => setPendingOutcome("wrong_contact")}
               disabled={submitting !== null}
@@ -1835,24 +1832,11 @@ function FollowUpProviderRow({
               Wrong contact
             </button>
 
-            {/* Not interested (soft terminal) */}
-            <button
-              onClick={() => setPendingOutcome("not_interested")}
-              disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:text-gray-800 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Not interested
-            </button>
-
-            {/* Separator */}
-            <div className="w-px h-6 bg-gray-200 mx-1" />
-
-            {/* Alternative channels */}
             <button
               onClick={() => setPendingOutcome("try_fax")}
               disabled={submitting !== null}
               title="Move to Alternative Channels (Fax)"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Try Fax
             </button>
@@ -1861,7 +1845,7 @@ function FollowUpProviderRow({
               onClick={() => setPendingOutcome("try_linkedin")}
               disabled={submitting !== null}
               title="Move to Alternative Channels (LinkedIn)"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Try LinkedIn
             </button>
@@ -1870,7 +1854,7 @@ function FollowUpProviderRow({
               onClick={() => setPendingOutcome("try_direct_mail")}
               disabled={submitting !== null}
               title="Move to Alternative Channels (Direct Mail)"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full hover:border-amber-300 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Try Direct Mail
             </button>

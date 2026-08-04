@@ -47,7 +47,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   ready: "Ready",
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
-  re_engage: "Re-Engage",
+  re_engage: "Alternative Channels",
   not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
@@ -59,7 +59,7 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   not_contacted: "Not Contacted",
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
-  re_engage: "Re-Engage",
+  re_engage: "Alternative Channels",
   not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
@@ -1438,11 +1438,11 @@ function FollowUpProviderRow({
           description: "Send a short email with just the claim link to the provider.",
           details: [
             "📧 Email will be sent immediately with the claim link",
-            "Provider will be moved to the Re-Engage stage",
+            "Provider will be moved to Alternative Channels",
             "They will no longer appear in the Follow Up queue",
             `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
           ],
-          confirmLabel: "Yes, send email & move to Re-Engage",
+          confirmLabel: "Yes, send email & move to Alternative Channels",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
         };
       case "wrong_contact":
@@ -1552,7 +1552,7 @@ function FollowUpProviderRow({
 
         // Check if email was supposed to be sent but failed
         if (data.email_sent === false && data.email_error) {
-          setError(`Email failed: ${data.email_error}. Provider was still moved to Re-Engage.`);
+          setError(`Email failed: ${data.email_error}. Provider was still moved to Alternative Channels.`);
         }
 
         // Reset form
@@ -1811,18 +1811,18 @@ function FollowUpProviderRow({
           {/* Note: No "Claimed" button - auto-claim detection handles this automatically */}
           {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Send claim email (→ Re-Engage) */}
+            {/* Send claim email (→ Alternative Channels) */}
             <button
               onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link, then move to Re-Engage"}
+              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link, then move to Alternative Channels"}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
                 resendDisabled
                   ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
                   : "text-blue-700 bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
               }`}
             >
-              📧 Send email (→ Re-Engage){resendDisabled && " (max)"}
+              📧 Send email{resendDisabled && " (max)"}
             </button>
 
             {/* Wrong contact */}
@@ -2203,7 +2203,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   if (reEngageProviders.length === 0) {
     return (
       <div className="p-12 text-center">
-        <p className="text-gray-500">No providers in Re-Engage queue</p>
+        <p className="text-gray-500">No providers in Alternative Channels</p>
       </div>
     );
   }
@@ -2320,7 +2320,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
       {/* Summary footer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
-        {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Re-Engage queue
+        {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Alternative Channels
         {" • "}
         {reEngageProviders.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
       </div>
@@ -5120,7 +5120,7 @@ export default function ProviderOutreachPage() {
                             pendingStageMove === "in_sequence" ? "In Sequence" :
                             pendingStageMove === "needs_call" ? "Follow Up" :
                             pendingStageMove === "not_interested" ? "Not Interested" :
-                            "Re-Engage";
+                            "Alternative Channels";
                           showToast(`Moved to ${stageLabel}`, "success");
                           // Mark as recently moved to filter from stale API responses
                           markAsRecentlyMoved(actionModalProvider.provider_id);
@@ -5181,7 +5181,7 @@ export default function ProviderOutreachPage() {
                         pendingStageMove === "in_sequence" ? "In Sequence" :
                         pendingStageMove === "needs_call" ? "Follow Up" :
                         pendingStageMove === "not_interested" ? "Not Interested" :
-                        "Re-Engage"
+                        "Alternative Channels"
                       }`
                     )}
                   </button>

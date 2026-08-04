@@ -168,6 +168,13 @@ const RECIPIENT_FILTERS: { key: RecipientStatus; label: string }[] = [
 
 type Tab = "overview" | "recipients" | "runs";
 
+// Real-send dropdown selections are namespaced so they can never collide with
+// sample-variant ids — several variants (benefits_first_step, family_outcome_check,
+// benefits_check_in, family_archetype) share their id string with the email_type,
+// and an un-prefixed selection would silently render the SAMPLE instead of the
+// latest real send.
+const LATEST_PREFIX = "latest:";
+
 // ── small render helpers ──────────────────────────────────────────────
 
 function timeAgo(iso: string | null): string {
@@ -418,11 +425,15 @@ export default function AutomationDetailPage() {
     if (!id || !previewType) return;
     setPreview("loading");
     let cancelled = false;
-    // Sample keys fetch a rendered fixture; other values fetch the latest real email.
+    // Sample keys fetch a rendered fixture; "latest:"-prefixed and bare type
+    // values fetch the latest real email of that type.
+    const isLatest = previewType.startsWith(LATEST_PREFIX);
     const isSample =
-      DIGEST_SAMPLES.some((s) => s.key === previewType) ||
-      data?.samplePreviewTypes.some((s) => s.id === previewType);
-    const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`;
+      !isLatest &&
+      (DIGEST_SAMPLES.some((s) => s.key === previewType) ||
+        data?.samplePreviewTypes.some((s) => s.id === previewType));
+    const realType = isLatest ? previewType.slice(LATEST_PREFIX.length) : previewType;
+    const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(realType)}`;
     fetch(`/api/admin/automations/${id}/preview?${qs}`)
       .then((r) => (r.ok ? r.json() : r.status === 404 ? Promise.resolve("none") : Promise.reject(new Error())))
       .then((d) => { if (!cancelled) setPreview(d === "none" ? "none" : (d as PreviewResponse)); })
@@ -805,9 +816,11 @@ export default function AutomationDetailPage() {
                   ? DIGEST_SAMPLES.map((s) => ({ id: s.key, label: s.label }))
                   : data.samplePreviewTypes.map((s) => ({ id: s.id, label: s.label }));
                 if (sampleTypes.length === 0 && data.previewTypes.length === 0) return null;
-                const sampleSel = sampleTypes.some((s) => s.id === previewType);
+                const isLatestSel = previewType?.startsWith(LATEST_PREFIX) ?? false;
+                const sampleSel = !isLatestSel && sampleTypes.some((s) => s.id === previewType);
+                const rawType = isLatestSel ? previewType!.slice(LATEST_PREFIX.length) : previewType;
                 const fullUrl = previewType
-                  ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`}&raw=1`
+                  ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(rawType!)}`}&raw=1`
                   : null;
                 return (
                   <div className="overflow-hidden rounded-xl border border-gray-200">
@@ -825,11 +838,17 @@ export default function AutomationDetailPage() {
                       <div className="flex shrink-0 items-center gap-3">
                         {/* Real-send picker. Shown even with ONE previewType when samples exist:
                             for the navigator the real sends are per-family AI letters — the
-                            template sample must not be the only thing viewable. */}
+                            template sample must not be the only thing viewable. Option values
+                            carry LATEST_PREFIX so a type that shares its name with a sample-
+                            variant id still fetches the real email. */}
                         {!isDigest && (data.previewTypes.length > 1 || (data.previewTypes.length > 0 && sampleTypes.length > 0)) && (
-                          <select value={sampleSel ? "" : (previewType ?? "")} onChange={(e) => { if (e.target.value) { setPreviewType(e.target.value); setPreviewExpanded(false); } }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
+                          <select
+                            value={sampleSel || !previewType ? "" : LATEST_PREFIX + rawType}
+                            onChange={(e) => { if (e.target.value) { setPreviewType(e.target.value); setPreviewExpanded(false); } }}
+                            className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600"
+                          >
                             {sampleSel && <option value="" disabled>Latest sent…</option>}
-                            {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                            {data.previewTypes.map((t) => <option key={t} value={LATEST_PREFIX + t}>{t}</option>)}
                           </select>
                         )}
                         {fullUrl && <a href={fullUrl} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}

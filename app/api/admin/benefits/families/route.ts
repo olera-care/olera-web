@@ -42,6 +42,8 @@ interface FamilyRow {
     scheduledAt: string | null;
     /** A scheduled fire was blocked (reason rides the per-family GET). */
     scheduleFailed: boolean;
+    /** Picked program's short name — lets batch UIs list drafts reviewably. */
+    firstStep: string | null;
   } | null;
   profileId: string;
   displayName: string | null;
@@ -332,6 +334,7 @@ export async function GET(request: NextRequest) {
               composedAt: navMeta.composed_at ?? null,
               scheduledAt: navMeta.scheduled_at ?? null,
               scheduleFailed: Boolean(navMeta.schedule_failed_reason),
+              firstStep: navMeta.pick?.shortName ?? null,
             }
           : null,
         profileId,
@@ -409,6 +412,124 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     console.error("Admin benefits families error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/admin/benefits/families — batch schedule actions over the queue.
+ *
+ *   { action: "navigator_schedule_all", profileIds: string[], scheduledAt: ISO }
+ *   { action: "navigator_unschedule_all", profileIds: string[] }
+ *
+ * Batch NEVER touches letter bodies: each draft sends its stored edits (or
+ * the AI original) — unlike the drawer's navigator_schedule, which saves the
+ * open editor's text as part of scheduling. The hourly scheduler cron does
+ * the actual sending (≤20/run), re-checking governance per family at fire
+ * time, so a batch is pacing + caps + quiet-hours for free.
+ *
+ * Every row gets an individual verdict — a partial batch must never read as
+ * "all scheduled".
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const body = await request.json();
+    const action: string = body.action || "";
+    if (!["navigator_schedule_all", "navigator_unschedule_all"].includes(action)) {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
+    const profileIds: unknown = body.profileIds;
+    if (!Array.isArray(profileIds) || profileIds.length === 0 || profileIds.length > 100 ||
+        !profileIds.every((id) => typeof id === "string")) {
+      return NextResponse.json({ error: "profileIds must be 1-100 ids" }, { status: 400 });
+    }
+
+    let scheduledAtIso: string | null = null;
+    if (action === "navigator_schedule_all") {
+      const scheduledAt = typeof body.scheduledAt === "string" ? new Date(body.scheduledAt) : null;
+      if (!scheduledAt || isNaN(scheduledAt.getTime())) {
+        return NextResponse.json({ error: "Pick a valid date and time" }, { status: 400 });
+      }
+      const nowMs = Date.now();
+      if (scheduledAt.getTime() < nowMs - 60_000) {
+        return NextResponse.json({ error: "That time is in the past" }, { status: 400 });
+      }
+      if (scheduledAt.getTime() > nowMs + 30 * 86400e3) {
+        return NextResponse.json(
+          { error: "Schedule within 30 days — further out, the letters go stale" },
+          { status: 400 },
+        );
+      }
+      scheduledAtIso = scheduledAt.toISOString();
+    }
+
+    const db = getServiceClient();
+    const results: { profileId: string; ok: boolean; reason?: string }[] = [];
+
+    for (const profileId of profileIds as string[]) {
+      // Fresh read per row: a draft sent or dismissed mid-batch (another tab,
+      // the scheduler) must be skipped, not clobbered back to scheduled.
+      const { data: row } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", profileId)
+        .maybeSingle();
+      if (!row) {
+        results.push({ profileId, ok: false, reason: "not found" });
+        continue;
+      }
+      const meta = (row.metadata as Record<string, unknown>) || {};
+      const nav = readBenefitsNavigator(meta);
+
+      if (action === "navigator_schedule_all") {
+        if (nav.status !== "pending" || !nav.body) {
+          results.push({ profileId, ok: false, reason: "no pending draft" });
+          continue;
+        }
+        if (nav.scheduled_at) {
+          results.push({ profileId, ok: false, reason: "already scheduled" });
+          continue;
+        }
+        const next = {
+          ...nav,
+          scheduled_at: scheduledAtIso!,
+          scheduled_by: adminUser.display_name || user.email || "admin",
+          schedule_failed_at: undefined,
+          schedule_failed_reason: undefined,
+        };
+        const { error } = await db
+          .from("business_profiles")
+          .update({ metadata: { ...meta, benefits_navigator: next } })
+          .eq("id", profileId);
+        results.push(error ? { profileId, ok: false, reason: "write failed" } : { profileId, ok: true });
+      } else {
+        if (nav.status !== "pending" || !nav.scheduled_at) {
+          results.push({ profileId, ok: false, reason: "nothing scheduled" });
+          continue;
+        }
+        const next = {
+          ...nav,
+          scheduled_at: undefined,
+          schedule_failed_at: undefined,
+          schedule_failed_reason: undefined,
+        };
+        const { error } = await db
+          .from("business_profiles")
+          .update({ metadata: { ...meta, benefits_navigator: next } })
+          .eq("id", profileId);
+        results.push(error ? { profileId, ok: false, reason: "write failed" } : { profileId, ok: true });
+      }
+    }
+
+    const ok = results.filter((r) => r.ok).length;
+    return NextResponse.json({ success: true, ok, skipped: results.length - ok, results });
+  } catch (err) {
+    console.error("Admin benefits batch schedule error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

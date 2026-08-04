@@ -30,6 +30,8 @@ import {
   // family · benefits cascade (coordinator B1/B2)
   benefitsFirstStepEmail,
   benefitsFirstStepSubject,
+  benefitsResultsSavedEmail,
+  benefitsResultsSavedSubject,
   benefitsCheckInEmail,
   benefitsCheckInSubject,
   benefitsCheckInDoneEmail,
@@ -176,6 +178,25 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       yesUrl: "https://olera.care/connection-outcome?v=yes",
       notYetUrl: "https://olera.care/connection-outcome?v=not_yet",
       noUrl: "https://olera.care/connection-outcome?v=no",
+    }),
+  },
+  {
+    id: "benefits_results_saved", audience: "family", group: "Family · Benefits cascade",
+    label: "Day 0 · Results email", subject: benefitsResultsSavedSubject({ matchCount: 4, possessive: "Your mom's", stateName: "Texas" }),
+    emailType: "benefits_results_saved", cron: "benefits-results-texts",
+    who: "Every new family the moment they finish the benefits quiz with an email on file (V3 flow requires one). Event-driven at intake, not a cron.",
+    why: "The Day-0 welcome that delivers real value up front: their top-5 matched programs as a starter list and the /m plan link. 95% of families won't engage with email, so when one does, this has to be worth their time.",
+    render: () => benefitsResultsSavedEmail({
+      greetingName: "Maria",
+      heroLine: "We found <strong>4 programs</strong> in Texas that may help with memory care for your mom.",
+      programs: [
+        { name: "LIHEAP", url: "https://olera.care/benefits/texas/liheap", savings: "Typically $300 – $1,000/year" },
+        { name: "STAR+PLUS Waiver", url: "https://olera.care/benefits/texas/star-plus-waiver", savings: null },
+        { name: "Medicare Savings Programs (MSP)", url: "https://olera.care/benefits/texas/msp", savings: "Typically $2,000+/year" },
+        { name: "Weatherization Assistance", url: "https://olera.care/benefits/texas/weatherization", savings: null },
+      ],
+      matchesUrl: "https://olera.care/m/sample",
+      matchCount: 4,
     }),
   },
   {

@@ -63,7 +63,7 @@ const BENEFITS_CASCADE: CommsJourney = {
         "Family completes the benefits finder. Their saved-results email delivers the /m plan link; with a phone + text consent, a results text keeps the promise in seconds.",
       emailType: "benefits_results_saved",
       smsType: "benefits_results_sms",
-      ownerNote: "Event-driven at intake — not a cron",
+      ownedBy: "benefits-results-texts",
     },
     {
       key: "b1_draft",
@@ -199,6 +199,7 @@ const COMMS_JOURNEYS: Record<string, CommsJourney> = {
 const JOURNEYS_BY_CRON: Record<string, string[]> = {
   "family-comms-coordinator": [HELP_CASCADE_LADDER.key, BENEFITS_CASCADE.key],
   "benefits-navigator-scheduler": [BENEFITS_CASCADE.key],
+  "benefits-results-texts": [BENEFITS_CASCADE.key],
 };
 
 export function journeysForCron(cronId: string): CommsJourney[] {

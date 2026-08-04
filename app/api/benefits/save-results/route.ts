@@ -5,6 +5,7 @@ import { createServerClient as createSSRServerClient } from "@supabase/ssr";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { benefitsResultsSms } from "@/lib/sms/templates";
+import { benefitsResultsSavedEmail, benefitsResultsSavedSubject } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sendSlackAlert, slackBenefitsCompleted } from "@/lib/slack";
@@ -782,31 +783,20 @@ export async function POST(req: Request) {
         // scannability — anything past 5 in an email feels like a wall.
         // Full list lives at /m/{token} via the CTA below.
         const topMatches = matchedPrograms.slice(0, 5);
-        const programsHtml = topMatches
-          .map((p) => {
-            const programLink = `${siteUrl}/benefits/${p.stateId}/${p.programId}`;
-            const savings = topSavingsCopy(p.savingsRange);
-            const name = p.shortName || p.name;
-            return `
-              <a href="${programLink}" style="display: block; text-decoration: none; color: inherit; border-top: 1px solid #f3f4f6; padding: 16px 0;">
-                <div style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 600; color: #111827; margin-bottom: 4px;">
-                  ${name}
-                </div>
-                ${savings
-                  ? `<div style="font-size: 13px; color: #047857; font-weight: 500;">${savings}</div>`
-                  : ""}
-              </a>
-            `;
-          })
-          .join("");
+        const programs = topMatches.map((p) => ({
+          name: p.shortName || p.name,
+          url: `${siteUrl}/benefits/${p.stateId}/${p.programId}`,
+          savings: topSavingsCopy(p.savingsRange),
+        }));
 
         const matchesPath = benefitsToken ? `/m/${benefitsToken}` : "/portal";
 
         // Subject — personalized when relationship known, falls back cleanly.
-        const subject =
-          matchCount > 0
-            ? `${possessive} ${matchCount} care benefit ${matchCount === 1 ? "match" : "matches"} in ${stateNameForEmail}`
-            : `Care benefit programs in ${stateNameForEmail}`;
+        const subject = benefitsResultsSavedSubject({
+          matchCount,
+          possessive,
+          stateName: stateNameForEmail,
+        });
 
         const emailType = "benefits_results_saved";
         const emailLogId = await reserveEmailLogId({
@@ -833,38 +823,13 @@ export async function POST(req: Request) {
         await sendEmail({
           to: normalizedEmail,
           subject,
-          html: `
-<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
-
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
-    Hi ${hasRealName ? displayName : "there"},
-  </p>
-
-  <h1 style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 24px; line-height: 1.3; margin: 0 0 16px; color: #111827; font-weight: 700;">
-    ${heroLine}
-  </h1>
-
-  ${topMatches.length > 0
-    ? `
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #6b7280;">
-    Here are the top ${topMatches.length} matches we saved for you. Tap any program to see eligibility and how to apply:
-  </p>
-
-  <div style="margin: 0 0 32px;">
-    ${programsHtml}
-  </div>
-  `
-    : ""}
-
-  <a href="${trackedMatchesUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
-    View ${matchCount > 0 ? `all ${matchCount} ` : ""}matches →
-  </a>
-
-  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
-    Olera helps families find care benefits they're eligible for in their state. We never sell your info.
-  </p>
-</div>
-          `,
+          html: benefitsResultsSavedEmail({
+            greetingName: hasRealName ? displayName : "there",
+            heroLine,
+            programs,
+            matchesUrl: trackedMatchesUrl,
+            matchCount,
+          }),
           emailLogId: emailLogId ?? undefined,
         });
       } catch (emailErr) {

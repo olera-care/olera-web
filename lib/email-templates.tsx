@@ -1600,6 +1600,85 @@ function stripEmDashes(text: string): string {
   return text.replace(/\s*—\s*/g, (m) => (/\s/.test(m) ? ", " : "-")).replace(/—/g, "-");
 }
 
+/** Subject for the intake results email (benefits_results_saved). */
+export function benefitsResultsSavedSubject(opts: {
+  matchCount: number;
+  /** "Your mom's" / "Your" — pre-built by the caller's relationship helper. */
+  possessive: string;
+  stateName: string;
+}): string {
+  return opts.matchCount > 0
+    ? `${opts.possessive} ${opts.matchCount} care benefit ${opts.matchCount === 1 ? "match" : "matches"} in ${opts.stateName}`
+    : `Care benefit programs in ${opts.stateName}`;
+}
+
+/**
+ * Intake results email (benefits_results_saved) — the Day-0 welcome that
+ * delivers real value up front: the top-5 matched programs as a starter list,
+ * CTA to the full /m plan. Extracted from app/api/benefits/save-results so the
+ * sample registry renders the LIVE template (drift-proof). The caller builds
+ * the hero line and program rows (relationship phrasing + savings copy stay
+ * with the route's helpers).
+ */
+export function benefitsResultsSavedEmail(opts: {
+  /** First name, or "there". */
+  greetingName: string;
+  /** Pre-built hero sentence; may contain <strong>. */
+  heroLine: string;
+  /** Top matches (max 5 for inbox scannability). Empty for the zero-state. */
+  programs: { name: string; url: string; savings: string | null }[];
+  /** Tracked CTA to the family's /m plan (or /portal fallback). */
+  matchesUrl: string;
+  matchCount: number;
+}): string {
+  const programsHtml = opts.programs
+    .map(
+      (p) => `
+              <a href="${p.url}" style="display: block; text-decoration: none; color: inherit; border-top: 1px solid #f3f4f6; padding: 16px 0;">
+                <div style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 600; color: #111827; margin-bottom: 4px;">
+                  ${p.name}
+                </div>
+                ${p.savings ? `<div style="font-size: 13px; color: #047857; font-weight: 500;">${p.savings}</div>` : ""}
+              </a>
+            `,
+    )
+    .join("");
+  return `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
+
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
+    Hi ${opts.greetingName},
+  </p>
+
+  <h1 style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 24px; line-height: 1.3; margin: 0 0 16px; color: #111827; font-weight: 700;">
+    ${opts.heroLine}
+  </h1>
+
+  ${
+    opts.programs.length > 0
+      ? `
+  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #6b7280;">
+    Here are the top ${opts.programs.length} matches we saved for you. Tap any program to see eligibility and how to apply:
+  </p>
+
+  <div style="margin: 0 0 32px;">
+    ${programsHtml}
+  </div>
+  `
+      : ""
+  }
+
+  <a href="${opts.matchesUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
+    View ${opts.matchCount > 0 ? `all ${opts.matchCount} ` : ""}matches →
+  </a>
+
+  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
+    Olera helps families find care benefits they're eligible for in their state. We never sell your info.
+  </p>
+</div>
+          `;
+}
+
 /**
  * Rung B1 — the ten-minute first step. Not a check-in: ONE program, one
  * phone number, what to say, and the documents to have nearby. Content comes

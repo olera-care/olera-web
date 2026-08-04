@@ -56,7 +56,7 @@ interface BottomFunnelProvider {
   zip?: string | null;
   address_verified?: boolean;
   mail_sent_at?: string | null;
-  mail_status?: "queued" | "printed" | "mailed" | "delivered" | null;
+  mail_status?: string | null;
   // Tier
   tier?: ProviderTier;
   location_count?: number;
@@ -576,17 +576,33 @@ function ChannelTracking({
             </div>
             <div className="flex items-center justify-between py-1.5">
               <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "mailed" || mailAnalytics.status === "delivered" ? "bg-emerald-500" : "bg-amber-400"}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  mailAnalytics.status === "delivered" ? "bg-emerald-500"
+                  : mailAnalytics.status === "cancelled" || mailAnalytics.status === "returned" ? "bg-red-400"
+                  : mailAnalytics.status === "in_transit" || mailAnalytics.status === "printed" ? "bg-blue-400"
+                  : "bg-amber-400"
+                }`} />
                 <span className="text-xs text-gray-700">Print status</span>
               </div>
-              <span className="text-xs text-gray-500 capitalize">{mailAnalytics.status}</span>
+              <span className={`text-xs capitalize ${
+                mailAnalytics.status === "cancelled" || mailAnalytics.status === "returned" ? "text-red-500" : "text-gray-500"
+              }`}>{mailAnalytics.status === "in_transit" ? "In Transit" : mailAnalytics.status}</span>
             </div>
             <div className="flex items-center justify-between py-1.5">
               <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "delivered" ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  mailAnalytics.status === "delivered" ? "bg-emerald-500"
+                  : mailAnalytics.status === "cancelled" || mailAnalytics.status === "returned" ? "bg-red-400"
+                  : "bg-gray-300"
+                }`} />
                 <span className="text-xs text-gray-700">Est. delivery</span>
               </div>
-              <span className="text-xs text-gray-500">{mailAnalytics.status === "delivered" ? "Delivered" : "3-5 business days"}</span>
+              <span className="text-xs text-gray-500">{
+                mailAnalytics.status === "delivered" ? "Delivered"
+                : mailAnalytics.status === "cancelled" ? "Cancelled"
+                : mailAnalytics.status === "returned" ? "Returned"
+                : "3-5 business days"
+              }</span>
             </div>
             <div className="flex items-center justify-between py-1.5">
               <div className="flex items-center gap-2">
@@ -2219,7 +2235,7 @@ function FaxPreviewSidebar({
 
 interface MailAnalytics {
   sent_at: string;
-  status: "queued" | "printed" | "mailed" | "delivered";
+  status: string; // PostGrid statuses: draft, ready, printed, in_transit, delivered, returned, cancelled
   estimated_delivery?: string;
   qr_scanned?: boolean;
   qr_scanned_at?: string;
@@ -2550,9 +2566,20 @@ function DirectMailerProviderRow({
                 {addressInput.trim() && !/^no\s*a/i.test(addressInput.trim()) && (
                   <button
                     type="button"
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
-                      if (addressInput.trim()) setVerified(true);
+                      if (addressInput.trim()) {
+                        setVerified(true);
+                        // Persist to tracking table so send-mailer can use it
+                        await fetch("/api/admin/provider-outreach/find-address", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            provider_id: provider.provider_id,
+                            address: addressInput.trim(),
+                          }),
+                        }).catch(() => {});
+                      }
                     }}
                     className="shrink-0 px-3 py-1 text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-md transition"
                   >
@@ -2665,7 +2692,7 @@ function PostcardPreviewSidebar({
 }: {
   provider: BottomFunnelProvider;
   onClose: () => void;
-  onMailSent?: (providerId: string) => void;
+  onMailSent?: (providerId: string, pgStatus?: string) => void;
 }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -2912,12 +2939,12 @@ function PostcardPreviewSidebar({
             <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
-                <span className="text-sm font-semibold text-teal-800">Postcard queued for printing</span>
+                <span className="text-sm font-semibold text-teal-800">Postcard sent to PostGrid</span>
               </div>
               <div className="divide-y divide-teal-100">
                 <div className="flex items-center justify-between py-1.5">
                   <span className="text-sm text-gray-700">Status</span>
-                  <span className="text-xs font-medium text-teal-600">Queued</span>
+                  <span className="text-xs font-medium text-teal-600 capitalize">Ready</span>
                 </div>
                 <div className="flex items-center justify-between py-1.5">
                   <span className="text-sm text-gray-700">Est. delivery</span>
@@ -2968,13 +2995,15 @@ function PostcardPreviewSidebar({
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                       provider_id: provider.provider_id,
+                      provider_name: provider.provider_name,
                       address: fullAddress,
+                      slug: provider.slug || "",
                     }),
                   });
                   const data = await res.json();
                   if (res.ok) {
                     setSent(true);
-                    onMailSent?.(provider.provider_id);
+                    onMailSent?.(provider.provider_id, data.status);
                   } else {
                     setSendError(data.error || "Failed to send");
                   }
@@ -2983,7 +3012,7 @@ function PostcardPreviewSidebar({
                 }
                 setSending(false);
               }}
-              disabled={sending || !qrVerified || !fullAddress}
+              disabled={sending || !qrVerified || !fullAddress || !/\d/.test(fullAddress)}
               className="w-full py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {sending ? "Sending..." : "Send Postcard via PostGrid"}
@@ -3181,8 +3210,36 @@ export default function ReEngagementPage() {
   const [postcardPreviewProvider, setPostcardPreviewProvider] = useState<BottomFunnelProvider | null>(null);
   const [mailSentIds, setMailSentIds] = useState<Set<string>>(new Set());
   const [mailAnalyticsMap, setMailAnalyticsMap] = useState<Map<string, MailAnalytics>>(new Map());
+  const [syncingMailStatus, setSyncingMailStatus] = useState(false);
 
-  function handleMailSent(providerId: string) {
+  async function syncMailStatuses() {
+    setSyncingMailStatus(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/sync-mail-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const { statuses } = await res.json() as { statuses: Record<string, string> };
+        setMailAnalyticsMap((prev) => {
+          const next = new Map(prev);
+          for (const [providerId, status] of Object.entries(statuses)) {
+            const existing = prev.get(providerId);
+            if (existing) {
+              next.set(providerId, { ...existing, status });
+            }
+          }
+          return next;
+        });
+      }
+    } catch {
+      // Silent fail
+    }
+    setSyncingMailStatus(false);
+  }
+
+  function handleMailSent(providerId: string, pgStatus?: string) {
     const now = new Date().toISOString();
     setMailSentIds((prev) => new Set([...prev, providerId]));
     setChannelTimestamp(providerId, "mail_sent_at", now);
@@ -3190,7 +3247,7 @@ export default function ReEngagementPage() {
       const next = new Map(prev);
       next.set(providerId, {
         sent_at: now,
-        status: "queued",
+        status: pgStatus || "ready",
       });
       return next;
     });
@@ -3365,14 +3422,34 @@ export default function ReEngagementPage() {
         });
       }
 
-      // Hydrate channel timestamps from DB
+      // Hydrate channel timestamps + mail analytics from DB
       const timestampUpdates = new Map<string, { fax_sent_at?: string; linkedin_messaged_at?: string; mail_sent_at?: string }>();
+      const hydratedMailIds = new Set<string>();
+      const hydratedMailAnalytics = new Map<string, MailAnalytics>();
       for (const p of apiProviders) {
         const ts: { fax_sent_at?: string; linkedin_messaged_at?: string; mail_sent_at?: string } = {};
         if (p.fax_sent_at) ts.fax_sent_at = p.fax_sent_at;
+        if (p.mail_sent_at) {
+          ts.mail_sent_at = p.mail_sent_at;
+          hydratedMailIds.add(p.provider_id);
+          hydratedMailAnalytics.set(p.provider_id, {
+            sent_at: p.mail_sent_at,
+            status: p.mail_status || "ready",
+          });
+        }
         if (Object.keys(ts).length > 0) {
           timestampUpdates.set(p.provider_id, ts);
         }
+      }
+      if (hydratedMailIds.size > 0) {
+        setMailSentIds((prev) => new Set([...prev, ...hydratedMailIds]));
+        setMailAnalyticsMap((prev) => {
+          const next = new Map(prev);
+          for (const [id, a] of hydratedMailAnalytics) {
+            next.set(id, a);
+          }
+          return next;
+        });
       }
       if (timestampUpdates.size > 0) {
         setChannelTimestamps((prev) => {
@@ -3603,6 +3680,21 @@ export default function ReEngagementPage() {
           </div>
         ) : activeTab === "direct_mail" ? (
           <div>
+            {mailSentIds.size > 0 && (
+              <div className="flex justify-end px-4 py-2 border-b border-gray-100">
+                <button
+                  type="button"
+                  onClick={syncMailStatuses}
+                  disabled={syncingMailStatus}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition disabled:opacity-50"
+                >
+                  <svg className={`w-3.5 h-3.5 ${syncingMailStatus ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {syncingMailStatus ? "Syncing..." : "Sync PostGrid Status"}
+                </button>
+              </div>
+            )}
             {visibleProviders.map((provider) => (
               <DirectMailerProviderRow
                 key={provider.provider_id}

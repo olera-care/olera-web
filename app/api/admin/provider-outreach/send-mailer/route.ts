@@ -23,13 +23,12 @@ const POSTGRID_API_URL = "https://api.postgrid.com/print-mail/v1/postcards";
 
 // Olera return address
 const FROM_ADDRESS = {
-  firstName: "Olera",
-  lastName: "Care",
   companyName: "Olera Care Inc.",
-  addressLine1: "Dallas, TX",
-  city: "Dallas",
+  addressLine1: "1337 West 43rd Street",
+  addressLine2: "Unit 1010",
+  city: "Houston",
   provinceOrState: "TX",
-  postalOrZip: "75201",
+  postalOrZip: "77018",
   country: "US",
 };
 
@@ -68,12 +67,12 @@ function buildFrontHtml(providerName: string, qrUrl: string): string {
   </div>
 
   <!-- Main content block: headline + subtitle + divider + features (normal flow) -->
-  <div style="position:absolute; top:0.8in; left:0.4in; width:3in;">
-    <div style="font-size:42px; font-weight:700; color:#111; line-height:1.08;">
+  <div style="position:absolute; top:0.8in; left:0.4in; width:3.6in;">
+    <div style="font-size:36px; font-weight:700; color:#111; line-height:1.1;">
       Your Next Referral<br>
       <span style="color:#2A7C7C; position:relative; display:inline-block;">Starts Here.<svg style="position:absolute; bottom:-3px; left:0; width:100%;" height="6" viewBox="0 0 200 10" fill="none" preserveAspectRatio="none"><path d="M2 7C40 3 100 1 198 5" stroke="#2A7C7C" stroke-width="3" stroke-linecap="round"/></svg></span>
     </div>
-    <p style="font-size:13px; color:#555; margin-top:8px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Help more families find <span style="font-weight:700; color:#111;">${escapeHtml(providerName)}</span>.</p>
+    <p style="font-size:11px; color:#555; margin-top:8px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; white-space:nowrap;">Help more families find <span style="font-weight:700; color:#111;">${escapeHtml(providerName)}</span>.</p>
     <!-- Divider -->
     <div style="height:1px; background:#e0e0e0; margin-top:10px;"></div>
     <!-- Feature 1 -->
@@ -133,29 +132,29 @@ function buildBackHtml(providerName: string): string {
     so text wraps naturally without overlapping. PostGrid renders
     its own address block on the right ~3in.
   -->
-  <div style="position:absolute; top:0.25in; left:0.3in; width:2.7in; bottom:0.2in;">
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:6px;">Dear ${escapeHtml(providerName)},</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:6px;">I'm Dr. Logan DuBose, a physician and co-founder of Olera.</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:6px;">We created Olera, a free referral platform that helps families find trusted senior care. We're proud to be supported by NIH as we build a better way for families and providers to connect.</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:6px;">We've already created a free profile for <span style="font-weight:600;">${escapeHtml(providerName)}</span>. It's ready for your team to manage.</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:4px;">Get started in under two minutes to:</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:2px; padding-left:8px;">&bull; Have families contact you directly</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:2px; padding-left:8px;">&bull; Never pay referral or per-lead fees</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:6px; padding-left:8px;">&bull; Improve your online visibility</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:4px;">Scan the QR code to get started.</p>
-    <p style="font-size:9.5px; color:#444; line-height:1.5; margin-bottom:8px;">Questions? Give us a call at (979) 243-9801.</p>
+  <div style="position:absolute; top:0.2in; left:0.3in; width:2.7in; bottom:0.15in;">
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:5px;">Dear ${escapeHtml(providerName)},</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:5px;">I'm Dr. Logan DuBose, a physician and co-founder of Olera.</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:5px;">We created Olera, a free referral platform that helps families find trusted senior care. We're proud to be supported by NIH as we build a better way for families and providers to connect.</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:5px;">We've already created a free profile for <span style="font-weight:600;">${escapeHtml(providerName)}</span>. It's ready for your team to manage.</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:3px;">Get started in under two minutes to:</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:2px; padding-left:8px;">&bull; Have families contact you directly</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:2px; padding-left:8px;">&bull; Never pay referral or per-lead fees</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:5px; padding-left:8px;">&bull; Improve your online visibility</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:3px;">Scan the QR code to get started.</p>
+    <p style="font-size:9px; color:#444; line-height:1.45; margin-bottom:8px;">Questions? Give us a call at (979) 243-9801.</p>
     <!-- Signature -->
     <table cellpadding="0" cellspacing="0" border="0">
       <tr>
         <td style="vertical-align:top; padding-right:8px;">
-          <img src="${headshotUrl}" width="34" height="34" style="border-radius:50%; display:block;" />
+          <img src="${headshotUrl}" width="40" height="40" style="border-radius:50%; display:block;" />
         </td>
         <td style="vertical-align:top;">
-          <p style="font-size:7px; color:#888; font-style:italic;">With care,</p>
-          <p style="font-size:9px; font-weight:700; color:#111; margin-top:1px;">Dr. Logan DuBose, MD, MBA</p>
-          <p style="font-size:7px; color:#666; margin-top:1px;">Chief Research Officer (CRO), Olera</p>
-          <p style="font-size:6px; color:#888; margin-top:1px;">Researcher funded by the NIH SBIR Program</p>
-          <p style="font-size:6px; color:#888;">Texas A&amp;M College of Medicine, Class of 2022</p>
+          <p style="font-size:8px; color:#888; font-style:italic;">With care,</p>
+          <p style="font-size:10px; font-weight:700; color:#111; margin-top:1px;">Dr. Logan DuBose, MD, MBA</p>
+          <p style="font-size:8px; color:#666; margin-top:1px;">Chief Research Officer (CRO), Olera</p>
+          <p style="font-size:7.5px; color:#888; margin-top:1px;">Researcher funded by the NIH SBIR Program</p>
+          <p style="font-size:7.5px; color:#888;">Texas A&amp;M College of Medicine, Class of 2022</p>
         </td>
       </tr>
     </table>
@@ -233,10 +232,21 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as {
       provider_id?: string;
+      provider_name?: string;
       address?: string;
+      slug?: string;
     };
     const providerId = body.provider_id?.trim();
-    const rawAddress = body.address?.trim();
+    const providerName = body.provider_name?.trim() || "";
+    const rawAddress = body.address?.trim() || "";
+    const providerSlug = body.slug?.trim() || "";
+
+    console.log("[send-mailer] Request:", JSON.stringify({
+      provider_id: providerId,
+      provider_name: providerName,
+      address: rawAddress,
+      slug: providerSlug,
+    }));
 
     if (!providerId) {
       return NextResponse.json(
@@ -245,12 +255,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!rawAddress) {
+    if (!providerName) {
       return NextResponse.json(
-        { error: "address is required" },
+        { error: "provider_name is required" },
         { status: 400 },
       );
     }
+
+    if (!rawAddress || !/\d/.test(rawAddress)) {
+      return NextResponse.json(
+        { error: "A valid mailing address with a street number is required. Use Find Address first." },
+        { status: 400 },
+      );
+    }
+
+    const db = getServiceClient();
 
     // Check env
     const apiKey = process.env.POSTGRID_API_KEY;
@@ -261,49 +280,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const db = getServiceClient();
-
-    // Fetch provider details
-    const { data: provider } = await db
-      .from("olera-providers")
-      .select("provider_id, provider_name, slug")
-      .eq("provider_id", providerId)
-      .maybeSingle();
-
-    const providerName = provider?.provider_name || "Provider";
-    const providerSlug = provider?.slug || "";
-
     // Build QR URL with UTM tracking
     const qrUrl = providerSlug
       ? `https://olera.care/provider/${providerSlug}?utm_source=direct_mail&utm_medium=postcard&utm_campaign=re_engage`
       : "https://olera.care";
 
-    // Parse address into components, or fall back to freeform
+    // Parse the address into structured PostGrid components
     const parsed = parseAddress(rawAddress);
 
     // Build HTML
     const frontHtml = buildFrontHtml(providerName, qrUrl);
     const backHtml = buildBackHtml(providerName);
 
-    // Build "to" address — structured if we can parse, freeform otherwise
-    const toAddress = parsed
-      ? {
-          firstName: providerName,
-          lastName: "",
-          companyName: providerName,
-          addressLine1: parsed.addressLine1,
-          city: parsed.city,
-          provinceOrState: parsed.provinceOrState,
-          postalOrZip: parsed.postalOrZip,
-          country: "US",
-        }
-      : {
-          firstName: providerName,
-          lastName: "",
-          companyName: providerName,
-          addressText: rawAddress,
-          country: "US",
-        };
+    // Build "to" address for PostGrid
+    let toAddress: Record<string, string>;
+    if (parsed) {
+      toAddress = {
+        companyName: providerName,
+        addressLine1: parsed.addressLine1,
+        city: parsed.city,
+        provinceOrState: parsed.provinceOrState,
+        postalOrZip: parsed.postalOrZip,
+        country: "US",
+      };
+    } else {
+      // Fallback: extract what we can from the raw string
+      const zipMatch = rawAddress.match(/(\d{5}(?:-\d{4})?)\s*$/);
+      const zip = zipMatch ? zipMatch[1] : "";
+      const withoutZip = rawAddress.replace(/\d{5}(?:-\d{4})?\s*$/, "").trim().replace(/,\s*$/, "");
+      const stateMatch = withoutZip.match(/,?\s*([A-Z]{2})\s*$/);
+      const state = stateMatch ? stateMatch[1] : "";
+      const withoutState = withoutZip.replace(/,?\s*[A-Z]{2}\s*$/, "").trim().replace(/,\s*$/, "");
+      const parts = withoutState.split(",").map(s => s.trim());
+      const city = parts.length > 1 ? parts.pop()! : "";
+      const street = parts.join(", ");
+
+      toAddress = {
+        companyName: providerName,
+        addressLine1: street || rawAddress,
+        city: city,
+        provinceOrState: state,
+        postalOrZip: zip,
+        country: "US",
+      };
+    }
+
+    console.log("[send-mailer] Final toAddress:", JSON.stringify(toAddress));
 
     // Call PostGrid API
     const pgRes = await fetch(POSTGRID_API_URL, {

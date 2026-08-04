@@ -93,6 +93,36 @@ function extractAddress(html: string): string | null {
   return null;
 }
 
+/**
+ * PUT — Save a manually-entered or verified address to tracking.
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const admin = await getAdminUser(user.id);
+    if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const body = (await request.json()) as { provider_id?: string; address?: string };
+    const providerId = body.provider_id?.trim();
+    const address = body.address?.trim();
+    if (!providerId || !address) {
+      return NextResponse.json({ error: "provider_id and address are required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+    await db
+      .from("provider_outreach_tracking")
+      .update({ mail_address: address })
+      .eq("provider_id", providerId);
+
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    console.error("[find-address] PUT error:", e);
+    return NextResponse.json({ error: "Failed to save address" }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -129,20 +159,26 @@ export async function POST(request: NextRequest) {
     // Fetch provider from DB (may not exist for demo providers)
     const { data: provider } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, website, place_id, city, state, address, zip")
+      .select("provider_id, provider_name, website, place_id, city, state, address")
       .eq("provider_id", providerId)
       .maybeSingle();
 
-    // If provider exists in DB and already has an address, return it
+    // If provider exists in DB and already has an address, save it and return
     if (provider?.address) {
       const parts = [
         provider.address,
         [provider.city, provider.state].filter(Boolean).join(", "),
-        provider.zip,
       ].filter(Boolean);
+      const fullAddr = parts.join(", ");
+
+      // Save to tracking table so send-mailer can use it
+      await db
+        .from("provider_outreach_tracking")
+        .update({ mail_address: fullAddr })
+        .eq("provider_id", providerId);
 
       return NextResponse.json({
-        address: parts.join(", "),
+        address: fullAddr,
         source_url: null,
         website: provider.website || null,
         from_database: true,
@@ -214,6 +250,12 @@ export async function POST(request: NextRequest) {
 
       const address = extractAddress(html);
       if (address) {
+        // Save to tracking table so send-mailer can use it
+        await db
+          .from("provider_outreach_tracking")
+          .update({ mail_address: address })
+          .eq("provider_id", providerId);
+
         return NextResponse.json({
           address,
           source_url: pageUrl,
@@ -241,6 +283,12 @@ export async function POST(request: NextRequest) {
           const placesData = await placesRes.json();
           const addr = placesData.formattedAddress || placesData.shortFormattedAddress;
           if (addr) {
+            // Save to tracking table so send-mailer can use it
+            await db
+              .from("provider_outreach_tracking")
+              .update({ mail_address: addr })
+              .eq("provider_id", providerId);
+
             return NextResponse.json({
               address: addr,
               source_url: null,

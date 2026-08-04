@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     const [providerResult, claimedResult] = await Promise.all([
       db
         .from("olera-providers")
-        .select("provider_id, provider_name, provider_category, city, state, phone, email, website, slug, place_id")
+        .select("provider_id, provider_name, provider_category, address, city, state, phone, email, website, slug, place_id")
         .in("provider_id", providerIds),
       db
         .from("business_profiles")
@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
           provider_id: p.provider_id,
           provider_name: p.provider_name,
           provider_category: p.provider_category,
+          address: (t.mail_address as string) || p.address || null,
           city: p.city,
           state: p.state,
           phone: p.phone || null,

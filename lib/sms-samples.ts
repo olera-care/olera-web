@@ -41,6 +41,9 @@ export interface SmsVariant {
   trigger: string;
   /** Automations-registry id that owns this text (for the per-job preview), mirroring EmailVariant.cron. */
   cron?: string;
+  /** Additional registry ids that also send this exact text (mirrors
+   *  EmailVariant.alsoCrons) — their detail pages preview it too. */
+  alsoCrons?: string[];
   /** Who receives this — the eligibility, in plain terms. */
   who?: string;
   /** Why we send it — the intent behind the copy. */
@@ -191,11 +194,14 @@ export const SMS_VARIANTS: SmsVariant[] = [
   {
     id: "sms_benefits_first_step",
     cron: "family-comms-coordinator",
+    // The hourly scheduler fires TJ-scheduled letters through the same send
+    // path, so its detail page previews this companion text too.
+    alsoCrons: ["benefits-navigator-scheduler"],
     audience: "family",
     group: "Family · Benefits cascade",
     label: "First step — navigator companion text",
     emailType: "benefits_first_step_sms",
-    trigger: "TJ approves and sends a navigator letter from /admin/benefits and the family has a stored phone + sms_consent — the text goes out alongside the email",
+    trigger: "TJ approves and sends (or schedules) a navigator letter from /admin/benefits and the family has a stored phone + sms_consent — the text goes out alongside the email; scheduled fires respect the recipient's quiet hours (parked in sms_queue)",
     who: "A benefits-intake family who gave us their number and tapped the text consent ask (enrichment step 4 or the wants-help page). Consent is required — a phone alone never gets this.",
     why: "The doorbell for the letter: most sends are a TJ-voiced companion text drafted per family with the letter (editable in the drawer, 'text me back' invite, plan link). This preview shows the TEMPLATE FALLBACK used when no companion text was drafted.",
     gates: [
@@ -285,7 +291,12 @@ const SMS_CRON_ALIASES: Record<string, string> = {
 /** Texts sent by a given automations-registry id (for the per-job preview). */
 export function smsVariantsForCron(cronId: string): SmsVariant[] {
   const target = SMS_CRON_ALIASES[cronId] ?? cronId;
-  return SMS_VARIANTS.filter((v) => v.cron === target);
+  return SMS_VARIANTS.filter((v) => v.cron === target || v.alsoCrons?.includes(target));
+}
+
+/** Label for an sms email_type (for per-type breakdown rows). */
+export function smsLabelForType(smsType: string): string | null {
+  return SMS_VARIANTS.find((v) => v.emailType === smsType)?.label ?? null;
 }
 
 /** Display order for panel groups. */

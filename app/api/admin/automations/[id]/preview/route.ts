@@ -3,7 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob } from "@/lib/crons/registry";
 import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileCompletionEmail, providerLeadDigestEmail, providerManagedAdsEmail } from "@/lib/email-templates";
 import { resolveFromAddress } from "@/lib/email";
-import { getVariant } from "@/lib/email-samples";
+import { getVariant, variantBelongsToCron } from "@/lib/email-samples";
 
 /** Pull the inbox preview text (preheader) out of a rendered email's hidden preheader div. */
 function extractPreheader(html: string): string | null {
@@ -153,7 +153,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     const registered = getVariant(variant);
-    if (!registered || registered.cron !== job.id) {
+    if (!registered || !variantBelongsToCron(registered, job.id)) {
       return NextResponse.json({ error: `Unknown variant "${variant}"` }, { status: 404 });
     }
     const html = registered.render();

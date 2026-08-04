@@ -12,6 +12,9 @@
  * recipient's timezone — the scheduler path parks the companion text in
  * sms_queue for the next window open (the email itself sends immediately;
  * email has no quiet-hours rule).
+ *
+ * Timing/gates are mirrored in lib/family-comms/journey.ts (the admin
+ * sequence timeline) — keep that in sync when this path changes.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";

@@ -8,6 +8,8 @@ import { useToast } from "@/components/admin/Toast";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
 import { smsVariantsForCron } from "@/lib/sms-samples";
 import SmsSamplesBlock from "@/components/admin/SmsSamplesBlock";
+import { journeysForCron } from "@/lib/family-comms/journey";
+import CommsJourneyBlock from "@/components/admin/CommsJourneyBlock";
 
 interface Rollup {
   sent: number;
@@ -28,6 +30,8 @@ interface VariantRow extends Rollup {
   convRate?: number;
   convEvent?: string;
   convLabel?: string;
+  // "sms" rows are texts riding the same table — no open/click/delivery semantics here.
+  channel?: "sms";
 }
 interface RunRow {
   id: string;
@@ -70,6 +74,7 @@ interface DetailResponse {
   previewTypes: string[];
   samplePreviewTypes: SamplePreviewType[];
   smsSent: number | null;
+  smsQueued: number | null;
   runs: RunRow[];
   windowDays: number;
 }
@@ -262,6 +267,10 @@ function runResult(s: Record<string, unknown> | null): string {
   if (!s) return "";
   const parts: string[] = [];
   if (typeof s.sent === "number") parts.push(`${s.sent.toLocaleString()} sent`);
+  // Navigator-scheduler runs report { due, sent, blocked } — a blocked fire is
+  // the interesting one (governance/DNC cleared the schedule), never hide it.
+  if (typeof s.blocked === "number" && s.blocked > 0) parts.push(`${s.blocked.toLocaleString()} blocked`);
+  if (typeof s.due === "number" && s.due > 0) parts.push(`${s.due.toLocaleString()} due`);
   if (typeof s.skipped === "number" && s.skipped > 0) parts.push(`${s.skipped.toLocaleString()} skipped`);
   if (parts.length === 0 && typeof s.processed === "number") parts.push(`${s.processed.toLocaleString()} processed`);
   if (s.dry_run === true) parts.push("dry run");
@@ -609,15 +618,30 @@ export default function AutomationDetailPage() {
               {data.rollup30d ? (
                 <>
                   <div>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub={`last ${data.windowDays} days`}>
+                    {(() => {
+                      // Texts get their own tile whenever this automation sends them —
+                      // the count was previously computed and then never rendered here.
+                      const showSms = data.smsSent != null && data.job.channels.includes("sms");
+                      return (
+                    <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 ${showSms ? "lg:grid-cols-6" : "lg:grid-cols-5"}`}>
+                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Emails sent" sub={`last ${data.windowDays} days`}>
                         {data.trend.length >= 2 && <Sparkline values={data.trend.map((w) => w.sent)} className="text-gray-300" />}
                       </StatCard>
                       <StatCard value={pct(data.rollup30d.delivered, data.rollup30d.sent)} label="Delivered" />
                       <StatCard value={pct(data.rollup30d.opened, data.rollup30d.sent)} label="Opened" />
                       <StatCard value={pct(data.rollup30d.clicked, data.rollup30d.sent)} label="Clicked" />
                       <StatCard value={data.rollup30d.bounced + data.rollup30d.complained} label={data.rollup30d.complained > 0 ? "Bounced / complained" : "Bounced"} danger={data.rollup30d.bounced + data.rollup30d.complained > 0} muted={data.rollup30d.bounced + data.rollup30d.complained === 0} />
+                      {showSms && (
+                        <StatCard
+                          value={data.smsSent!.toLocaleString()}
+                          label="Texts sent"
+                          sub={(data.smsQueued ?? 0) > 0 ? `${data.smsQueued} parked (quiet hours)` : "consent-gated"}
+                          muted={data.smsSent === 0}
+                        />
+                      )}
                     </div>
+                      );
+                    })()}
                     <p className="mt-2 text-xs text-gray-400">
                       Open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal.
                       {(() => {
@@ -647,7 +671,8 @@ export default function AutomationDetailPage() {
                     <div className="mt-6">
                       {(() => {
                         const hasConversion = data.variants.some((v) => Boolean(v.convLabel));
-                        const breakdownLabel = data.job.id === "weekly-provider-digest" ? "By variant" : "By email type";
+                        const hasSmsRows = data.variants.some((v) => v.channel === "sms");
+                        const breakdownLabel = data.job.id === "weekly-provider-digest" ? "By variant" : hasSmsRows ? "By message type" : "By email type";
                         return (
                           <>
                       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{breakdownLabel} · last {data.windowDays} days</h3>
@@ -656,7 +681,7 @@ export default function AutomationDetailPage() {
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
-                              <th className="px-4 py-2 font-medium">{data.job.id === "weekly-provider-digest" ? "Variant" : "Email type"}</th>
+                              <th className="px-4 py-2 font-medium">{data.job.id === "weekly-provider-digest" ? "Variant" : hasSmsRows ? "Message" : "Email type"}</th>
                               <th className="px-4 py-2 text-right font-medium">Sent</th>
                               <th className="px-4 py-2 text-right font-medium">Delivered</th>
                               <th className="px-4 py-2 text-right font-medium">Opened</th>
@@ -675,13 +700,15 @@ export default function AutomationDetailPage() {
                                 <tr className={`border-b border-gray-100 ${v.sent === 0 ? "text-gray-300" : ""}`}>
                                   <td className={`px-4 py-2 font-medium ${v.sent === 0 ? "" : "text-gray-800"}`}>
                                     {v.label}
+                                    {v.channel === "sms" && <span className="ml-1.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700 ring-1 ring-inset ring-sky-200/60">text</span>}
                                     {VARIANT_TRIGGERS[v.key] && <InfoDot text={VARIANT_TRIGGERS[v.key]} />}
                                     {v.sent === 0 && <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-gray-400">no sends yet</span>}
                                   </td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  {/* Texts: Twilio owns delivery, and opens/clicks don't exist — dashes, not fake 0%. */}
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
                                   {hasConversion && (
                                   <td className="px-4 py-2 text-right">
                                     {v.sent > 0 && v.delivered > 0 ? (
@@ -718,6 +745,7 @@ export default function AutomationDetailPage() {
                       <p className="mt-2 text-xs text-gray-400">
                         Open/click rates are % of sent.
                         {hasConversion ? " Converted is % of delivered who took the variant's goal action within 14 days. Variants are inferred from the email for sends before tagging was added." : " Rows are grouped by email_type so this monitor shows which lifecycle emails are actually going out."}
+                        {hasSmsRows && <> Text rows count app-logged sends; carrier delivery lives on the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link>.</>}
                       </p>
                           </>
                         );
@@ -764,6 +792,12 @@ export default function AutomationDetailPage() {
                 </div>
               )}
 
+              {/* Sequence timelines — the journey-level map (which message comes before
+                  which, across BOTH channels and both crons where a journey spans two). */}
+              {journeysForCron(data.job.id).map((j) => (
+                <CommsJourneyBlock key={j.key} journey={j} currentCronId={data.job.id} />
+              ))}
+
               {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
               {(() => {
                 const isDigest = data.job.id === "weekly-provider-digest";
@@ -789,8 +823,12 @@ export default function AutomationDetailPage() {
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-3">
-                        {!isDigest && data.previewTypes.length > 1 && (
-                          <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
+                        {/* Real-send picker. Shown even with ONE previewType when samples exist:
+                            for the navigator the real sends are per-family AI letters — the
+                            template sample must not be the only thing viewable. */}
+                        {!isDigest && (data.previewTypes.length > 1 || (data.previewTypes.length > 0 && sampleTypes.length > 0)) && (
+                          <select value={sampleSel ? "" : (previewType ?? "")} onChange={(e) => { if (e.target.value) { setPreviewType(e.target.value); setPreviewExpanded(false); } }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
+                            {sampleSel && <option value="" disabled>Latest sent…</option>}
                             {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
                           </select>
                         )}

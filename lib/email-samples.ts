@@ -83,6 +83,10 @@ export interface EmailVariant {
   emailType: string;
   /** Cron/registry id that sends it — links to /admin/automations/[id]. */
   cron?: string;
+  /** Additional cron/registry ids that also send this exact message (e.g. the
+   *  navigator scheduler fires the same B1 letter the coordinator drafts).
+   *  Their detail pages preview it too, without duplicating the variant. */
+  alsoCrons?: string[];
   /** Who receives this — the eligibility, in plain terms (for the "why this group" UI). */
   who?: string;
   /** Why we send it — the intent behind the copy (for the "why this group" UI). */
@@ -177,6 +181,9 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_first_step", audience: "family", group: "Family · Benefits cascade",
     label: "B1 · Ten-minute first step", subject: benefitsFirstStepSubject("LIHEAP"),
     emailType: "benefits_first_step", cron: "family-comms-coordinator",
+    // The navigator scheduler fires the REAL sends now (TJ-approved AI letters);
+    // this template is the shape/fallback. Its page previews it too.
+    alsoCrons: ["benefits-navigator-scheduler"],
     who: "Family completed the benefits intake 48–96h ago, once ever (profile stamp). Program picked from their entry page, then simplest saved match, then the state's start-here list.",
     why: "Nobody applies for government benefits alone — the base rate of solo completion is ~0. So instead of checking homework, we shrink the first step to ten minutes: ONE program, its start-here phone number, what to say, and three documents. Content comes from the state pipeline drafts (51 states).",
     render: () => benefitsFirstStepEmail({
@@ -791,7 +798,12 @@ export function getVariant(id: string): EmailVariant | undefined {
 
 /** Variants sent by a given cron/registry id (for the per-job automations preview). */
 export function variantsForCron(cronId: string): EmailVariant[] {
-  return EMAIL_VARIANTS.filter((v) => v.cron === cronId);
+  return EMAIL_VARIANTS.filter((v) => v.cron === cronId || v.alsoCrons?.includes(cronId));
+}
+
+/** Does this cron send this variant? (primary owner or alsoCrons). */
+export function variantBelongsToCron(v: EmailVariant, cronId: string): boolean {
+  return v.cron === cronId || !!v.alsoCrons?.includes(cronId);
 }
 
 /**

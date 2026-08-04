@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   PROVIDER_CATEGORIES,
   PROVIDER_CATEGORY_MAP,
+  categoryForEvent,
   providerEventLabel,
   isProviderCategory,
   type ProviderCategoryKey,
@@ -787,8 +788,14 @@ export default function ActivityCenterPage() {
   const initialTimeWindow = isTimeWindow(urlDays) ? urlDays : "30";
 
   const urlCategory = urlParams.get("category");
+  const urlProviderEvent = urlParams.get("event") ?? urlParams.get("event_type");
+  const urlProviderEventCategory = urlProviderEvent ? categoryForEvent(urlProviderEvent) : null;
   const initialProviderCategory: ProviderCategoryKey | "" =
-    initialActor === "providers" && isProviderCategory(urlCategory) ? urlCategory : "";
+    initialActor === "providers" && isProviderCategory(urlCategory)
+      ? urlCategory
+      : initialActor === "providers" && urlProviderEventCategory
+        ? urlProviderEventCategory
+        : "";
   const initialFamilyCategory: SeekerCategoryKey | "" =
     initialActor === "families" && isSeekerCategory(urlCategory) ? urlCategory : "";
 
@@ -802,7 +809,10 @@ export default function ActivityCenterPage() {
   // drill-down event — with separate state so switching tabs doesn't cross
   // contaminate.
   const [providerCategory, setProviderCategory] = useState<ProviderCategoryKey | "">(initialProviderCategory);
-  const [providerEvent, setProviderEvent] = useState<string>("");
+  const [providerEvent, setProviderEvent] = useState<string>(
+    initialActor === "providers" && urlProviderEventCategory ? urlProviderEvent ?? "" : "",
+  );
+  const providerCategoryInitialized = useRef(false);
   // Magic-link failure stage drill-down (active when providerEvent === one_click_failed).
   const [providerStage, setProviderStage] = useState<string>("");
   const [stageCounts, setStageCounts] = useState<Record<string, number> | null>(null);
@@ -867,6 +877,10 @@ export default function ActivityCenterPage() {
 
   // Changing a category clears the drill-down selection from the prior category.
   useEffect(() => {
+    if (!providerCategoryInitialized.current) {
+      providerCategoryInitialized.current = true;
+      return;
+    }
     setProviderEvent("");
   }, [providerCategory]);
   // Changing the drill-down event clears the stage sub-filter.

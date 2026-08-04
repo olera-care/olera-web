@@ -10,6 +10,7 @@ import DateRangePopover, {
 import CollapsibleSection, { BulkCollapseToolbar } from "@/components/admin/CollapsibleSection";
 import ReorderableSections from "@/components/admin/ReorderableSections";
 import SmsMessagesPanel from "@/components/admin/SmsMessagesPanel";
+import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 
 /**
  * /admin/family-comms — the family-engagement + email-observability surface.
@@ -37,6 +38,12 @@ interface PerfRow {
   clickRate: number;
   bounceRate: number;
 }
+
+const DEFAULT_FAMILY_COMMS_RANGE: DateRangeValue = {
+  preset: "30d",
+  customFrom: "",
+  customTo: "",
+};
 
 interface Summary {
   /** email_log channel='sms' counts per email_type in the window — per-text chips on the Text campaigns panel. */
@@ -562,7 +569,7 @@ function FunnelStep({ label, value, base, note }: { label: string; value: number
 }
 
 export default function FamilyCommsAnalyticsPage() {
-  const [range, setRange] = useState<DateRangeValue>({ preset: "30d", customFrom: "", customTo: "" });
+  const [range, setRange] = useUrlDateRangeState(DEFAULT_FAMILY_COMMS_RANGE);
   const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

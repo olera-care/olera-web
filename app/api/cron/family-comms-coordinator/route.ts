@@ -18,6 +18,7 @@ import {
 import { sendSlackAlert } from "@/lib/slack";
 import { sendSMS } from "@/lib/twilio";
 import { benefitsCheckInSms } from "@/lib/sms/templates";
+import { quietHoursCheck } from "@/lib/sms/quiet-hours";
 import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
@@ -102,6 +103,9 @@ import type { NudgeSequence } from "@/lib/types";
  * Sends flow through sendEmail(), which now enforces the per-family nudge cap, so
  * the coordinator can never over-mail. ?dry_run=true returns the per-family
  * selection without sending. See plans/family-comms-system.md.
+ *
+ * The ladder above is mirrored as data in lib/family-comms/journey.ts (the
+ * admin sequence timeline) — update it when rung order or time bands change.
  */
 
 export const maxDuration = 300;
@@ -474,13 +478,45 @@ export async function GET(request: NextRequest) {
         stampKey: "first_step_sms_at" | "check_sms_at",
       ) => {
         if (!smsEligible || !fp.phone) return;
+        const smsType = stampKey === "first_step_sms_at" ? "benefits_first_step_sms" : "benefits_check_in_sms";
+        // Quiet hours, same policy as the navigator scheduler's companion text:
+        // 17:00 UTC is fine for CONUS, but Hawaii/Alaska (and unknown-state
+        // fallback edges) land before 8am local — park those in sms_queue for
+        // the morning flush instead of skipping the alignment. (Timing bands
+        // documented in lib/family-comms/journey.ts — keep in sync.)
+        const quiet = quietHoursCheck({ state: fp.state ?? null });
+        if (!quiet.allowed) {
+          const sendAfter = (quiet.sendAfter ?? new Date()).toISOString();
+          const { error: qErr } = await db.from("sms_queue").insert({
+            to_phone: fp.phone,
+            body,
+            email_type: smsType,
+            recipient_type: "family",
+            family_profile_id: fam.familyId,
+            send_after: sendAfter,
+          });
+          if (qErr) {
+            console.error(`[family-comms-coordinator] cascade SMS enqueue failed:`, qErr);
+            return;
+          }
+          const queuedKey = stampKey === "first_step_sms_at" ? "first_step_sms_queued_for" : "check_sms_queued_for";
+          familyMeta.benefits_cascade = {
+            ...readBenefitsCascade(familyMeta),
+            [queuedKey]: sendAfter,
+          };
+          await db
+            .from("business_profiles")
+            .update({ metadata: { ...familyMeta } })
+            .eq("id", fam.familyId);
+          return;
+        }
         // Logged under a distinct *_sms type: visible on /admin/family-comms and
         // the automations rollup, but NOT in FAMILY_NUDGE_EMAIL_TYPES — the
         // mirror rides the email's cap slot, it must never consume a second one.
         const r = await sendSMS({
           to: fp.phone,
           body,
-          emailType: stampKey === "first_step_sms_at" ? "benefits_first_step_sms" : "benefits_check_in_sms",
+          emailType: smsType,
           recipientType: "family",
           recipientLogProfileId: fam.familyId,
         });

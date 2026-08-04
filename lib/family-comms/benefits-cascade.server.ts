@@ -56,6 +56,9 @@ export interface BenefitsCascadeMeta {
    *  hours park the companion text in sms_queue — this is its due time. */
   first_step_sms_queued_for?: string;
   check_sms_at?: string;
+  /** B2 mirror text parked in sms_queue by the coordinator's quiet-hours
+   *  check (e.g. a 17:00 UTC run reaching Hawaii before 8am local). */
+  check_sms_queued_for?: string;
   outcome?: BenefitsOutcomeValue;
   outcome_at?: string;
   /** One-tap "what didn't fit" from the wrong_program landing path. */

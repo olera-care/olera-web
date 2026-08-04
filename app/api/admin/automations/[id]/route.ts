@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob, jobChannels } from "@/lib/crons/registry";
-import { variantsForCron } from "@/lib/email-samples";
+import { variantsForJourneys, variantBelongsToCron } from "@/lib/email-samples";
+import { smsLabelForType } from "@/lib/sms-samples";
 
 /**
  * GET /api/admin/automations/[id]
@@ -180,12 +181,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const windowDays = ALLOWED_WINDOWS.includes(daysParam) ? daysParam : 30;
   const job = getCronJob(id);
   if (!job) return NextResponse.json({ error: "Unknown automation" }, { status: 404 });
-  const samplePreviewTypes = variantsForCron(id).map((v) => ({
-    id: v.id,
-    label: v.label,
-    subject: v.subject,
-    emailType: v.emailType,
-  }));
+  // Journey-aware: the chips cover the family's full email sequence, with
+  // ownership carried per-chip so emails another cron fires render attributed.
+  const samplePreviewTypes = variantsForJourneys(id).map((v) => {
+    const mine = variantBelongsToCron(v, id);
+    const owner = !mine && v.cron ? getCronJob(v.cron) : null;
+    return {
+      id: v.id,
+      label: v.label,
+      subject: v.subject,
+      emailType: v.emailType,
+      mine,
+      ownerCron: owner?.id ?? null,
+      ownerName: owner ? owner.name.split(" — ")[0] : null,
+    };
+  });
   const sampleLabelByEmailType = new Map(samplePreviewTypes.map((v) => [v.emailType, v.label]));
 
   const db = getServiceClient();
@@ -234,6 +244,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   type VariantOut = VStat & {
     key: string; label: string; split?: { withRank: VStat; plain: VStat };
     converted?: number; convRate?: number; convEvent?: string; convLabel?: string;
+    /** "sms" rows are texts riding the same table — no open/click semantics. */
+    channel?: "sms";
   };
   let variants: VariantOut[] = [];
   if (job.emailTypes.length > 0) {
@@ -244,7 +256,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const wkWithRank = emptyVStat();
     const wkPlain = emptyVStat();
     const isDigestJob = id === "weekly-provider-digest";
-    const shouldBreakDownByEmailType = !isDigestJob && (job.emailTypes.length > 1 || samplePreviewTypes.length > 1);
+    // Single-email-type jobs still get a breakdown when they also text — the
+    // SMS rows (appended below) make the table the one place both channels show.
+    const shouldBreakDownByEmailType =
+      !isDigestJob && (job.emailTypes.length > 1 || samplePreviewTypes.length > 1 || (job.smsTypes?.length ?? 0) > 0);
     try {
       // Fetch the wider of (rollup window, trend window) so a short window (7d) doesn't starve the
       // fixed 4-week trend. The rollup + variants then gate to `since` per-row; the trend to trendSince.
@@ -356,18 +371,51 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     trend = [...weekMap.entries()].map(([week, v]) => ({ week, ...v })).sort((a, b) => a.week.localeCompare(b.week));
   }
 
-  // ── SMS sent count (windowed) for text automations whose sends log to email_log ──
+  // ── SMS (windowed) for text automations whose sends log to email_log:
+  //    total sent, per-type breakdown rows, and the parked quiet-hours queue ──
   let smsSent: number | null = null;
+  let smsQueued: number | null = null;
   if (job.smsTypes && job.smsTypes.length > 0) {
     try {
-      const { count } = await db
+      const { data: smsRows } = await db
         .from("email_log")
-        .select("id", { count: "exact", head: true })
+        .select("email_type")
         .eq("channel", "sms")
         .eq("status", "sent")
         .in("email_type", job.smsTypes)
-        .gte("created_at", since);
-      smsSent = count ?? 0;
+        .gte("created_at", since)
+        .limit(100000);
+      const perType = new Map<string, number>();
+      for (const r of (smsRows ?? []) as Array<{ email_type: string }>) {
+        perType.set(r.email_type, (perType.get(r.email_type) ?? 0) + 1);
+      }
+      smsSent = (smsRows ?? []).length;
+      // Texts ride the same breakdown table as the emails they mirror. Open/
+      // click/delivery semantics don't apply (Twilio owns delivery) — the page
+      // renders those cells as "—" via `channel: "sms"`.
+      if (id !== "weekly-provider-digest" && job.emailTypes.length > 0) {
+        for (const smsType of job.smsTypes) {
+          variants.push({
+            key: smsType,
+            label: smsLabelForType(smsType) ?? smsType.replace(/_/g, " "),
+            ...emptyVStat(),
+            sent: perType.get(smsType) ?? 0,
+            channel: "sms",
+          });
+        }
+      }
+    } catch {
+      /* fail soft */
+    }
+    try {
+      // Quiet-hours parking: texts written to sms_queue instead of sent — a
+      // real backlog the sent-count alone hides.
+      const { count } = await db
+        .from("sms_queue")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending")
+        .in("email_type", job.smsTypes);
+      smsQueued = count ?? 0;
     } catch {
       /* fail soft */
     }
@@ -387,6 +435,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     previewTypes,
     samplePreviewTypes,
     smsSent,
+    smsQueued,
     runs,
     windowDays,
   });

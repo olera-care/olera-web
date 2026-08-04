@@ -123,6 +123,11 @@ export async function GET(
       "First-step text queued for the morning (quiet hours)",
     );
     push(cascade.check_sms_at, "sms", "Check-in text sent");
+    push(
+      cascade.check_sms_queued_for,
+      "sms",
+      "Check-in text queued for the morning (quiet hours)",
+    );
 
     // Outbound texts from the send ledger (TJ QA 2026-07-29: the instant
     // results text was invisible here — only a suffix on the enriched row).

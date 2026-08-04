@@ -11,6 +11,7 @@
  * Constraints: fixtures MUST be deterministic (no Date.now / Math.random / new Date)
  * and PII-free. Image URLs use the Supabase-hosted stock set (email-proxy safe).
  */
+import { journeysForCron } from "@/lib/family-comms/journey";
 import {
   // family · compare cascade (coordinator)
   connectionOutcomeCheckEmail,
@@ -29,6 +30,8 @@ import {
   // family · benefits cascade (coordinator B1/B2)
   benefitsFirstStepEmail,
   benefitsFirstStepSubject,
+  benefitsResultsSavedEmail,
+  benefitsResultsSavedSubject,
   benefitsCheckInEmail,
   benefitsCheckInSubject,
   benefitsCheckInDoneEmail,
@@ -83,6 +86,10 @@ export interface EmailVariant {
   emailType: string;
   /** Cron/registry id that sends it — links to /admin/automations/[id]. */
   cron?: string;
+  /** Additional cron/registry ids that also send this exact message (e.g. the
+   *  navigator scheduler fires the same B1 letter the coordinator drafts).
+   *  Their detail pages preview it too, without duplicating the variant. */
+  alsoCrons?: string[];
   /** Who receives this — the eligibility, in plain terms (for the "why this group" UI). */
   who?: string;
   /** Why we send it — the intent behind the copy (for the "why this group" UI). */
@@ -174,9 +181,31 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     }),
   },
   {
+    id: "benefits_results_saved", audience: "family", group: "Family · Benefits cascade",
+    label: "Day 0 · Results email", subject: benefitsResultsSavedSubject({ matchCount: 4, possessive: "Your mom's", stateName: "Texas" }),
+    emailType: "benefits_results_saved", cron: "benefits-results-texts",
+    who: "Every new family the moment they finish the benefits quiz with an email on file (V3 flow requires one). Event-driven at intake, not a cron.",
+    why: "The Day-0 welcome that delivers real value up front: their top-5 matched programs as a starter list and the /m plan link. 95% of families won't engage with email, so when one does, this has to be worth their time.",
+    render: () => benefitsResultsSavedEmail({
+      greetingName: "Maria",
+      heroLine: "We found <strong>4 programs</strong> in Texas that may help with memory care for your mom.",
+      programs: [
+        { name: "LIHEAP", url: "https://olera.care/benefits/texas/liheap", savings: "Typically $300 – $1,000/year" },
+        { name: "STAR+PLUS Waiver", url: "https://olera.care/benefits/texas/star-plus-waiver", savings: null },
+        { name: "Medicare Savings Programs (MSP)", url: "https://olera.care/benefits/texas/msp", savings: "Typically $2,000+/year" },
+        { name: "Weatherization Assistance", url: "https://olera.care/benefits/texas/weatherization", savings: null },
+      ],
+      matchesUrl: "https://olera.care/m/sample",
+      matchCount: 4,
+    }),
+  },
+  {
     id: "benefits_first_step", audience: "family", group: "Family · Benefits cascade",
     label: "B1 · Ten-minute first step", subject: benefitsFirstStepSubject("LIHEAP"),
     emailType: "benefits_first_step", cron: "family-comms-coordinator",
+    // The navigator scheduler fires the REAL sends now (TJ-approved AI letters);
+    // this template is the shape/fallback. Its page previews it too.
+    alsoCrons: ["benefits-navigator-scheduler"],
     who: "Family completed the benefits intake 48–96h ago, once ever (profile stamp). Program picked from their entry page, then simplest saved match, then the state's start-here list.",
     why: "Nobody applies for government benefits alone — the base rate of solo completion is ~0. So instead of checking homework, we shrink the first step to ten minutes: ONE program, its start-here phone number, what to say, and three documents. Content comes from the state pipeline drafts (51 states).",
     render: () => benefitsFirstStepEmail({
@@ -791,7 +820,48 @@ export function getVariant(id: string): EmailVariant | undefined {
 
 /** Variants sent by a given cron/registry id (for the per-job automations preview). */
 export function variantsForCron(cronId: string): EmailVariant[] {
-  return EMAIL_VARIANTS.filter((v) => v.cron === cronId);
+  return EMAIL_VARIANTS.filter((v) => v.cron === cronId || v.alsoCrons?.includes(cronId));
+}
+
+/** Does this cron send this variant? (primary owner or alsoCrons). */
+export function variantBelongsToCron(v: EmailVariant, cronId: string): boolean {
+  return v.cron === cronId || !!v.alsoCrons?.includes(cronId);
+}
+
+/**
+ * ALL emails a page's journeys touch, in journey order — so an automation page
+ * shows the family's full email sequence (first step → check-in), not just the
+ * emails this one cron fires. Mirrors smsVariantsForJourneys; ownership is
+ * carried per-chip by the detail API (`mine` / owner fields) so nothing is
+ * misattributed. Falls back to the cron's own variants when it has no journeys.
+ */
+export function variantsForJourneys(cronId: string): EmailVariant[] {
+  const journeys = journeysForCron(cronId);
+  // Time-ordered journeys first so chips read in the order families get them.
+  const ordered = [...journeys].sort((a, b) => (a.ordering === "time" ? 0 : 1) - (b.ordering === "time" ? 0 : 1));
+  const types: string[] = [];
+  for (const j of ordered) {
+    for (const s of j.steps) {
+      if (s.emailType && !types.includes(s.emailType)) types.push(s.emailType);
+    }
+  }
+  const out: EmailVariant[] = [];
+  for (const t of types) {
+    for (const v of EMAIL_VARIANTS) {
+      if (v.emailType === t && !out.includes(v)) out.push(v);
+    }
+  }
+  for (const v of variantsForCron(cronId)) {
+    if (!out.includes(v)) out.push(v);
+  }
+  return out;
+}
+
+/** May this cron's detail page preview this variant? Own sends, plus emails a
+ *  journey shown on this page names (rendered with "sent by" attribution). */
+export function variantAllowedForCron(v: EmailVariant, cronId: string): boolean {
+  if (variantBelongsToCron(v, cronId)) return true;
+  return journeysForCron(cronId).some((j) => j.steps.some((s) => s.emailType === v.emailType));
 }
 
 /**

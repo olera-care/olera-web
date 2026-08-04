@@ -6,8 +6,10 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type React
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { useToast } from "@/components/admin/Toast";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
-import { smsVariantsForCron } from "@/lib/sms-samples";
+import { smsVariantsForJourneys } from "@/lib/sms-samples";
 import SmsSamplesBlock from "@/components/admin/SmsSamplesBlock";
+import { journeysForCron } from "@/lib/family-comms/journey";
+import CommsJourneyBlock from "@/components/admin/CommsJourneyBlock";
 
 interface Rollup {
   sent: number;
@@ -28,6 +30,8 @@ interface VariantRow extends Rollup {
   convRate?: number;
   convEvent?: string;
   convLabel?: string;
+  // "sms" rows are texts riding the same table — no open/click/delivery semantics here.
+  channel?: "sms";
 }
 interface RunRow {
   id: string;
@@ -43,6 +47,11 @@ interface SamplePreviewType {
   label: string;
   subject: string;
   emailType: string;
+  // Journey-aware ownership: false = another automation fires this email; it's
+  // shown here so the full sequence is visible, with attribution.
+  mine?: boolean;
+  ownerCron?: string | null;
+  ownerName?: string | null;
 }
 interface DetailResponse {
   job: {
@@ -70,6 +79,7 @@ interface DetailResponse {
   previewTypes: string[];
   samplePreviewTypes: SamplePreviewType[];
   smsSent: number | null;
+  smsQueued: number | null;
   runs: RunRow[];
   windowDays: number;
 }
@@ -162,6 +172,13 @@ const RECIPIENT_FILTERS: { key: RecipientStatus; label: string }[] = [
 ];
 
 type Tab = "overview" | "recipients" | "runs";
+
+// Real-send dropdown selections are namespaced so they can never collide with
+// sample-variant ids — several variants (benefits_first_step, family_outcome_check,
+// benefits_check_in, family_archetype) share their id string with the email_type,
+// and an un-prefixed selection would silently render the SAMPLE instead of the
+// latest real send.
+const LATEST_PREFIX = "latest:";
 
 // ── small render helpers ──────────────────────────────────────────────
 
@@ -262,6 +279,10 @@ function runResult(s: Record<string, unknown> | null): string {
   if (!s) return "";
   const parts: string[] = [];
   if (typeof s.sent === "number") parts.push(`${s.sent.toLocaleString()} sent`);
+  // Navigator-scheduler runs report { due, sent, blocked } — a blocked fire is
+  // the interesting one (governance/DNC cleared the schedule), never hide it.
+  if (typeof s.blocked === "number" && s.blocked > 0) parts.push(`${s.blocked.toLocaleString()} blocked`);
+  if (typeof s.due === "number" && s.due > 0) parts.push(`${s.due.toLocaleString()} due`);
   if (typeof s.skipped === "number" && s.skipped > 0) parts.push(`${s.skipped.toLocaleString()} skipped`);
   if (parts.length === 0 && typeof s.processed === "number") parts.push(`${s.processed.toLocaleString()} processed`);
   if (s.dry_run === true) parts.push("dry run");
@@ -409,11 +430,15 @@ export default function AutomationDetailPage() {
     if (!id || !previewType) return;
     setPreview("loading");
     let cancelled = false;
-    // Sample keys fetch a rendered fixture; other values fetch the latest real email.
+    // Sample keys fetch a rendered fixture; "latest:"-prefixed and bare type
+    // values fetch the latest real email of that type.
+    const isLatest = previewType.startsWith(LATEST_PREFIX);
     const isSample =
-      DIGEST_SAMPLES.some((s) => s.key === previewType) ||
-      data?.samplePreviewTypes.some((s) => s.id === previewType);
-    const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`;
+      !isLatest &&
+      (DIGEST_SAMPLES.some((s) => s.key === previewType) ||
+        data?.samplePreviewTypes.some((s) => s.id === previewType));
+    const realType = isLatest ? previewType.slice(LATEST_PREFIX.length) : previewType;
+    const qs = isSample ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(realType)}`;
     fetch(`/api/admin/automations/${id}/preview?${qs}`)
       .then((r) => (r.ok ? r.json() : r.status === 404 ? Promise.resolve("none") : Promise.reject(new Error())))
       .then((d) => { if (!cancelled) setPreview(d === "none" ? "none" : (d as PreviewResponse)); })
@@ -609,15 +634,30 @@ export default function AutomationDetailPage() {
               {data.rollup30d ? (
                 <>
                   <div>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Sent" sub={`last ${data.windowDays} days`}>
+                    {(() => {
+                      // Texts get their own tile whenever this automation sends them —
+                      // the count was previously computed and then never rendered here.
+                      const showSms = data.smsSent != null && data.job.channels.includes("sms");
+                      return (
+                    <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 ${showSms ? "lg:grid-cols-6" : "lg:grid-cols-5"}`}>
+                      <StatCard value={data.rollup30d.sent.toLocaleString()} label="Emails sent" sub={`last ${data.windowDays} days`}>
                         {data.trend.length >= 2 && <Sparkline values={data.trend.map((w) => w.sent)} className="text-gray-300" />}
                       </StatCard>
                       <StatCard value={pct(data.rollup30d.delivered, data.rollup30d.sent)} label="Delivered" />
                       <StatCard value={pct(data.rollup30d.opened, data.rollup30d.sent)} label="Opened" />
                       <StatCard value={pct(data.rollup30d.clicked, data.rollup30d.sent)} label="Clicked" />
                       <StatCard value={data.rollup30d.bounced + data.rollup30d.complained} label={data.rollup30d.complained > 0 ? "Bounced / complained" : "Bounced"} danger={data.rollup30d.bounced + data.rollup30d.complained > 0} muted={data.rollup30d.bounced + data.rollup30d.complained === 0} />
+                      {showSms && (
+                        <StatCard
+                          value={data.smsSent!.toLocaleString()}
+                          label="Texts sent"
+                          sub={(data.smsQueued ?? 0) > 0 ? `${data.smsQueued} parked (quiet hours)` : "consent-gated"}
+                          muted={data.smsSent === 0}
+                        />
+                      )}
                     </div>
+                      );
+                    })()}
                     <p className="mt-2 text-xs text-gray-400">
                       Open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal.
                       {(() => {
@@ -647,7 +687,8 @@ export default function AutomationDetailPage() {
                     <div className="mt-6">
                       {(() => {
                         const hasConversion = data.variants.some((v) => Boolean(v.convLabel));
-                        const breakdownLabel = data.job.id === "weekly-provider-digest" ? "By variant" : "By email type";
+                        const hasSmsRows = data.variants.some((v) => v.channel === "sms");
+                        const breakdownLabel = data.job.id === "weekly-provider-digest" ? "By variant" : hasSmsRows ? "By message type" : "By email type";
                         return (
                           <>
                       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">{breakdownLabel} · last {data.windowDays} days</h3>
@@ -656,7 +697,7 @@ export default function AutomationDetailPage() {
                         <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs text-gray-500">
-                              <th className="px-4 py-2 font-medium">{data.job.id === "weekly-provider-digest" ? "Variant" : "Email type"}</th>
+                              <th className="px-4 py-2 font-medium">{data.job.id === "weekly-provider-digest" ? "Variant" : hasSmsRows ? "Message" : "Email type"}</th>
                               <th className="px-4 py-2 text-right font-medium">Sent</th>
                               <th className="px-4 py-2 text-right font-medium">Delivered</th>
                               <th className="px-4 py-2 text-right font-medium">Opened</th>
@@ -675,13 +716,15 @@ export default function AutomationDetailPage() {
                                 <tr className={`border-b border-gray-100 ${v.sent === 0 ? "text-gray-300" : ""}`}>
                                   <td className={`px-4 py-2 font-medium ${v.sent === 0 ? "" : "text-gray-800"}`}>
                                     {v.label}
+                                    {v.channel === "sms" && <span className="ml-1.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700 ring-1 ring-inset ring-sky-200/60">text</span>}
                                     {VARIANT_TRIGGERS[v.key] && <InfoDot text={VARIANT_TRIGGERS[v.key]} />}
                                     {v.sent === 0 && <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-gray-400">no sends yet</span>}
                                   </td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  {/* Texts: Twilio owns delivery, and opens/clicks don't exist — dashes, not fake 0%. */}
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
                                   {hasConversion && (
                                   <td className="px-4 py-2 text-right">
                                     {v.sent > 0 && v.delivered > 0 ? (
@@ -718,6 +761,7 @@ export default function AutomationDetailPage() {
                       <p className="mt-2 text-xs text-gray-400">
                         Open/click rates are % of sent.
                         {hasConversion ? " Converted is % of delivered who took the variant's goal action within 14 days. Variants are inferred from the email for sends before tagging was added." : " Rows are grouped by email_type so this monitor shows which lifecycle emails are actually going out."}
+                        {hasSmsRows && <> Text rows count app-logged sends; carrier delivery lives on the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link>.</>}
                       </p>
                           </>
                         );
@@ -764,16 +808,25 @@ export default function AutomationDetailPage() {
                 </div>
               )}
 
+              {/* Sequence timelines — the journey-level map (which message comes before
+                  which, across BOTH channels and both crons where a journey spans two). */}
+              {journeysForCron(data.job.id).map((j) => (
+                <CommsJourneyBlock key={j.key} journey={j} currentCronId={data.job.id} />
+              ))}
+
               {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
               {(() => {
                 const isDigest = data.job.id === "weekly-provider-digest";
-                const sampleTypes = isDigest
-                  ? DIGEST_SAMPLES.map((s) => ({ id: s.key, label: s.label }))
-                  : data.samplePreviewTypes.map((s) => ({ id: s.id, label: s.label }));
+                type SampleChip = { id: string; label: string; mine: boolean; ownerCron?: string | null; ownerName?: string | null };
+                const sampleTypes: SampleChip[] = isDigest
+                  ? DIGEST_SAMPLES.map((s) => ({ id: s.key, label: s.label, mine: true }))
+                  : data.samplePreviewTypes.map((s) => ({ id: s.id, label: s.label, mine: s.mine !== false, ownerCron: s.ownerCron, ownerName: s.ownerName }));
                 if (sampleTypes.length === 0 && data.previewTypes.length === 0) return null;
-                const sampleSel = sampleTypes.some((s) => s.id === previewType);
+                const isLatestSel = previewType?.startsWith(LATEST_PREFIX) ?? false;
+                const sampleSel = !isLatestSel && sampleTypes.some((s) => s.id === previewType);
+                const rawType = isLatestSel ? previewType!.slice(LATEST_PREFIX.length) : previewType;
                 const fullUrl = previewType
-                  ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(previewType)}`}&raw=1`
+                  ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(rawType!)}`}&raw=1`
                   : null;
                 return (
                   <div className="overflow-hidden rounded-xl border border-gray-200">
@@ -789,9 +842,19 @@ export default function AutomationDetailPage() {
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-3">
-                        {!isDigest && data.previewTypes.length > 1 && (
-                          <select value={previewType ?? ""} onChange={(e) => { setPreviewType(e.target.value); setPreviewExpanded(false); }} className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600">
-                            {data.previewTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                        {/* Real-send picker. Shown even with ONE previewType when samples exist:
+                            for the navigator the real sends are per-family AI letters — the
+                            template sample must not be the only thing viewable. Option values
+                            carry LATEST_PREFIX so a type that shares its name with a sample-
+                            variant id still fetches the real email. */}
+                        {!isDigest && (data.previewTypes.length > 1 || (data.previewTypes.length > 0 && sampleTypes.length > 0)) && (
+                          <select
+                            value={sampleSel || !previewType ? "" : LATEST_PREFIX + rawType}
+                            onChange={(e) => { if (e.target.value) { setPreviewType(e.target.value); setPreviewExpanded(false); } }}
+                            className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600"
+                          >
+                            {sampleSel && <option value="" disabled>Latest sent…</option>}
+                            {data.previewTypes.map((t) => <option key={t} value={LATEST_PREFIX + t}>{t}</option>)}
                           </select>
                         )}
                         {fullUrl && <a href={fullUrl} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:underline">Open full ↗</a>}
@@ -800,12 +863,36 @@ export default function AutomationDetailPage() {
                     {sampleTypes.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 border-b border-gray-100 bg-gray-50/40 px-4 py-2">
                         {sampleTypes.map((s) => (
-                          <button key={s.id} onClick={() => { setPreviewType(s.id); setPreviewExpanded(false); }} className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${previewType === s.id ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
+                          <button
+                            key={s.id}
+                            onClick={() => { setPreviewType(s.id); setPreviewExpanded(false); }}
+                            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                              previewType === s.id
+                                ? "bg-gray-900 text-white"
+                                : s.mine
+                                  ? "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                                  : "border border-dashed border-gray-200 bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                            }`}
+                            title={s.mine ? undefined : "Sent by another automation — shown for the full sequence"}
+                          >
                             {s.label}
                           </button>
                         ))}
                       </div>
                     )}
+                    {(() => {
+                      const activeChip = sampleTypes.find((s) => s.id === previewType);
+                      if (!activeChip || activeChip.mine || !activeChip.ownerCron) return null;
+                      return (
+                        <div className="border-b border-gray-100 bg-amber-50/40 px-4 py-1.5 text-xs text-gray-500">
+                          Sent by{" "}
+                          <Link href={`/admin/automations/${activeChip.ownerCron}`} className="font-medium text-teal-700 hover:underline">
+                            {activeChip.ownerName ?? activeChip.ownerCron}
+                          </Link>{" "}
+                          — shown here so the full email sequence is visible in one place.
+                        </div>
+                      );
+                    })()}
                     {preview && typeof preview === "object" && (preview.from || preview.preheader) && (
                       <div className="space-y-0.5 border-b border-gray-100 px-4 py-2 text-xs text-gray-400">
                         {preview.from && <div className="truncate"><span className="font-medium text-gray-500">From</span> <code className="text-gray-600">{preview.from}</code></div>}
@@ -829,11 +916,14 @@ export default function AutomationDetailPage() {
                 );
               })()}
 
-              {/* Text samples — rendered client-side from the live SMS templates (lib/sms-samples.ts). */}
+              {/* Text samples — rendered client-side from the live SMS templates
+                  (lib/sms-samples.ts). Journey-aware: shows the family's FULL text
+                  sequence (results → first step → check-in), with texts another
+                  automation fires marked "sent by" instead of hidden. */}
               {(() => {
-                const smsVariants = smsVariantsForCron(data.job.id);
+                const smsVariants = smsVariantsForJourneys(data.job.id);
                 if (smsVariants.length === 0) return null;
-                return <SmsSamplesBlock variants={smsVariants} />;
+                return <SmsSamplesBlock variants={smsVariants} currentCronId={data.job.id} />;
               })()}
             </div>
           )}

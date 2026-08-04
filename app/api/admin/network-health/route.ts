@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
+import {
+  countCanonicalProviders,
+  fetchMeaningfulProviderActivity,
+} from "@/lib/admin-provider-activity";
+
+type ReferralActivityRow = {
+  profile_id: string | null;
+  provider_id: string | null;
+  event_type: string;
+  metadata: Record<string, unknown> | null;
+};
 
 function parseBoundary(value: string | null): string | null | undefined {
   if (!value) return null;
@@ -35,6 +46,15 @@ export async function GET(request: NextRequest) {
     .from("provider_activity")
     .select("id", { count: "exact", head: true })
     .eq("event_type", "lead_received");
+  let questionsAskedQuery = db
+    .from("provider_questions")
+    .select("id", { count: "exact", head: true });
+  let questionsAnsweredQuery = db
+    .from("provider_questions")
+    .select("id", { count: "exact", head: true })
+    .not("answered_at", "is", null)
+    .not("answer", "is", null)
+    .neq("answer", "");
   let benefitsQuery = db
     .from("seeker_activity")
     .select("id", { count: "exact", head: true })
@@ -43,36 +63,141 @@ export async function GET(request: NextRequest) {
     .from("provider_activity")
     .select("id", { count: "exact", head: true })
     .eq("event_type", "claim_completed");
+  let emailClicksQuery = db
+    .from("email_log")
+    .select("id", { count: "exact", head: true })
+    .eq("channel", "email")
+    .not("first_clicked_at", "is", null);
+  let reviewsQuery = db
+    .from("reviews")
+    .select("id", { count: "exact", head: true });
+  let oleraReviewsQuery = db
+    .from("olera_reviews")
+    .select("id", { count: "exact", head: true });
+  let referralActivityQuery = db
+    .from("provider_activity")
+    .select("profile_id, provider_id, event_type, metadata")
+    .in("event_type", [
+      "referral_source_viewed",
+      "referral_call_clicked",
+      "market_outreach_status_updated",
+    ])
+    .limit(10000);
 
   if (from) {
     pageViewsQuery = pageViewsQuery.gte("created_at", from);
     leadsQuery = leadsQuery.gte("created_at", from);
+    questionsAskedQuery = questionsAskedQuery.gte("created_at", from);
+    questionsAnsweredQuery = questionsAnsweredQuery.gte("answered_at", from);
     benefitsQuery = benefitsQuery.gte("created_at", from);
     claimsQuery = claimsQuery.gte("created_at", from);
+    emailClicksQuery = emailClicksQuery.gte("first_clicked_at", from);
+    reviewsQuery = reviewsQuery.gte("created_at", from);
+    oleraReviewsQuery = oleraReviewsQuery.gte("created_at", from);
+    referralActivityQuery = referralActivityQuery.gte("created_at", from);
   }
   if (to) {
     pageViewsQuery = pageViewsQuery.lt("created_at", to);
     leadsQuery = leadsQuery.lt("created_at", to);
+    questionsAskedQuery = questionsAskedQuery.lt("created_at", to);
+    questionsAnsweredQuery = questionsAnsweredQuery.lt("answered_at", to);
     benefitsQuery = benefitsQuery.lt("created_at", to);
     claimsQuery = claimsQuery.lt("created_at", to);
+    emailClicksQuery = emailClicksQuery.lt("first_clicked_at", to);
+    reviewsQuery = reviewsQuery.lt("created_at", to);
+    oleraReviewsQuery = oleraReviewsQuery.lt("created_at", to);
+    referralActivityQuery = referralActivityQuery.lt("created_at", to);
   }
 
-  const [pageViews, leads, benefits, claims] = await Promise.all([
+  const [
+    pageViews,
+    leads,
+    questionsAsked,
+    questionsAnswered,
+    benefits,
+    claims,
+    emailClicks,
+    reviews,
+    oleraReviews,
+    referralActivity,
+    providerActivity,
+  ] = await Promise.all([
     pageViewsQuery,
     leadsQuery,
+    questionsAskedQuery,
+    questionsAnsweredQuery,
     benefitsQuery,
     claimsQuery,
+    emailClicksQuery,
+    reviewsQuery,
+    oleraReviewsQuery,
+    referralActivityQuery,
+    fetchMeaningfulProviderActivity(db, from, to),
   ]);
-  const error = pageViews.error ?? leads.error ?? benefits.error ?? claims.error;
+  const error = pageViews.error
+    ?? leads.error
+    ?? questionsAsked.error
+    ?? questionsAnswered.error
+    ?? benefits.error
+    ?? claims.error
+    ?? emailClicks.error
+    ?? reviews.error
+    ?? oleraReviews.error
+    ?? referralActivity.error
+    ?? providerActivity.error;
   if (error) {
     console.error("[admin/network-health] count failed:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // This is a provider business-development funnel, not a count of family
+  // referrals. Reviews are deduped by provider + local source; call taps are
+  // activity volume; gained partners are self-reported status outcomes.
+  const reviewedSources = new Set<string>();
+  let referralCallsStarted = 0;
+  const gainedPartners = new Set<string>();
+  for (const row of (referralActivity.data ?? []) as ReferralActivityRow[]) {
+    const metadata = row.metadata ?? {};
+    const targetId = typeof metadata.target_id === "string" ? metadata.target_id : null;
+    const providerId = row.profile_id ?? row.provider_id;
+    if (!providerId || !targetId) continue;
+
+    const key = `${providerId}:${targetId}`;
+    if (row.event_type === "referral_source_viewed") {
+      reviewedSources.add(key);
+      continue;
+    }
+    if (row.event_type === "referral_call_clicked") {
+      referralCallsStarted += 1;
+      continue;
+    }
+
+    const status = typeof metadata.status === "string" ? metadata.status : null;
+    if (row.event_type === "market_outreach_status_updated" && status === "referring") {
+      gainedPartners.add(key);
+    }
+  }
+
+  const meaningfulProviders = await countCanonicalProviders(db, providerActivity.data);
+  if (meaningfulProviders.error) {
+    console.error("[admin/network-health] provider identity lookup failed:", meaningfulProviders.error);
+    return NextResponse.json({ error: meaningfulProviders.error.message }, { status: 500 });
+  }
+  const askedCount = questionsAsked.count ?? 0;
+  const answeredCount = questionsAnswered.count ?? 0;
+
   return NextResponse.json({
     providerPageViews: pageViews.count ?? 0,
     leadsReceived: leads.count ?? 0,
+    questionsAsked: askedCount,
+    questionsAnswered: answeredCount,
+    meaningfullyActiveProviders: meaningfulProviders.count,
     benefitsRequested: benefits.count ?? 0,
     providerAccountsClaimed: claims.count ?? 0,
+    emailClicks: emailClicks.count ?? 0,
+    reviewsReceived: (reviews.count ?? 0) + (oleraReviews.count ?? 0),
+    referralSourcesReviewed: reviewedSources.size,
+    referralCallsStarted,
+    referralPartnersGained: gainedPartners.size,
   });
 }

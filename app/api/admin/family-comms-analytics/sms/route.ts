@@ -85,15 +85,41 @@ export async function GET(request: NextRequest) {
   const now = Date.now();
   const dateFrom = request.nextUrl.searchParams.get("date_from");
   const dateTo = request.nextUrl.searchParams.get("date_to");
-  const fromMs = dateFrom ? Date.parse(dateFrom) : now - 30 * DAY;
+  const countOnly = request.nextUrl.searchParams.get("count_only") === "true";
+  const allTime = request.nextUrl.searchParams.get("all_time") === "true";
+  const fromMs = dateFrom ? Date.parse(dateFrom) : allTime ? null : now - 30 * DAY;
   const toMs = dateTo ? Date.parse(dateTo) : now;
 
   const LIMIT = 2000;
+
+  // Admin Overview needs an exact inbound count, not outbound delivery detail.
+  // Keep this as a separate fast path so loading the tile does not fetch or
+  // aggregate the outbound message ledger below.
+  if (countOnly) {
+    try {
+      const inbound = await client.messages.list({
+        to: from,
+        ...(fromMs !== null ? { dateSentAfter: new Date(fromMs) } : {}),
+        dateSentBefore: new Date(toMs),
+        limit: LIMIT,
+      });
+      return NextResponse.json({
+        configured: true,
+        received: inbound.length,
+        truncated: inbound.length >= LIMIT,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Twilio query failed";
+      console.error("[sms-received] Twilio list failed:", message);
+      return NextResponse.json({ configured: true, error: message }, { status: 502 });
+    }
+  }
+
   let messages;
   try {
     messages = await client.messages.list({
       from,
-      dateSentAfter: new Date(fromMs),
+      ...(fromMs !== null ? { dateSentAfter: new Date(fromMs) } : {}),
       dateSentBefore: new Date(toMs),
       limit: LIMIT,
     });
@@ -115,7 +141,7 @@ export async function GET(request: NextRequest) {
 
   // Seed every day in the window so the trend has no gaps (a missing day is 0,
   // not absent — the sparkline reads honestly at low volume).
-  for (let t = fromMs; t <= toMs; t += DAY) daily.set(dayKey(new Date(t)), { sent: 0, delivered: 0, undelivered: 0, failed: 0 });
+  for (let t = fromMs ?? toMs - 30 * DAY; t <= toMs; t += DAY) daily.set(dayKey(new Date(t)), { sent: 0, delivered: 0, undelivered: 0, failed: 0 });
 
   const recent = messages
     .slice()
@@ -182,7 +208,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     configured: true,
-    range: { from: new Date(fromMs).toISOString(), to: new Date(toMs).toISOString() },
+    range: { from: new Date(fromMs ?? toMs - 30 * DAY).toISOString(), to: new Date(toMs).toISOString() },
     generatedAt: new Date(now).toISOString(),
     senderLast4: last4(from),
     totals: {

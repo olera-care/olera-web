@@ -123,6 +123,7 @@ export default function MarketActionHub({
             <ReferralsTab
               targets={data.referralGraph?.prioritizedTargets ?? []}
               providerName={providerName}
+              providerSlug={providerSlug}
               city={data.meta.city}
               onStatusUpdate={() => setOutreachRefetchKey((k) => k + 1)}
             />

@@ -34,6 +34,8 @@ const PROVIDER_EVENT_TYPES = [
   "matches_outreach_sent",    // Provider sends outreach message
   "market_diagnostic_viewed_no_leads", // Provider with 0 local leads saw the managed-ads pitch
   "market_outreach_status_updated", // Provider updated a referral target in "Your Market"
+  "referral_source_viewed",   // Provider opened guidance for a local referral source
+  "referral_call_clicked",    // Provider tapped a referral source phone link
   // Managed Ads funnel + Your Market (migration 105)
   "managed_ads_pitch_viewed",  // Provider saw a managed-ads pitch surface
   "managed_ads_cta_clicked",   // Provider tapped a CTA toward /provider/boost

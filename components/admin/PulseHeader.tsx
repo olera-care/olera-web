@@ -140,7 +140,7 @@ export default function PulseHeader({
               loading={loading}
             />
           ) : (
-            <Chart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} />
+            <MetricTrendChart series={stats?.series ?? []} bucket={stats?.bucket ?? "day"} loading={loading} />
           )}
         </div>
       </div>
@@ -203,14 +203,20 @@ const CHART_HEIGHT = 180;
 const CHART_PAD_TOP = 30;
 const CHART_PAD_BOTTOM = 8;
 
-function Chart({
+export function MetricTrendChart({
   series,
   bucket,
   loading,
+  partialLastBucket = false,
+  partialLastBucketLabel = "so far",
+  timeZone = "UTC",
 }: {
   series: { date: string; count: number }[];
   bucket: Bucket;
   loading: boolean;
+  partialLastBucket?: boolean;
+  partialLastBucketLabel?: string;
+  timeZone?: string;
 }) {
   // Stateful callback ref: the effect re-runs when the div actually mounts,
   // which matters because loading/empty states return without the ref div.
@@ -256,9 +262,15 @@ function Chart({
     : 0;
   const tooltipAbove = hover ? hover.y > 50 : true;
 
-  const firstLabel = hasData ? formatBucketDate(series[0].date, bucket) : "";
-  const lastLabel = hasData ? formatBucketDate(series[series.length - 1].date, bucket) : "";
+  const firstLabel = hasData ? formatBucketDate(series[0].date, bucket, false, timeZone) : "";
+  const lastLabel = hasData ? formatBucketDate(series[series.length - 1].date, bucket, false, timeZone) : "";
   const showLabels = hasData && series.length > 1;
+  const partialSegment = partialLastBucket && chart.points.length > 1
+    ? `M ${chart.points[chart.points.length - 2].x.toFixed(2)} ${chart.points[chart.points.length - 2].y.toFixed(2)} L ${chart.points[chart.points.length - 1].x.toFixed(2)} ${chart.points[chart.points.length - 1].y.toFixed(2)}`
+    : null;
+  const solidLinePath = partialSegment
+    ? chart.linePath.slice(0, chart.linePath.lastIndexOf(" L "))
+    : chart.linePath;
 
   return (
     <div>
@@ -305,19 +317,33 @@ function Chart({
               />
               <path d={chart.areaPath} fill="url(#pulse-fill-gradient)" />
               <path
-                d={chart.linePath}
+                d={solidLinePath}
                 fill="none"
                 stroke="#047857"
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
+              {partialSegment && (
+                <path
+                  d={partialSegment}
+                  fill="none"
+                  stroke="#047857"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeDasharray="4 4"
+                  opacity={0.55}
+                />
+              )}
               {chart.points.length > 0 && !hover && (
                 <circle
                   cx={chart.points[chart.points.length - 1].x}
                   cy={chart.points[chart.points.length - 1].y}
                   r={3}
-                  fill="#047857"
+                  fill={partialLastBucket ? "#ffffff" : "#047857"}
+                  stroke={partialLastBucket ? "#047857" : undefined}
+                  strokeWidth={partialLastBucket ? 1.5 : undefined}
+                  opacity={partialLastBucket ? 0.65 : 1}
                 />
               )}
               {hover && (
@@ -375,7 +401,8 @@ function Chart({
               {series[hoverIndex].count.toLocaleString()}
             </div>
             <div className="text-[10px] text-gray-300 leading-tight mt-0.5">
-              {formatBucketDate(series[hoverIndex].date, bucket, true)}
+              {formatBucketDate(series[hoverIndex].date, bucket, true, timeZone)}
+              {partialLastBucket && hoverIndex === series.length - 1 ? ` · ${partialLastBucketLabel}` : ""}
             </div>
           </div>
         )}
@@ -404,26 +431,31 @@ function Chart({
  * In non-verbose context (axis corner labels), everything stays short to keep
  * the chart edges clean.
  */
-function formatBucketDate(iso: string, bucket: Bucket, verbose = false): string {
+function formatBucketDate(
+  iso: string,
+  bucket: Bucket,
+  verbose = false,
+  timeZone = "UTC",
+): string {
   const d = new Date(iso);
   if (bucket === "hour") {
-    return d.toLocaleString("en-US", { hour: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
+    return d.toLocaleString("en-US", { hour: "numeric", month: "short", day: "numeric", timeZone });
   }
   if (bucket === "month") {
     return d.toLocaleString("en-US", {
       month: verbose ? "long" : "short",
       year: "numeric",
-      timeZone: "UTC",
+      timeZone,
     });
   }
   if (bucket === "week" && verbose) {
     const end = new Date(d);
     end.setUTCDate(end.getUTCDate() + 6);
-    const startLabel = d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-    const endLabel = end.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+    const startLabel = d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone });
+    const endLabel = end.toLocaleString("en-US", { month: "short", day: "numeric", timeZone });
     return `${startLabel} – ${endLabel}`;
   }
-  return d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  return d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone });
 }
 
 /**

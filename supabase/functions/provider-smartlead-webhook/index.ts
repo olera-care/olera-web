@@ -89,7 +89,7 @@ function extractLead(raw: unknown, kind: Kind): LeadExtract {
       : undefined;
 
   const sequenceStepRaw =
-    (r.sequence_step ?? r.step ?? r.seq_number ?? (r.sequence as Record<string, unknown> | undefined)?.step) as
+    (r.sequence_step ?? r.step ?? r.seq_number ?? r.sequence_number ?? (r.sequence as Record<string, unknown> | undefined)?.step) as
       | number
       | string
       | undefined;
@@ -338,10 +338,59 @@ async function handleEngagement(
   }
 
   const { data } = await query.order("created_at", { ascending: false }).limit(1);
-  const touchpoint = (data ?? [])[0] as
+  let touchpoint = (data ?? [])[0] as
     | { id: string; details: Record<string, unknown> | null }
     | undefined;
-  if (!touchpoint) return;
+
+  // If no email_sent touchpoint exists, create a synthetic one so we can record the engagement.
+  // This handles cases where EMAIL_SENT webhook failed or wasn't registered when email was sent.
+  if (!touchpoint) {
+    // Re-query to handle race condition (another request might have just created one)
+    const { data: recheck } = await query.order("created_at", { ascending: false }).limit(1);
+    if (recheck && recheck.length > 0) {
+      touchpoint = recheck[0] as { id: string; details: Record<string, unknown> | null };
+    } else {
+      console.log("[provider-smartlead-webhook] no email_sent touchpoint found, creating synthetic", {
+        provider_id: row.provider_id,
+        type,
+        campaignId: extract.campaignId,
+        sequenceStep: extract.sequenceStep,
+      });
+
+      const syntheticDetails = {
+        source: "smartlead",
+        smartlead_event_id: null, // Unknown - we only have the open/click event
+        recipient_email: extract.email ?? null,
+        sequence_step: extract.sequenceStep ?? null,
+        occurred_at: null, // Unknown - don't guess send time from open time
+        campaign_id: extract.campaignId ?? null,
+        synthetic: true, // Flag that this was created from an open/click, not EMAIL_SENT
+      };
+
+      const { data: inserted, error } = await supabase
+        .from("provider_outreach_touchpoints")
+        .insert({
+          provider_id: row.provider_id,
+          touchpoint_type: "email_sent",
+          details: syntheticDetails,
+        })
+        .select("id, details")
+        .single();
+
+      if (error || !inserted) {
+        // Could be a race condition duplicate - try to fetch the existing one
+        const { data: fallback } = await query.order("created_at", { ascending: false }).limit(1);
+        if (fallback && fallback.length > 0) {
+          touchpoint = fallback[0] as { id: string; details: Record<string, unknown> | null };
+        } else {
+          console.warn("[provider-smartlead-webhook] failed to create synthetic email_sent touchpoint", error?.message);
+          return;
+        }
+      } else {
+        touchpoint = { id: inserted.id as string, details: inserted.details as Record<string, unknown> | null };
+      }
+    }
+  }
 
   const details = (touchpoint.details ?? {}) as Record<string, unknown>;
 

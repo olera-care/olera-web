@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { BdTarget } from "../MarketDiagnostic";
 import { getReferralGuidance } from "@/lib/market-diagnostic/referral-guidance";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 const CAT_LABEL: Record<string, string> = {
   hospital: "Hospital",
@@ -22,6 +23,7 @@ type OutreachStatus = "to_contact" | "contacted" | "responded" | "referring" | "
 interface ReferralsTabProps {
   targets: BdTarget[];
   providerName?: string;
+  providerSlug?: string;
   city?: string;
   /** Called when outreach status is updated, so parent can sync other components */
   onStatusUpdate?: () => void;
@@ -30,6 +32,7 @@ interface ReferralsTabProps {
 export default function ReferralsTab({
   targets,
   providerName,
+  providerSlug,
   city,
   onStatusUpdate,
 }: ReferralsTabProps) {
@@ -38,6 +41,7 @@ export default function ReferralsTab({
   const [showTracking, setShowTracking] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [saving, setSaving] = useState(false);
+  const reviewedTargets = useRef(new Set<string>());
 
   // Fetch current outreach status
   useEffect(() => {
@@ -72,6 +76,21 @@ export default function ReferralsTab({
     }
     return null;
   }, [targets, outreachStatus]);
+
+  // A referral review is a source card the provider intentionally opened by
+  // selecting the Referrals tab. Record each source once per mounted visit;
+  // the admin rollup also deduplicates provider + source across the range.
+  useEffect(() => {
+    if (isLoading || !providerSlug || !currentTarget?.id || reviewedTargets.current.has(currentTarget.id)) return;
+    reviewedTargets.current.add(currentTarget.id);
+    trackProviderEvent(providerSlug, "referral_source_viewed", {
+      provider_name: providerName,
+      target_id: currentTarget.id,
+      target_name: currentTarget.name,
+      category: currentTarget.cat,
+      source: "growth_referrals_tab",
+    });
+  }, [currentTarget, isLoading, providerName, providerSlug]);
 
   // Progress stats
   const stats = useMemo(() => {
@@ -124,6 +143,15 @@ export default function ReferralsTab({
 
   // Handle call button click
   const handleCallClick = () => {
+    if (providerSlug && currentTarget) {
+      trackProviderEvent(providerSlug, "referral_call_clicked", {
+        provider_name: providerName,
+        target_id: currentTarget.id,
+        target_name: currentTarget.name,
+        category: currentTarget.cat,
+        source: "growth_referrals_tab",
+      });
+    }
     setShowTracking(true);
   };
 

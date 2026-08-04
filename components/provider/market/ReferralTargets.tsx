@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { BdTarget } from "./MarketDiagnostic";
 import { getReferralGuidance } from "@/lib/market-diagnostic/referral-guidance";
+import { trackProviderEvent } from "@/lib/analytics/track-provider-event";
 
 const CAT_LABEL: Record<string, string> = {
   hospital: "Hospitals & ER", skilled_nursing: "Skilled nursing / rehab", hospice: "Hospice",
@@ -31,13 +32,14 @@ const POP_CSS = "@keyframes mroPop{0%{transform:scale(1)}40%{transform:scale(1.0
  * via /api/provider/market-outreach.
  */
 export default function ReferralTargets({
-  targets, interactive = false, providerName, city, refetchKey,
-}: { targets: BdTarget[]; interactive?: boolean; providerName?: string; city?: string; refetchKey?: number }) {
+  targets, interactive = false, providerName, providerSlug, city, refetchKey,
+}: { targets: BdTarget[]; interactive?: boolean; providerName?: string; providerSlug?: string; city?: string; refetchKey?: number }) {
   const [status, setStatus] = useState<Record<string, string>>({});
   const [celebrating, setCelebrating] = useState<Record<string, boolean>>({});
   const [showAll, setShowAll] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(() => (targets[0] ? keyOf(targets[0]) : null));
   const [copied, setCopied] = useState<string | null>(null);
+  const reviewedTargets = useRef(new Set<string>());
   const visible = showAll ? targets : targets.slice(0, 5);
 
   useEffect(() => {
@@ -54,6 +56,31 @@ export default function ReferralTargets({
       .catch(() => {});
     return () => { cancelled = true; };
   }, [interactive, refetchKey]);
+
+  useEffect(() => {
+    if (!interactive || !providerSlug || !expanded || reviewedTargets.current.has(expanded)) return;
+    const target = targets.find((item) => keyOf(item) === expanded);
+    if (!target) return;
+    reviewedTargets.current.add(expanded);
+    trackProviderEvent(providerSlug, "referral_source_viewed", {
+      provider_name: providerName,
+      target_id: keyOf(target),
+      target_name: target.name,
+      category: target.cat,
+      source: "growth_full_call_sheet",
+    });
+  }, [expanded, interactive, providerName, providerSlug, targets]);
+
+  const trackCall = (target: BdTarget, source: string) => {
+    if (!interactive || !providerSlug) return;
+    trackProviderEvent(providerSlug, "referral_call_clicked", {
+      provider_name: providerName,
+      target_id: keyOf(target),
+      target_name: target.name,
+      category: target.cat,
+      source,
+    });
+  };
 
   const update = (t: BdTarget, value: string) => {
     const prev = status[keyOf(t)] || "to_contact";
@@ -132,7 +159,7 @@ export default function ReferralTargets({
                   <div className="text-[12px] text-stone-500">
                     {CAT_LABEL[t.cat] ?? t.cat} · {t.distanceMiles}mi
                     {t.phone && (
-                      <> · <a href={`tel:${t.phone}`} onClick={(e) => e.stopPropagation()} className="hover:text-[#199087] hover:underline">{t.phone}</a></>
+                      <> · <a href={`tel:${t.phone}`} onClick={(e) => { e.stopPropagation(); trackCall(t, "growth_call_sheet_row"); }} className="hover:text-[#199087] hover:underline">{t.phone}</a></>
                     )}
                   </div>
                 </div>
@@ -193,6 +220,7 @@ export default function ReferralTargets({
                   {t.phone && (
                     <a
                       href={`tel:${t.phone}`}
+                      onClick={() => trackCall(t, "growth_call_sheet_guidance")}
                       className="mt-7 inline-flex items-center gap-1.5 rounded-full bg-[#199087] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:bg-[#147a72] hover:shadow-[0_5px_16px_rgba(25,144,135,0.32)] hover:-translate-y-px active:translate-y-0 transition-all"
                     >
                       Call {t.phone} <span aria-hidden>→</span>

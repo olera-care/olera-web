@@ -118,6 +118,8 @@ export const PROVIDER_CATEGORIES: ProviderCategoryMeta[] = [
     eventTypes: [
       "market_diagnostic_viewed_no_leads",
       "market_outreach_status_updated",
+      "referral_source_viewed",
+      "referral_call_clicked",
       "managed_ads_pitch_viewed",
       "managed_ads_cta_clicked",
       "managed_ads_boost_viewed",
@@ -214,6 +216,8 @@ export const PROVIDER_EVENT_LABELS: Record<string, string> = {
   // Growing their business
   market_diagnostic_viewed_no_leads: "Saw the managed-ads pitch",
   market_outreach_status_updated: "Updated a market referral",
+  referral_source_viewed: "Reviewed a referral source",
+  referral_call_clicked: "Tapped a referral call link",
   managed_ads_pitch_viewed: "Saw a managed-ads pitch",
   managed_ads_cta_clicked: "Tapped a managed-ads CTA",
   managed_ads_boost_viewed: "Viewed the managed-ads page",

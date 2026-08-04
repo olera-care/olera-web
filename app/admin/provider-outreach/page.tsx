@@ -266,6 +266,7 @@ const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
   sequence_completed: "Sequence done",  // Legacy/alternate code
   clicked_not_claimed: "Clicked",       // Provider clicked a link but didn't claim (hot lead)
   replied: "Replied",                   // Provider replied to an email (requires inbound setup)
+  email_bounced: "Bounced",             // Email bounced (SmartLead webhook)
   manual: "Manual",                     // Admin manually moved to Follow Up
 };
 
@@ -281,6 +282,8 @@ function getNeedsCallReasonChip(reason: string | null): { label: string; classNa
       return { label, className: "bg-emerald-50 text-emerald-700" };
     case "replied":
       return { label, className: "bg-purple-50 text-purple-700" };
+    case "email_bounced":
+      return { label, className: "bg-red-50 text-red-700" };
     case "manual":
     default:
       return { label, className: "bg-gray-100 text-gray-600" };
@@ -1429,9 +1432,39 @@ function FollowUpProviderRow({
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+  // Fax finder state
+  const [findingFax, setFindingFax] = useState(false);
+  const [faxResult, setFaxResult] = useState<{ fax: string | null; confidence: string | null; source_url: string | null } | null>(null);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
+
+  // Find fax number for this provider
+  const handleFindFax = async () => {
+    setFindingFax(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFaxResult({ fax: data.fax, confidence: data.confidence, source_url: data.source_url });
+        // Update parent state if fax was found
+        if (data.fax) {
+          onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
+        }
+      } else {
+        setError(data.error || "Failed to find fax");
+      }
+    } catch {
+      setError("Network error finding fax");
+    } finally {
+      setFindingFax(false);
+    }
+  };
 
   // Confirmation modal content for each outcome
   // Note: No "claimed" outcome - auto-claim detection handles claims automatically
@@ -1818,6 +1851,57 @@ function FollowUpProviderRow({
               </p>
             </div>
           </details>
+
+          {/* Enrichment: Find Fax - only show if no fax number yet */}
+          {!provider.fax_number && !faxResult?.fax && (
+            <div className="mb-4 flex items-center gap-3">
+              <button
+                onClick={handleFindFax}
+                disabled={findingFax || !provider.website}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-full hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {findingFax ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                    Finding fax...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    {faxResult && !faxResult.fax ? "Try Again" : "Find Fax"}
+                  </>
+                )}
+              </button>
+              {!provider.website && (
+                <span className="text-xs text-gray-400">No website to search</span>
+              )}
+              {/* Show "not found" feedback after search returns null */}
+              {faxResult && !faxResult.fax && provider.website && (
+                <span className="text-xs text-gray-500">No fax found on website</span>
+              )}
+            </div>
+          )}
+
+          {/* Show fax result if found */}
+          {(provider.fax_number || faxResult?.fax) && (
+            <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-emerald-800">Fax found:</span>
+                <span className="text-sm text-emerald-700">{provider.fax_number || faxResult?.fax}</span>
+                {(provider.fax_confidence || faxResult?.confidence) && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    (provider.fax_confidence || faxResult?.confidence) === "high"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}>
+                    {provider.fax_confidence || faxResult?.confidence}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Outcome Buttons - plain uniform style */}
           {/* Note: "Not interested" is accessible via info icon action modal */}

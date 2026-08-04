@@ -10,6 +10,7 @@
  * Constraints: fixtures MUST be deterministic and PII-free (mirror the
  * email-samples cast: Maria / Evergreen Senior Care / Killeen).
  */
+import { journeysForCron } from "@/lib/family-comms/journey";
 import {
   providerReachOutSms,
   connectionResponseSms,
@@ -297,6 +298,37 @@ export function smsVariantsForCron(cronId: string): SmsVariant[] {
 /** Label for an sms email_type (for per-type breakdown rows). */
 export function smsLabelForType(smsType: string): string | null {
   return SMS_VARIANTS.find((v) => v.emailType === smsType)?.label ?? null;
+}
+
+/**
+ * ALL texts a page's journeys touch, in journey order — so an automation page
+ * shows the family's full text sequence (results → first step → check-in),
+ * not just the texts this one cron fires. Ownership is described per-variant
+ * in the drawer (SmsSamplesBlock shows "sent by" for other crons' texts).
+ * Falls back to the cron's own texts when it has no journeys.
+ */
+export function smsVariantsForJourneys(cronId: string): SmsVariant[] {
+  const journeys = journeysForCron(cronId);
+  // Time-ordered journeys first, so the pill order reads as the family
+  // experiences it (the priority ladder repeats the same types).
+  const ordered = [...journeys].sort((a, b) => (a.ordering === "time" ? 0 : 1) - (b.ordering === "time" ? 0 : 1));
+  const journeyTypes: string[] = [];
+  for (const j of ordered) {
+    for (const s of j.steps) {
+      if (s.smsType && !journeyTypes.includes(s.smsType)) journeyTypes.push(s.smsType);
+    }
+  }
+  const out: SmsVariant[] = [];
+  for (const t of journeyTypes) {
+    for (const v of SMS_VARIANTS) {
+      if (v.emailType === t && !out.includes(v)) out.push(v);
+    }
+  }
+  // Texts this cron sends that no journey step names keep their spot at the end.
+  for (const v of smsVariantsForCron(cronId)) {
+    if (!out.includes(v)) out.push(v);
+  }
+  return out;
 }
 
 /** Display order for panel groups. */

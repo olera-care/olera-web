@@ -1,23 +1,32 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { smsSegmentInfo, type SmsVariant } from "@/lib/sms-samples";
 import SmsPhonePreview from "@/components/admin/SmsPhonePreview";
+import { getCronJob } from "@/lib/crons/registry";
 
 /**
  * "Text samples" block for /admin/automations/[id] — the SMS sibling of the
  * email-samples preview card. Pill picker per variant, phone-bubble preview
  * rendered from the LIVE template (client-side, no API), segment math, and the
  * trigger/who/why + send gates behind a details toggle.
+ *
+ * When `currentCronId` is set, texts a DIFFERENT automation fires (journey
+ * texts pulled in via smsVariantsForJourneys) get a "sent by" chip on the pill
+ * and an owner line in the drawer — the full sequence stays visible without
+ * misattributing who sends what.
  */
-export default function SmsSamplesBlock({ variants }: { variants: SmsVariant[] }) {
+export default function SmsSamplesBlock({ variants, currentCronId }: { variants: SmsVariant[]; currentCronId?: string }) {
   const rows = useMemo(
     () =>
       variants.map((v) => {
         const body = v.render();
-        return { v, body, seg: smsSegmentInfo(body) };
+        const mine = !currentCronId || v.cron === currentCronId || !!v.alsoCrons?.includes(currentCronId);
+        const owner = !mine && v.cron ? getCronJob(v.cron) : null;
+        return { v, body, seg: smsSegmentInfo(body), mine, owner };
       }),
-    [variants],
+    [variants, currentCronId],
   );
   const [activeId, setActiveId] = useState<string | null>(null);
   const active = rows.find((r) => r.v.id === activeId) ?? rows[0];
@@ -38,17 +47,31 @@ export default function SmsSamplesBlock({ variants }: { variants: SmsVariant[] }
       </div>
       {rows.length > 1 && (
         <div className="flex flex-wrap gap-1.5 border-b border-gray-100 bg-gray-50/40 px-4 py-2">
-          {rows.map(({ v }) => (
+          {rows.map(({ v, mine }) => (
             <button
               key={v.id}
               onClick={() => setActiveId(v.id)}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                active.v.id === v.id ? "bg-gray-900 text-white" : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                active.v.id === v.id
+                  ? "bg-gray-900 text-white"
+                  : mine
+                    ? "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    : "border border-dashed border-gray-200 bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-600"
               }`}
+              title={mine ? undefined : "Sent by another automation — shown for the full sequence"}
             >
               {v.label}
             </button>
           ))}
+        </div>
+      )}
+      {active.owner && (
+        <div className="border-b border-gray-100 bg-amber-50/40 px-4 py-1.5 text-xs text-gray-500">
+          Sent by{" "}
+          <Link href={`/admin/automations/${active.owner.id}`} className="font-medium text-teal-700 hover:underline">
+            {active.owner.name.split(" — ")[0]}
+          </Link>{" "}
+          — shown here so the full text sequence is visible in one place.
         </div>
       )}
       <div className="bg-white px-4 py-5">

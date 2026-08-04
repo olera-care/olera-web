@@ -6,7 +6,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type React
 import EmailStatusPill from "@/components/admin/EmailStatusPill";
 import { useToast } from "@/components/admin/Toast";
 import { bucketForEmailType } from "@/lib/analytics/provider-email-funnels";
-import { smsVariantsForCron } from "@/lib/sms-samples";
+import { smsVariantsForJourneys } from "@/lib/sms-samples";
 import SmsSamplesBlock from "@/components/admin/SmsSamplesBlock";
 import { journeysForCron } from "@/lib/family-comms/journey";
 import CommsJourneyBlock from "@/components/admin/CommsJourneyBlock";
@@ -886,11 +886,14 @@ export default function AutomationDetailPage() {
                 );
               })()}
 
-              {/* Text samples — rendered client-side from the live SMS templates (lib/sms-samples.ts). */}
+              {/* Text samples — rendered client-side from the live SMS templates
+                  (lib/sms-samples.ts). Journey-aware: shows the family's FULL text
+                  sequence (results → first step → check-in), with texts another
+                  automation fires marked "sent by" instead of hidden. */}
               {(() => {
-                const smsVariants = smsVariantsForCron(data.job.id);
+                const smsVariants = smsVariantsForJourneys(data.job.id);
                 if (smsVariants.length === 0) return null;
-                return <SmsSamplesBlock variants={smsVariants} />;
+                return <SmsSamplesBlock variants={smsVariants} currentCronId={data.job.id} />;
               })()}
             </div>
           )}

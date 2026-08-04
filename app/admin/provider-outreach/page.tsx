@@ -1476,7 +1476,7 @@ function FollowUpProviderRow({
           title: "Try Fax",
           description: "Move this provider to the Fax channel for follow-up via fax.",
           details: [
-            "Provider will be moved to the Re-Engagement page (Fax tab)",
+            "Provider will be moved to Alternative Channels (Fax)",
             "You can look up their fax number and send a fax from there",
             "They will no longer appear in the Follow Up queue",
           ],
@@ -1488,7 +1488,7 @@ function FollowUpProviderRow({
           title: "Try LinkedIn",
           description: "Move this provider to the LinkedIn channel for social outreach.",
           details: [
-            "Provider will be moved to the Re-Engagement page (LinkedIn tab)",
+            "Provider will be moved to Alternative Channels (LinkedIn)",
             "You can find their LinkedIn profile and reach out from there",
             "They will no longer appear in the Follow Up queue",
           ],
@@ -1500,7 +1500,7 @@ function FollowUpProviderRow({
           title: "Try Direct Mail",
           description: "Move this provider to the Direct Mail channel for postcard outreach.",
           details: [
-            "Provider will be moved to the Re-Engagement page (Direct Mail tab)",
+            "Provider will be moved to Alternative Channels (Direct Mail)",
             "You can look up their address and send a postcard from there",
             "They will no longer appear in the Follow Up queue",
           ],
@@ -1846,11 +1846,11 @@ function FollowUpProviderRow({
             {/* Separator */}
             <div className="w-px h-6 bg-gray-200 mx-1" />
 
-            {/* Alternative channels - move to Re-Engagement page */}
+            {/* Alternative channels */}
             <button
               onClick={() => setPendingOutcome("try_fax")}
               disabled={submitting !== null}
-              title="Move to Re-Engagement page (Fax tab)"
+              title="Move to Alternative Channels (Fax)"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Try Fax
@@ -1859,7 +1859,7 @@ function FollowUpProviderRow({
             <button
               onClick={() => setPendingOutcome("try_linkedin")}
               disabled={submitting !== null}
-              title="Move to Re-Engagement page (LinkedIn tab)"
+              title="Move to Alternative Channels (LinkedIn)"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Try LinkedIn
@@ -1868,7 +1868,7 @@ function FollowUpProviderRow({
             <button
               onClick={() => setPendingOutcome("try_direct_mail")}
               disabled={submitting !== null}
-              title="Move to Re-Engagement page (Direct Mail tab)"
+              title="Move to Alternative Channels (Direct Mail)"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full hover:border-amber-300 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Try Direct Mail

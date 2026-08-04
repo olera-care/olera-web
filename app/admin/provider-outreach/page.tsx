@@ -1470,6 +1470,43 @@ function FollowUpProviderRow({
           confirmLabel: "Yes, mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
+      // Alternative channel outcomes
+      case "try_fax":
+        return {
+          title: "Try Fax",
+          description: "Move this provider to the Fax channel for follow-up via fax.",
+          details: [
+            "Provider will be moved to the Re-Engagement page (Fax tab)",
+            "You can look up their fax number and send a fax from there",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to Fax",
+          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
+        };
+      case "try_linkedin":
+        return {
+          title: "Try LinkedIn",
+          description: "Move this provider to the LinkedIn channel for social outreach.",
+          details: [
+            "Provider will be moved to the Re-Engagement page (LinkedIn tab)",
+            "You can find their LinkedIn profile and reach out from there",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to LinkedIn",
+          confirmClass: "bg-blue-700 hover:bg-blue-800 text-white",
+        };
+      case "try_direct_mail":
+        return {
+          title: "Try Direct Mail",
+          description: "Move this provider to the Direct Mail channel for postcard outreach.",
+          details: [
+            "Provider will be moved to the Re-Engagement page (Direct Mail tab)",
+            "You can look up their address and send a postcard from there",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to Direct Mail",
+          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
+        };
       // Stage move confirmations (from dropdown menu)
       case "move_to_not_contacted":
         return {
@@ -1804,6 +1841,37 @@ function FollowUpProviderRow({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:text-gray-800 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Not interested
+            </button>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-gray-200 mx-1" />
+
+            {/* Alternative channels - move to Re-Engagement page */}
+            <button
+              onClick={() => setPendingOutcome("try_fax")}
+              disabled={submitting !== null}
+              title="Move to Re-Engagement page (Fax tab)"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Try Fax
+            </button>
+
+            <button
+              onClick={() => setPendingOutcome("try_linkedin")}
+              disabled={submitting !== null}
+              title="Move to Re-Engagement page (LinkedIn tab)"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Try LinkedIn
+            </button>
+
+            <button
+              onClick={() => setPendingOutcome("try_direct_mail")}
+              disabled={submitting !== null}
+              title="Move to Re-Engagement page (Direct Mail tab)"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full hover:border-amber-300 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Try Direct Mail
             </button>
           </div>
 

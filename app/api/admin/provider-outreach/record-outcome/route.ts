@@ -26,20 +26,29 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  *
  * Outcomes and their effects:
  *
- * | Outcome          | Counter/Date Updates            | Stage Change    | Email Sent?     |
+ * | Outcome          | Counter/Date Updates            | Stage Change    | Channel         |
  * |------------------|--------------------------------|-----------------|-----------------|
- * | resend_link      | resend_count++                 | → re_engage     | YES (nudge)     |
- * | wrong_contact    | clears email                   | → not_contacted | no              |
- * | not_interested   | -                              | → not_interested| no              |
+ * | resend_link      | resend_count++                 | → re_engage     | (sends email)   |
+ * | wrong_contact    | clears email                   | → not_contacted | -               |
+ * | not_interested   | -                              | → not_interested| -               |
+ * | try_fax          | -                              | → re_engage     | fax             |
+ * | try_linkedin     | -                              | → re_engage     | linkedin        |
+ * | try_direct_mail  | -                              | → re_engage     | direct_mail     |
  *
  * Note: "not_interested" is a soft terminal - stops outreach but questions/connections still flow.
  * Use the Archive action (via action modal) for hard terminal with system-wide block.
+ *
+ * The try_fax/try_linkedin/try_direct_mail outcomes move providers to the re-engagement page
+ * where they can be followed up via alternative channels.
  */
 
 const VALID_OUTCOMES = [
   "resend_link",
   "wrong_contact",
   "not_interested",
+  "try_fax",
+  "try_linkedin",
+  "try_direct_mail",
 ] as const;
 
 type FollowUpOutcome = (typeof VALID_OUTCOMES)[number];
@@ -104,6 +113,7 @@ export async function POST(request: NextRequest) {
     let newResendCount = currentResendCount;
     let clearEmail = false;
     let shouldSendNudgeEmail = false;
+    let newReEngageChannel: string | null = null;
 
     switch (outcome as FollowUpOutcome) {
       case "resend_link":
@@ -129,6 +139,24 @@ export async function POST(request: NextRequest) {
         // Provider stops receiving outreach but can still get questions/connections
         newStage = "not_interested";
         break;
+
+      case "try_fax":
+        // Move to re-engage with fax channel for follow-up via fax
+        newStage = "re_engage";
+        newReEngageChannel = "fax";
+        break;
+
+      case "try_linkedin":
+        // Move to re-engage with linkedin channel for LinkedIn outreach
+        newStage = "re_engage";
+        newReEngageChannel = "linkedin";
+        break;
+
+      case "try_direct_mail":
+        // Move to re-engage with direct_mail channel for postcard/mail outreach
+        newStage = "re_engage";
+        newReEngageChannel = "direct_mail";
+        break;
     }
 
     // ── Update tracking record ──
@@ -147,6 +175,11 @@ export async function POST(request: NextRequest) {
 
       if (notes?.trim()) {
         updateData.notes = notes.trim();
+      }
+
+      // Set re_engage_channel if moving to re_engage with a specific channel
+      if (newReEngageChannel) {
+        updateData.re_engage_channel = newReEngageChannel;
       }
     } else if (notes?.trim()) {
       // Append notes without stage change (use existing or set new)
@@ -280,6 +313,7 @@ export async function POST(request: NextRequest) {
         resend_count: newResendCount,
         ...(notes?.trim() && { notes: notes.trim() }),
         ...(newStage && { triggered_stage_change: newStage }),
+        ...(newReEngageChannel && { re_engage_channel: newReEngageChannel }),
         ...(clearEmail && { email_cleared: true }),
         ...(shouldSendNudgeEmail && { email_sent: emailSent, email_error: emailError }),
       },
@@ -312,6 +346,7 @@ export async function POST(request: NextRequest) {
           old_stage: "needs_call",
           new_stage: newStage,
           trigger: `outcome_${outcome}`,
+          ...(newReEngageChannel && { re_engage_channel: newReEngageChannel }),
           ...(notes?.trim() && { notes: notes.trim() }),
         },
         admin_user_id: adminUser.id,
@@ -334,6 +369,8 @@ export async function POST(request: NextRequest) {
       stage_changed: !!newStage,
       new_stage: newStage,
       resend_count: newResendCount,
+      // Channel for try_fax/try_linkedin/try_direct_mail outcomes
+      ...(newReEngageChannel && { re_engage_channel: newReEngageChannel }),
       // Email status for resend_link outcome
       ...(shouldSendNudgeEmail && {
         email_sent: emailSent,

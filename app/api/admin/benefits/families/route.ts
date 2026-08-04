@@ -45,6 +45,8 @@ interface FamilyRow {
     /** Picked program's short name — lets batch UIs list drafts reviewably. */
     firstStep: string | null;
   } | null;
+  /** Latest real inbound SMS (non-keyword) — the row's 💬 chip. */
+  inboundText: { at: string; body: string | null } | null;
   profileId: string;
   displayName: string | null;
   email: string | null;
@@ -315,11 +317,18 @@ export async function GET(request: NextRequest) {
       const caseMeta = readBenefitsCase(pMeta);
       const cs = caseStatus(cascadeMeta, caseMeta, viewedAtByProfile.get(profileId) ?? null, Date.now());
       if (cs) stuckCounts[cs] = (stuckCounts[cs] ?? 0) + 1;
+      // Latest real reply (keyword rows are STOP/HELP compliance, not
+      // conversation) — entries are appended chronologically by the webhook.
+      const smsInbound = Array.isArray(pMeta.sms_inbound)
+        ? (pMeta.sms_inbound as { at?: string; body?: string; keyword?: string | null }[])
+        : [];
+      const lastText = [...smsInbound].reverse().find((m) => !m.keyword && m.at) ?? null;
       const lifecycle = lifecycleStatus({
         cascade: cascadeMeta,
         caseMeta,
         completedAt: ev.created_at,
         lastViewedAt: viewedAtByProfile.get(profileId) ?? null,
+        lastInboundTextAt: lastText?.at ?? null,
         now: Date.now(),
       });
       lifecycleCounts[lifecycle.status] = (lifecycleCounts[lifecycle.status] ?? 0) + 1;
@@ -337,6 +346,7 @@ export async function GET(request: NextRequest) {
               firstStep: navMeta.pick?.shortName ?? null,
             }
           : null,
+        inboundText: lastText?.at ? { at: lastText.at, body: lastText.body ?? null } : null,
         profileId,
         displayName: profile?.display_name ?? null,
         email,

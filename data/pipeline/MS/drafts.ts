@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.862Z
+ * Last updated: 2026-08-04T11:02:39.928Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1293,9 +1293,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Mississippi 2-1-1",
+          "label": "Mississippi 2-1-1 (finds your local Area Agency on Aging)",
           "phone": "2-1-1",
-          "description": "Free helpline to connect you with local Area Agency on Aging for your county",
+          "description": "Your local Area Agency on Aging handles home-delivered meals intake and assessment; 2-1-1 connects you to the right one",
           "hours": "24 hours, 7 days a week"
         },
         {
@@ -1306,6 +1306,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Mississippi's aging services have waitlists in many areas — ask about assessment, priority, and expected timing",
         "Even if your loved one can occasionally leave home, they may still qualify if they cannot safely shop for groceries or prepare nutritious meals independently",
         "Car ownership doesn't automatically disqualify, the assessment focuses on actual ability to shop and cook safely",
         "Some providers offer emergency shelf-stable meals for immediate need while waiting for regular delivery slots"
@@ -1355,7 +1356,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.law.cornell.edu/regulations/mississippi/18-Miss-Code-R-SS-2-2-10",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "family-caregiver-support",

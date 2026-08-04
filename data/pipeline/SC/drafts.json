@@ -124,7 +124,7 @@
           "label": "SC Department of Health and Human Services",
           "phone": "(888) 549-0820",
           "description": "Main SCDHHS line for Medicaid and waiver information",
-          "hours": "Mon-Fri 8am-5pm ET"
+          "hours": "Mon-Fri 8am-6pm ET"
         },
         {
           "label": "SC 2-1-1",
@@ -191,7 +191,8 @@
       "phone": "(888) 549-0820",
       "sourceUrl": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "medicare-savings-programs",

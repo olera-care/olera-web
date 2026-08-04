@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.770Z
+ * Last updated: 2026-08-04T11:02:39.917Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1756,8 +1756,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and struggling on a fixed income in Colorado, Old Age Pension provides monthly cash payments to help cover basic living expenses. The program pays up to $952/month statewide (some counties like Boulder and Douglas pay up to $1,032), reduced dollar-for-dollar by other income sources like Social Security.\n\nBecause OAP requires you to apply for all other available benefits first, including Social Security, SSI, and SSDI, this program typically serves as a last-resort safety net for seniors who don't qualify for federal programs or are waiting for them to be approved. You must have assets under $2,000 ($3,000 for couples) and meet strict income limits that vary by county.",
-      "savingsRange": "$952 – $12,384/year in 2026",
-      "savingsSource": "Maximum monthly benefit varies by county: $952 statewide standard, up to $1,032 in Boulder/Douglas Counties",
+      "savingsRange": "Up to $12,384/year in 2026",
+      "savingsSource": "CDHS 2026 grant standard is $1,032/month; countable income (Social Security, SSI, wages) reduces the payment",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1846,15 +1846,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Douglas County Human Services",
-          "phone": "(303) 688-4825",
-          "description": "OAP applications and eligibility questions for Douglas County residents",
-          "hours": "Contact for current hours"
-        },
-        {
-          "label": "Colorado 2-1-1",
+          "label": "Colorado 2-1-1 (finds your county human services office)",
           "phone": "2-1-1",
-          "description": "Free helpline to find your county human services office",
+          "description": "Old Age Pension applications go through your own county's human services department. 2-1-1 connects you to the right county office; you can also apply online at Colorado PEAK (peak.colorado.gov).",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -1908,7 +1902,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(303) 688-4825",
       "sourceUrl": "https://www.sos.state.co.us/CCR/GenerateRulePdf.do?ruleVersionId=5243&fileName=9+CCR+2503-3",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "home-care-allowance-hca",

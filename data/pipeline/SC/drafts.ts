@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.792Z
+ * Last updated: 2026-08-04T11:02:39.939Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -129,7 +129,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "SC Department of Health and Human Services",
           "phone": "(888) 549-0820",
           "description": "Main SCDHHS line for Medicaid and waiver information",
-          "hours": "Mon-Fri 8am-5pm ET"
+          "hours": "Mon-Fri 8am-6pm ET"
         },
         {
           "label": "SC 2-1-1",
@@ -196,7 +196,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(888) 549-0820",
       "sourceUrl": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-04"
     },
     {
       "id": "medicare-savings-programs",

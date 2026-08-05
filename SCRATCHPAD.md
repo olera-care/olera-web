@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-05 — Ad Boost provider journey (`codex/automation-control-center`)
+
+Added `/admin/automations/ad-boost`: one five-phase provider cascade spanning 11 steps, all nine Ad Boost email types, three delivery engines, conditional request/readiness branches, repeat-per-lead messages, and two explicitly silent operational steps. Admins can overlay a real campaign's sent/scheduled/watching/blocked/skipped state, inspect representative message previews, follow correctly filtered Email Log links, and drill into the underlying engines. `/admin/automations` now links directly from the Ad Boost system card.
+
+Accuracy fixes: the daily worker rechecks every pending request and promotes launch-ready providers even when email is unavailable; zero metric saves no longer trigger traction; failed communication-history reads surface visibly; pending email reservations do not count as sends; ambiguous cross-engine email totals were replaced with honest run recency. **Files:** `components/admin/AdBoostJourneyExperience.tsx`, `lib/family-comms/journey.ts`, `lib/email-samples.ts`, both Ad Boost API/cron routes, shared journey/Ad Boost types, registry, and Automations navigation. **Validation:** pre-test fixed five real issues; TypeScript, targeted ESLint, cron registry, diff check, journey-integrity smoke test, interactions, and desktop/390px rendering pass. **Commit:** `04b000d9`. **PR:** #1482 → `staging` (Vercel green). **Next:** read-only preview QA against known pending/live/ended campaigns; do not mutate shared production-backed campaign data or manually fire the daily worker. Do not merge without TJ.
+
 ### 2026-08-05 — Automation control center (`codex/automation-control-center`)
 
 Rebuilt `/admin/automations` as an operations-first control center: 35 current automations are grouped into seven systems, the retired `lead-response-nudge` is isolated in a read-only archive, current/paused/attention health is explicit, and search/channel/status filters remain available. Removed the oversized deliverability banner so the tools lead the hierarchy; restored **Expand all / Collapse all** with saved collapse state. System cards now drag-reorder (arrow-key fallback) and persist per admin across devices through `admin_users.automation_system_order`; migration 157 was applied by TJ. Pause/Resume now fails closed when Supabase returns an error.

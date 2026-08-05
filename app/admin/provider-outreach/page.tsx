@@ -1051,6 +1051,7 @@ function PostcardPreviewSidebar({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: provider.provider_id,
+          provider_name: provider.provider_name,
           address: address,
         }),
       });

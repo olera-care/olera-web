@@ -3612,6 +3612,79 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Move Channel Dropdown
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CHANNEL_OPTIONS: { value: string; label: string; color: string }[] = [
+  { value: "fax", label: "Fax", color: "text-purple-700" },
+  { value: "linkedin", label: "LinkedIn", color: "text-blue-700" },
+  { value: "direct_mail", label: "Direct Mail", color: "text-teal-700" },
+];
+
+function MoveChannelDropdown({
+  currentChannel,
+  onMove,
+  disabled,
+}: {
+  currentChannel: string | null;
+  onMove: (channel: string) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  // Filter out current channel from options
+  const options = CHANNEL_OPTIONS.filter((ch) => ch.value !== currentChannel);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!disabled) setOpen(!open);
+        }}
+        disabled={disabled}
+        className="px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+      >
+        Move
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
+          {options.map((ch) => (
+            <button
+              key={ch.value}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(ch.value);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors ${ch.color}`}
+            >
+              {ch.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Re-Engage Queue Component
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -3621,6 +3694,7 @@ interface ReEngageQueueProps {
   onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
   onArchive: (provider: OutreachProvider) => void;
   adminNameLookup: Map<string, string>;
+  onRefresh?: () => void;
 }
 
 // Helper: calculate days since a date
@@ -3632,7 +3706,7 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup }: ReEngageQueueProps) {
+function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup, onRefresh }: ReEngageQueueProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
   const [actionNotes, setActionNotes] = useState("");
@@ -3706,6 +3780,50 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       return next;
     });
   }, []);
+
+  // Find Fax state for Alternative Channels
+  const [findingFaxId, setFindingFaxId] = useState<string | null>(null);
+  const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null }>>(new Map());
+
+  const handleFindFax = useCallback(async (provider: OutreachProvider) => {
+    setFindingFaxId(provider.provider_id);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFaxResultsMap((prev) => {
+          const next = new Map(prev);
+          next.set(provider.provider_id, { fax: data.fax, confidence: data.confidence });
+          return next;
+        });
+      }
+    } catch {
+      // Ignore errors
+    } finally {
+      setFindingFaxId(null);
+    }
+  }, []);
+
+  // Move channel state
+  const handleMoveChannel = useCallback(async (providerId: string, newChannel: string) => {
+    try {
+      const res = await fetch("/api/admin/provider-outreach/move-channel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId, channel: newChannel }),
+      });
+      if (res.ok) {
+        // Refresh providers to reflect the change
+        onRefresh?.();
+      }
+    } catch {
+      // Ignore errors
+    }
+  }, [onRefresh]);
 
   // Fax/Mail analytics tracking (fetched from re-engage-list API)
   const [faxAnalyticsMap, setFaxAnalyticsMap] = useState<Map<string, FaxAnalytics>>(new Map());
@@ -3976,8 +4094,20 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 Archive
               </button>
 
-              {/* Send Fax button for fax channel */}
-              {provider.fax_number && provider.re_engage_channel === "fax" && (
+              {/* Find Fax button for fax channel without fax number */}
+              {!provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && provider.re_engage_channel === "fax" && (
+                <button
+                  type="button"
+                  onClick={() => handleFindFax(provider)}
+                  disabled={findingFaxId === provider.provider_id}
+                  className="px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
+                >
+                  {findingFaxId === provider.provider_id ? "Finding..." : "Find Fax"}
+                </button>
+              )}
+
+              {/* Send Fax button for fax channel with fax number */}
+              {(provider.fax_number || faxResultsMap.get(provider.provider_id)?.fax) && provider.re_engage_channel === "fax" && (
                 <button
                   type="button"
                   onClick={() => setFaxPreviewProvider(provider)}
@@ -3997,6 +4127,13 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                   Send Postcard
                 </button>
               )}
+
+              {/* Move Channel dropdown */}
+              <MoveChannelDropdown
+                currentChannel={provider.re_engage_channel}
+                onMove={(channel) => handleMoveChannel(provider.provider_id, channel)}
+                disabled={isLoading}
+              />
 
               {/* LinkedIn expand toggle */}
               {provider.re_engage_channel === "linkedin" && (
@@ -6418,6 +6555,7 @@ export default function ProviderOutreachPage() {
               setActionModalProvider(provider);
             }}
             adminNameLookup={adminNameLookup}
+            onRefresh={fetchProviders}
           />
           </>
         ) : (

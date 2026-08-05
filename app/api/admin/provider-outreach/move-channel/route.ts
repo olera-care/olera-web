@@ -49,13 +49,16 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getServiceClient();
+    const now = new Date().toISOString();
 
     // Update the re_engage_channel in provider_outreach_tracking
+    // Also track channel_entered_at for lifecycle automation
     const { error } = await db
       .from("provider_outreach_tracking")
       .update({
         re_engage_channel: channel,
-        updated_at: new Date().toISOString(),
+        channel_entered_at: now,
+        updated_at: now,
       })
       .eq("provider_id", providerId);
 

@@ -3702,6 +3702,13 @@ interface ReEngageQueueProps {
   onRefresh?: () => void;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Lifecycle Constants and Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CHANNEL_WAIT_DAYS = 5; // Days to wait before progressing to next channel
+const DIRECT_MAIL_EXPIRY_DAYS = 18; // Days in direct_mail before prompting action
+
 // Helper: calculate days since a date
 function daysSince(dateString: string | null): number {
   if (!dateString) return 0;
@@ -3709,6 +3716,87 @@ function daysSince(dateString: string | null): number {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+// Helper: days remaining in the wait period before next channel
+function daysRemaining(dateString: string | null): number {
+  if (!dateString) return CHANNEL_WAIT_DAYS;
+  return Math.max(0, CHANNEL_WAIT_DAYS - daysSince(dateString));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Lifecycle Tag — shows countdown or next step based on channel
+// ─────────────────────────────────────────────────────────────────────────────
+
+function LifecycleTag({
+  channel,
+  faxSentAt,
+  linkedinMessagedAt,
+  mailSentAt,
+}: {
+  channel: string | null;
+  faxSentAt?: string | null;
+  linkedinMessagedAt?: string | null;
+  mailSentAt?: string | null;
+}) {
+  // Fax channel: show countdown to LinkedIn
+  if (channel === "fax" && faxSentAt) {
+    const remaining = daysRemaining(faxSentAt);
+    if (remaining > 0) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          LinkedIn in {remaining}d
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
+        Ready for LinkedIn
+      </span>
+    );
+  }
+
+  // LinkedIn channel: show countdown to Direct Mail
+  if (channel === "linkedin" && linkedinMessagedAt) {
+    const remaining = daysRemaining(linkedinMessagedAt);
+    if (remaining > 0) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Direct Mail in {remaining}d
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded px-1.5 py-0.5">
+        Ready for Direct Mail
+      </span>
+    );
+  }
+
+  // Direct Mail channel: show final outreach status
+  if (channel === "direct_mail" && mailSentAt) {
+    const days = daysSince(mailSentAt);
+    if (days >= DIRECT_MAIL_EXPIRY_DAYS) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          Action needed
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">
+        Final outreach sent
+      </span>
+    );
+  }
+
+  return null;
 }
 
 function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup, onRefresh }: ReEngageQueueProps) {
@@ -3790,6 +3878,44 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   const [findingFaxId, setFindingFaxId] = useState<string | null>(null);
   const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null; searched: boolean }>>(new Map());
 
+  // Manual fax input state
+  const [faxInputExpandedId, setFaxInputExpandedId] = useState<string | null>(null);
+  const [faxInputValue, setFaxInputValue] = useState("");
+  const [savingFaxId, setSavingFaxId] = useState<string | null>(null);
+  const [faxSaveError, setFaxSaveError] = useState<string | null>(null);
+
+  const handleSaveManualFax = useCallback(async (providerId: string) => {
+    if (!faxInputValue.trim()) return;
+    setSavingFaxId(providerId);
+    setFaxSaveError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          manual_fax: faxInputValue.trim(),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFaxResultsMap((prev) => {
+          const next = new Map(prev);
+          next.set(providerId, { fax: data.fax || faxInputValue.trim(), confidence: "manual", searched: true });
+          return next;
+        });
+        setFaxInputExpandedId(null);
+        setFaxInputValue("");
+      } else {
+        setFaxSaveError("Failed to save");
+      }
+    } catch {
+      setFaxSaveError("Failed to save");
+    } finally {
+      setSavingFaxId(null);
+    }
+  }, [faxInputValue]);
+
   const handleFindFax = useCallback(async (provider: OutreachProvider) => {
     setFindingFaxId(provider.provider_id);
     try {
@@ -3849,6 +3975,8 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   const [claimedMap, setClaimedMap] = useState<Map<string, { claimed: boolean; claimed_at?: string }>>(new Map());
   // Provider LinkedIn URLs from database (supplements session-only linkedInUrlMap)
   const [providerLinkedInUrlMap, setProviderLinkedInUrlMap] = useState<Map<string, string>>(new Map());
+  // Enrichment "not found" status (persisted from database)
+  const [enrichmentNotFoundMap, setEnrichmentNotFoundMap] = useState<Map<string, { fax: boolean; linkedin: boolean }>>(new Map());
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
 
   // Fetch analytics data when providers change
@@ -3866,6 +3994,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         const newMailMap = new Map<string, MailAnalytics>();
         const newClaimedMap = new Map<string, { claimed: boolean; claimed_at?: string }>();
         const newLinkedInUrlMap = new Map<string, string>();
+        const newEnrichmentNotFoundMap = new Map<string, { fax: boolean; linkedin: boolean }>();
 
         for (const p of data.providers) {
           // Track claimed status for ALL providers (independent of channel)
@@ -3876,9 +4005,21 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
             });
           }
 
-          // Store LinkedIn URL from database
-          if (p.linkedin_url) {
+          // Store LinkedIn URL from database (skip "not_found" marker)
+          if (p.linkedin_url && p.linkedin_url !== "not_found") {
             newLinkedInUrlMap.set(p.provider_id, p.linkedin_url);
+          }
+
+          // Track enrichment "not found" status
+          // Fax: searched (fax_found_at set) but no number found
+          // LinkedIn: explicitly marked as "not_found" OR searched but no URL found
+          const faxNotFound = !!p.fax_found_at && !p.fax_number;
+          const linkedinNotFound = p.linkedin_url === "not_found" || (!!p.linkedin_found_at && !p.linkedin_url);
+          if (faxNotFound || linkedinNotFound) {
+            newEnrichmentNotFoundMap.set(p.provider_id, {
+              fax: faxNotFound,
+              linkedin: linkedinNotFound,
+            });
           }
 
           // Fax analytics
@@ -3910,6 +4051,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         setMailAnalyticsMap(newMailMap);
         setClaimedMap(newClaimedMap);
         setProviderLinkedInUrlMap(newLinkedInUrlMap);
+        setEnrichmentNotFoundMap(newEnrichmentNotFoundMap);
         setAnalyticsLoaded(true);
       } catch {
         // Non-critical - analytics just won't show
@@ -3997,8 +4139,48 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         const isLoading = actionLoading === provider.provider_id;
         const isCycle2 = provider.cycle_number === 2;
 
+        // Check if direct_mail has expired (18+ days without claim)
+        const mailSentAt = mailAnalyticsMap.get(provider.provider_id)?.sent_at;
+        const mailExpired = provider.re_engage_channel === "direct_mail"
+          && mailSentAt
+          && daysSince(mailSentAt) >= DIRECT_MAIL_EXPIRY_DAYS
+          && !claimedMap.get(provider.provider_id)?.claimed;
+
         return (
           <div key={provider.provider_id} className="border-b border-gray-100">
+            {/* 18-day expiry action bar for direct_mail */}
+            {mailExpired && (
+              <div className="mx-5 mt-3 flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                <span className="text-xs text-amber-800 font-medium flex-1">
+                  No response after {daysSince(mailSentAt)} days. All channels exhausted.
+                </span>
+                {/* Only show Reactivate for Cycle 1 - Cycle 2 should only archive */}
+                {!isCycle2 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPendingAction({ provider, type: "re_engage" });
+                    }}
+                    disabled={isLoading}
+                    className="px-3 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-md transition disabled:opacity-50"
+                  >
+                    Reactivate Sequence
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onArchive(provider);
+                  }}
+                  disabled={isLoading}
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition disabled:opacity-50"
+                >
+                  Archive
+                </button>
+              </div>
+            )}
             {/* Main row */}
             <div className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors">
             {/* Provider info */}
@@ -4033,6 +4215,24 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                      provider.re_engage_channel === "linkedin" ? "LinkedIn" :
                      provider.re_engage_channel === "direct_mail" ? "Direct Mail" :
                      provider.re_engage_channel}
+                  </span>
+                )}
+                {/* Lifecycle countdown tag */}
+                <LifecycleTag
+                  channel={provider.re_engage_channel}
+                  faxSentAt={faxAnalyticsMap.get(provider.provider_id)?.sent_at}
+                  linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
+                  mailSentAt={mailAnalyticsMap.get(provider.provider_id)?.sent_at}
+                />
+                {/* Enrichment "not found" badges */}
+                {enrichmentNotFoundMap.get(provider.provider_id)?.fax && !provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
+                    No Fax
+                  </span>
+                )}
+                {enrichmentNotFoundMap.get(provider.provider_id)?.linkedin && !providerLinkedInUrlMap.get(provider.provider_id) && !linkedInUrlMap.get(provider.provider_id) && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
+                    No LinkedIn
                   </span>
                 )}
               </div>
@@ -4111,22 +4311,65 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 Archive
               </button>
 
-              {/* Find Fax button for fax channel without fax number */}
+              {/* Find Fax / Manual Input for fax channel without fax number */}
               {!provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && provider.re_engage_channel === "fax" && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleFindFax(provider)}
-                    disabled={findingFaxId === provider.provider_id}
-                    className="px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
-                  >
-                    {findingFaxId === provider.provider_id ? "Finding..." :
-                     faxResultsMap.get(provider.provider_id)?.searched ? "Try Again" : "Find Fax"}
-                  </button>
-                  {faxResultsMap.get(provider.provider_id)?.searched && !faxResultsMap.get(provider.provider_id)?.fax && (
-                    <span className="text-[10px] text-gray-400">Not found</span>
-                  )}
-                </>
+                faxInputExpandedId === provider.provider_id ? (
+                  // Manual fax input expanded
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={faxInputValue}
+                      onChange={(e) => { setFaxInputValue(e.target.value); setFaxSaveError(null); }}
+                      placeholder="(555) 123-4567"
+                      className={`w-28 px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-purple-500 ${faxSaveError ? "border-red-300" : "border-gray-300"}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveManualFax(provider.provider_id);
+                        if (e.key === "Escape") { setFaxInputExpandedId(null); setFaxInputValue(""); setFaxSaveError(null); }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveManualFax(provider.provider_id)}
+                      disabled={!faxInputValue.trim() || savingFaxId === provider.provider_id}
+                      className="px-2 py-1 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded disabled:opacity-50"
+                    >
+                      {savingFaxId === provider.provider_id ? "..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setFaxInputExpandedId(null); setFaxInputValue(""); setFaxSaveError(null); }}
+                      className="px-1.5 py-1 text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                    {faxSaveError && <span className="text-[10px] text-red-500">{faxSaveError}</span>}
+                  </div>
+                ) : (
+                  // Find Fax buttons
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleFindFax(provider)}
+                      disabled={findingFaxId === provider.provider_id}
+                      className="px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
+                    >
+                      {findingFaxId === provider.provider_id ? "Finding..." :
+                       faxResultsMap.get(provider.provider_id)?.searched ? "Try Again" : "Find Fax"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setFaxInputExpandedId(provider.provider_id); setFaxInputValue(""); }}
+                      className="px-2 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      title="Enter fax number manually"
+                    >
+                      Manual
+                    </button>
+                    {faxResultsMap.get(provider.provider_id)?.searched && !faxResultsMap.get(provider.provider_id)?.fax && (
+                      <span className="text-[10px] text-gray-400">Not found</span>
+                    )}
+                  </>
+                )
               )}
 
               {/* Send Fax button for fax channel with fax number */}

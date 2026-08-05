@@ -305,10 +305,6 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
   total: number;
   by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
 }> {
-  // Use Central Time (business timezone) instead of UTC to avoid timezone mismatches
-  // At 8 PM Central, UTC would be 1 AM next day, causing "today" to be wrong
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-
   // Get admin display names for lookup
   const { data: admins } = await db
     .from("admin_users")
@@ -318,12 +314,12 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
     (admins || []).map((a: { id: string; display_name: string | null }) => [a.id, a.display_name || a.id])
   );
 
-  // Query follow-ups due today across ALL states (no state filter)
+  // Query ALL follow-ups across ALL states (no state filter, no date filter)
+  // Shows total providers needing follow-up, regardless of due date
   const { data: trackingRows, error } = await db
     .from("provider_outreach_tracking")
     .select("provider_id, assigned_to")
-    .eq("stage", "needs_call")
-    .lte("due_date", today);
+    .eq("stage", "needs_call");
 
   if (error || !trackingRows) {
     console.error("[follow-ups-today-global] Query error:", error);

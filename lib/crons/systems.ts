@@ -91,6 +91,23 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
   },
 ];
 
+export const DEFAULT_AUTOMATION_SYSTEM_ORDER = AUTOMATION_SYSTEMS.map((system) => system.key);
+
+/**
+ * Keep saved preferences forward-compatible: ignore retired/unknown keys and
+ * append newly introduced systems in their curated default position.
+ */
+export function normalizeAutomationSystemOrder(value: unknown): string[] {
+  const saved = Array.isArray(value)
+    ? value.filter((key): key is string => typeof key === "string" && DEFAULT_AUTOMATION_SYSTEM_ORDER.includes(key))
+    : [];
+  const unique = [...new Set(saved)];
+  for (const [index, key] of DEFAULT_AUTOMATION_SYSTEM_ORDER.entries()) {
+    if (!unique.includes(key)) unique.splice(Math.min(index, unique.length), 0, key);
+  }
+  return unique;
+}
+
 const SYSTEM_BY_JOB = new Map(
   AUTOMATION_SYSTEMS.flatMap((system) => system.jobIds.map((jobId) => [jobId, system.key] as const)),
 );

@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useToast } from "@/components/admin/Toast";
 import {
-  RESEND_BOUNCE_LIMIT,
-  RESEND_BOUNCE_WARN,
-  RESEND_COMPLAINT_LIMIT,
-  RESEND_COMPLAINT_WARN,
-} from "@/lib/email-thresholds";
-import { AUTOMATION_SYSTEMS, type AutomationSystem } from "@/lib/crons/systems";
+  AUTOMATION_SYSTEMS,
+  DEFAULT_AUTOMATION_SYSTEM_ORDER,
+  normalizeAutomationSystemOrder,
+  type AutomationSystem,
+} from "@/lib/crons/systems";
 
 type Fn = "nudge" | "alert" | "digest" | "outreach" | "event" | "refresh" | "maintenance";
 type Lifecycle = "current" | "archived";
@@ -61,6 +60,7 @@ interface Job {
 }
 interface ApiResponse {
   windowDays: number;
+  systemOrder: string[];
   summary: {
     total: number;
     archived: number;
@@ -93,10 +93,6 @@ function timeAgo(iso: string | null): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
   return new Date(iso).toLocaleDateString();
-}
-
-function fmtPct(rate: number, decimals: number): string {
-  return `${(rate * 100).toFixed(decimals)}%`;
 }
 
 function healthLabel(job: Job): string {
@@ -211,13 +207,14 @@ function JobRow({ job, busy, onTogglePause }: {
   );
 }
 
-function SystemSection({ system, jobs, collapsed, onToggle, busy, onTogglePause }: {
+function SystemSection({ system, jobs, collapsed, onToggle, busy, onTogglePause, reorderable = false }: {
   system: AutomationSystem;
   jobs: Job[];
   collapsed: boolean;
   onToggle: () => void;
   busy: string | null;
   onTogglePause: (job: Job) => void;
+  reorderable?: boolean;
 }) {
   const attention = jobs.filter((job) => job.needsAttention).length;
   const paused = jobs.filter((job) => job.paused).length;
@@ -227,7 +224,7 @@ function SystemSection({ system, jobs, collapsed, onToggle, busy, onTogglePause 
         type="button"
         onClick={onToggle}
         aria-expanded={!collapsed}
-        className="flex min-h-20 w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 sm:px-6"
+        className={`flex min-h-20 w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:bg-gray-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 ${reorderable ? "pl-12 pr-5 sm:pl-14 sm:pr-6" : "px-5 sm:px-6"}`}
       >
         <span className="min-w-0">
           <span className="flex flex-wrap items-center gap-2">
@@ -252,6 +249,46 @@ function SystemSection({ system, jobs, collapsed, onToggle, busy, onTogglePause 
   );
 }
 
+function SystemOrderHandle({ label, disabled, index, total, onArm, onDisarm, onMove }: {
+  label: string;
+  disabled: boolean;
+  index: number;
+  total: number;
+  onArm: () => void;
+  onDisarm: () => void;
+  onMove: (direction: -1 | 1) => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-label={`Reorder ${label}, position ${index + 1} of ${total}. Use arrow keys or drag.`}
+      title="Drag to reorder · Arrow keys also work"
+      onMouseDown={onArm}
+      onMouseUp={onDisarm}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowUp" && index > 0) {
+          event.preventDefault();
+          onMove(-1);
+        } else if (event.key === "ArrowDown" && index < total - 1) {
+          event.preventDefault();
+          onMove(1);
+        }
+      }}
+      className="absolute left-3 top-6 z-20 cursor-grab rounded-md p-1.5 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing disabled:cursor-wait disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 sm:left-4"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <circle cx="9" cy="5" r="1.7" />
+        <circle cx="15" cy="5" r="1.7" />
+        <circle cx="9" cy="12" r="1.7" />
+        <circle cx="15" cy="12" r="1.7" />
+        <circle cx="9" cy="19" r="1.7" />
+        <circle cx="15" cy="19" r="1.7" />
+      </svg>
+    </button>
+  );
+}
+
 export default function AutomationsPage() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -261,6 +298,14 @@ export default function AutomationsPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [view, setView] = useState<View>("systems");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ "platform-operations": true });
+  const [systemOrder, setSystemOrder] = useState<string[]>(() => [...DEFAULT_AUTOMATION_SYSTEM_ORDER]);
+  const [draggedSystem, setDraggedSystem] = useState<string | null>(null);
+  const [armedSystem, setArmedSystem] = useState<string | null>(null);
+  const [savingSystemOrder, setSavingSystemOrder] = useState(false);
+  const systemOrderRef = useRef(systemOrder);
+  const dragStartOrderRef = useRef(systemOrder);
+  const savingSystemOrderRef = useRef(false);
+  systemOrderRef.current = systemOrder;
   const toast = useToast();
 
   useEffect(() => {
@@ -281,7 +326,11 @@ export default function AutomationsPage() {
     try {
       const response = await fetch("/api/admin/automations");
       if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || `HTTP ${response.status}`);
-      setData(await response.json());
+      const payload = await response.json() as ApiResponse;
+      const nextSystemOrder = normalizeAutomationSystemOrder(payload.systemOrder);
+      systemOrderRef.current = nextSystemOrder;
+      setSystemOrder(nextSystemOrder);
+      setData(payload);
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Failed to load automations");
     } finally {
@@ -332,11 +381,15 @@ export default function AutomationsPage() {
   const currentJobs = useMemo(() => (data?.jobs ?? []).filter((job) => job.lifecycle === "current" && matches(job)), [data, matches]);
   const archivedJobs = useMemo(() => (data?.jobs ?? []).filter((job) => job.lifecycle === "archived" && (!q.trim() || `${job.name} ${job.archiveReason ?? ""}`.toLowerCase().includes(q.trim().toLowerCase()))), [data, q]);
   const systemGroups = useMemo(() => {
-    const groups = AUTOMATION_SYSTEMS.map((system) => ({ system, jobs: currentJobs.filter((job) => job.systemKey === system.key) })).filter((group) => group.jobs.length > 0);
+    const naturalGroups = AUTOMATION_SYSTEMS.map((system) => ({ system, jobs: currentJobs.filter((job) => job.systemKey === system.key) })).filter((group) => group.jobs.length > 0);
+    const byKey = new Map(naturalGroups.map((group) => [group.system.key, group]));
+    const groups = normalizeAutomationSystemOrder(systemOrder)
+      .map((key) => byKey.get(key))
+      .filter((group): group is (typeof naturalGroups)[number] => Boolean(group));
     const unmapped = currentJobs.filter((job) => !job.systemKey);
     if (unmapped.length > 0) groups.push({ system: { key: "other", label: "Other", description: "Current automations not yet assigned to an operating system.", jobIds: [] }, jobs: unmapped });
     return groups;
-  }, [currentJobs]);
+  }, [currentJobs, systemOrder]);
   const audienceGroups = useMemo(() => {
     const order: string[] = [];
     const byAudience = new Map<string, Job[]>();
@@ -347,17 +400,54 @@ export default function AutomationsPage() {
     return order.map((audience) => ({ audience, jobs: byAudience.get(audience)! }));
   }, [currentJobs]);
 
-  const complaintDanger = !!data && data.summary.complaintRate30d > RESEND_COMPLAINT_LIMIT;
-  const complaintWarn = !!data && data.summary.complaintRate30d > RESEND_COMPLAINT_WARN;
-  const bounceDanger = !!data && data.summary.bounceRate30d > RESEND_BOUNCE_LIMIT;
-  const bounceWarn = !!data && data.summary.bounceRate30d > RESEND_BOUNCE_WARN;
-  const deliveryDanger = complaintDanger || bounceDanger;
-  const deliveryWarn = complaintWarn || bounceWarn;
-  const deliverySignals = [
-    complaintWarn ? `Complaint rate is ${Math.round((data!.summary.complaintRate30d / RESEND_COMPLAINT_LIMIT) * 100)}% of Resend’s account limit.` : null,
-    bounceWarn ? `Bounce rate is ${Math.round((data!.summary.bounceRate30d / RESEND_BOUNCE_LIMIT) * 100)}% of Resend’s account limit.` : null,
-  ].filter((signal): signal is string => Boolean(signal)).join(" ");
-  const hasSearchOrFilter = Boolean(q.trim()) || filter !== "all";
+  const hasSearch = Boolean(q.trim());
+
+  const expandAllSystems = () => persistCollapsed(
+    Object.fromEntries(AUTOMATION_SYSTEMS.map((system) => [system.key, false])),
+  );
+  const collapseAllSystems = () => persistCollapsed(
+    Object.fromEntries(AUTOMATION_SYSTEMS.map((system) => [system.key, true])),
+  );
+
+  const applySystemOrder = (next: string[]) => {
+    systemOrderRef.current = next;
+    setSystemOrder(next);
+  };
+
+  const persistSystemOrder = async (next: string[], previous: string[]) => {
+    if (next.every((key, index) => key === previous[index])) return;
+    applySystemOrder(next);
+    savingSystemOrderRef.current = true;
+    setSavingSystemOrder(true);
+    try {
+      const response = await fetch("/api/admin/automation-system-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ systemOrder: next }),
+      });
+      if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || `HTTP ${response.status}`);
+      const payload = await response.json() as { systemOrder: string[] };
+      applySystemOrder(normalizeAutomationSystemOrder(payload.systemOrder));
+    } catch (error) {
+      applySystemOrder(previous);
+      toast(`Couldn't save system order: ${error instanceof Error ? error.message : error}`, { variant: "error" });
+    } finally {
+      savingSystemOrderRef.current = false;
+      setSavingSystemOrder(false);
+    }
+  };
+
+  const moveSystemBy = (key: string, direction: -1 | 1) => {
+    if (savingSystemOrderRef.current) return;
+    const previous = [...systemOrderRef.current];
+    const from = previous.indexOf(key);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= previous.length) return;
+    const next = [...previous];
+    next.splice(from, 1);
+    next.splice(to, 0, key);
+    void persistSystemOrder(next, previous);
+  };
 
   const selectAttention = () => { setView("all"); setFilter("attention"); };
   const selectPaused = () => { setView("all"); setFilter("paused"); };
@@ -380,47 +470,12 @@ export default function AutomationsPage() {
 
       {data && (
         <>
-          <section className={`mt-6 rounded-2xl border px-5 py-5 sm:px-6 ${deliveryDanger ? "border-red-200 bg-red-50/70" : deliveryWarn ? "border-amber-200 bg-amber-50/70" : data.summary.needsAttention > 0 ? "border-red-200 bg-red-50/60" : "border-teal-200 bg-teal-50/60"}`}>
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${deliveryDanger || data.summary.needsAttention > 0 ? "text-red-700" : deliveryWarn ? "text-amber-700" : "text-teal-700"}`}>Fleet health</p>
-                <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-gray-950">
-                  {deliveryDanger ? "Email delivery is at risk" : deliveryWarn ? "Deliverability needs watching" : data.summary.needsAttention > 0 ? `${data.summary.needsAttention} automation${data.summary.needsAttention === 1 ? "" : "s"} need attention` : data.summary.paused > 0 ? `${data.summary.paused} automation${data.summary.paused === 1 ? " is" : "s are"} paused` : "Automations are healthy"}
-                </h2>
-                <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-gray-600">
-                  {deliveryWarn
-                    ? `${deliverySignals} ${data.summary.needsAttention > 0 ? `${data.summary.needsAttention} runtime issue${data.summary.needsAttention === 1 ? " also needs" : "s also need"} review.` : "Runtime health is otherwise clear."}`
-                    : data.summary.needsAttention > 0
-                      ? "Open the affected automations below to review their latest run before the next scheduled fire."
-                      : data.summary.paused > 0
-                        ? "These are temporary holds. Review their reason and auto-resume date before changing them."
-                        : "No paused jobs, unresolved run failures, or deliverability thresholds need action right now."}
-                </p>
-              </div>
-              <div className="grid shrink-0 grid-cols-2 gap-3 text-sm sm:min-w-72">
-                <div className="rounded-xl bg-white/80 px-4 py-3 ring-1 ring-inset ring-black/5">
-                  <span className={`block text-lg font-semibold tabular-nums ${complaintDanger ? "text-red-600" : complaintWarn ? "text-amber-700" : "text-gray-950"}`}>{fmtPct(data.summary.complaintRate30d, 3)}</span>
-                  <span className="mt-0.5 block text-[11px] text-gray-500">Complaints · cap 0.08%</span>
-                </div>
-                <div className="rounded-xl bg-white/80 px-4 py-3 ring-1 ring-inset ring-black/5">
-                  <span className={`block text-lg font-semibold tabular-nums ${bounceDanger ? "text-red-600" : bounceWarn ? "text-amber-700" : "text-gray-950"}`}>{fmtPct(data.summary.bounceRate30d, 2)}</span>
-                  <span className="mt-0.5 block text-[11px] text-gray-500">Bounces · cap 4%</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatCard value={data.summary.needsAttention} label="Needs attention" detail="Latest unresolved run state" tone={data.summary.needsAttention > 0 ? "danger" : "muted"} onClick={data.summary.needsAttention > 0 ? selectAttention : undefined} />
             <StatCard value={(data.summary.sends30d + data.summary.texts30d).toLocaleString()} label="Recorded messages · 30d" detail={`${data.summary.sends30d.toLocaleString()} email · ${data.summary.texts30d.toLocaleString()} text`} />
             <StatCard value={data.summary.total} label="Current automations" detail={`Across ${AUTOMATION_SYSTEMS.length} operating systems`} onClick={() => { setView("all"); setFilter("all"); }} />
             <StatCard value={data.summary.paused} label="Paused" detail="Temporary, auto-resuming holds" tone={data.summary.paused === 0 ? "muted" : "default"} onClick={data.summary.paused > 0 ? selectPaused : undefined} />
           </div>
-
-          <details className="mt-3 text-xs text-gray-400">
-            <summary className="cursor-pointer list-none font-medium text-gray-500 hover:text-gray-700 [&::-webkit-details-marker]:hidden">How delivery health is calculated +</summary>
-            <p className="mt-2 max-w-3xl leading-relaxed">{data.note} Complaint and bounce rates are account-wide because Resend applies its limits to every email Olera sends.</p>
-          </details>
 
           <div className="mt-8 border-b border-gray-200">
             <nav className="flex gap-6" aria-label="Automation views">
@@ -454,19 +509,84 @@ export default function AutomationsPage() {
           </div>
 
           {view === "systems" && (
-            <div className="mt-6 space-y-4">
-              {systemGroups.map(({ system, jobs }) => (
-                <SystemSection
-                  key={system.key}
-                  system={system}
-                  jobs={jobs}
-                  collapsed={hasSearchOrFilter ? false : (collapsed[system.key] ?? system.operational ?? false)}
-                  onToggle={() => persistCollapsed({ ...collapsed, [system.key]: !(collapsed[system.key] ?? system.operational ?? false) })}
-                  busy={busy}
-                  onTogglePause={togglePause}
-                />
-              ))}
-            </div>
+            <>
+              <div className="mt-4 flex min-h-6 flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs">
+                <span className="text-gray-400">{savingSystemOrder ? "Saving your order…" : "Drag systems to personalize your order"}</span>
+                <div className="flex items-center gap-4">
+                  {hasSearch ? (
+                    <span className="text-gray-400">Search results are expanded</span>
+                  ) : (
+                    <>
+                      <button type="button" onClick={expandAllSystems} className="font-semibold text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2">Expand all</button>
+                      <button type="button" onClick={collapseAllSystems} className="font-semibold text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2">Collapse all</button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="mt-3 space-y-4">
+                {systemGroups.map(({ system, jobs }) => {
+                  const orderIndex = systemOrder.indexOf(system.key);
+                  return (
+                    <div
+                      key={system.key}
+                      draggable={orderIndex >= 0 && !savingSystemOrder && armedSystem === system.key}
+                      className={`relative transition-opacity ${draggedSystem === system.key ? "opacity-50" : ""}`}
+                      onDragStart={(event) => {
+                        dragStartOrderRef.current = [...systemOrderRef.current];
+                        setDraggedSystem(system.key);
+                        event.dataTransfer.effectAllowed = "move";
+                        try { event.dataTransfer.setData("text/plain", system.key); } catch { /* cosmetic */ }
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        event.dataTransfer.dropEffect = "move";
+                        if (!draggedSystem || draggedSystem === system.key) return;
+                        const order = systemOrderRef.current;
+                        const from = order.indexOf(draggedSystem);
+                        const to = order.indexOf(system.key);
+                        if (from < 0 || to < 0) return;
+                        const rect = event.currentTarget.getBoundingClientRect();
+                        const pastMidpoint = event.clientY > rect.top + rect.height / 2;
+                        if ((from < to && !pastMidpoint) || (from > to && pastMidpoint)) return;
+                        const next = [...order];
+                        next.splice(from, 1);
+                        next.splice(to, 0, draggedSystem);
+                        applySystemOrder(next);
+                      }}
+                      onDrop={(event) => event.preventDefault()}
+                      onDragEnd={() => {
+                        const previous = dragStartOrderRef.current;
+                        const next = [...systemOrderRef.current];
+                        setDraggedSystem(null);
+                        setArmedSystem(null);
+                        void persistSystemOrder(next, previous);
+                      }}
+                    >
+                      {orderIndex >= 0 && (
+                        <SystemOrderHandle
+                          label={system.label}
+                          disabled={savingSystemOrder}
+                          index={orderIndex}
+                          total={systemOrder.length}
+                          onArm={() => setArmedSystem(system.key)}
+                          onDisarm={() => setArmedSystem(null)}
+                          onMove={(direction) => moveSystemBy(system.key, direction)}
+                        />
+                      )}
+                      <SystemSection
+                        system={system}
+                        jobs={jobs}
+                        collapsed={hasSearch ? false : (collapsed[system.key] ?? system.operational ?? false)}
+                        onToggle={() => persistCollapsed({ ...collapsed, [system.key]: !(collapsed[system.key] ?? system.operational ?? false) })}
+                        busy={busy}
+                        onTogglePause={togglePause}
+                        reorderable={orderIndex >= 0}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
 
           {view === "all" && (

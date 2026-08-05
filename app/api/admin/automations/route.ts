@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { ARCHIVED_AUTOMATIONS, type ArchivedAutomation } from "@/lib/crons/archive";
 import { CRON_REGISTRY, jobChannels, type CronJob } from "@/lib/crons/registry";
-import { automationSystemKey } from "@/lib/crons/systems";
+import { automationSystemKey, normalizeAutomationSystemOrder } from "@/lib/crons/systems";
 
 /**
  * GET /api/admin/automations  — powers the /admin/automations cockpit:
@@ -292,6 +292,7 @@ export async function GET() {
 
   return NextResponse.json({
     windowDays: 30,
+    systemOrder: normalizeAutomationSystemOrder(admin.automation_system_order),
     summary: {
       total: currentJobs.length,
       archived: ARCHIVED_AUTOMATIONS.length,

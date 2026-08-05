@@ -177,9 +177,11 @@ export async function POST(request: NextRequest) {
         updateData.notes = notes.trim();
       }
 
-      // Set re_engage_channel if moving to re_engage with a specific channel
+      // Set re_engage_channel and channel_entered_at if moving to re_engage with a specific channel
+      // channel_entered_at is used by the lifecycle cron to determine when to progress between channels
       if (newReEngageChannel) {
         updateData.re_engage_channel = newReEngageChannel;
+        updateData.channel_entered_at = nowIso;
       }
     } else if (notes?.trim()) {
       // Append notes without stage change (use existing or set new)

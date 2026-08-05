@@ -1565,6 +1565,7 @@ interface OutreachProvider {
   // Enrichment fields for alternative channels
   fax_number: string | null;
   fax_confidence: string | null;
+  fax_source_url: string | null;
   linkedin_url: string | null;
   mail_address: string | null;
   // Assignment
@@ -3876,7 +3877,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
   // Find Fax state for Alternative Channels
   const [findingFaxId, setFindingFaxId] = useState<string | null>(null);
-  const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null; searched: boolean }>>(new Map());
+  const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null; source_url: string | null; searched: boolean }>>(new Map());
 
   // Manual fax input state
   const [faxInputExpandedId, setFaxInputExpandedId] = useState<string | null>(null);
@@ -3901,7 +3902,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         const data = await res.json();
         setFaxResultsMap((prev) => {
           const next = new Map(prev);
-          next.set(providerId, { fax: data.fax || faxInputValue.trim(), confidence: "manual", searched: true });
+          next.set(providerId, { fax: data.fax || faxInputValue.trim(), confidence: "manual", source_url: null, searched: true });
           return next;
         });
         setFaxInputExpandedId(null);
@@ -3928,14 +3929,14 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       if (res.ok) {
         setFaxResultsMap((prev) => {
           const next = new Map(prev);
-          next.set(provider.provider_id, { fax: data.fax, confidence: data.confidence, searched: true });
+          next.set(provider.provider_id, { fax: data.fax, confidence: data.confidence, source_url: data.source_url || null, searched: true });
           return next;
         });
       } else {
         // Mark as searched but no fax found
         setFaxResultsMap((prev) => {
           const next = new Map(prev);
-          next.set(provider.provider_id, { fax: null, confidence: null, searched: true });
+          next.set(provider.provider_id, { fax: null, confidence: null, source_url: null, searched: true });
           return next;
         });
       }
@@ -3943,7 +3944,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       // Mark as searched but failed
       setFaxResultsMap((prev) => {
         const next = new Map(prev);
-        next.set(provider.provider_id, { fax: null, confidence: null, searched: true });
+        next.set(provider.provider_id, { fax: null, confidence: null, source_url: null, searched: true });
         return next;
       });
     } finally {
@@ -4372,15 +4373,49 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 )
               )}
 
-              {/* Send Fax button for fax channel with fax number */}
+              {/* Fax info + Send Fax button for fax channel with fax number */}
               {(provider.fax_number || faxResultsMap.get(provider.provider_id)?.fax) && provider.re_engage_channel === "fax" && (
-                <button
-                  type="button"
-                  onClick={() => setFaxPreviewProvider(provider)}
-                  className="px-2 py-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded transition-colors"
-                >
-                  Send Fax
-                </button>
+                <>
+                  {/* Fax number display */}
+                  <span className="text-xs font-mono text-gray-700">
+                    {provider.fax_number || faxResultsMap.get(provider.provider_id)?.fax}
+                  </span>
+                  {/* Confidence badge */}
+                  {(provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                      (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "high"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "manual"
+                        ? "bg-gray-50 text-gray-600 border border-gray-200"
+                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                    }`}>
+                      {(provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "high" ? "High" :
+                       (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "manual" ? "Manual" : "Unsure"}
+                    </span>
+                  )}
+                  {/* Source URL link */}
+                  {(provider.fax_source_url || faxResultsMap.get(provider.provider_id)?.source_url) && (
+                    <a
+                      href={provider.fax_source_url || faxResultsMap.get(provider.provider_id)?.source_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-0.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Source
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setFaxPreviewProvider(provider)}
+                    className="px-2 py-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded transition-colors"
+                  >
+                    Send Fax
+                  </button>
+                </>
               )}
 
               {/* Send Postcard button for direct_mail channel */}

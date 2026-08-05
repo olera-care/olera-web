@@ -107,6 +107,9 @@ export async function GET(request: NextRequest) {
           mail_postgrid_id: (t.mail_postgrid_id as string) || null,
           mail_delivered_at: (t.mail_delivered_at as string) || null,
           mail_address: (t.mail_address as string) || null,
+          // LinkedIn enrichment
+          linkedin_url: (t.linkedin_url as string) || null,
+          linkedin_found_at: (t.linkedin_found_at as string) || null,
           // Re-engage sub-channel (which tab this provider is in)
           re_engage_channel: (t.re_engage_channel as string) || "re_engage",
           // Claimed status (from business_profiles)

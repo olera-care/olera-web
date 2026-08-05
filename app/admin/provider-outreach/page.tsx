@@ -2945,6 +2945,8 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   const [mailAnalyticsMap, setMailAnalyticsMap] = useState<Map<string, MailAnalytics>>(new Map());
   // Claimed status tracked independently (for LinkedIn-only claims)
   const [claimedMap, setClaimedMap] = useState<Map<string, { claimed: boolean; claimed_at?: string }>>(new Map());
+  // Provider LinkedIn URLs from database (supplements session-only linkedInUrlMap)
+  const [providerLinkedInUrlMap, setProviderLinkedInUrlMap] = useState<Map<string, string>>(new Map());
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
 
   // Fetch analytics data when providers change
@@ -2961,6 +2963,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         const newFaxMap = new Map<string, FaxAnalytics>();
         const newMailMap = new Map<string, MailAnalytics>();
         const newClaimedMap = new Map<string, { claimed: boolean; claimed_at?: string }>();
+        const newLinkedInUrlMap = new Map<string, string>();
 
         for (const p of data.providers) {
           // Track claimed status for ALL providers (independent of channel)
@@ -2969,6 +2972,11 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               claimed: true,
               claimed_at: p.claimed_at || undefined,
             });
+          }
+
+          // Store LinkedIn URL from database
+          if (p.linkedin_url) {
+            newLinkedInUrlMap.set(p.provider_id, p.linkedin_url);
           }
 
           // Fax analytics
@@ -2999,6 +3007,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         setFaxAnalyticsMap(newFaxMap);
         setMailAnalyticsMap(newMailMap);
         setClaimedMap(newClaimedMap);
+        setProviderLinkedInUrlMap(newLinkedInUrlMap);
         setAnalyticsLoaded(true);
       } catch {
         // Non-critical - analytics just won't show
@@ -3133,7 +3142,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 linkedinMessaged={linkedInContactsMap.get(provider.provider_id)?.some(c => c.messaged)}
                 linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
                 linkedinUrl={linkedInUrlMap.get(provider.provider_id)}
-                providerLinkedinUrl={provider.linkedin_url}
+                providerLinkedinUrl={providerLinkedInUrlMap.get(provider.provider_id)}
                 mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at}
                 mailAnalytics={mailAnalyticsMap.get(provider.provider_id)}
                 claimed={claimedMap.get(provider.provider_id)?.claimed}

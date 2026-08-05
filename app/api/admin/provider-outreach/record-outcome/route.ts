@@ -38,8 +38,8 @@ import { OUTREACH_STAGES, type OutreachStage } from "../route";
  * Note: "not_interested" is a soft terminal - stops outreach but questions/connections still flow.
  * Use the Archive action (via action modal) for hard terminal with system-wide block.
  *
- * The try_fax/try_linkedin/try_direct_mail outcomes move providers to the re-engagement page
- * where they can be followed up via alternative channels.
+ * The try_fax/try_linkedin/try_direct_mail outcomes move providers to the Alternative Channels
+ * tab where they can be followed up via fax, LinkedIn, or direct mail.
  */
 
 const VALID_OUTCOMES = [

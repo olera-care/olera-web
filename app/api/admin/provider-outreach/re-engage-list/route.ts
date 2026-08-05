@@ -6,7 +6,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *
  * Returns all providers currently in the re_engage stage across ALL states.
  * Includes fax delivery tracking, claimed status, and enrichment data.
- * Used by the Re-Engagement page to populate providers and real analytics.
+ * Used by the Alternative Channels tab to populate providers and analytics.
  */
 export const runtime = "nodejs";
 

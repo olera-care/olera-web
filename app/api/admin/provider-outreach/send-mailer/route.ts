@@ -233,9 +233,11 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as {
       provider_id?: string;
+      provider_name?: string;
       address?: string;
     };
     const providerId = body.provider_id?.trim();
+    const providerNameFromBody = body.provider_name?.trim();
     const rawAddress = body.address?.trim();
 
     if (!providerId) {
@@ -263,14 +265,15 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Fetch provider details
+    // Fetch provider slug (needed for QR code URL)
+    // Name comes from frontend to avoid seesaw bug where DB name differs from what admin sees
     const { data: provider } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, slug")
+      .select("provider_id, slug")
       .eq("provider_id", providerId)
       .maybeSingle();
 
-    const providerName = provider?.provider_name || "Provider";
+    const providerName = providerNameFromBody || "Provider";
     const providerSlug = provider?.slug || "";
 
     // Build QR URL with UTM tracking

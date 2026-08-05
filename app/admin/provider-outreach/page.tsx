@@ -2583,177 +2583,192 @@ function CityRow({
               {/* Provider Cards */}
               <div className="divide-y divide-gray-100">
                 {cityProviders.map((provider) => (
-                  <div key={provider.provider_id} className="group px-5 py-3 pl-10 flex items-center gap-3 hover:bg-white transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={selectedProviders.has(provider.provider_id)}
-                      onChange={() => onToggleProvider(provider.provider_id)}
-                      className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
-                    />
+                  <div key={provider.provider_id} className="group px-5 py-3 pl-10 hover:bg-white transition-colors">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedProviders.has(provider.provider_id)}
+                        onChange={() => onToggleProvider(provider.provider_id)}
+                        className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
+                      />
 
-                    {/* Provider Name + Category + Assignment */}
-                    <div className="w-64 shrink-0">
-                      <div className="flex items-center gap-1.5">
-                        <Link
-                          href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-                          className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
-                        >
-                          {provider.provider_name}
-                        </Link>
-                        <AdminChip
-                          adminId={provider.assigned_to}
-                          adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                          size="sm"
-                          showUnassigned={false}
-                        />
-                      </div>
-                      {provider.provider_category && (
-                        <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
-                      )}
-                    </div>
+                      {/* Main content area */}
+                      <div className="flex-1 min-w-0">
+                        {/* Row 1: Provider name (full width) + hover actions */}
+                        <div className="flex items-center justify-between gap-4 mb-0.5">
+                          <Link
+                            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                            className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+                          >
+                            {provider.provider_name}
+                          </Link>
+                          {/* Hover actions */}
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            {activeTab !== "claimed" && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onOpenActionModal(provider);
+                                }}
+                                className="p-1 text-gray-300 hover:text-gray-600"
+                                title="Actions"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                </svg>
+                              </button>
+                            )}
+                            {activeTab !== "hidden" && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemoveProvider(provider);
+                                }}
+                                className="p-1 text-gray-300 hover:text-red-500"
+                                title="Remove from outreach"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
 
-                    {/* Contact Info - inline */}
-                    <div className="flex-1 min-w-0">
-                      {/* Claimed providers: read-only display with verification badge */}
-                      {provider.stage === "claimed" ? (
-                        <div className="flex items-center gap-3">
-                          {/* Email (read-only) */}
-                          {provider.email && (
-                            <span className="text-sm text-gray-700">{provider.email}</span>
+                        {/* Row 2: Category, location, contact info */}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5 flex-wrap">
+                          {provider.provider_category && (
+                            <span className="truncate max-w-[200px]">{provider.provider_category}</span>
                           )}
-                          {/* Phone */}
-                          {provider.phone && (
-                            <a
-                              href={`tel:${provider.phone.replace(/\D/g, "")}`}
-                              className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {formatPhone(provider.phone)}
-                            </a>
+                          {provider.provider_category && provider.city && <span>·</span>}
+                          {provider.city && (
+                            <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
                           )}
-                          {/* Verification badge */}
-                          {provider.verification_state === "verified" || provider.verification_state === "not_required" ? (
-                            <span className="inline-flex items-center gap-1 text-primary-600" title="Verified">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                              </svg>
-                              <span className="text-xs font-medium">Verified</span>
-                            </span>
-                          ) : provider.verification_state === "pending" ? (
-                            <a
-                              href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
-                              title="Click to review verification"
-                            >
-                              Pending Verification
-                            </a>
-                          ) : provider.verification_state === "unverified" ? (
-                            <a
-                              href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
-                              title="Click to verify this provider"
-                            >
-                              Unverified
-                            </a>
-                          ) : provider.verification_state === "rejected" ? (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
-                              Rejected
-                            </span>
+                          {/* Claimed providers: show email/phone inline */}
+                          {provider.stage === "claimed" ? (
+                            <>
+                              {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
+                              {provider.email && <span>{provider.email}</span>}
+                              {provider.email && provider.phone && <span>·</span>}
+                              {provider.phone && (
+                                <a
+                                  href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                                  className="text-primary-600 hover:text-primary-700 hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {formatPhone(provider.phone)}
+                                </a>
+                              )}
+                            </>
+                          ) : lookingUpEmails.has(provider.provider_id) ? (
+                            <>
+                              {(provider.provider_category || provider.city) && <span>·</span>}
+                              <span className="inline-flex items-center gap-1 text-gray-400">
+                                <span className="w-3 h-3 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
+                                Finding email...
+                              </span>
+                            </>
                           ) : (
-                            <a
-                              href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
-                              title="Click to verify this provider"
-                            >
-                              Needs Review
-                            </a>
-                          )}
-                          {/* Profile completeness */}
-                          {typeof provider.profile_completeness === "number" && (
-                            <span
-                              className={`text-xs font-medium ${
-                                provider.profile_completeness === 100
-                                  ? "text-emerald-600"
-                                  : "text-gray-500"
-                              }`}
-                              title="Profile completeness"
-                            >
-                              {provider.profile_completeness}% complete
-                            </span>
-                          )}
-                        </div>
-                      ) : lookingUpEmails.has(provider.provider_id) ? (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
-                          <span>Finding email...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <ProviderContactEditor
-                            providerId={provider.provider_id}
-                            providerSlug={provider.slug}
-                            email={provider.email}
-                            suggestedEmail={foundEmails.get(provider.provider_id)?.email}
-                            emailSource={foundEmails.get(provider.provider_id)?.source}
-                            emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
-                            phone={provider.phone}
-                            onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
-                            emailVerificationStatus={provider.email_verification_status}
-                            isEmailOverridden={provider.is_email_overridden}
-                            isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
-                            onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
-                            isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
-                            onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
-                            stage={provider.stage}
-                          />
-                          {/* Show lookup result if no email */}
-                          {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
-                            <span className="text-xs text-amber-600">
-                              {lookupErrors.get(provider.provider_id)}
-                            </span>
+                            <>
+                              {(provider.provider_category || provider.city) && <span>·</span>}
+                              <ProviderContactEditor
+                                providerId={provider.provider_id}
+                                providerSlug={provider.slug}
+                                email={provider.email}
+                                suggestedEmail={foundEmails.get(provider.provider_id)?.email}
+                                emailSource={foundEmails.get(provider.provider_id)?.source}
+                                emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
+                                phone={provider.phone}
+                                onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
+                                emailVerificationStatus={provider.email_verification_status}
+                                isEmailOverridden={provider.is_email_overridden}
+                                isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
+                                onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
+                                isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
+                                onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
+                                stage={provider.stage}
+                              />
+                              {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
+                                <span className="text-amber-600">
+                                  {lookupErrors.get(provider.provider_id)}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
-                      )}
+
+                        {/* Row 3: Assignment + Claimed-specific badges */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <span>Assigned:</span>
+                            <AdminChip
+                              adminId={provider.assigned_to}
+                              adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                              size="sm"
+                              showUnassigned={true}
+                            />
+                          </div>
+                          {/* Claimed providers: verification badge and profile completeness */}
+                          {provider.stage === "claimed" && (
+                            <div className="flex items-center gap-2">
+                              {provider.verification_state === "verified" || provider.verification_state === "not_required" ? (
+                                <span className="inline-flex items-center gap-1 text-primary-600" title="Verified">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                  </svg>
+                                  <span className="text-xs font-medium">Verified</span>
+                                </span>
+                              ) : provider.verification_state === "pending" ? (
+                                <a
+                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+                                  title="Click to review verification"
+                                >
+                                  Pending Verification
+                                </a>
+                              ) : provider.verification_state === "unverified" ? (
+                                <a
+                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
+                                  title="Click to verify this provider"
+                                >
+                                  Unverified
+                                </a>
+                              ) : provider.verification_state === "rejected" ? (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                                  Rejected
+                                </span>
+                              ) : (
+                                <a
+                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                                  title="Click to verify this provider"
+                                >
+                                  Needs Review
+                                </a>
+                              )}
+                              {typeof provider.profile_completeness === "number" && (
+                                <span
+                                  className={`text-xs font-medium ${
+                                    provider.profile_completeness === 100
+                                      ? "text-emerald-600"
+                                      : "text-gray-500"
+                                  }`}
+                                  title="Profile completeness"
+                                >
+                                  {provider.profile_completeness}% complete
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Actions button - ellipsis icon, opens modal */}
-                    {/* Show for all tabs except claimed (archived can be unarchived) */}
-                    {activeTab !== "claimed" && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenActionModal(provider);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
-                        title="Actions"
-                      >
-                        {/* Ellipsis vertical icon */}
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                        </svg>
-                      </button>
-                    )}
-
-                    {/* Remove from outreach (trash icon) - hide on Hidden tab since they're already removed */}
-                    {activeTab !== "hidden" && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemoveProvider(provider);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
-                        title="Remove from outreach"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
@@ -4307,29 +4322,40 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 </button>
               </div>
             )}
-            {/* Main row */}
-            <div className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors">
-            {/* Provider info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-medium text-gray-900 truncate">
+            {/* Main row - restructured for better readability */}
+            <div className="px-5 py-3 hover:bg-gray-50 transition-colors">
+              {/* Row 1: Provider name (full width) + Cycle badge + Wait time */}
+              <div className="flex items-center justify-between gap-4 mb-1">
+                <span className="font-medium text-gray-900 text-sm">
                   {provider.provider_name}
                 </span>
-                <AdminChip
-                  adminId={provider.assigned_to}
-                  adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                  size="sm"
-                  showUnassigned={true}
-                />
-                <TierSelector
-                  tier={tierMap.get(provider.provider_id)}
-                  onTierChange={(tier) => setProviderTier(provider.provider_id, tier)}
-                />
+                <div className="flex items-center gap-3 shrink-0">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      isCycle2
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    Cycle {provider.cycle_number}
+                  </span>
+                  <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
+                    {waitDays}d{waitDays >= 30 && " (Ready)"}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span className="truncate">
-                  {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
-                </span>
+
+              {/* Row 2: Category, location, email + channel badges */}
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1 flex-wrap">
+                {provider.provider_category && (
+                  <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+                )}
+                {provider.provider_category && provider.city && <span>·</span>}
+                {provider.city && (
+                  <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
+                )}
+                {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
+                {provider.email && <span>{provider.email}</span>}
                 {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
@@ -4343,14 +4369,12 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                      provider.re_engage_channel}
                   </span>
                 )}
-                {/* Lifecycle countdown tag */}
                 <LifecycleTag
                   channel={provider.re_engage_channel}
                   faxSentAt={faxAnalyticsMap.get(provider.provider_id)?.sent_at}
                   linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
                   mailSentAt={mailAnalyticsMap.get(provider.provider_id)?.sent_at}
                 />
-                {/* Enrichment "not found" badges */}
                 {enrichmentNotFoundMap.get(provider.provider_id)?.fax && !provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
                     No Fax
@@ -4362,7 +4386,23 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                   </span>
                 )}
               </div>
-              {/* Channel tracking analytics */}
+
+              {/* Row 3: Assignment + Tier selector */}
+              <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                <span>Assigned:</span>
+                <AdminChip
+                  adminId={provider.assigned_to}
+                  adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                  size="sm"
+                  showUnassigned={true}
+                />
+                <TierSelector
+                  tier={tierMap.get(provider.provider_id)}
+                  onTierChange={(tier) => setProviderTier(provider.provider_id, tier)}
+                />
+              </div>
+
+              {/* Row 4: Channel tracking analytics */}
               <ChannelTracking
                 faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at || faxSentSet.has(provider.provider_id)}
                 faxAnalytics={faxAnalyticsMap.get(provider.provider_id)}
@@ -4376,33 +4416,9 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 claimed={claimedMap.get(provider.provider_id)?.claimed}
                 claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
               />
-            </div>
 
-            {/* Cycle badge */}
-            <div className="w-20 text-center">
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                  isCycle2
-                    ? "bg-amber-100 text-amber-800"
-                    : "bg-blue-100 text-blue-800"
-                }`}
-              >
-                Cycle {provider.cycle_number}
-              </span>
-            </div>
-
-            {/* Wait time */}
-            <div className="w-28 text-center">
-              <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
-                {waitDays} day{waitDays !== 1 ? "s" : ""}
-              </span>
-              {waitDays >= 30 && (
-                <div className="text-[10px] text-emerald-600">Ready</div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="w-56 flex items-center justify-end gap-2">
+              {/* Row 5: Actions */}
+              <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => setPendingAction({
@@ -6732,13 +6748,6 @@ export default function ProviderOutreachPage() {
         ) : isSearchResult ? (
           // Search results: flat list with stage badges
           <>
-            <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
-              <div className="w-5" />
-              <div className="flex-1">Provider</div>
-              <div className="w-24">City</div>
-              <div className="w-28">Stage</div>
-              <div className="w-10" />
-            </div>
             {loadingProviders ? (
               <div className="p-8 text-center">
                 <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
@@ -6750,96 +6759,105 @@ export default function ProviderOutreachPage() {
             ) : (
               <div className="divide-y divide-gray-100">
                 {providers.map((provider) => (
-                  <div key={provider.provider_id} className="group px-5 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={selectedProviders.has(provider.provider_id)}
-                      onChange={() => toggleProvider(provider.provider_id)}
-                      className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
-                    />
-                    {/* Provider Name + Category */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-                          className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
-                        >
-                          {provider.provider_name}
-                        </Link>
-                        {provider.email && (
-                          <span className="text-xs text-gray-500 truncate">{provider.email}</span>
-                        )}
-                      </div>
-                      {provider.provider_category && (
-                        <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
-                      )}
-                    </div>
-                    {/* City */}
-                    <div className="w-24 text-sm text-gray-600 truncate">
-                      {provider.city || "—"}
-                    </div>
-                    {/* Stage Badge + Sequence Progress + Assignment */}
-                    <div className="w-32 flex items-center gap-1.5">
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                        provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
-                        provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
-                        provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
-                        provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
-                        provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
-                        "bg-gray-100 text-gray-600"
-                      }`}>
-                        {STAGE_LABELS[provider.stage]}
-                        {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
-                          <span className="ml-1 text-blue-500">
-                            ({provider.emails_sent}/4)
-                            {provider.cycle_number >= 2 && (
-                              <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
-                            )}
-                          </span>
-                        )}
-                      </span>
-                      <AdminChip
-                        adminId={provider.assigned_to}
-                        adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                        size="sm"
-                        showUnassigned={true}
+                  <div key={provider.provider_id} className="group px-5 py-3 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedProviders.has(provider.provider_id)}
+                        onChange={() => toggleProvider(provider.provider_id)}
+                        className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
                       />
-                    </div>
-                    {/* Actions - hide for claimed only (archived can be unarchived) */}
-                    <div className="w-10 flex items-center gap-1">
-                      {!["claimed"].includes(provider.stage) && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActionModalProvider(provider);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
-                          title="Actions"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                          </svg>
-                        </button>
-                      )}
-                      {/* Remove from outreach (trash icon) */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPendingRemoval({
-                            providerId: provider.provider_id,
-                            providerName: provider.provider_name,
-                            stage: provider.stage,
-                          });
-                        }}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
-                        title="Remove from outreach"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+
+                      {/* Main content area */}
+                      <div className="flex-1 min-w-0">
+                        {/* Row 1: Provider name (full width) + Stage badge + hover actions */}
+                        <div className="flex items-center justify-between gap-4 mb-0.5">
+                          <Link
+                            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                            className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+                          >
+                            {provider.provider_name}
+                          </Link>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {/* Stage badge */}
+                            <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                              provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
+                              provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
+                              provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
+                              provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
+                              provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
+                              "bg-gray-100 text-gray-600"
+                            }`}>
+                              {STAGE_LABELS[provider.stage]}
+                              {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
+                                <span className="ml-1 text-blue-500">
+                                  ({provider.emails_sent}/4)
+                                  {provider.cycle_number >= 2 && (
+                                    <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
+                                  )}
+                                </span>
+                              )}
+                            </span>
+                            {/* Hover actions */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {!["claimed"].includes(provider.stage) && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActionModalProvider(provider);
+                                  }}
+                                  className="p-1 text-gray-300 hover:text-gray-600"
+                                  title="Actions"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                  </svg>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPendingRemoval({
+                                    providerId: provider.provider_id,
+                                    providerName: provider.provider_name,
+                                    stage: provider.stage,
+                                  });
+                                }}
+                                className="p-1 text-gray-300 hover:text-red-500"
+                                title="Remove from outreach"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Row 2: Category, location, email */}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5">
+                          {provider.provider_category && (
+                            <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+                          )}
+                          {provider.provider_category && provider.city && <span>·</span>}
+                          {provider.city && <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>}
+                          {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
+                          {provider.email && <span>{provider.email}</span>}
+                        </div>
+
+                        {/* Row 3: Assignment */}
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <span>Assigned:</span>
+                          <AdminChip
+                            adminId={provider.assigned_to}
+                            adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                            size="sm"
+                            showUnassigned={true}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -70,6 +70,123 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
 // archived = hard (system-wide block)
 const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived"];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Provider Tier System
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ProviderTier = "enterprise" | "regional" | "local";
+
+const TIER_CONFIG: Record<ProviderTier, { label: string; className: string }> = {
+  enterprise: {
+    label: "Enterprise",
+    className: "text-blue-700 bg-blue-50 border-blue-200",
+  },
+  regional: {
+    label: "Regional",
+    className: "text-teal-700 bg-teal-50 border-teal-200",
+  },
+  local: {
+    label: "Local",
+    className: "text-gray-600 bg-gray-50 border-gray-200",
+  },
+};
+
+function TierSelector({
+  tier,
+  onTierChange,
+}: {
+  tier?: ProviderTier;
+  onTierChange: (tier: ProviderTier) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  if (!tier) {
+    // No tier set — show subtle "Set tier" button
+    return (
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(!open);
+          }}
+          className="px-1.5 py-0.5 text-[10px] font-medium text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 rounded transition"
+        >
+          + Tier
+        </button>
+        {open && (
+          <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 w-28">
+            {(["enterprise", "regional", "local"] as ProviderTier[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTierChange(t);
+                  setOpen(false);
+                }}
+                className="w-full text-left px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium ${TIER_CONFIG[t].className}`}>
+                  {TIER_CONFIG[t].label}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Tier is set — show badge, click to change
+  const config = TIER_CONFIG[tier];
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded border cursor-pointer hover:opacity-80 transition ${config.className}`}
+      >
+        {config.label}
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 w-28">
+          {(["enterprise", "regional", "local"] as ProviderTier[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTierChange(t);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 transition-colors ${t === tier ? "bg-gray-50" : ""}`}
+            >
+              <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium ${TIER_CONFIG[t].className}`}>
+                {TIER_CONFIG[t].label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Follow Up queue limits (must match backend config)
 const MAX_RESEND_COUNT = 2;
 
@@ -2234,6 +2351,17 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
   const [actionNotes, setActionNotes] = useState("");
 
+  // Provider tier tracking (session-only, not persisted)
+  const [tierMap, setTierMap] = useState<Map<string, ProviderTier>>(new Map());
+
+  const setProviderTier = useCallback((providerId: string, tier: ProviderTier) => {
+    setTierMap((prev) => {
+      const next = new Map(prev);
+      next.set(providerId, tier);
+      return next;
+    });
+  }, []);
+
   const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
     setActionLoading(provider.provider_id);
     try {
@@ -2329,9 +2457,28 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                   size="sm"
                   showUnassigned={true}
                 />
+                <TierSelector
+                  tier={tierMap.get(provider.provider_id)}
+                  onTierChange={(tier) => setProviderTier(provider.provider_id, tier)}
+                />
               </div>
-              <div className="text-xs text-gray-500 truncate">
-                {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span className="truncate">
+                  {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
+                </span>
+                {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                    provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
+                    provider.re_engage_channel === "linkedin" ? "bg-blue-50 text-blue-700" :
+                    provider.re_engage_channel === "direct_mail" ? "bg-teal-50 text-teal-700" :
+                    "bg-gray-50 text-gray-600"
+                  }`}>
+                    {provider.re_engage_channel === "fax" ? "Fax" :
+                     provider.re_engage_channel === "linkedin" ? "LinkedIn" :
+                     provider.re_engage_channel === "direct_mail" ? "Direct Mail" :
+                     provider.re_engage_channel}
+                  </span>
+                )}
               </div>
             </div>
 

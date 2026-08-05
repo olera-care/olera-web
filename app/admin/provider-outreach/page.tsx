@@ -3478,20 +3478,6 @@ function FollowUpProviderRow({
               </p>
             </div>
           )}
-
-          {/* Notes Section */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Notes
-            </div>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add notes..."
-              rows={2}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-            />
-          </div>
         </div>
       )}
 

@@ -654,10 +654,12 @@ function FaxPreviewSidebar({
   provider,
   onClose,
   onFaxSent,
+  faxNumberOverride,
 }: {
   provider: OutreachProvider;
   onClose: () => void;
   onFaxSent?: (providerId: string) => void;
+  faxNumberOverride?: string | null;
 }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -665,6 +667,9 @@ function FaxPreviewSidebar({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [qrVerified, setQrVerified] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  // Use override if provided, otherwise fall back to provider.fax_number
+  const faxNumber = faxNumberOverride || provider.fax_number;
 
   const providerUrl = provider.slug
     ? `https://olera.care/provider/${provider.slug}?utm_source=fax&utm_medium=qr&utm_campaign=re_engage`
@@ -697,7 +702,7 @@ function FaxPreviewSidebar({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: provider.provider_id,
-          fax_number: provider.fax_number,
+          fax_number: faxNumber,
         }),
       });
       const data = await res.json();
@@ -731,7 +736,7 @@ function FaxPreviewSidebar({
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{provider.provider_name}</h2>
             <p className="text-sm text-gray-500">
-              Fax to {provider.fax_number}
+              Fax to {faxNumber}
             </p>
           </div>
           <div className="flex items-center gap-1">
@@ -3783,7 +3788,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
   // Find Fax state for Alternative Channels
   const [findingFaxId, setFindingFaxId] = useState<string | null>(null);
-  const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null }>>(new Map());
+  const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null; searched: boolean }>>(new Map());
 
   const handleFindFax = useCallback(async (provider: OutreachProvider) => {
     setFindingFaxId(provider.provider_id);
@@ -3797,12 +3802,24 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       if (res.ok) {
         setFaxResultsMap((prev) => {
           const next = new Map(prev);
-          next.set(provider.provider_id, { fax: data.fax, confidence: data.confidence });
+          next.set(provider.provider_id, { fax: data.fax, confidence: data.confidence, searched: true });
+          return next;
+        });
+      } else {
+        // Mark as searched but no fax found
+        setFaxResultsMap((prev) => {
+          const next = new Map(prev);
+          next.set(provider.provider_id, { fax: null, confidence: null, searched: true });
           return next;
         });
       }
     } catch {
-      // Ignore errors
+      // Mark as searched but failed
+      setFaxResultsMap((prev) => {
+        const next = new Map(prev);
+        next.set(provider.provider_id, { fax: null, confidence: null, searched: true });
+        return next;
+      });
     } finally {
       setFindingFaxId(null);
     }
@@ -4096,14 +4113,20 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
               {/* Find Fax button for fax channel without fax number */}
               {!provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && provider.re_engage_channel === "fax" && (
-                <button
-                  type="button"
-                  onClick={() => handleFindFax(provider)}
-                  disabled={findingFaxId === provider.provider_id}
-                  className="px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
-                >
-                  {findingFaxId === provider.provider_id ? "Finding..." : "Find Fax"}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleFindFax(provider)}
+                    disabled={findingFaxId === provider.provider_id}
+                    className="px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
+                  >
+                    {findingFaxId === provider.provider_id ? "Finding..." :
+                     faxResultsMap.get(provider.provider_id)?.searched ? "Try Again" : "Find Fax"}
+                  </button>
+                  {faxResultsMap.get(provider.provider_id)?.searched && !faxResultsMap.get(provider.provider_id)?.fax && (
+                    <span className="text-[10px] text-gray-400">Not found</span>
+                  )}
+                </>
               )}
 
               {/* Send Fax button for fax channel with fax number */}
@@ -4295,6 +4318,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
           provider={faxPreviewProvider}
           onClose={() => setFaxPreviewProvider(null)}
           onFaxSent={handleFaxSent}
+          faxNumberOverride={faxResultsMap.get(faxPreviewProvider.provider_id)?.fax}
         />
       )}
 

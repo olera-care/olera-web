@@ -91,6 +91,258 @@ const TIER_CONFIG: Record<ProviderTier, { label: string; className: string }> = 
   },
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LinkedIn Contact Tracking
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface LinkedInContact {
+  id: string;
+  name: string;
+  title: string;
+  linkedin_url: string;
+  messaged: boolean;
+  messaged_at?: string;
+}
+
+function getLinkedInMessage(): string {
+  return `Hi! I'm Dr. Logan DuBose, co-founder of Olera. We help families find senior care and connect providers with free referrals. Open to a quick 15-minute call?`;
+}
+
+function LinkedInSection({
+  provider,
+  linkedInUrl,
+  contacts,
+  onUrlChange,
+  onContactsChange,
+}: {
+  provider: OutreachProvider;
+  linkedInUrl: string | null;
+  contacts: LinkedInContact[];
+  onUrlChange: (url: string) => void;
+  onContactsChange: (contacts: LinkedInContact[]) => void;
+}) {
+  const [urlInput, setUrlInput] = useState(linkedInUrl || "");
+  const [finding, setFinding] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleFind() {
+    setFinding(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (data.linkedin_url) {
+        setUrlInput(data.linkedin_url);
+        onUrlChange(data.linkedin_url);
+      }
+    } catch {
+      // Ignore errors
+    } finally {
+      setFinding(false);
+    }
+  }
+
+  async function handleSaveUrl() {
+    if (!urlInput.trim()) return;
+    try {
+      await fetch("/api/admin/provider-outreach/find-linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          manual_url: urlInput.trim(),
+        }),
+      });
+    } catch {
+      // Non-critical
+    }
+    onUrlChange(urlInput.trim());
+  }
+
+  function addContact() {
+    if (!newName.trim()) return;
+    const contact: LinkedInContact = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: newName.trim(),
+      title: newTitle.trim(),
+      linkedin_url: newUrl.trim(),
+      messaged: false,
+    };
+    onContactsChange([...contacts, contact]);
+    setNewName("");
+    setNewTitle("");
+    setNewUrl("");
+  }
+
+  function removeContact(contactId: string) {
+    onContactsChange(contacts.filter((c) => c.id !== contactId));
+  }
+
+  function toggleMessaged(contactId: string) {
+    onContactsChange(
+      contacts.map((c) =>
+        c.id === contactId
+          ? { ...c, messaged: !c.messaged, messaged_at: !c.messaged ? new Date().toISOString() : undefined }
+          : c
+      )
+    );
+  }
+
+  function copyMessage(contactId: string) {
+    navigator.clipboard.writeText(getLinkedInMessage());
+    setCopiedId(contactId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  return (
+    <div className="px-5 py-4 bg-blue-50/50 border-t border-blue-100">
+      {/* Company LinkedIn URL */}
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-gray-700 mb-1.5">Company LinkedIn Page</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="https://linkedin.com/company/..."
+            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {!linkedInUrl && (
+            <button
+              type="button"
+              onClick={handleFind}
+              disabled={finding}
+              className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 disabled:opacity-50"
+            >
+              {finding ? "Finding..." : "Find"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleSaveUrl}
+            disabled={!urlInput.trim() || urlInput === linkedInUrl}
+            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+
+      {/* Contacts List */}
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          Contacts ({contacts.length})
+        </label>
+        {contacts.length > 0 ? (
+          <div className="space-y-2 mb-3">
+            {contacts.map((contact) => (
+              <div
+                key={contact.id}
+                className={`flex items-center gap-3 p-2 rounded-lg border ${
+                  contact.messaged ? "bg-green-50 border-green-200" : "bg-white border-gray-200"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+                  {contact.title && <div className="text-xs text-gray-500">{contact.title}</div>}
+                  {contact.linkedin_url && (
+                    <a
+                      href={contact.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      LinkedIn Profile
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => copyMessage(contact.id)}
+                    className="px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded"
+                  >
+                    {copiedId === contact.id ? "Copied!" : "Copy Msg"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleMessaged(contact.id)}
+                    className={`px-2 py-1 text-xs rounded ${
+                      contact.messaged
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {contact.messaged ? "Messaged ✓" : "Mark Sent"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeContact(contact.id)}
+                    className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500 mb-3">No contacts added yet</p>
+        )}
+
+        {/* Add Contact Form */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Name"
+            className="w-32 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            placeholder="Title"
+            className="w-32 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <input
+            type="text"
+            value={newUrl}
+            onChange={(e) => setNewUrl(e.target.value)}
+            placeholder="LinkedIn URL"
+            className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            onClick={addContact}
+            disabled={!newName.trim()}
+            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+      {/* Message Template */}
+      <details className="text-xs">
+        <summary className="font-medium text-gray-600 cursor-pointer hover:text-gray-800">
+          Message Template
+        </summary>
+        <div className="mt-2 p-3 bg-white border border-gray-200 rounded-lg text-gray-700 whitespace-pre-line">
+          {getLinkedInMessage()}
+        </div>
+      </details>
+    </div>
+  );
+}
+
 function TierSelector({
   tier,
   onTierChange,
@@ -2362,6 +2614,39 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     });
   }, []);
 
+  // LinkedIn tracking (session-only)
+  const [linkedInUrlMap, setLinkedInUrlMap] = useState<Map<string, string>>(new Map());
+  const [linkedInContactsMap, setLinkedInContactsMap] = useState<Map<string, LinkedInContact[]>>(new Map());
+  const [expandedLinkedIn, setExpandedLinkedIn] = useState<Set<string>>(new Set());
+
+  const updateLinkedInUrl = useCallback((providerId: string, url: string) => {
+    setLinkedInUrlMap((prev) => {
+      const next = new Map(prev);
+      next.set(providerId, url);
+      return next;
+    });
+  }, []);
+
+  const updateLinkedInContacts = useCallback((providerId: string, contacts: LinkedInContact[]) => {
+    setLinkedInContactsMap((prev) => {
+      const next = new Map(prev);
+      next.set(providerId, contacts);
+      return next;
+    });
+  }, []);
+
+  const toggleLinkedInExpanded = useCallback((providerId: string) => {
+    setExpandedLinkedIn((prev) => {
+      const next = new Set(prev);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  }, []);
+
   const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
     setActionLoading(provider.provider_id);
     try {
@@ -2441,10 +2726,9 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         const isCycle2 = provider.cycle_number === 2;
 
         return (
-          <div
-            key={provider.provider_id}
-            className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-          >
+          <div key={provider.provider_id} className="border-b border-gray-100">
+            {/* Main row */}
+            <div className="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors">
             {/* Provider info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
@@ -2540,8 +2824,31 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               >
                 Archive
               </button>
+
+              {/* LinkedIn expand toggle */}
+              {provider.re_engage_channel === "linkedin" && (
+                <button
+                  type="button"
+                  onClick={() => toggleLinkedInExpanded(provider.provider_id)}
+                  className="px-2 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                >
+                  {expandedLinkedIn.has(provider.provider_id) ? "Hide" : "LinkedIn"}
+                </button>
+              )}
             </div>
           </div>
+
+          {/* LinkedIn Expanded Section */}
+          {provider.re_engage_channel === "linkedin" && expandedLinkedIn.has(provider.provider_id) && (
+            <LinkedInSection
+              provider={provider}
+              linkedInUrl={linkedInUrlMap.get(provider.provider_id) || null}
+              contacts={linkedInContactsMap.get(provider.provider_id) || []}
+              onUrlChange={(url) => updateLinkedInUrl(provider.provider_id, url)}
+              onContactsChange={(contacts) => updateLinkedInContacts(provider.provider_id, contacts)}
+            />
+          )}
+        </div>
         );
       })}
 

@@ -220,30 +220,40 @@ function SystemSection({ system, jobs, collapsed, onToggle, busy, onTogglePause,
   const paused = jobs.filter((job) => job.paused).length;
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={!collapsed}
-        className={`flex min-h-20 w-full items-center justify-between gap-4 py-4 text-left transition-colors hover:bg-gray-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 ${reorderable ? "pl-12 pr-5 sm:pl-14 sm:pr-6" : "px-5 sm:px-6"}`}
-      >
-        <span className="min-w-0">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="text-lg font-semibold tracking-tight text-gray-950">{system.label}</span>
-            {attention > 0 ? (
-              <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">{attention} need attention</span>
-            ) : paused > 0 ? (
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{paused} paused</span>
-            ) : (
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Healthy</span>
-            )}
+      <div className="flex items-stretch">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          className={`flex min-h-20 min-w-0 flex-1 items-center justify-between gap-4 py-4 text-left transition-colors hover:bg-gray-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 ${reorderable ? "pl-12 pr-4 sm:pl-14" : "pl-5 pr-4 sm:pl-6"}`}
+        >
+          <span className="min-w-0">
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="text-lg font-semibold tracking-tight text-gray-950">{system.label}</span>
+              {attention > 0 ? (
+                <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">{attention} need attention</span>
+              ) : paused > 0 ? (
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{paused} paused</span>
+              ) : (
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Healthy</span>
+              )}
+            </span>
+            <span className="mt-1 block max-w-2xl text-xs leading-relaxed text-gray-500">{system.description}</span>
           </span>
-          <span className="mt-1 block max-w-2xl text-xs leading-relaxed text-gray-500">{system.description}</span>
-        </span>
-        <span className="flex shrink-0 items-center gap-3 text-xs text-gray-400">
-          <span>{jobs.length} automation{jobs.length === 1 ? "" : "s"}</span>
-          <svg viewBox="0 0 20 20" className={`h-4 w-4 transition-transform ${collapsed ? "" : "rotate-180"}`} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
-        </span>
-      </button>
+          <span className="flex shrink-0 items-center gap-3 text-xs text-gray-400">
+            <span>{jobs.length} automation{jobs.length === 1 ? "" : "s"}</span>
+            <svg viewBox="0 0 20 20" className={`h-4 w-4 transition-transform ${collapsed ? "" : "rotate-180"}`} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
+          </span>
+        </button>
+        {system.key === "ad-boost" && (
+          <Link
+            href="/admin/automations/ad-boost"
+            className="m-3 ml-0 inline-flex shrink-0 items-center justify-center rounded-xl border border-teal-200 bg-teal-50/70 px-3 text-xs font-semibold text-teal-800 transition-all hover:-translate-y-0.5 hover:bg-teal-50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 sm:px-4"
+          >
+            View journey →
+          </Link>
+        )}
+      </div>
       {!collapsed && <div className="divide-y divide-gray-100 border-t border-gray-100">{jobs.map((job) => <JobRow key={job.id} job={job} busy={busy} onTogglePause={onTogglePause} />)}</div>}
     </section>
   );

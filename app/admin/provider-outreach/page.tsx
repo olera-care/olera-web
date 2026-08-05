@@ -6288,7 +6288,7 @@ export default function ProviderOutreachPage() {
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalFollowUpsToday.total}</p>
             <p className="mt-0.5 text-[11px] text-gray-500">
               {globalFollowUpsToday.by_admin.length > 0
-                ? globalFollowUpsToday.by_admin.map(a => `${a.display_name} ${a.count}`).join(" · ")
+                ? globalFollowUpsToday.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
                 : "none pending"}
             </p>
           </div>

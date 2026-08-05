@@ -298,7 +298,7 @@ async function buildFunnelResponse(
 }
 
 /**
- * Get global follow-ups due today across ALL states.
+ * Get global follow-ups across ALL states.
  * Returns total count and breakdown by admin.
  */
 async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
@@ -315,11 +315,12 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
   );
 
   // Query ALL follow-ups across ALL states (no state filter, no date filter)
-  // Shows total providers needing follow-up, regardless of due date
+  // Exclude admin_hidden providers to match the Follow Up tab
   const { data: trackingRows, error } = await db
     .from("provider_outreach_tracking")
     .select("provider_id, assigned_to")
-    .eq("stage", "needs_call");
+    .eq("stage", "needs_call")
+    .or("admin_hidden.is.null,admin_hidden.eq.false");
 
   if (error || !trackingRows) {
     console.error("[follow-ups-today-global] Query error:", error);

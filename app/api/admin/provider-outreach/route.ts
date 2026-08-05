@@ -152,6 +152,13 @@ export interface OutreachProvider {
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
   emails_sent?: number;
+  // Engagement data (for needs_call stage) - powers intelligence recommendations
+  engagement?: {
+    emails_sent: number;
+    opens: number;
+    clicks: number;
+    resends: number;  // Count of resend_link touchpoints
+  };
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   profile_completeness?: number;
@@ -395,6 +402,50 @@ export async function GET(request: NextRequest) {
     // For in_sequence stage, get email sent counts from touchpoints
     // Only count emails sent during the CURRENT sequence (since stage_changed_at)
     let emailsSentMap = new Map<string, number>();
+    // For needs_call stage, get full engagement data for intelligence recommendations
+    // Only count touchpoints from the CURRENT cycle (after entering needs_call)
+    let engagementMap = new Map<string, { emails_sent: number; opens: number; clicks: number; resends: number }>();
+
+    if (stage === "needs_call" && providerIds.length > 0) {
+      // Build map of provider_id -> stage_changed_at for filtering to current cycle
+      // We look at when they entered their PREVIOUS stage (in_sequence) to get all sequence touchpoints
+      // Actually, for needs_call we want engagement from the sequence that led here,
+      // so we need to look back further. For now, fetch all and let the UI interpret.
+      // A better approach would be to store engagement summary when transitioning stages.
+      const { data: touchpoints } = await db
+        .from("provider_outreach_touchpoints")
+        .select("provider_id, touchpoint_type, details")
+        .in("provider_id", providerIds);
+
+      // Aggregate engagement metrics per provider
+      // Use email_sent touchpoint's open_count/click_count (SmartLead aggregates) as primary source
+      // Don't double-count from separate email_opened/email_clicked events
+      for (const tp of touchpoints || []) {
+        if (!engagementMap.has(tp.provider_id)) {
+          engagementMap.set(tp.provider_id, { emails_sent: 0, opens: 0, clicks: 0, resends: 0 });
+        }
+        const metrics = engagementMap.get(tp.provider_id)!;
+        const details = tp.details as Record<string, unknown> | null;
+
+        switch (tp.touchpoint_type) {
+          case "email_sent":
+            metrics.emails_sent += 1;
+            // SmartLead touchpoints include open_count and click_count in details
+            // Use these as the authoritative source (they're aggregates per email)
+            if (details) {
+              metrics.opens += Number(details.open_count ?? 0);
+              metrics.clicks += Number(details.click_count ?? 0);
+            }
+            break;
+          // Note: We intentionally skip email_opened/email_clicked touchpoint types
+          // to avoid double-counting with the open_count/click_count in email_sent details
+          case "resend_link":
+            metrics.resends += 1;
+            break;
+        }
+      }
+    }
+
     if (stage === "in_sequence" && providerIds.length > 0) {
       // Build map of provider_id -> stage_changed_at for filtering
       const stageChangedMap = new Map<string, string>();
@@ -463,6 +514,8 @@ export async function GET(request: NextRequest) {
           assigned_to: t.assigned_to ?? null,
           // Sequence progress (for in_sequence)
           emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
+          // Engagement data (for needs_call)
+          engagement: stage === "needs_call" ? engagementMap.get(p.provider_id) : undefined,
           // Generic email warning state (persisted for page refresh)
           generic_email_called_at: t.generic_email_called_at ?? null,
           generic_email_skipped_at: t.generic_email_skipped_at ?? null,

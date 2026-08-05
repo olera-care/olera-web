@@ -316,14 +316,22 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
 
   // Query ALL follow-ups across ALL states (no state filter, no date filter)
   // Exclude admin_hidden providers to match the Follow Up tab
+  // Using .not("admin_hidden", "is", true) matches both NULL and false
   const { data: trackingRows, error } = await db
     .from("provider_outreach_tracking")
     .select("provider_id, assigned_to")
     .eq("stage", "needs_call")
-    .or("admin_hidden.is.null,admin_hidden.eq.false");
+    .not("admin_hidden", "is", true);
 
-  if (error || !trackingRows) {
+  if (error) {
     console.error("[follow-ups-today-global] Query error:", error);
+    return { total: 0, by_admin: [] };
+  }
+
+  console.log("[follow-ups-today-global] Raw tracking rows:", trackingRows?.length ?? 0);
+
+  if (!trackingRows || trackingRows.length === 0) {
+    console.log("[follow-ups-today-global] No tracking rows found for needs_call stage");
     return { total: 0, by_admin: [] };
   }
 
@@ -349,6 +357,9 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
     (archivedBps || []).map((bp: { source_provider_id: string }) => bp.source_provider_id).filter(Boolean)
   );
 
+  console.log("[follow-ups-today-global] Claimed providers to exclude:", claimedProviderIds.size);
+  console.log("[follow-ups-today-global] Archived providers to exclude:", archivedProviderIds.size);
+
   // Count by assigned_to, excluding claimed and system-archived
   const countMap = new Map<string, number>();
   let totalCount = 0;
@@ -360,6 +371,8 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
     countMap.set(key, (countMap.get(key) || 0) + 1);
     totalCount++;
   }
+
+  console.log("[follow-ups-today-global] Final count after exclusions:", totalCount);
 
   // Convert to sorted array
   const byAdmin: Array<{ admin_id: string | null; display_name: string; count: number }> = [];

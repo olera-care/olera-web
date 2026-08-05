@@ -106,6 +106,11 @@ interface TrackingRow {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  re_engage_channel: string | null;
+  // Enrichment fields for alternative channels
+  fax_number: string | null;
+  fax_confidence: string | null;
+  mail_address: string | null;
   // Assignment
   assigned_to: string | null;
   // Generic email warning state (persisted for page refresh)
@@ -136,6 +141,11 @@ export interface OutreachProvider {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  re_engage_channel: string | null;
+  // Enrichment fields for alternative channels
+  fax_number: string | null;
+  fax_confidence: string | null;
+  mail_address: string | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
@@ -441,6 +451,11 @@ export async function GET(request: NextRequest) {
           // Re-engage cycle fields
           cycle_number: t.cycle_number ?? 1,
           re_engage_entered_at: t.re_engage_entered_at ?? null,
+          re_engage_channel: t.re_engage_channel ?? null,
+          // Enrichment fields for alternative channels
+          fax_number: t.fax_number ?? null,
+          fax_confidence: t.fax_confidence ?? null,
+          mail_address: t.mail_address ?? null,
           // Assignment
           assigned_to: t.assigned_to ?? null,
           // Sequence progress (for in_sequence)
@@ -494,7 +509,7 @@ async function getNotContactedProviders(
   // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at")
     .eq("state", state);
 
   if (trackingError) {
@@ -595,6 +610,10 @@ async function getNotContactedProviders(
         // Re-engage cycle fields
         cycle_number: 1,
         re_engage_entered_at: null,
+        re_engage_channel: null,
+        fax_number: null,
+        fax_confidence: null,
+        mail_address: null,
         // Assignment: use tracking assignment, or fall back to city owner
         assigned_to: tracking?.assigned_to ?? (p.city ? cityOwnerMap.get(p.city) : null) ?? null,
         // Generic email warning state (from tracking if exists)
@@ -715,6 +734,10 @@ async function getClaimedProviders(
         // Re-engage cycle fields
         cycle_number: 1,
         re_engage_entered_at: null,
+        re_engage_channel: null,
+        fax_number: null,
+        fax_confidence: null,
+        mail_address: null,
         // Assignment (not applicable for claimed)
         assigned_to: null,
         verification_state: claimInfo?.verification_state || null,
@@ -817,6 +840,10 @@ async function getHiddenProviders(
         needs_call_reason: t.needs_call_reason ?? null,
         cycle_number: t.cycle_number ?? 1,
         re_engage_entered_at: t.re_engage_entered_at ?? null,
+        re_engage_channel: t.re_engage_channel ?? null,
+        fax_number: t.fax_number ?? null,
+        fax_confidence: t.fax_confidence ?? null,
+        mail_address: t.mail_address ?? null,
         assigned_to: t.assigned_to ?? null,
         // Generic email warning state (persisted for page refresh)
         generic_email_called_at: t.generic_email_called_at ?? null,
@@ -907,6 +934,10 @@ async function getArchivedProviders(
         // Re-engage cycle fields
         cycle_number: t.cycle_number ?? 1,
         re_engage_entered_at: t.re_engage_entered_at ?? null,
+        re_engage_channel: t.re_engage_channel ?? null,
+        fax_number: t.fax_number ?? null,
+        fax_confidence: t.fax_confidence ?? null,
+        mail_address: t.mail_address ?? null,
         // Assignment
         assigned_to: t.assigned_to ?? null,
         // Generic email warning state
@@ -1002,6 +1033,10 @@ async function getArchivedProviders(
           // Re-engage cycle fields
           cycle_number: 1,
           re_engage_entered_at: null,
+          re_engage_channel: null,
+          fax_number: null,
+          fax_confidence: null,
+          mail_address: null,
           // Assignment (not applicable for system-archived)
           assigned_to: null,
           // Generic email warning state (not applicable for system-archived)
@@ -1068,7 +1103,7 @@ async function searchProviders(
   // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at")
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
@@ -1188,6 +1223,10 @@ async function searchProviders(
       // Re-engage cycle fields
       cycle_number: tracking?.cycle_number ?? 1,
       re_engage_entered_at: tracking?.re_engage_entered_at ?? null,
+      re_engage_channel: tracking?.re_engage_channel ?? null,
+      fax_number: tracking?.fax_number ?? null,
+      fax_confidence: tracking?.fax_confidence ?? null,
+      mail_address: tracking?.mail_address ?? null,
       // Assignment
       assigned_to: tracking?.assigned_to ?? null,
       // Sequence progress (for in_sequence)

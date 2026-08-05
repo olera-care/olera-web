@@ -47,7 +47,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   ready: "Ready",
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
-  re_engage: "Re-Engage",
+  re_engage: "Alternative Channels",
   not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
@@ -59,7 +59,7 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   not_contacted: "Not Contacted",
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
-  re_engage: "Re-Engage",
+  re_engage: "Alternative Channels",
   not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
@@ -154,6 +154,11 @@ interface OutreachProvider {
   // Re-engage cycle fields
   cycle_number: number;
   re_engage_entered_at: string | null;
+  re_engage_channel: string | null;
+  // Enrichment fields for alternative channels
+  fax_number: string | null;
+  fax_confidence: string | null;
+  mail_address: string | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
@@ -1438,11 +1443,11 @@ function FollowUpProviderRow({
           description: "Send a short email with just the claim link to the provider.",
           details: [
             "📧 Email will be sent immediately with the claim link",
-            "Provider will be moved to the Re-Engage stage",
+            "Provider will be moved to Alternative Channels",
             "They will no longer appear in the Follow Up queue",
             `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
           ],
-          confirmLabel: "Yes, send email & move to Re-Engage",
+          confirmLabel: "Yes, send email & move to Alternative Channels",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
         };
       case "wrong_contact":
@@ -1469,6 +1474,43 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Yes, mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
+        };
+      // Alternative channel outcomes
+      case "try_fax":
+        return {
+          title: "Try Fax",
+          description: "Move this provider to the Fax channel for follow-up via fax.",
+          details: [
+            "Provider will be moved to Alternative Channels (Fax)",
+            "You can look up their fax number and send a fax from there",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to Fax",
+          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
+        };
+      case "try_linkedin":
+        return {
+          title: "Try LinkedIn",
+          description: "Move this provider to the LinkedIn channel for social outreach.",
+          details: [
+            "Provider will be moved to Alternative Channels (LinkedIn)",
+            "You can find their LinkedIn profile and reach out from there",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to LinkedIn",
+          confirmClass: "bg-blue-700 hover:bg-blue-800 text-white",
+        };
+      case "try_direct_mail":
+        return {
+          title: "Try Direct Mail",
+          description: "Move this provider to the Direct Mail channel for postcard outreach.",
+          details: [
+            "Provider will be moved to Alternative Channels (Direct Mail)",
+            "You can look up their address and send a postcard from there",
+            "They will no longer appear in the Follow Up queue",
+          ],
+          confirmLabel: "Yes, move to Direct Mail",
+          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
         };
       // Stage move confirmations (from dropdown menu)
       case "move_to_not_contacted":
@@ -1515,7 +1557,7 @@ function FollowUpProviderRow({
 
         // Check if email was supposed to be sent but failed
         if (data.email_sent === false && data.email_error) {
-          setError(`Email failed: ${data.email_error}. Provider was still moved to Re-Engage.`);
+          setError(`Email failed: ${data.email_error}. Provider was still moved to Alternative Channels.`);
         }
 
         // Reset form
@@ -1639,6 +1681,13 @@ function FollowUpProviderRow({
               </span>
             ) : null;
           })()}
+        </div>
+
+        {/* Enrichment Indicators */}
+        <div className="w-28 shrink-0 flex flex-wrap gap-1 text-[10px] text-gray-500">
+          {provider.fax_number && <span>Has Fax</span>}
+          {provider.mail_address && <span>Has Address</span>}
+          {provider.website && <span>Has Website</span>}
         </div>
 
         {/* Due Date Badge */}
@@ -1770,25 +1819,22 @@ function FollowUpProviderRow({
             </div>
           </details>
 
-          {/* Outcome Buttons - subtle outlined tags */}
-          {/* Note: No "Claimed" button - auto-claim detection handles this automatically */}
-          {/* when provider claims via any method (email, MedJobs, questions, direct website) */}
+          {/* Outcome Buttons - plain uniform style */}
+          {/* Note: "Not interested" is accessible via info icon action modal */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {/* Send claim email (→ Re-Engage) */}
             <button
               onClick={() => setPendingOutcome("resend_link")}
               disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link, then move to Re-Engage"}
+              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link"}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
                 resendDisabled
                   ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
-                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:border-blue-300 hover:bg-blue-100 disabled:opacity-50"
+                  : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
               }`}
             >
-              📧 Send email (→ Re-Engage){resendDisabled && " (max)"}
+              Send email{resendDisabled && " (max)"}
             </button>
 
-            {/* Wrong contact */}
             <button
               onClick={() => setPendingOutcome("wrong_contact")}
               disabled={submitting !== null}
@@ -1797,13 +1843,31 @@ function FollowUpProviderRow({
               Wrong contact
             </button>
 
-            {/* Not interested (soft terminal) */}
             <button
-              onClick={() => setPendingOutcome("not_interested")}
+              onClick={() => setPendingOutcome("try_fax")}
               disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:text-gray-800 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Move to Alternative Channels (Fax)"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Not interested
+              Try Fax
+            </button>
+
+            <button
+              onClick={() => setPendingOutcome("try_linkedin")}
+              disabled={submitting !== null}
+              title="Move to Alternative Channels (LinkedIn)"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Try LinkedIn
+            </button>
+
+            <button
+              onClick={() => setPendingOutcome("try_direct_mail")}
+              disabled={submitting !== null}
+              title="Move to Alternative Channels (Direct Mail)"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Try Direct Mail
             </button>
           </div>
 
@@ -2135,7 +2199,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   if (reEngageProviders.length === 0) {
     return (
       <div className="p-12 text-center">
-        <p className="text-gray-500">No providers in Re-Engage queue</p>
+        <p className="text-gray-500">No providers in Alternative Channels</p>
       </div>
     );
   }
@@ -2252,7 +2316,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
       {/* Summary footer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
-        {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Re-Engage queue
+        {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Alternative Channels
         {" • "}
         {reEngageProviders.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
       </div>
@@ -2405,6 +2469,10 @@ export default function ProviderOutreachPage() {
   // Admin filter state (replaces My Assignments checkbox)
   const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
+
+  // Channel filter state (for Alternative Channels tab)
+  type ChannelFilter = "all" | "email" | "fax" | "linkedin" | "direct_mail";
+  const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
   // All admins for name lookup (fetched once)
   interface AdminUser {
@@ -3941,7 +4009,13 @@ export default function ProviderOutreachPage() {
             {tabs.map((tab) => (
               <button
                 key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
+                onClick={() => {
+                  setActiveTab(tab.value);
+                  // Reset channel filter when leaving Alternative Channels tab
+                  if (tab.value !== "re_engage") {
+                    setSelectedChannelFilter("all");
+                  }
+                }}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.value
                     ? "border-gray-900 text-gray-900"
@@ -4553,10 +4627,48 @@ export default function ProviderOutreachPage() {
             adminNameLookup={adminNameLookup}
           />
         ) : activeTab === "re_engage" ? (
-          // Re-Engage tab: cycle-aware queue view
-          <ReEngageQueue
-            providers={providers}
-            loading={loadingProviders}
+          // Alternative Channels tab: cycle-aware queue view with channel filter
+          <>
+            {/* Channel filter chips */}
+            <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+              <span className="text-xs text-gray-500 mr-1">Channel:</span>
+              {(["all", "email", "fax", "linkedin", "direct_mail"] as const).map((channel) => {
+                const count = channel === "all"
+                  ? providers.length
+                  : providers.filter((p) =>
+                      channel === "email"
+                        ? !p.re_engage_channel || p.re_engage_channel === "re_engage"
+                        : p.re_engage_channel === channel
+                    ).length;
+                const label = channel === "all" ? "All" :
+                  channel === "email" ? "Email" :
+                  channel === "fax" ? "Fax" :
+                  channel === "linkedin" ? "LinkedIn" : "Direct Mail";
+                const isSelected = selectedChannelFilter === channel;
+                return (
+                  <button
+                    key={channel}
+                    onClick={() => setSelectedChannelFilter(channel)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      isSelected
+                        ? "bg-gray-800 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+            <ReEngageQueue
+              providers={
+                selectedChannelFilter === "all"
+                  ? providers
+                  : selectedChannelFilter === "email"
+                    ? providers.filter((p) => !p.re_engage_channel || p.re_engage_channel === "re_engage")
+                    : providers.filter((p) => p.re_engage_channel === selectedChannelFilter)
+              }
+              loading={loadingProviders}
             onReEngageAction={(providerId, result) => {
               // Mark as recently moved to filter from stale API responses
               markAsRecentlyMoved(providerId);
@@ -4578,6 +4690,7 @@ export default function ProviderOutreachPage() {
             }}
             adminNameLookup={adminNameLookup}
           />
+          </>
         ) : (
           // Normal city-grouped view
           <>
@@ -5052,7 +5165,7 @@ export default function ProviderOutreachPage() {
                             pendingStageMove === "in_sequence" ? "In Sequence" :
                             pendingStageMove === "needs_call" ? "Follow Up" :
                             pendingStageMove === "not_interested" ? "Not Interested" :
-                            "Re-Engage";
+                            "Alternative Channels";
                           showToast(`Moved to ${stageLabel}`, "success");
                           // Mark as recently moved to filter from stale API responses
                           markAsRecentlyMoved(actionModalProvider.provider_id);
@@ -5113,7 +5226,7 @@ export default function ProviderOutreachPage() {
                         pendingStageMove === "in_sequence" ? "In Sequence" :
                         pendingStageMove === "needs_call" ? "Follow Up" :
                         pendingStageMove === "not_interested" ? "Not Interested" :
-                        "Re-Engage"
+                        "Alternative Channels"
                       }`
                     )}
                   </button>

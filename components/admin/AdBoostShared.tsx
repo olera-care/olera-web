@@ -28,12 +28,20 @@ export interface CampaignRequest {
   ad_spend_cents: number | null;
   ad_clicks: number | null;
   ad_impressions: number | null;
+  /** Idempotency markers for request/readiness messages. A value means the
+   *  provider communication completed successfully. */
+  queued_email_sent_at?: string | null;
+  requested_email_sent_at?: string | null;
+  profile_reminder_email_sent_at?: string | null;
+  promotion_email_sent_at?: string | null;
   /** When the campaign-launched provider email actually went out. NULL on
    *  pre-launch rows, and on live rows whose email is scheduled or failed. */
   launched_email_sent_at?: string | null;
   /** Optional future send time for the launched email (UTC; picked as US
    *  Eastern in the detail page). NULL = send immediately on the live flip. */
   launched_email_scheduled_at?: string | null;
+  traction_email_sent_at?: string | null;
+  promo_complete_email_sent_at?: string | null;
   /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
   plan_status?: "active" | "past_due" | "canceled" | null;
   /** Subscribed monthly plan in whole USD (150/300/600). */
@@ -51,6 +59,17 @@ export interface CampaignRequest {
   /** Questions received since launch (manageable only — archived/rejected
    *  excluded). Attached by the list API branch; 0 pre-launch. */
   questions_received?: number;
+}
+
+/** A real Ad Boost communication associated with one campaign request. */
+export interface CampaignCommunication {
+  id: string;
+  email_type: string;
+  subject: string | null;
+  status: string;
+  created_at: string;
+  delivered_at: string | null;
+  metadata: Record<string, unknown> | null;
 }
 
 /** One delivered family behind a campaign — no PHI, just context. Mirrors

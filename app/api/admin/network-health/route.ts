@@ -4,6 +4,7 @@ import {
   countCanonicalProviders,
   fetchMeaningfulProviderActivity,
 } from "@/lib/admin-provider-activity";
+import { resolveCanonicalProviderKeys } from "@/lib/provider-id-variants";
 
 type ReferralActivityRow = {
   profile_id: string | null;
@@ -11,6 +12,41 @@ type ReferralActivityRow = {
   event_type: string;
   metadata: Record<string, unknown> | null;
 };
+
+type ProfileEditRow = {
+  provider_id: string | null;
+  created_at: string;
+};
+
+async function fetchProfileEditRows(
+  db: ReturnType<typeof getServiceClient>,
+  from: string | null,
+  to: string | null,
+) {
+  const pageSize = 1000;
+  const maxRows = 100000;
+  const data: ProfileEditRow[] = [];
+
+  for (let offset = 0; offset < maxRows; offset += pageSize) {
+    let query = db
+      .from("provider_activity")
+      .select("provider_id, created_at")
+      .eq("event_type", "provider_profile_edited")
+      .order("created_at", { ascending: true });
+    if (from) query = query.gte("created_at", from);
+    if (to) query = query.lt("created_at", to);
+
+    const result = await query.range(offset, offset + pageSize - 1);
+    if (result.error) {
+      return { data: [], error: new Error(result.error.message), truncated: false };
+    }
+    const page = (result.data ?? []) as ProfileEditRow[];
+    data.push(...page);
+    if (page.length < pageSize) return { data, error: null, truncated: false };
+  }
+
+  return { data, error: null, truncated: true };
+}
 
 function parseBoundary(value: string | null): string | null | undefined {
   if (!value) return null;
@@ -116,6 +152,7 @@ export async function GET(request: NextRequest) {
     questionsAnswered,
     benefits,
     claims,
+    profileEdits,
     emailClicks,
     reviews,
     oleraReviews,
@@ -128,6 +165,7 @@ export async function GET(request: NextRequest) {
     questionsAnsweredQuery,
     benefitsQuery,
     claimsQuery,
+    fetchProfileEditRows(db, from, to),
     emailClicksQuery,
     reviewsQuery,
     oleraReviewsQuery,
@@ -140,6 +178,7 @@ export async function GET(request: NextRequest) {
     ?? questionsAnswered.error
     ?? benefits.error
     ?? claims.error
+    ?? profileEdits.error
     ?? emailClicks.error
     ?? reviews.error
     ?? oleraReviews.error
@@ -185,6 +224,17 @@ export async function GET(request: NextRequest) {
   }
   const askedCount = questionsAsked.count ?? 0;
   const answeredCount = questionsAnswered.count ?? 0;
+  if (profileEdits.truncated) {
+    console.error("[admin/network-health] profile edit count exceeded the 100,000-row safety cap");
+    return NextResponse.json({ error: "Profile edit range is too large" }, { status: 500 });
+  }
+  const profileEditIds = profileEdits.data
+    .map((row) => row.provider_id)
+    .filter((providerId): providerId is string => Boolean(providerId));
+  const canonicalProfileEditIds = await resolveCanonicalProviderKeys(db, profileEditIds);
+  const distinctProfileEditors = new Set(
+    profileEditIds.map((providerId) => canonicalProfileEditIds.get(providerId) ?? providerId),
+  ).size;
 
   return NextResponse.json({
     providerPageViews: pageViews.count ?? 0,
@@ -194,6 +244,7 @@ export async function GET(request: NextRequest) {
     meaningfullyActiveProviders: meaningfulProviders.count,
     benefitsRequested: benefits.count ?? 0,
     providerAccountsClaimed: claims.count ?? 0,
+    providerProfileEdits: distinctProfileEditors,
     emailClicks: emailClicks.count ?? 0,
     reviewsReceived: (reviews.count ?? 0) + (oleraReviews.count ?? 0),
     referralSourcesReviewed: reviewedSources.size,

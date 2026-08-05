@@ -546,9 +546,17 @@ export default function BenefitsFamiliesView() {
   return (
     <div className="space-y-6">
       {/* Window picker */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-gray-500">
-          Families who completed a benefits intake, newest first. Rows open the full care-seeker record.
+          Families who completed a benefits intake, newest first. Rows open the full care-seeker record.{" "}
+          <Link
+            href="/admin/automations/benefits-navigator-scheduler"
+            className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+            title="Open the Benefits messaging cascade in Automations"
+          >
+            View messaging journey
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </p>
         <div className="shrink-0">
           <DateRangePopover value={range} onChange={setRange} />

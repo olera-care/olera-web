@@ -616,9 +616,21 @@ export default function AutomationDetailPage() {
           {/* ── OVERVIEW ── */}
           {tab === "overview" && (
             <div className="mt-5 space-y-6">
+              {/* The family journey is the Overview's primary story. Show it
+                  before delivery analytics and keep its operational detail
+                  available inside the timeline's own expanders. */}
+              {journeysForCron(data.job.id).map((journey) => (
+                <CommsJourneyBlock
+                  key={`${data.job.id}:${journey.key}`}
+                  journey={journey}
+                  currentCronId={data.job.id}
+                />
+              ))}
+
               {data.job.isEmail && (
-                <div className="flex items-center justify-end">
-                  <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <h2 className="text-lg font-semibold tracking-tight text-gray-900">Delivery performance</h2>
+                  <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-xs" role="group" aria-label="Performance window">
                     {[7, 30, 90].map((d) => (
                       <button
                         key={d}
@@ -684,7 +696,15 @@ export default function AutomationDetailPage() {
                   </div>
 
                   {data.variants && data.variants.length > 1 && (
-                    <div className="mt-6">
+                    <details className="group mt-5 rounded-xl border border-gray-200 bg-white">
+                      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50/70 [&::-webkit-details-marker]:hidden">
+                        <span>
+                          <span className="block text-sm font-semibold text-gray-800">Message performance</span>
+                          <span className="mt-0.5 block text-xs text-gray-400">Delivery and engagement by type</span>
+                        </span>
+                        <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
+                      </summary>
+                      <div className="border-t border-gray-100 px-4 pb-4 pt-3">
                       {(() => {
                         const hasConversion = data.variants.some((v) => Boolean(v.convLabel));
                         const hasSmsRows = data.variants.some((v) => v.channel === "sms");
@@ -766,7 +786,8 @@ export default function AutomationDetailPage() {
                           </>
                         );
                       })()}
-                    </div>
+                      </div>
+                    </details>
                   )}
 
                   {data.trend.length >= 2 && (
@@ -807,12 +828,6 @@ export default function AutomationDetailPage() {
                       : `${data.job.fn === "refresh" ? "Data refresh" : "Maintenance"} job — nothing to chart. See the Runs tab.`}
                 </div>
               )}
-
-              {/* Sequence timelines — the journey-level map (which message comes before
-                  which, across BOTH channels and both crons where a journey spans two). */}
-              {journeysForCron(data.job.id).map((j) => (
-                <CommsJourneyBlock key={j.key} journey={j} currentCronId={data.job.id} />
-              ))}
 
               {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
               {(() => {

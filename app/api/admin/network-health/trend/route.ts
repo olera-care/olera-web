@@ -15,6 +15,7 @@ import {
   type TrendBucket,
 } from "@/lib/admin-trends";
 import { createTwilioClient } from "@/lib/twilio";
+import { resolveCanonicalProviderKeys } from "@/lib/provider-id-variants";
 
 export const maxDuration = 30;
 
@@ -32,6 +33,7 @@ const TREND_METRICS = [
   "referral_partners_gained",
   "reviews_received",
   "provider_accounts_claimed",
+  "profile_edits",
 ] as const;
 
 type TrendMetric = (typeof TREND_METRICS)[number];
@@ -334,6 +336,7 @@ async function loadSupabaseTrend(
     referral_calls_started: "referral_call_clicked",
     referral_partners_gained: "market_outreach_status_updated",
     provider_accounts_claimed: "claim_completed",
+    profile_edits: "provider_profile_edited",
   };
   const result = await fetchActivityRows(
     db,
@@ -352,6 +355,21 @@ async function loadSupabaseTrend(
       const targetId = typeof row.metadata?.target_id === "string" ? row.metadata.target_id : null;
       if (!providerId || !targetId) return [];
       return [{ timestamp: new Date(row.created_at), key: `${providerId}:${targetId}` }];
+    });
+    return { ...summarizeDistinct(distinctRows, from, to, priorFrom, bucket), truncated: false } as const;
+  }
+
+  if (metric === "profile_edits") {
+    const rawProviderIds = result.rows
+      .map((row) => row.provider_id)
+      .filter((providerId): providerId is string => Boolean(providerId));
+    const canonicalProviderIds = await resolveCanonicalProviderKeys(db, rawProviderIds);
+    const distinctRows = result.rows.flatMap((row) => {
+      if (!row.provider_id) return [];
+      return [{
+        timestamp: new Date(row.created_at),
+        key: canonicalProviderIds.get(row.provider_id) ?? row.provider_id,
+      }];
     });
     return { ...summarizeDistinct(distinctRows, from, to, priorFrom, bucket), truncated: false } as const;
   }

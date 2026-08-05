@@ -7,6 +7,24 @@
 
 ## Current Focus
 
+### 2026-08-05 — Ad Boost provider journey (`codex/automation-control-center`)
+
+Added `/admin/automations/ad-boost`: one five-phase provider cascade spanning 11 steps, all nine Ad Boost email types, three delivery engines, conditional request/readiness branches, repeat-per-lead messages, and two explicitly silent operational steps. Admins can overlay a real campaign's sent/scheduled/watching/blocked/skipped state, inspect representative message previews, follow correctly filtered Email Log links, and drill into the underlying engines. `/admin/automations` now links directly from the Ad Boost system card.
+
+Accuracy fixes: the daily worker rechecks every pending request and promotes launch-ready providers even when email is unavailable; zero metric saves no longer trigger traction; failed communication-history reads surface visibly; pending email reservations do not count as sends; ambiguous cross-engine email totals were replaced with honest run recency. **Files:** `components/admin/AdBoostJourneyExperience.tsx`, `lib/family-comms/journey.ts`, `lib/email-samples.ts`, both Ad Boost API/cron routes, shared journey/Ad Boost types, registry, and Automations navigation. **Validation:** pre-test fixed five real issues; TypeScript, targeted ESLint, cron registry, diff check, journey-integrity smoke test, interactions, and desktop/390px rendering pass. **Commit:** `04b000d9`. **PR:** #1482 → `staging` (Vercel green). **Next:** read-only preview QA against known pending/live/ended campaigns; do not mutate shared production-backed campaign data or manually fire the daily worker. Do not merge without TJ.
+
+### 2026-08-05 — Automation control center (`codex/automation-control-center`)
+
+Rebuilt `/admin/automations` as an operations-first control center: 35 current automations are grouped into seven systems, the retired `lead-response-nudge` is isolated in a read-only archive, current/paused/attention health is explicit, and search/channel/status filters remain available. Removed the oversized deliverability banner so the tools lead the hierarchy; restored **Expand all / Collapse all** with saved collapse state. System cards now drag-reorder (arrow-key fallback) and persist per admin across devices through `admin_users.automation_system_order`; migration 157 was applied by TJ. Pause/Resume now fails closed when Supabase returns an error.
+
+**Files:** `app/admin/automations/page.tsx`, both Automations API routes, `lib/crons/{systems,archive}.ts`, `lib/types.ts`, and migration 157. **Validation:** TypeScript, targeted ESLint, cron-registry check, diff check, system-map/order normalization tests, and local HTTP render pass. **Commits:** `b70d76db`, `588be96b`. **Next:** ready-for-review PR to `staging`; preview-QA drag persistence across refresh/device, bulk collapse, filters, archive replacement link, and narrow layout. Do not merge without TJ.
+
+### 2026-08-05 — Admin activity metric + Automations detail UX (`codex/improve-admin-activity-automation-ux`)
+
+Added a Central-time-responsive **Provider Profile Edits** card to `/admin` using distinct canonical providers across the selected range, with matching trend support. Reworked `/admin/automations/[id]` around the family journey: the timeline now leads the Overview, the current step opens by default, operational detail is progressively disclosed, and message-performance complexity is collapsed. Follow-up accuracy review split Day 0 into **results email delivered** and the conditional **results-link text**, keeping it distinct from the later B1 companion text.
+
+**Files:** `app/admin/page.tsx`, both `network-health` routes, `app/admin/automations/[id]/page.tsx`, `components/admin/CommsJourneyBlock.tsx`, and `lib/family-comms/journey.ts`. **Validation:** TypeScript, targeted ESLint, cron-registry check, diff check, and focused Central-time/distinct-provider trend test pass. **Next:** checkpoint PR to `staging`, then redesign `/admin/automations` as a journey-first control center with a safe archived lifecycle on a separate branch.
+
 ### 2026-08-03 — Admin Overview activity reporting + mobile admin access (`codex/admin-overview-activity`)
 
 Reworked `/admin` Overview into two clear groups: date-filtered **Activity** (questions asked, total inquiries, reviews received) and unfiltered **Current operations**. Activity defaults to Last 30 days, uses America/Chicago reporting boundaries with DST-safe custom-range validation, counts every submitted question, and uses an exact inquiry count rather than the operational query's 3,000-row cap. The selected range persists in the URL and carries into the corresponding all-records drilldowns (`tab=all` for questions, `filter=all` for inquiries); unavailable metrics render as unavailable, never as zero.
@@ -3544,6 +3562,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-08-05 — Magic-link "failure" deep-dive: scanner claims, bot audit, suppression fix + lead resend (no code)
+
+Investigation + prod data ops only; zero code shipped. The 08-04 "Magic Link Sign-In Failed" Slack alerts (Kottinger Place, token expired) were an email-security scanner at midpen-housing.org re-clicking a dead link at 2:51 AM Pacific — not a stranded human. Tracing it found: (1) the scanner had earlier executed the FULL one-click pipeline and created the auth user + account + claimed the listing (trust=high passes scanners since they arrive via the legit address); (2) a 07-30 staging admin add-email action blasted 8 real emails with staging URLs (staging shares prod Supabase/Resend — TJ deems non-issue, small team); (3) the provider's real July notifications were all suppressed by the catch-all cold-lane gate.
+
+Actions taken (all TJ-approved): bot-claim audit across 711 claimed profiles → 20 scanner-created (~3%), ruled negligible, no cleanup. Backfilled 22 proven-delivery addresses (≥3 delivered, 0 bounces) into `email_overrides` (Esther's 08-04 admin sweep had already covered 16 more). Resent 10 suppressed lead notifications to 8 now-trusted providers via `sendDeferredNotificationsForProvider` (per-connection targeted, `maxQuestions: 0`); 2 of 13 were already re-notified, 1 held (kamalu-hoolulu has a second unstamped pending lead — deferred send would duplicate).
+
+Key gotchas recorded in memory (`project_magic_link_investigation`): connection creation never stamps `metadata.email_sent_at`, so a provider-level deferred flush duplicates creation-time-notified leads; thread `system` messages are family-authored (check `from_profile_id === to_profile_id` for real provider replies); the deferred sender logs lead emails as `add_email_notification`, not `connection_request`. Watch: expired-token alerts should die out by ~08-07 as pre-#1463 72h tokens age off — persistence past then means something still mints short tokens.
 
 ### 2026-07-31/08-01 — Benefits fact-check loop: built, shipped, ran 4 rounds, 19 letters sent
 

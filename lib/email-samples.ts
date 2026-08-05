@@ -71,6 +71,7 @@ import {
   adBoostCampaignLaunchedEmail,
   adBoostTractionEmail,
   adBoostPromoCompleteEmail,
+  adBoostLeadOutcomeEmail,
 } from "@/lib/email-templates";
 
 export interface EmailVariant {
@@ -723,7 +724,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "ad_boost_profile_reminder", audience: "provider", group: "Provider · Ad Boost",
     label: "Reminder · finish profile", subject: "Finish your Ad Boost launch setup",
     emailType: "ad_boost_profile_reminder",
-    cron: "ad-boost-emails",
+    cron: "ad-boost-profile-reminders",
     who: "Provider submitted an Ad Boost launch plan, stayed queued for 48+ hours, and has not cleared the profile/verification launch threshold.",
     why: "Recover queued launch plans before they go cold, while explaining that the work protects the promotional ad test.",
     render: () => adBoostProfileReminderEmail({
@@ -740,7 +741,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "ad_boost_ready", audience: "provider", group: "Provider · Ad Boost",
     label: "Promotion · now ready", subject: "Your Ad Boost request is now launch-ready",
     emailType: "ad_boost_ready",
-    cron: "ad-boost-emails",
+    cron: "ad-boost-profile-reminders",
     who: "Provider had a queued Ad Boost request and later cleared completeness plus verification.",
     why: "Close the loop when queued work becomes actionable, without making the provider resubmit.",
     render: () => adBoostReadyEmail({
@@ -770,7 +771,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "ad_boost_campaign_launched", audience: "provider", group: "Provider · Ad Boost",
     label: "Campaign launched", subject: "Your Find Families campaign is live",
     emailType: "ad_boost_campaign_launched",
-    cron: "ad-boost-emails",
+    cron: "ad-boost-launch-scheduler",
+    alsoCrons: ["ad-boost-emails"],
     who: "Provider campaign status is moved to live by the concierge team.",
     why: "Confirm the campaign has launched, set expectations for where leads arrive, and reinforce that the first $50 promo is being monitored.",
     render: () => adBoostCampaignLaunchedEmail({
@@ -810,6 +812,22 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       clicks: 5,
       spendCents: 5000,
       intendedMonthlyBudget: 300,
+    }),
+  },
+  {
+    id: "ad_boost_lead_outcome_check", audience: "provider", group: "Provider · Ad Boost",
+    label: "Lead outcome check", subject: "Did this family become a client?",
+    emailType: "ad_boost_lead_outcome_check",
+    cron: "ad-boost-profile-reminders",
+    who: "Provider with a campaign-attributed inquiry that is about 7 days old, then again near day 21 when it is unanswered or still in conversation.",
+    why: "Turn ad clicks and inquiries into an honest campaign receipt by capturing whether the family became a client.",
+    render: () => adBoostLeadOutcomeEmail({
+      providerName: "Franchil LLC",
+      careNeed: "Home care",
+      leadDate: "June 27",
+      clientUrl: "https://olera.care/provider/lead-outcome?cid=sample&v=client",
+      talkingUrl: "https://olera.care/provider/lead-outcome?cid=sample&v=talking",
+      noUrl: "https://olera.care/provider/lead-outcome?cid=sample&v=no",
     }),
   },
 ];

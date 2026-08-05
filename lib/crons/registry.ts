@@ -133,21 +133,19 @@ export const CRON_REGISTRY: CronJob[] = [
   },
   {
     id: "ad-boost-emails",
-    name: "Ad Boost emails",
+    name: "Ad Boost lifecycle events",
     description:
-      "Event-triggered visibility for Find Families / Ad Boost provider emails: launch-plan receipt, queued-profile follow-up, launch-ready promotion, campaign launch, campaign-attributed lead, early traction, and starter-promo wrap-up.",
+      "Event-driven Ad Boost messages: request receipt, immediate campaign launch, campaign-attributed lead, early traction, and starter-promo wrap-up. The full provider journey also includes readiness/outcome work from the daily job and timed launches from the hourly scheduler.",
     recipientCohort:
       "Providers who request, queue, launch, or receive activity from Find Families managed-ad campaigns.",
     audience: "Providers",
     fn: "event",
     schedule: "event-triggered",
-    humanSchedule: "Event-triggered by Ad Boost request, admin status changes, lead delivery, and metric saves",
+    humanSchedule: "Event-triggered by Ad Boost requests, admin status changes, lead delivery, and meaningful metric saves",
     path: "/admin/ad-boost",
     emailTypes: [
       "ad_boost_queued",
       "ad_boost_requested",
-      "ad_boost_profile_reminder",
-      "ad_boost_ready",
       "ad_boost_campaign_launched",
       "ad_boost_lead_delivered",
       "ad_boost_traction",

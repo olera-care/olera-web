@@ -36,7 +36,8 @@ type ActivityTrendMetric =
   | "referral_calls_started"
   | "referral_partners_gained"
   | "reviews_received"
-  | "provider_accounts_claimed";
+  | "provider_accounts_claimed"
+  | "profile_edits";
 
 type TrendResponse = {
   total: number;
@@ -96,6 +97,7 @@ export default function AdminOverviewPage() {
   const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
   const [benefitsRequested, setBenefitsRequested] = useState<StatValue>(null);
   const [providerAccountsClaimed, setProviderAccountsClaimed] = useState<StatValue>(null);
+  const [providerProfileEdits, setProviderProfileEdits] = useState<StatValue>(null);
   const [emailClicks, setEmailClicks] = useState<StatValue>(null);
   const [textMessagesReceived, setTextMessagesReceived] = useState<StatValue>(null);
   const [referralSourcesReviewed, setReferralSourcesReviewed] = useState<StatValue>(null);
@@ -180,6 +182,7 @@ export default function AdminOverviewPage() {
     setLeadsReceived(null);
     setBenefitsRequested(null);
     setProviderAccountsClaimed(null);
+    setProviderProfileEdits(null);
     setEmailClicks(null);
     setTextMessagesReceived(null);
     setReferralSourcesReviewed(null);
@@ -199,6 +202,7 @@ export default function AdminOverviewPage() {
         setLeadsReceived(data?.leadsReceived ?? 0);
         setBenefitsRequested(data?.benefitsRequested ?? 0);
         setProviderAccountsClaimed(data?.providerAccountsClaimed ?? 0);
+        setProviderProfileEdits(data?.providerProfileEdits ?? 0);
         setEmailClicks(data?.emailClicks ?? 0);
         setTotalReviews(data?.reviewsReceived ?? 0);
         setReferralSourcesReviewed(data?.referralSourcesReviewed ?? 0);
@@ -214,6 +218,7 @@ export default function AdminOverviewPage() {
         setLeadsReceived(undefined);
         setBenefitsRequested(undefined);
         setProviderAccountsClaimed(undefined);
+        setProviderProfileEdits(undefined);
         setEmailClicks(undefined);
         setTotalReviews(undefined);
         setReferralSourcesReviewed(undefined);
@@ -416,6 +421,13 @@ export default function AdminOverviewPage() {
       href: analyticsHref(),
       trendMetric: "provider_accounts_claimed",
     },
+    {
+      label: "Provider Profile Edits",
+      value: providerProfileEdits,
+      subtitle: `Distinct providers who saved an edit · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+      trendMetric: "profile_edits",
+    },
   ];
   const visibleActivityCards = showAllActivity
     ? activityCards
@@ -431,6 +443,7 @@ export default function AdminOverviewPage() {
     leadsReceived,
     benefitsRequested,
     providerAccountsClaimed,
+    providerProfileEdits,
     emailClicks,
     textMessagesReceived,
     referralSourcesReviewed,

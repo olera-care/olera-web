@@ -708,6 +708,8 @@ export interface AdminUser {
   display_name?: string | null;
   /** Added in migration 151; pinned sidebar pages (array of /admin hrefs). */
   favorites?: string[] | null;
+  /** Added in migration 157; personalized order of Automation system keys. */
+  automation_system_order?: string[] | null;
   role: AdminRole;
   granted_by: string | null;
   created_at: string;

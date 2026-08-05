@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { CRON_REGISTRY, jobChannels } from "@/lib/crons/registry";
+import { ARCHIVED_AUTOMATIONS, type ArchivedAutomation } from "@/lib/crons/archive";
+import { CRON_REGISTRY, jobChannels, type CronJob } from "@/lib/crons/registry";
+import { automationSystemKey } from "@/lib/crons/systems";
 
 /**
  * GET /api/admin/automations  — powers the /admin/automations cockpit:
@@ -18,7 +20,13 @@ import { CRON_REGISTRY, jobChannels } from "@/lib/crons/registry";
  */
 
 const WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-const ERROR_RECENCY_MS = 7 * 24 * 60 * 60 * 1000;
+const STUCK_RUN_MS = 2 * 60 * 60 * 1000;
+
+type AutomationRegistryJob = CronJob | ArchivedAutomation;
+
+function isArchivedAutomation(job: AutomationRegistryJob): job is ArchivedAutomation {
+  return "lifecycle" in job && job.lifecycle === "archived";
+}
 
 interface RunRow {
   job_id: string;
@@ -59,6 +67,7 @@ export async function GET() {
   const db = getServiceClient();
   const since = new Date(Date.now() - WINDOW_MS).toISOString();
   const now = Date.now();
+  const registryJobs: AutomationRegistryJob[] = [...CRON_REGISTRY, ...ARCHIVED_AUTOMATIONS];
 
   // ── cron_runs (fail soft) ──
   const runsByJob = new Map<string, { latest: RunRow | null; count: number; errors: number }>();
@@ -72,12 +81,35 @@ export async function GET() {
     for (const r of (data ?? []) as RunRow[]) {
       const b = runsByJob.get(r.job_id) ?? { latest: null, count: 0, errors: 0 };
       if (!b.latest) b.latest = r;
-      b.count += 1;
-      if (r.status === "error") b.errors += 1;
+      if (r.started_at >= since) {
+        b.count += 1;
+        if (r.status === "error") b.errors += 1;
+      }
       runsByJob.set(r.job_id, b);
     }
   } catch {
     /* table absent */
+  }
+
+  // Archived jobs may not have fired inside the active 30-day window. Fetch
+  // their latest retained run separately so the archive can remain historical
+  // without turning the main query into an unbounded scan.
+  if (ARCHIVED_AUTOMATIONS.length > 0) {
+    try {
+      const { data } = await db
+        .from("cron_runs")
+        .select("job_id, started_at, finished_at, status, summary, error, triggered_by")
+        .in("job_id", ARCHIVED_AUTOMATIONS.map((job) => job.id))
+        .order("started_at", { ascending: false })
+        .limit(1000);
+      for (const run of (data ?? []) as RunRow[]) {
+        const bucket = runsByJob.get(run.job_id) ?? { latest: null, count: 0, errors: 0 };
+        if (!bucket.latest) bucket.latest = run;
+        runsByJob.set(run.job_id, bucket);
+      }
+    } catch {
+      /* table absent */
+    }
   }
 
   // ── cron_config (fail soft) ──
@@ -145,10 +177,12 @@ export async function GET() {
     /* email_events unreadable */
   }
 
-  const jobs = CRON_REGISTRY.map((job) => {
+  const jobs = registryJobs.map((job) => {
     const runs = runsByJob.get(job.id);
     const cfg = configByJob.get(job.id);
-    const pausedActive = !!cfg && cfg.enabled === false && (!cfg.paused_until || new Date(cfg.paused_until).getTime() > now);
+    const archivedJob = isArchivedAutomation(job) ? job : null;
+    const lifecycle = archivedJob ? "archived" : "current";
+    const pausedActive = lifecycle === "current" && !!cfg && cfg.enabled === false && (!cfg.paused_until || new Date(cfg.paused_until).getTime() > now);
 
     let smsRollup: { sent: number } | null = null;
     if (job.smsTypes && job.smsTypes.length > 0) {
@@ -173,6 +207,19 @@ export async function GET() {
     const lastRun = runs?.latest
       ? { startedAt: runs.latest.started_at, finishedAt: runs.latest.finished_at, status: runs.latest.status, summary: runs.latest.summary, error: runs.latest.error, triggeredBy: runs.latest.triggered_by }
       : null;
+    const stuckRunning = lastRun?.status === "running" && now - new Date(lastRun.startedAt).getTime() > STUCK_RUN_MS;
+    const needsAttention = lifecycle === "current" && !pausedActive && (lastRun?.status === "error" || stuckRunning);
+    const health = lifecycle === "archived"
+      ? "archived"
+      : pausedActive
+        ? "paused"
+        : needsAttention
+          ? "attention"
+          : lastRun?.status === "running"
+            ? "running"
+            : job.schedule === "event-triggered"
+              ? "event"
+              : "healthy";
 
     return {
       id: job.id,
@@ -188,6 +235,13 @@ export async function GET() {
       channels: jobChannels(job),
       successSignal: job.successSignal ?? null,
       relatedAdminPath: job.relatedAdminPath ?? null,
+      lifecycle,
+      archivedAt: archivedJob?.archivedAt ?? null,
+      archiveReason: archivedJob?.archiveReason ?? null,
+      replacedBy: archivedJob?.replacedBy ?? null,
+      systemKey: automationSystemKey(job.id),
+      health,
+      needsAttention,
       isEmail: jobChannels(job).includes("email"),
       paused: pausedActive,
       pause: pausedActive ? { reason: cfg!.paused_reason, by: cfg!.paused_by, at: cfg!.paused_at, until: cfg!.paused_until } : null,
@@ -201,6 +255,7 @@ export async function GET() {
 
   // ── summary ──
   const cronEmailTypes = new Set(CRON_REGISTRY.flatMap((j) => j.emailTypes));
+  const cronSmsTypes = new Set(CRON_REGISTRY.flatMap((j) => j.smsTypes ?? []));
   let sends30d = 0;
   let bounces30d = 0;
   let complaints30d = 0;
@@ -210,8 +265,13 @@ export async function GET() {
     bounces30d += b.bounced;
     complaints30d += b.complained;
   }
-  const pausedCount = jobs.filter((j) => j.paused).length;
-  const erroredCount = jobs.filter((j) => j.lastRun?.status === "error" && now - new Date(j.lastRun.startedAt).getTime() < ERROR_RECENCY_MS).length;
+  let texts30d = 0;
+  for (const [type, sent] of smsSentByType) {
+    if (cronSmsTypes.has(type)) texts30d += sent;
+  }
+  const currentJobs = jobs.filter((job) => job.lifecycle === "current");
+  const pausedCount = currentJobs.filter((job) => job.paused).length;
+  const attentionCount = currentJobs.filter((job) => job.needsAttention).length;
 
   // Account-wide deliverability rates (30d), computed over ALL email types —
   // Resend judges the whole account, so the cron-only sends30d above would
@@ -233,11 +293,14 @@ export async function GET() {
   return NextResponse.json({
     windowDays: 30,
     summary: {
-      total: jobs.length,
+      total: currentJobs.length,
+      archived: ARCHIVED_AUTOMATIONS.length,
       paused: pausedCount,
-      errored: erroredCount,
-      active: jobs.length - pausedCount - erroredCount,
+      errored: attentionCount,
+      needsAttention: attentionCount,
+      active: currentJobs.length - pausedCount - attentionCount,
       sends30d,
+      texts30d,
       bounces30d,
       complaints30d,
       // account-wide deliverability health
@@ -284,13 +347,15 @@ export async function POST(request: NextRequest) {
     if (action === "pause") {
       const days = Number.isFinite(body.days) && (body.days as number) > 0 ? Math.min(body.days as number, 365) : 30;
       const pausedUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-      await db.from("cron_config").upsert(
+      const { error } = await db.from("cron_config").upsert(
         { job_id, enabled: false, paused_at: nowIso, paused_by: user.email ?? "admin", paused_reason: (body.reason ?? "").slice(0, 500) || null, paused_until: pausedUntil, updated_at: nowIso },
         { onConflict: "job_id" },
       );
+      if (error) throw error;
       return NextResponse.json({ ok: true, job_id, paused: true, paused_until: pausedUntil });
     }
-    await db.from("cron_config").upsert({ job_id, enabled: true, paused_at: null, paused_by: null, paused_reason: null, paused_until: null, updated_at: nowIso }, { onConflict: "job_id" });
+    const { error } = await db.from("cron_config").upsert({ job_id, enabled: true, paused_at: null, paused_by: null, paused_reason: null, paused_until: null, updated_at: nowIso }, { onConflict: "job_id" });
+    if (error) throw error;
     return NextResponse.json({ ok: true, job_id, paused: false });
   } catch (err) {
     console.error("[admin/automations] pause/resume failed:", err);

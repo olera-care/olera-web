@@ -378,8 +378,11 @@ function ChannelTracking({
   linkedinMessaged,
   linkedinMessagedAt,
   linkedinUrl,
+  providerLinkedinUrl,
   mailSent,
   mailAnalytics,
+  claimed: claimedProp,
+  claimedAt: claimedAtProp,
 }: {
   faxSent?: boolean;
   faxAnalytics?: FaxAnalytics;
@@ -387,12 +390,19 @@ function ChannelTracking({
   linkedinMessaged?: boolean;
   linkedinMessagedAt?: string | null;
   linkedinUrl?: string | null;
+  providerLinkedinUrl?: string | null;
   mailSent?: boolean;
   mailAnalytics?: MailAnalytics;
+  claimed?: boolean;
+  claimedAt?: string | null;
 }) {
   const [openSection, setOpenSection] = useState<string | null>(null);
 
-  const channels: { key: string; label: string; color: string; summary: string }[] = [];
+  // Resolve LinkedIn URL (session state takes priority, then provider data)
+  const resolvedLinkedinUrl = linkedinUrl || providerLinkedinUrl;
+
+  // Channels with hasDetails flag to determine if clickable
+  const channels: { key: string; label: string; color: string; summary: string; hasDetails: boolean }[] = [];
 
   // Fax channel
   if (faxSent) {
@@ -404,6 +414,7 @@ function ChannelTracking({
       summary: delivered
         ? `Delivered${faxAnalytics?.delivered_at ? ` ${new Date(faxAnalytics.delivered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}`
         : "Sent",
+      hasDetails: !!faxAnalytics,
     });
   } else if (faxNumber) {
     channels.push({
@@ -411,6 +422,7 @@ function ChannelTracking({
       label: "Fax",
       color: "bg-gray-300",
       summary: "Ready",
+      hasDetails: false, // No details to show for "Ready" state
     });
   }
 
@@ -423,13 +435,15 @@ function ChannelTracking({
       summary: linkedinMessagedAt
         ? `Messaged ${new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
         : "Messaged",
+      hasDetails: true,
     });
-  } else if (linkedinUrl) {
+  } else if (resolvedLinkedinUrl) {
     channels.push({
       key: "linkedin",
       label: "LinkedIn",
       color: "bg-gray-300",
       summary: "Ready",
+      hasDetails: false, // No details to show for "Ready" state
     });
   }
 
@@ -441,13 +455,14 @@ function ChannelTracking({
       label: "Postcard",
       color: delivered ? "bg-emerald-500" : "bg-amber-400",
       summary: delivered ? "Delivered" : mailAnalytics.status === "in_transit" ? "In Transit" : mailAnalytics.status === "printed" ? "Printed" : "Sent",
+      hasDetails: true,
     });
   }
 
-  // Claimed indicator (from any channel)
-  const claimed = faxAnalytics?.claimed || mailAnalytics?.claimed;
-  if (claimed) {
-    const claimedAt = faxAnalytics?.claimed_at || mailAnalytics?.claimed_at;
+  // Claimed indicator (check prop first, then analytics as fallback)
+  const isClaimed = claimedProp || faxAnalytics?.claimed || mailAnalytics?.claimed;
+  if (isClaimed) {
+    const claimedAt = claimedAtProp || faxAnalytics?.claimed_at || mailAnalytics?.claimed_at;
     channels.push({
       key: "claimed",
       label: "Claimed",
@@ -455,6 +470,7 @@ function ChannelTracking({
       summary: claimedAt
         ? new Date(claimedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
         : "Yes",
+      hasDetails: false, // Claimed is just a status indicator
     });
   }
 
@@ -464,20 +480,30 @@ function ChannelTracking({
     <div className="mt-0.5">
       {/* Inline status pills */}
       <div className="flex items-center gap-1 flex-wrap">
-        {channels.map((ch) => (
-          <button
-            key={ch.key}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpenSection(openSection === ch.key ? null : ch.key);
-            }}
-            className="inline-flex items-center gap-0.5 text-[9px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
-          >
-            <span className={`w-1 h-1 rounded-full ${ch.color}`} />
-            {ch.summary}
-          </button>
-        ))}
+        {channels.map((ch) =>
+          ch.hasDetails ? (
+            <button
+              key={ch.key}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenSection(openSection === ch.key ? null : ch.key);
+              }}
+              className="inline-flex items-center gap-0.5 text-[9px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
+            >
+              <span className={`w-1 h-1 rounded-full ${ch.color}`} />
+              {ch.summary}
+            </button>
+          ) : (
+            <span
+              key={ch.key}
+              className="inline-flex items-center gap-0.5 text-[9px] text-gray-400"
+            >
+              <span className={`w-1 h-1 rounded-full ${ch.color}`} />
+              {ch.summary}
+            </span>
+          )
+        )}
       </div>
 
       {/* Expandable fax details */}
@@ -534,14 +560,14 @@ function ChannelTracking({
                 {linkedinMessagedAt ? new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : linkedinMessaged ? "Yes" : "Not yet"}
               </span>
             </div>
-            {linkedinUrl && (
+            {resolvedLinkedinUrl && (
               <div className="flex items-center justify-between py-1.5">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                   <span className="text-xs text-gray-700">Profile</span>
                 </div>
                 <a
-                  href={linkedinUrl}
+                  href={resolvedLinkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-600 hover:underline"
@@ -793,6 +819,7 @@ interface OutreachProvider {
   // Enrichment fields for alternative channels
   fax_number: string | null;
   fax_confidence: string | null;
+  linkedin_url: string | null;
   mail_address: string | null;
   // Assignment
   assigned_to: string | null;
@@ -2916,6 +2943,8 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   // Fax/Mail analytics tracking (fetched from re-engage-list API)
   const [faxAnalyticsMap, setFaxAnalyticsMap] = useState<Map<string, FaxAnalytics>>(new Map());
   const [mailAnalyticsMap, setMailAnalyticsMap] = useState<Map<string, MailAnalytics>>(new Map());
+  // Claimed status tracked independently (for LinkedIn-only claims)
+  const [claimedMap, setClaimedMap] = useState<Map<string, { claimed: boolean; claimed_at?: string }>>(new Map());
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
 
   // Fetch analytics data when providers change
@@ -2931,8 +2960,17 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
         const newFaxMap = new Map<string, FaxAnalytics>();
         const newMailMap = new Map<string, MailAnalytics>();
+        const newClaimedMap = new Map<string, { claimed: boolean; claimed_at?: string }>();
 
         for (const p of data.providers) {
+          // Track claimed status for ALL providers (independent of channel)
+          if (p.claimed) {
+            newClaimedMap.set(p.provider_id, {
+              claimed: true,
+              claimed_at: p.claimed_at || undefined,
+            });
+          }
+
           // Fax analytics
           if (p.fax_sent_at) {
             newFaxMap.set(p.provider_id, {
@@ -2960,6 +2998,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
         setFaxAnalyticsMap(newFaxMap);
         setMailAnalyticsMap(newMailMap);
+        setClaimedMap(newClaimedMap);
         setAnalyticsLoaded(true);
       } catch {
         // Non-critical - analytics just won't show
@@ -3094,8 +3133,11 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 linkedinMessaged={linkedInContactsMap.get(provider.provider_id)?.some(c => c.messaged)}
                 linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
                 linkedinUrl={linkedInUrlMap.get(provider.provider_id)}
+                providerLinkedinUrl={provider.linkedin_url}
                 mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at}
                 mailAnalytics={mailAnalyticsMap.get(provider.provider_id)}
+                claimed={claimedMap.get(provider.provider_id)?.claimed}
+                claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
               />
             </div>
 

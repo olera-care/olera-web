@@ -53,17 +53,26 @@ const BENEFITS_CASCADE: CommsJourney = {
   title: "Benefits cascade — the family's sequence",
   ordering: "time",
   description:
-    "One journey, two automations: the daily coordinator drafts B1 and sends B2; the hourly scheduler (or TJ's button) fires the approved letters. This is the order the family experiences.",
+    "One family journey spanning the intake event and two follow-up automations: results arrive first, the daily coordinator drafts B1 and sends B2, and the hourly scheduler (or TJ's button) fires approved letters.",
   steps: [
     {
-      key: "intake",
-      title: "Intake · results delivered",
-      timing: "Day 0",
+      key: "intake_results",
+      title: "Results email delivered",
+      timing: "Day 0 · Intake completed",
       description:
-        "Family completes the benefits finder. Their saved-results email delivers the /m plan link; with a phone + text consent, a results text keeps the promise in seconds.",
+        "The family completes the benefits finder. Their saved-results email delivers the matched programs and their living /m plan link.",
       emailType: "benefits_results_saved",
+      ownedBy: "benefits-results-texts",
+    },
+    {
+      key: "intake_results_sms",
+      title: "Results link texted (optional)",
+      timing: "Day 0 · When a phone is provided",
+      description:
+        "If the family chooses text delivery during intake or enters a number at the “Want this by text?” step, Olera immediately texts the same living /m plan link. This is the family's first text from us—not the later B1 companion text.",
       smsType: "benefits_results_sms",
       ownedBy: "benefits-results-texts",
+      gate: "Requires a valid phone entered with the SMS disclosure; skipped when no phone is provided",
     },
     {
       key: "b1_draft",

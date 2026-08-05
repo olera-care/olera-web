@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-05 — Admin activity metric + Automations detail UX (`codex/improve-admin-activity-automation-ux`)
+
+Added a Central-time-responsive **Provider Profile Edits** card to `/admin` using distinct canonical providers across the selected range, with matching trend support. Reworked `/admin/automations/[id]` around the family journey: the timeline now leads the Overview, the current step opens by default, operational detail is progressively disclosed, and message-performance complexity is collapsed. Follow-up accuracy review split Day 0 into **results email delivered** and the conditional **results-link text**, keeping it distinct from the later B1 companion text.
+
+**Files:** `app/admin/page.tsx`, both `network-health` routes, `app/admin/automations/[id]/page.tsx`, `components/admin/CommsJourneyBlock.tsx`, and `lib/family-comms/journey.ts`. **Validation:** TypeScript, targeted ESLint, cron-registry check, diff check, and focused Central-time/distinct-provider trend test pass. **Next:** checkpoint PR to `staging`, then redesign `/admin/automations` as a journey-first control center with a safe archived lifecycle on a separate branch.
+
 ### 2026-08-03 — Admin Overview activity reporting + mobile admin access (`codex/admin-overview-activity`)
 
 Reworked `/admin` Overview into two clear groups: date-filtered **Activity** (questions asked, total inquiries, reviews received) and unfiltered **Current operations**. Activity defaults to Last 30 days, uses America/Chicago reporting boundaries with DST-safe custom-range validation, counts every submitted question, and uses an exact inquiry count rather than the operational query's 3,000-row cap. The selected range persists in the URL and carries into the corresponding all-records drilldowns (`tab=all` for questions, `filter=all` for inquiries); unavailable metrics render as unavailable, never as zero.

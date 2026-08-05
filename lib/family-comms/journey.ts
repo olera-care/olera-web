@@ -36,6 +36,12 @@ export interface JourneyStep {
   ownerNote?: string;
   /** One-line gate note shown under the step. */
   gate?: string;
+  /** Product phase used to group long journeys into scannable chapters. */
+  phase?: string;
+  /** Small, plain-language traits such as "Conditional" or "Repeats per lead". */
+  traits?: string[];
+  /** Stable email-sample id for journey-first admin previews. */
+  sampleId?: string;
 }
 
 export interface CommsJourney {
@@ -45,6 +51,8 @@ export interface CommsJourney {
    *  matching rung wins each cycle (order = priority, not chronology). */
   ordering: "time" | "priority";
   description: string;
+  /** Eyebrow label. Defaults to "Family journey" for time-ordered journeys. */
+  audienceLabel?: string;
   steps: JourneyStep[];
 }
 
@@ -199,9 +207,169 @@ const HELP_CASCADE_LADDER: CommsJourney = {
   ],
 };
 
+/**
+ * One provider experience, implemented by three different delivery paths:
+ * request/lifecycle events, the daily readiness + outcome worker, and the
+ * hourly launch scheduler. The admin should teach the experience first and
+ * expose those engines as supporting operational detail.
+ *
+ * DRIFT GUARD: mirrors app/api/provider/ad-boost/request/route.ts,
+ * app/api/admin/ad-boost/route.ts, app/api/cron/ad-boost-profile-reminders,
+ * and lib/ad-boost/{lead,outcome,lifecycle}-notifications.server.ts.
+ */
+export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
+  key: "ad_boost_provider_journey",
+  title: "Ad Boost campaign — the provider journey",
+  ordering: "time",
+  audienceLabel: "Provider journey",
+  description:
+    "One campaign story across request, launch, live results, and outcome follow-up. Branches are conditional; lead delivery and outcome checks repeat for each attributed inquiry.",
+  steps: [
+    {
+      key: "request_queued",
+      phase: "Request",
+      title: "Request saved · profile needed",
+      timing: "At request · if not launch-ready",
+      description:
+        "Olera saves the provider's requested setup week and budget before their profile is ready, then points them to the missing profile or verification work.",
+      emailType: "ad_boost_queued",
+      ownedBy: "ad-boost-emails",
+      sampleId: "ad_boost_queued",
+      traits: ["Conditional", "One-time"],
+      gate: "Only when the profile is below the launch threshold or verification is incomplete",
+    },
+    {
+      key: "request_ready",
+      phase: "Request",
+      title: "Request ready for setup",
+      timing: "At request · if launch-ready",
+      description:
+        "A complete, verified provider gets an immediate handoff: the request is actionable, the starter promotion is clear, and the concierge team can begin setup.",
+      emailType: "ad_boost_requested",
+      ownedBy: "ad-boost-emails",
+      sampleId: "ad_boost_requested",
+      traits: ["Conditional", "One-time"],
+      gate: "Mutually exclusive with the queued email",
+    },
+    {
+      key: "profile_reminder",
+      phase: "Prepare",
+      title: "Finish-profile reminder",
+      timing: "Queued for 48+ hours",
+      description:
+        "If the request is still blocked, the daily worker sends one focused reminder naming the next useful profile or verification step.",
+      emailType: "ad_boost_profile_reminder",
+      ownedBy: "ad-boost-profile-reminders",
+      sampleId: "ad_boost_profile_reminder",
+      traits: ["Conditional", "One-time"],
+      gate: "Skipped when the provider becomes launch-ready before the reminder is due",
+    },
+    {
+      key: "promotion_ready",
+      phase: "Prepare",
+      title: "Queued request becomes launch-ready",
+      timing: "When eligibility is re-checked",
+      description:
+        "The saved request advances without a second submission. The provider gets a clear confirmation and the concierge team is notified that setup can begin.",
+      emailType: "ad_boost_ready",
+      ownedBy: "ad-boost-profile-reminders",
+      sampleId: "ad_boost_ready",
+      traits: ["Conditional", "One-time"],
+      gate: "Only for a request that started in the queued path",
+    },
+    {
+      key: "concierge_setup",
+      phase: "Prepare",
+      title: "Concierge setup and scheduling",
+      timing: "Requested → scheduled",
+      description:
+        "The team prepares the campaign, confirms the channel and budget, and chooses the flight and launch-email timing. This is an operational state, not a provider message.",
+      ownerNote: "Managed in the Ad Boost concierge queue",
+      traits: ["Silent step"],
+      gate: "No email is sent merely because the internal status becomes scheduled",
+    },
+    {
+      key: "campaign_launched",
+      phase: "Run",
+      title: "Campaign launched",
+      timing: "When the campaign goes live",
+      description:
+        "The provider learns that Find Families is live and where new inquiries will arrive. It sends immediately or at the chosen US Eastern hour through one deduplicated path.",
+      emailType: "ad_boost_campaign_launched",
+      ownedBy: "ad-boost-launch-scheduler",
+      sampleId: "ad_boost_campaign_launched",
+      traits: ["One-time"],
+      gate: "Missing email, unsubscribe, or suppression blocks the send; transport failures retry when scheduled",
+    },
+    {
+      key: "traction",
+      phase: "Run",
+      title: "Early traction update",
+      timing: "First meaningful live metrics",
+      description:
+        "Once real spend or clicks are recorded, the provider gets a concrete progress note with campaign activity before the starter promotion closes.",
+      emailType: "ad_boost_traction",
+      ownedBy: "ad-boost-emails",
+      sampleId: "ad_boost_traction",
+      traits: ["Conditional", "One-time"],
+      gate: "Requires a live campaign and non-zero spend or clicks",
+    },
+    {
+      key: "lead_delivered",
+      phase: "Prove value",
+      title: "A new family is delivered",
+      timing: "For every attributed inquiry",
+      description:
+        "At the moment a managed-campaign inquiry arrives, the provider receives one campaign-specific lead email with a direct path to the family.",
+      emailType: "ad_boost_lead_delivered",
+      ownedBy: "ad-boost-emails",
+      sampleId: "ad_boost_lead_delivered",
+      traits: ["Repeats per lead"],
+      gate: "Deduplicated by connection; only inquiries carrying the campaign's managed attribution qualify",
+    },
+    {
+      key: "lead_outcome",
+      phase: "Prove value",
+      title: "Lead outcome check",
+      timing: "~7d, then ~21d if unresolved",
+      description:
+        "A one-tap check asks whether the family became a client, is still talking, or did not work out. Answers update the living campaign receipt.",
+      emailType: "ad_boost_lead_outcome_check",
+      ownedBy: "ad-boost-profile-reminders",
+      sampleId: "ad_boost_lead_outcome_check",
+      traits: ["Repeats per lead", "Up to twice"],
+      gate: "At most one outcome email per provider per daily run; the second check stops after a final outcome",
+    },
+    {
+      key: "promo_complete",
+      phase: "Prove value",
+      title: "Starter campaign complete",
+      timing: "When the concierge ends the campaign",
+      description:
+        "The wrap-up brings spend, clicks, engagement, inquiries, and reported client outcomes into one receipt, then offers a clear path to continue.",
+      emailType: "ad_boost_promo_complete",
+      ownedBy: "ad-boost-emails",
+      sampleId: "ad_boost_promo_complete",
+      traits: ["One-time"],
+      gate: "Outcome checks may continue after this email for leads that are still unresolved",
+    },
+    {
+      key: "plan_decision",
+      phase: "Continue",
+      title: "Continue or pause with proof in hand",
+      timing: "After the 3rd lead or campaign wrap-up",
+      description:
+        "The provider's living results page opens the paid-plan decision after demonstrated value. Stripe owns the subscription state; this step does not add another email.",
+      ownerNote: "Provider results page + Stripe",
+      traits: ["Value-gated", "Silent step"],
+    },
+  ],
+};
+
 const COMMS_JOURNEYS: Record<string, CommsJourney> = {
   [BENEFITS_CASCADE.key]: BENEFITS_CASCADE,
   [HELP_CASCADE_LADDER.key]: HELP_CASCADE_LADDER,
+  [AD_BOOST_PROVIDER_JOURNEY.key]: AD_BOOST_PROVIDER_JOURNEY,
 };
 
 /** Which journeys each automation page shows, in display order. */
@@ -209,6 +377,9 @@ const JOURNEYS_BY_CRON: Record<string, string[]> = {
   "family-comms-coordinator": [HELP_CASCADE_LADDER.key, BENEFITS_CASCADE.key],
   "benefits-navigator-scheduler": [BENEFITS_CASCADE.key],
   "benefits-results-texts": [BENEFITS_CASCADE.key],
+  "ad-boost-profile-reminders": [AD_BOOST_PROVIDER_JOURNEY.key],
+  "ad-boost-launch-scheduler": [AD_BOOST_PROVIDER_JOURNEY.key],
+  "ad-boost-emails": [AD_BOOST_PROVIDER_JOURNEY.key],
 };
 
 export function journeysForCron(cronId: string): CommsJourney[] {

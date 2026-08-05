@@ -24,9 +24,20 @@ import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notification
 
 const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
 const VALID_CHANNELS = ["google", "meta", "both"];
+const AD_BOOST_EMAIL_TYPES = [
+  "ad_boost_queued",
+  "ad_boost_requested",
+  "ad_boost_profile_reminder",
+  "ad_boost_ready",
+  "ad_boost_campaign_launched",
+  "ad_boost_lead_delivered",
+  "ad_boost_traction",
+  "ad_boost_lead_outcome_check",
+  "ad_boost_promo_complete",
+];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -92,11 +103,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     const tag = row.campaign_tag || row.id;
-    const [delivered, leads, receipt] = await Promise.all([
+    const [delivered, leads, receipt, communicationResult] = await Promise.all([
       countDeliveredByCampaign(db, [tag]),
       listLeadsByCampaign(db, tag),
       getCampaignReceipt(db, row),
+      db
+        .from("email_log")
+        .select("id, email_type, subject, status, created_at, delivered_at, metadata")
+        .in("email_type", AD_BOOST_EMAIL_TYPES)
+        .filter("metadata->>request_id", "eq", row.id)
+        .order("created_at", { ascending: true })
+        .limit(500),
     ]);
+
+    if (communicationResult.error) {
+      console.error("[admin/ad-boost] communication history failed:", communicationResult.error);
+      return NextResponse.json({ error: communicationResult.error.message }, { status: 500 });
+    }
 
     // Parity with the provider's own /provider/boost live view: the SAME real
     // visitors + leads + questions numbers Hilda sees, computed from the same
@@ -121,6 +144,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       request: { ...row, delivered: delivered[tag] ?? 0 },
       leads,
+      communications: communicationResult.data ?? [],
       campaignStats,
       receipt: {
         google: receipt.google,
@@ -483,6 +507,11 @@ export async function POST(request: NextRequest) {
     body.ad_spend_cents !== undefined ||
     body.ad_clicks !== undefined ||
     body.ad_impressions !== undefined;
+  // "Getting activity" should mean observable campaign activity, not merely
+  // that an operator opened the metrics form and saved zero/partial values.
+  // Impressions alone are not shown in the traction email; spend or clicks are.
+  const hasMeaningfulTraction =
+    (data.ad_spend_cents ?? 0) > 0 || (data.ad_clicks ?? 0) > 0;
   const lifecycleSends: Array<Promise<unknown>> = [];
 
   // Going live emails the provider immediately UNLESS a launch-email time is
@@ -494,7 +523,7 @@ export async function POST(request: NextRequest) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "launched" }));
   }
 
-  if (data.status === "live" && metricsWereSaved) {
+  if (data.status === "live" && metricsWereSaved && hasMeaningfulTraction) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "traction" }));
   }
 

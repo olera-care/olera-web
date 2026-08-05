@@ -74,7 +74,15 @@ export default function AdminAdBoostPage() {
         </div>
         <p className="text-gray-500 mt-1 text-sm">
           Managed-ad campaign requests from providers. Open one to set it up, advance
-          its status, and copy the UTM landing URL into the ad platform.
+          its status, and copy the UTM landing URL into the ad platform.{" "}
+          <Link
+            href="/admin/automations/ad-boost"
+            className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+            title="Open the Ad Boost messaging cascade in Automations"
+          >
+            View messaging journey
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </p>
       </header>
 

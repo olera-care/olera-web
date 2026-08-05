@@ -45,7 +45,7 @@ export default function CommsJourneyBlock({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-3xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">
-              {journey.ordering === "time" ? "Family journey" : "Decision ladder"}
+              {journey.audienceLabel ?? (journey.ordering === "time" ? "Family journey" : "Decision ladder")}
             </p>
             <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-gray-950 sm:text-2xl">
               {journey.title}
@@ -143,6 +143,11 @@ function StepRow({
                   This automation
                 </span>
               )}
+              {step.traits?.map((trait) => (
+                <span key={trait} className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-gray-500 ring-1 ring-inset ring-gray-200">
+                  {trait}
+                </span>
+              ))}
             </span>
             <span className={`mt-0.5 block text-sm font-semibold sm:text-[15px] ${mine ? "text-gray-950" : "text-gray-700"}`}>
               {step.title}

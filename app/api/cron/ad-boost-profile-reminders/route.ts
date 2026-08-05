@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
       skipped_missing_profile: 0,
       skipped_missing_email: 0,
       skipped_already_sent: 0,
+      skipped_not_due: 0,
       skipped_not_pending: 0,
       errors: 0,
     };
@@ -103,10 +104,8 @@ export async function GET(request: NextRequest) {
       .from("ad_campaign_requests")
       .select(REQUEST_SELECT)
       .eq("status", "pending_profile")
-      .is("profile_reminder_email_sent_at", null)
-      .lte("created_at", cutoff)
       .order("created_at", { ascending: true })
-      .limit(100);
+      .limit(500);
 
     if (requestError) {
       console.error("[cron/ad-boost-profile-reminders] request fetch failed:", requestError);
@@ -223,14 +222,10 @@ export async function GET(request: NextRequest) {
         profile.verification_state === "not_required";
       const email = profile.email || sourceProvider?.email || null;
 
-      if (!email) {
-        counts.skipped_missing_email++;
-        continue;
-      }
-
       try {
         if (eligibility.eligible && isVerified) {
           if (dryRun) {
+            if (!email) counts.skipped_missing_email++;
             counts.promoted++;
             continue;
           }
@@ -272,21 +267,44 @@ export async function GET(request: NextRequest) {
             launchReady: true,
           });
           await sendSlackAlert(alert.text, alert.blocks);
-          await sendAdBoostRequestEmail({
-            requestId: stale.id,
-            kind: "promotion",
-            providerName: profile.display_name ?? profile.slug,
-            providerSlug: profile.slug,
-            providerEmail: email,
-            setupWeek: stale.requested_setup_week,
-            channel: stale.channel,
-            intendedMonthlyBudget: stale.intended_monthly_budget,
-            completeness: eligibility.overall,
-            eligibility,
-            isVerified,
-            recipientProfileId: profile.id,
-          });
+          if (email) {
+            await sendAdBoostRequestEmail({
+              requestId: stale.id,
+              kind: "promotion",
+              providerName: profile.display_name ?? profile.slug,
+              providerSlug: profile.slug,
+              providerEmail: email,
+              setupWeek: stale.requested_setup_week,
+              channel: stale.channel,
+              intendedMonthlyBudget: stale.intended_monthly_budget,
+              completeness: eligibility.overall,
+              eligibility,
+              isVerified,
+              recipientProfileId: profile.id,
+            });
+          } else {
+            counts.skipped_missing_email++;
+          }
           counts.promoted++;
+          continue;
+        }
+
+        // Promotion checks run for every pending request, including requests
+        // that already received their one reminder. The old query excluded
+        // reminded rows entirely, so they could only advance by revisiting the
+        // provider Boost page. Reminders themselves remain one-shot and wait
+        // for the original 48-hour grace period.
+        const reminderDue =
+          !stale.profile_reminder_email_sent_at &&
+          new Date(stale.created_at).getTime() <= new Date(cutoff).getTime();
+        if (!reminderDue) {
+          if (stale.profile_reminder_email_sent_at) counts.skipped_already_sent++;
+          else counts.skipped_not_due++;
+          continue;
+        }
+
+        if (!email) {
+          counts.skipped_missing_email++;
           continue;
         }
 

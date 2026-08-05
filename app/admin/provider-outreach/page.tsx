@@ -104,6 +104,30 @@ interface LinkedInContact {
   messaged_at?: string;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Fax/Mail Analytics
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface FaxAnalytics {
+  sent_at?: string;
+  delivered: boolean;
+  delivered_at?: string;
+  qr_scanned: boolean;
+  qr_scanned_at?: string;
+  claimed: boolean;
+  claimed_at?: string;
+}
+
+interface MailAnalytics {
+  sent_at: string;
+  status: "draft" | "ready" | "printed" | "in_transit" | "delivered" | "returned" | "cancelled";
+  estimated_delivery?: string;
+  qr_scanned?: boolean;
+  qr_scanned_at?: string;
+  claimed?: boolean;
+  claimed_at?: string;
+}
+
 function getLinkedInMessage(): string {
   return `Hi! I'm Dr. Logan DuBose, co-founder of Olera. We help families find senior care and connect providers with free referrals. Open to a quick 15-minute call?`;
 }
@@ -339,6 +363,248 @@ function LinkedInSection({
           {getLinkedInMessage()}
         </div>
       </details>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Channel Tracking — compact status pills for fax/mail/linkedin with expandable details
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ChannelTracking({
+  faxSent,
+  faxAnalytics,
+  faxNumber,
+  linkedinMessaged,
+  linkedinMessagedAt,
+  linkedinUrl,
+  mailSent,
+  mailAnalytics,
+}: {
+  faxSent?: boolean;
+  faxAnalytics?: FaxAnalytics;
+  faxNumber?: string | null;
+  linkedinMessaged?: boolean;
+  linkedinMessagedAt?: string | null;
+  linkedinUrl?: string | null;
+  mailSent?: boolean;
+  mailAnalytics?: MailAnalytics;
+}) {
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  const channels: { key: string; label: string; color: string; summary: string }[] = [];
+
+  // Fax channel
+  if (faxSent) {
+    const delivered = faxAnalytics?.delivered;
+    channels.push({
+      key: "fax",
+      label: "Fax",
+      color: delivered ? "bg-emerald-500" : "bg-amber-400",
+      summary: delivered
+        ? `Delivered${faxAnalytics?.delivered_at ? ` ${new Date(faxAnalytics.delivered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}`
+        : "Sent",
+    });
+  } else if (faxNumber) {
+    channels.push({
+      key: "fax",
+      label: "Fax",
+      color: "bg-gray-300",
+      summary: "Ready",
+    });
+  }
+
+  // LinkedIn channel
+  if (linkedinMessaged) {
+    channels.push({
+      key: "linkedin",
+      label: "LinkedIn",
+      color: "bg-blue-500",
+      summary: linkedinMessagedAt
+        ? `Messaged ${new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+        : "Messaged",
+    });
+  } else if (linkedinUrl) {
+    channels.push({
+      key: "linkedin",
+      label: "LinkedIn",
+      color: "bg-gray-300",
+      summary: "Ready",
+    });
+  }
+
+  // Mail channel
+  if (mailSent && mailAnalytics) {
+    const delivered = mailAnalytics.status === "delivered";
+    channels.push({
+      key: "mail",
+      label: "Postcard",
+      color: delivered ? "bg-emerald-500" : "bg-amber-400",
+      summary: delivered ? "Delivered" : mailAnalytics.status === "in_transit" ? "In Transit" : mailAnalytics.status === "printed" ? "Printed" : "Sent",
+    });
+  }
+
+  // Claimed indicator (from any channel)
+  const claimed = faxAnalytics?.claimed || mailAnalytics?.claimed;
+  if (claimed) {
+    const claimedAt = faxAnalytics?.claimed_at || mailAnalytics?.claimed_at;
+    channels.push({
+      key: "claimed",
+      label: "Claimed",
+      color: "bg-emerald-500",
+      summary: claimedAt
+        ? new Date(claimedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        : "Yes",
+    });
+  }
+
+  if (channels.length === 0) return null;
+
+  return (
+    <div className="mt-0.5">
+      {/* Inline status pills */}
+      <div className="flex items-center gap-1 flex-wrap">
+        {channels.map((ch) => (
+          <button
+            key={ch.key}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenSection(openSection === ch.key ? null : ch.key);
+            }}
+            className="inline-flex items-center gap-0.5 text-[9px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
+          >
+            <span className={`w-1 h-1 rounded-full ${ch.color}`} />
+            {ch.summary}
+          </button>
+        ))}
+      </div>
+
+      {/* Expandable fax details */}
+      {openSection === "fax" && faxAnalytics && (
+        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.delivered ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Delivered to machine</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {faxAnalytics.delivered
+                  ? faxAnalytics.delivered_at ? new Date(faxAnalytics.delivered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Confirmed"
+                  : "Not yet"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.qr_scanned ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">QR code scanned</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {faxAnalytics.qr_scanned
+                  ? faxAnalytics.qr_scanned_at ? new Date(faxAnalytics.qr_scanned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Yes"
+                  : "Not yet"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.claimed ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Claimed profile</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {faxAnalytics.claimed
+                  ? faxAnalytics.claimed_at ? new Date(faxAnalytics.claimed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Claimed"
+                  : "Not yet"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expandable LinkedIn details */}
+      {openSection === "linkedin" && (
+        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span className="text-xs text-gray-700">Message sent</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {linkedinMessagedAt ? new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : linkedinMessaged ? "Yes" : "Not yet"}
+              </span>
+            </div>
+            {linkedinUrl && (
+              <div className="flex items-center justify-between py-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span className="text-xs text-gray-700">Profile</span>
+                </div>
+                <a
+                  href={linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  View on LinkedIn
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Expandable mail details */}
+      {openSection === "mail" && mailAnalytics && (
+        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                <span className="text-xs text-gray-700">Mailer sent</span>
+              </div>
+              <span className="text-xs text-gray-500">{new Date(mailAnalytics.sent_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "in_transit" || mailAnalytics.status === "delivered" || mailAnalytics.status === "printed" ? "bg-emerald-500" : "bg-amber-400"}`} />
+                <span className="text-xs text-gray-700">Print status</span>
+              </div>
+              <span className="text-xs text-gray-500 capitalize">{mailAnalytics.status}</span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "delivered" ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Est. delivery</span>
+              </div>
+              <span className="text-xs text-gray-500">{mailAnalytics.status === "delivered" ? "Delivered" : "3-5 business days"}</span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.qr_scanned ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">QR scanned</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {mailAnalytics.qr_scanned
+                  ? mailAnalytics.qr_scanned_at ? new Date(mailAnalytics.qr_scanned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Yes"
+                  : "Not yet"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.claimed ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Claimed profile</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {mailAnalytics.claimed
+                  ? mailAnalytics.claimed_at ? new Date(mailAnalytics.claimed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Claimed"
+                  : "Not yet"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2647,6 +2913,62 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     });
   }, []);
 
+  // Fax/Mail analytics tracking (fetched from re-engage-list API)
+  const [faxAnalyticsMap, setFaxAnalyticsMap] = useState<Map<string, FaxAnalytics>>(new Map());
+  const [mailAnalyticsMap, setMailAnalyticsMap] = useState<Map<string, MailAnalytics>>(new Map());
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
+
+  // Fetch analytics data when providers change
+  useEffect(() => {
+    if (providers.length === 0 || analyticsLoaded) return;
+
+    async function fetchAnalytics() {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/re-engage-list");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.providers) return;
+
+        const newFaxMap = new Map<string, FaxAnalytics>();
+        const newMailMap = new Map<string, MailAnalytics>();
+
+        for (const p of data.providers) {
+          // Fax analytics
+          if (p.fax_sent_at) {
+            newFaxMap.set(p.provider_id, {
+              sent_at: p.fax_sent_at,
+              delivered: !!p.fax_delivered_at,
+              delivered_at: p.fax_delivered_at || undefined,
+              qr_scanned: false, // Not tracked yet
+              claimed: p.claimed || false,
+              claimed_at: p.claimed_at || undefined,
+            });
+          }
+
+          // Mail analytics
+          if (p.mail_sent_at) {
+            newMailMap.set(p.provider_id, {
+              sent_at: p.mail_sent_at,
+              status: p.mail_status || "ready",
+              estimated_delivery: p.mail_delivered_at || undefined,
+              qr_scanned: false, // Not tracked yet
+              claimed: p.claimed || false,
+              claimed_at: p.claimed_at || undefined,
+            });
+          }
+        }
+
+        setFaxAnalyticsMap(newFaxMap);
+        setMailAnalyticsMap(newMailMap);
+        setAnalyticsLoaded(true);
+      } catch {
+        // Non-critical - analytics just won't show
+      }
+    }
+
+    fetchAnalytics();
+  }, [providers.length, analyticsLoaded]);
+
   const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
     setActionLoading(provider.provider_id);
     try {
@@ -2764,6 +3086,17 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                   </span>
                 )}
               </div>
+              {/* Channel tracking analytics */}
+              <ChannelTracking
+                faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at}
+                faxAnalytics={faxAnalyticsMap.get(provider.provider_id)}
+                faxNumber={provider.fax_number}
+                linkedinMessaged={linkedInContactsMap.get(provider.provider_id)?.some(c => c.messaged)}
+                linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
+                linkedinUrl={linkedInUrlMap.get(provider.provider_id)}
+                mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at}
+                mailAnalytics={mailAnalyticsMap.get(provider.provider_id)}
+              />
             </div>
 
             {/* Cycle badge */}

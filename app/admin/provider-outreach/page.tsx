@@ -2783,7 +2783,8 @@ interface FollowUpQueueProps {
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
 // Uses UTC to match server/database which also use UTC, ensuring consistent comparisons
 function getTodayISO(): string {
-  return new Date().toISOString().split("T")[0];
+  // Use Central Time (business timezone) for consistency with backend
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
 }
 
 // Helper: calculate days difference from today

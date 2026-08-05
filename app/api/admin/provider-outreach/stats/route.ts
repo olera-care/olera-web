@@ -305,7 +305,9 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
   total: number;
   by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
 }> {
-  const today = new Date().toISOString().split("T")[0];
+  // Use Central Time (business timezone) instead of UTC to avoid timezone mismatches
+  // At 8 PM Central, UTC would be 1 AM next day, causing "today" to be wrong
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
 
   // Get admin display names for lookup
   const { data: admins } = await db

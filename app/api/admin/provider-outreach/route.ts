@@ -1628,7 +1628,8 @@ async function getAdminCounts(
 
   // For needs_call (Follow Up), only count providers with due_date <= today
   if (stage === "needs_call") {
-    const today = new Date().toISOString().split("T")[0];
+    // Use Central Time (business timezone) to avoid UTC timezone mismatches
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
     query = query.lte("due_date", today);
   }
 
@@ -1709,7 +1710,8 @@ async function getFollowUpsTodayStats(
   db: ReturnType<typeof getServiceClient>,
   state: string
 ): Promise<FollowUpsTodayStats> {
-  const today = new Date().toISOString().split("T")[0];
+  // Use Central Time (business timezone) to avoid UTC timezone mismatches
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
 
   // Get admin display names for lookup
   const { data: admins } = await db

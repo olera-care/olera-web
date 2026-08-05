@@ -282,8 +282,36 @@ async function handleBounce(row: ResolvedRow, extract: LeadExtract) {
     needs_attention: true,
   });
 
-  // Could optionally move to a "bounce_fix" stage here
-  // For now, just log the touchpoint for admin attention
+  // Cancel any pending tasks (email is invalid, no point continuing)
+  await supabase
+    .from("provider_outreach_tasks")
+    .update({ status: "superseded", completed_at: new Date().toISOString() })
+    .eq("provider_id", row.provider_id)
+    .eq("status", "pending");
+
+  // Move to needs_call stage with bounce reason so admin can try alternative channels.
+  // Use conditional update to avoid race condition: another webhook (e.g., reply)
+  // might have already moved this provider out of in_sequence.
+  const { data: updated } = await supabase
+    .from("provider_outreach_tracking")
+    .update({
+      stage: "needs_call",
+      needs_call_reason: "email_bounced",
+      stage_changed_at: new Date().toISOString(),
+    })
+    .eq("id", row.id)
+    .eq("stage", "in_sequence") // Only update if still in_sequence
+    .select("id");
+
+  // Only log stage change if we actually changed it
+  if (updated && updated.length > 0) {
+    await insertTouchpoint(row.provider_id, "stage_changed", {
+      from_stage: "in_sequence",
+      to_stage: "needs_call",
+      reason: "smartlead_bounce",
+      occurred_at: extract.eventAt,
+    });
+  }
 }
 
 async function handleUnsubscribe(row: ResolvedRow, extract: LeadExtract) {

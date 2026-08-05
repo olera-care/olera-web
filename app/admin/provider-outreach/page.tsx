@@ -448,15 +448,26 @@ function ChannelTracking({
   }
 
   // Mail channel
-  if (mailSent && mailAnalytics) {
-    const delivered = mailAnalytics.status === "delivered";
-    channels.push({
-      key: "mail",
-      label: "Postcard",
-      color: delivered ? "bg-emerald-500" : "bg-amber-400",
-      summary: delivered ? "Delivered" : mailAnalytics.status === "in_transit" ? "In Transit" : mailAnalytics.status === "printed" ? "Printed" : "Sent",
-      hasDetails: true,
-    });
+  if (mailSent) {
+    if (mailAnalytics) {
+      const delivered = mailAnalytics.status === "delivered";
+      channels.push({
+        key: "mail",
+        label: "Postcard",
+        color: delivered ? "bg-emerald-500" : "bg-amber-400",
+        summary: delivered ? "Delivered" : mailAnalytics.status === "in_transit" ? "In Transit" : mailAnalytics.status === "printed" ? "Printed" : "Sent",
+        hasDetails: true,
+      });
+    } else {
+      // Session-only sent state (before API refresh)
+      channels.push({
+        key: "mail",
+        label: "Postcard",
+        color: "bg-amber-400",
+        summary: "Sent",
+        hasDetails: false,
+      });
+    }
   }
 
   // Claimed indicator (check prop first, then analytics as fallback)
@@ -632,6 +643,736 @@ function ChannelTracking({
         </div>
       )}
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fax Preview Sidebar — full fax preview with QR code and send button
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FaxPreviewSidebar({
+  provider,
+  onClose,
+  onFaxSent,
+}: {
+  provider: OutreachProvider;
+  onClose: () => void;
+  onFaxSent?: (providerId: string) => void;
+}) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrVerified, setQrVerified] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const providerUrl = provider.slug
+    ? `https://olera.care/provider/${provider.slug}?utm_source=fax&utm_medium=qr&utm_campaign=re_engage`
+    : "https://olera.care";
+
+  // Generate QR code on mount
+  useEffect(() => {
+    async function generateQr() {
+      try {
+        const QRCode = (await import("qrcode")).default;
+        const dataUrl = await QRCode.toDataURL(providerUrl, {
+          width: 140,
+          margin: 1,
+          color: { dark: "#000000", light: "#ffffff" },
+        });
+        setQrDataUrl(dataUrl);
+      } catch {
+        // QR generation failed silently
+      }
+    }
+    generateQr();
+  }, [providerUrl]);
+
+  async function handleSendFax() {
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          fax_number: provider.fax_number,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSent(true);
+        onFaxSent?.(provider.provider_id);
+      } else {
+        setSendError(data.error || "Failed to send fax");
+      }
+    } catch {
+      setSendError("Network error");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Sidebar */}
+      <div className={`fixed right-0 top-0 h-full bg-white shadow-2xl z-50 flex flex-col transition-all duration-300 ${
+        expanded ? "w-full" : "w-[520px]"
+      }`}>
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between shrink-0">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{provider.provider_name}</h2>
+            <p className="text-sm text-gray-500">
+              Fax to {provider.fax_number}
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              title={expanded ? "Collapse" : "Expand full screen"}
+            >
+              {expanded ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9L4 4m0 0v4m0-4h4m6 6l5 5m0 0v-4m0 4h-4" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Fax Preview - scrollable */}
+        <div className={`flex-1 overflow-y-auto py-5 ${expanded ? "px-8 flex flex-col items-center" : "px-6"}`}>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 w-full">FAX PREVIEW</h3>
+
+          {/* Fax document */}
+          <div className={`border border-gray-200 rounded-lg bg-white shadow-sm ${
+            expanded ? "w-full max-w-[680px]" : ""
+          }`} style={expanded ? { aspectRatio: "8.5 / 11", maxHeight: "calc(100vh - 200px)" } : undefined}>
+            <div className={`${expanded ? "px-12 py-12" : "px-8 py-8"} h-full flex flex-col`}>
+
+              {/* Logo + Olera info at very top */}
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-300">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/olera-logo.png"
+                  alt="Olera"
+                  className="h-8 object-contain grayscale"
+                />
+                <div className="text-[10px] text-gray-500 leading-tight">
+                  <p className="font-medium text-gray-700">Olera Care</p>
+                  <p>(833) 653-7200 · olera.care</p>
+                </div>
+              </div>
+
+              {/* Fax cover fields + QR Code inline */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-0 text-[9px] text-gray-600 leading-relaxed">
+                  <p><span className="font-semibold text-gray-800">To:</span> {provider.provider_name}</p>
+                  <p><span className="font-semibold text-gray-800">From:</span> Dr. Logan DuBose, Olera</p>
+                  <p><span className="font-semibold text-gray-800">Subject:</span> Your free Olera profile</p>
+                  <p><span className="font-semibold text-gray-800">Attn:</span> Administrator / Executive Director</p>
+                  <p><span className="font-semibold text-gray-800">Date:</span> {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 shrink-0">
+                  {qrDataUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={qrDataUrl}
+                      alt="QR Code"
+                      className="w-20 h-20 border border-gray-200 rounded"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                      <span className="text-xs text-gray-400">QR CODE</span>
+                    </div>
+                  )}
+                  <p className="text-[8px] font-medium text-gray-600 text-center">Scan to manage your page</p>
+                </div>
+              </div>
+
+              {/* Opt-out notice */}
+              <div className="mb-3 px-3 py-1.5 border border-gray-300 bg-gray-50 rounded text-[8px] leading-snug text-gray-600">
+                <p className="font-semibold text-gray-700 mb-0.5">OPT-OUT NOTICE</p>
+                <p>
+                  To stop receiving faxes from Olera, call <span className="font-medium text-gray-800">(833) 653-7200</span> or
+                  send a fax to <span className="font-medium text-gray-800">(833) 653-7201</span> at any time, any day of the week.
+                  Requests are accepted 24 hours a day at no cost to you.
+                </p>
+              </div>
+
+              {/* Letter body */}
+              <div className="space-y-4 text-[12px] leading-relaxed text-gray-800">
+                <p>Dear {provider.provider_name},</p>
+
+                <p>
+                  I&apos;m Dr. Logan DuBose, a physician and co-founder of Olera.
+                </p>
+
+                <p>
+                  We created Olera, a free referral platform that helps families find trusted senior care. We&apos;re proud to be supported by NIH as we build a better solution for families and providers to connect.
+                </p>
+
+                <p>
+                  We&apos;ve already created a profile for {provider.provider_name} using publicly available information, and it&apos;s ready for your team to manage.
+                </p>
+
+                <p>
+                  Get started in less than two minutes and you&apos;ll be able to:
+                </p>
+
+                <ul className="space-y-1.5 pl-1">
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 font-bold">&#10003;</span>
+                    <span>Have families contact you directly</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 font-bold">&#10003;</span>
+                    <span>Never pay referral fees or per-lead charges</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 font-bold">&#10003;</span>
+                    <span>Improve your online visibility</span>
+                  </li>
+                </ul>
+
+                <p>
+                  Scan the QR code above to take ownership of your page.
+                </p>
+
+                <p>
+                  If you have any questions or would like to schedule a quick call, I&apos;d be happy to help.
+                </p>
+
+                {/* Signature */}
+                <div className="mt-4 flex items-start gap-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/for-providers/team/logan.jpg"
+                    alt="Dr. Logan DuBose"
+                    className="w-16 h-16 rounded-full object-cover shrink-0 grayscale"
+                  />
+                  <div className="space-y-0.5">
+                    <p className="text-[12px] text-gray-500 italic">With care,</p>
+                    <p className="text-sm font-bold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
+                    <p className="text-[11px] text-gray-600">Chief Research Officer (CRO), Olera</p>
+                    <p className="text-[10px] text-gray-500">Researcher funded by the NIH Small Business Innovation Research (SBIR) Program</p>
+                    <p className="text-[10px] text-gray-500">Texas A&amp;M College of Medicine, Class of 2022</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Page footer with sender info */}
+              <div className="mt-auto pt-3 border-t border-gray-200 text-[8px] text-gray-400 space-y-0.5">
+                <p>Olera Care, Inc. · (833) 653-7200 · olera.care</p>
+                <p>
+                  To stop receiving faxes, call (833) 653-7200 or fax (833) 653-7201 at any time, any day. Requests accepted 24/7 at no cost.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer: Send button OR analytics after sent */}
+        <div className="border-t border-gray-200 bg-gray-50 shrink-0">
+          {sent ? (
+            <div className="px-6 py-4">
+              {/* Sent confirmation */}
+              <div className="flex items-center gap-2 mb-4">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm font-medium text-emerald-600">Fax Sent</span>
+                <span className="text-xs text-gray-400 ml-auto">
+                  {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+              </div>
+
+              {/* Resend */}
+              <button
+                type="button"
+                onClick={() => setSent(false)}
+                className="w-full py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+              >
+                Resend Fax
+              </button>
+            </div>
+          ) : (
+            <div className="px-6 py-4">
+              {/* QR verification step */}
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Verify QR destination</p>
+                <a
+                  href={providerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline break-all"
+                >
+                  {providerUrl.replace(/^https?:\/\//, "")}
+                </a>
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={qrVerified}
+                    onChange={(e) => setQrVerified(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span className="text-xs text-gray-700">I confirm this QR links to the correct provider page</span>
+                </label>
+              </div>
+
+              {sendError && (
+                <p className="text-xs text-amber-600 mb-2">{sendError}</p>
+              )}
+              <button
+                type="button"
+                onClick={handleSendFax}
+                disabled={sending || !qrVerified}
+                className="w-full py-2.5 px-4 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {sending ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Sending...
+                  </>
+                ) : (
+                  "Send Fax"
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Postcard Preview Sidebar — full postcard preview with QR code and send button
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PostcardPreviewSidebar({
+  provider,
+  onClose,
+  onMailSent,
+}: {
+  provider: OutreachProvider;
+  onClose: () => void;
+  onMailSent?: (providerId: string) => void;
+}) {
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [qrVerified, setQrVerified] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [address, setAddress] = useState<string>(provider.mail_address || "");
+  const [findingAddress, setFindingAddress] = useState(false);
+  const [addressError, setAddressError] = useState<string | null>(null);
+
+  const profileUrl = provider.slug
+    ? `https://olera.care/provider/${provider.slug}?utm_source=direct_mail&utm_medium=postcard&utm_campaign=re_engage`
+    : "https://olera.care";
+
+  // Generate QR code
+  useEffect(() => {
+    (async () => {
+      try {
+        const QRCode = (await import("qrcode")).default;
+        const url = await QRCode.toDataURL(profileUrl, { width: 120, margin: 1 });
+        setQrDataUrl(url);
+      } catch {
+        // QR generation failed
+      }
+    })();
+  }, [profileUrl]);
+
+  async function handleFindAddress() {
+    setFindingAddress(true);
+    setAddressError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          city: provider.city,
+          state: provider.state,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.address) {
+        setAddress(data.address);
+        setAddressError(null);
+      } else {
+        setAddressError("Could not find a mailing address");
+      }
+    } catch {
+      setAddressError("Failed to search for address");
+    } finally {
+      setFindingAddress(false);
+    }
+  }
+
+  async function handleSendPostcard() {
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-mailer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          address: address,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSent(true);
+        onMailSent?.(provider.provider_id);
+      } else {
+        setSendError(data.error || "Failed to send postcard");
+      }
+    } catch {
+      setSendError("Network error");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+
+      {/* Sidebar */}
+      <div className={`fixed right-0 top-0 h-full bg-white shadow-2xl z-50 overflow-y-auto border-l border-gray-200 transition-all duration-300 ${
+        expanded ? "w-full" : "w-[520px]"
+      }`}>
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Postcard Preview</h3>
+            <p className="text-xs text-gray-500">{provider.provider_name}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 transition rounded hover:bg-gray-100"
+              title={expanded ? "Collapse" : "Expand"}
+            >
+              {expanded ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9l-5-5m0 0v4m0-4h4m6 6l5 5m0 0v-4m0 4h-4" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6m0 0v6m0-6l-7 7M9 21H3m0 0v-6m0 6l7-7" />
+                </svg>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 text-gray-400 hover:text-gray-600 transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Postcard content — centered with max width */}
+        <div className={`${expanded ? "max-w-[560px] mx-auto" : ""}`}>
+
+        {/* Postcard Front — 6x4 aspect ratio */}
+        <div className="px-6 pt-5">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Front</p>
+          <div
+            className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white"
+            style={{ aspectRatio: "6 / 4" }}
+          >
+            {/* Content */}
+            <div className="relative h-full flex flex-col p-4 bg-white">
+              {/* Top: Logo + slogan */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-1.5">
+                  <img src="/images/olera-logo.png" alt="Olera" className="h-5 w-5 object-contain" />
+                  <div>
+                    <span className="text-[#2A7C7C] text-base font-bold tracking-tight block leading-none">Olera</span>
+                    <span className="text-gray-400 text-[7px] block leading-none mt-0.5 pl-[1px]">olera.care</span>
+                  </div>
+                </div>
+                <p className="text-gray-900 text-[9px] font-semibold text-right uppercase tracking-[0.12em] leading-snug">Helping Families Find<br />Trusted Senior Care.</p>
+              </div>
+
+              {/* Headline */}
+              <div className="mt-8">
+                <h2 className="text-gray-900 text-[28px] font-bold leading-[1.1] font-serif">Your Next Referral<br /><span className="text-[#2A7C7C] relative inline-block">Starts Here.<svg className="absolute -bottom-1 left-0 w-full" height="7" viewBox="0 0 200 7" fill="none" preserveAspectRatio="none"><path d="M2 5C40 2 100 1 198 3.5" stroke="#2A7C7C" strokeWidth="2.5" strokeLinecap="round" /></svg></span></h2>
+                <p className="text-gray-700 text-[12px] font-medium mt-1">
+                  Help more families find <span className="font-bold text-gray-900">{provider.provider_name}</span>.
+                </p>
+                <div className="w-full h-[1px] mt-2 bg-gray-200" />
+
+                {/* Features */}
+                <div className="space-y-1.5 mt-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#EDF7F6" }}>
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                        <circle cx="9" cy="7" r="3" stroke="#2A7C7C" strokeWidth="1.5" />
+                        <circle cx="16" cy="8" r="2.5" stroke="#2A7C7C" strokeWidth="1.5" />
+                        <path d="M2 20c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="#2A7C7C" strokeWidth="1.5" strokeLinecap="round" />
+                        <path d="M16 14c2.761 0 5 1.79 5 4" stroke="#2A7C7C" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-900 text-[11px] leading-snug">A free referral platform that connects<br />families with trusted senior care providers.</p>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#EDF7F6" }}>
+                      <span className="text-[#2A7C7C] text-[10px] font-bold">$</span>
+                    </div>
+                    <p className="text-gray-900 text-[11px] font-bold">No referral fees &middot; No cost per lead</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* QR — absolute positioned right side */}
+              <div className="absolute right-6 bottom-[12%] text-center">
+                <div className="flex justify-center mb-1">
+                  {qrDataUrl && (
+                    <div className="rounded-lg p-1.5 border shrink-0" style={{ borderColor: "#2A7C7C" }}>
+                      <img src={qrDataUrl} alt="QR Code" className="w-16 h-16" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-gray-900 font-bold text-[10px]">Manage your free profile</p>
+                <p className="text-gray-500 text-[8px]">Scan the QR code to get started.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Postcard Back */}
+        <div className="px-6 pt-4">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Back</p>
+          <div
+            className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white"
+            style={{ aspectRatio: "6 / 4" }}
+          >
+            <div className="h-full flex">
+              {/* Left side: letter */}
+              <div className="w-[58%] p-3 pt-8 flex flex-col justify-between border-r border-gray-200">
+                <div>
+                  <p className="text-[8.5px] text-gray-700 leading-[1.6]">
+                    Dear {provider.provider_name},
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    I&#39;m Dr. Logan DuBose, a physician and co-founder of Olera.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    We created Olera, a free referral platform that helps families find trusted senior care. We&#39;re proud to be supported by NIH as we build a better way for families and providers to connect.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    We&#39;ve already created a free profile for <span className="font-semibold">{provider.provider_name}</span>. It&#39;s ready for your team to manage.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    Get started in under two minutes to:
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-[8.5px] text-gray-700 leading-[1.5]">
+                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Have families contact you directly</li>
+                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Never pay referral or per-lead fees</li>
+                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Improve your online visibility</li>
+                  </ul>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    Scan the QR code to get started.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    Questions? Give us a call at (979) 243-9801.
+                  </p>
+                </div>
+                <div className="mt-1.5 flex items-start gap-2">
+                  <img
+                    src="/images/for-providers/team/logan.jpg"
+                    alt="Dr. Logan DuBose"
+                    className="w-10 h-10 rounded-full object-cover shrink-0"
+                  />
+                  <div className="space-y-0">
+                    <p className="text-[7px] text-gray-500 italic">With care,</p>
+                    <p className="text-[8.5px] font-bold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
+                    <p className="text-[7px] text-gray-600">Chief Research Officer (CRO), Olera</p>
+                    <p className="text-[6.5px] text-gray-500">Researcher funded by the NIH SBIR Program</p>
+                    <p className="text-[6.5px] text-gray-500">Texas A&amp;M College of Medicine, Class of 2022</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side: address block */}
+              <div className="w-[42%] p-4 flex flex-col justify-between">
+                {/* Stamp + return address */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[8px] text-gray-400">Olera Care Inc.</p>
+                    <p className="text-[8px] text-gray-400">Dallas, TX</p>
+                  </div>
+                  <div className="w-11 h-13 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                    <span className="text-[7px] text-gray-400 text-center leading-tight">POSTAGE</span>
+                  </div>
+                </div>
+
+                {/* Mailing address — centered vertically */}
+                <div className="my-auto">
+                  <p className="text-xs font-semibold text-gray-900">{provider.provider_name}</p>
+                  <p className={`text-[11px] mt-0.5 ${address ? "text-gray-700" : "text-amber-500 italic"}`}>
+                    {address || "Address required"}
+                  </p>
+                </div>
+
+                {/* Barcode placeholder */}
+                <div className="border-t border-gray-100 pt-2">
+                  <div className="h-2 bg-gradient-to-r from-gray-900 via-gray-400 to-gray-900 opacity-20 rounded-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mailing address section */}
+        <div className="px-6 pt-4">
+          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Mailing to</p>
+            {address ? (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-900">{address}</p>
+                <button
+                  type="button"
+                  onClick={() => setAddress("")}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Clear
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-amber-600 mb-2">No mailing address found</p>
+                {addressError && (
+                  <p className="text-xs text-red-500 mb-2">{addressError}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleFindAddress}
+                  disabled={findingAddress}
+                  className="px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-900 rounded-lg transition disabled:opacity-50"
+                >
+                  {findingAddress ? "Finding..." : "Find Address"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Cost notice */}
+        <div className="px-6 pt-3">
+          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+            <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <p className="text-xs text-amber-800">Estimated cost: <span className="font-semibold">$1.30</span> per postcard via PostGrid</p>
+          </div>
+        </div>
+
+        {/* Send button or sent analytics */}
+        {sent ? (
+          <div className="px-6 pt-4 pb-6">
+            <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
+                <span className="text-sm font-semibold text-teal-800">Postcard queued for printing</span>
+              </div>
+              <div className="divide-y divide-teal-100">
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-sm text-gray-700">Status</span>
+                  <span className="text-xs font-medium text-teal-600">Queued</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-sm text-gray-700">Est. delivery</span>
+                  <span className="text-xs text-gray-500">3-5 business days</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-sm text-gray-700">QR scanned</span>
+                  <span className="text-xs text-gray-400">Waiting</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-6 py-4">
+            {/* QR verification step */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Verify QR destination</p>
+              <a
+                href={profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:underline break-all"
+              >
+                {profileUrl.replace(/^https?:\/\//, "")}
+              </a>
+              <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={qrVerified}
+                  onChange={(e) => setQrVerified(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                />
+                <span className="text-xs text-gray-700">I confirm this QR links to the correct provider page</span>
+              </label>
+            </div>
+
+            {sendError && (
+              <p className="text-xs text-amber-600 mb-2">{sendError}</p>
+            )}
+            <button
+              type="button"
+              onClick={handleSendPostcard}
+              disabled={sending || !qrVerified || !address}
+              className="w-full py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sending ? "Sending..." : "Send Postcard via PostGrid"}
+            </button>
+            <p className="text-[10px] text-gray-400 text-center mt-2">
+              PostGrid will print, stamp, and mail via USPS. Tracking updates will appear here.
+            </p>
+          </div>
+        )}
+
+        </div>{/* end centered wrapper */}
+      </div>
+    </>
   );
 }
 
@@ -2940,6 +3681,32 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     });
   }, []);
 
+  // Fax preview state
+  const [faxPreviewProvider, setFaxPreviewProvider] = useState<OutreachProvider | null>(null);
+  // Track which providers have had fax sent (session-only, complements DB data)
+  const [faxSentSet, setFaxSentSet] = useState<Set<string>>(new Set());
+
+  const handleFaxSent = useCallback((providerId: string) => {
+    setFaxSentSet((prev) => {
+      const next = new Set(prev);
+      next.add(providerId);
+      return next;
+    });
+  }, []);
+
+  // Postcard preview state
+  const [postcardPreviewProvider, setPostcardPreviewProvider] = useState<OutreachProvider | null>(null);
+  // Track which providers have had postcard sent (session-only, complements DB data)
+  const [mailSentSet, setMailSentSet] = useState<Set<string>>(new Set());
+
+  const handleMailSent = useCallback((providerId: string) => {
+    setMailSentSet((prev) => {
+      const next = new Set(prev);
+      next.add(providerId);
+      return next;
+    });
+  }, []);
+
   // Fax/Mail analytics tracking (fetched from re-engage-list API)
   const [faxAnalyticsMap, setFaxAnalyticsMap] = useState<Map<string, FaxAnalytics>>(new Map());
   const [mailAnalyticsMap, setMailAnalyticsMap] = useState<Map<string, MailAnalytics>>(new Map());
@@ -3136,14 +3903,14 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               </div>
               {/* Channel tracking analytics */}
               <ChannelTracking
-                faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at}
+                faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at || faxSentSet.has(provider.provider_id)}
                 faxAnalytics={faxAnalyticsMap.get(provider.provider_id)}
                 faxNumber={provider.fax_number}
                 linkedinMessaged={linkedInContactsMap.get(provider.provider_id)?.some(c => c.messaged)}
                 linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
                 linkedinUrl={linkedInUrlMap.get(provider.provider_id)}
                 providerLinkedinUrl={providerLinkedInUrlMap.get(provider.provider_id)}
-                mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at}
+                mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at || mailSentSet.has(provider.provider_id)}
                 mailAnalytics={mailAnalyticsMap.get(provider.provider_id)}
                 claimed={claimedMap.get(provider.provider_id)?.claimed}
                 claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
@@ -3208,6 +3975,28 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               >
                 Archive
               </button>
+
+              {/* Send Fax button for fax channel */}
+              {provider.fax_number && provider.re_engage_channel === "fax" && (
+                <button
+                  type="button"
+                  onClick={() => setFaxPreviewProvider(provider)}
+                  className="px-2 py-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded transition-colors"
+                >
+                  Send Fax
+                </button>
+              )}
+
+              {/* Send Postcard button for direct_mail channel */}
+              {provider.re_engage_channel === "direct_mail" && (
+                <button
+                  type="button"
+                  onClick={() => setPostcardPreviewProvider(provider)}
+                  className="px-2 py-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors"
+                >
+                  Send Postcard
+                </button>
+              )}
 
               {/* LinkedIn expand toggle */}
               {provider.re_engage_channel === "linkedin" && (
@@ -3361,6 +4150,24 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
             </div>
           </div>
         </div>
+      )}
+
+      {/* Fax Preview Sidebar */}
+      {faxPreviewProvider && (
+        <FaxPreviewSidebar
+          provider={faxPreviewProvider}
+          onClose={() => setFaxPreviewProvider(null)}
+          onFaxSent={handleFaxSent}
+        />
+      )}
+
+      {/* Postcard Preview Sidebar */}
+      {postcardPreviewProvider && (
+        <PostcardPreviewSidebar
+          provider={postcardPreviewProvider}
+          onClose={() => setPostcardPreviewProvider(null)}
+          onMailSent={handleMailSent}
+        />
       )}
     </div>
   );

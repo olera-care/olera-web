@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-05 — Automation control center (`codex/automation-control-center`)
+
+Rebuilt `/admin/automations` as an operations-first control center: 35 current automations are grouped into seven systems, the retired `lead-response-nudge` is isolated in a read-only archive, current/paused/attention health is explicit, and search/channel/status filters remain available. Removed the oversized deliverability banner so the tools lead the hierarchy; restored **Expand all / Collapse all** with saved collapse state. System cards now drag-reorder (arrow-key fallback) and persist per admin across devices through `admin_users.automation_system_order`; migration 157 was applied by TJ. Pause/Resume now fails closed when Supabase returns an error.
+
+**Files:** `app/admin/automations/page.tsx`, both Automations API routes, `lib/crons/{systems,archive}.ts`, `lib/types.ts`, and migration 157. **Validation:** TypeScript, targeted ESLint, cron-registry check, diff check, system-map/order normalization tests, and local HTTP render pass. **Commits:** `b70d76db`, `588be96b`. **Next:** ready-for-review PR to `staging`; preview-QA drag persistence across refresh/device, bulk collapse, filters, archive replacement link, and narrow layout. Do not merge without TJ.
+
 ### 2026-08-05 — Admin activity metric + Automations detail UX (`codex/improve-admin-activity-automation-ux`)
 
 Added a Central-time-responsive **Provider Profile Edits** card to `/admin` using distinct canonical providers across the selected range, with matching trend support. Reworked `/admin/automations/[id]` around the family journey: the timeline now leads the Overview, the current step opens by default, operational detail is progressively disclosed, and message-performance complexity is collapsed. Follow-up accuracy review split Day 0 into **results email delivered** and the conditional **results-link text**, keeping it distinct from the later B1 companion text.

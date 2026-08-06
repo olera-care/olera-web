@@ -6048,7 +6048,20 @@ export default function ProviderOutreachPage() {
       {/* Page Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Provider Cold Outreach</h1>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Provider Cold Outreach</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage provider outreach sequence and follow-up channels.{" "}
+              <Link
+                href="/admin/automations/provider-outreach-send"
+                className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+                title="Open the Provider Outreach messaging journey in Automations"
+              >
+                View messaging journey
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </p>
+          </div>
           <div className="flex items-center gap-3">
             {/* Search input - only enabled when a state is selected */}
             {selectedState && (

@@ -250,7 +250,7 @@ export function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): stri
     case "followup":
       return "Your Profile";
     case "demand_loss":
-      return "Local Family Searches";
+      return "Why It's Free";
     case "final":
       return "Claim Your Page";
     case "nudge":

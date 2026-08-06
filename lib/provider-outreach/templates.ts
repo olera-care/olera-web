@@ -227,31 +227,31 @@ function followupEmail(): EmailDraft {
 }
 
 /**
- * Day 7: Demand-loss email
+ * Day 7: Free model email
  *
- * Creates urgency by showing real demand and emphasizing the risk of
- * missing family inquiries. Encourages turning on notifications.
+ * Explains why Olera is free and the value proposition for providers.
+ * Emphasizes no fees and direct family connections.
  *
- * Has fallback for low view counts (< 10) to avoid showing weak numbers.
- *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
-function demandLossEmail(hasDemandData: boolean): EmailDraft {
-  const headline = hasDemandData
-    ? `**${PLACEHOLDER.cityViews} families searched for ${PLACEHOLDER.category} near ${PLACEHOLDER.city} this month.**`
-    : `**Families in ${PLACEHOLDER.city} are searching for ${PLACEHOLDER.category} providers.**`;
-
+function demandLossEmail(_hasDemandData: boolean): EmailDraft {
+  // Note: hasDemandData parameter kept for backward compatibility but no longer used
   return {
-    subject: `A family has a question. Will you see it?`,
-    preheader: `Don't miss families ready to talk`,
+    subject: `Why we've made Olera free`,
     body: [
-      headline,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Imagine a daughter urgently searching for care for her mom. She finds ${PLACEHOLDER.providerName} and has a question before taking the next step. If she can't reach you, she'll find a provider she can.`,
+      `Throughout my time in senior care, I've seen how difficult finding the right care can be. Families deserve an easier way to connect with providers.`,
       ``,
-      `[Turn on notifications →](${PLACEHOLDER.claimUrl})`,
+      `That's why we built Olera.`,
       ``,
-      `Be the first to know when a family reaches out. Don't miss out on a family who could be ready to choose you.`,
+      `Claiming and managing your Olera profile is completely free. That means no referral fees, no pay-per-lead costs, and no subscription fees.`,
+      ``,
+      `[Review your page →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `We chose this model because we believe families should be in control of their care. Once your page is claimed, families can contact your team directly, have conversations sooner, and begin their next chapter with confidence.`,
+      ``,
+      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }

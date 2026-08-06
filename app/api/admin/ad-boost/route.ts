@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { countDeliveredByCampaign, countAdLandingsByCampaign, listLeadsByCampaign, getCampaignStats, getCampaignQuestions } from "@/lib/ad-boost/delivered.server";
 import { getCampaignReceipt } from "@/lib/ad-boost/receipts.server";
 import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notifications.server";
+import { nextBusinessSlotEt } from "@/lib/send-window";
 
 /**
  * Admin concierge queue for Provider Ad Boost (managed lead-gen).
@@ -15,6 +16,12 @@ import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notification
  *          provider immediately unless launched_email_scheduled_at is set —
  *          then the hourly ad-boost-launch-scheduler cron owns the send
  *          (send_launch_email: true fires it now and clears the schedule).
+ *          The flip to `ended` works the other way round: the promo-complete
+ *          wrap-up is ALWAYS parked at the next 10:15 AM ET business morning
+ *          (send_promo_complete_email: true fires it now), because that email
+ *          carries the subscribe ask and shouldn't land at whatever hour the
+ *          concierge happened to close the flight. Campaigns the
+ *          ad-boost-end-scheduler cron ends automatically take the same path.
  * DELETE — hard-delete one request by id (?id= or JSON body). Used to clear out
  *          test runs from the queue; real campaigns should be `cancelled`/`ended`
  *          via POST instead, but this is a deliberate scrub.
@@ -37,7 +44,7 @@ const AD_BOOST_EMAIL_TYPES = [
 ];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -271,6 +278,32 @@ export async function GET(request: NextRequest) {
   });
 }
 
+/**
+ * Validate an admin-supplied send time. The UI collects these as US Eastern
+ * wall-clock and converts to UTC before posting (lib/eastern-time.ts), so what
+ * arrives here is a plain UTC ISO string. `null` clears the schedule.
+ *
+ * The 30-day ceiling is a typo guard — a mis-keyed year would otherwise park
+ * an email past the heat death of the campaign.
+ */
+function parseScheduleAt(
+  value: unknown,
+  label: string,
+): { iso: string | null } | { error: string } {
+  if (value === null) return { iso: null };
+  if (typeof value !== "string") return { error: `${label} must be an ISO timestamp or null` };
+  const at = new Date(value);
+  if (Number.isNaN(at.getTime())) return { error: `${label} is not a valid timestamp` };
+  // 60s of slack: the operator's clock and ours can disagree by a few seconds.
+  if (at.getTime() < Date.now() - 60_000) {
+    return { error: `${label} is in the past. Pick a future US Eastern time.` };
+  }
+  if (at.getTime() > Date.now() + 30 * 24 * 60 * 60 * 1000) {
+    return { error: `${label} is more than 30 days out` };
+  }
+  return { iso: at.toISOString() };
+}
+
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -291,6 +324,8 @@ export async function POST(request: NextRequest) {
     flight_end_date?: unknown;
     launched_email_scheduled_at?: unknown;
     send_launch_email?: unknown;
+    promo_complete_email_scheduled_at?: unknown;
+    send_promo_complete_email?: unknown;
   };
   try {
     body = await request.json();
@@ -387,40 +422,30 @@ export async function POST(request: NextRequest) {
   // it once due. Null clears the schedule (the email then only goes out via
   // an explicit send_launch_email).
   if (body.launched_email_scheduled_at !== undefined) {
-    if (body.launched_email_scheduled_at === null) {
-      update.launched_email_scheduled_at = null;
-    } else {
-      if (typeof body.launched_email_scheduled_at !== "string") {
-        return NextResponse.json(
-          { error: "launched_email_scheduled_at must be an ISO timestamp or null" },
-          { status: 400 },
-        );
-      }
-      const at = new Date(body.launched_email_scheduled_at);
-      if (Number.isNaN(at.getTime())) {
-        return NextResponse.json(
-          { error: "launched_email_scheduled_at is not a valid timestamp" },
-          { status: 400 },
-        );
-      }
-      if (at.getTime() < Date.now() - 60_000) {
-        return NextResponse.json(
-          { error: "Launch email time is in the past. Pick a future US Eastern time." },
-          { status: 400 },
-        );
-      }
-      if (at.getTime() > Date.now() + 30 * 24 * 60 * 60 * 1000) {
-        return NextResponse.json(
-          { error: "Launch email time is more than 30 days out" },
-          { status: 400 },
-        );
-      }
-      update.launched_email_scheduled_at = at.toISOString();
-    }
+    const parsed = parseScheduleAt(body.launched_email_scheduled_at, "Launch email time");
+    if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
+    update.launched_email_scheduled_at = parsed.iso;
+  }
+
+  // Wrap-up (promo-complete) email schedule. Unlike the launch email this one
+  // is normally set for you — the flip to `ended` parks it at the next
+  // business morning — but the admin can re-time it to any US Eastern moment,
+  // or null it out to cancel the send entirely.
+  if (body.promo_complete_email_scheduled_at !== undefined) {
+    const parsed = parseScheduleAt(body.promo_complete_email_scheduled_at, "Wrap-up email time");
+    if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
+    update.promo_complete_email_scheduled_at = parsed.iso;
   }
 
   if (body.send_launch_email !== undefined && body.send_launch_email !== true) {
     return NextResponse.json({ error: "send_launch_email must be true when present" }, { status: 400 });
+  }
+
+  if (body.send_promo_complete_email !== undefined && body.send_promo_complete_email !== true) {
+    return NextResponse.json(
+      { error: "send_promo_complete_email must be true when present" },
+      { status: 400 },
+    );
   }
 
   // Soft delete (archive) / restore. `archived: true` sets deleted_at = now() so
@@ -476,6 +501,56 @@ export async function POST(request: NextRequest) {
     update.launched_email_scheduled_at = null;
   }
 
+  // Same two guards for the wrap-up: nothing to schedule or send once it's out.
+  if (current.promo_complete_email_sent_at) {
+    if (typeof update.promo_complete_email_scheduled_at === "string") {
+      return NextResponse.json(
+        { error: "Wrap-up email already sent — nothing to schedule" },
+        { status: 400 },
+      );
+    }
+    if (body.send_promo_complete_email === true) {
+      return NextResponse.json({ error: "Wrap-up email already sent" }, { status: 400 });
+    }
+  }
+
+  if (body.send_promo_complete_email === true) {
+    if (effectiveStatus !== "ended") {
+      return NextResponse.json(
+        { error: "Campaign must be ended to send the wrap-up email" },
+        { status: 400 },
+      );
+    }
+    // Sending now supersedes any stored schedule.
+    update.promo_complete_email_scheduled_at = null;
+  }
+
+  // Ending the campaign by hand. The wrap-up isn't fired here — it's parked at
+  // the next 10:15 AM ET business morning, the same slot the auto-end cron
+  // uses, so a flight closed out at midnight from Bangkok still reaches the
+  // provider over their coffee. "Send now" (above) is the override.
+  const endingNow = update.status === "ended" && current.status !== "ended";
+  if (endingNow) {
+    update.ended_at = new Date().toISOString();
+    update.ended_reason = "admin";
+    if (
+      !current.promo_complete_email_sent_at &&
+      body.send_promo_complete_email !== true &&
+      update.promo_complete_email_scheduled_at === undefined
+    ) {
+      update.promo_complete_email_scheduled_at = nextBusinessSlotEt();
+    }
+  }
+
+  // Un-ending a campaign (reopened, or ended by mistake) retracts the whole
+  // ending: the stamps go away and any pending wrap-up is cancelled rather
+  // than left to fire against a campaign that is live again.
+  if (update.status !== undefined && update.status !== "ended" && current.status === "ended") {
+    update.ended_at = null;
+    update.ended_reason = null;
+    update.promo_complete_email_scheduled_at = null;
+  }
+
   // When launching (status -> live) with no tag yet, default the campaign_tag to
   // the request id so attribution always has a stable, persisted key. The admin
   // page always sends campaign_tag (null when the field is empty), so we resolve
@@ -527,7 +602,10 @@ export async function POST(request: NextRequest) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "traction" }));
   }
 
-  if (data.status === "ended" && current.status !== "ended") {
+  // The wrap-up only fires inline on the explicit Send-now override. An
+  // ordinary flip to `ended` leaves it to the hourly ad-boost-end-scheduler
+  // cron at the scheduled slot — see the endingNow block above.
+  if (body.send_promo_complete_email === true) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "promo_complete" }));
   }
 

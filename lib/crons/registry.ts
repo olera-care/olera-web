@@ -132,10 +132,27 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/ad-boost",
   },
   {
+    id: "ad-boost-end-scheduler",
+    name: "Ad Boost — auto-end + scheduled wrap-ups",
+    description:
+      "Two rungs. 1: auto-end — a live campaign whose flight_end_date has passed flips to `ended` (flight_end_date is the LAST serving day, so the flip waits until the Eastern calendar rolls past it) and its wrap-up email is parked at the next 10:15 AM ET business morning. 2: send — fires the promo-complete wrap-up (demand receipt + subscribe ask) once that slot is due, through the same idempotent path as the admin's Send-now, so it can never double-fire. Campaigns with no flight_end_date never auto-end; the Slack summary counts them so the gap stays visible.",
+    recipientCohort:
+      "Providers of ended campaigns whose wrap-up email is unsent and whose promo_complete_email_scheduled_at is due.",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "40 * * * *",
+    humanSchedule: "Hourly, at :40",
+    path: "/api/cron/ad-boost-end-scheduler",
+    emailTypes: ["ad_boost_promo_complete"],
+    successSignal:
+      "Flights close themselves on time and the subscribe ask lands in a business morning instead of whenever the flight happened to expire.",
+    relatedAdminPath: "/admin/ad-boost",
+  },
+  {
     id: "ad-boost-emails",
     name: "Ad Boost lifecycle events",
     description:
-      "Event-driven Ad Boost messages: request receipt, immediate campaign launch, campaign-attributed lead, early traction, and starter-promo wrap-up. The full provider journey also includes readiness/outcome work from the daily job and timed launches from the hourly scheduler.",
+      "Event-driven Ad Boost messages: request receipt, immediate campaign launch, campaign-attributed lead, and early traction. The starter-promo wrap-up appears here too, but only via the admin's explicit Send-now — a normal end schedules it for the hourly end-scheduler instead. The full provider journey also includes readiness/outcome work from the daily job and timed launches from the hourly launch scheduler.",
     recipientCohort:
       "Providers who request, queue, launch, or receive activity from Find Families managed-ad campaigns.",
     audience: "Providers",

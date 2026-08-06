@@ -198,11 +198,15 @@ function actualState(step: JourneyStep, detail: CampaignDetail | null): StepStat
         : { label: "Not due", tone: "muted" };
     case "promo_complete":
       return markerState(request.promo_complete_email_sent_at) ??
-        (status === "live"
-          ? { label: "Campaign in flight", tone: "active" }
-          : status === "ended"
-            ? { label: "Awaiting send", tone: "waiting" }
-            : { label: "Not due", tone: "muted" });
+        (request.promo_complete_email_scheduled_at
+          ? { label: "Scheduled", detail: scheduledFor(request.promo_complete_email_scheduled_at), tone: "scheduled" }
+          : status === "live"
+            ? { label: "Campaign in flight", tone: "active" }
+            : status === "ended"
+              // Ended with no schedule and nothing sent: either the send was
+              // cancelled, or the campaign ended before auto-end existed.
+              ? { label: "No send scheduled", tone: "waiting" }
+              : { label: "Not due", tone: "muted" });
     case "plan_decision":
       if (request.plan_status) return { label: request.plan_status.replace("_", " "), tone: request.plan_status === "active" ? "sent" : "waiting" };
       if ((request.delivered ?? 0) >= 3 || request.promo_complete_email_sent_at) return { label: "Decision open", tone: "active" };

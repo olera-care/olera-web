@@ -39,7 +39,7 @@ import {
   type NamedContact,
 } from "@/lib/medjobs/smartlead-bridge";
 import { getLeadByEmail, resumeLeadInCampaign } from "@/lib/smartlead";
-import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
+import { nextBusinessDayET } from "@/lib/business-day";
 import { CLOSED_STATUSES } from "@/lib/student-outreach/types";
 import { decisionMakerEmailRecipients } from "@/lib/student-outreach/decision-makers";
 import { getProviderOwnership } from "@/lib/providers/ownership.server";

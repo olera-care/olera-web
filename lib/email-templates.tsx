@@ -473,6 +473,16 @@ export function adBoostTractionEmail(opts: {
   );
 }
 
+/**
+ * One-tap answer chip for the outcome sensors. Equal weight by design — none
+ * is styled as primary, so the button treatment doesn't bias which answer a
+ * provider gives. Shared by the per-lead and per-campaign asks so the two
+ * never drift apart visually.
+ */
+function outcomeChip(label: string, href: string): string {
+  return `<a href="${href}" style="display:block;text-align:center;padding:16px 24px;background:#ffffff;color:${BRAND_COLOR};font-size:15px;font-weight:600;text-decoration:none;border:1.5px solid ${BRAND_COLOR};border-radius:12px;box-shadow:0 1px 2px rgba(42,24,16,0.05);">${escapeHtml(label)}</a>`;
+}
+
 export function adBoostPromoCompleteEmail(opts: {
   providerName: string;
   ctaUrl: string;
@@ -486,6 +496,12 @@ export function adBoostPromoCompleteEmail(opts: {
   saves?: number | null;
   questionsReceived?: number | null;
   clientOutcomes?: number | null;
+  /**
+   * One-tap campaign-outcome URLs. Present only for zero-lead flights, where
+   * the per-lead sensor never fires (outcome-pings bails with no lead rows) and
+   * our family count is therefore unverified rather than known-zero.
+   */
+  outcomeUrls?: { client: string; talking: string; no: string } | null;
 }): string {
   const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : "—";
   const costPerFamily =
@@ -526,7 +542,24 @@ export function adBoostPromoCompleteEmail(opts: {
   // The honest volume math for zero-lead flights with known clicks.
   const mathLine =
     !gotLeads && opts.clicks != null && opts.clicks > 0
-      ? `<p style="font-size:14px;color:#6b7280;margin:0 0 18px;line-height:1.6;">For context: in senior care, about 1 in every 30 ad clicks becomes an inquiry, and families often compare for weeks before reaching out. Your flight bought ${opts.clicks.toLocaleString()} clicks, so this window came down to volume, not interest. The families above have seen you, and you are now in their consideration set.</p>`
+      ? `<p style="font-size:14px;color:#6b7280;margin:0 0 18px;line-height:1.6;">For context: in senior care, about 1 in every 30 ad clicks becomes an inquiry, and families often compare for weeks before reaching out. Your flight bought ${opts.clicks.toLocaleString()} clicks, so if nobody has called yet, that is usually volume rather than interest. The families above have seen you, and you are now in their consideration set.</p>`
+      : "";
+  // The blind spot, asked out loud. Our family count only ever sees people who
+  // contacted the provider THROUGH Olera; a family who dialled the office after
+  // clicking the ad is invisible to us. Franchil's $36.50 flight produced a
+  // real paying client that way and we reported zero. The per-lead sensor
+  // can't cover it (no lead row to hang the question on), so a zero-lead
+  // wrap-up asks the provider directly instead of asserting a number we can't
+  // actually stand behind.
+  const outcomeAsk =
+    !gotLeads && opts.outcomeUrls
+      ? `<div style="border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:0 0 22px;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#111827;margin:0 0 8px;line-height:1.3;">Did a family reach you directly?</p>
+      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">The count above only sees families who contacted you through Olera. If someone called your office or used your own website after seeing your ad, we have no way to know. One tap tells us what actually happened.</p>
+      <div style="margin:0 0 10px;">${outcomeChip("Yes, and they became a client", opts.outcomeUrls.client)}</div>
+      <div style="margin:0 0 10px;">${outcomeChip("Yes, we're talking now", opts.outcomeUrls.talking)}</div>
+      <div>${outcomeChip("No, nobody reached out", opts.outcomeUrls.no)}</div>
+    </div>`
       : "";
   const budgetLine = !gotLeads
     ? "We&rsquo;ll tune your page, adjust the ads, and run another window on us. Nothing to pay. If you&rsquo;d rather not wait, a monthly plan runs the same campaign at several times the volume."
@@ -555,7 +588,12 @@ export function adBoostPromoCompleteEmail(opts: {
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">${
+            // A zero here only ever means "none THROUGH Olera" — a family who
+            // dialled their office is invisible to us. Name which one we mean
+            // rather than letting a 0 read as a verdict on the whole flight.
+            gotLeads ? "Families" : "Inquiries via Olera"
+          }</p>
         </td>
       </tr>
       <tr>
@@ -574,6 +612,10 @@ export function adBoostPromoCompleteEmail(opts: {
       </tr>
     </table>
     ${receiptBlock}
+    ${/* Ask before interpreting. The math line below concludes that the flight
+          came down to volume, which is only sound once the provider has told
+          us nobody called them. Question first, reading of it second. */ ""}
+    ${outcomeAsk}
     ${mathLine}
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${budgetLine}</p>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
@@ -611,8 +653,6 @@ export function adBoostLeadOutcomeEmail(opts: {
   /** True on the ~21 day follow-up so the copy acknowledges the earlier ask. */
   isFollowUp?: boolean;
 }): string {
-  const chip = (label: string, href: string) =>
-    `<a href="${href}" style="display:block;text-align:center;padding:16px 24px;background:#ffffff;color:${BRAND_COLOR};font-size:15px;font-weight:600;text-decoration:none;border:1.5px solid ${BRAND_COLOR};border-radius:12px;box-shadow:0 1px 2px rgba(42,24,16,0.05);">${escapeHtml(label)}</a>`;
   const about = opts.careNeed ? ` about ${escapeHtml(opts.careNeed.toLowerCase())}` : "";
   const opener = opts.isFollowUp
     ? `A few weeks ago a family reached out${about} through your Find Families campaign (${escapeHtml(opts.leadDate)}). Checking in one more time:`
@@ -623,9 +663,9 @@ export function adBoostLeadOutcomeEmail(opts: {
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Find Families campaign</p>
     <p style="font-size:15px;color:#374151;margin:0 0 22px;line-height:1.65;">${opener}</p>
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#111827;margin:0 0 18px;line-height:1.3;">Did this family become a client?</p>
-    <div style="margin:0 0 12px;">${chip("Yes, they became a client", opts.clientUrl)}</div>
-    <div style="margin:0 0 12px;">${chip("We're still talking", opts.talkingUrl)}</div>
-    <div style="margin:0 0 12px;">${chip("It didn't work out", opts.noUrl)}</div>
+    <div style="margin:0 0 12px;">${outcomeChip("Yes, they became a client", opts.clientUrl)}</div>
+    <div style="margin:0 0 12px;">${outcomeChip("We're still talking", opts.talkingUrl)}</div>
+    <div style="margin:0 0 12px;">${outcomeChip("It didn't work out", opts.noUrl)}</div>
     <p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.6;">One tap is all it takes. Your answer goes on your campaign results for ${escapeHtml(opts.providerName)}, so the numbers show what actually happened, not just clicks.</p>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">

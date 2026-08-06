@@ -26,7 +26,7 @@ import {
 } from "./cadence";
 import { onStageEnter } from "./state-machine";
 import { getTemplate } from "./templates";
-import { nextBusinessDayET } from "./business-day";
+import { nextBusinessDayET } from "@/lib/business-day";
 import type { Contact, StakeholderType } from "./types";
 
 const DAY_MS = 86_400_000;

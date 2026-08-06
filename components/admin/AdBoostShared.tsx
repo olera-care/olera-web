@@ -42,6 +42,19 @@ export interface CampaignRequest {
   launched_email_scheduled_at?: string | null;
   traction_email_sent_at?: string | null;
   promo_complete_email_sent_at?: string | null;
+  /** When the wrap-up email is due to go out (UTC; a 10:15 AM ET business
+   *  morning). Set on the flip to `ended`, cleared once it sends. */
+  promo_complete_email_scheduled_at?: string | null;
+  /** When the campaign moved to `ended`, and by whom: `admin` (a concierge
+   *  flipped it) or `flight_end` (the cron, the morning after the last
+   *  serving day). NULL on rows that ended before these were tracked. */
+  ended_at?: string | null;
+  ended_reason?: "admin" | "flight_end" | null;
+  /** Provider's own answer for the whole flight, captured one-tap from the
+   *  zero-lead wrap-up: did any family reach them outside Olera. NULL = never
+   *  answered, which is NOT the same as an answer of "no". */
+  provider_reported_outcome?: "client" | "talking" | "no" | null;
+  provider_reported_outcome_at?: string | null;
   /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
   plan_status?: "active" | "past_due" | "canceled" | null;
   /** Subscribed monthly plan in whole USD (150/300/600). */

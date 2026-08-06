@@ -53,9 +53,18 @@ COMMENT ON COLUMN ad_campaign_requests.provider_reported_outcome_at IS
 
 -- New provider_activity event type. The CHECK constraint rejects unlisted
 -- values, and the insert fails SILENTLY from the app's perspective unless the
--- allowlist is extended here first — the whole list must be restated because
--- Postgres has no "add value to CHECK" verb. Carried forward verbatim from
--- migration 149 plus the one new entry at the end.
+-- allowlist is extended here first. Postgres has no "add value to CHECK" verb,
+-- so the entire list must be restated.
+--
+-- BASE: migration 156 (referral_tool_events), the most recent rewrite -- NOT
+-- 149, which is merely the last one that happened to mention Ad Boost. 155 and
+-- 156 both rewrote this constraint after 149, so building on 149 silently drops
+-- one_click_failed, referral_call_clicked and referral_source_viewed and the
+-- ALTER then fails against existing rows. Verified against the live table:
+-- these 74 values cover every event_type present.
+--
+-- If you add another event type later, base it on THIS migration, not on
+-- whichever one you last edited.
 ALTER TABLE provider_activity DROP CONSTRAINT IF EXISTS provider_activity_event_type_check;
 
 ALTER TABLE provider_activity ADD CONSTRAINT provider_activity_event_type_check CHECK (
@@ -68,6 +77,7 @@ ALTER TABLE provider_activity ADD CONSTRAINT provider_activity_event_type_check 
     'question_responded',
     'review_viewed',
     'one_click_access',
+    'one_click_failed',
     'contact_revealed',
     'phone_clicked',
     'email_link_clicked',
@@ -89,6 +99,8 @@ ALTER TABLE provider_activity ADD CONSTRAINT provider_activity_event_type_check 
     'matches_outreach_sent',
     'market_diagnostic_viewed_no_leads',
     'market_outreach_status_updated',
+    'referral_source_viewed',
+    'referral_call_clicked',
     'managed_ads_pitch_viewed',
     'managed_ads_cta_clicked',
     'managed_ads_boost_viewed',

@@ -27,7 +27,12 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
     key: "ad-boost",
     label: "Ad Boost",
     description: "Move campaigns from request through launch, delivery, and outcome follow-up.",
-    jobIds: ["ad-boost-profile-reminders", "ad-boost-launch-scheduler", "ad-boost-emails"],
+    jobIds: [
+      "ad-boost-profile-reminders",
+      "ad-boost-launch-scheduler",
+      "ad-boost-end-scheduler",
+      "ad-boost-emails",
+    ],
   },
   {
     key: "lead-response",

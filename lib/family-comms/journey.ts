@@ -405,6 +405,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
         "Provider is added to outreach sequence. First email explains Olera, " +
         "shows their free profile exists, and invites them to claim it.",
       emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_intro",
       ownedBy: "provider-outreach-send",
     },
     {
@@ -416,6 +417,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
         "Follow-up emphasizing how a complete profile helps families feel " +
         "confident choosing this provider.",
       emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_followup",
       ownedBy: "provider-outreach-send",
     },
     {
@@ -427,6 +429,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
         "Explains the free model — no referral fees, no pay-per-lead, " +
         "direct family connections.",
       emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_demand_loss",
       ownedBy: "provider-outreach-send",
     },
     {
@@ -437,6 +440,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       description:
         "Final push focusing on the verified badge as a trust signal for families.",
       emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_final",
       ownedBy: "provider-outreach-send",
     },
     // ── Follow Up ───────────────────────────────────────────────────────

@@ -73,6 +73,7 @@ import {
   adBoostPromoCompleteEmail,
   adBoostLeadOutcomeEmail,
 } from "@/lib/email-templates";
+import { renderEmail as renderProviderOutreachEmail } from "@/lib/provider-outreach/email-utils";
 
 export interface EmailVariant {
   /** Stable slug — used in URLs and the automations ?variant= param. */
@@ -152,6 +153,24 @@ const SAMPLE_BASE = {
   topSource: "Google search",
 };
 const SAMPLE_LINK = "https://olera.care/provider/evergreen-home-care/onboard";
+
+// ── Provider outreach fixtures (cold sequence Day 0/3/7/14) ──────────────────
+const OUTREACH_CTX = {
+  provider_name: "Sunrise Senior Care",
+  city: "Austin",
+  state: "TX",
+  category: "home_care_agency",
+  rank: 5,
+  total: 23,
+  city_views: 142,
+  gap_list: "• Photos\n• Services offered\n• Pricing",
+  profile_url: "https://olera.care/care/austin/home-care/sunrise-senior-care",
+  claim_url: "https://olera.care/claim?tok=sample",
+  manage_url: "https://olera.care/manage?tok=sample",
+  remove_url: "https://olera.care/remove?tok=sample",
+  unsubscribe_url: "https://olera.care/unsubscribe?tok=sample",
+  mailing_address: "340 S Lemon Ave #1439, Walnut, CA 91789",
+};
 
 export const EMAIL_VARIANTS: EmailVariant[] = [
   // ─────────────── Family · Compare cascade (the coordinator) ───────────────
@@ -841,6 +860,60 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       talkingUrl: "https://olera.care/provider/lead-outcome?cid=sample&v=talking",
       noUrl: "https://olera.care/provider/lead-outcome?cid=sample&v=no",
     }),
+  },
+
+  // ─────────────── Provider · Outreach sequence (cold claim funnel) ───────────────
+  {
+    id: "provider_outreach_intro",
+    audience: "provider",
+    group: "Provider · Outreach sequence",
+    label: "Day 0 · Introduction",
+    subject: "Your Sunrise Senior Care profile on Olera",
+    emailType: "provider_outreach_sequence",
+    timing: "Day 0 · Provider enrolled",
+    cron: "provider-outreach-send",
+    who: "Unclaimed provider added to the outreach sequence.",
+    why: "Introduce Olera, show their free profile exists, and invite them to claim it.",
+    render: () => renderProviderOutreachEmail("intro", OUTREACH_CTX).html,
+  },
+  {
+    id: "provider_outreach_followup",
+    audience: "provider",
+    group: "Provider · Outreach sequence",
+    label: "Day 3 · Family Confidence",
+    subject: "Families are looking for care in Austin",
+    emailType: "provider_outreach_sequence",
+    timing: "Day 3",
+    cron: "provider-outreach-send",
+    who: "Provider who hasn't claimed after the intro email.",
+    why: "Emphasize how a complete profile helps families feel confident choosing this provider.",
+    render: () => renderProviderOutreachEmail("followup", OUTREACH_CTX).html,
+  },
+  {
+    id: "provider_outreach_demand_loss",
+    audience: "provider",
+    group: "Provider · Outreach sequence",
+    label: "Day 7 · Why It's Free",
+    subject: "142 families searched for care in Austin this month",
+    emailType: "provider_outreach_sequence",
+    timing: "Day 7",
+    cron: "provider-outreach-send",
+    who: "Provider who hasn't claimed after the followup email.",
+    why: "Explain the free model — no referral fees, no pay-per-lead, direct family connections.",
+    render: () => renderProviderOutreachEmail("demand_loss", OUTREACH_CTX).html,
+  },
+  {
+    id: "provider_outreach_final",
+    audience: "provider",
+    group: "Provider · Outreach sequence",
+    label: "Day 14 · Get Verified",
+    subject: "Last chance to claim your Sunrise Senior Care profile",
+    emailType: "provider_outreach_sequence",
+    timing: "Day 14",
+    cron: "provider-outreach-send",
+    who: "Provider who hasn't claimed after the demand loss email.",
+    why: "Final push focusing on the verified badge as a trust signal for families.",
+    render: () => renderProviderOutreachEmail("final", OUTREACH_CTX).html,
   },
 ];
 

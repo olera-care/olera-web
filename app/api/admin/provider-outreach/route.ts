@@ -117,6 +117,9 @@ interface TrackingRow {
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at: string | null;
   generic_email_skipped_at: string | null;
+  // Confirmation state (Ready tab)
+  confirmed_at: string | null;
+  confirmed_by: string | null;
 }
 
 export interface OutreachProvider {
@@ -169,6 +172,9 @@ export interface OutreachProvider {
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at?: string | null;
   generic_email_skipped_at?: string | null;
+  // Confirmation state (Ready tab)
+  confirmed_at?: string | null;
+  confirmed_by?: string | null;
 }
 
 /**
@@ -676,6 +682,9 @@ async function getNotContactedProviders(
         // Generic email warning state (from tracking if exists)
         generic_email_called_at: tracking?.generic_email_called_at ?? null,
         generic_email_skipped_at: tracking?.generic_email_skipped_at ?? null,
+        // Confirmation state (Ready tab)
+        confirmed_at: tracking?.confirmed_at ?? null,
+        confirmed_by: tracking?.confirmed_by ?? null,
       };
     });
 
@@ -1297,6 +1306,9 @@ async function searchProviders(
       // Generic email warning state (from tracking if available)
       generic_email_called_at: tracking?.generic_email_called_at ?? null,
       generic_email_skipped_at: tracking?.generic_email_skipped_at ?? null,
+      // Confirmation state (Ready tab)
+      confirmed_at: tracking?.confirmed_at ?? null,
+      confirmed_by: tracking?.confirmed_by ?? null,
     };
   });
 

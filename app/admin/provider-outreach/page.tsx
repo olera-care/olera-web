@@ -1554,6 +1554,9 @@ interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
+  // Confirmation state (Ready tab)
+  confirmed_at: string | null;
+  confirmed_by: string | null;
   // Follow-up queue fields
   due_date: string | null;
   resend_count: number;

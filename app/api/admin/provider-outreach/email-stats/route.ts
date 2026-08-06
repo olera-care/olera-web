@@ -31,13 +31,13 @@ interface TemplateStats {
 const SEQUENCE_STEP_MAP: Record<number, { template_key: string; name: string }> = {
   1: { template_key: "intro", name: "Day 0 — Introduction" },
   2: { template_key: "followup", name: "Day 3 — Family Confidence" },
-  3: { template_key: "demand_loss", name: "Day 7 — Why It's Free" },
-  4: { template_key: "final", name: "Day 14 — Get Verified" },
+  3: { template_key: "demand_loss", name: "Day 5 — Why It's Free" },
+  4: { template_key: "final", name: "Day 7 — Get Verified" },
 };
 
 // Cadence days for inferring sequence_step from timing
 // If email sent on day X since enrollment, which step is it?
-const CADENCE_DAYS = [0, 3, 7, 14]; // Day 0, 3, 7, 14
+const CADENCE_DAYS = [0, 3, 5, 7]; // Day 0, 3, 5, 7
 
 /**
  * Infer sequence_step from days since enrollment.
@@ -59,8 +59,8 @@ function inferSequenceStep(daysSinceEnrollment: number): number {
 const TEMPLATE_INFO: Record<string, { name: string; sequence_step: number | null }> = {
   intro: { name: "Day 0 — Introduction", sequence_step: 1 },
   followup: { name: "Day 3 — Family Confidence", sequence_step: 2 },
-  demand_loss: { name: "Day 7 — Why It's Free", sequence_step: 3 },
-  final: { name: "Day 14 — Get Verified", sequence_step: 4 },
+  demand_loss: { name: "Day 5 — Why It's Free", sequence_step: 3 },
+  final: { name: "Day 7 — Get Verified", sequence_step: 4 },
   nudge: { name: "Nudge — Free Profile", sequence_step: null },
 };
 

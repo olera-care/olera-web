@@ -2,13 +2,13 @@
  * Provider Outreach Cadence Configuration
  *
  * Defines the email sequence timing for provider cold outreach.
- * Each provider goes through a 4-email sequence:
- *   Day 0: Intro email
- *   Day 3: Follow-up email (profile gaps)
- *   Day 7: Demand-loss email (family views, unanswered questions)
- *   Day 14: Summary email (everything in one place)
+ * Each provider goes through a 4-email sequence over 7 days:
+ *   Day 0: Introduction email
+ *   Day 3: Family Confidence email
+ *   Day 5: Why It's Free email
+ *   Day 7: Get Verified email
  *
- * After the final email (Day 14) with no claim, the provider moves to
+ * After the final email (Day 7) with no claim, the provider moves to
  * "needs_call" stage for manual follow-up.
  *
  * Note: The "nudge" template is standalone (not in cadence) — used by
@@ -29,6 +29,8 @@ export interface CadenceStep {
 /**
  * The email cadence sequence.
  * Array index = step number (0-indexed).
+ *
+ * Cadence: Day 0, 3, 5, 7 (7-day total sequence)
  */
 export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
   {
@@ -42,14 +44,14 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
     description: "Follow-up email - profile gaps and value",
   },
   {
-    day: 7,
+    day: 5,
     templateKey: "demand_loss",
-    description: "Demand-loss - what families couldn't ask you",
+    description: "Why it's free - no fees, direct family connections",
   },
   {
-    day: 14,
+    day: 7,
     templateKey: "final",
-    description: "Summary - everything in one place",
+    description: "Get verified - trust badge for families",
   },
 ];
 

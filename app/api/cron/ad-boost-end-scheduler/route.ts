@@ -40,6 +40,18 @@ export const maxDuration = 300;
 const MAX_ENDS_PER_RUN = 25;
 const MAX_SENDS_PER_RUN = 20;
 
+/**
+ * Skip reasons that clear on their own, so the schedule is kept and retried.
+ * Everything else sendEmail can report (preference_disabled, do_not_contact,
+ * suppressed) is a standing state that hourly retries would only re-hit.
+ *
+ * `nudge_cap` is a rolling 7-day per-provider ceiling. ad_boost_promo_complete
+ * isn't in NUDGE_EMAIL_TYPES today, but lib/email-governance.ts says that
+ * catalog is being expanded — and a wrap-up dropped for good because the
+ * provider got three digests that week is the subscribe ask silently lost.
+ */
+const RETRYABLE_SKIPS = new Set(["send_failed", "reservation_failed", "nudge_cap"]);
+
 const SEND_ROW_SELECT =
   "id, provider_id, provider_slug, display_name, requested_setup_week, channel, campaign_tag, intended_monthly_budget, ad_spend_cents, ad_clicks, ad_impressions, created_at";
 
@@ -156,7 +168,7 @@ export async function GET(request: NextRequest) {
             .from("ad_campaign_requests")
             .update({ promo_complete_email_scheduled_at: null })
             .eq("id", row.id);
-        } else if (result.skipped === "send_failed" || result.skipped === "reservation_failed") {
+        } else if (result.skipped && RETRYABLE_SKIPS.has(result.skipped)) {
           // Transient — the sent-marker was rolled back (or never set), so
           // keeping the schedule retries next hour.
           counts.blocked++;

@@ -136,6 +136,18 @@ function Detail({
     ? toEtInputValue(new Date(request.promo_complete_email_scheduled_at))
     : "";
   const [wrapUpAt, setWrapUpAt] = useState(storedWrapUpAt);
+  // The SERVER picks this slot on the flip to `ended` — unlike every other
+  // field here, it can change without the operator typing anything, and this
+  // component is re-rendered (not remounted) after a save, so the useState
+  // initializer above never sees it. Re-sync on change, React's adjust-state-
+  // during-render pattern. Without this the input sits blank next to a
+  // "Scheduled for…" banner and the very next save posts null, silently
+  // cancelling the wrap-up.
+  const [wrapUpBaseline, setWrapUpBaseline] = useState(storedWrapUpAt);
+  if (wrapUpBaseline !== storedWrapUpAt) {
+    setWrapUpBaseline(storedWrapUpAt);
+    setWrapUpAt(storedWrapUpAt);
+  }
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);

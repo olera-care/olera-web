@@ -181,7 +181,7 @@ function introEmail(): EmailDraft {
       ``,
       `As a physician, I've seen how difficult it can be for families to navigate senior care. That's why we created Olera. With support from the NIH, we're building a free referral platform that helps families discover trusted senior care providers.`,
       ``,
-      `As part of that, we've already created a **free** profile for ${PLACEHOLDER.providerName} using publicly available information. It's ready for your team to review and manage, making it easier for families to find your services.`,
+      `As part of that, we've already created a **free profile** for ${PLACEHOLDER.providerName} using publicly available information. It's ready for your team to review and manage, making it easier for families to find your services.`,
       ``,
       `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
       ``,

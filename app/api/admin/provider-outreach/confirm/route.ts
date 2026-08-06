@@ -85,18 +85,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Provider not found" }, { status: 404 });
       }
 
-      // Log audit action for new tracking record
-      await logAuditAction({
-        adminUserId: adminUser.id,
-        action: "confirm_provider_ready",
-        targetType: "provider",
-        targetId: provider_id,
-        details: {
-          provider_name: provider.provider_name,
-          created_tracking_record: true,
-        },
-      });
-
       // Create new tracking record with confirmation
       const { error: insertError } = await db
         .from("provider_outreach_tracking")
@@ -113,6 +101,18 @@ export async function POST(request: NextRequest) {
         console.error("[confirm] Tracking insert error:", insertError);
         return NextResponse.json({ error: "Failed to confirm provider" }, { status: 500 });
       }
+
+      // Log audit action after successful insert
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "confirm_provider_ready",
+        targetType: "provider",
+        targetId: provider_id,
+        details: {
+          provider_name: provider.provider_name,
+          created_tracking_record: true,
+        },
+      });
     }
 
     return NextResponse.json({

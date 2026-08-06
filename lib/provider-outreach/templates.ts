@@ -260,24 +260,27 @@ function demandLossEmail(_hasDemandData: boolean): EmailDraft {
  * Day 14: Final email
  *
  * Focuses on the Verified badge as a trust signal for families.
- * Simple, focused message about building confidence.
+ * Personal tone with medical school trust story from Logan.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
 function finalEmail(): EmailDraft {
   return {
-    subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
-    preheader: `Give families confidence to reach out`,
+    subject: `Show families ${PLACEHOLDER.providerName} is verified`,
     body: [
-      `**Your page still isn't verified.**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Choosing senior care is one of the biggest decisions a family will ever make. Families need to know they're connecting with a real person they can trust.`,
+      `One of the first things we learn in medical school is that trust is the foundation of every patient relationship.`,
       ``,
-      `A Verified badge gives them that confidence. It shows that a member of the ${PLACEHOLDER.providerName} team has confirmed the information is accurate.`,
+      `The same is true in senior care. Before families ever pick up the phone or schedule a tour, they want peace of mind that they're connecting with the right provider.`,
       ``,
-      `[Get your Verified badge →](${PLACEHOLDER.claimUrl})`,
+      `That's why we recommend verifying your Olera profile to display a verified badge, letting families know your information has been reviewed and confirmed by your team.`,
       ``,
-      `It only takes about two minutes and helps families feel at ease when they're ready to reach out.`,
+      `[Get your verified badge →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `It's a small step that helps build trust before the very first conversation.`,
+      ``,
+      `If you have any questions or need help getting verified, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }

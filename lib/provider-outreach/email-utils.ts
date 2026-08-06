@@ -252,7 +252,7 @@ export function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): stri
     case "demand_loss":
       return "Why It's Free";
     case "final":
-      return "Claim Your Page";
+      return "Get Verified";
     case "nudge":
       return "Your Claim Link";
     default:

@@ -2469,6 +2469,7 @@ function CityRow({
   // Track providers that admin has confirmed (Ready tab)
   const [confirmedProviders, setConfirmedProviders] = useState<Set<string>>(new Set());
   const [confirmingProvider, setConfirmingProvider] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
   const cityProviders = useMemo(
@@ -2738,38 +2739,52 @@ function CityRow({
                                   </svg>
                                 </span>
                               ) : (
-                                <button
-                                  type="button"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    setConfirmingProvider(provider.provider_id);
-                                    try {
-                                      const res = await fetch("/api/admin/provider-outreach/confirm", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ provider_id: provider.provider_id }),
-                                      });
-                                      if (res.ok) {
-                                        setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setConfirmingProvider(provider.provider_id);
+                                      setConfirmError(null);
+                                      try {
+                                        const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ provider_id: provider.provider_id }),
+                                        });
+                                        if (res.ok) {
+                                          setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                        } else {
+                                          setConfirmError(provider.provider_id);
+                                        }
+                                      } catch {
+                                        setConfirmError(provider.provider_id);
+                                      } finally {
+                                        setConfirmingProvider(null);
                                       }
-                                    } finally {
-                                      setConfirmingProvider(null);
-                                    }
-                                  }}
-                                  disabled={confirmingProvider === provider.provider_id}
-                                  className="text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-50"
-                                  title="Click to confirm"
-                                >
-                                  {confirmingProvider === provider.provider_id ? (
-                                    <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
-                                  ) : (
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
-                                      <circle cx="10" cy="10" r="7.5" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
-                                    </svg>
+                                    }}
+                                    disabled={confirmingProvider === provider.provider_id}
+                                    className={`transition-colors disabled:opacity-50 ${
+                                      confirmError === provider.provider_id
+                                        ? "text-red-500 hover:text-red-600"
+                                        : "text-gray-400 hover:text-blue-500"
+                                    }`}
+                                    title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
+                                  >
+                                    {confirmingProvider === provider.provider_id ? (
+                                      <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                    ) : (
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
+                                        <circle cx="10" cy="10" r="7.5" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                  {confirmError === provider.provider_id && (
+                                    <span className="text-xs text-red-500">Failed</span>
                                   )}
-                                </button>
+                                </>
                               )
                             )}
                           </div>
@@ -2852,8 +2867,24 @@ function CityRow({
                                 emailSource={foundEmails.get(provider.provider_id)?.source}
                                 emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
                                 phone={provider.phone}
-                                onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
-                                onPhoneUpdate={(newPhone) => onPhoneSaved(provider.provider_id, newPhone)}
+                                onEmailUpdate={(newEmail) => {
+                                  // Clear local confirmation state since contact info changed
+                                  setConfirmedProviders(prev => {
+                                    const next = new Set(prev);
+                                    next.delete(provider.provider_id);
+                                    return next;
+                                  });
+                                  onEmailSaved(provider.provider_id, newEmail);
+                                }}
+                                onPhoneUpdate={(newPhone) => {
+                                  // Clear local confirmation state since contact info changed
+                                  setConfirmedProviders(prev => {
+                                    const next = new Set(prev);
+                                    next.delete(provider.provider_id);
+                                    return next;
+                                  });
+                                  onPhoneSaved(provider.provider_id, newPhone);
+                                }}
                                 emailVerificationStatus={provider.email_verification_status}
                                 isEmailOverridden={provider.is_email_overridden}
                                 isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}

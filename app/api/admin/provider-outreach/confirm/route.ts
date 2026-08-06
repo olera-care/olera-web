@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 
 /**
  * POST /api/admin/provider-outreach/confirm
@@ -54,17 +54,48 @@ export async function POST(request: NextRequest) {
         console.error("[confirm] Tracking update error:", updateError);
         return NextResponse.json({ error: "Failed to confirm provider" }, { status: 500 });
       }
+
+      // Get provider name for audit log
+      const { data: providerData } = await db
+        .from("olera-providers")
+        .select("provider_name")
+        .eq("provider_id", provider_id)
+        .maybeSingle();
+
+      // Log audit action
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "confirm_provider_ready",
+        targetType: "provider",
+        targetId: provider_id,
+        details: {
+          provider_name: providerData?.provider_name,
+          created_tracking_record: false,
+        },
+      });
     } else {
       // Get provider details for new tracking record
       const { data: provider } = await db
         .from("olera-providers")
-        .select("city, state")
+        .select("city, state, provider_name")
         .eq("provider_id", provider_id)
         .maybeSingle();
 
       if (!provider) {
         return NextResponse.json({ error: "Provider not found" }, { status: 404 });
       }
+
+      // Log audit action for new tracking record
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "confirm_provider_ready",
+        targetType: "provider",
+        targetId: provider_id,
+        details: {
+          provider_name: provider.provider_name,
+          created_tracking_record: true,
+        },
+      });
 
       // Create new tracking record with confirmation
       const { error: insertError } = await db

@@ -1554,6 +1554,9 @@ interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
+  // Confirmation state (Ready tab)
+  confirmed_at: string | null;
+  confirmed_by: string | null;
   // Follow-up queue fields
   due_date: string | null;
   resend_count: number;
@@ -1717,6 +1720,7 @@ function ProviderContactEditor({
   emailFoundUrl,
   phone,
   onEmailUpdate,
+  onPhoneUpdate,
   emailVerificationStatus,
   isEmailOverridden,
   onCallRecorded,
@@ -1733,6 +1737,7 @@ function ProviderContactEditor({
   emailFoundUrl?: string | null;
   phone: string | null;
   onEmailUpdate?: (newEmail: string) => void;
+  onPhoneUpdate?: (newPhone: string | null) => void;
   /** Pre-fetched email verification status from database */
   emailVerificationStatus?: "valid" | "invalid" | "risky" | "unknown" | null;
   /** Whether email has been manually overridden/trusted */
@@ -1754,6 +1759,13 @@ function ProviderContactEditor({
   const [saved, setSaved] = useState(false);
   const [finding, setFinding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Phone editing state
+  const [phoneValue, setPhoneValue] = useState(phone || "");
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneSaved, setPhoneSaved] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Source info from find (local state for manual find, props for auto-find)
   const [localSource, setLocalSource] = useState<string | null>(null);
@@ -1862,6 +1874,13 @@ function ProviderContactEditor({
     setLocalSource(null);
     setLocalFoundUrl(null);
   }, [initialEmail, suggestedEmail]);
+
+  // Sync phone state when prop changes
+  useEffect(() => {
+    setPhoneValue(phone || "");
+    setIsEditingPhone(false);
+    setPhoneError(null);
+  }, [phone]);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
@@ -2067,6 +2086,41 @@ function ProviderContactEditor({
     }
   }
 
+  // Phone save handler
+  async function handleSavePhone() {
+    setSavingPhone(true);
+    setPhoneError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-phone", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId, phone: phoneValue.trim() }),
+      });
+
+      if (res.ok) {
+        setPhoneSaved(true);
+        setIsEditingPhone(false);
+        setPhoneError(null);
+        onPhoneUpdate?.(phoneValue.trim() || null);
+        setTimeout(() => setPhoneSaved(false), 2000);
+      } else {
+        const data = await res.json();
+        setPhoneError(data.error || "Failed to save");
+      }
+    } catch {
+      setPhoneError("Network error");
+    } finally {
+      setSavingPhone(false);
+    }
+  }
+
+  function handleCancelPhone() {
+    setPhoneValue(phone || "");
+    setIsEditingPhone(false);
+    setPhoneError(null);
+  }
+
   return (
     <div className="flex flex-col gap-1">
       {/* Row 1: Email + Edit + Phone */}
@@ -2224,16 +2278,83 @@ function ProviderContactEditor({
         )}
       </div>
 
-      {/* Phone - inline with main row */}
-      {phone && (
-        <a
-          href={`tel:${phone.replace(/\D/g, "")}`}
-          className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {formatPhone(phone)}
-        </a>
-      )}
+      {/* Phone - inline with main row, with edit capability */}
+      <div className="flex items-center gap-1.5">
+        {isEditingPhone ? (
+          // Phone edit mode
+          <>
+            <input
+              type="tel"
+              placeholder="(555) 123-4567"
+              value={phoneValue}
+              onChange={(e) => {
+                setPhoneValue(e.target.value);
+                setPhoneError(null);
+                setPhoneSaved(false);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-36 px-2.5 py-1 text-sm bg-white border border-gray-200 rounded-md focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-900/10 placeholder:text-gray-300 transition"
+              disabled={savingPhone}
+              autoFocus
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSavePhone();
+              }}
+              disabled={savingPhone}
+              className="shrink-0 px-3 py-1 text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-md transition disabled:opacity-50"
+            >
+              {savingPhone ? "..." : "Save"}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCancelPhone();
+              }}
+              disabled={savingPhone}
+              className="shrink-0 px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition"
+            >
+              Cancel
+            </button>
+            {phoneError && <span className="text-xs text-amber-600 shrink-0">{phoneError}</span>}
+          </>
+        ) : (
+          // Phone display mode - use phoneValue (local state) to avoid flash of old value after save
+          <>
+            {phoneValue ? (
+              <a
+                href={`tel:${phoneValue.replace(/\D/g, "")}`}
+                className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {formatPhone(phoneValue)}
+              </a>
+            ) : (
+              <span className="text-sm text-gray-400">No phone</span>
+            )}
+            {phoneSaved && (
+              <span className="text-xs text-emerald-600 flex items-center gap-0.5">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingPhone(true);
+              }}
+              className="shrink-0 px-2 py-0.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
+            >
+              Edit
+            </button>
+          </>
+        )}
+      </div>
       </div>
 
       {/* Row 2: Generic email warning (separate line for cleaner layout) */}
@@ -2298,6 +2419,7 @@ interface CityRowProps {
   onToggleProvider: (providerId: string) => void;
   onSelectAllInCity: (providerIds: string[]) => void;
   onEmailSaved: (providerId: string, newEmail: string) => void;
+  onPhoneSaved: (providerId: string, newPhone: string | null) => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
   // City assignment
@@ -2322,6 +2444,7 @@ function CityRow({
   onToggleProvider,
   onSelectAllInCity,
   onEmailSaved,
+  onPhoneSaved,
   onOpenActionModal,
   onRemoveProvider,
   cityOwnerId,
@@ -2343,6 +2466,10 @@ function CityRow({
   const [calledProviders, setCalledProviders] = useState<Set<string>>(new Set());
   // Track providers where admin skipped the generic email warning
   const [skippedWarnings, setSkippedWarnings] = useState<Set<string>>(new Set());
+  // Track providers that admin has confirmed (Ready tab)
+  const [confirmedProviders, setConfirmedProviders] = useState<Set<string>>(new Set());
+  const [confirmingProvider, setConfirmingProvider] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
   const cityProviders = useMemo(
@@ -2596,12 +2723,71 @@ function CityRow({
                       <div className="flex-1 min-w-0">
                         {/* Row 1: Provider name (full width) + hover actions */}
                         <div className="flex items-center justify-between gap-4 mb-0.5">
-                          <Link
-                            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-                            className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
-                          >
-                            {provider.provider_name}
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                              className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+                            >
+                              {provider.provider_name}
+                            </Link>
+                            {/* Confirm button - only show in Ready tab */}
+                            {activeTab === "ready" && (
+                              provider.confirmed_at || confirmedProviders.has(provider.provider_id) ? (
+                                <span className="text-blue-500" title="Confirmed">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                  </svg>
+                                </span>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setConfirmingProvider(provider.provider_id);
+                                      setConfirmError(null);
+                                      try {
+                                        const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                          method: "POST",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ provider_id: provider.provider_id }),
+                                        });
+                                        if (res.ok) {
+                                          setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                        } else {
+                                          setConfirmError(provider.provider_id);
+                                        }
+                                      } catch {
+                                        setConfirmError(provider.provider_id);
+                                      } finally {
+                                        setConfirmingProvider(null);
+                                      }
+                                    }}
+                                    disabled={confirmingProvider === provider.provider_id}
+                                    className={`transition-colors disabled:opacity-50 ${
+                                      confirmError === provider.provider_id
+                                        ? "text-red-500 hover:text-red-600"
+                                        : "text-gray-400 hover:text-blue-500"
+                                    }`}
+                                    title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
+                                  >
+                                    {confirmingProvider === provider.provider_id ? (
+                                      <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                    ) : (
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
+                                        <circle cx="10" cy="10" r="7.5" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                  {confirmError === provider.provider_id && (
+                                    <span className="text-xs text-red-500">Failed</span>
+                                  )}
+                                </>
+                              )
+                            )}
+                          </div>
                           {/* Hover actions */}
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                             {activeTab !== "claimed" && (
@@ -2681,7 +2867,24 @@ function CityRow({
                                 emailSource={foundEmails.get(provider.provider_id)?.source}
                                 emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
                                 phone={provider.phone}
-                                onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
+                                onEmailUpdate={(newEmail) => {
+                                  // Clear local confirmation state since contact info changed
+                                  setConfirmedProviders(prev => {
+                                    const next = new Set(prev);
+                                    next.delete(provider.provider_id);
+                                    return next;
+                                  });
+                                  onEmailSaved(provider.provider_id, newEmail);
+                                }}
+                                onPhoneUpdate={(newPhone) => {
+                                  // Clear local confirmation state since contact info changed
+                                  setConfirmedProviders(prev => {
+                                    const next = new Set(prev);
+                                    next.delete(provider.provider_id);
+                                    return next;
+                                  });
+                                  onPhoneSaved(provider.provider_id, newPhone);
+                                }}
                                 emailVerificationStatus={provider.email_verification_status}
                                 isEmailOverridden={provider.is_email_overridden}
                                 isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
@@ -6048,11 +6251,24 @@ export default function ProviderOutreachPage() {
       {/* Page Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Provider Cold Outreach</h1>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Provider Cold Outreach</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage provider outreach sequence and follow-up channels.{" "}
+              <Link
+                href="/admin/automations/provider-outreach-send"
+                className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+                title="Open the Provider Outreach messaging journey in Automations"
+              >
+                View messaging journey
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </p>
+          </div>
           <div className="flex items-center gap-3">
             {/* Search input - only enabled when a state is selected */}
             {selectedState && (
-              <div className="relative w-64">
+              <div className="relative w-48">
                 <svg
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
                   xmlns="http://www.w3.org/2000/svg"
@@ -6103,7 +6319,7 @@ export default function ProviderOutreachPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  {exporting ? "Exporting..." : "Export CSV"}
+                  <span className="whitespace-nowrap">{exporting ? "Exporting..." : "Export CSV"}</span>
                 </button>
                 {/* City assignments export - only show on needs_email/ready tabs */}
                 {(activeTab === "needs_email" || activeTab === "ready") && (
@@ -7102,9 +7318,10 @@ export default function ProviderOutreachPage() {
                             ready: prev.ready + 1,
                           }));
                         } else {
+                          // Reset confirmed_at since contact info changed (API also resets it)
                           setProviders((prev) =>
                             prev.map((p) =>
-                              p.provider_id === providerId ? { ...p, email: newEmail } : p
+                              p.provider_id === providerId ? { ...p, email: newEmail, confirmed_at: null, confirmed_by: null } : p
                             )
                           );
                         }
@@ -7112,6 +7329,15 @@ export default function ProviderOutreachPage() {
                         if (isNotContactedTab(activeTab)) {
                           fetchCities();
                         }
+                      }}
+                      onPhoneSaved={(providerId, newPhone) => {
+                        // Update local providers state with new phone
+                        // Also reset confirmed_at since contact info changed (API also resets it)
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId ? { ...p, phone: newPhone, confirmed_at: null, confirmed_by: null } : p
+                          )
+                        );
                       }}
                       onOpenActionModal={setActionModalProvider}
                       onRemoveProvider={(provider) => {

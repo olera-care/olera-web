@@ -92,6 +92,23 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // Reset confirmation status since contact info changed
+    const { data: tracking } = await db
+      .from("provider_outreach_tracking")
+      .select("id")
+      .eq("provider_id", provider_id)
+      .maybeSingle();
+
+    if (tracking) {
+      await db
+        .from("provider_outreach_tracking")
+        .update({
+          confirmed_at: null,
+          confirmed_by: null,
+        })
+        .eq("id", tracking.id);
+    }
+
     // Build slug variants for deferred notifications
     const providerSlug = existing.slug || linkedProfile?.slug || provider_id;
     const additionalSlugVariants: string[] = [];

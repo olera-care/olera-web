@@ -17,8 +17,9 @@ import {
  * Each due letter goes through the SAME send path as the manual button
  * (lib/family-comms/benefits-navigator-send.server.ts) — governance caps,
  * DNC, and suppression are re-checked at fire time, and the consent-gated
- * SMS companion respects the recipient's quiet hours (parked in sms_queue
- * when the fire lands outside 8am–8pm their time).
+ * SMS companion respects the recipient's quiet hours. A companion to email
+ * parks in sms_queue; a text-only B1 stays pending and is rescheduled to the
+ * next legal window so queued is never mistaken for delivered.
  *
  * A blocked fire NEVER retries silently into the same cap: the schedule is
  * cleared, the reason is stamped on the draft (visible in the admin queue),
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
       .limit(MAX_SENDS_PER_RUN);
     if (error) throw error;
 
-    const counts = { due: due?.length ?? 0, sent: 0, blocked: 0 };
+    const counts = { due: due?.length ?? 0, sent: 0, deferred: 0, blocked: 0 };
     const blockedLines: string[] = [];
 
     for (const row of due ?? []) {
@@ -76,7 +77,8 @@ export async function GET(request: NextRequest) {
       try {
         const result = await sendNavigatorLetter(db, { profileId: row.id, trigger: "scheduler" });
         if (result.ok) {
-          counts.sent++;
+          if (result.deferred) counts.deferred++;
+          else counts.sent++;
         } else {
           counts.blocked++;
           await markScheduleFailed(db, row.id, result.error);
@@ -91,12 +93,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (counts.sent > 0 || blockedLines.length > 0) {
+    if (counts.sent > 0 || counts.deferred > 0 || blockedLines.length > 0) {
       try {
         const siteUrl = getSiteUrl();
         const parts: string[] = [];
         if (counts.sent > 0)
-          parts.push(`⏱ ${counts.sent} scheduled navigator letter${counts.sent === 1 ? "" : "s"} sent`);
+          parts.push(`⏱ ${counts.sent} scheduled navigator guidance send${counts.sent === 1 ? "" : "s"} delivered`);
+        if (counts.deferred > 0)
+          parts.push(`🌙 ${counts.deferred} text-only send${counts.deferred === 1 ? "" : "s"} moved to the next recipient window`);
         if (blockedLines.length > 0)
           parts.push(`⚠️ ${blockedLines.length} blocked: ${blockedLines.join("; ")}`);
         await sendSlackAlert(`${parts.join(" · ")} → ${siteUrl}/admin/benefits`);

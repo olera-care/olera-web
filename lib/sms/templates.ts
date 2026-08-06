@@ -37,8 +37,8 @@ export function pendingInquirySms(p: { fromName: string; url: string }): string 
 export function benefitsResultsSms(p: { matchCount: number; familyPhrase: string; url: string }): string {
   const programWord = p.matchCount === 1 ? "program" : "programs";
   return p.matchCount > 0
-    ? `Olera: We found ${p.matchCount} care benefit ${programWord} for ${p.familyPhrase}. View: ${p.url} Reply STOP to opt out.`
-    : `Olera: Your care benefit search is saved. We'll keep looking. View: ${p.url} Reply STOP to opt out.`;
+    ? `Olera: We found ${p.matchCount} benefit ${programWord} for ${p.familyPhrase}. They're in your private Olera plan. Start here: ${p.url} Reply STOP to opt out.`
+    : `Olera: We created your private Olera plan. No strong match yet; we'll keep checking. See it here: ${p.url} Reply STOP to opt out.`;
 }
 
 /** Benefits Cascade B1 — the ten-minute first step, texted. Mirrors the
@@ -55,7 +55,7 @@ export function benefitsFirstStepSms(p: {
     .map((d) => d.toLowerCase().replace(/^(a|an|the)\s+/, ""))
     .join(" + ");
   const docLine = docs ? ` Have nearby: ${docs}.` : "";
-  return `Olera: Your first step for ${p.programShortName}: call ${p.phone}.${docLine} Guide: ${p.url} Reply STOP to opt out.`;
+  return `Olera: Your first step for ${p.programShortName}: call ${p.phone}.${docLine} Plan: ${p.url} Reply CALLED, NO ANSWER, or STUCK. Reply STOP to opt out.`;
 }
 
 /** Benefits Cascade B2 — the check-in, texted. Links to the family's living
@@ -67,8 +67,8 @@ export function benefitsCheckInSms(p: {
   done: boolean;
 }): string {
   return p.done
-    ? `Olera: You started ${p.programShortName}. Your next step is ready on your plan: ${p.url} Reply STOP to opt out.`
-    : `Olera: How's ${p.programShortName} going? Tell us with one tap and see your next step: ${p.url} Reply STOP to opt out.`;
+    ? `Olera: You started ${p.programShortName}. What's happening now? Reply APPLIED, NEED DOCS, WAITING, or STUCK. Plan: ${p.url} Reply STOP to opt out.`
+    : `Olera: Were you able to call ${p.programShortName}? Reply CALLED, NO ANSWER, or STUCK. Your plan: ${p.url} Reply STOP to opt out.`;
 }
 
 /** Provider alert: a MedJobs student applied. */

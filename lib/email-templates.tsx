@@ -1658,7 +1658,7 @@ export function benefitsResultsSavedEmail(opts: {
     opts.programs.length > 0
       ? `
   <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #6b7280;">
-    Here are the top ${opts.programs.length} matches we saved for you. Tap any program to see eligibility and how to apply:
+    We added the strongest ${opts.programs.length} matches to your private Olera plan. Tap any program to see eligibility and how to apply:
   </p>
 
   <div style="margin: 0 0 32px;">
@@ -1669,7 +1669,7 @@ export function benefitsResultsSavedEmail(opts: {
   }
 
   <a href="${opts.matchesUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
-    View ${opts.matchCount > 0 ? `all ${opts.matchCount} ` : ""}matches →
+    Open my Olera plan →
   </a>
 
   <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">

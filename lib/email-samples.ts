@@ -185,7 +185,7 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_results_saved", audience: "family", group: "Family · Benefits cascade",
     label: "Day 0 · Results email", subject: benefitsResultsSavedSubject({ matchCount: 4, possessive: "Your mom's", stateName: "Texas" }),
     emailType: "benefits_results_saved", cron: "benefits-results-texts",
-    who: "Every new family the moment they finish the benefits quiz with an email on file (V3 flow requires one). Event-driven at intake, not a cron.",
+    who: "Every new family who finishes the benefits quiz with an email on file. Event-driven at intake; text-only intake is also supported.",
     why: "The Day-0 welcome that delivers real value up front: their top-5 matched programs as a starter list and the /m plan link. 95% of families won't engage with email, so when one does, this has to be worth their time.",
     render: () => benefitsResultsSavedEmail({
       greetingName: "Maria",
@@ -202,12 +202,12 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "benefits_first_step", audience: "family", group: "Family · Benefits cascade",
-    label: "B1 · Ten-minute first step", subject: benefitsFirstStepSubject("LIHEAP"),
+    label: "B1 · Ten-minute first-step fallback", subject: benefitsFirstStepSubject("LIHEAP"),
     emailType: "benefits_first_step", cron: "family-comms-coordinator",
     // The navigator scheduler fires the REAL sends now (TJ-approved AI letters);
     // this template is the shape/fallback. Its page previews it too.
     alsoCrons: ["benefits-navigator-scheduler"],
-    who: "Family completed the benefits intake 48–96h ago, once ever (profile stamp). Program picked from their entry page, then simplest saved match, then the state's start-here list.",
+    who: "Eligible family 2–10 days after benefits intake. The coordinator drafts the message; nothing sends until TJ approves or schedules it.",
     why: "Nobody applies for government benefits alone — the base rate of solo completion is ~0. So instead of checking homework, we shrink the first step to ten minutes: ONE program, its start-here phone number, what to say, and three documents. Content comes from the state pipeline drafts (51 states).",
     render: () => benefitsFirstStepEmail({
       unsubscribeId: "sample-id",

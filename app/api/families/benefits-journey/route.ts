@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
         first_step_done_program_id:
           cascade.first_step_done_program_id ||
           (typeof body.programId === "string" ? body.programId : cascade.first_step_program_id),
+        application_status: "called",
+        application_status_at: now,
       };
     } else {
       const doc = typeof body.doc === "string" ? body.doc.slice(0, 200) : "";

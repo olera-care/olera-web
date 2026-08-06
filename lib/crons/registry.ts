@@ -412,8 +412,8 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "benefits-results-texts",
     name: "Benefits results — email + text",
     description:
-      "Fires when a new family finishes the benefits quiz: the results EMAIL (top-5 matched programs as a starter list + the /m plan link — always, email is required on the V3 flow) and, when a phone is on file, the companion match-count text with their magic results link (or the honest \"saved, still looking\" zero-state). The text is their first from us, so it carries Reply STOP. Email logs as benefits_results_saved; texts as benefits_results_sms (channel='sms') with Twilio (the Family Comms delivery panel) as the delivery-status record.",
-    recipientCohort: "Every new family who completes the benefits quiz (email always; text when they provided a phone — V3 phone-as-optional flow).",
+      "Fires when a new family finishes the benefits quiz. Email is sent when they supplied email; text is sent when they supplied a phone under the SMS disclosure; families who chose both receive both. Olera leads with the matches it identified and adds them to a private living plan instead of leading with 'saved.' The intake texting choice persists as sms_consent for B1/B2 continuity.",
+    recipientCohort: "Every new family who completes the benefits quiz, on each contact channel they explicitly supplied.",
     audience: "Care seekers",
     fn: "event",
     schedule: "event-triggered",
@@ -457,7 +457,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "family-comms-coordinator",
     name: "Family comms coordinator — help-cascade arbiter",
     description:
-      "The family-side arbitration brain. One daily cron that picks the single highest-priority message per family per cycle via a fixed ladder: connection rungs (outcome-check → archetype → provider-silent+alternatives → never-engaged → awaiting-match → pending reach-out), then the BENEFITS CASCADE (B1 is now the NAVIGATOR DRAFT QUEUE: at intake+2-10d it composes a personal TJ-signed first-step letter and parks it in /admin/benefits — nothing sends until TJ approves it there; B2 check-in fires at first-step+3d after the REAL send, retargeting to a congratulation when the family marked the call done on their /m plan page; the sent letter and B2 both send a consent-gated SMS mirror), then the completion track (Track 2 — suppressed for benefits families while their cascade is in flight). Global stops for unsubscribed / self-reported-yes / active live threads. Sends flow through the per-family nudge cap; ?dry_run=true returns the per-family selection without sending or composing. Run records show per-rung counts (byRung.benefits_navigator_draft, byRung.benefits_check_in etc.).",
+      "The family-side arbitration brain. One daily cron picks the single highest-priority help message per family. In the benefits cascade it composes B1 into TJ's review queue, then sends B2 3–14 days after the approved first step. B2 email uses outcome choices; B2 text accepts structured progress replies and can send by itself to a consented text-only family. STUCK becomes a human alert. Generic completion asks stay suppressed while the benefits cascade is active.",
     recipientCohort:
       "Every family with an open inquiry/request connection PLUS every benefits-intake family (cascade rungs) PLUS incomplete profiles (completion track); at most one governed email per family per run, chosen by the ladder. SMS mirrors require stored phone + sms_consent.",
     audience: "Care seekers",
@@ -490,7 +490,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "benefits-navigator-scheduler",
     name: "Benefits navigator — scheduled sends",
     description:
-      "Fires navigator letters TJ scheduled from /admin/benefits at/after their chosen time (hourly = 'within the hour'). Runs the SAME send path as the manual Send-as-TJ button: governance caps, DNC, and suppression re-checked at fire time; consent-gated SMS companion respects the recipient's quiet hours (parked in sms_queue when the fire lands outside 8am–8pm their time). A blocked fire clears the schedule, stamps the reason on the draft (visible in the queue), and pings Slack — it never retries silently into the same cap. Transport errors keep the schedule and retry next hour.",
+      "Fires navigator drafts TJ scheduled from /admin/benefits at/after their chosen time. It uses the same path as the manual button: email when available and a consent-gated first-step text, including text-only delivery. Both manual and scheduled texts respect the recipient's 8am–8pm window. A blocked fire clears the schedule and surfaces the reason; transport errors remain retryable.",
     recipientCohort:
       "Benefits families with a pending navigator draft whose metadata.benefits_navigator.scheduled_at is due.",
     audience: "Care seekers",
@@ -501,7 +501,7 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: ["benefits_first_step"],
     channels: ["email", "sms"],
     smsTypes: ["benefits_first_step_sms"],
-    successSignal: "Scheduled letters land at the time TJ picked without governance surprises; blocked fires surface in the queue instead of vanishing.",
+    successSignal: "Scheduled guidance reaches the family in the channels TJ reviewed; after-hours text-only sends remain visibly pending until the recipient's next legal window.",
     relatedAdminPath: "/admin/benefits",
   },
   {

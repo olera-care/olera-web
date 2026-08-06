@@ -2322,15 +2322,15 @@ function ProviderContactEditor({
             {phoneError && <span className="text-xs text-amber-600 shrink-0">{phoneError}</span>}
           </>
         ) : (
-          // Phone display mode
+          // Phone display mode - use phoneValue (local state) to avoid flash of old value after save
           <>
-            {phone ? (
+            {phoneValue ? (
               <a
-                href={`tel:${phone.replace(/\D/g, "")}`}
+                href={`tel:${phoneValue.replace(/\D/g, "")}`}
                 className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >
-                {formatPhone(phone)}
+                {formatPhone(phoneValue)}
               </a>
             ) : (
               <span className="text-sm text-gray-400">No phone</span>

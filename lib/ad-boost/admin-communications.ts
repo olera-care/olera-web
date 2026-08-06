@@ -54,6 +54,9 @@ export interface AdBoostCommunicationRequest {
   launched_email_scheduled_at?: string | null;
   traction_email_sent_at?: string | null;
   promo_complete_email_sent_at?: string | null;
+  promo_complete_email_scheduled_at?: string | null;
+  ended_at?: string | null;
+  ended_reason?: "admin" | "flight_end" | null;
   plan_status?: "active" | "past_due" | "canceled" | null;
   communication_summary?: AdBoostCommunicationSummary;
 }
@@ -107,8 +110,14 @@ function latestTimestamp(values: Array<string | null | undefined>): string | nul
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
 }
 
-function predatesCommunicationMonitoring(request: AdBoostCommunicationRequest): boolean {
-  const observedAt = validTimestamp(request.updated_at) ?? validTimestamp(request.created_at);
+function predatesCommunicationMonitoring(
+  request: AdBoostCommunicationRequest,
+  lifecycleAt?: string | null,
+): boolean {
+  // The automatic end worker updates older campaigns as it closes them. Using
+  // updated_at universally would turn an untracked historical launch into a
+  // brand-new launch-email incident merely because the flight ended today.
+  const observedAt = validTimestamp(lifecycleAt) ?? validTimestamp(request.created_at);
   return observedAt
     ? new Date(observedAt).getTime() < COMMUNICATION_MONITORING_BASELINE_AT
     : false;
@@ -282,7 +291,7 @@ export function getAdBoostStepState(
     case "traction":
       if (sent) return sent;
       if (status === "live" && ((request.ad_clicks ?? 0) > 0 || (request.ad_spend_cents ?? 0) > 0)) {
-        return predatesCommunicationMonitoring(request)
+        return predatesCommunicationMonitoring(request, request.updated_at)
           ? historicalUnknownState("metrics were imported outside the email trigger")
           : {
               label: "Traction email missing",
@@ -325,9 +334,18 @@ export function getAdBoostStepState(
         : { label: "Not due", tone: "muted" };
     case "promo_complete":
       if (sent) return sent;
+      if (request.promo_complete_email_scheduled_at) {
+        const scheduledAt = new Date(request.promo_complete_email_scheduled_at).getTime();
+        const overdue = scheduledAt <= now;
+        return {
+          label: overdue ? "Send overdue" : "Scheduled",
+          detail: formatAdBoostScheduledTime(request.promo_complete_email_scheduled_at, now),
+          tone: overdue ? "waiting" : "scheduled",
+        };
+      }
       if (status === "live") return { label: "Campaign in flight", tone: "active" };
       if (status === "ended") {
-        return predatesCommunicationMonitoring(request)
+        return predatesCommunicationMonitoring(request, request.ended_at)
           ? historicalUnknownState("older campaign—delivery was not tracked")
           : {
               label: "Wrap-up email missing",
@@ -457,8 +475,23 @@ export function getAdBoostNextAction(
 
   if (request.status === "ended") {
     const wrap = state("promo_complete");
+    if (wrap.tone === "scheduled") {
+      return {
+        label: "Wrap-up scheduled",
+        detail: wrap.detail ?? "Next provider-friendly business window",
+        level: "waiting",
+        stepKey: "promo_complete",
+        priority: 45,
+      };
+    }
     if (wrap.tone === "waiting") {
-      return { label: "Send campaign wrap-up", detail: "Campaign has ended", level: "attention", stepKey: "promo_complete", priority: 7 };
+      return {
+        label: wrap.label === "Send overdue" ? "Wrap-up overdue" : "Schedule campaign wrap-up",
+        detail: wrap.detail ?? "Campaign ended without a successful send",
+        level: "attention",
+        stepKey: "promo_complete",
+        priority: 7,
+      };
     }
     return {
       label: "Campaign complete",

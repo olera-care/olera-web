@@ -847,7 +847,9 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Promo complete (no inquiries via Olera)", subject: "Your starter campaign is complete",
     emailType: "ad_boost_promo_complete",
     cron: "ad-boost-end-scheduler",
-    who: "A flight ends having produced no inquiry that came through Olera. This is the variant the four overdue August campaigns receive.",
+    timing: "After the flight ends · next 10:15 AM ET business morning · zero Olera inquiries",
+    situation: "Uses the same scheduled wrap-up window, but asks the provider whether a family contacted them another way instead of treating Olera's zero attributed inquiries as the whole truth.",
+    who: "A flight ends without an inquiry recorded through Olera, so the provider is asked whether a family reached them another way.",
     why: "Our family count only sees people who contact the provider THROUGH Olera. Franchil's real paying client phoned the office directly and the platform reported zero, and the per-lead outcome sensor can never correct that (it needs a lead row to hang the question on). So a zero-lead wrap-up asks the provider directly instead of asserting a number we can't stand behind.",
     render: () => adBoostPromoCompleteEmail({
       providerName: "Abode Home Care",

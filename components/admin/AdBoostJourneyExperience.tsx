@@ -55,6 +55,7 @@ const ENGINE_IDS = [
   "ad-boost-emails",
   "ad-boost-profile-reminders",
   "ad-boost-launch-scheduler",
+  "ad-boost-end-scheduler",
 ];
 
 const EMAIL_TYPE_COUNT = new Set(
@@ -71,7 +72,7 @@ const PHASE_DESCRIPTIONS: Record<string, string> = {
 const ENGINE_COPY: Record<string, { eyebrow: string; description: string }> = {
   "ad-boost-emails": {
     eyebrow: "Event-driven",
-    description: "Request, lead, traction, and wrap-up messages fire when campaign activity happens.",
+    description: "Request, lead, and traction messages fire when campaign activity happens.",
   },
   "ad-boost-profile-reminders": {
     eyebrow: "Daily",
@@ -80,6 +81,10 @@ const ENGINE_COPY: Record<string, { eyebrow: string; description: string }> = {
   "ad-boost-launch-scheduler": {
     eyebrow: "Hourly",
     description: "Delivers launch confirmations at the provider-friendly US Eastern time selected by the concierge.",
+  },
+  "ad-boost-end-scheduler": {
+    eyebrow: "Hourly",
+    description: "Ends finished flights and delivers their wrap-up at the next 10:15 AM ET business window.",
   },
 };
 

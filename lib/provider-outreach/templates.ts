@@ -57,13 +57,13 @@ export interface TemplateContext {
   mailing_address: string;
   // Profile gaps (Day 3 template)
   gap_list?: string;
-  // City demand metric (Day 7 template)
+  // City demand metric (Day 5 template)
   // Total unique page views for this city+category in the last 30 days
   city_views?: number;
 }
 
 // Template keys for the cadence system
-// Cadence emails: intro (Day 0), followup (Day 3), demand_loss (Day 7), final (Day 14)
+// Cadence emails: intro (Day 0), followup (Day 3), demand_loss (Day 5), final (Day 7)
 // Standalone: nudge (Follow Up resend action)
 export type ProviderOutreachTemplateKey = "intro" | "followup" | "demand_loss" | "final" | "nudge";
 
@@ -225,7 +225,7 @@ function followupEmail(): EmailDraft {
 }
 
 /**
- * Day 7: Free model email
+ * Day 5: Free model email
  *
  * Explains why Olera is free and the value proposition for providers.
  * Emphasizes no fees and direct family connections.
@@ -255,7 +255,7 @@ function demandLossEmail(_hasDemandData: boolean): EmailDraft {
 }
 
 /**
- * Day 14: Final email
+ * Day 7: Final email
  *
  * Focuses on the Verified badge as a trust signal for families.
  * Personal tone with medical school trust story from Logan.

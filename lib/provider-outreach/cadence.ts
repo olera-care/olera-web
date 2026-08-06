@@ -59,7 +59,7 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
  * Number of days after final email before moving to "needs_call" stage.
  * If no claim after this period, provider needs manual follow-up.
  *
- * Set to 0 for immediate transition after Day 14 final email.
+ * Set to 0 for immediate transition after Day 7 final email.
  */
 export const DAYS_AFTER_FINAL_TO_NEEDS_CALL = 0;
 
@@ -130,7 +130,7 @@ export function isFinalCadenceStep(day: number): boolean {
  * Calculate the due date for a cadence step.
  *
  * @param sequenceStartDate - When the sequence started (entered "in_sequence" stage)
- * @param cadenceDay - The cadence day number (0, 3, 7)
+ * @param cadenceDay - The cadence day number (0, 3, 5, 7)
  * @returns The due date for that cadence step
  */
 export function calculateDueDate(

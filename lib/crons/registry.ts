@@ -259,7 +259,7 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "provider-outreach-sequence-check",
     name: "Provider outreach — sequence advance",
-    description: "Hourly: auto-transitions providers from 'in_sequence' to 'needs_call' once their 4-email cadence is complete (Day 14 + 7 days elapsed).",
+    description: "Hourly: auto-transitions providers from 'in_sequence' to 'needs_call' once their 4-email cadence is complete (Day 7 final email).",
     recipientCohort: "(No recipients — a state-transition job.)",
     audience: "Providers",
     fn: "maintenance",

@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       (claimedBps || []).map((bp) => bp.source_provider_id).filter(Boolean)
     );
 
-    // Batch-fetch city views for Day 7 demand-loss email
+    // Batch-fetch city views for Day 5 demand-loss email
     // This is more efficient than fetching per-provider
     const cityViewsPairs = (providers || [])
       .filter((p) => p.city)
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest) {
       const emails: ProviderPreview["emails"] = [];
 
       for (const step of PROVIDER_OUTREACH_CADENCE) {
-        // When SmartLead is configured, Day 7 (demand_loss) must use generic headline
+        // When SmartLead is configured, Day 5 (demand_loss) must use generic headline
         // because SmartLead can't conditionally change email body per-lead.
         // Force city_views below threshold (10) to show "Families are searching..."
         // instead of specific view counts that might not match SmartLead behavior.
@@ -433,7 +433,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Clean up any stale pending tasks from previous cycle
-            // This prevents old Day 14 tasks from firing alongside new Day 0 tasks
+            // This prevents old Day 7 tasks from firing alongside new Day 0 tasks
             await db
               .from("provider_outreach_tasks")
               .delete()

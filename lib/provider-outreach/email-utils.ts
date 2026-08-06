@@ -204,7 +204,7 @@ export function bodyToHtml(text: string): string {
 // ── Email Sending Configuration ───────────────────────────────────────────────
 
 /**
- * Email type for provider outreach sequence (Day 0/3/7/14).
+ * Email type for provider outreach sequence (Day 0/3/5/7).
  * Registered in PROVIDER_NOTIFY_FROM_TYPES (lib/email.ts) so these emails:
  *   - Route through oleracare.com (isolated domain for cold mail)
  *   - Get verify-on-send treatment (ZeroBounce check)

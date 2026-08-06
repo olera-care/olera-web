@@ -46,7 +46,7 @@ const CADENCE_DAYS = [0, 3, 5, 7]; // Day 0, 3, 5, 7
  */
 function inferSequenceStep(daysSinceEnrollment: number): number {
   // Find the closest cadence day that's <= daysSinceEnrollment
-  // Day 0 → step 1, Day 3 → step 2, Day 7 → step 3, Day 14 → step 4
+  // Day 0 → step 1, Day 3 → step 2, Day 5 → step 3, Day 7 → step 4
   for (let i = CADENCE_DAYS.length - 1; i >= 0; i--) {
     if (daysSinceEnrollment >= CADENCE_DAYS[i]) {
       return i + 1; // steps are 1-indexed

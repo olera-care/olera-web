@@ -1679,7 +1679,7 @@ function isGenericEmail(email: string | null | undefined): boolean {
 
 // Labels for why a provider is in the Follow Up queue
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
-  sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no engagement
+  sequence_exhausted: "Sequence done",  // Set by cron after Day 7 with no engagement
   sequence_completed: "Sequence done",  // Legacy/alternate code
   clicked_not_claimed: "Clicked",       // Provider clicked a link but didn't claim (hot lead)
   replied: "Replied",                   // Provider replied to an email (requires inbound setup)
@@ -6503,8 +6503,8 @@ export default function ProviderOutreachPage() {
                   {[
                     { key: "intro", label: "Day 0" },
                     { key: "followup", label: "Day 3" },
-                    { key: "demand_loss", label: "Day 7" },
-                    { key: "final", label: "Day 14" },
+                    { key: "demand_loss", label: "Day 5" },
+                    { key: "final", label: "Day 7" },
                     { key: "nudge", label: "Nudge" },
                   ].map((t) => (
                     <button
@@ -8064,19 +8064,19 @@ export default function ProviderOutreachPage() {
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 7</span>
-                            <span className="text-xs text-gray-400">+7 days</span>
+                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 5</span>
+                            <span className="text-xs text-gray-400">+5 days</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-800">Demand-loss Email</p>
-                          <p className="text-xs text-gray-500 mt-1">What families couldn&apos;t ask you</p>
+                          <p className="text-sm font-medium text-gray-800">Why It&apos;s Free Email</p>
+                          <p className="text-xs text-gray-500 mt-1">No fees, direct family connections</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 14</span>
-                            <span className="text-xs text-gray-400">+14 days</span>
+                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 7</span>
+                            <span className="text-xs text-gray-400">+7 days</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-800">Summary Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Everything in one place</p>
+                          <p className="text-sm font-medium text-gray-800">Get Verified Email</p>
+                          <p className="text-xs text-gray-500 mt-1">Trust badge for families</p>
                         </div>
                       </>
                     )}

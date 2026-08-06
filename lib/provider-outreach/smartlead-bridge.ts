@@ -7,7 +7,7 @@
  * Architecture mirrors lib/medjobs/smartlead-bridge.ts but adapted for
  * provider outreach:
  *   - No Named Contact fan-out (providers have single contact email)
- *   - 4-step sequence: Day 0, 3, 7, 14
+ *   - 4-step sequence: Day 0, 3, 5, 7
  *   - Custom fields: tracking_id, provider_id, claim_url, profile_url, etc.
  *   - Per-state campaign organization
  *
@@ -61,7 +61,7 @@ export interface ProviderBridgeRow {
   suppressed?: boolean;
   /** Profile gaps formatted for Day 3 email */
   gap_list?: string;
-  /** City views for Day 7 email */
+  /** City views for Day 5 email */
   city_views?: number;
   /** URLs pre-generated for this provider */
   claim_url: string;
@@ -142,7 +142,7 @@ export function selectEligibleProviders(
  *   - profile_url: Public listing URL
  *   - city, state, category: For merge tags
  *   - gap_list: For Day 3 email
- *   - city_views: For Day 7 email
+ *   - city_views: For Day 5 email
  */
 export function providerToLead(row: ProviderBridgeRow): SmartleadLead {
   return {
@@ -357,8 +357,8 @@ function toSmartleadHtml(body: string, _templateKey: ProviderOutreachTemplateKey
  * Sequence delays (relative to previous step):
  *   - Day 0 → delay 0
  *   - Day 3 → delay 3 (from Day 0)
- *   - Day 7 → delay 4 (from Day 3)
- *   - Day 14 → delay 7 (from Day 7)
+ *   - Day 5 → delay 2 (from Day 3)
+ *   - Day 7 → delay 2 (from Day 5)
  *
  * One sequence covers all leads: merge tags handle per-provider personalization.
  */

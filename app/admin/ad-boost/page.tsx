@@ -190,11 +190,13 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_130px_190px_130px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden xl:grid grid-cols-[minmax(220px,1fr)_105px_185px_65px_80px_55px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
           <span>Next move</span>
-          <span>Results · C / Q / L</span>
+          <span>Clicks</span>
+          <span>Questions</span>
+          <span>Leads</span>
           <span>Flight</span>
           <span className="text-right">Actions</span>
         </div>
@@ -291,7 +293,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_190px_130px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(220px,1fr)_105px_185px_65px_80px_55px_120px_72px] xl:items-center gap-2 xl:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link
@@ -320,13 +322,26 @@ function RequestRow({
 
         <NextMoveCell action={nextAction} />
 
-        {/* Keep the whole funnel visible in one compact column so the row can
-            answer the more important operational question: what happens next? */}
-        <ResultsCell request={request} />
+        <MetricCell
+          request={request}
+          value={request.ad_clicks ?? request.ad_landings ?? 0}
+          label="Clicks"
+        />
+        <MetricCell
+          request={request}
+          value={request.questions_received ?? 0}
+          label="Questions"
+        />
+        <MetricCell
+          request={request}
+          value={request.delivered ?? 0}
+          label="Leads"
+          emphasize
+        />
 
         {/* Flight — start (setup week) through the ad platform's end date. */}
         <div className="text-sm text-gray-600">
-          <span className="sm:hidden text-gray-400">Flight: </span>
+          <span className="xl:hidden text-gray-400">Flight: </span>
           {fmtDateOnly(request.requested_setup_week)}
           {request.flight_end_date && (
             <span className="block text-[11px] leading-tight text-gray-400">
@@ -338,7 +353,7 @@ function RequestRow({
         {/* Actions — icon-only with the browser's delayed tooltip (title) as
             the long-hover label. Red appears only on trash hover so the
             destructive action stops being the loudest element in every row. */}
-        <div className="flex items-center justify-start sm:justify-end gap-0.5">
+        <div className="flex items-center justify-start xl:justify-end gap-0.5">
           {isArchived ? (
             <IconAction
               label="Restore from archive"
@@ -424,7 +439,7 @@ function NextMoveCell({ action }: { action: AdBoostNextAction }) {
           : "text-gray-700";
   return (
     <div className="min-w-0">
-      <span className="sm:hidden text-xs text-gray-400">Next: </span>
+      <span className="xl:hidden text-xs text-gray-400">Next: </span>
       <span className={`text-xs font-semibold ${labelTone}`}>{action.label}</span>
       <span className="mt-0.5 block truncate text-[11px] leading-tight text-gray-400" title={action.detail}>
         {action.detail}
@@ -433,24 +448,29 @@ function NextMoveCell({ action }: { action: AdBoostNextAction }) {
   );
 }
 
-/** Compact clicks/questions/leads funnel. Pre-launch values remain structural
- * dashes rather than misleading zero-performance results. */
-function ResultsCell({ request }: { request: CampaignRequest }) {
+/** A familiar, fully labeled funnel metric. Pre-launch values remain
+ * structural dashes rather than misleading zero-performance results. */
+function MetricCell({
+  request,
+  value,
+  label,
+  emphasize,
+}: {
+  request: CampaignRequest;
+  value: number;
+  label: string;
+  emphasize?: boolean;
+}) {
   const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
-  const clicks = request.ad_clicks ?? request.ad_landings ?? 0;
-  const questions = request.questions_received ?? 0;
-  const leads = request.delivered ?? 0;
-  const values = preLaunch
-    ? ["—", "—", "—"]
-    : [clicks.toLocaleString(), questions.toLocaleString(), leads.toLocaleString()];
+  const tone = preLaunch || value === 0
+    ? "text-gray-300"
+    : emphasize
+      ? "font-semibold text-primary-700"
+      : "text-gray-700";
   return (
-    <div className="flex items-center gap-1.5 text-xs tabular-nums" aria-label={`${clicks} clicks, ${questions} questions, ${leads} leads`}>
-      <span className="sm:hidden text-gray-400">Results: </span>
-      <span className={preLaunch || clicks === 0 ? "text-gray-300" : "text-gray-700"}>{values[0]}</span>
-      <span className="text-gray-300">/</span>
-      <span className={preLaunch || questions === 0 ? "text-gray-300" : "text-gray-700"}>{values[1]}</span>
-      <span className="text-gray-300">/</span>
-      <span className={preLaunch || leads === 0 ? "text-gray-300" : "font-semibold text-primary-700"}>{values[2]}</span>
+    <div className={`text-sm tabular-nums ${tone}`}>
+      <span className="xl:hidden font-normal text-gray-400">{label}: </span>
+      {preLaunch ? "—" : value.toLocaleString()}
     </div>
   );
 }

@@ -40,6 +40,7 @@ export interface AdBoostCommunicationRequest {
   status: string;
   deleted_at?: string | null;
   created_at: string;
+  updated_at?: string;
   requested_setup_week: string;
   flight_end_date?: string | null;
   delivered?: number;
@@ -88,6 +89,13 @@ const MARKER_BY_EMAIL_TYPE: Record<string, keyof AdBoostCommunicationRequest> = 
   ad_boost_promo_complete: "promo_complete_email_sent_at",
 };
 
+// Existing campaigns were audited and imported before communication-state
+// monitoring shipped. In particular, the Aug 2 Google Ads sync wrote metrics
+// directly to the database, bypassing the API path that sends traction mail.
+// Treat those gaps as unknown history, not live incidents. Any campaign change
+// after this baseline is held to the new successful-send invariant.
+const COMMUNICATION_MONITORING_BASELINE_AT = Date.parse("2026-08-06T12:00:00Z");
+
 function validTimestamp(value: unknown): string | null {
   if (typeof value !== "string" || Number.isNaN(new Date(value).getTime())) return null;
   return value;
@@ -97,6 +105,21 @@ function latestTimestamp(values: Array<string | null | undefined>): string | nul
   return values
     .filter((value): value is string => Boolean(validTimestamp(value)))
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
+}
+
+function predatesCommunicationMonitoring(request: AdBoostCommunicationRequest): boolean {
+  const observedAt = validTimestamp(request.updated_at) ?? validTimestamp(request.created_at);
+  return observedAt
+    ? new Date(observedAt).getTime() < COMMUNICATION_MONITORING_BASELINE_AT
+    : false;
+}
+
+function historicalUnknownState(detail: string): AdBoostStepState {
+  return {
+    label: "Historical send unknown",
+    detail,
+    tone: "muted",
+  };
 }
 
 function successfulRecords(
@@ -246,12 +269,26 @@ export function getAdBoostStepState(
               : "scheduled",
         };
       }
-      if (["live", "ended"].includes(status)) return { label: "Not recorded", tone: "waiting" };
+      if (["live", "ended"].includes(status)) {
+        return predatesCommunicationMonitoring(request)
+          ? historicalUnknownState("older campaign—delivery was not tracked")
+          : {
+              label: "Launch email missing",
+              detail: "no successful send found",
+              tone: "waiting",
+            };
+      }
       return { label: "Not due", tone: "muted" };
     case "traction":
       if (sent) return sent;
       if (status === "live" && ((request.ad_clicks ?? 0) > 0 || (request.ad_spend_cents ?? 0) > 0)) {
-        return { label: "Send unconfirmed", detail: "metrics are live", tone: "waiting" };
+        return predatesCommunicationMonitoring(request)
+          ? historicalUnknownState("metrics were imported outside the email trigger")
+          : {
+              label: "Traction email missing",
+              detail: "activity is recorded; no successful send found",
+              tone: "waiting",
+            };
       }
       if (status === "live") return { label: "Watching metrics", tone: "active" };
       if (status === "ended") return { label: "Skipped", tone: "muted" };
@@ -286,7 +323,15 @@ export function getAdBoostStepState(
     case "promo_complete":
       if (sent) return sent;
       if (status === "live") return { label: "Campaign in flight", tone: "active" };
-      if (status === "ended") return { label: "Send unconfirmed", tone: "waiting" };
+      if (status === "ended") {
+        return predatesCommunicationMonitoring(request)
+          ? historicalUnknownState("older campaign—delivery was not tracked")
+          : {
+              label: "Wrap-up email missing",
+              detail: "campaign ended; no successful send found",
+              tone: "waiting",
+            };
+      }
       return { label: "Not due", tone: "muted" };
     case "plan_decision":
       if (request.plan_status) {
@@ -394,7 +439,7 @@ export function getAdBoostNextAction(
   const launch = state("campaign_launched");
   if (["live", "ended"].includes(request.status) && launch.tone === "waiting") {
     return {
-      label: launch.label === "Send overdue" ? "Launch email overdue" : "Verify launch email",
+      label: launch.label === "Send overdue" ? "Launch email overdue" : "Launch email missing",
       detail: launch.detail ?? "No successful send recorded",
       level: "attention",
       stepKey: "campaign_launched",
@@ -412,13 +457,31 @@ export function getAdBoostNextAction(
     if (wrap.tone === "waiting") {
       return { label: "Send campaign wrap-up", detail: "Campaign has ended", level: "attention", stepKey: "promo_complete", priority: 7 };
     }
-    return { label: "Campaign complete", detail: "Wrap-up recorded", level: "done", stepKey: "promo_complete", priority: 80 };
+    return {
+      label: "Campaign complete",
+      detail:
+        wrap.label === "Historical send unknown"
+          ? "Wrap-up email history unavailable"
+          : "Wrap-up recorded",
+      level: "done",
+      stepKey: "promo_complete",
+      priority: 80,
+    };
   }
 
   if (request.status === "live") {
     const traction = state("traction");
     if (traction.tone === "waiting") {
-      return { label: "Verify traction update", detail: traction.detail ?? "Metrics are live", level: "attention", stepKey: "traction", priority: 9 };
+      return { label: "Traction email missing", detail: traction.detail ?? "No successful send found", level: "attention", stepKey: "traction", priority: 9 };
+    }
+    if (traction.label === "Historical send unknown") {
+      return {
+        label: "Campaign in flight",
+        detail: "Traction email history unavailable",
+        level: "healthy",
+        stepKey: "traction",
+        priority: 60,
+      };
     }
     if ((options.leadCount ?? request.delivered ?? 0) > 0) {
       return { label: "Watch lead outcomes", detail: "Checks run around day 7 and 21", level: "healthy", stepKey: "lead_outcome", priority: 55 };

@@ -374,10 +374,152 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
   ],
 };
 
+/**
+ * Provider outreach journey — the claim funnel from enrollment through
+ * follow-up channels to re-engagement cycles.
+ *
+ * DRIFT GUARD: mirrors the provider-outreach-send 4-email cadence (Day 0/3/7/14),
+ * the provider-outreach-sequence-check stage transitions, the follow-up channel
+ * queue in /admin/provider-outreach, and the provider-outreach-auto-re-engage
+ * 30-day recycle.
+ */
+export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
+  key: "provider_outreach_journey",
+  title: "Provider outreach — the claim journey",
+  ordering: "time",
+  audienceLabel: "Provider journey",
+  description:
+    "One outreach journey from enrollment to claim: provider-outreach-send fires the 4-email " +
+    "sequence (Day 0/3/7/14), the sequence check moves non-claimers to Follow Up, and manual " +
+    "channels (fax, LinkedIn, direct mail) offer alternative touchpoints. Cycle 2 re-engages after 30 days.",
+  steps: [
+    // ── Email Sequence ──────────────────────────────────────────────────
+    {
+      key: "intro_email",
+      phase: "Email Sequence",
+      title: "Introduction email sent",
+      timing: "Day 0 · Provider enrolled",
+      description:
+        "Provider is added to outreach sequence. First email explains Olera, " +
+        "shows their free profile exists, and invites them to claim it.",
+      emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_intro",
+      ownedBy: "provider-outreach-send",
+    },
+    {
+      key: "followup_email",
+      phase: "Email Sequence",
+      title: "Family Confidence email",
+      timing: "Day 3",
+      description:
+        "Follow-up emphasizing how a complete profile helps families feel " +
+        "confident choosing this provider.",
+      emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_followup",
+      ownedBy: "provider-outreach-send",
+    },
+    {
+      key: "demand_loss_email",
+      phase: "Email Sequence",
+      title: "Why It's Free email",
+      timing: "Day 7",
+      description:
+        "Explains the free model — no referral fees, no pay-per-lead, " +
+        "direct family connections.",
+      emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_demand_loss",
+      ownedBy: "provider-outreach-send",
+    },
+    {
+      key: "final_email",
+      phase: "Email Sequence",
+      title: "Get Verified email",
+      timing: "Day 14",
+      description:
+        "Final push focusing on the verified badge as a trust signal for families.",
+      emailType: "provider_outreach_sequence",
+      emailSampleId: "provider_outreach_final",
+      ownedBy: "provider-outreach-send",
+    },
+    // ── Follow Up ───────────────────────────────────────────────────────
+    {
+      key: "sequence_exhausted",
+      phase: "Follow Up",
+      title: "Provider enters Follow Up queue",
+      timing: "Day 14+ · No claim",
+      description:
+        "Sequence complete without a claim. Provider moves to needs_call stage " +
+        "with reason: clicked_not_claimed (engaged) or sequence_exhausted (no engagement).",
+      ownedBy: "provider-outreach-sequence-check",
+      gate: "Only if provider hasn't claimed by end of sequence",
+    },
+    {
+      key: "fax_attempt",
+      phase: "Follow Up",
+      title: "Fax sent",
+      timing: "Manual · When fax number available",
+      description:
+        "Admin sends fax via ClickSend. Useful when emails aren't reaching " +
+        "the decision maker.",
+      ownerNote: "Triggered from Follow Up tab",
+      traits: ["Manual", "Conditional"],
+      gate: "Requires valid fax number (auto-discovered or manually added)",
+    },
+    {
+      key: "linkedin_attempt",
+      phase: "Follow Up",
+      title: "LinkedIn outreach",
+      timing: "Manual · When LinkedIn available",
+      description:
+        "Admin sends personal LinkedIn message. Best for providers who " +
+        "clicked emails but didn't claim.",
+      ownerNote: "Triggered from Follow Up tab",
+      traits: ["Manual", "Conditional"],
+      gate: "Requires LinkedIn profile (auto-discovered or manually added)",
+    },
+    {
+      key: "directmail_attempt",
+      phase: "Follow Up",
+      title: "Direct mail sent",
+      timing: "Manual · When address available",
+      description:
+        "Physical letter sent to provider. Last resort when digital " +
+        "channels aren't working.",
+      ownerNote: "Triggered from Follow Up tab",
+      traits: ["Manual", "Has cost"],
+      gate: "Requires valid mailing address",
+    },
+    // ── Re-engagement ───────────────────────────────────────────────────
+    {
+      key: "re_engage_wait",
+      phase: "Re-engagement",
+      title: "30-day cooling period",
+      timing: "After Follow Up attempts",
+      description:
+        "Provider marked as re_engage. System waits 30 days before " +
+        "attempting another outreach cycle.",
+      ownerNote: "Automatic transition after Follow Up",
+      traits: ["Silent step"],
+    },
+    {
+      key: "cycle_2",
+      phase: "Re-engagement",
+      title: "Cycle 2 begins (or terminal)",
+      timing: "30 days after Cycle 1",
+      description:
+        "Cycle 1 providers automatically restart the sequence. " +
+        "Cycle 2 providers move to not_interested (soft terminal).",
+      ownedBy: "provider-outreach-auto-re-engage",
+      gate: "Only Cycle 1 providers restart; Cycle 2 providers are terminal",
+    },
+  ],
+};
+
 const COMMS_JOURNEYS: Record<string, CommsJourney> = {
   [BENEFITS_CASCADE.key]: BENEFITS_CASCADE,
   [HELP_CASCADE_LADDER.key]: HELP_CASCADE_LADDER,
   [AD_BOOST_PROVIDER_JOURNEY.key]: AD_BOOST_PROVIDER_JOURNEY,
+  [PROVIDER_OUTREACH_JOURNEY.key]: PROVIDER_OUTREACH_JOURNEY,
 };
 
 /** Which journeys each automation page shows, in display order. */
@@ -388,6 +530,10 @@ const JOURNEYS_BY_CRON: Record<string, string[]> = {
   "ad-boost-profile-reminders": [AD_BOOST_PROVIDER_JOURNEY.key],
   "ad-boost-launch-scheduler": [AD_BOOST_PROVIDER_JOURNEY.key],
   "ad-boost-emails": [AD_BOOST_PROVIDER_JOURNEY.key],
+  "provider-outreach-send": [PROVIDER_OUTREACH_JOURNEY.key],
+  "provider-outreach-sequence-check": [PROVIDER_OUTREACH_JOURNEY.key],
+  "provider-outreach-channel-lifecycle": [PROVIDER_OUTREACH_JOURNEY.key],
+  "provider-outreach-auto-re-engage": [PROVIDER_OUTREACH_JOURNEY.key],
 };
 
 export function journeysForCron(cronId: string): CommsJourney[] {

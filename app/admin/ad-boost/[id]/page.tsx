@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   type CampaignRequest,
   type CampaignLead,
+  type CampaignCommunication,
   STATUSES,
   CHANNELS,
   StatusBadge,
@@ -14,6 +15,15 @@ import {
   fmtDateOnly,
 } from "@/components/admin/AdBoostShared";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
+import {
+  type AdBoostAttentionLevel,
+  type AdBoostCommunicationTone,
+  formatAdBoostRelativeTime,
+  getAdBoostJourneyStates,
+  getAdBoostLastContact,
+  getAdBoostNextAction,
+  getAdBoostRecordedSendCount,
+} from "@/lib/ad-boost/admin-communications";
 
 /** The exact numbers the provider sees on their own /provider/boost live view
  *  (mirrored here for admin parity). Real visitors + leads on their page since
@@ -46,6 +56,7 @@ export default function AdBoostDetailPage() {
 
   const [request, setRequest] = useState<CampaignRequest | null>(null);
   const [leads, setLeads] = useState<CampaignLead[]>([]);
+  const [communications, setCommunications] = useState<CampaignCommunication[]>([]);
   const [campaignStats, setCampaignStats] = useState<ProviderViewStats | null>(null);
   const [receipt, setReceipt] = useState<ReceiptRollup | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +72,7 @@ export default function AdBoostDetailPage() {
       const json = await res.json();
       setRequest(json.request as CampaignRequest);
       setLeads((json.leads as CampaignLead[]) ?? []);
+      setCommunications((json.communications as CampaignCommunication[]) ?? []);
       setCampaignStats((json.campaignStats as ProviderViewStats | null) ?? null);
       setReceipt((json.receipt as ReceiptRollup | null) ?? null);
     } catch (e) {
@@ -91,6 +103,7 @@ export default function AdBoostDetailPage() {
         <Detail
           request={request}
           leads={leads}
+          communications={communications}
           campaignStats={campaignStats}
           receipt={receipt}
           onChanged={load}
@@ -104,6 +117,7 @@ export default function AdBoostDetailPage() {
 function Detail({
   request,
   leads,
+  communications,
   campaignStats,
   receipt,
   onChanged,
@@ -111,6 +125,7 @@ function Detail({
 }: {
   request: CampaignRequest;
   leads: CampaignLead[];
+  communications: CampaignCommunication[];
   campaignStats: ProviderViewStats | null;
   receipt: ReceiptRollup | null;
   onChanged: () => void;
@@ -164,10 +179,23 @@ function Detail({
     request.ad_impressions != null ? request.ad_impressions.toString() : "",
   );
   const [savingPerf, setSavingPerf] = useState(false);
+  const [showCommunicationTimeline, setShowCommunicationTimeline] = useState(false);
 
   const isArchived = !!request.deleted_at;
   const name = request.display_name || request.provider_slug || request.provider_id;
   const url = utmUrl(request.provider_slug, tag, request.id);
+  const unresolvedOutcomes = receipt?.outcomes.unanswered ?? 0;
+  const journeyStates = getAdBoostJourneyStates(request, communications, {
+    leadCount: leads.length,
+    unresolvedOutcomes,
+  });
+  const communicationSteps = journeyStates.filter(({ step }) => Boolean(step.emailType));
+  const lastContact = getAdBoostLastContact(request, communications);
+  const nextAction = getAdBoostNextAction(request, communications, {
+    leadCount: leads.length,
+    unresolvedOutcomes,
+  });
+  const successfulCommunicationCount = getAdBoostRecordedSendCount(request, communications);
 
   const delivered = request.delivered ?? 0;
   const spendNum = spend.trim() === "" ? null : Number(spend);
@@ -429,6 +457,79 @@ function Detail({
           View provider record ↗
         </Link>
       </div>
+
+      {/* Campaign-specific communication truth. The canonical journey teaches
+          the sequence; this card answers what happened and what happens next
+          for the provider currently in front of the operator. */}
+      <section className="mb-5 overflow-hidden rounded-xl border border-teal-200/70 bg-white shadow-sm shadow-teal-950/5">
+        <div className="flex flex-col gap-3 border-b border-teal-100 bg-teal-50/45 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-teal-700">Provider communications</p>
+            <h2 className="mt-1 text-lg font-semibold text-gray-950">What they heard—and what happens next</h2>
+            <p className="mt-1 text-xs leading-relaxed text-gray-500">Campaign milestones and delivery history are checked together, so older sends are not mistaken for missing messages.</p>
+          </div>
+          <Link
+            href={`/admin/automations/ad-boost?campaign=${encodeURIComponent(request.id)}&step=${encodeURIComponent(nextAction.stepKey ?? "campaign_launched")}#ad-boost-message-preview`}
+            className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-teal-200 bg-white px-3 text-xs font-semibold text-teal-800 hover:bg-teal-50"
+          >
+            Open provider journey →
+          </Link>
+        </div>
+
+        <div className="grid gap-px bg-gray-100 sm:grid-cols-3">
+          <CommunicationFact
+            label="Last contact"
+            value={lastContact?.label ?? "No message recorded"}
+            detail={lastContact ? formatAdBoostRelativeTime(lastContact.sentAt) : "The first applicable message is still expected"}
+          />
+          <CommunicationFact
+            label="Next move"
+            value={nextAction.label}
+            detail={nextAction.detail}
+            level={nextAction.level}
+          />
+          <CommunicationFact
+            label="Recorded delivery"
+            value={`${successfulCommunicationCount} successful send${successfulCommunicationCount === 1 ? "" : "s"}`}
+            detail="Repeating lead and outcome emails count individually"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowCommunicationTimeline((current) => !current)}
+          className="flex min-h-11 w-full items-center justify-between border-t border-gray-100 px-5 text-left text-xs font-semibold text-gray-600 hover:bg-gray-50"
+          aria-expanded={showCommunicationTimeline}
+        >
+          <span>{showCommunicationTimeline ? "Hide" : "Show"} campaign communication timeline</span>
+          <span aria-hidden="true">{showCommunicationTimeline ? "↑" : "↓"}</span>
+        </button>
+
+        {showCommunicationTimeline && (
+          <div className="divide-y divide-gray-100 border-t border-gray-100">
+            {communicationSteps.map(({ step, state }) => (
+              <div key={step.key} className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{step.timing}</p>
+                  <p className="mt-0.5 text-sm font-semibold text-gray-800">{step.title}</p>
+                  {state.detail && <p className="mt-0.5 text-xs text-gray-400">{state.detail}</p>}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ring-inset ${communicationStateClasses(state.tone)}`}>
+                    {state.label}
+                  </span>
+                  <Link
+                    href={`/admin/automations/ad-boost?campaign=${encodeURIComponent(request.id)}&step=${encodeURIComponent(step.key)}#ad-boost-message-preview`}
+                    className="text-xs font-semibold text-teal-700 hover:underline"
+                  >
+                    Preview →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Campaign setup */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
@@ -919,6 +1020,40 @@ function Stat({ value, label, accent }: { value: string; label: string; accent?:
         {value}
       </div>
       <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+function communicationStateClasses(tone: AdBoostCommunicationTone): string {
+  if (tone === "sent") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (tone === "active") return "bg-teal-50 text-teal-800 ring-teal-200";
+  if (tone === "scheduled") return "bg-blue-50 text-blue-700 ring-blue-200";
+  if (tone === "waiting") return "bg-amber-50 text-amber-700 ring-amber-200";
+  return "bg-gray-50 text-gray-400 ring-gray-200";
+}
+
+function CommunicationFact({
+  label,
+  value,
+  detail,
+  level = "healthy",
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  level?: AdBoostAttentionLevel;
+}) {
+  const valueTone =
+    level === "attention"
+      ? "text-amber-800"
+      : level === "done"
+        ? "text-gray-600"
+        : "text-gray-900";
+  return (
+    <div className="bg-white px-5 py-4">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{label}</p>
+      <p className={`mt-1 text-sm font-semibold ${valueTone}`}>{value}</p>
+      <p className="mt-1 text-xs leading-relaxed text-gray-400">{detail}</p>
     </div>
   );
 }

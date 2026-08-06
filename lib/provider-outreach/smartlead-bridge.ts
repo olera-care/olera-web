@@ -38,10 +38,9 @@ import {
   getTemplate,
   type ProviderOutreachTemplateKey,
   type TemplateContext,
-  loganSignatureHtml,
 } from "./templates";
-// Note: bodyToHtml, smartleadBrandedLayout, getCategoryLabel removed -
-// SmartLead path now uses inline smartleadBodyToHtml (MedJobs pattern)
+// Note: bodyToHtml, smartleadBrandedLayout, getCategoryLabel, loganSignatureHtml removed -
+// SmartLead path now uses inline smartleadBodyToHtml and text-only signature (no image)
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -298,29 +297,27 @@ function smartleadBodyToHtml(text: string): string {
 
   // 4) Single-div body: paragraphs joined by <br><br>
   // This prevents Gmail's auto-trim and keeps consistent spacing
-  // Compact line-height (1.4) matches email-utils.ts for consistency
+  // Line-height 1.5 for better readability (matches email-utils.ts)
   const paragraphs = s.split(/\n{2,}/).map((p) => p.replace(/\n/g, "<br>"));
-  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.4;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
+  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.5;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
 }
 
 /**
  * Build the SmartLead footer HTML with Logan signature + compliance links.
  * Uses SmartLead merge tags for dynamic URLs.
+ * NOTE: Text-only signature (no image) for better SmartLead compatibility.
  * NOTE: Join with empty string to avoid extra whitespace in email clients.
  */
 function buildSmartleadFooterHtml(): string {
   // NOTE: Compact spacing to match email-utils.ts (8px/12px pattern).
-  // - Sign-off "Best," has 8px top margin (space from body)
-  // - "Logan" has 4px bottom margin (tight coupling to signature)
-  // - Signature has 0 margin (set in loganSignatureHtml)
-  // - Footer div has 8px top margin (compact gap from signature)
+  // SmartLead path uses text-only signature (no image) for cleaner rendering.
   // Footer links use &nbsp; to stay on one line in all email clients.
   return [
     // Sign-off - 8px gap from body content (compact)
-    `<p style="margin:8px 0 4px;font-size:14px;line-height:1.4;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0 0 4px;font-size:14px;line-height:1.4;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
-    // Signature block (shared with Resend emails)
-    loganSignatureHtml(),
+    `<p style="margin:8px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
+    `<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
+    // Text-only signature (no image for SmartLead compatibility)
+    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:#198087;text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:#198087;text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We're working to make senior care easier to understand and compare.</p>`,
     // Footer links with merge tags - compact margin, inline links with &nbsp;
     `<div style="margin:8px 0 0;padding:8px 0 0;border-top:1px solid #e5e7eb;">`,
     `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,
@@ -341,7 +338,7 @@ function buildSmartleadFooterHtml(): string {
  * Follows the MedJobs pattern: bodyHtml + footerHtml, NO outer wrapper.
  * SmartLead strips complex HTML structures, so we keep it simple:
  * - Single <div> for body (smartleadBodyToHtml)
- * - Signature table (loganSignatureHtml) - tables work for inline components
+ * - Text-only signature (no image for cleaner SmartLead rendering)
  * - Simple footer links
  *
  * This pattern is proven to render correctly in SmartLead → Gmail.

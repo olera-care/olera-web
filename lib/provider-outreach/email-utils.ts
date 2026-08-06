@@ -149,7 +149,7 @@ function bodyToPolishedHtml(text: string): string {
     .replace(/>/g, "&gt;");
 
   // 2) **text** → <strong> with emphasis styling (18px to stand out without being overwhelming)
-  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong style="font-size:18px;font-weight:700;color:#111827;line-height:1.4;">${inner}</strong>`);
+  s = s.replace(/\*\*([^*]+)\*\*/g, (_m, inner: string) => `<strong style="font-size:18px;font-weight:700;color:#111827;line-height:1.5;">${inner}</strong>`);
 
   // 3) Split into paragraphs and process each
   const paragraphs = s.split(/\n{2,}/);
@@ -170,7 +170,7 @@ function bodyToPolishedHtml(text: string): string {
       } else {
         // Standalone non-CTA link → wrap in paragraph
         outputBlocks.push(
-          `<p style="font-size:15px;line-height:1.4;color:#374151;margin:0 0 8px;">${renderInlineLink(label, href)}</p>`
+          `<p style="font-size:15px;line-height:1.5;color:#374151;margin:0 0 8px;">${renderInlineLink(label, href)}</p>`
         );
       }
     } else {
@@ -184,7 +184,7 @@ function bodyToPolishedHtml(text: string): string {
       const withBreaks = processed.replace(/\n/g, "<br>");
 
       outputBlocks.push(
-        `<p style="font-size:15px;line-height:1.4;color:#374151;margin:0 0 8px;">${withBreaks}</p>`
+        `<p style="font-size:15px;line-height:1.5;color:#374151;margin:0 0 8px;">${withBreaks}</p>`
       );
     }
   }

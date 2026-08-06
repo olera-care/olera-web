@@ -538,6 +538,38 @@ function Detail({
             promo-complete email hasn't gone out. The slot is picked for you on
             the flip (next 10:15 AM ET business morning) — this is where you
             re-time it, cancel it, or override it and send now. */}
+        {/* What the provider told us about the whole flight, one-tap from the
+            zero-lead wrap-up. The only signal we have when a family called
+            their office instead of coming through Olera — so an attributed
+            count of 0 next to "became a client" here is the Franchil case
+            caught rather than missed. */}
+        {request.provider_reported_outcome && (
+          <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2.5">
+            <span className="block text-sm font-medium text-gray-700 mb-1">
+              Provider reported on this flight
+            </span>
+            <p className="text-sm text-gray-800">
+              {request.provider_reported_outcome === "client"
+                ? "✅ A family reached them directly and became a client"
+                : request.provider_reported_outcome === "talking"
+                  ? "💬 A family reached them directly, still talking"
+                  : "➖ Nobody reached them directly"}
+              {request.provider_reported_outcome_at && (
+                <span className="text-gray-500">
+                  {" · "}
+                  {formatEt(request.provider_reported_outcome_at)}
+                </span>
+              )}
+            </p>
+            {request.provider_reported_outcome !== "no" && (delivered ?? 0) === 0 && (
+              <p className="mt-1 text-xs text-emerald-800">
+                Attributed leads read 0 for this campaign. This answer is the only record that it
+                worked. Worth a call before quoting its numbers anywhere.
+              </p>
+            )}
+          </div>
+        )}
+
         {wrapUpEditable && (
           <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50/40 px-3 py-2.5">
             <span className="block text-sm font-medium text-gray-700 mb-1.5">

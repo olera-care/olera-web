@@ -50,6 +50,11 @@ export interface CampaignRequest {
    *  serving day). NULL on rows that ended before these were tracked. */
   ended_at?: string | null;
   ended_reason?: "admin" | "flight_end" | null;
+  /** Provider's own answer for the whole flight, captured one-tap from the
+   *  zero-lead wrap-up: did any family reach them outside Olera. NULL = never
+   *  answered, which is NOT the same as an answer of "no". */
+  provider_reported_outcome?: "client" | "talking" | "no" | null;
+  provider_reported_outcome_at?: string | null;
   /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
   plan_status?: "active" | "past_due" | "canceled" | null;
   /** Subscribed monthly plan in whole USD (150/300/600). */

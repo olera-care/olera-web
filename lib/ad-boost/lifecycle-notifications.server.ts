@@ -171,6 +171,21 @@ export async function sendAdBoostLifecycleEmail(opts: {
   });
 
   const ctaUrl = appendTrackingParams(`${getSiteUrl()}/provider/boost`, emailLogId);
+
+  // Campaign-level outcome chips, only on a zero-lead wrap-up. That's the case
+  // the per-lead sensor structurally cannot reach — sendDueLeadOutcomePings
+  // bails when a campaign has no attributed lead rows — so it's also the case
+  // where our family count is unverified rather than known-zero. Points at the
+  // /provider/campaign-outcome page (never the API route) so a mail scanner's
+  // GET can't record an answer.
+  const outcomeUrls =
+    opts.kind === "promo_complete" && stats.leads === 0
+      ? {
+          client: `${getSiteUrl()}${appendTrackingParams(`/provider/campaign-outcome?rid=${opts.request.id}&v=client`, emailLogId)}`,
+          talking: `${getSiteUrl()}${appendTrackingParams(`/provider/campaign-outcome?rid=${opts.request.id}&v=talking`, emailLogId)}`,
+          no: `${getSiteUrl()}${appendTrackingParams(`/provider/campaign-outcome?rid=${opts.request.id}&v=no`, emailLogId)}`,
+        }
+      : null;
   const html =
     opts.kind === "launched"
       ? adBoostCampaignLaunchedEmail({
@@ -200,6 +215,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
             saves: receipt?.engagement.saves ?? null,
             questionsReceived: questions.received,
             clientOutcomes: receipt?.outcomes.client ?? null,
+            outcomeUrls,
           });
 
   const result = await sendEmail({

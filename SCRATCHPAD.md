@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-06 — Benefits guidance communications (`codex/benefits-guidance-v1`)
+
+Turned the benefits cascade into one coherent email/text guidance journey: Day-0 results now lead with the family’s private Olera plan, B1 and B2 keep text-only families moving, reply vocabulary writes progress back to the living plan, and admin delivery states distinguish email, text, and mixed-channel families. The Automations journey now links directly to the correct email/text preview, smooth-scrolls there, and shows concise timing/context explainers so operators do not have to cross-reference the timeline.
+
+**Files:** 25 benefits, family-comms, SMS, email-sample, and Automations admin files. **Validation:** `npx --no-install tsc --noEmit`, `npm run check:crons`, and diff checks pass. **Commits:** `a9d3d7b9`, `55e7db25`, `227b026e`. **Next:** ready-for-review PR to `staging`, safe merge analysis, then build the same connected journey/preview/next-action UX for Ad Boost on a fresh branch.
+
 ### 2026-08-06 — Aug 4 profile-edit spike investigated: one operator claimed + filled 25 provider profiles (no code)
 
 Investigation-only session (branch `polite-rosalind`, no code changes). The Aug 4 "Provider Profile Edits up 81%" spike (129 events / 25 distinct providers vs baseline 10-25 events / 2-7 providers per day) is real in the data but is NOT organic: 24 of 25 accounts were created that afternoon seconds before their edit bursts, serialized ~8-10 min apart from 10:35 AM-2:06 PM ET, and **23 of 25 never received any email from Olera** (checked every provider-id format + account email back to Jun 1) — rules out cron/campaign-driven clicks. All no-email claims came through `/api/provider/claim-instant` (typed email → instantly-verified account, no OTP, no email sent, no IP/UA recorded anywhere). Content written is real per-provider enrichment (true brand slogans, phones, websites, photos, year founded, payments). Ruled out our own systems (all Aug 4 crons are email/SMS senders; Automation Control Center is monitoring-only). Two of the 25 are confirmed-real providers (Millcroft/Encore via our weekly digest; Happy Mountain OTP-verified + answered a question). Leading hypothesis: a listings-management/marketing agency syncing client data (multi-brand franchise mix incl. 9 Home Helpers, four using internal numeric corporate emails like `59063@homehelpershomecare.com`).

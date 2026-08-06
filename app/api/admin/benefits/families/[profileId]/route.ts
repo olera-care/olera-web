@@ -36,6 +36,16 @@ interface TimelineEvent {
   detail?: string;
 }
 
+const BENEFITS_REPLY_LABELS: Record<string, string> = {
+  CALLED: "Reported: called the program",
+  NOANSWER: "Reported: no answer",
+  NEEDDOCS: "Reported: needs documents",
+  APPLIED: "Reported: application submitted",
+  WAITING: "Reported: waiting on the agency",
+  NOTELIGIBLE: "Reported: program was not eligible",
+  STUCK: "Asked Olera for help",
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ profileId: string }> },
@@ -105,8 +115,8 @@ export async function GET(
         .order("created_at");
       const LABELS: Record<string, string> = {
         benefits_results_saved: "Results email",
-        benefits_first_step: "First-step email (day 2-3)",
-        benefits_check_in: "Check-in email (day 5-6)",
+        benefits_first_step: "First-step email",
+        benefits_check_in: "Progress-check email",
       };
       for (const l of logs ?? []) {
         push(l.created_at, "email", `${LABELS[l.email_type] || l.email_type} sent`);
@@ -166,11 +176,12 @@ export async function GET(
       ? (meta.sms_inbound as { at?: string; body?: string; keyword?: string | null }[])
       : [];
     for (const m of inbound) {
+      const keyword = m.keyword?.toUpperCase() ?? null;
       push(
         m.at,
         "sms_in",
-        m.keyword ? `Texted ${m.keyword}` : "Texted us back",
-        m.keyword ? undefined : m.body,
+        keyword ? BENEFITS_REPLY_LABELS[keyword] ?? `Texted ${keyword}` : "Texted us back",
+        keyword ? undefined : m.body,
       );
     }
     push(
@@ -210,9 +221,9 @@ export async function GET(
     push(caseMeta.contacted_at, "case", "Marked contacted");
     push(caseMeta.resolved_at, "case", "Marked resolved");
 
-    // Navigator letter lifecycle
+    // Navigator guidance lifecycle
     const navigator = readBenefitsNavigator(meta);
-    push(navigator.composed_at, "navigator", "Navigator letter drafted", navigator.pick?.shortName);
+    push(navigator.composed_at, "navigator", "Navigator guidance drafted", navigator.pick?.shortName);
     push(
       navigator.edited_at,
       "navigator",
@@ -227,9 +238,17 @@ export async function GET(
     push(
       navigator.sent_at,
       "navigator",
-      navigator.sent_via === "scheduler"
-        ? "Navigator letter sent (scheduled)"
-        : "Navigator letter sent by TJ",
+      navigator.sent_sms && !navigator.sent_subject
+        ? navigator.sent_via === "scheduler"
+          ? "Navigator text sent (scheduled)"
+          : "Navigator text sent by TJ"
+        : navigator.sent_sms
+          ? navigator.sent_via === "scheduler"
+            ? "Navigator email + text sent (scheduled)"
+            : "Navigator email + text sent by TJ"
+          : navigator.sent_via === "scheduler"
+            ? "Navigator email sent (scheduled)"
+            : "Navigator email sent by TJ",
     );
     push(navigator.dismissed_at, "navigator", "Navigator draft dismissed");
 
@@ -572,7 +591,11 @@ export async function POST(
           { status: 409 },
         );
       }
-      return NextResponse.json({ success: true, navigator: sendResult.navigator });
+      return NextResponse.json({
+        success: true,
+        navigator: sendResult.navigator,
+        deferred: sendResult.deferred ?? false,
+      });
     }
 
     // ── Schedule: park the letter (with TJ's edits) for the hourly

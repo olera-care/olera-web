@@ -52,6 +52,18 @@ export interface BenefitsHomeProps {
   textTjNumber?: string | null;
 }
 
+const APPLICATION_STATUS_COPY: Partial<
+  Record<NonNullable<BenefitsCascadeMeta["application_status"]>, string>
+> = {
+  called: "You called the program. We’ll remember where you left off.",
+  no_answer: "You couldn’t reach the program yet. Your call details are still here.",
+  needs_docs: "The agency asked for documents. Your checklist is ready below.",
+  applied: "Your application is marked submitted.",
+  waiting: "You’re waiting on the agency. We’ll keep your place here.",
+  not_eligible: "That program wasn’t a fit. Your other matches are still here.",
+  stuck: "You asked the Olera team for help. Your plan remembers that request.",
+};
+
 const TIMELINE_LABELS: Record<string, string> = {
   asap: "Care needed soon",
   immediate: "Care needed soon",
@@ -209,7 +221,7 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
         </h1>
         {signedIn && (
           <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-emerald-700">
-            <span aria-hidden>&#10003;</span> Saved to your account. Your progress here is remembered.
+            <span aria-hidden>&#10003;</span> Added to your private Olera plan. Your progress here is remembered.
           </p>
         )}
         <p className="mt-2 text-[15px] leading-relaxed text-gray-600">
@@ -233,6 +245,13 @@ export default function BenefitsHome(props: BenefitsHomeProps) {
             suppressMedicaidChip={!!payments?.some((p) => /medicaid/i.test(p))}
           />
         </div>
+
+        {cascade.application_status && APPLICATION_STATUS_COPY[cascade.application_status] && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[14px] font-medium leading-relaxed text-emerald-900">
+            <span aria-hidden>&#10003;</span>{" "}
+            {APPLICATION_STATUS_COPY[cascade.application_status]}
+          </div>
+        )}
 
         {/* ── Progress strip ──────────────────────────────────────────── */}
         <div className="mt-7 flex items-center gap-2 text-[12px] font-medium">

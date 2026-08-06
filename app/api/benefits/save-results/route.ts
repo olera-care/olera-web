@@ -481,6 +481,7 @@ export async function POST(req: Request) {
   // our internal personalization logic; the display field is downstream.
   const relationshipDisplay = relationshipDisplayName(relationship);
 
+  const completedAt = new Date().toISOString();
   const intakeMetadata: Record<string, unknown> = {
     age: age || undefined,
     care_needs: granularCareNeeds.length > 0 ? granularCareNeeds : undefined,
@@ -493,8 +494,15 @@ export async function POST(req: Request) {
     benefits_results: {
       answers: careNeed ? { careNeed } : undefined,
       matchCount,
-      completed_at: new Date().toISOString(),
+      completed_at: completedAt,
     },
+    // A phone submitted through the benefits intake is an explicit request
+    // for the results and follow-up guidance by text. Persist that choice so
+    // the later navigator/check-in messages use the same consent decision as
+    // the Day 0 results text instead of silently dropping the family.
+    sms_consent: normalizedPhone
+      ? { at: completedAt, source: "benefits_intake" }
+      : undefined,
   };
 
   // Look up family profile by account_id (include fields needed for completeness calculation)
@@ -757,12 +765,13 @@ export async function POST(req: Request) {
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 6. Send welcome notifications — TRULY fire-and-forget so the response
-  //    doesn't wait on Resend (~500-1500ms) / Twilio (~200-800ms).
+  // 6. Send welcome notifications. These are awaited together: serverless
+  //    runtimes may terminate work after the response is returned, and Day 0
+  //    is the family's only immediate receipt that Olera has their request.
   //
-  //    V3 design: email is always primary (and required on the new flow);
-  //    if the user also gave a phone, we ALSO send an SMS. Both fire in
-  //    parallel for new users.
+  //    Channel-aware design: new families receive the result on every
+  //    contact channel they explicitly supplied. Email and SMS can each be
+  //    the primary path; when both exist, both fire in parallel.
   //
   //    Email body delivers REAL value — top 5 matched programs as a
   //    state-filtered starter list, personalized for relationship, primary
@@ -771,8 +780,9 @@ export async function POST(req: Request) {
   //    we capture at scale" — 95% of users won't engage with email, so when
   //    one does, the email needs to be worth their time.
   // ═══════════════════════════════════════════════════════════════════
+  const welcomeTasks: Promise<void>[] = [];
   if (isNewUser && normalizedEmail) {
-    (async () => {
+    welcomeTasks.push((async () => {
       try {
         const stateNameForEmail = stateDisplayName(stateAbbrev);
         const careLabel = careNeed ? CARE_NEED_LABEL_FOR_COPY[careNeed] || "care" : "care";
@@ -818,7 +828,7 @@ export async function POST(req: Request) {
         const heroLine =
           matchCount > 0
             ? `We found <strong>${matchCount} ${matchCount === 1 ? "program" : "programs"}</strong> in ${stateNameForEmail} that may help with ${careLabel} for ${familyPhrase}.`
-            : `We saved your search. We'll keep an eye out for ${stateNameForEmail} programs that may help with ${careLabel}.`;
+            : `We created your private Olera plan. There isn't a strong ${stateNameForEmail} match yet, but we'll keep checking for programs that may help with ${careLabel}.`;
 
         await sendEmail({
           to: normalizedEmail,
@@ -835,7 +845,7 @@ export async function POST(req: Request) {
       } catch (emailErr) {
         console.error("[save-results] Failed to send welcome email:", emailErr);
       }
-    })();
+    })());
   }
 
   // Bonus SMS — fires in parallel with email when the user provided a phone
@@ -843,7 +853,7 @@ export async function POST(req: Request) {
   // other; both are best-effort. Body is relationship-aware where helpful
   // (160-char SMS budget caps how much personalization we can fit).
   if (isNewUser && normalizedPhone && benefitsToken) {
-    (async () => {
+    welcomeTasks.push((async () => {
       const body = benefitsResultsSms({
         matchCount,
         familyPhrase: relationshipFamilyPhrase(relationship),
@@ -868,7 +878,14 @@ export async function POST(req: Request) {
             .eq("id", familyProfileId);
         }
       }
-    })();
+    })());
+  }
+
+  const welcomeResults = await Promise.allSettled(welcomeTasks);
+  for (const result of welcomeResults) {
+    if (result.status === "rejected") {
+      console.error("[save-results] Welcome delivery failed:", result.reason);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════

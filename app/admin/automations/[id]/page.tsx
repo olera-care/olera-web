@@ -47,6 +47,8 @@ interface SamplePreviewType {
   label: string;
   subject: string;
   emailType: string;
+  timing?: string | null;
+  situation?: string | null;
   // Journey-aware ownership: false = another automation fires this email; it's
   // shown here so the full sequence is visible, with attribution.
   mine?: boolean;
@@ -393,6 +395,7 @@ export default function AutomationDetailPage() {
   const [previewType, setPreviewType] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewResponse | "loading" | "none" | null>(null);
   const [previewExpanded, setPreviewExpanded] = useState(false);
+  const [smsPreviewId, setSmsPreviewId] = useState<string | null>(null);
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
   const [recipientStatus, setRecipientStatus] = useState<RecipientStatus>("all");
   const [recipientPage, setRecipientPage] = useState(1);
@@ -401,6 +404,22 @@ export default function AutomationDetailPage() {
   const [windowDays, setWindowDays] = useState(30);
   const reqSeq = useRef(0);
   const toast = useToast();
+
+  const openJourneyPreview = useCallback((channel: "email" | "sms", sampleId: string) => {
+    setTab("overview");
+    if (channel === "email") {
+      setPreviewType(sampleId);
+      setPreviewExpanded(false);
+    } else {
+      setSmsPreviewId(sampleId);
+    }
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.getElementById(channel === "email" ? "email-samples" : "text-samples")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }, []);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -624,6 +643,7 @@ export default function AutomationDetailPage() {
                   key={`${data.job.id}:${journey.key}`}
                   journey={journey}
                   currentCronId={data.job.id}
+                  onPreview={openJourneyPreview}
                 />
               ))}
 
@@ -832,19 +852,36 @@ export default function AutomationDetailPage() {
               {/* Email preview — the digest shows a sample of each variant; other jobs show the latest real send */}
               {(() => {
                 const isDigest = data.job.id === "weekly-provider-digest";
-                type SampleChip = { id: string; label: string; mine: boolean; ownerCron?: string | null; ownerName?: string | null };
+                type SampleChip = {
+                  id: string;
+                  label: string;
+                  mine: boolean;
+                  ownerCron?: string | null;
+                  ownerName?: string | null;
+                  timing?: string | null;
+                  situation?: string | null;
+                };
                 const sampleTypes: SampleChip[] = isDigest
                   ? DIGEST_SAMPLES.map((s) => ({ id: s.key, label: s.label, mine: true }))
-                  : data.samplePreviewTypes.map((s) => ({ id: s.id, label: s.label, mine: s.mine !== false, ownerCron: s.ownerCron, ownerName: s.ownerName }));
+                  : data.samplePreviewTypes.map((s) => ({
+                      id: s.id,
+                      label: s.label,
+                      mine: s.mine !== false,
+                      ownerCron: s.ownerCron,
+                      ownerName: s.ownerName,
+                      timing: s.timing,
+                      situation: s.situation,
+                    }));
                 if (sampleTypes.length === 0 && data.previewTypes.length === 0) return null;
                 const isLatestSel = previewType?.startsWith(LATEST_PREFIX) ?? false;
                 const sampleSel = !isLatestSel && sampleTypes.some((s) => s.id === previewType);
+                const activeSample = sampleTypes.find((s) => s.id === previewType) ?? null;
                 const rawType = isLatestSel ? previewType!.slice(LATEST_PREFIX.length) : previewType;
                 const fullUrl = previewType
                   ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(rawType!)}`}&raw=1`
                   : null;
                 return (
-                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                  <div id="email-samples" className="scroll-mt-6 overflow-hidden rounded-xl border border-gray-200">
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
                       <div className="flex min-w-0 items-center gap-2 text-sm">
                         <span className="font-medium text-gray-700">{sampleTypes.length > 0 ? "Email samples" : "Latest email"}</span>
@@ -895,19 +932,29 @@ export default function AutomationDetailPage() {
                         ))}
                       </div>
                     )}
-                    {(() => {
-                      const activeChip = sampleTypes.find((s) => s.id === previewType);
-                      if (!activeChip || activeChip.mine || !activeChip.ownerCron) return null;
-                      return (
+                    {activeSample && !activeSample.mine && activeSample.ownerCron && (
                         <div className="border-b border-gray-100 bg-amber-50/40 px-4 py-1.5 text-xs text-gray-500">
                           Sent by{" "}
-                          <Link href={`/admin/automations/${activeChip.ownerCron}`} className="font-medium text-teal-700 hover:underline">
-                            {activeChip.ownerName ?? activeChip.ownerCron}
+                          <Link href={`/admin/automations/${activeSample.ownerCron}`} className="font-medium text-teal-700 hover:underline">
+                            {activeSample.ownerName ?? activeSample.ownerCron}
                           </Link>{" "}
                           — shown here so the full email sequence is visible in one place.
                         </div>
-                      );
-                    })()}
+                    )}
+                    {activeSample && (activeSample.timing || activeSample.situation) && (
+                      <div className="border-b border-teal-100 bg-teal-50/45 px-4 py-3">
+                        <div className="mx-auto flex max-w-2xl flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+                          {activeSample.timing && (
+                            <p className="shrink-0 text-xs font-semibold text-teal-800">
+                              When: {activeSample.timing}
+                            </p>
+                          )}
+                          {activeSample.situation && (
+                            <p className="text-xs leading-relaxed text-gray-600">{activeSample.situation}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     {preview && typeof preview === "object" && (preview.from || preview.preheader) && (
                       <div className="space-y-0.5 border-b border-gray-100 px-4 py-2 text-xs text-gray-400">
                         {preview.from && <div className="truncate"><span className="font-medium text-gray-500">From</span> <code className="text-gray-600">{preview.from}</code></div>}
@@ -938,7 +985,14 @@ export default function AutomationDetailPage() {
               {(() => {
                 const smsVariants = smsVariantsForJourneys(data.job.id);
                 if (smsVariants.length === 0) return null;
-                return <SmsSamplesBlock variants={smsVariants} currentCronId={data.job.id} />;
+                return (
+                  <SmsSamplesBlock
+                    variants={smsVariants}
+                    currentCronId={data.job.id}
+                    activeId={smsPreviewId}
+                    onActiveIdChange={setSmsPreviewId}
+                  />
+                );
               })()}
             </div>
           )}

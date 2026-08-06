@@ -7,11 +7,9 @@
  * same cascade stamping (B2 keys off first_step_sent_at, so the check-in
  * schedules 3d after the REAL send), same consent-gated SMS companion.
  *
- * The only trigger-specific behavior is SMS quiet hours: TJ clicking the
- * button at 2pm needs no gate, but a scheduled fire can land at 9pm in the
- * recipient's timezone — the scheduler path parks the companion text in
- * sms_queue for the next window open (the email itself sends immediately;
- * email has no quiet-hours rule).
+ * SMS quiet hours apply to both trigger paths. A manual click is not proof
+ * that it is a civil hour where the family lives; texts outside 8am–8pm park
+ * in sms_queue for the next window (email still sends immediately).
  *
  * Timing/gates are mirrored in lib/family-comms/journey.ts (the admin
  * sequence timeline) — keep that in sync when this path changes.
@@ -38,13 +36,12 @@ export interface NavigatorSendOptions {
   subject?: string | null;
   body?: string | null;
   sms?: string | null;
-  /** admin = TJ's button (no SMS quiet-hours gate — he's awake, so are they,
-   *  roughly); scheduler = the cron (companion text respects quiet hours). */
+  /** Who initiated the send. Both paths respect recipient SMS quiet hours. */
   trigger: "admin" | "scheduler";
 }
 
 export type NavigatorSendResult =
-  | { ok: true; navigator: BenefitsNavigatorMeta }
+  | { ok: true; navigator: BenefitsNavigatorMeta; /** SMS-only delivery moved to the next legal window. */ deferred?: boolean }
   | { ok: false; error: string; /** true = state conflict (409-ish), not a transport failure */ conflict?: boolean };
 
 export async function sendNavigatorLetter(
@@ -64,8 +61,11 @@ export async function sendNavigatorLetter(
   if (navigator.status !== "pending" || !navigator.body) {
     return { ok: false, error: "No pending draft for this family", conflict: true };
   }
-  if (!profile.email) {
-    return { ok: false, error: "Family has no email on file", conflict: true };
+  const smsEligible =
+    !!profile.phone && !!(meta as { sms_consent?: unknown }).sms_consent &&
+    profile.phone_validity !== "opted_out";
+  if (!profile.email && !smsEligible) {
+    return { ok: false, error: "Family has no reachable consented channel", conflict: true };
   }
 
   const now = new Date().toISOString();
@@ -94,61 +94,50 @@ export async function sendNavigatorLetter(
   // #call-script lands the family on the opened script section — the letter
   // says "the script is written on your plan page", so the tap should keep
   // that promise, not drop them at the top to go hunting.
-  const planUrl = generateFamilyInboxUrl(
-    profile.email,
-    tokenRow?.token ? `${planPath}#call-script` : planPath,
-    siteUrl,
-  );
+  let emailDelivered = false;
+  if (profile.email) {
+    const planUrl = generateFamilyInboxUrl(
+      profile.email,
+      tokenRow?.token ? `${planPath}#call-script` : planPath,
+      siteUrl,
+    );
+    const html = renderNavigatorEmail({
+      body: letter,
+      planUrl,
+      unsubscribeUrl: careUnsubscribeUrl(profileId),
+      call: navigator.pick?.contactPhone ? { phone: navigator.pick.contactPhone } : null,
+    });
 
-  const html = renderNavigatorEmail({
-    body: letter,
-    planUrl,
-    unsubscribeUrl: careUnsubscribeUrl(profileId),
-    call: navigator.pick?.contactPhone ? { phone: navigator.pick.contactPhone } : null,
-  });
-
-  // Same governed type as the old B1 email: the family nudge caps, DNC
-  // kill switch, and suppression checks all apply inside sendEmail.
-  const result = await sendEmail({
-    to: profile.email,
-    subject,
-    html,
-    emailType: "benefits_first_step",
-    recipientType: "family",
-    recipientProfileId: profileId,
-    replyTo: process.env.BENEFITS_NAVIGATOR_REPLY_TO || undefined,
-    listUnsubscribeUrl: careUnsubscribeUrl(profileId),
-    metadata: {
-      navigator: true,
-      program_id: navigator.pick?.programId || null,
-      scheduled: opts.trigger === "scheduler" || undefined,
-    },
-  });
-  if (!result.success || result.skipped) {
-    return { ok: false, error: result.skipReason || result.error || "unknown" };
+    // Same governed type as the old B1 email: the family nudge caps, DNC
+    // kill switch, and suppression checks all apply inside sendEmail.
+    const result = await sendEmail({
+      to: profile.email,
+      subject,
+      html,
+      emailType: "benefits_first_step",
+      recipientType: "family",
+      recipientProfileId: profileId,
+      replyTo: process.env.BENEFITS_NAVIGATOR_REPLY_TO || undefined,
+      listUnsubscribeUrl: careUnsubscribeUrl(profileId),
+      metadata: {
+        navigator: true,
+        program_id: navigator.pick?.programId || null,
+        scheduled: opts.trigger === "scheduler" || undefined,
+      },
+    });
+    if (!result.success || result.skipped) {
+      return { ok: false, error: result.skipReason || result.error || "unknown" };
+    }
+    emailDelivered = true;
   }
 
   // Stamp the cascade exactly as the old B1 rung did — B2 keys off
   // first_step_sent_at, so the check-in schedules 3d after the REAL send.
   const cascade = readBenefitsCascade(meta);
-  const nextCascade: Record<string, unknown> = {
-    ...cascade,
-    first_step_sent_at: now,
-    first_step_program_id: navigator.pick?.programId,
-    first_step_state_id: navigator.pick?.stateId || undefined,
-    first_step_program_name: navigator.pick?.shortName,
-  };
-  const nextNavigator: BenefitsNavigatorMeta = {
-    ...navigator,
-    status: "sent",
-    sent_at: now,
-    sent_via: opts.trigger,
-    sent_subject: subject,
-    sent_body: letter,
-    scheduled_at: undefined,
-    schedule_failed_at: undefined,
-    schedule_failed_reason: undefined,
-  };
+  const nextCascade: Record<string, unknown> = { ...cascade };
+  let smsDelivered = false;
+  let smsDeliveryAt = now;
+  let sentSms: string | undefined;
 
   // Consent-gated SMS companion, same gate as the coordinator's cascade
   // mirror (phone + sms_consent + not opted out). Body preference mirrors the
@@ -157,9 +146,6 @@ export async function sendNavigatorLetter(
   // (direct URL, not a magic link — SMS length budget) and the STOP suffix is
   // appended here so the model never writes compliance copy. Awaited: Vercel
   // kills pending promises after the response.
-  const smsEligible =
-    !!profile.phone && !!(meta as { sms_consent?: unknown }).sms_consent &&
-    profile.phone_validity !== "opted_out";
   if (smsEligible && profile.phone && navigator.pick) {
     const smsPlanUrl = `${siteUrl}${planPath}`;
     const editedSms =
@@ -170,20 +156,23 @@ export async function sendNavigatorLetter(
     // Append the opt-out line only when it isn't already there (the model
     // is told not to write it, but a disobedient draft or a TJ edit that
     // includes it must not produce a doubled STOP line).
+    // Older pending drafts predate structured replies. Upgrade them at send
+    // time so every live B1 text has the same actionable contract.
+    const progressSuffix =
+      draftSms && !/\bCALLED\b/i.test(draftSms)
+        ? " Reply CALLED, NO ANSWER, or STUCK."
+        : "";
     const stopSuffix = draftSms && /reply stop/i.test(draftSms) ? "" : " Reply STOP to opt out.";
     const smsBody = draftSms
-      ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)}${stopSuffix}`
+      ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)}${progressSuffix}${stopSuffix}`
       : benefitsFirstStepSms({
           programShortName: navigator.pick.shortName,
           phone: navigator.pick.contactPhone,
           topDocs: navigator.pick.documents,
-          url: `${siteUrl}${navigator.pick.programPath}`,
+          url: smsPlanUrl,
         });
 
-    const quiet =
-      opts.trigger === "scheduler"
-        ? quietHoursCheck({ state: profile.state as string | null })
-        : { allowed: true, sendAfter: null };
+    const quiet = quietHoursCheck({ state: profile.state as string | null });
     if (quiet.allowed) {
       const sms = await sendSMS({
         to: profile.phone,
@@ -193,8 +182,9 @@ export async function sendNavigatorLetter(
         recipientLogProfileId: profileId,
       });
       if (sms.success && !sms.skipped) {
+        smsDelivered = true;
         nextCascade.first_step_sms_at = now;
-        nextNavigator.sent_sms = smsBody;
+        sentSms = smsBody;
       } else if (sms.error?.includes("21610")) {
         await db
           .from("business_profiles")
@@ -202,10 +192,32 @@ export async function sendNavigatorLetter(
           .eq("id", profileId);
       }
     } else {
+      const sendAfter = (quiet.sendAfter ?? new Date()).toISOString();
+      if (!profile.email) {
+        // A queued companion may safely ride behind an email, but for a
+        // text-only family the text IS B1. Keep the draft pending and move
+        // its scheduler time to the next legal window so the admin never
+        // claims delivery before Twilio has actually accepted the message.
+        const deferredNavigator: BenefitsNavigatorMeta = {
+          ...navigator,
+          edited_subject: subject,
+          edited_body: letter,
+          edited_sms: draftSms,
+          edited_at: now,
+          scheduled_at: sendAfter,
+          schedule_failed_at: undefined,
+          schedule_failed_reason: undefined,
+        };
+        const { error: deferErr } = await db
+          .from("business_profiles")
+          .update({ metadata: { ...meta, benefits_navigator: deferredNavigator } })
+          .eq("id", profileId);
+        if (deferErr) return { ok: false, error: "Couldn't defer the text to the next send window" };
+        return { ok: true, navigator: deferredNavigator, deferred: true };
+      }
       // Scheduled fire outside the recipient's 8am–8pm window: the email is
       // out, the text waits for morning. sms-queue-flush re-checks opt-out
       // and the daily throttle at delivery — a STOP overnight cancels it.
-      const sendAfter = (quiet.sendAfter ?? new Date()).toISOString();
       const { error: qErr } = await db.from("sms_queue").insert({
         to_phone: profile.phone,
         body: smsBody,
@@ -215,13 +227,42 @@ export async function sendNavigatorLetter(
         send_after: sendAfter,
       });
       if (!qErr) {
+        smsDelivered = true;
+        smsDeliveryAt = sendAfter;
         nextCascade.first_step_sms_queued_for = sendAfter;
-        nextNavigator.sent_sms = smsBody;
+        sentSms = smsBody;
       } else {
         console.error("[navigator send] SMS quiet-hours enqueue failed:", qErr);
       }
     }
   }
+
+  // For email families, SMS is a best-effort companion. For SMS-only
+  // families it is the primary delivery, so a failed/skipped text must leave
+  // the draft pending and retryable instead of pretending B1 was sent.
+  if (!emailDelivered && !smsDelivered) {
+    return { ok: false, error: "Navigator text could not be delivered" };
+  }
+
+  const firstStepAt = emailDelivered ? now : smsDeliveryAt;
+  Object.assign(nextCascade, {
+    first_step_sent_at: firstStepAt,
+    first_step_program_id: navigator.pick?.programId,
+    first_step_state_id: navigator.pick?.stateId || undefined,
+    first_step_program_name: navigator.pick?.shortName,
+  });
+  const nextNavigator: BenefitsNavigatorMeta = {
+    ...navigator,
+    status: "sent",
+    sent_at: firstStepAt,
+    sent_via: opts.trigger,
+    sent_subject: profile.email ? subject : undefined,
+    sent_body: profile.email ? letter : undefined,
+    sent_sms: sentSms,
+    scheduled_at: undefined,
+    schedule_failed_at: undefined,
+    schedule_failed_reason: undefined,
+  };
 
   const { error: sErr } = await db
     .from("business_profiles")
@@ -230,9 +271,9 @@ export async function sendNavigatorLetter(
     })
     .eq("id", profileId);
   if (sErr) {
-    // The email went out; a failed stamp must be visible, not silent.
-    console.error("[navigator send] email sent but stamp failed:", sErr);
-    return { ok: false, error: "Email sent, but recording it failed. Refresh before retrying." };
+    // A delivery went out; a failed stamp must be visible, not silent.
+    console.error("[navigator send] delivery succeeded but stamp failed:", sErr);
+    return { ok: false, error: "Message sent, but recording it failed. Refresh before retrying." };
   }
   return { ok: true, navigator: nextNavigator };
 }

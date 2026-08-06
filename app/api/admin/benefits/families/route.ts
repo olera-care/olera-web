@@ -10,6 +10,7 @@ import {
   type CascadeStatus,
   type CaseStatus,
   type Lifecycle,
+  type BenefitsApplicationStatus,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { readBenefitsNavigator } from "@/lib/family-comms/benefits-navigator.server";
 
@@ -85,6 +86,11 @@ interface FamilyRow {
     status: CascadeStatus;
     firstStepProgram: string | null;
     firstStepSentAt: string | null;
+    /** Concrete progress reported through the plan or a structured SMS reply. */
+    applicationStatus: BenefitsApplicationStatus | null;
+    applicationStatusAt: string | null;
+    lastSmsReply: string | null;
+    lastSmsReplyAt: string | null;
     outcomeAt: string | null;
     outcomeReason: string | null;
   };
@@ -317,8 +323,9 @@ export async function GET(request: NextRequest) {
       const caseMeta = readBenefitsCase(pMeta);
       const cs = caseStatus(cascadeMeta, caseMeta, viewedAtByProfile.get(profileId) ?? null, Date.now());
       if (cs) stuckCounts[cs] = (stuckCounts[cs] ?? 0) + 1;
-      // Latest real reply (keyword rows are STOP/HELP compliance, not
-      // conversation) — entries are appended chronologically by the webhook.
+      // Latest free-form reply. Structured benefits replies ride the cascade
+      // fields below so the queue can show the family's concrete progress;
+      // STOP/START/HELP remain compliance events rather than conversation.
       const smsInbound = Array.isArray(pMeta.sms_inbound)
         ? (pMeta.sms_inbound as { at?: string; body?: string; keyword?: string | null }[])
         : [];
@@ -367,6 +374,10 @@ export async function GET(request: NextRequest) {
           status,
           firstStepProgram: cascadeMeta.first_step_program_name ?? null,
           firstStepSentAt: cascadeMeta.first_step_sent_at ?? null,
+          applicationStatus: cascadeMeta.application_status ?? null,
+          applicationStatusAt: cascadeMeta.application_status_at ?? null,
+          lastSmsReply: cascadeMeta.last_sms_reply ?? null,
+          lastSmsReplyAt: cascadeMeta.last_sms_reply_at ?? null,
           outcomeAt: cascadeMeta.outcome_at ?? null,
           outcomeReason: cascadeMeta.outcome_reason ?? null,
         },

@@ -17,6 +17,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { quietHoursCheck } from "./quiet-hours";
 import { isTransactionalSms } from "./channel-policy";
+import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server";
 
 /** Safety ceiling on reactive texts to one number per (UTC) day. Replies are low-volume; this only catches a storm. */
 export const DAILY_SMS_SAFETY_CAP = 6;
@@ -125,6 +126,77 @@ export type FlushResult = {
   requeued: number;
 };
 
+const BENEFITS_QUEUED_TYPES = new Set([
+  "benefits_first_step_sms",
+  "benefits_check_in_sms",
+]);
+
+async function stampBenefitsQueueDelivery(
+  db: ReturnType<typeof getServiceClient>,
+  profileId: string,
+  emailType: string,
+  at: string,
+): Promise<void> {
+  if (!BENEFITS_QUEUED_TYPES.has(emailType)) return;
+  const { data: profile } = await db
+    .from("business_profiles")
+    .select("metadata")
+    .eq("id", profileId)
+    .maybeSingle();
+  if (!profile) return;
+  const metadata = (profile.metadata as Record<string, unknown> | null) || {};
+  const cascade = readBenefitsCascade(metadata);
+  const nextCascade = { ...cascade };
+  if (emailType === "benefits_first_step_sms") {
+    nextCascade.first_step_sms_at = at;
+    delete nextCascade.first_step_sms_queued_for;
+  } else {
+    nextCascade.check_sms_at = at;
+    nextCascade.check_sent_at ||= at;
+    delete nextCascade.check_sms_queued_for;
+  }
+  const { error } = await db
+    .from("business_profiles")
+    .update({ metadata: { ...metadata, benefits_cascade: nextCascade } })
+    .eq("id", profileId);
+  if (error) console.error("[sms-queue] Benefits delivery stamp failed:", error);
+}
+
+async function clearBenefitsQueuePending(
+  db: ReturnType<typeof getServiceClient>,
+  profileId: string,
+  emailType: string,
+): Promise<void> {
+  if (!BENEFITS_QUEUED_TYPES.has(emailType)) return;
+  const { data: profile } = await db
+    .from("business_profiles")
+    .select("metadata")
+    .eq("id", profileId)
+    .maybeSingle();
+  if (!profile) return;
+  const metadata = (profile.metadata as Record<string, unknown> | null) || {};
+  const cascade = readBenefitsCascade(metadata);
+  const nextCascade = { ...cascade };
+  if (emailType === "benefits_first_step_sms") {
+    delete nextCascade.first_step_sms_queued_for;
+  } else {
+    // Older builds prematurely copied the queue due time into check_sent_at.
+    // Remove that synthetic stamp only when it matches the queued value.
+    if (
+      nextCascade.check_sms_queued_for &&
+      nextCascade.check_sent_at === nextCascade.check_sms_queued_for
+    ) {
+      delete nextCascade.check_sent_at;
+    }
+    delete nextCascade.check_sms_queued_for;
+  }
+  const { error } = await db
+    .from("business_profiles")
+    .update({ metadata: { ...metadata, benefits_cascade: nextCascade } })
+    .eq("id", profileId);
+  if (error) console.error("[sms-queue] Benefits pending-stamp cleanup failed:", error);
+}
+
 /**
  * Deliver due rows from sms_queue. Called by the sms-queue-flush cron. Re-checks
  * opt-out and the daily throttle at delivery time (state changed since enqueue),
@@ -151,11 +223,21 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
     if (row.family_profile_id) {
       const { data: prof } = await db
         .from("business_profiles")
-        .select("phone_validity")
+        .select("phone_validity, metadata")
         .eq("id", row.family_profile_id)
         .maybeSingle();
       if (prof?.phone_validity === "opted_out") {
         await db.from("sms_queue").update({ status: "canceled", last_error: "opted_out" }).eq("id", row.id);
+        await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+        result.canceled++;
+        continue;
+      }
+      if (
+        BENEFITS_QUEUED_TYPES.has(row.email_type) &&
+        !(prof?.metadata as { sms_consent?: unknown } | null)?.sms_consent
+      ) {
+        await db.from("sms_queue").update({ status: "canceled", last_error: "consent_removed" }).eq("id", row.id);
+        await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
         result.canceled++;
         continue;
       }
@@ -164,6 +246,9 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
     // Re-check the daily safety throttle.
     if (await isOverDailyThrottle(db, row.to_phone, at)) {
       await db.from("sms_queue").update({ status: "canceled", last_error: "daily_throttle" }).eq("id", row.id);
+      if (row.family_profile_id) {
+        await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+      }
       result.canceled++;
       continue;
     }
@@ -174,21 +259,38 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
       emailType: row.email_type,
       recipientType: (row.recipient_type as "family" | undefined) ?? "family",
       recipientLogProfileId: row.family_profile_id ?? undefined,
-      metadata: { reactive: true, queued: true },
+      metadata: { reactive: isTransactionalSms(row.email_type), queued: true },
     });
 
-    if (res.success) {
+    if (res.success && !res.skipped) {
+      const sentAt = at.toISOString();
       await db.from("sms_queue").update({
-        status: "sent", sent_at: at.toISOString(), attempts: (row.attempts ?? 0) + 1,
+        status: "sent", sent_at: sentAt, attempts: (row.attempts ?? 0) + 1,
       }).eq("id", row.id);
+      if (row.family_profile_id) {
+        await stampBenefitsQueueDelivery(db, row.family_profile_id, row.email_type, sentAt);
+      }
       result.sent++;
+    } else if (res.skipped) {
+      await db.from("sms_queue").update({
+        status: "canceled", attempts: (row.attempts ?? 0) + 1, last_error: "suppressed",
+      }).eq("id", row.id);
+      if (row.family_profile_id) {
+        await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+      }
+      result.canceled++;
     } else {
       const attempts = (row.attempts ?? 0) + 1;
       const failed = attempts >= MAX_FLUSH_ATTEMPTS;
       await db.from("sms_queue").update({
         status: failed ? "failed" : "pending", attempts, last_error: res.error ?? "send_failed",
       }).eq("id", row.id);
-      if (failed) result.failed++;
+      if (failed) {
+        if (row.family_profile_id) {
+          await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+        }
+        result.failed++;
+      }
       else result.requeued++;
     }
   }

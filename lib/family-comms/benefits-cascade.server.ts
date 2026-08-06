@@ -35,6 +35,14 @@ import { sendSlackAlert } from "@/lib/slack";
 // ── benefits_cascade metadata (on business_profiles.metadata) ───────────────
 
 export type BenefitsOutcomeValue = "moving" | "wants_help" | "wrong_program";
+export type BenefitsApplicationStatus =
+  | "called"
+  | "no_answer"
+  | "needs_docs"
+  | "applied"
+  | "waiting"
+  | "not_eligible"
+  | "stuck";
 
 export interface BenefitsCascadeMeta {
   first_step_sent_at?: string;
@@ -63,6 +71,12 @@ export interface BenefitsCascadeMeta {
   outcome_at?: string;
   /** One-tap "what didn't fit" from the wrong_program landing path. */
   outcome_reason?: string;
+  /** Structured progress reported by text. Unlike `outcome`, this is a
+   *  durable status the living plan can show back to the family. */
+  application_status?: BenefitsApplicationStatus;
+  application_status_at?: string;
+  last_sms_reply?: string;
+  last_sms_reply_at?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -191,6 +205,33 @@ export function lifecycleStatus(opts: {
   }
   if (caseMeta.contacted_at && now - new Date(caseMeta.contacted_at).getTime() < 7 * CASE_DAY) {
     return { status: "working", detail: "contacted" };
+  }
+  if (cascade.application_status === "stuck") {
+    return { status: "needs_help", detail: "texted STUCK" };
+  }
+  if (cascade.application_status === "needs_docs") {
+    return { status: "working", detail: "gathering documents" };
+  }
+  if (cascade.application_status === "no_answer") {
+    return { status: "stalled", detail: "could not reach agency" };
+  }
+  if (
+    cascade.application_status === "called" ||
+    cascade.application_status === "applied" ||
+    cascade.application_status === "waiting"
+  ) {
+    return {
+      status: "acting",
+      detail:
+        cascade.application_status === "applied"
+          ? "application submitted"
+          : cascade.application_status === "waiting"
+            ? "waiting on agency"
+            : "made the call",
+    };
+  }
+  if (cascade.application_status === "not_eligible") {
+    return { status: "returned", detail: "program was not a fit" };
   }
   if (cascade.outcome === "wants_help") return { status: "needs_help", detail: "asked for a person" };
 

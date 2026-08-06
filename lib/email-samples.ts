@@ -85,6 +85,10 @@ export interface EmailVariant {
   subject: string;
   /** Underlying email_type — cross-refs /admin/emails + email_log. */
   emailType: string;
+  /** Short, glanceable journey position shown beside the live preview. */
+  timing?: string;
+  /** One-sentence explanation of why this version sends at that moment. */
+  situation?: string;
   /** Cron/registry id that sends it — links to /admin/automations/[id]. */
   cron?: string;
   /** Additional cron/registry ids that also send this exact message (e.g. the
@@ -185,7 +189,9 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_results_saved", audience: "family", group: "Family · Benefits cascade",
     label: "Day 0 · Results email", subject: benefitsResultsSavedSubject({ matchCount: 4, possessive: "Your mom's", stateName: "Texas" }),
     emailType: "benefits_results_saved", cron: "benefits-results-texts",
-    who: "Every new family the moment they finish the benefits quiz with an email on file (V3 flow requires one). Event-driven at intake, not a cron.",
+    timing: "Day 0 · immediately after intake",
+    situation: "Sent when a new family finishes the benefits quiz with an email. It delivers the strongest matches and opens their private Olera plan while the request is still fresh.",
+    who: "Every new family who finishes the benefits quiz with an email on file. Event-driven at intake; text-only intake is also supported.",
     why: "The Day-0 welcome that delivers real value up front: their top-5 matched programs as a starter list and the /m plan link. 95% of families won't engage with email, so when one does, this has to be worth their time.",
     render: () => benefitsResultsSavedEmail({
       greetingName: "Maria",
@@ -202,12 +208,14 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "benefits_first_step", audience: "family", group: "Family · Benefits cascade",
-    label: "B1 · Ten-minute first step", subject: benefitsFirstStepSubject("LIHEAP"),
+    label: "B1 · Ten-minute first-step fallback", subject: benefitsFirstStepSubject("LIHEAP"),
     emailType: "benefits_first_step", cron: "family-comms-coordinator",
+    timing: "B1 · after TJ approves the first step",
+    situation: "Usually drafted 2–10 days after intake, then sent only when TJ approves it or at the scheduled hour. This is the fallback shape; live families normally receive the reviewed, personalized navigator email.",
     // The navigator scheduler fires the REAL sends now (TJ-approved AI letters);
     // this template is the shape/fallback. Its page previews it too.
     alsoCrons: ["benefits-navigator-scheduler"],
-    who: "Family completed the benefits intake 48–96h ago, once ever (profile stamp). Program picked from their entry page, then simplest saved match, then the state's start-here list.",
+    who: "Eligible family 2–10 days after benefits intake. The coordinator drafts the message; nothing sends until TJ approves or schedules it.",
     why: "Nobody applies for government benefits alone — the base rate of solo completion is ~0. So instead of checking homework, we shrink the first step to ten minutes: ONE program, its start-here phone number, what to say, and three documents. Content comes from the state pipeline drafts (51 states).",
     render: () => benefitsFirstStepEmail({
       unsubscribeId: "sample-id",
@@ -233,6 +241,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_check_in", audience: "family", group: "Family · Benefits cascade",
     label: "B2 · The check that's an offer", subject: benefitsCheckInSubject("LIHEAP"),
     emailType: "benefits_check_in", cron: "family-comms-coordinator",
+    timing: "B2 · 3–14 days after B1 is delivered",
+    situation: "Sent once when the family has not reported an outcome. It asks what happened without grading them and turns every answer into a useful next path.",
     who: "First-step email sent 3–14 days ago, no outcome reported yet, once ever (profile stamp).",
     why: "The check-in that's an offer, not an audit: all three replies point forward (It's moving / I want help / This program isn't right for me). 'I want help' pages the queue owner and floats the family in /admin/benefits. Outcome data is the exhaust of helping.",
     render: () => benefitsCheckInEmail({
@@ -248,6 +258,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_check_in_done", audience: "family", group: "Family · Benefits cascade",
     label: "B2 · Check-in, retargeted (call already made)", subject: benefitsCheckInDoneSubject("LIHEAP"),
     emailType: "benefits_check_in", cron: "family-comms-coordinator",
+    timing: "B2 · 3–14 days after B1, call already recorded",
+    situation: "Used when the living plan already knows the family made the call. Olera acknowledges that progress and asks what happened next instead of repeating the first question.",
     who: "Same band as B2, but the family marked the call done on their /m plan page (benefits_cascade.first_step_done_at).",
     why: "The living journey saw the act, so the check-in congratulates instead of asking. Same three forward chips, reframed. Coherence: the system visibly remembers what the family did.",
     render: () => benefitsCheckInDoneEmail({

@@ -393,6 +393,7 @@ export default function AutomationDetailPage() {
   const [previewType, setPreviewType] = useState<string | null>(null);
   const [preview, setPreview] = useState<PreviewResponse | "loading" | "none" | null>(null);
   const [previewExpanded, setPreviewExpanded] = useState(false);
+  const [smsPreviewId, setSmsPreviewId] = useState<string | null>(null);
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
   const [recipientStatus, setRecipientStatus] = useState<RecipientStatus>("all");
   const [recipientPage, setRecipientPage] = useState(1);
@@ -401,6 +402,22 @@ export default function AutomationDetailPage() {
   const [windowDays, setWindowDays] = useState(30);
   const reqSeq = useRef(0);
   const toast = useToast();
+
+  const openJourneyPreview = useCallback((channel: "email" | "sms", sampleId: string) => {
+    setTab("overview");
+    if (channel === "email") {
+      setPreviewType(sampleId);
+      setPreviewExpanded(false);
+    } else {
+      setSmsPreviewId(sampleId);
+    }
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.getElementById(channel === "email" ? "email-samples" : "text-samples")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }, []);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -624,6 +641,7 @@ export default function AutomationDetailPage() {
                   key={`${data.job.id}:${journey.key}`}
                   journey={journey}
                   currentCronId={data.job.id}
+                  onPreview={openJourneyPreview}
                 />
               ))}
 
@@ -844,7 +862,7 @@ export default function AutomationDetailPage() {
                   ? `/api/admin/automations/${id}/preview?${sampleSel ? `variant=${encodeURIComponent(previewType)}` : `type=${encodeURIComponent(rawType!)}`}&raw=1`
                   : null;
                 return (
-                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                  <div id="email-samples" className="scroll-mt-6 overflow-hidden rounded-xl border border-gray-200">
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
                       <div className="flex min-w-0 items-center gap-2 text-sm">
                         <span className="font-medium text-gray-700">{sampleTypes.length > 0 ? "Email samples" : "Latest email"}</span>
@@ -938,7 +956,14 @@ export default function AutomationDetailPage() {
               {(() => {
                 const smsVariants = smsVariantsForJourneys(data.job.id);
                 if (smsVariants.length === 0) return null;
-                return <SmsSamplesBlock variants={smsVariants} currentCronId={data.job.id} />;
+                return (
+                  <SmsSamplesBlock
+                    variants={smsVariants}
+                    currentCronId={data.job.id}
+                    activeId={smsPreviewId}
+                    onActiveIdChange={setSmsPreviewId}
+                  />
+                );
               })()}
             </div>
           )}

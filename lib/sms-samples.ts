@@ -38,6 +38,10 @@ export interface SmsVariant {
    * (Twilio still has it; the delivery panel reads Twilio directly).
    */
   emailType: string | null;
+  /** Short, glanceable journey position shown beside the live preview. */
+  timing?: string;
+  /** One-sentence explanation of why this version sends at that moment. */
+  situation?: string;
   /** What fires it, in plain terms — most SMS are event-driven, not cron-driven. */
   trigger: string;
   /** Automations-registry id that owns this text (for the per-job preview), mirroring EmailVariant.cron. */
@@ -171,6 +175,8 @@ export const SMS_VARIANTS: SmsVariant[] = [
     group: "Family · Benefits results",
     label: "Benefits results — matches found",
     emailType: "benefits_results_sms",
+    timing: "Day 0 · immediately after intake",
+    situation: "Sent when the quiz finds at least one match and the family supplied a phone. It delivers the private Olera plan while their request is still fresh.",
     trigger: "A new family completes the benefits quiz with ≥1 program match and supplies a phone under the SMS disclosure",
     who: "A new family who finished the benefits quiz, matched at least one program, and gave a phone number (phone-as-optional V3 flow).",
     why: "The results link is the payoff of the quiz they just took. Olera leads with what it found, names the private plan where it now lives, and carries Reply STOP because this is the first text.",
@@ -184,6 +190,8 @@ export const SMS_VARIANTS: SmsVariant[] = [
     group: "Family · Benefits results",
     label: "Benefits results — no strong match yet",
     emailType: "benefits_results_sms",
+    timing: "Day 0 · immediately after intake",
+    situation: "The zero-match version of the same receipt. It confirms Olera created the family's private plan and will keep checking instead of leaving them with silence.",
     trigger: "Benefits quiz completed with zero program matches and a phone provided",
     who: "Same moment as the match text, for families whose answers matched no program yet.",
     why: "An honest zero-state: Olera created a private plan and will keep checking, rather than leading with the awkward claim that a search was 'saved.'",
@@ -202,6 +210,8 @@ export const SMS_VARIANTS: SmsVariant[] = [
     group: "Family · Benefits cascade",
     label: "First step — navigator text (fallback sample)",
     emailType: "benefits_first_step_sms",
+    timing: "B1 · after TJ approves the first step",
+    situation: "Usually drafted 2–10 days after intake, then sent only when TJ approves it or at the scheduled hour. It accompanies email or becomes the primary delivery for a text-only family.",
     trigger: "TJ approves and sends (or schedules) a navigator draft and the family has stored sms_consent. It accompanies email when available and becomes the primary B1 delivery for text-only families.",
     who: "A benefits-intake family who supplied a phone under the SMS disclosure during intake or a later benefits phone-capture step.",
     why: "The reviewed first step in the channel families actually open. Most sends use the TJ-voiced per-family draft; this preview is explicitly the fallback used when no custom companion text exists.",
@@ -226,6 +236,8 @@ export const SMS_VARIANTS: SmsVariant[] = [
     group: "Family · Benefits cascade",
     label: "Check-in (B1 +3–14d) — action request",
     emailType: "benefits_check_in_sms",
+    timing: "B2 · 3–14 days after B1 is delivered",
+    situation: "Sent once when the family has not reported an outcome. It asks whether they called and lets their reply update the same living plan.",
     trigger: "The coordinator's B2 rung fires 3–14 days after the first step and the family is text-reachable; it accompanies email when available or stands alone for text-only families",
     who: "The same consent-gated audience as B1, three to fourteen days after the first step was actually delivered.",
     why: "The family can answer in the thread with CALLED, NO ANSWER, or STUCK. Olera immediately acknowledges the reply and writes it to the living plan; the link remains as a second path.",
@@ -244,6 +256,8 @@ export const SMS_VARIANTS: SmsVariant[] = [
     group: "Family · Benefits cascade",
     label: "Check-in — already made the call (retargeted)",
     emailType: "benefits_check_in_sms",
+    timing: "B2 · 3–14 days after B1, call already recorded",
+    situation: "Used when the family already marked the call complete. Instead of asking again, Olera asks for the real next state: applied, needs documents, waiting, or stuck.",
     trigger: "B2 fires for a family who already tapped \"I made the call\" on their /m plan — congratulate instead of asking",
     who: "The consent-gated B2 audience whose benefits_cascade.first_step_done_at is set.",
     why: "Asking whether they called after they already told us they did reads as not listening. This branch asks for the real next status: APPLIED, NEED DOCS, WAITING, or STUCK.",

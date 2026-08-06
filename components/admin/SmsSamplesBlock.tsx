@@ -17,7 +17,17 @@ import { getCronJob } from "@/lib/crons/registry";
  * and an owner line in the drawer — the full sequence stays visible without
  * misattributing who sends what.
  */
-export default function SmsSamplesBlock({ variants, currentCronId }: { variants: SmsVariant[]; currentCronId?: string }) {
+export default function SmsSamplesBlock({
+  variants,
+  currentCronId,
+  activeId: controlledActiveId,
+  onActiveIdChange,
+}: {
+  variants: SmsVariant[];
+  currentCronId?: string;
+  activeId?: string | null;
+  onActiveIdChange?: (id: string) => void;
+}) {
   const rows = useMemo(
     () =>
       variants.map((v) => {
@@ -28,12 +38,18 @@ export default function SmsSamplesBlock({ variants, currentCronId }: { variants:
       }),
     [variants, currentCronId],
   );
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [internalActiveId, setInternalActiveId] = useState<string | null>(null);
+  const activeId = controlledActiveId ?? internalActiveId;
   const active = rows.find((r) => r.v.id === activeId) ?? rows[0];
   if (!active) return null;
 
+  const selectVariant = (id: string) => {
+    setInternalActiveId(id);
+    onActiveIdChange?.(id);
+  };
+
   return (
-    <div className="mt-5 overflow-hidden rounded-xl border border-gray-200">
+    <div id="text-samples" className="mt-5 scroll-mt-6 overflow-hidden rounded-xl border border-gray-200">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2 text-sm">
           <span className="font-medium text-gray-700">Text samples</span>
@@ -50,7 +66,7 @@ export default function SmsSamplesBlock({ variants, currentCronId }: { variants:
           {rows.map(({ v, mine }) => (
             <button
               key={v.id}
-              onClick={() => setActiveId(v.id)}
+              onClick={() => selectVariant(v.id)}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 active.v.id === v.id
                   ? "bg-gray-900 text-white"
@@ -72,6 +88,20 @@ export default function SmsSamplesBlock({ variants, currentCronId }: { variants:
             {active.owner.name.split(" — ")[0]}
           </Link>{" "}
           — shown here so the full text sequence is visible in one place.
+        </div>
+      )}
+      {(active.v.timing || active.v.situation) && (
+        <div className="border-b border-teal-100 bg-teal-50/45 px-4 py-3">
+          <div className="mx-auto flex max-w-2xl flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+            {active.v.timing && (
+              <p className="shrink-0 text-xs font-semibold text-teal-800">
+                When: {active.v.timing}
+              </p>
+            )}
+            {active.v.situation && (
+              <p className="text-xs leading-relaxed text-gray-600">{active.v.situation}</p>
+            )}
+          </div>
         </div>
       )}
       <div className="bg-white px-4 py-5">

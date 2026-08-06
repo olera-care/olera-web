@@ -40,8 +40,12 @@ export interface JourneyStep {
   phase?: string;
   /** Small, plain-language traits such as "Conditional" or "Repeats per lead". */
   traits?: string[];
-  /** Stable email-sample id for journey-first admin previews. */
+  /** Legacy email-sample id used by the Ad Boost journey experience. */
   sampleId?: string;
+  /** Exact email sample selected by the family-journey preview link. */
+  emailSampleId?: string;
+  /** Exact text sample selected by the family-journey preview link. */
+  smsSampleId?: string;
 }
 
 export interface CommsJourney {
@@ -70,6 +74,7 @@ const BENEFITS_CASCADE: CommsJourney = {
       description:
         "A new family completes the benefits finder with an email. Olera identifies the strongest matches, adds them to the family's private plan, and emails the living /m plan link.",
       emailType: "benefits_results_saved",
+      emailSampleId: "benefits_results_saved",
       ownedBy: "benefits-results-texts",
     },
     {
@@ -79,6 +84,7 @@ const BENEFITS_CASCADE: CommsJourney = {
       description:
         "A new family who enters a phone under the SMS disclosure immediately receives the same living /m plan link. That choice is stored as sms_consent for the later navigator and check-in, so the text thread does not break after Day 0.",
       smsType: "benefits_results_sms",
+      smsSampleId: "sms_benefits_match",
       ownedBy: "benefits-results-texts",
       gate: "Requires a valid phone entered with the SMS disclosure; skipped when no phone is provided",
     },
@@ -99,6 +105,8 @@ const BENEFITS_CASCADE: CommsJourney = {
         "TJ's Send-as-TJ button and the hourly scheduler run one shared send path. Email families receive the reviewed letter; consented text families receive the first step in the same thread. Text-only families keep moving without being forced into email.",
       emailType: "benefits_first_step",
       smsType: "benefits_first_step_sms",
+      emailSampleId: "benefits_first_step",
+      smsSampleId: "sms_benefits_first_step",
       ownedBy: "benefits-navigator-scheduler",
       gate: "At least one reachable consented channel is required; an after-hours companion text queues for morning, while a text-only B1 stays pending and reschedules to the next legal window",
     },
@@ -110,6 +118,8 @@ const BENEFITS_CASCADE: CommsJourney = {
         "Three to fourteen days after B1, Olera asks what happened next. Email offers the existing outcome choices; text understands CALLED, NO ANSWER, APPLIED, NEED DOCS, WAITING, NOT ELIGIBLE, or STUCK and writes that status back to the living plan. Text-only families receive B2 by text.",
       emailType: "benefits_check_in",
       smsType: "benefits_check_in_sms",
+      emailSampleId: "benefits_check_in",
+      smsSampleId: "sms_benefits_check_in",
       ownedBy: "family-comms-coordinator",
       gate: "One-shot; skipped once an outcome is reported; STUCK alerts the Olera team without promising an unstaffed response time",
     },

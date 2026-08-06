@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
       getCampaignReceipt(db, row),
       db
         .from("email_log")
-        .select("id, email_type, subject, status, created_at, delivered_at, metadata")
+        .select("id, email_type, subject, status, created_at, delivered_at, bounced_at, error_message, metadata")
         .in("email_type", AD_BOOST_EMAIL_TYPES)
         .filter("metadata->>request_id", "eq", row.id)
         .order("created_at", { ascending: true })
@@ -184,6 +184,63 @@ export async function GET(request: NextRequest) {
   }
 
   const requests = data ?? [];
+
+  // Queue rows need enough communication truth to say what happens next
+  // without opening each campaign. Batch successful sends by request_id so
+  // legacy/missing marker columns can fall back to the canonical email log.
+  type QueueCommunicationRow = {
+    email_type: string;
+    subject: string | null;
+    status: string;
+    created_at: string;
+    delivered_at: string | null;
+    bounced_at: string | null;
+    metadata: Record<string, unknown> | null;
+  };
+  const communicationSummaryByRequest = new Map<
+    string,
+    {
+      by_type: Record<string, { count: number; last_sent_at: string; last_subject: string | null }>;
+      last: { email_type: string; subject: string | null; sent_at: string } | null;
+    }
+  >();
+  if (requests.length > 0) {
+    const requestIds = new Set(requests.map((row: { id: string }) => row.id));
+    const { data: communicationRows, error: communicationError } = await db
+      .from("email_log")
+      .select("email_type, subject, status, created_at, delivered_at, bounced_at, metadata")
+      .in("email_type", AD_BOOST_EMAIL_TYPES)
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (communicationError) {
+      console.error("[admin/ad-boost] queue communication summary failed:", communicationError);
+    }
+    for (const communication of ([...(communicationRows ?? [])].reverse()) as QueueCommunicationRow[]) {
+      const requestId = communication.metadata?.request_id;
+      if (
+        typeof requestId !== "string" ||
+        !requestIds.has(requestId) ||
+        communication.bounced_at ||
+        (communication.status !== "sent" && !communication.delivered_at)
+      ) {
+        continue;
+      }
+      const sentAt = communication.delivered_at ?? communication.created_at;
+      const summary = communicationSummaryByRequest.get(requestId) ?? { by_type: {}, last: null };
+      const existing = summary.by_type[communication.email_type];
+      summary.by_type[communication.email_type] = {
+        count: (existing?.count ?? 0) + 1,
+        last_sent_at: sentAt,
+        last_subject: communication.subject,
+      };
+      summary.last = {
+        email_type: communication.email_type,
+        subject: communication.subject,
+        sent_at: sentAt,
+      };
+      communicationSummaryByRequest.set(requestId, summary);
+    }
+  }
 
   // Attach the ROI signal: families delivered per campaign (benefits_completed
   // events tagged with the campaign's utm_campaign). The effective tag is
@@ -263,6 +320,7 @@ export async function GET(request: NextRequest) {
     delivered: delivered[r.campaign_tag || r.id] ?? 0,
     ad_landings: adLandings[r.campaign_tag || r.id] ?? 0,
     questions_received: questionsByRequestId[r.id] ?? 0,
+    communication_summary: communicationSummaryByRequest.get(r.id) ?? { by_type: {}, last: null },
   }));
 
   // Tab counts (active vs archived) so both tabs show a number regardless of

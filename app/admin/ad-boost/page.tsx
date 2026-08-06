@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   type CampaignRequest,
@@ -10,6 +10,10 @@ import {
   fmtDateOnly,
   fmtTimestamp,
 } from "@/components/admin/AdBoostShared";
+import {
+  type AdBoostNextAction,
+  getAdBoostNextAction,
+} from "@/lib/ad-boost/admin-communications";
 
 export default function AdminAdBoostPage() {
   const [requests, setRequests] = useState<CampaignRequest[] | null>(null);
@@ -54,8 +58,28 @@ export default function AdminAdBoostPage() {
     statusCounts.set(r.status, (statusCounts.get(r.status) ?? 0) + 1);
   }
   const statusChips = Object.keys(STATUS_LABELS).filter((st) => statusCounts.has(st));
-  const visibleRequests =
-    requests && statusFilter ? requests.filter((r) => r.status === statusFilter) : requests;
+  const nextActionById = useMemo(
+    () => new Map((requests ?? []).map((request) => [request.id, getAdBoostNextAction(request)])),
+    [requests],
+  );
+  const attentionCount = (requests ?? []).filter(
+    (request) => nextActionById.get(request.id)?.level === "attention",
+  ).length;
+  const visibleRequests = requests
+    ? [...requests]
+        .filter((request) =>
+          statusFilter === "attention"
+            ? nextActionById.get(request.id)?.level === "attention"
+            : statusFilter
+              ? request.status === statusFilter
+              : true,
+        )
+        .sort(
+          (a, b) =>
+            (nextActionById.get(a.id)?.priority ?? 99) -
+            (nextActionById.get(b.id)?.priority ?? 99),
+        )
+    : requests;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -112,7 +136,7 @@ export default function AdminAdBoostPage() {
 
       {/* Status filter — chips only for statuses present in the loaded list,
           so the row stays as small as the data allows. */}
-      {statusChips.length > 1 && (
+      {(statusChips.length > 1 || attentionCount > 0) && (
         <div className="flex flex-wrap items-center gap-1.5 mb-4">
           <button
             type="button"
@@ -125,6 +149,22 @@ export default function AdminAdBoostPage() {
           >
             All
           </button>
+          {attentionCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === "attention" ? null : "attention")}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                statusFilter === "attention"
+                  ? "bg-amber-600 text-white"
+                  : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+              }`}
+            >
+              Needs attention
+              <span className={statusFilter === "attention" ? "ml-1 text-white/70" : "ml-1 text-amber-500"}>
+                {attentionCount}
+              </span>
+            </button>
+          )}
           {statusChips.map((st) => (
             <button
               key={st}
@@ -150,12 +190,11 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_140px_52px_72px_52px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_130px_190px_130px_120px_72px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
-          <span>Clicks</span>
-          <span>Questions</span>
-          <span>Leads</span>
+          <span>Next move</span>
+          <span>Results · C / Q / L</span>
           <span>Flight</span>
           <span className="text-right">Actions</span>
         </div>
@@ -166,7 +205,9 @@ export default function AdminAdBoostPage() {
         {visibleRequests && visibleRequests.length === 0 && (
           <p className="text-gray-400 text-sm px-4 py-6">
             {statusFilter
-              ? `No ${(STATUS_LABELS[statusFilter] ?? statusFilter).toLowerCase()} requests.`
+              ? statusFilter === "attention"
+                ? "No campaigns currently need attention."
+                : `No ${(STATUS_LABELS[statusFilter] ?? statusFilter).toLowerCase()} requests.`
               : view === "archived"
                 ? "No archived requests."
                 : "No campaign requests yet."}
@@ -174,7 +215,12 @@ export default function AdminAdBoostPage() {
         )}
 
         {visibleRequests?.map((r) => (
-          <RequestRow key={`${r.id}-${r.updated_at}`} request={r} onChanged={load} />
+          <RequestRow
+            key={`${r.id}-${r.updated_at}`}
+            request={r}
+            nextAction={nextActionById.get(r.id) ?? getAdBoostNextAction(r)}
+            onChanged={load}
+          />
         ))}
       </div>
     </div>
@@ -183,9 +229,11 @@ export default function AdminAdBoostPage() {
 
 function RequestRow({
   request,
+  nextAction,
   onChanged,
 }: {
   request: CampaignRequest;
+  nextAction: AdBoostNextAction;
   onChanged: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -194,7 +242,6 @@ function RequestRow({
   const isArchived = !!request.deleted_at;
   const name = request.display_name || request.provider_slug || request.provider_id;
   const channel = channelLabel(request.channel);
-
   // Soft delete / restore — flips deleted_at via POST. Reversible.
   const setArchived = async (archived: boolean) => {
     setBusy(true);
@@ -244,7 +291,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_140px_52px_72px_52px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_190px_130px_120px_72px] sm:items-center gap-2 sm:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link
@@ -271,19 +318,11 @@ function RequestRow({
           )}
         </div>
 
-        {/* The funnel, equal weight: clicks -> questions -> leads. Leads are
-            zero for most flights by arithmetic ($50 ~ 25 clicks ~ 0.7 leads),
-            so clicks and questions are first-class results, not footnotes. */}
-        {/* Clicks prefer the ad platform's own number (manual entry — the
-            truth for the whole flight); the landing counter only exists since
-            2026-07-21, so older flights read absurdly low from it. */}
-        <FunnelCell
-          request={request}
-          value={request.ad_clicks ?? request.ad_landings ?? 0}
-          label="Clicks"
-        />
-        <FunnelCell request={request} value={request.questions_received ?? 0} label="Questions" />
-        <FunnelCell request={request} value={request.delivered ?? 0} label="Leads" emphasize />
+        <NextMoveCell action={nextAction} />
+
+        {/* Keep the whole funnel visible in one compact column so the row can
+            answer the more important operational question: what happens next? */}
+        <ResultsCell request={request} />
 
         {/* Flight — start (setup week) through the ad platform's end date. */}
         <div className="text-sm text-gray-600">
@@ -374,34 +413,44 @@ function IconAction({
   );
 }
 
-/** One funnel number on a queue row (clicks / questions / leads), all at the
- *  same visual weight. Pre-launch rows show an em dash (structural zero, not a
- *  result); a genuine 0 renders quiet gray so a zero-lead flight with real
- *  clicks and questions doesn't read as failure. `emphasize` tints non-zero
- *  leads — the terminal metric — without shrinking the earlier rungs. */
-function FunnelCell({
-  request,
-  value,
-  label,
-  emphasize,
-}: {
-  request: CampaignRequest;
-  value: number;
-  label: string;
-  emphasize?: boolean;
-}) {
-  const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
-  const tone = preLaunch
-    ? "text-gray-300"
-    : value === 0
-      ? "text-gray-300"
-      : emphasize
-        ? "font-semibold text-primary-700"
-        : "text-gray-700";
+function NextMoveCell({ action }: { action: AdBoostNextAction }) {
+  const labelTone =
+    action.level === "attention"
+      ? "text-amber-800"
+      : action.level === "healthy"
+        ? "text-teal-700"
+        : action.level === "done"
+          ? "text-gray-500"
+          : "text-gray-700";
   return (
-    <div className={`text-sm tabular-nums ${tone}`}>
-      <span className="sm:hidden font-normal text-gray-400">{label}: </span>
-      {preLaunch ? "—" : value.toLocaleString()}
+    <div className="min-w-0">
+      <span className="sm:hidden text-xs text-gray-400">Next: </span>
+      <span className={`text-xs font-semibold ${labelTone}`}>{action.label}</span>
+      <span className="mt-0.5 block truncate text-[11px] leading-tight text-gray-400" title={action.detail}>
+        {action.detail}
+      </span>
+    </div>
+  );
+}
+
+/** Compact clicks/questions/leads funnel. Pre-launch values remain structural
+ * dashes rather than misleading zero-performance results. */
+function ResultsCell({ request }: { request: CampaignRequest }) {
+  const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
+  const clicks = request.ad_clicks ?? request.ad_landings ?? 0;
+  const questions = request.questions_received ?? 0;
+  const leads = request.delivered ?? 0;
+  const values = preLaunch
+    ? ["—", "—", "—"]
+    : [clicks.toLocaleString(), questions.toLocaleString(), leads.toLocaleString()];
+  return (
+    <div className="flex items-center gap-1.5 text-xs tabular-nums" aria-label={`${clicks} clicks, ${questions} questions, ${leads} leads`}>
+      <span className="sm:hidden text-gray-400">Results: </span>
+      <span className={preLaunch || clicks === 0 ? "text-gray-300" : "text-gray-700"}>{values[0]}</span>
+      <span className="text-gray-300">/</span>
+      <span className={preLaunch || questions === 0 ? "text-gray-300" : "text-gray-700"}>{values[1]}</span>
+      <span className="text-gray-300">/</span>
+      <span className={preLaunch || leads === 0 ? "text-gray-300" : "font-semibold text-primary-700"}>{values[2]}</span>
     </div>
   );
 }

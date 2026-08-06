@@ -40,8 +40,6 @@ export interface JourneyStep {
   phase?: string;
   /** Small, plain-language traits such as "Conditional" or "Repeats per lead". */
   traits?: string[];
-  /** Legacy email-sample id used by the Ad Boost journey experience. */
-  sampleId?: string;
   /** Exact email sample selected by the family-journey preview link. */
   emailSampleId?: string;
   /** Exact text sample selected by the family-journey preview link. */
@@ -244,7 +242,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "Olera saves the provider's requested setup week and budget before their profile is ready, then points them to the missing profile or verification work.",
       emailType: "ad_boost_queued",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_queued",
+      emailSampleId: "ad_boost_queued",
       traits: ["Conditional", "One-time"],
       gate: "Only when the profile is below the launch threshold or verification is incomplete",
     },
@@ -257,7 +255,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "A complete, verified provider gets an immediate handoff: the request is actionable, the starter promotion is clear, and the concierge team can begin setup.",
       emailType: "ad_boost_requested",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_requested",
+      emailSampleId: "ad_boost_requested",
       traits: ["Conditional", "One-time"],
       gate: "Mutually exclusive with the queued email",
     },
@@ -270,7 +268,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "If the request is still blocked, the daily worker sends one focused reminder naming the next useful profile or verification step.",
       emailType: "ad_boost_profile_reminder",
       ownedBy: "ad-boost-profile-reminders",
-      sampleId: "ad_boost_profile_reminder",
+      emailSampleId: "ad_boost_profile_reminder",
       traits: ["Conditional", "One-time"],
       gate: "Skipped when the provider becomes launch-ready before the reminder is due",
     },
@@ -283,7 +281,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "The saved request advances without a second submission. The provider gets a clear confirmation and the concierge team is notified that setup can begin.",
       emailType: "ad_boost_ready",
       ownedBy: "ad-boost-profile-reminders",
-      sampleId: "ad_boost_ready",
+      emailSampleId: "ad_boost_ready",
       traits: ["Conditional", "One-time"],
       gate: "Only for a request that started in the queued path",
     },
@@ -307,7 +305,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "The provider learns that Find Families is live and where new inquiries will arrive. It sends immediately or at the chosen US Eastern hour through one deduplicated path.",
       emailType: "ad_boost_campaign_launched",
       ownedBy: "ad-boost-launch-scheduler",
-      sampleId: "ad_boost_campaign_launched",
+      emailSampleId: "ad_boost_campaign_launched",
       traits: ["One-time"],
       gate: "Missing email, unsubscribe, or suppression blocks the send; transport failures retry when scheduled",
     },
@@ -320,7 +318,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "Once real spend or clicks are recorded, the provider gets a concrete progress note with campaign activity before the starter promotion closes.",
       emailType: "ad_boost_traction",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_traction",
+      emailSampleId: "ad_boost_traction",
       traits: ["Conditional", "One-time"],
       gate: "Requires a live campaign and non-zero spend or clicks",
     },
@@ -333,7 +331,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "At the moment a managed-campaign inquiry arrives, the provider receives one campaign-specific lead email with a direct path to the family.",
       emailType: "ad_boost_lead_delivered",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_lead_delivered",
+      emailSampleId: "ad_boost_lead_delivered",
       traits: ["Repeats per lead"],
       gate: "Deduplicated by connection; only inquiries carrying the campaign's managed attribution qualify",
     },
@@ -346,7 +344,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "A one-tap check asks whether the family became a client, is still talking, or did not work out. Answers update the living campaign receipt.",
       emailType: "ad_boost_lead_outcome_check",
       ownedBy: "ad-boost-profile-reminders",
-      sampleId: "ad_boost_lead_outcome_check",
+      emailSampleId: "ad_boost_lead_outcome_check",
       traits: ["Repeats per lead", "Up to twice"],
       gate: "At most one outcome email per provider per daily run; the second check stops after a final outcome",
     },
@@ -359,7 +357,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "The wrap-up brings spend, clicks, engagement, inquiries, and reported client outcomes into one receipt, then offers a clear path to continue.",
       emailType: "ad_boost_promo_complete",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_promo_complete",
+      emailSampleId: "ad_boost_promo_complete",
       traits: ["One-time"],
       gate: "Outcome checks may continue after this email for leads that are still unresolved",
     },

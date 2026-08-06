@@ -706,6 +706,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Queued · profile needed", subject: "Your Ad Boost request is saved",
     emailType: "ad_boost_queued",
     cron: "ad-boost-emails",
+    timing: "At request · when the provider is not launch-ready",
+    situation: "Confirms the launch plan is safely recorded, explains the profile or verification gate, and gives the provider one concrete step to unblock setup.",
     who: "Provider submitted an Ad Boost launch plan while below the launch threshold or before verification.",
     why: "Confirm the request is saved, explain why it is queued, and point them to the next profile/verification step.",
     render: () => adBoostQueuedEmail({
@@ -723,6 +725,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Requested · launch-ready", subject: "Your Ad Boost request is ready for setup",
     emailType: "ad_boost_requested",
     cron: "ad-boost-emails",
+    timing: "At request · when the provider is already launch-ready",
+    situation: "The immediate concierge handoff: Olera confirms setup can begin, restates the requested campaign shape, and sets expectations before anything launches.",
     who: "Provider submitted an Ad Boost request while complete enough and verified.",
     why: "Automate the Franchil-style initial handoff: the page has enough detail to start setup, the first $50 promo is clear, and the provider can watch results in Ad Boost.",
     render: () => adBoostRequestedEmail({
@@ -737,6 +741,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Reminder · finish profile", subject: "Finish your Ad Boost launch setup",
     emailType: "ad_boost_profile_reminder",
     cron: "ad-boost-profile-reminders",
+    timing: "After 48 hours blocked · once",
+    situation: "Sent only if the request is still waiting on profile or verification work. It is skipped when the provider clears the gate before the daily check.",
     who: "Provider submitted an Ad Boost launch plan, stayed queued for 48+ hours, and has not cleared the profile/verification launch threshold.",
     why: "Recover queued launch plans before they go cold, while explaining that the work protects the promotional ad test.",
     render: () => adBoostProfileReminderEmail({
@@ -754,6 +760,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Promotion · now ready", subject: "Your Ad Boost request is now launch-ready",
     emailType: "ad_boost_ready",
     cron: "ad-boost-profile-reminders",
+    timing: "When a previously blocked request clears the gate",
+    situation: "Closes the loop without asking the provider to resubmit: their saved request automatically advances into the concierge setup queue.",
     who: "Provider had a queued Ad Boost request and later cleared completeness plus verification.",
     why: "Close the loop when queued work becomes actionable, without making the provider resubmit.",
     render: () => adBoostReadyEmail({
@@ -768,6 +776,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Lead delivered", subject: "Your Find Families campaign brought in a new family",
     emailType: "ad_boost_lead_delivered",
     cron: "ad-boost-emails",
+    timing: "For every campaign-attributed family inquiry",
+    situation: "Sent at the value moment, with one direct route to the new family. It is deduplicated by connection so the campaign does not create a second generic lead email.",
     who: "Provider with a live Ad Boost campaign receives a campaign-attributed family inquiry.",
     why: "Make the managed-ads value explicit at the moment a real family arrives, without sending a second generic lead email.",
     render: () => adBoostLeadDeliveredEmail({
@@ -785,6 +795,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     emailType: "ad_boost_campaign_launched",
     cron: "ad-boost-launch-scheduler",
     alsoCrons: ["ad-boost-emails"],
+    timing: "When the campaign goes live",
+    situation: "Sends immediately when the live status is saved, or at the concierge-selected US Eastern time. It confirms where inquiries will arrive and what Olera will monitor.",
     who: "Provider campaign status is moved to live by the concierge team.",
     why: "Confirm the campaign has launched, set expectations for where leads arrive, and reinforce that the first $50 promo is being monitored.",
     render: () => adBoostCampaignLaunchedEmail({
@@ -798,6 +810,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Early traction", subject: "Your Find Families campaign is getting activity",
     emailType: "ad_boost_traction",
     cron: "ad-boost-emails",
+    timing: "At the first meaningful live clicks or spend · once",
+    situation: "A proof-of-motion update before the starter campaign closes. Zero-value metric saves do not trigger it, and later metric edits do not send it again.",
     who: "Concierge team enters spend/click metrics for a live campaign.",
     why: "Give the provider a concrete progress update before the starter promo wraps.",
     render: () => adBoostTractionEmail({
@@ -814,6 +828,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Promo complete", subject: "Your starter campaign is complete",
     emailType: "ad_boost_promo_complete",
     cron: "ad-boost-end-scheduler",
+    timing: "After the flight ends · next 10:15 AM ET business morning · once",
+    situation: "Whether the flight ends automatically or the concierge closes it, the wrap-up waits for a provider-friendly business window before delivering the campaign receipt and next-step decision.",
     who: "A flight passes its end date (or the concierge ends it by hand) and the campaign produced inquiries through Olera.",
     why: "Close the loop on the $50 promotional test and invite a budget/results discussion, matching Franchil's requested next step.",
     render: () => adBoostPromoCompleteEmail({
@@ -856,6 +872,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Lead outcome check", subject: "Did this family become a client?",
     emailType: "ad_boost_lead_outcome_check",
     cron: "ad-boost-profile-reminders",
+    timing: "Around day 7, then day 21 if still unresolved",
+    situation: "A one-tap follow-up for each attributed inquiry. A final client or no outcome stops the second check; still talking keeps the receipt open.",
     who: "Provider with a campaign-attributed inquiry that is about 7 days old, then again near day 21 when it is unanswered or still in conversation.",
     why: "Turn ad clicks and inquiries into an honest campaign receipt by capturing whether the family became a client.",
     render: () => adBoostLeadOutcomeEmail({

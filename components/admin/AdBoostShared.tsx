@@ -3,6 +3,8 @@
 // /admin/ad-boost/[id]). Kept in one place so both render status, channel, and
 // dates identically.
 
+import type { AdBoostCommunicationSummary } from "@/lib/ad-boost/admin-communications";
+
 export interface CampaignRequest {
   id: string;
   provider_id: string;
@@ -72,6 +74,9 @@ export interface CampaignRequest {
   /** Questions received since launch (manageable only — archived/rejected
    *  excluded). Attached by the list API branch; 0 pre-launch. */
   questions_received?: number;
+  /** Successful Ad Boost sends summarized by type for queue-level next-action
+   *  decisions. This reconciles legacy email logs with marker columns. */
+  communication_summary?: AdBoostCommunicationSummary;
 }
 
 /** A real Ad Boost communication associated with one campaign request. */
@@ -82,6 +87,8 @@ export interface CampaignCommunication {
   status: string;
   created_at: string;
   delivered_at: string | null;
+  bounced_at?: string | null;
+  error_message?: string | null;
   metadata: Record<string, unknown> | null;
 }
 

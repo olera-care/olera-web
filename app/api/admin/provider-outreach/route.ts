@@ -571,7 +571,7 @@ async function getNotContactedProviders(
   // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by")
     .eq("state", state);
 
   if (trackingError) {
@@ -1173,7 +1173,7 @@ async function searchProviders(
   // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by")
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results

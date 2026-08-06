@@ -7,6 +7,18 @@
 
 ## Current Focus
 
+### 2026-08-06 — Aug 4 profile-edit spike investigated: one operator claimed + filled 25 provider profiles (no code)
+
+Investigation-only session (branch `polite-rosalind`, no code changes). The Aug 4 "Provider Profile Edits up 81%" spike (129 events / 25 distinct providers vs baseline 10-25 events / 2-7 providers per day) is real in the data but is NOT organic: 24 of 25 accounts were created that afternoon seconds before their edit bursts, serialized ~8-10 min apart from 10:35 AM-2:06 PM ET, and **23 of 25 never received any email from Olera** (checked every provider-id format + account email back to Jun 1) — rules out cron/campaign-driven clicks. All no-email claims came through `/api/provider/claim-instant` (typed email → instantly-verified account, no OTP, no email sent, no IP/UA recorded anywhere). Content written is real per-provider enrichment (true brand slogans, phones, websites, photos, year founded, payments). Ruled out our own systems (all Aug 4 crons are email/SMS senders; Automation Control Center is monitoring-only). Two of the 25 are confirmed-real providers (Millcroft/Encore via our weekly digest; Happy Mountain OTP-verified + answered a question). Leading hypothesis: a listings-management/marketing agency syncing client data (multi-brand franchise mix incl. 9 Home Helpers, four using internal numeric corporate emails like `59063@homehelpershomecare.com`).
+
+**Deliverable:** Notion report on the Web App board — "Report: Aug 4 provider claim + edit wave (25 profiles claimed and filled, likely one operator)" — full 25-row table (provider, claimer email, trust score, claim time, sections edited, content added), hypotheses, exposure assessment (contained: unverified claims can't contact families).
+
+**Next Up:**
+- Identify operator: email erickm@happymtn.com (participant, verified) and/or Home Helpers corporate marketing ("did you or a vendor push your locations to Olera Aug 4?"). DB-side option: `auth.audit_log_entries` login rows carry browser IP — **7-day retention, expires ~Aug 11**.
+- Add `x-forwarded-for` + user-agent capture to `claim-instant` and the Slack claim alert (claims run 15-30/day; identify repeat operators live).
+- Add actor identity to `provider_activity` (profile_id is null on edits) so bulk/assisted work is distinguishable from organic activation in dashboards.
+- Don't quote "edits up 81%" or "149 claims/30d" externally until split.
+
 ### 2026-08-05 — Ad Boost provider journey (`codex/automation-control-center`)
 
 Added `/admin/automations/ad-boost`: one five-phase provider cascade spanning 11 steps, all nine Ad Boost email types, three delivery engines, conditional request/readiness branches, repeat-per-lead messages, and two explicitly silent operational steps. Admins can overlay a real campaign's sent/scheduled/watching/blocked/skipped state, inspect representative message previews, follow correctly filtered Email Log links, and drill into the underlying engines. `/admin/automations` now links directly from the Ad Boost system card.

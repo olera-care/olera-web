@@ -200,25 +200,28 @@ function introEmail(): EmailDraft {
 /**
  * Day 3: Follow-up email
  *
- * Encourages providers to personalize their page and show what makes
- * them different. Integrates gap_list to highlight what's currently missing.
+ * Encourages providers to complete their profile so families feel
+ * more confident choosing them. Personal tone from Logan.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
 function followupEmail(): EmailDraft {
   return {
-    subject: `Your story deserves more than a listing`,
-    preheader: `Give families the full picture`,
+    subject: `Help families feel more confident choosing ${PLACEHOLDER.providerName}`,
     body: [
-      `**Families are viewing your page — is it complete?**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Families don't choose care from a list of services. They choose the people and places they trust.`,
+      `One thing I've learned throughout my career is that finding senior care isn't easy. Families are often left making an important decision with limited information and guidance.`,
       ``,
-      `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that. Show families what makes ${PLACEHOLDER.providerName} different.`,
+      `That's why your Olera profile matters.`,
       ``,
-      `[Personalize your page →](${PLACEHOLDER.claimUrl})`,
+      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Add photos, highlight the people behind your care, and showcase what makes your community special. It only takes a few minutes to get started.`,
+      `It's ready for your review. Every photo, update, and detail you add helps families better understand your community and feel more confident in choosing the right care.`,
+      ``,
+      `It only takes a minute to activate your profile.`,
+      ``,
+      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }

@@ -57,13 +57,13 @@ export interface TemplateContext {
   mailing_address: string;
   // Profile gaps (Day 3 template)
   gap_list?: string;
-  // City demand metric (Day 7 template)
+  // City demand metric (Day 5 template)
   // Total unique page views for this city+category in the last 30 days
   city_views?: number;
 }
 
 // Template keys for the cadence system
-// Cadence emails: intro (Day 0), followup (Day 3), demand_loss (Day 7), final (Day 14)
+// Cadence emails: intro (Day 0), followup (Day 3), demand_loss (Day 5), final (Day 7)
 // Standalone: nudge (Follow Up resend action)
 export type ProviderOutreachTemplateKey = "intro" | "followup" | "demand_loss" | "final" | "nudge";
 
@@ -86,8 +86,6 @@ const PLACEHOLDER = {
   cityViews: "{city_views}",
 };
 
-// Preheader text (nudge only - other emails have inline preheaders)
-const PREHEADER_NUDGE = "Two minutes, and the page is yours";
 
 /**
  * Convert number to ordinal string (1 → "1st", 2 → "2nd", etc.)
@@ -167,25 +165,32 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
  * Day 0: Introduction email
  *
  * First touch from Dr. Logan DuBose. Introduces Olera, explains the
- * no-cost/no-referral-fee model, and invites them to review their page.
+ * free profile we've created, and invites them to manage their page.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
- * Each array element is a paragraph. Sentences flow within paragraphs.
+ * Style: Professional, warm, clear value proposition.
+ * Each array element is a paragraph. Empty strings create paragraph breaks.
+ * Single newlines within elements become <br> tags.
  */
 function introEmail(): EmailDraft {
   return {
-    subject: `A free way for more families to find ${PLACEHOLDER.providerName}`,
-    preheader: `No broker, no fee, families come directly to you`,
+    subject: `We've created a free profile for ${PLACEHOLDER.providerName}`,
     body: [
-      `**Your free Olera page is live.**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `We've created a free Olera page for ${PLACEHOLDER.providerName}, giving families an easier way to discover and connect with you. There's no cost to manage your page and no referral fees. When a family finds you through Olera, they contact your team directly.`,
+      `I'm Dr. Logan DuBose, a physician and co-founder of Olera.`,
       ``,
-      `[Review your page →](${PLACEHOLDER.claimUrl})`,
+      `As a physician, I've seen how difficult it can be for families to navigate senior care. That's why we created Olera. With support from the NIH, we're building a free referral platform that helps families discover trusted senior care providers.`,
       ``,
-      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. With support from the NIH, we built Olera to make finding trusted senior care easier for families.`,
+      `As part of that, we've already created a **free profile** for ${PLACEHOLDER.providerName} using publicly available information. It's ready for your team to review and manage, making it easier for families to find your services.`,
       ``,
-      `We'd love for you to take a look and make sure the page accurately reflects ${PLACEHOLDER.providerName}. Questions or need help getting set up? Just reply.`,
+      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `Claiming your profile takes less than **two minutes** and allows you to:`,
+      `✓ Have families contact you directly`,
+      `✓ Never pay referral or per-lead fees`,
+      `✓ Improve your online visibility`,
+      ``,
+      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }
@@ -193,81 +198,87 @@ function introEmail(): EmailDraft {
 /**
  * Day 3: Follow-up email
  *
- * Encourages providers to personalize their page and show what makes
- * them different. Integrates gap_list to highlight what's currently missing.
+ * Encourages providers to complete their profile so families feel
+ * more confident choosing them. Personal tone from Logan.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
 function followupEmail(): EmailDraft {
   return {
-    subject: `Your story deserves more than a listing`,
-    preheader: `Give families the full picture`,
+    subject: `Help families feel more confident choosing ${PLACEHOLDER.providerName}`,
     body: [
-      `**Families are viewing your page — is it complete?**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Families don't choose care from a list of services. They choose the people and places they trust.`,
+      `One thing I've learned throughout my career is that finding senior care isn't easy. Families are often left making an important decision with limited information and guidance.`,
       ``,
-      `Right now, your page shows ${PLACEHOLDER.gapList}. Your Olera page is your opportunity to change that. Show families what makes ${PLACEHOLDER.providerName} different.`,
+      `That's why your Olera profile matters.`,
       ``,
-      `[Personalize your page →](${PLACEHOLDER.claimUrl})`,
+      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Add photos, highlight the people behind your care, and showcase what makes your community special. It only takes a few minutes to get started.`,
+      `It's ready for your review. Every photo, update, and detail you add helps families better understand your community and feel more confident in choosing the right care.`,
+      ``,
+      `It only takes a minute to activate your profile.`,
+      ``,
+      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }
 
 /**
- * Day 7: Demand-loss email
+ * Day 5: Free model email
  *
- * Creates urgency by showing real demand and emphasizing the risk of
- * missing family inquiries. Encourages turning on notifications.
+ * Explains why Olera is free and the value proposition for providers.
+ * Emphasizes no fees and direct family connections.
  *
- * Has fallback for low view counts (< 10) to avoid showing weak numbers.
- *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
-function demandLossEmail(hasDemandData: boolean): EmailDraft {
-  const headline = hasDemandData
-    ? `**${PLACEHOLDER.cityViews} families searched for ${PLACEHOLDER.category} near ${PLACEHOLDER.city} this month.**`
-    : `**Families in ${PLACEHOLDER.city} are searching for ${PLACEHOLDER.category} providers.**`;
-
+function demandLossEmail(_hasDemandData: boolean): EmailDraft {
+  // Note: hasDemandData parameter kept for backward compatibility but no longer used
   return {
-    subject: `A family has a question. Will you see it?`,
-    preheader: `Don't miss families ready to talk`,
+    subject: `Why we've made Olera free`,
     body: [
-      headline,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Imagine a daughter urgently searching for care for her mom. She finds ${PLACEHOLDER.providerName} and has a question before taking the next step. If she can't reach you, she'll find a provider she can.`,
+      `Throughout my time in senior care, I've seen how difficult finding the right care can be. Families deserve an easier way to connect with providers.`,
       ``,
-      `[Turn on notifications →](${PLACEHOLDER.claimUrl})`,
+      `That's why we built Olera.`,
       ``,
-      `Be the first to know when a family reaches out. Don't miss out on a family who could be ready to choose you.`,
+      `Claiming and managing your Olera profile is **completely free**. That means **no referral fees**, **no pay-per-lead costs**, and **no subscription fees**.`,
+      ``,
+      `[Review your page →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `We chose this model because we believe families should be in control of their care. Once your page is claimed, families can contact your team directly, have conversations sooner, and begin their next chapter with confidence.`,
+      ``,
+      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }
 
 /**
- * Day 14: Final email
+ * Day 7: Final email
  *
  * Focuses on the Verified badge as a trust signal for families.
- * Simple, focused message about building confidence.
+ * Personal tone with medical school trust story from Logan.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
 function finalEmail(): EmailDraft {
   return {
-    subject: `${PLACEHOLDER.providerName} isn't verified on Olera yet`,
-    preheader: `Give families confidence to reach out`,
+    subject: `Show families ${PLACEHOLDER.providerName} is verified`,
     body: [
-      `**Your page still isn't verified.**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Choosing senior care is one of the biggest decisions a family will ever make. Families need to know they're connecting with a real person they can trust.`,
+      `One of the first things we learn in medical school is that trust is the foundation of every patient relationship.`,
       ``,
-      `A Verified badge gives them that confidence. It shows that a member of the ${PLACEHOLDER.providerName} team has confirmed the information is accurate.`,
+      `The same is true in senior care. Before families ever pick up the phone or schedule a tour, they want peace of mind that they're connecting with the right provider.`,
       ``,
-      `[Get your Verified badge →](${PLACEHOLDER.claimUrl})`,
+      `That's why we recommend verifying your Olera profile to display a **verified badge**, letting families know your information has been reviewed and confirmed by your team.`,
       ``,
-      `It only takes about two minutes and helps families feel at ease when they're ready to reach out.`,
+      `[Get your verified badge →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `It's a small step that helps build trust before the very first conversation.`,
+      ``,
+      `If you have any questions or need help getting verified, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }
@@ -279,26 +290,25 @@ function finalEmail(): EmailDraft {
  *   - Follow Up "resend link" action
  *   - Future re-engagement triggers
  *
- * Short and simple: just the claim link, easy to find.
+ * Personal tone emphasizing mission and direct family connections.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
 function nudgeEmail(): EmailDraft {
   return {
     subject: `Your free Olera page for ${PLACEHOLDER.providerName} is ready`,
-    preheader: PREHEADER_NUDGE,
     body: [
-      `**Your page is ready.**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `We've already created a free Olera page for ${PLACEHOLDER.providerName}. It's ready for your team to manage whenever you are.`,
+      `Finding the right senior care is one of the biggest decisions a family will make. That's why we're building a better experience for both families and providers.`,
       ``,
-      `[Open your page →](${PLACEHOLDER.claimUrl})`,
+      `We've already created a free Olera profile to help more families discover ${PLACEHOLDER.providerName}, ask questions, and connect directly with your team.`,
       ``,
-      `It only takes about two minutes to get started. Once your page is yours, you can start receiving leads, answering questions, and connecting directly with families looking for care.`,
+      `[Review your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `No referral fees or brokers in between. The relationship stays directly with your team.`,
+      `There are **no referral fees** and no brokers in between, so every conversation stays directly between your team and the families you serve.`,
       ``,
-      `Questions? Just reply and I'll help personally.`,
+      `If you have any questions or need help getting started, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }

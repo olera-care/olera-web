@@ -7,7 +7,7 @@
  * Architecture mirrors lib/medjobs/smartlead-bridge.ts but adapted for
  * provider outreach:
  *   - No Named Contact fan-out (providers have single contact email)
- *   - 4-step sequence: Day 0, 3, 7, 14
+ *   - 4-step sequence: Day 0, 3, 5, 7
  *   - Custom fields: tracking_id, provider_id, claim_url, profile_url, etc.
  *   - Per-state campaign organization
  *
@@ -38,10 +38,9 @@ import {
   getTemplate,
   type ProviderOutreachTemplateKey,
   type TemplateContext,
-  loganSignatureHtml,
 } from "./templates";
-// Note: bodyToHtml, smartleadBrandedLayout, getCategoryLabel removed -
-// SmartLead path now uses inline smartleadBodyToHtml (MedJobs pattern)
+// Note: bodyToHtml, smartleadBrandedLayout, getCategoryLabel, loganSignatureHtml removed -
+// SmartLead path now uses inline smartleadBodyToHtml and text-only signature (no image)
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -62,7 +61,7 @@ export interface ProviderBridgeRow {
   suppressed?: boolean;
   /** Profile gaps formatted for Day 3 email */
   gap_list?: string;
-  /** City views for Day 7 email */
+  /** City views for Day 5 email */
   city_views?: number;
   /** URLs pre-generated for this provider */
   claim_url: string;
@@ -143,7 +142,7 @@ export function selectEligibleProviders(
  *   - profile_url: Public listing URL
  *   - city, state, category: For merge tags
  *   - gap_list: For Day 3 email
- *   - city_views: For Day 7 email
+ *   - city_views: For Day 5 email
  */
 export function providerToLead(row: ProviderBridgeRow): SmartleadLead {
   return {
@@ -298,30 +297,29 @@ function smartleadBodyToHtml(text: string): string {
 
   // 4) Single-div body: paragraphs joined by <br><br>
   // This prevents Gmail's auto-trim and keeps consistent spacing
+  // Line-height 1.5 for better readability (matches email-utils.ts)
   const paragraphs = s.split(/\n{2,}/).map((p) => p.replace(/\n/g, "<br>"));
-  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.6;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
+  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.5;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
 }
 
 /**
  * Build the SmartLead footer HTML with Logan signature + compliance links.
  * Uses SmartLead merge tags for dynamic URLs.
+ * NOTE: Text-only signature (no image) for better SmartLead compatibility.
  * NOTE: Join with empty string to avoid extra whitespace in email clients.
  */
 function buildSmartleadFooterHtml(): string {
-  // NOTE: Spacing is carefully calibrated to avoid cumulative margin issues.
-  // - Sign-off "Best," has 16px top margin (space from body)
-  // - "Logan" has 8px bottom margin (tight coupling to signature)
-  // - Signature has 0 margin (set in loganSignatureHtml)
-  // - Footer div has 16px top margin (reasonable gap from signature)
+  // NOTE: Compact spacing to match email-utils.ts (8px/12px pattern).
+  // SmartLead path uses text-only signature (no image) for cleaner rendering.
   // Footer links use &nbsp; to stay on one line in all email clients.
   return [
-    // Sign-off - 16px gap from body content
-    `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
+    // Sign-off - 8px gap from body content (compact)
+    `<p style="margin:8px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
     `<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
-    // Signature block (shared with Resend emails)
-    loganSignatureHtml(),
-    // Footer links with merge tags - reduced margin, inline links with &nbsp;
-    `<div style="margin:16px 0 0;padding:12px 0 0;border-top:1px solid #e5e7eb;">`,
+    // Text-only signature (no image for SmartLead compatibility)
+    `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:#6b7280;font-family:Inter,Arial,sans-serif;">Olera is built by <a href="https://www.linkedin.com/in/logan-dubose/" style="color:#198087;text-decoration:underline;">Dr. Logan DuBose</a>, a physician-researcher funded by NIH SBIR, and <a href="https://www.linkedin.com/in/tfalohun/" style="color:#198087;text-decoration:underline;">TJ Falohun</a>, a PhD researcher in biomedical engineering. We're working to make senior care easier to understand and compare.</p>`,
+    // Footer links with merge tags - compact margin, inline links with &nbsp;
+    `<div style="margin:8px 0 0;padding:8px 0 0;border-top:1px solid #e5e7eb;">`,
     `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,
     `<p style="font-size:12px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;white-space:nowrap;">`,
     `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a>&nbsp;·&nbsp;`,
@@ -340,7 +338,7 @@ function buildSmartleadFooterHtml(): string {
  * Follows the MedJobs pattern: bodyHtml + footerHtml, NO outer wrapper.
  * SmartLead strips complex HTML structures, so we keep it simple:
  * - Single <div> for body (smartleadBodyToHtml)
- * - Signature table (loganSignatureHtml) - tables work for inline components
+ * - Text-only signature (no image for cleaner SmartLead rendering)
  * - Simple footer links
  *
  * This pattern is proven to render correctly in SmartLead → Gmail.
@@ -359,8 +357,8 @@ function toSmartleadHtml(body: string, _templateKey: ProviderOutreachTemplateKey
  * Sequence delays (relative to previous step):
  *   - Day 0 → delay 0
  *   - Day 3 → delay 3 (from Day 0)
- *   - Day 7 → delay 4 (from Day 3)
- *   - Day 14 → delay 7 (from Day 7)
+ *   - Day 5 → delay 2 (from Day 3)
+ *   - Day 7 → delay 2 (from Day 5)
  *
  * One sequence covers all leads: merge tags handle per-provider personalization.
  */

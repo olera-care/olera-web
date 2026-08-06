@@ -30,14 +30,14 @@ interface TemplateStats {
 // Map sequence_step to template info
 const SEQUENCE_STEP_MAP: Record<number, { template_key: string; name: string }> = {
   1: { template_key: "intro", name: "Day 0 — Introduction" },
-  2: { template_key: "followup", name: "Day 3 — Profile Gaps" },
-  3: { template_key: "demand_loss", name: "Day 7 — Demand Loss" },
-  4: { template_key: "final", name: "Day 14 — Verified Badge" },
+  2: { template_key: "followup", name: "Day 3 — Family Confidence" },
+  3: { template_key: "demand_loss", name: "Day 5 — Why It's Free" },
+  4: { template_key: "final", name: "Day 7 — Get Verified" },
 };
 
 // Cadence days for inferring sequence_step from timing
 // If email sent on day X since enrollment, which step is it?
-const CADENCE_DAYS = [0, 3, 7, 14]; // Day 0, 3, 7, 14
+const CADENCE_DAYS = [0, 3, 5, 7]; // Day 0, 3, 5, 7
 
 /**
  * Infer sequence_step from days since enrollment.
@@ -46,7 +46,7 @@ const CADENCE_DAYS = [0, 3, 7, 14]; // Day 0, 3, 7, 14
  */
 function inferSequenceStep(daysSinceEnrollment: number): number {
   // Find the closest cadence day that's <= daysSinceEnrollment
-  // Day 0 → step 1, Day 3 → step 2, Day 7 → step 3, Day 14 → step 4
+  // Day 0 → step 1, Day 3 → step 2, Day 5 → step 3, Day 7 → step 4
   for (let i = CADENCE_DAYS.length - 1; i >= 0; i--) {
     if (daysSinceEnrollment >= CADENCE_DAYS[i]) {
       return i + 1; // steps are 1-indexed
@@ -58,10 +58,10 @@ function inferSequenceStep(daysSinceEnrollment: number): number {
 // Template key to display info
 const TEMPLATE_INFO: Record<string, { name: string; sequence_step: number | null }> = {
   intro: { name: "Day 0 — Introduction", sequence_step: 1 },
-  followup: { name: "Day 3 — Profile Gaps", sequence_step: 2 },
-  demand_loss: { name: "Day 7 — Demand Loss", sequence_step: 3 },
-  final: { name: "Day 14 — Verified Badge", sequence_step: 4 },
-  nudge: { name: "Follow-up Nudge", sequence_step: null },
+  followup: { name: "Day 3 — Family Confidence", sequence_step: 2 },
+  demand_loss: { name: "Day 5 — Why It's Free", sequence_step: 3 },
+  final: { name: "Day 7 — Get Verified", sequence_step: 4 },
+  nudge: { name: "Nudge — Free Profile", sequence_step: null },
 };
 
 export async function GET(request: NextRequest) {

@@ -28,7 +28,7 @@ function signatureMatches(data: string, signature: string): boolean {
   return CANDIDATE_SECRETS.some((secret) => hmacSignature(data, secret) === signature);
 }
 // Token expiry: configurable via env var, default 360 hours (15 days)
-// Must cover the full 14-day cold outreach sequence (Day 0, 3, 7, 14) plus buffer
+// Must cover the full 7-day cold outreach sequence (Day 0, 3, 5, 7) plus buffer
 // since SmartLead uses the same claim_url for all emails in the sequence
 const TOKEN_EXPIRY_HOURS = parseInt(process.env.CLAIM_TOKEN_EXPIRY_HOURS || "360", 10);
 

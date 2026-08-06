@@ -8,7 +8,7 @@
  * (401) if CRON_SECRET is unset OR doesn't match — never publicly callable.
  *
  * Behavior:
- *   - Find providers in in_sequence stage where sequence_started_at + 14 days <= now()
+ *   - Find providers in in_sequence stage where sequence_started_at + cadence days <= now()
  *   - Check they haven't claimed (claimed_at is still null)
  *   - Check email engagement (did they click any links?)
  *   - Move to needs_call stage with appropriate reason:
@@ -16,7 +16,7 @@
  *       - 'sequence_exhausted' if no clicks detected
  *   - Log touchpoint for each transition
  *
- * Timing: The cadence is Day 0, 3, 7, 14. After Day 14 (final email) with
+ * Timing: The cadence is Day 0, 3, 5, 7. After Day 7 (final email) with
  * no claim, we immediately escalate to manual calls (Follow Up stage).
  *
  * Local testing:
@@ -53,7 +53,7 @@ async function runCron(req: NextRequest) {
   return withCronRun("provider-outreach-sequence-check", async () => {
     const db = getServiceClient();
 
-    // Calculate the cutoff date: Day 14 (last email) + DAYS_AFTER_FINAL_TO_NEEDS_CALL
+    // Calculate the cutoff date: last cadence day + DAYS_AFTER_FINAL_TO_NEEDS_CALL
     const lastStep = PROVIDER_OUTREACH_CADENCE[PROVIDER_OUTREACH_CADENCE.length - 1];
     const totalDays = lastStep.day + DAYS_AFTER_FINAL_TO_NEEDS_CALL;
 

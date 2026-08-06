@@ -30,9 +30,9 @@ interface TemplateStats {
 // Map sequence_step to template info
 const SEQUENCE_STEP_MAP: Record<number, { template_key: string; name: string }> = {
   1: { template_key: "intro", name: "Day 0 — Introduction" },
-  2: { template_key: "followup", name: "Day 3 — Profile Gaps" },
-  3: { template_key: "demand_loss", name: "Day 7 — Demand Loss" },
-  4: { template_key: "final", name: "Day 14 — Verified Badge" },
+  2: { template_key: "followup", name: "Day 3 — Family Confidence" },
+  3: { template_key: "demand_loss", name: "Day 7 — Why It's Free" },
+  4: { template_key: "final", name: "Day 14 — Get Verified" },
 };
 
 // Cadence days for inferring sequence_step from timing
@@ -58,10 +58,10 @@ function inferSequenceStep(daysSinceEnrollment: number): number {
 // Template key to display info
 const TEMPLATE_INFO: Record<string, { name: string; sequence_step: number | null }> = {
   intro: { name: "Day 0 — Introduction", sequence_step: 1 },
-  followup: { name: "Day 3 — Profile Gaps", sequence_step: 2 },
-  demand_loss: { name: "Day 7 — Demand Loss", sequence_step: 3 },
-  final: { name: "Day 14 — Verified Badge", sequence_step: 4 },
-  nudge: { name: "Follow-up Nudge", sequence_step: null },
+  followup: { name: "Day 3 — Family Confidence", sequence_step: 2 },
+  demand_loss: { name: "Day 7 — Why It's Free", sequence_step: 3 },
+  final: { name: "Day 14 — Get Verified", sequence_step: 4 },
+  nudge: { name: "Nudge — Free Profile", sequence_step: null },
 };
 
 export async function GET(request: NextRequest) {

@@ -191,6 +191,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       label: v.label,
       subject: v.subject,
       emailType: v.emailType,
+      timing: v.timing ?? null,
+      situation: v.situation ?? null,
       mine,
       ownerCron: owner?.id ?? null,
       ownerName: owner ? owner.name.split(" — ")[0] : null,

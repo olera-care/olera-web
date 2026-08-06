@@ -1,14 +1,16 @@
 /**
- * Business-day scheduling for cadence CALL tasks.
+ * Business-day arithmetic in Eastern Time.
  *
- * Cadence calls are CRM tasks whose due date is computed as "launch moment +
- * N days". Left raw, a call can land on a weekend or holiday — when the office
- * is closed and the rep is prompted to call no one. This module rolls such a
- * due date FORWARD to the next business day, evaluated in Eastern Time (the
- * team's timezone).
+ * Anything the platform schedules for a human to receive — a cadence CALL task
+ * for a rep, an Ad Boost wrap-up email for a provider — can land on a weekend
+ * or a federal holiday if the date is computed as raw "moment + N days". This
+ * module rolls such a date FORWARD to the next business day.
  *
- * Scope: calls only. Emails are weekday-gated by Smartlead's send window and
- * are intentionally left untouched.
+ * Consumers:
+ *   - `lib/student-outreach/sequencer.ts` — cadence call due dates. Outreach
+ *     EMAILS are weekday-gated by Smartlead's own send window and are
+ *     intentionally left untouched.
+ *   - `lib/send-window.ts` — the civil send slot for scheduled provider email.
  *
  * Timezone: all weekend/holiday decisions are made in America/New_York via the
  * platform's built-in Intl support, so EST/EDT (daylight saving) is handled

@@ -85,6 +85,10 @@ export interface EmailVariant {
   subject: string;
   /** Underlying email_type — cross-refs /admin/emails + email_log. */
   emailType: string;
+  /** Short, glanceable journey position shown beside the live preview. */
+  timing?: string;
+  /** One-sentence explanation of why this version sends at that moment. */
+  situation?: string;
   /** Cron/registry id that sends it — links to /admin/automations/[id]. */
   cron?: string;
   /** Additional cron/registry ids that also send this exact message (e.g. the
@@ -185,7 +189,9 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_results_saved", audience: "family", group: "Family · Benefits cascade",
     label: "Day 0 · Results email", subject: benefitsResultsSavedSubject({ matchCount: 4, possessive: "Your mom's", stateName: "Texas" }),
     emailType: "benefits_results_saved", cron: "benefits-results-texts",
-    who: "Every new family the moment they finish the benefits quiz with an email on file (V3 flow requires one). Event-driven at intake, not a cron.",
+    timing: "Day 0 · immediately after intake",
+    situation: "Sent when a new family finishes the benefits quiz with an email. It delivers the strongest matches and opens their private Olera plan while the request is still fresh.",
+    who: "Every new family who finishes the benefits quiz with an email on file. Event-driven at intake; text-only intake is also supported.",
     why: "The Day-0 welcome that delivers real value up front: their top-5 matched programs as a starter list and the /m plan link. 95% of families won't engage with email, so when one does, this has to be worth their time.",
     render: () => benefitsResultsSavedEmail({
       greetingName: "Maria",
@@ -202,12 +208,14 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
   },
   {
     id: "benefits_first_step", audience: "family", group: "Family · Benefits cascade",
-    label: "B1 · Ten-minute first step", subject: benefitsFirstStepSubject("LIHEAP"),
+    label: "B1 · Ten-minute first-step fallback", subject: benefitsFirstStepSubject("LIHEAP"),
     emailType: "benefits_first_step", cron: "family-comms-coordinator",
+    timing: "B1 · after TJ approves the first step",
+    situation: "Usually drafted 2–10 days after intake, then sent only when TJ approves it or at the scheduled hour. This is the fallback shape; live families normally receive the reviewed, personalized navigator email.",
     // The navigator scheduler fires the REAL sends now (TJ-approved AI letters);
     // this template is the shape/fallback. Its page previews it too.
     alsoCrons: ["benefits-navigator-scheduler"],
-    who: "Family completed the benefits intake 48–96h ago, once ever (profile stamp). Program picked from their entry page, then simplest saved match, then the state's start-here list.",
+    who: "Eligible family 2–10 days after benefits intake. The coordinator drafts the message; nothing sends until TJ approves or schedules it.",
     why: "Nobody applies for government benefits alone — the base rate of solo completion is ~0. So instead of checking homework, we shrink the first step to ten minutes: ONE program, its start-here phone number, what to say, and three documents. Content comes from the state pipeline drafts (51 states).",
     render: () => benefitsFirstStepEmail({
       unsubscribeId: "sample-id",
@@ -233,6 +241,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_check_in", audience: "family", group: "Family · Benefits cascade",
     label: "B2 · The check that's an offer", subject: benefitsCheckInSubject("LIHEAP"),
     emailType: "benefits_check_in", cron: "family-comms-coordinator",
+    timing: "B2 · 3–14 days after B1 is delivered",
+    situation: "Sent once when the family has not reported an outcome. It asks what happened without grading them and turns every answer into a useful next path.",
     who: "First-step email sent 3–14 days ago, no outcome reported yet, once ever (profile stamp).",
     why: "The check-in that's an offer, not an audit: all three replies point forward (It's moving / I want help / This program isn't right for me). 'I want help' pages the queue owner and floats the family in /admin/benefits. Outcome data is the exhaust of helping.",
     render: () => benefitsCheckInEmail({
@@ -248,6 +258,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "benefits_check_in_done", audience: "family", group: "Family · Benefits cascade",
     label: "B2 · Check-in, retargeted (call already made)", subject: benefitsCheckInDoneSubject("LIHEAP"),
     emailType: "benefits_check_in", cron: "family-comms-coordinator",
+    timing: "B2 · 3–14 days after B1, call already recorded",
+    situation: "Used when the living plan already knows the family made the call. Olera acknowledges that progress and asks what happened next instead of repeating the first question.",
     who: "Same band as B2, but the family marked the call done on their /m plan page (benefits_cascade.first_step_done_at).",
     why: "The living journey saw the act, so the check-in congratulates instead of asking. Same three forward chips, reframed. Coherence: the system visibly remembers what the family did.",
     render: () => benefitsCheckInDoneEmail({
@@ -694,6 +706,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Queued · profile needed", subject: "Your Ad Boost request is saved",
     emailType: "ad_boost_queued",
     cron: "ad-boost-emails",
+    timing: "At request · when the provider is not launch-ready",
+    situation: "Confirms the launch plan is safely recorded, explains the profile or verification gate, and gives the provider one concrete step to unblock setup.",
     who: "Provider submitted an Ad Boost launch plan while below the launch threshold or before verification.",
     why: "Confirm the request is saved, explain why it is queued, and point them to the next profile/verification step.",
     render: () => adBoostQueuedEmail({
@@ -711,6 +725,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Requested · launch-ready", subject: "Your Ad Boost request is ready for setup",
     emailType: "ad_boost_requested",
     cron: "ad-boost-emails",
+    timing: "At request · when the provider is already launch-ready",
+    situation: "The immediate concierge handoff: Olera confirms setup can begin, restates the requested campaign shape, and sets expectations before anything launches.",
     who: "Provider submitted an Ad Boost request while complete enough and verified.",
     why: "Automate the Franchil-style initial handoff: the page has enough detail to start setup, the first $50 promo is clear, and the provider can watch results in Ad Boost.",
     render: () => adBoostRequestedEmail({
@@ -725,6 +741,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Reminder · finish profile", subject: "Finish your Ad Boost launch setup",
     emailType: "ad_boost_profile_reminder",
     cron: "ad-boost-profile-reminders",
+    timing: "After 48 hours blocked · once",
+    situation: "Sent only if the request is still waiting on profile or verification work. It is skipped when the provider clears the gate before the daily check.",
     who: "Provider submitted an Ad Boost launch plan, stayed queued for 48+ hours, and has not cleared the profile/verification launch threshold.",
     why: "Recover queued launch plans before they go cold, while explaining that the work protects the promotional ad test.",
     render: () => adBoostProfileReminderEmail({
@@ -742,6 +760,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Promotion · now ready", subject: "Your Ad Boost request is now launch-ready",
     emailType: "ad_boost_ready",
     cron: "ad-boost-profile-reminders",
+    timing: "When a previously blocked request clears the gate",
+    situation: "Closes the loop without asking the provider to resubmit: their saved request automatically advances into the concierge setup queue.",
     who: "Provider had a queued Ad Boost request and later cleared completeness plus verification.",
     why: "Close the loop when queued work becomes actionable, without making the provider resubmit.",
     render: () => adBoostReadyEmail({
@@ -756,6 +776,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Lead delivered", subject: "Your Find Families campaign brought in a new family",
     emailType: "ad_boost_lead_delivered",
     cron: "ad-boost-emails",
+    timing: "For every campaign-attributed family inquiry",
+    situation: "Sent at the value moment, with one direct route to the new family. It is deduplicated by connection so the campaign does not create a second generic lead email.",
     who: "Provider with a live Ad Boost campaign receives a campaign-attributed family inquiry.",
     why: "Make the managed-ads value explicit at the moment a real family arrives, without sending a second generic lead email.",
     render: () => adBoostLeadDeliveredEmail({
@@ -773,6 +795,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     emailType: "ad_boost_campaign_launched",
     cron: "ad-boost-launch-scheduler",
     alsoCrons: ["ad-boost-emails"],
+    timing: "When the campaign goes live",
+    situation: "Sends immediately when the live status is saved, or at the concierge-selected US Eastern time. It confirms where inquiries will arrive and what Olera will monitor.",
     who: "Provider campaign status is moved to live by the concierge team.",
     why: "Confirm the campaign has launched, set expectations for where leads arrive, and reinforce that the first $50 promo is being monitored.",
     render: () => adBoostCampaignLaunchedEmail({
@@ -786,6 +810,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Early traction", subject: "Your Find Families campaign is getting activity",
     emailType: "ad_boost_traction",
     cron: "ad-boost-emails",
+    timing: "At the first meaningful live clicks or spend · once",
+    situation: "A proof-of-motion update before the starter campaign closes. Zero-value metric saves do not trigger it, and later metric edits do not send it again.",
     who: "Concierge team enters spend/click metrics for a live campaign.",
     why: "Give the provider a concrete progress update before the starter promo wraps.",
     render: () => adBoostTractionEmail({
@@ -801,8 +827,10 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     id: "ad_boost_promo_complete", audience: "provider", group: "Provider · Ad Boost",
     label: "Promo complete", subject: "Your starter campaign is complete",
     emailType: "ad_boost_promo_complete",
-    cron: "ad-boost-emails",
-    who: "Concierge team marks the starter campaign ended.",
+    cron: "ad-boost-end-scheduler",
+    timing: "After the flight ends · next 10:15 AM ET business morning · once",
+    situation: "Whether the flight ends automatically or the concierge closes it, the wrap-up waits for a provider-friendly business window before delivering the campaign receipt and next-step decision.",
+    who: "A flight passes its end date (or the concierge ends it by hand) and the campaign produced inquiries through Olera.",
     why: "Close the loop on the $50 promotional test and invite a budget/results discussion, matching Franchil's requested next step.",
     render: () => adBoostPromoCompleteEmail({
       providerName: "Franchil LLC",
@@ -815,10 +843,39 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     }),
   },
   {
+    id: "ad_boost_promo_complete_zero_lead", audience: "provider", group: "Provider · Ad Boost",
+    label: "Promo complete (no inquiries via Olera)", subject: "Your starter campaign is complete",
+    emailType: "ad_boost_promo_complete",
+    cron: "ad-boost-end-scheduler",
+    timing: "After the flight ends · next 10:15 AM ET business morning · zero Olera inquiries",
+    situation: "Uses the same scheduled wrap-up window, but asks the provider whether a family contacted them another way instead of treating Olera's zero attributed inquiries as the whole truth.",
+    who: "A flight ends without an inquiry recorded through Olera, so the provider is asked whether a family reached them another way.",
+    why: "Our family count only sees people who contact the provider THROUGH Olera. Franchil's real paying client phoned the office directly and the platform reported zero, and the per-lead outcome sensor can never correct that (it needs a lead row to hang the question on). So a zero-lead wrap-up asks the provider directly instead of asserting a number we can't stand behind.",
+    render: () => adBoostPromoCompleteEmail({
+      providerName: "Abode Home Care",
+      ctaUrl: "https://olera.care/provider/boost?ref=email&eid=sample",
+      visitors: 14,
+      leads: 0,
+      clicks: 19,
+      impressions: 4182,
+      saves: 3,
+      questionsReceived: 2,
+      spendCents: 4149,
+      intendedMonthlyBudget: 300,
+      outcomeUrls: {
+        client: "https://olera.care/provider/campaign-outcome?rid=sample&v=client&ref=email&eid=sample",
+        talking: "https://olera.care/provider/campaign-outcome?rid=sample&v=talking&ref=email&eid=sample",
+        no: "https://olera.care/provider/campaign-outcome?rid=sample&v=no&ref=email&eid=sample",
+      },
+    }),
+  },
+  {
     id: "ad_boost_lead_outcome_check", audience: "provider", group: "Provider · Ad Boost",
     label: "Lead outcome check", subject: "Did this family become a client?",
     emailType: "ad_boost_lead_outcome_check",
     cron: "ad-boost-profile-reminders",
+    timing: "Around day 7, then day 21 if still unresolved",
+    situation: "A one-tap follow-up for each attributed inquiry. A final client or no outcome stops the second check; still talking keeps the receipt open.",
     who: "Provider with a campaign-attributed inquiry that is about 7 days old, then again near day 21 when it is unanswered or still in conversation.",
     why: "Turn ad clicks and inquiries into an honest campaign receipt by capturing whether the family became a client.",
     render: () => adBoostLeadOutcomeEmail({

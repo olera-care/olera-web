@@ -70,6 +70,1414 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
 // archived = hard (system-wide block)
 const TERMINAL_STAGES: OutreachStage[] = ["claimed", "not_interested", "archived"];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Provider Tier System
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ProviderTier = "enterprise" | "regional" | "local";
+
+const TIER_CONFIG: Record<ProviderTier, { label: string; className: string }> = {
+  enterprise: {
+    label: "Enterprise",
+    className: "text-blue-700 bg-blue-50 border-blue-200",
+  },
+  regional: {
+    label: "Regional",
+    className: "text-teal-700 bg-teal-50 border-teal-200",
+  },
+  local: {
+    label: "Local",
+    className: "text-gray-600 bg-gray-50 border-gray-200",
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LinkedIn Contact Tracking
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface LinkedInContact {
+  id: string;
+  name: string;
+  title: string;
+  linkedin_url: string;
+  messaged: boolean;
+  messaged_at?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fax/Mail Analytics
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface FaxAnalytics {
+  sent_at?: string;
+  delivered: boolean;
+  delivered_at?: string;
+  qr_scanned: boolean;
+  qr_scanned_at?: string;
+  claimed: boolean;
+  claimed_at?: string;
+}
+
+interface MailAnalytics {
+  sent_at: string;
+  status: "draft" | "ready" | "printed" | "in_transit" | "delivered" | "returned" | "cancelled";
+  estimated_delivery?: string;
+  qr_scanned?: boolean;
+  qr_scanned_at?: string;
+  claimed?: boolean;
+  claimed_at?: string;
+}
+
+function getLinkedInMessage(): string {
+  return `Hi! I'm Dr. Logan DuBose, co-founder of Olera. We help families find senior care and connect providers with free referrals. Open to a quick 15-minute call?`;
+}
+
+function LinkedInSection({
+  provider,
+  linkedInUrl,
+  contacts,
+  onUrlChange,
+  onContactsChange,
+}: {
+  provider: OutreachProvider;
+  linkedInUrl: string | null;
+  contacts: LinkedInContact[];
+  onUrlChange: (url: string) => void;
+  onContactsChange: (contacts: LinkedInContact[]) => void;
+}) {
+  const [urlInput, setUrlInput] = useState(linkedInUrl || "");
+  const [finding, setFinding] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleFind() {
+    setFinding(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (data.linkedin_url) {
+        setUrlInput(data.linkedin_url);
+        onUrlChange(data.linkedin_url);
+      }
+    } catch {
+      // Ignore errors
+    } finally {
+      setFinding(false);
+    }
+  }
+
+  async function handleSaveUrl() {
+    if (!urlInput.trim()) return;
+    try {
+      await fetch("/api/admin/provider-outreach/find-linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          manual_url: urlInput.trim(),
+        }),
+      });
+    } catch {
+      // Non-critical
+    }
+    onUrlChange(urlInput.trim());
+  }
+
+  function addContact() {
+    if (!newName.trim()) return;
+    const contact: LinkedInContact = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: newName.trim(),
+      title: newTitle.trim(),
+      linkedin_url: newUrl.trim(),
+      messaged: false,
+    };
+    onContactsChange([...contacts, contact]);
+    setNewName("");
+    setNewTitle("");
+    setNewUrl("");
+  }
+
+  function removeContact(contactId: string) {
+    onContactsChange(contacts.filter((c) => c.id !== contactId));
+  }
+
+  function toggleMessaged(contactId: string) {
+    onContactsChange(
+      contacts.map((c) =>
+        c.id === contactId
+          ? { ...c, messaged: !c.messaged, messaged_at: !c.messaged ? new Date().toISOString() : undefined }
+          : c
+      )
+    );
+  }
+
+  function copyMessage(contactId: string) {
+    navigator.clipboard.writeText(getLinkedInMessage());
+    setCopiedId(contactId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  return (
+    <div className="px-5 py-4 bg-blue-50/50 border-t border-blue-100">
+      {/* Company LinkedIn URL */}
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-gray-700 mb-1.5">Company LinkedIn Page</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder="https://linkedin.com/company/..."
+            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {!linkedInUrl && (
+            <button
+              type="button"
+              onClick={handleFind}
+              disabled={finding}
+              className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 disabled:opacity-50"
+            >
+              {finding ? "Finding..." : "Find"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleSaveUrl}
+            disabled={!urlInput.trim() || urlInput === linkedInUrl}
+            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+
+      {/* Contacts List */}
+      <div className="mb-4">
+        <label className="block text-xs font-medium text-gray-700 mb-1.5">
+          Contacts ({contacts.length})
+        </label>
+        {contacts.length > 0 ? (
+          <div className="space-y-2 mb-3">
+            {contacts.map((contact) => (
+              <div
+                key={contact.id}
+                className={`flex items-center gap-3 p-2 rounded-lg border ${
+                  contact.messaged ? "bg-green-50 border-green-200" : "bg-white border-gray-200"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+                  {contact.title && <div className="text-xs text-gray-500">{contact.title}</div>}
+                  {contact.linkedin_url && (
+                    <a
+                      href={contact.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      LinkedIn Profile
+                    </a>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => copyMessage(contact.id)}
+                    className="px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded"
+                  >
+                    {copiedId === contact.id ? "Copied!" : "Copy Msg"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleMessaged(contact.id)}
+                    className={`px-2 py-1 text-xs rounded ${
+                      contact.messaged
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {contact.messaged ? "Messaged ✓" : "Mark Sent"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeContact(contact.id)}
+                    className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500 mb-3">No contacts added yet</p>
+        )}
+
+        {/* Add Contact Form */}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Name"
+            className="w-32 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            placeholder="Title"
+            className="w-32 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <input
+            type="text"
+            value={newUrl}
+            onChange={(e) => setNewUrl(e.target.value)}
+            placeholder="LinkedIn URL"
+            className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            onClick={addContact}
+            disabled={!newName.trim()}
+            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+      {/* Message Template */}
+      <details className="text-xs">
+        <summary className="font-medium text-gray-600 cursor-pointer hover:text-gray-800">
+          Message Template
+        </summary>
+        <div className="mt-2 p-3 bg-white border border-gray-200 rounded-lg text-gray-700 whitespace-pre-line">
+          {getLinkedInMessage()}
+        </div>
+      </details>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Channel Tracking — compact status pills for fax/mail/linkedin with expandable details
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ChannelTracking({
+  faxSent,
+  faxAnalytics,
+  faxNumber,
+  linkedinMessaged,
+  linkedinMessagedAt,
+  linkedinUrl,
+  providerLinkedinUrl,
+  mailSent,
+  mailAnalytics,
+  claimed: claimedProp,
+  claimedAt: claimedAtProp,
+}: {
+  faxSent?: boolean;
+  faxAnalytics?: FaxAnalytics;
+  faxNumber?: string | null;
+  linkedinMessaged?: boolean;
+  linkedinMessagedAt?: string | null;
+  linkedinUrl?: string | null;
+  providerLinkedinUrl?: string | null;
+  mailSent?: boolean;
+  mailAnalytics?: MailAnalytics;
+  claimed?: boolean;
+  claimedAt?: string | null;
+}) {
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  // Resolve LinkedIn URL (session state takes priority, then provider data)
+  const resolvedLinkedinUrl = linkedinUrl || providerLinkedinUrl;
+
+  // Channels with hasDetails flag to determine if clickable
+  const channels: { key: string; label: string; color: string; summary: string; hasDetails: boolean }[] = [];
+
+  // Fax channel
+  if (faxSent) {
+    const delivered = faxAnalytics?.delivered;
+    channels.push({
+      key: "fax",
+      label: "Fax",
+      color: delivered ? "bg-emerald-500" : "bg-amber-400",
+      summary: delivered
+        ? `Delivered${faxAnalytics?.delivered_at ? ` ${new Date(faxAnalytics.delivered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}`
+        : "Sent",
+      hasDetails: !!faxAnalytics,
+    });
+  } else if (faxNumber) {
+    channels.push({
+      key: "fax",
+      label: "Fax",
+      color: "bg-gray-300",
+      summary: "Ready",
+      hasDetails: false, // No details to show for "Ready" state
+    });
+  }
+
+  // LinkedIn channel
+  if (linkedinMessaged) {
+    channels.push({
+      key: "linkedin",
+      label: "LinkedIn",
+      color: "bg-blue-500",
+      summary: linkedinMessagedAt
+        ? `Messaged ${new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+        : "Messaged",
+      hasDetails: true,
+    });
+  } else if (resolvedLinkedinUrl) {
+    channels.push({
+      key: "linkedin",
+      label: "LinkedIn",
+      color: "bg-gray-300",
+      summary: "Ready",
+      hasDetails: false, // No details to show for "Ready" state
+    });
+  }
+
+  // Mail channel
+  if (mailSent) {
+    if (mailAnalytics) {
+      const delivered = mailAnalytics.status === "delivered";
+      channels.push({
+        key: "mail",
+        label: "Postcard",
+        color: delivered ? "bg-emerald-500" : "bg-amber-400",
+        summary: delivered ? "Delivered" : mailAnalytics.status === "in_transit" ? "In Transit" : mailAnalytics.status === "printed" ? "Printed" : "Sent",
+        hasDetails: true,
+      });
+    } else {
+      // Session-only sent state (before API refresh)
+      channels.push({
+        key: "mail",
+        label: "Postcard",
+        color: "bg-amber-400",
+        summary: "Sent",
+        hasDetails: false,
+      });
+    }
+  }
+
+  // Claimed indicator (check prop first, then analytics as fallback)
+  const isClaimed = claimedProp || faxAnalytics?.claimed || mailAnalytics?.claimed;
+  if (isClaimed) {
+    const claimedAt = claimedAtProp || faxAnalytics?.claimed_at || mailAnalytics?.claimed_at;
+    channels.push({
+      key: "claimed",
+      label: "Claimed",
+      color: "bg-emerald-500",
+      summary: claimedAt
+        ? new Date(claimedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        : "Yes",
+      hasDetails: false, // Claimed is just a status indicator
+    });
+  }
+
+  if (channels.length === 0) return null;
+
+  return (
+    <div className="mt-0.5">
+      {/* Inline status pills */}
+      <div className="flex items-center gap-1 flex-wrap">
+        {channels.map((ch) =>
+          ch.hasDetails ? (
+            <button
+              key={ch.key}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenSection(openSection === ch.key ? null : ch.key);
+              }}
+              className="inline-flex items-center gap-0.5 text-[9px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
+            >
+              <span className={`w-1 h-1 rounded-full ${ch.color}`} />
+              {ch.summary}
+            </button>
+          ) : (
+            <span
+              key={ch.key}
+              className="inline-flex items-center gap-0.5 text-[9px] text-gray-400"
+            >
+              <span className={`w-1 h-1 rounded-full ${ch.color}`} />
+              {ch.summary}
+            </span>
+          )
+        )}
+      </div>
+
+      {/* Expandable fax details */}
+      {openSection === "fax" && faxAnalytics && (
+        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.delivered ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Delivered to machine</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {faxAnalytics.delivered
+                  ? faxAnalytics.delivered_at ? new Date(faxAnalytics.delivered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Confirmed"
+                  : "Not yet"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.qr_scanned ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">QR code scanned</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {faxAnalytics.qr_scanned
+                  ? faxAnalytics.qr_scanned_at ? new Date(faxAnalytics.qr_scanned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Yes"
+                  : "Not yet"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.claimed ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Claimed profile</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {faxAnalytics.claimed
+                  ? faxAnalytics.claimed_at ? new Date(faxAnalytics.claimed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Claimed"
+                  : "Not yet"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expandable LinkedIn details */}
+      {openSection === "linkedin" && (
+        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span className="text-xs text-gray-700">Message sent</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {linkedinMessagedAt ? new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : linkedinMessaged ? "Yes" : "Not yet"}
+              </span>
+            </div>
+            {resolvedLinkedinUrl && (
+              <div className="flex items-center justify-between py-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span className="text-xs text-gray-700">Profile</span>
+                </div>
+                <a
+                  href={resolvedLinkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  View on LinkedIn
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Expandable mail details */}
+      {openSection === "mail" && mailAnalytics && (
+        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+          <div className="divide-y divide-gray-200">
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                <span className="text-xs text-gray-700">Mailer sent</span>
+              </div>
+              <span className="text-xs text-gray-500">{new Date(mailAnalytics.sent_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "in_transit" || mailAnalytics.status === "delivered" || mailAnalytics.status === "printed" ? "bg-emerald-500" : "bg-amber-400"}`} />
+                <span className="text-xs text-gray-700">Print status</span>
+              </div>
+              <span className="text-xs text-gray-500 capitalize">{mailAnalytics.status}</span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "delivered" ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Est. delivery</span>
+              </div>
+              <span className="text-xs text-gray-500">{mailAnalytics.status === "delivered" ? "Delivered" : "3-5 business days"}</span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.qr_scanned ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">QR scanned</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {mailAnalytics.qr_scanned
+                  ? mailAnalytics.qr_scanned_at ? new Date(mailAnalytics.qr_scanned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Yes"
+                  : "Not yet"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.claimed ? "bg-emerald-500" : "bg-gray-300"}`} />
+                <span className="text-xs text-gray-700">Claimed profile</span>
+              </div>
+              <span className="text-xs text-gray-500">
+                {mailAnalytics.claimed
+                  ? mailAnalytics.claimed_at ? new Date(mailAnalytics.claimed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Claimed"
+                  : "Not yet"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fax Preview Sidebar — full fax preview with QR code and send button
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FaxPreviewSidebar({
+  provider,
+  onClose,
+  onFaxSent,
+  faxNumberOverride,
+}: {
+  provider: OutreachProvider;
+  onClose: () => void;
+  onFaxSent?: (providerId: string) => void;
+  faxNumberOverride?: string | null;
+}) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrVerified, setQrVerified] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  // Use override if provided, otherwise fall back to provider.fax_number
+  const faxNumber = faxNumberOverride || provider.fax_number;
+
+  const providerUrl = provider.slug
+    ? `https://olera.care/provider/${provider.slug}?utm_source=fax&utm_medium=qr&utm_campaign=re_engage`
+    : "https://olera.care";
+
+  // Generate QR code on mount
+  useEffect(() => {
+    async function generateQr() {
+      try {
+        const QRCode = (await import("qrcode")).default;
+        const dataUrl = await QRCode.toDataURL(providerUrl, {
+          width: 140,
+          margin: 1,
+          color: { dark: "#000000", light: "#ffffff" },
+        });
+        setQrDataUrl(dataUrl);
+      } catch {
+        // QR generation failed silently
+      }
+    }
+    generateQr();
+  }, [providerUrl]);
+
+  async function handleSendFax() {
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          fax_number: faxNumber,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSent(true);
+        onFaxSent?.(provider.provider_id);
+      } else {
+        setSendError(data.error || "Failed to send fax");
+      }
+    } catch {
+      setSendError("Network error");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/20 z-40 transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Sidebar */}
+      <div className={`fixed right-0 top-0 h-full bg-white shadow-2xl z-50 flex flex-col transition-all duration-300 ${
+        expanded ? "w-full" : "w-[520px]"
+      }`}>
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between shrink-0">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{provider.provider_name}</h2>
+            <p className="text-sm text-gray-500">
+              Fax to {faxNumber}
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              title={expanded ? "Collapse" : "Expand full screen"}
+            >
+              {expanded ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9L4 4m0 0v4m0-4h4m6 6l5 5m0 0v-4m0 4h-4" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Fax Preview - scrollable */}
+        <div className={`flex-1 overflow-y-auto py-5 ${expanded ? "px-8 flex flex-col items-center" : "px-6"}`}>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 w-full">FAX PREVIEW</h3>
+
+          {/* Fax document */}
+          <div className={`border border-gray-200 rounded-lg bg-white shadow-sm ${
+            expanded ? "w-full max-w-[680px]" : ""
+          }`} style={expanded ? { aspectRatio: "8.5 / 11", maxHeight: "calc(100vh - 200px)" } : undefined}>
+            <div className={`${expanded ? "px-12 py-12" : "px-8 py-8"} h-full flex flex-col`}>
+
+              {/* Logo + Olera info at very top */}
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-300">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/olera-logo.png"
+                  alt="Olera"
+                  className="h-8 object-contain grayscale"
+                />
+                <div className="text-[10px] text-gray-500 leading-tight">
+                  <p className="font-medium text-gray-700">Olera Care</p>
+                  <p>(833) 653-7200 · olera.care</p>
+                </div>
+              </div>
+
+              {/* Fax cover fields + QR Code inline */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-0 text-[9px] text-gray-600 leading-relaxed">
+                  <p><span className="font-semibold text-gray-800">To:</span> {provider.provider_name}</p>
+                  <p><span className="font-semibold text-gray-800">From:</span> Dr. Logan DuBose, Olera</p>
+                  <p><span className="font-semibold text-gray-800">Subject:</span> Your free Olera profile</p>
+                  <p><span className="font-semibold text-gray-800">Attn:</span> Administrator / Executive Director</p>
+                  <p><span className="font-semibold text-gray-800">Date:</span> {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 shrink-0">
+                  {qrDataUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={qrDataUrl}
+                      alt="QR Code"
+                      className="w-20 h-20 border border-gray-200 rounded"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                      <span className="text-xs text-gray-400">QR CODE</span>
+                    </div>
+                  )}
+                  <p className="text-[8px] font-medium text-gray-600 text-center">Scan to manage your page</p>
+                </div>
+              </div>
+
+              {/* Opt-out notice */}
+              <div className="mb-3 px-3 py-1.5 border border-gray-300 bg-gray-50 rounded text-[8px] leading-snug text-gray-600">
+                <p className="font-semibold text-gray-700 mb-0.5">OPT-OUT NOTICE</p>
+                <p>
+                  To stop receiving faxes from Olera, call <span className="font-medium text-gray-800">(833) 653-7200</span> or
+                  send a fax to <span className="font-medium text-gray-800">(833) 653-7201</span> at any time, any day of the week.
+                  Requests are accepted 24 hours a day at no cost to you.
+                </p>
+              </div>
+
+              {/* Letter body */}
+              <div className="space-y-4 text-[12px] leading-relaxed text-gray-800">
+                <p>Dear {provider.provider_name},</p>
+
+                <p>
+                  I&apos;m Dr. Logan DuBose, a physician and co-founder of Olera.
+                </p>
+
+                <p>
+                  We created Olera, a free referral platform that helps families find trusted senior care. We&apos;re proud to be supported by NIH as we build a better solution for families and providers to connect.
+                </p>
+
+                <p>
+                  We&apos;ve already created a profile for {provider.provider_name} using publicly available information, and it&apos;s ready for your team to manage.
+                </p>
+
+                <p>
+                  Get started in less than two minutes and you&apos;ll be able to:
+                </p>
+
+                <ul className="space-y-1.5 pl-1">
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 font-bold">&#10003;</span>
+                    <span>Have families contact you directly</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 font-bold">&#10003;</span>
+                    <span>Never pay referral fees or per-lead charges</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="shrink-0 font-bold">&#10003;</span>
+                    <span>Improve your online visibility</span>
+                  </li>
+                </ul>
+
+                <p>
+                  Scan the QR code above to take ownership of your page.
+                </p>
+
+                <p>
+                  If you have any questions or would like to schedule a quick call, I&apos;d be happy to help.
+                </p>
+
+                {/* Signature */}
+                <div className="mt-4 flex items-start gap-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/for-providers/team/logan.jpg"
+                    alt="Dr. Logan DuBose"
+                    className="w-16 h-16 rounded-full object-cover shrink-0 grayscale"
+                  />
+                  <div className="space-y-0.5">
+                    <p className="text-[12px] text-gray-500 italic">With care,</p>
+                    <p className="text-sm font-bold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
+                    <p className="text-[11px] text-gray-600">Chief Research Officer (CRO), Olera</p>
+                    <p className="text-[10px] text-gray-500">Researcher funded by the NIH Small Business Innovation Research (SBIR) Program</p>
+                    <p className="text-[10px] text-gray-500">Texas A&amp;M College of Medicine, Class of 2022</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Page footer with sender info */}
+              <div className="mt-auto pt-3 border-t border-gray-200 text-[8px] text-gray-400 space-y-0.5">
+                <p>Olera Care, Inc. · (833) 653-7200 · olera.care</p>
+                <p>
+                  To stop receiving faxes, call (833) 653-7200 or fax (833) 653-7201 at any time, any day. Requests accepted 24/7 at no cost.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer: Send button OR analytics after sent */}
+        <div className="border-t border-gray-200 bg-gray-50 shrink-0">
+          {sent ? (
+            <div className="px-6 py-4">
+              {/* Sent confirmation */}
+              <div className="flex items-center gap-2 mb-4">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm font-medium text-emerald-600">Fax Sent</span>
+                <span className="text-xs text-gray-400 ml-auto">
+                  {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+              </div>
+
+              {/* Resend */}
+              <button
+                type="button"
+                onClick={() => setSent(false)}
+                className="w-full py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+              >
+                Resend Fax
+              </button>
+            </div>
+          ) : (
+            <div className="px-6 py-4">
+              {/* QR verification step */}
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Verify QR destination</p>
+                <a
+                  href={providerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline break-all"
+                >
+                  {providerUrl.replace(/^https?:\/\//, "")}
+                </a>
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={qrVerified}
+                    onChange={(e) => setQrVerified(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span className="text-xs text-gray-700">I confirm this QR links to the correct provider page</span>
+                </label>
+              </div>
+
+              {sendError && (
+                <p className="text-xs text-amber-600 mb-2">{sendError}</p>
+              )}
+              <button
+                type="button"
+                onClick={handleSendFax}
+                disabled={sending || !qrVerified}
+                className="w-full py-2.5 px-4 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {sending ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Sending...
+                  </>
+                ) : (
+                  "Send Fax"
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Postcard Preview Sidebar — full postcard preview with QR code and send button
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PostcardPreviewSidebar({
+  provider,
+  onClose,
+  onMailSent,
+}: {
+  provider: OutreachProvider;
+  onClose: () => void;
+  onMailSent?: (providerId: string) => void;
+}) {
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [qrVerified, setQrVerified] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [address, setAddress] = useState<string>(provider.mail_address || "");
+  const [findingAddress, setFindingAddress] = useState(false);
+  const [addressError, setAddressError] = useState<string | null>(null);
+
+  const profileUrl = provider.slug
+    ? `https://olera.care/provider/${provider.slug}?utm_source=direct_mail&utm_medium=postcard&utm_campaign=re_engage`
+    : "https://olera.care";
+
+  // Generate QR code
+  useEffect(() => {
+    (async () => {
+      try {
+        const QRCode = (await import("qrcode")).default;
+        const url = await QRCode.toDataURL(profileUrl, { width: 120, margin: 1 });
+        setQrDataUrl(url);
+      } catch {
+        // QR generation failed
+      }
+    })();
+  }, [profileUrl]);
+
+  async function handleFindAddress() {
+    setFindingAddress(true);
+    setAddressError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          city: provider.city,
+          state: provider.state,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.address) {
+        setAddress(data.address);
+        setAddressError(null);
+      } else {
+        setAddressError("Could not find a mailing address");
+      }
+    } catch {
+      setAddressError("Failed to search for address");
+    } finally {
+      setFindingAddress(false);
+    }
+  }
+
+  async function handleSendPostcard() {
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-mailer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          provider_name: provider.provider_name,
+          address: address,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSent(true);
+        onMailSent?.(provider.provider_id);
+      } else {
+        setSendError(data.error || "Failed to send postcard");
+      }
+    } catch {
+      setSendError("Network error");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
+
+      {/* Sidebar */}
+      <div className={`fixed right-0 top-0 h-full bg-white shadow-2xl z-50 overflow-y-auto border-l border-gray-200 transition-all duration-300 ${
+        expanded ? "w-full" : "w-[520px]"
+      }`}>
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Postcard Preview</h3>
+            <p className="text-xs text-gray-500">{provider.provider_name}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 transition rounded hover:bg-gray-100"
+              title={expanded ? "Collapse" : "Expand"}
+            >
+              {expanded ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9l-5-5m0 0v4m0-4h4m6 6l5 5m0 0v-4m0 4h-4" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6m0 0v6m0-6l-7 7M9 21H3m0 0v-6m0 6l7-7" />
+                </svg>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 text-gray-400 hover:text-gray-600 transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Postcard content — centered with max width */}
+        <div className={`${expanded ? "max-w-[560px] mx-auto" : ""}`}>
+
+        {/* Postcard Front — 6x4 aspect ratio */}
+        <div className="px-6 pt-5">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Front</p>
+          <div
+            className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white"
+            style={{ aspectRatio: "6 / 4" }}
+          >
+            {/* Content */}
+            <div className="relative h-full flex flex-col p-4 bg-white">
+              {/* Top: Logo + slogan */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-1.5">
+                  <img src="/images/olera-logo.png" alt="Olera" className="h-5 w-5 object-contain" />
+                  <div>
+                    <span className="text-[#2A7C7C] text-base font-bold tracking-tight block leading-none">Olera</span>
+                    <span className="text-gray-400 text-[7px] block leading-none mt-0.5 pl-[1px]">olera.care</span>
+                  </div>
+                </div>
+                <p className="text-gray-900 text-[9px] font-semibold text-right uppercase tracking-[0.12em] leading-snug">Helping Families Find<br />Trusted Senior Care.</p>
+              </div>
+
+              {/* Headline */}
+              <div className="mt-8">
+                <h2 className="text-gray-900 text-[28px] font-bold leading-[1.1] font-serif">Your Next Referral<br /><span className="text-[#2A7C7C] relative inline-block">Starts Here.<svg className="absolute -bottom-1 left-0 w-full" height="7" viewBox="0 0 200 7" fill="none" preserveAspectRatio="none"><path d="M2 5C40 2 100 1 198 3.5" stroke="#2A7C7C" strokeWidth="2.5" strokeLinecap="round" /></svg></span></h2>
+                <p className="text-gray-700 text-[12px] font-medium mt-1">
+                  Help more families find <span className="font-bold text-gray-900">{provider.provider_name}</span>.
+                </p>
+                <div className="w-full h-[1px] mt-2 bg-gray-200" />
+
+                {/* Features */}
+                <div className="space-y-1.5 mt-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#EDF7F6" }}>
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                        <circle cx="9" cy="7" r="3" stroke="#2A7C7C" strokeWidth="1.5" />
+                        <circle cx="16" cy="8" r="2.5" stroke="#2A7C7C" strokeWidth="1.5" />
+                        <path d="M2 20c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="#2A7C7C" strokeWidth="1.5" strokeLinecap="round" />
+                        <path d="M16 14c2.761 0 5 1.79 5 4" stroke="#2A7C7C" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-900 text-[11px] leading-snug">A free referral platform that connects<br />families with trusted senior care providers.</p>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#EDF7F6" }}>
+                      <span className="text-[#2A7C7C] text-[10px] font-bold">$</span>
+                    </div>
+                    <p className="text-gray-900 text-[11px] font-bold">No referral fees &middot; No cost per lead</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* QR — absolute positioned right side */}
+              <div className="absolute right-6 bottom-[12%] text-center">
+                <div className="flex justify-center mb-1">
+                  {qrDataUrl && (
+                    <div className="rounded-lg p-1.5 border shrink-0" style={{ borderColor: "#2A7C7C" }}>
+                      <img src={qrDataUrl} alt="QR Code" className="w-16 h-16" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-gray-900 font-bold text-[10px]">Manage your free profile</p>
+                <p className="text-gray-500 text-[8px]">Scan the QR code to get started.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Postcard Back */}
+        <div className="px-6 pt-4">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Back</p>
+          <div
+            className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white"
+            style={{ aspectRatio: "6 / 4" }}
+          >
+            <div className="h-full flex">
+              {/* Left side: letter */}
+              <div className="w-[58%] p-3 pt-8 flex flex-col justify-between border-r border-gray-200">
+                <div>
+                  <p className="text-[8.5px] text-gray-700 leading-[1.6]">
+                    Dear {provider.provider_name},
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    I&#39;m Dr. Logan DuBose, a physician and co-founder of Olera.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    We created Olera, a free referral platform that helps families find trusted senior care. We&#39;re proud to be supported by NIH as we build a better way for families and providers to connect.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    We&#39;ve already created a free profile for <span className="font-semibold">{provider.provider_name}</span>. It&#39;s ready for your team to manage.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    Get started in under two minutes to:
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-[8.5px] text-gray-700 leading-[1.5]">
+                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Have families contact you directly</li>
+                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Never pay referral or per-lead fees</li>
+                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Improve your online visibility</li>
+                  </ul>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    Scan the QR code to get started.
+                  </p>
+                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
+                    Questions? Give us a call at (979) 243-9801.
+                  </p>
+                </div>
+                <div className="mt-1.5 flex items-start gap-2">
+                  <img
+                    src="/images/for-providers/team/logan.jpg"
+                    alt="Dr. Logan DuBose"
+                    className="w-10 h-10 rounded-full object-cover shrink-0"
+                  />
+                  <div className="space-y-0">
+                    <p className="text-[7px] text-gray-500 italic">With care,</p>
+                    <p className="text-[8.5px] font-bold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
+                    <p className="text-[7px] text-gray-600">Chief Research Officer (CRO), Olera</p>
+                    <p className="text-[6.5px] text-gray-500">Researcher funded by the NIH SBIR Program</p>
+                    <p className="text-[6.5px] text-gray-500">Texas A&amp;M College of Medicine, Class of 2022</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right side: address block */}
+              <div className="w-[42%] p-4 flex flex-col justify-between">
+                {/* Stamp + return address */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[8px] text-gray-400">Olera Care Inc.</p>
+                    <p className="text-[8px] text-gray-400">Dallas, TX</p>
+                  </div>
+                  <div className="w-11 h-13 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                    <span className="text-[7px] text-gray-400 text-center leading-tight">POSTAGE</span>
+                  </div>
+                </div>
+
+                {/* Mailing address — centered vertically */}
+                <div className="my-auto">
+                  <p className="text-xs font-semibold text-gray-900">{provider.provider_name}</p>
+                  <p className={`text-[11px] mt-0.5 ${address ? "text-gray-700" : "text-amber-500 italic"}`}>
+                    {address || "Address required"}
+                  </p>
+                </div>
+
+                {/* Barcode placeholder */}
+                <div className="border-t border-gray-100 pt-2">
+                  <div className="h-2 bg-gradient-to-r from-gray-900 via-gray-400 to-gray-900 opacity-20 rounded-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mailing address section */}
+        <div className="px-6 pt-4">
+          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Mailing to</p>
+            {address ? (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-900">{address}</p>
+                <button
+                  type="button"
+                  onClick={() => setAddress("")}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Clear
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-amber-600 mb-2">No mailing address found</p>
+                {addressError && (
+                  <p className="text-xs text-red-500 mb-2">{addressError}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleFindAddress}
+                  disabled={findingAddress}
+                  className="px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-900 rounded-lg transition disabled:opacity-50"
+                >
+                  {findingAddress ? "Finding..." : "Find Address"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Cost notice */}
+        <div className="px-6 pt-3">
+          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+            <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <p className="text-xs text-amber-800">Estimated cost: <span className="font-semibold">$1.30</span> per postcard via PostGrid</p>
+          </div>
+        </div>
+
+        {/* Send button or sent analytics */}
+        {sent ? (
+          <div className="px-6 pt-4 pb-6">
+            <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
+                <span className="text-sm font-semibold text-teal-800">Postcard queued for printing</span>
+              </div>
+              <div className="divide-y divide-teal-100">
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-sm text-gray-700">Status</span>
+                  <span className="text-xs font-medium text-teal-600">Queued</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-sm text-gray-700">Est. delivery</span>
+                  <span className="text-xs text-gray-500">3-5 business days</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-sm text-gray-700">QR scanned</span>
+                  <span className="text-xs text-gray-400">Waiting</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-6 py-4">
+            {/* QR verification step */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Verify QR destination</p>
+              <a
+                href={profileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:underline break-all"
+              >
+                {profileUrl.replace(/^https?:\/\//, "")}
+              </a>
+              <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={qrVerified}
+                  onChange={(e) => setQrVerified(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                />
+                <span className="text-xs text-gray-700">I confirm this QR links to the correct provider page</span>
+              </label>
+            </div>
+
+            {sendError && (
+              <p className="text-xs text-amber-600 mb-2">{sendError}</p>
+            )}
+            <button
+              type="button"
+              onClick={handleSendPostcard}
+              disabled={sending || !qrVerified || !address}
+              className="w-full py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sending ? "Sending..." : "Send Postcard via PostGrid"}
+            </button>
+            <p className="text-[10px] text-gray-400 text-center mt-2">
+              PostGrid will print, stamp, and mail via USPS. Tracking updates will appear here.
+            </p>
+          </div>
+        )}
+
+        </div>{/* end centered wrapper */}
+      </div>
+    </>
+  );
+}
+
+function TierSelector({
+  tier,
+  onTierChange,
+}: {
+  tier?: ProviderTier;
+  onTierChange: (tier: ProviderTier) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  if (!tier) {
+    // No tier set — show subtle "Set tier" button
+    return (
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(!open);
+          }}
+          className="px-1.5 py-0.5 text-[10px] font-medium text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 rounded transition"
+        >
+          + Tier
+        </button>
+        {open && (
+          <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 w-28">
+            {(["enterprise", "regional", "local"] as ProviderTier[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTierChange(t);
+                  setOpen(false);
+                }}
+                className="w-full text-left px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium ${TIER_CONFIG[t].className}`}>
+                  {TIER_CONFIG[t].label}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Tier is set — show badge, click to change
+  const config = TIER_CONFIG[tier];
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded border cursor-pointer hover:opacity-80 transition ${config.className}`}
+      >
+        {config.label}
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 w-28">
+          {(["enterprise", "regional", "local"] as ProviderTier[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTierChange(t);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 transition-colors ${t === tier ? "bg-gray-50" : ""}`}
+            >
+              <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium ${TIER_CONFIG[t].className}`}>
+                {TIER_CONFIG[t].label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Follow Up queue limits (must match backend config)
 const MAX_RESEND_COUNT = 2;
 
@@ -158,11 +1566,20 @@ interface OutreachProvider {
   // Enrichment fields for alternative channels
   fax_number: string | null;
   fax_confidence: string | null;
+  fax_source_url: string | null;
+  linkedin_url: string | null;
   mail_address: string | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
   emails_sent?: number;
+  // Engagement data (for needs_call stage) - powers intelligence recommendations
+  engagement?: {
+    emails_sent: number;
+    opens: number;
+    clicks: number;
+    resends: number;
+  };
   // For claimed providers
   verification_state?: "verified" | "pending" | "unverified" | "not_required" | "rejected" | null;
   profile_completeness?: number;
@@ -262,10 +1679,11 @@ function isGenericEmail(email: string | null | undefined): boolean {
 
 // Labels for why a provider is in the Follow Up queue
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
-  sequence_exhausted: "Sequence done",  // Set by cron after Day 14 with no engagement
+  sequence_exhausted: "Sequence done",  // Set by cron after Day 7 with no engagement
   sequence_completed: "Sequence done",  // Legacy/alternate code
   clicked_not_claimed: "Clicked",       // Provider clicked a link but didn't claim (hot lead)
   replied: "Replied",                   // Provider replied to an email (requires inbound setup)
+  email_bounced: "Bounced",             // Email bounced (SmartLead webhook)
   manual: "Manual",                     // Admin manually moved to Follow Up
 };
 
@@ -281,6 +1699,8 @@ function getNeedsCallReasonChip(reason: string | null): { label: string; classNa
       return { label, className: "bg-emerald-50 text-emerald-700" };
     case "replied":
       return { label, className: "bg-purple-50 text-purple-700" };
+    case "email_bounced":
+      return { label, className: "bg-red-50 text-red-700" };
     case "manual":
     default:
       return { label, className: "bg-gray-100 text-gray-600" };
@@ -1163,177 +2583,192 @@ function CityRow({
               {/* Provider Cards */}
               <div className="divide-y divide-gray-100">
                 {cityProviders.map((provider) => (
-                  <div key={provider.provider_id} className="group px-5 py-3 pl-10 flex items-center gap-3 hover:bg-white transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={selectedProviders.has(provider.provider_id)}
-                      onChange={() => onToggleProvider(provider.provider_id)}
-                      className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
-                    />
+                  <div key={provider.provider_id} className="group px-5 py-3 pl-10 hover:bg-white transition-colors">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedProviders.has(provider.provider_id)}
+                        onChange={() => onToggleProvider(provider.provider_id)}
+                        className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
+                      />
 
-                    {/* Provider Name + Category + Assignment */}
-                    <div className="w-64 shrink-0">
-                      <div className="flex items-center gap-1.5">
-                        <Link
-                          href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-                          className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
-                        >
-                          {provider.provider_name}
-                        </Link>
-                        <AdminChip
-                          adminId={provider.assigned_to}
-                          adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                          size="sm"
-                          showUnassigned={false}
-                        />
-                      </div>
-                      {provider.provider_category && (
-                        <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
-                      )}
-                    </div>
+                      {/* Main content area */}
+                      <div className="flex-1 min-w-0">
+                        {/* Row 1: Provider name (full width) + hover actions */}
+                        <div className="flex items-center justify-between gap-4 mb-0.5">
+                          <Link
+                            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                            className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+                          >
+                            {provider.provider_name}
+                          </Link>
+                          {/* Hover actions */}
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            {activeTab !== "claimed" && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onOpenActionModal(provider);
+                                }}
+                                className="p-1 text-gray-300 hover:text-gray-600"
+                                title="Actions"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                </svg>
+                              </button>
+                            )}
+                            {activeTab !== "hidden" && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemoveProvider(provider);
+                                }}
+                                className="p-1 text-gray-300 hover:text-red-500"
+                                title="Remove from outreach"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
 
-                    {/* Contact Info - inline */}
-                    <div className="flex-1 min-w-0">
-                      {/* Claimed providers: read-only display with verification badge */}
-                      {provider.stage === "claimed" ? (
-                        <div className="flex items-center gap-3">
-                          {/* Email (read-only) */}
-                          {provider.email && (
-                            <span className="text-sm text-gray-700">{provider.email}</span>
+                        {/* Row 2: Category, location, contact info */}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5 flex-wrap">
+                          {provider.provider_category && (
+                            <span className="truncate max-w-[200px]">{provider.provider_category}</span>
                           )}
-                          {/* Phone */}
-                          {provider.phone && (
-                            <a
-                              href={`tel:${provider.phone.replace(/\D/g, "")}`}
-                              className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {formatPhone(provider.phone)}
-                            </a>
+                          {provider.provider_category && provider.city && <span>·</span>}
+                          {provider.city && (
+                            <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
                           )}
-                          {/* Verification badge */}
-                          {provider.verification_state === "verified" || provider.verification_state === "not_required" ? (
-                            <span className="inline-flex items-center gap-1 text-primary-600" title="Verified">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                              </svg>
-                              <span className="text-xs font-medium">Verified</span>
-                            </span>
-                          ) : provider.verification_state === "pending" ? (
-                            <a
-                              href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
-                              title="Click to review verification"
-                            >
-                              Pending Verification
-                            </a>
-                          ) : provider.verification_state === "unverified" ? (
-                            <a
-                              href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
-                              title="Click to verify this provider"
-                            >
-                              Unverified
-                            </a>
-                          ) : provider.verification_state === "rejected" ? (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
-                              Rejected
-                            </span>
+                          {/* Claimed providers: show email/phone inline */}
+                          {provider.stage === "claimed" ? (
+                            <>
+                              {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
+                              {provider.email && <span>{provider.email}</span>}
+                              {provider.email && provider.phone && <span>·</span>}
+                              {provider.phone && (
+                                <a
+                                  href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                                  className="text-primary-600 hover:text-primary-700 hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {formatPhone(provider.phone)}
+                                </a>
+                              )}
+                            </>
+                          ) : lookingUpEmails.has(provider.provider_id) ? (
+                            <>
+                              {(provider.provider_category || provider.city) && <span>·</span>}
+                              <span className="inline-flex items-center gap-1 text-gray-400">
+                                <span className="w-3 h-3 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
+                                Finding email...
+                              </span>
+                            </>
                           ) : (
-                            <a
-                              href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
-                              title="Click to verify this provider"
-                            >
-                              Needs Review
-                            </a>
-                          )}
-                          {/* Profile completeness */}
-                          {typeof provider.profile_completeness === "number" && (
-                            <span
-                              className={`text-xs font-medium ${
-                                provider.profile_completeness === 100
-                                  ? "text-emerald-600"
-                                  : "text-gray-500"
-                              }`}
-                              title="Profile completeness"
-                            >
-                              {provider.profile_completeness}% complete
-                            </span>
-                          )}
-                        </div>
-                      ) : lookingUpEmails.has(provider.provider_id) ? (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
-                          <span>Finding email...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <ProviderContactEditor
-                            providerId={provider.provider_id}
-                            providerSlug={provider.slug}
-                            email={provider.email}
-                            suggestedEmail={foundEmails.get(provider.provider_id)?.email}
-                            emailSource={foundEmails.get(provider.provider_id)?.source}
-                            emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
-                            phone={provider.phone}
-                            onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
-                            emailVerificationStatus={provider.email_verification_status}
-                            isEmailOverridden={provider.is_email_overridden}
-                            isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
-                            onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
-                            isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
-                            onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
-                            stage={provider.stage}
-                          />
-                          {/* Show lookup result if no email */}
-                          {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
-                            <span className="text-xs text-amber-600">
-                              {lookupErrors.get(provider.provider_id)}
-                            </span>
+                            <>
+                              {(provider.provider_category || provider.city) && <span>·</span>}
+                              <ProviderContactEditor
+                                providerId={provider.provider_id}
+                                providerSlug={provider.slug}
+                                email={provider.email}
+                                suggestedEmail={foundEmails.get(provider.provider_id)?.email}
+                                emailSource={foundEmails.get(provider.provider_id)?.source}
+                                emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
+                                phone={provider.phone}
+                                onEmailUpdate={(newEmail) => onEmailSaved(provider.provider_id, newEmail)}
+                                emailVerificationStatus={provider.email_verification_status}
+                                isEmailOverridden={provider.is_email_overridden}
+                                isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
+                                onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
+                                isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
+                                onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
+                                stage={provider.stage}
+                              />
+                              {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
+                                <span className="text-amber-600">
+                                  {lookupErrors.get(provider.provider_id)}
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
-                      )}
+
+                        {/* Row 3: Assignment + Claimed-specific badges */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <span>Assigned:</span>
+                            <AdminChip
+                              adminId={provider.assigned_to}
+                              adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                              size="sm"
+                              showUnassigned={true}
+                            />
+                          </div>
+                          {/* Claimed providers: verification badge and profile completeness */}
+                          {provider.stage === "claimed" && (
+                            <div className="flex items-center gap-2">
+                              {provider.verification_state === "verified" || provider.verification_state === "not_required" ? (
+                                <span className="inline-flex items-center gap-1 text-primary-600" title="Verified">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                  </svg>
+                                  <span className="text-xs font-medium">Verified</span>
+                                </span>
+                              ) : provider.verification_state === "pending" ? (
+                                <a
+                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
+                                  title="Click to review verification"
+                                >
+                                  Pending Verification
+                                </a>
+                              ) : provider.verification_state === "unverified" ? (
+                                <a
+                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
+                                  title="Click to verify this provider"
+                                >
+                                  Unverified
+                                </a>
+                              ) : provider.verification_state === "rejected" ? (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                                  Rejected
+                                </span>
+                              ) : (
+                                <a
+                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                                  title="Click to verify this provider"
+                                >
+                                  Needs Review
+                                </a>
+                              )}
+                              {typeof provider.profile_completeness === "number" && (
+                                <span
+                                  className={`text-xs font-medium ${
+                                    provider.profile_completeness === 100
+                                      ? "text-emerald-600"
+                                      : "text-gray-500"
+                                  }`}
+                                  title="Profile completeness"
+                                >
+                                  {provider.profile_completeness}% complete
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Actions button - ellipsis icon, opens modal */}
-                    {/* Show for all tabs except claimed (archived can be unarchived) */}
-                    {activeTab !== "claimed" && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenActionModal(provider);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
-                        title="Actions"
-                      >
-                        {/* Ellipsis vertical icon */}
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                        </svg>
-                      </button>
-                    )}
-
-                    {/* Remove from outreach (trash icon) - hide on Hidden tab since they're already removed */}
-                    {activeTab !== "hidden" && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemoveProvider(provider);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
-                        title="Remove from outreach"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
@@ -1363,7 +2798,8 @@ interface FollowUpQueueProps {
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
 // Uses UTC to match server/database which also use UTC, ensuring consistent comparisons
 function getTodayISO(): string {
-  return new Date().toISOString().split("T")[0];
+  // Use Central Time (business timezone) for consistency with backend
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
 }
 
 // Helper: calculate days difference from today
@@ -1399,7 +2835,68 @@ function formatDueDateBadge(dateStr: string | null): { text: string; className: 
   }
 }
 
-// Expandable provider row for Follow Up queue
+// Intelligence layer: Recommend action based on engagement and needs_call_reason
+function getRecommendedAction(provider: OutreachProvider): {
+  action: string;
+  outcome: string;
+  rationale: string;
+  isPrimary: boolean;
+} | null {
+  const reason = provider.needs_call_reason;
+  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
+
+  // Priority order based on the plan's recommendation logic
+  switch (reason) {
+    case "replied":
+      // Hottest lead - they responded, call them
+      return {
+        action: "Call Provider",
+        outcome: "", // No automatic outcome, just recommendation
+        rationale: "Provider replied to an email. Call them now - this is a hot lead.",
+        isPrimary: true,
+      };
+    case "clicked_not_claimed":
+      // Engaged but stuck - try personal touch
+      return {
+        action: "LinkedIn",
+        outcome: "try_linkedin",
+        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. Personal outreach may help.`,
+        isPrimary: true,
+      };
+    case "sequence_exhausted":
+    case "sequence_completed":
+      // Check if they opened emails but didn't act
+      if (engagement.opens > 0) {
+        return {
+          action: "Fax",
+          outcome: "try_fax",
+          rationale: `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click. Try a different channel.`,
+          isPrimary: true,
+        };
+      } else {
+        // No opens - email not reaching them
+        return {
+          action: "Direct Mail",
+          outcome: "try_direct_mail",
+          rationale: "No email engagement detected. Try direct mail to reach them.",
+          isPrimary: true,
+        };
+      }
+    case "email_bounced":
+      return {
+        action: "Wrong Contact",
+        outcome: "wrong_contact",
+        rationale: "Email bounced. Find correct contact info.",
+        isPrimary: true,
+      };
+    case "manual":
+    default:
+      // No strong recommendation for manual additions
+      return null;
+  }
+}
+
+// Expandable provider row for Follow Up queue - Redesigned card-based layout
 function FollowUpProviderRow({
   provider,
   isExpanded,
@@ -1427,27 +2924,62 @@ function FollowUpProviderRow({
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showAllOptions, setShowAllOptions] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+  // Fax finder state
+  const [findingFax, setFindingFax] = useState(false);
+  const [faxResult, setFaxResult] = useState<{ fax: string | null; confidence: string | null; source_url: string | null } | null>(null);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
+  const recommendation = getRecommendedAction(provider);
+  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
+
+  // Channel availability
+  const hasFax = !!provider.fax_number || !!faxResult?.fax;
+  const hasLinkedIn = !!provider.linkedin_url;
+  const hasAddress = !!provider.mail_address;
+
+  // Find fax number for this provider
+  const handleFindFax = async () => {
+    setFindingFax(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFaxResult({ fax: data.fax, confidence: data.confidence, source_url: data.source_url });
+        if (data.fax) {
+          onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
+        }
+      } else {
+        setError(data.error || "Failed to find fax");
+      }
+    } catch {
+      setError("Network error finding fax");
+    } finally {
+      setFindingFax(false);
+    }
+  };
 
   // Confirmation modal content for each outcome
-  // Note: No "claimed" outcome - auto-claim detection handles claims automatically
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
       case "resend_link":
         return {
-          title: "Send Claim Link Email",
+          title: "Resend Claim Link",
           description: "Send a short email with just the claim link to the provider.",
           details: [
-            "📧 Email will be sent immediately with the claim link",
+            "Email will be sent immediately with the claim link",
             "Provider will be moved to Alternative Channels",
-            "They will no longer appear in the Follow Up queue",
             `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
           ],
-          confirmLabel: "Yes, send email & move to Alternative Channels",
+          confirmLabel: "Send & move to Alt. Channels",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
         };
       case "wrong_contact":
@@ -1457,9 +2989,8 @@ function FollowUpProviderRow({
           details: [
             "Provider will be moved to Needs Email",
             "Their email will be cleared from the system",
-            "You'll need to find correct contact info before re-engaging",
           ],
-          confirmLabel: "Yes, clear contact info",
+          confirmLabel: "Clear contact info",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
       case "not_interested":
@@ -1467,62 +2998,54 @@ function FollowUpProviderRow({
           title: "Not Interested",
           description: "The provider explicitly declined to claim their profile.",
           details: [
-            "Provider will be moved to the Not Interested stage (soft terminal)",
-            "They will no longer receive any outreach emails",
-            "Questions and connections can still flow to them",
-            "Use Archive instead for a full system-wide block",
+            "Provider will be moved to Not Interested (soft terminal)",
+            "No more outreach emails, but questions/connections still flow",
           ],
-          confirmLabel: "Yes, mark as not interested",
+          confirmLabel: "Mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
-      // Alternative channel outcomes
       case "try_fax":
         return {
-          title: "Try Fax",
-          description: "Move this provider to the Fax channel for follow-up via fax.",
+          title: "Move to Fax Channel",
+          description: "Move this provider to the Fax channel for follow-up.",
           details: [
             "Provider will be moved to Alternative Channels (Fax)",
-            "You can look up their fax number and send a fax from there",
-            "They will no longer appear in the Follow Up queue",
+            "Fax has per-page costs - consider calling first",
           ],
-          confirmLabel: "Yes, move to Fax",
+          confirmLabel: "Move to Fax",
           confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
         };
       case "try_linkedin":
         return {
-          title: "Try LinkedIn",
+          title: "Move to LinkedIn Channel",
           description: "Move this provider to the LinkedIn channel for social outreach.",
           details: [
             "Provider will be moved to Alternative Channels (LinkedIn)",
-            "You can find their LinkedIn profile and reach out from there",
-            "They will no longer appear in the Follow Up queue",
+            "You can find their profile and reach out from there",
           ],
-          confirmLabel: "Yes, move to LinkedIn",
+          confirmLabel: "Move to LinkedIn",
           confirmClass: "bg-blue-700 hover:bg-blue-800 text-white",
         };
       case "try_direct_mail":
         return {
-          title: "Try Direct Mail",
-          description: "Move this provider to the Direct Mail channel for postcard outreach.",
+          title: "Move to Direct Mail",
+          description: "Move this provider to the Direct Mail channel.",
           details: [
             "Provider will be moved to Alternative Channels (Direct Mail)",
-            "You can look up their address and send a postcard from there",
-            "They will no longer appear in the Follow Up queue",
+            "Postcards have printing and mailing costs",
           ],
-          confirmLabel: "Yes, move to Direct Mail",
+          confirmLabel: "Move to Direct Mail",
           confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
         };
-      // Stage move confirmations (from dropdown menu)
       case "move_to_not_contacted":
         return {
           title: "Move to Ready",
           description: "Move this provider back to the Ready queue.",
           details: [
             "Provider will be moved to the Ready stage",
-            "They will no longer appear in the Follow Up queue",
             "You can launch a new sequence from the Ready tab",
           ],
-          confirmLabel: "Yes, move to Ready",
+          confirmLabel: "Move to Ready",
           confirmClass: "bg-gray-600 hover:bg-gray-700 text-white",
         };
       default:
@@ -1551,16 +3074,10 @@ function FollowUpProviderRow({
 
       if (res.ok) {
         const data = await res.json();
-
-        // All outcomes now change stage, so always notify parent to remove from queue
         onOutcomeRecorded(true);
-
-        // Check if email was supposed to be sent but failed
         if (data.email_sent === false && data.email_error) {
-          setError(`Email failed: ${data.email_error}. Provider was still moved to Alternative Channels.`);
+          setError(`Email failed: ${data.email_error}. Provider was still moved.`);
         }
-
-        // Reset form
         setNotes("");
       } else {
         const errData = await res.json();
@@ -1594,12 +3111,12 @@ function FollowUpProviderRow({
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
-      {/* Collapsed Row */}
+      {/* Collapsed Row - New layout: provider name never truncated */}
       <div
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
-        className="group flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+        className="group px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
         onClick={onToggle}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -1608,291 +3125,384 @@ function FollowUpProviderRow({
           }
         }}
       >
-        {/* Expand Chevron */}
-        <div className="w-5 shrink-0">
-          <svg
-            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
-          </svg>
-        </div>
-
-        {/* Provider Name */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <Link
-              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-              className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
-              onClick={(e) => e.stopPropagation()}
+        <div className="flex items-start gap-3">
+          {/* Expand Chevron */}
+          <div className="pt-1 shrink-0">
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+              fill="currentColor"
+              viewBox="0 0 20 20"
             >
-              {provider.provider_name}
-            </Link>
-            <AdminChip
-              adminId={provider.assigned_to}
-              adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-              size="sm"
-              showUnassigned={true}
-            />
+              <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
+            </svg>
           </div>
-          {provider.provider_category && (
-            <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
-          )}
-        </div>
 
-        {/* Phone */}
-        <div className="w-32 shrink-0">
-          {provider.phone ? (
-            <a
-              href={`tel:${provider.phone.replace(/\D/g, "")}`}
-              className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {formatPhone(provider.phone)}
-            </a>
-          ) : (
-            <span className="text-sm text-gray-400">No phone</span>
-          )}
-        </div>
-
-        {/* Email */}
-        <div className="w-44 shrink-0 truncate">
-          {provider.email ? (
-            <a
-              href={`mailto:${provider.email}`}
-              className="text-sm text-gray-600 hover:text-primary-600 hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {provider.email}
-            </a>
-          ) : (
-            <span className="text-sm text-gray-400">No email</span>
-          )}
-        </div>
-
-        {/* Reason Chip */}
-        <div className="w-24 shrink-0">
-          {(() => {
-            const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
-            return reasonChip ? (
-              <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
-                {reasonChip.label}
-              </span>
-            ) : null;
-          })()}
-        </div>
-
-        {/* Enrichment Indicators */}
-        <div className="w-28 shrink-0 flex flex-wrap gap-1 text-[10px] text-gray-500">
-          {provider.fax_number && <span>Has Fax</span>}
-          {provider.mail_address && <span>Has Address</span>}
-          {provider.website && <span>Has Website</span>}
-        </div>
-
-        {/* Due Date Badge */}
-        <div className="w-32 shrink-0">
-          <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${dueBadge.className}`}>
-            {dueBadge.text}
-          </span>
-        </div>
-
-        {/* Counters (subtle) */}
-        <div className="w-20 shrink-0 text-xs text-gray-400">
-          {provider.resend_count > 0 && <span>R:{provider.resend_count}</span>}
-        </div>
-
-        {/* Actions menu (three dots) */}
-        <div className="relative shrink-0" ref={actionMenuRef}>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowActionMenu(!showActionMenu);
-            }}
-            disabled={stageChangeLoading}
-            className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600 disabled:opacity-50"
-            title="More actions"
-          >
-            {stageChangeLoading ? (
-              <span className="block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-              </svg>
-            )}
-          </button>
-
-          {/* Dropdown menu */}
-          {showActionMenu && (
-            <div className="absolute right-0 top-full mt-1 z-20 w-48 py-1 bg-white rounded-lg shadow-lg border border-gray-200">
-              <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
-                Move to stage
+          {/* Main content area */}
+          <div className="flex-1 min-w-0">
+            {/* Row 1: Provider name (full width, never truncated) */}
+            <div className="flex items-center justify-between gap-4 mb-0.5">
+              <Link
+                href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {provider.provider_name}
+              </Link>
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Reason Chip */}
+                {(() => {
+                  const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
+                  return reasonChip ? (
+                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
+                      {reasonChip.label}
+                    </span>
+                  ) : null;
+                })()}
+                {/* Due Date Badge */}
+                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${dueBadge.className}`}>
+                  {dueBadge.text}
+                </span>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActionMenu(false);
-                  setPendingStageMove("not_contacted");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Ready
-              </button>
-              <div className="border-t border-gray-100 my-1" />
-              <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
-                Terminal
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActionMenu(false);
-                  setPendingOutcome("not_interested");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Not Interested
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowActionMenu(false);
-                  onArchive();
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Archive
-              </button>
             </div>
-          )}
-        </div>
 
-        {/* Remove from outreach (trash icon) */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemoveProvider();
-          }}
-          className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500 shrink-0"
-          title="Remove from outreach"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
+            {/* Row 2: Category, location, phone */}
+            <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5">
+              {provider.provider_category && (
+                <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+              )}
+              {provider.provider_category && provider.city && <span>·</span>}
+              {provider.city && (
+                <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
+              )}
+              {(provider.provider_category || provider.city) && provider.phone && <span>·</span>}
+              {provider.phone && (
+                <a
+                  href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                  className="text-primary-600 hover:text-primary-700 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {formatPhone(provider.phone)}
+                </a>
+              )}
+            </div>
+
+            {/* Row 3: Admin assignment (subtle) */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <span>Assigned:</span>
+                <AdminChip
+                  adminId={provider.assigned_to}
+                  adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                  size="sm"
+                  showUnassigned={true}
+                />
+              </div>
+
+              {/* Hover actions (three dots + trash) */}
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="relative" ref={actionMenuRef}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowActionMenu(!showActionMenu);
+                    }}
+                    disabled={stageChangeLoading}
+                    className="p-1 text-gray-300 hover:text-gray-600 disabled:opacity-50"
+                    title="More actions"
+                  >
+                    {stageChangeLoading ? (
+                      <span className="block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                      </svg>
+                    )}
+                  </button>
+                  {showActionMenu && (
+                    <div className="absolute right-0 top-full mt-1 z-20 w-40 py-1 bg-white rounded-lg shadow-lg border border-gray-200">
+                      <div className="px-3 py-1 text-[10px] font-medium text-gray-400 uppercase tracking-wide">Move to</div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowActionMenu(false);
+                          setPendingStageMove("not_contacted");
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        Ready
+                      </button>
+                      <div className="border-t border-gray-100 my-1" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowActionMenu(false);
+                          setPendingOutcome("not_interested");
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        Not Interested
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowActionMenu(false);
+                          onArchive();
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        Archive
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveProvider();
+                  }}
+                  className="p-1 text-gray-300 hover:text-red-500"
+                  title="Remove from outreach"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Expanded: Outcome Buttons */}
+      {/* Expanded View - Card-based layout */}
       {isExpanded && (
-        <div className="bg-gray-50/50 border-t border-gray-100 px-5 py-4">
+        <div className="bg-gray-50/70 border-t border-gray-100 px-5 py-4">
           {error && (
             <div className="mb-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}
 
-          {/* Call Script */}
-          <details className="mb-4 bg-white border border-gray-200 rounded-lg">
-            <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none">
-              Call Script
-            </summary>
-            <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
-              <p>
-                &quot;Hi, is this <span className="font-medium text-gray-800">{provider.provider_name || "the provider"}</span>?&quot;
-              </p>
-              <p>
-                &quot;This is <span className="font-medium text-gray-800">[Your Name]</span> calling from Dr. DuBose&apos;s office at Olera. I hope you&apos;re doing well.&quot;
-              </p>
-              <p>
-                &quot;I just wanted to check in because I noticed you&apos;ve had a chance to look through some of the emails we&apos;ve sent about our free referral platform.&quot;
-              </p>
-              <p>
-                &quot;I was wondering if you had any questions or if there were any roadblocks stopping you from claiming your profile.&quot;
-              </p>
-              <p>
-                &quot;It only takes about 30 seconds to claim, and I&apos;m happy to walk you through it or answer any questions you have.&quot;
-              </p>
-              <p>
-                &quot;If now isn&apos;t a good time, I&apos;m also happy to resend the claim link or any information you need. What&apos;s the best way I can help?&quot;
+          {/* Recommended Action Card */}
+          {recommendation && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Recommended Action
+              </div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900 mb-1">{recommendation.action}</div>
+                  <p className="text-sm text-gray-500">{recommendation.rationale}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {recommendation.outcome && (
+                    <button
+                      onClick={() => setPendingOutcome(recommendation.outcome)}
+                      disabled={submitting !== null}
+                      className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {recommendation.action}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowAllOptions(!showAllOptions)}
+                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    {showAllOptions ? "Hide options" : "Show all options"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Two-column layout: Provider Details + Outreach History */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* Provider Details Card */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Provider
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="font-medium text-gray-900">{provider.provider_name}</div>
+                {provider.provider_category && (
+                  <div className="text-gray-500">{provider.provider_category}</div>
+                )}
+                {provider.city && (
+                  <div className="text-gray-500">{provider.city}{provider.state ? `, ${provider.state}` : ""}</div>
+                )}
+                {provider.email && (
+                  <a href={`mailto:${provider.email}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                    {provider.email}
+                  </a>
+                )}
+                {provider.phone && (
+                  <a href={`tel:${provider.phone.replace(/\D/g, "")}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                    {formatPhone(provider.phone)}
+                  </a>
+                )}
+                {/* Channel availability indicators */}
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 mt-3">
+                  <span className="text-xs text-gray-400">Channels:</span>
+                  <span className={`text-xs ${hasFax ? "text-emerald-600" : "text-gray-300"}`}>
+                    Fax {hasFax ? "✓" : "—"}
+                  </span>
+                  <span className={`text-xs ${hasLinkedIn ? "text-emerald-600" : "text-gray-300"}`}>
+                    LinkedIn {hasLinkedIn ? "✓" : "—"}
+                  </span>
+                  <span className={`text-xs ${hasAddress ? "text-emerald-600" : "text-gray-300"}`}>
+                    Address {hasAddress ? "✓" : "—"}
+                  </span>
+                </div>
+                {provider.slug && (
+                  <Link
+                    href={`/admin/directory/${provider.slug}`}
+                    className="inline-block mt-2 text-xs text-gray-500 hover:text-gray-700"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    View Profile →
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Outreach History Card */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Outreach History
+              </div>
+              <div className="space-y-2 text-sm">
+                {/* Email sequence stats */}
+                <div className="flex items-center gap-2">
+                  <span className={engagement.emails_sent > 0 ? "text-emerald-600" : "text-gray-400"}>
+                    {engagement.emails_sent > 0 ? "✓" : "○"}
+                  </span>
+                  <span className="text-gray-700">
+                    Email sequence ({engagement.emails_sent} sent{engagement.opens > 0 ? `, ${engagement.opens} opens` : ""}{engagement.clicks > 0 ? `, ${engagement.clicks} clicks` : ""})
+                  </span>
+                </div>
+                {/* Resend stats */}
+                {engagement.resends > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-600">✓</span>
+                    <span className="text-gray-700">Resend link ({engagement.resends}x)</span>
+                  </div>
+                )}
+                {/* Available channels */}
+                <div className="border-t border-gray-100 pt-2 mt-2 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400">○</span>
+                    <span className="text-gray-500">Fax — {hasFax ? "ready" : "available"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400">○</span>
+                    <span className="text-gray-500">LinkedIn — {hasLinkedIn ? "ready" : "available"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400">○</span>
+                    <span className="text-gray-500">Direct mail — {hasAddress ? "ready" : "available"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* All Options Section (collapsible, collapsed by default) */}
+          {(showAllOptions || !recommendation) && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  All Options
+                </div>
+                {!hasFax && !findingFax && provider.website && (
+                  <button
+                    onClick={handleFindFax}
+                    className="text-xs text-teal-600 hover:text-teal-700"
+                  >
+                    Find fax number
+                  </button>
+                )}
+                {findingFax && (
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                    Finding fax...
+                  </span>
+                )}
+              </div>
+
+              {/* Fax found indicator */}
+              {(provider.fax_number || faxResult?.fax) && (
+                <div className="mb-3 p-2 bg-emerald-50 border border-emerald-100 rounded text-sm text-emerald-700">
+                  Fax: {provider.fax_number || faxResult?.fax}
+                  {(provider.fax_confidence || faxResult?.confidence) && (
+                    <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
+                  )}
+                </div>
+              )}
+
+              {/* Action buttons - shortened labels */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setPendingOutcome("resend_link")}
+                  disabled={submitting !== null || resendDisabled}
+                  title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
+                    resendDisabled
+                      ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                      : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                  }`}
+                >
+                  Resend Link{resendDisabled ? " (max)" : ""}
+                </button>
+
+                <button
+                  onClick={() => setPendingOutcome("wrong_contact")}
+                  disabled={submitting !== null}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Wrong contact
+                </button>
+
+                <button
+                  onClick={() => setPendingOutcome("try_fax")}
+                  disabled={submitting !== null}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Fax
+                </button>
+
+                <button
+                  onClick={() => setPendingOutcome("try_linkedin")}
+                  disabled={submitting !== null}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  LinkedIn
+                </button>
+
+                <button
+                  onClick={() => setPendingOutcome("try_direct_mail")}
+                  disabled={submitting !== null}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Direct Mail
+                </button>
+              </div>
+
+              {/* Cost warning */}
+              <p className="mt-3 text-xs text-gray-400">
+                Note: Fax and Direct Mail have costs. Consider calling the provider first.
               </p>
             </div>
-          </details>
-
-          {/* Outcome Buttons - plain uniform style */}
-          {/* Note: "Not interested" is accessible via info icon action modal */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button
-              onClick={() => setPendingOutcome("resend_link")}
-              disabled={submitting !== null || resendDisabled}
-              title={resendDisabled ? `Send limit reached (${MAX_RESEND_COUNT} max)` : "Send email with claim link"}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full transition-colors disabled:cursor-not-allowed ${
-                resendDisabled
-                  ? "text-gray-400 bg-gray-50 border border-gray-200 cursor-not-allowed"
-                  : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
-              }`}
-            >
-              Send email{resendDisabled && " (max)"}
-            </button>
-
-            <button
-              onClick={() => setPendingOutcome("wrong_contact")}
-              disabled={submitting !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Wrong contact
-            </button>
-
-            <button
-              onClick={() => setPendingOutcome("try_fax")}
-              disabled={submitting !== null}
-              title="Move to Alternative Channels (Fax)"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Try Fax
-            </button>
-
-            <button
-              onClick={() => setPendingOutcome("try_linkedin")}
-              disabled={submitting !== null}
-              title="Move to Alternative Channels (LinkedIn)"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Try LinkedIn
-            </button>
-
-            <button
-              onClick={() => setPendingOutcome("try_direct_mail")}
-              disabled={submitting !== null}
-              title="Move to Alternative Channels (Direct Mail)"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Try Direct Mail
-            </button>
-          </div>
-
-          {/* Notes field */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Notes (optional)</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add notes..."
-              rows={2}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-            />
-          </div>
-
+          )}
         </div>
       )}
 
-      {/* Confirmation Modal - outside expanded section so it works for both outcomes and stage moves */}
+      {/* Confirmation Modal */}
       {(pendingOutcome || pendingStageMove) && confirmationContent && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
           onClick={(e) => {
             e.stopPropagation();
-            // Click on backdrop cancels
             setPendingOutcome(null);
             setPendingStageMove(null);
           }}
@@ -1901,15 +3511,12 @@ function FollowUpProviderRow({
             className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="px-5 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
               <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
             </div>
 
-            {/* Content */}
             <div className="px-5 py-4">
-              {/* Error message - show inside modal for visibility */}
               {error && (
                 <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
                   {error}
@@ -1930,7 +3537,6 @@ function FollowUpProviderRow({
                 </ul>
               </div>
 
-              {/* Notes textarea - editable in modal */}
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
                   Notes (optional)
@@ -1945,7 +3551,6 @@ function FollowUpProviderRow({
               </div>
             </div>
 
-            {/* Footer */}
             <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button
                 onClick={() => {
@@ -1966,10 +3571,8 @@ function FollowUpProviderRow({
                     setError(null);
                     try {
                       await onStageChange(pendingStageMove);
-                      // Success - modal will close when component unmounts after parent removes provider
                       setPendingStageMove(null);
                     } catch {
-                      // Keep modal open on error so user can see it and retry
                       setError("Failed to move provider. Please try again.");
                     } finally {
                       setStageChangeLoading(false);
@@ -2117,9 +3720,112 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
 
   return (
     <div>
+      {/* Page-level Call Script - collapsible, applies to all providers */}
+      <details className="mx-5 mt-4 mb-2 bg-white border border-gray-200 rounded-lg">
+        <summary className="px-4 py-2.5 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 select-none flex items-center gap-2">
+          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+          </svg>
+          Call Script
+        </summary>
+        <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
+          <p>
+            &quot;Hi, is this <span className="font-medium text-gray-800">[Provider Name]</span>?&quot;
+          </p>
+          <p>
+            &quot;This is <span className="font-medium text-gray-800">[Your Name]</span> calling from Dr. DuBose&apos;s office at Olera. I hope you&apos;re doing well.&quot;
+          </p>
+          <p>
+            &quot;I just wanted to check in because I noticed you&apos;ve had a chance to look through some of the emails we&apos;ve sent about our free referral platform.&quot;
+          </p>
+          <p>
+            &quot;I was wondering if you had any questions or if there were any roadblocks stopping you from claiming your profile.&quot;
+          </p>
+          <p>
+            &quot;It only takes about 30 seconds to claim, and I&apos;m happy to walk you through it or answer any questions you have.&quot;
+          </p>
+          <p>
+            &quot;If now isn&apos;t a good time, I&apos;m also happy to resend the claim link or any information you need. What&apos;s the best way I can help?&quot;
+          </p>
+        </div>
+      </details>
+
       {renderSection("Overdue", overdue, "bg-red-50 text-red-700 border-b border-red-100")}
       {renderSection("Due Today", dueToday, "bg-amber-50 text-amber-700 border-b border-amber-100")}
       {renderSection("Upcoming", upcoming, "bg-gray-50 text-gray-600 border-b border-gray-100")}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Move Channel Dropdown
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CHANNEL_OPTIONS: { value: string; label: string; color: string }[] = [
+  { value: "fax", label: "Fax", color: "text-purple-700" },
+  { value: "linkedin", label: "LinkedIn", color: "text-blue-700" },
+  { value: "direct_mail", label: "Direct Mail", color: "text-teal-700" },
+];
+
+function MoveChannelDropdown({
+  currentChannel,
+  onMove,
+  disabled,
+}: {
+  currentChannel: string | null;
+  onMove: (channel: string) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  // Filter out current channel from options
+  const options = CHANNEL_OPTIONS.filter((ch) => ch.value !== currentChannel);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!disabled) setOpen(!open);
+        }}
+        disabled={disabled}
+        className="px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+      >
+        Move
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
+          {options.map((ch) => (
+            <button
+              key={ch.value}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(ch.value);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors ${ch.color}`}
+            >
+              {ch.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2134,7 +3840,15 @@ interface ReEngageQueueProps {
   onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
   onArchive: (provider: OutreachProvider) => void;
   adminNameLookup: Map<string, string>;
+  onRefresh?: () => void;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Lifecycle Constants and Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CHANNEL_WAIT_DAYS = 5; // Days to wait before progressing to next channel
+const DIRECT_MAIL_EXPIRY_DAYS = 18; // Days in direct_mail before prompting action
 
 // Helper: calculate days since a date
 function daysSince(dateString: string | null): number {
@@ -2145,10 +3859,348 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup }: ReEngageQueueProps) {
+// Helper: days remaining in the wait period before next channel
+function daysRemaining(dateString: string | null): number {
+  if (!dateString) return CHANNEL_WAIT_DAYS;
+  return Math.max(0, CHANNEL_WAIT_DAYS - daysSince(dateString));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Lifecycle Tag — shows countdown or next step based on channel
+// ─────────────────────────────────────────────────────────────────────────────
+
+function LifecycleTag({
+  channel,
+  faxSentAt,
+  linkedinMessagedAt,
+  mailSentAt,
+}: {
+  channel: string | null;
+  faxSentAt?: string | null;
+  linkedinMessagedAt?: string | null;
+  mailSentAt?: string | null;
+}) {
+  // Fax channel: show countdown to LinkedIn
+  if (channel === "fax" && faxSentAt) {
+    const remaining = daysRemaining(faxSentAt);
+    if (remaining > 0) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          LinkedIn in {remaining}d
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
+        Ready for LinkedIn
+      </span>
+    );
+  }
+
+  // LinkedIn channel: show countdown to Direct Mail
+  if (channel === "linkedin" && linkedinMessagedAt) {
+    const remaining = daysRemaining(linkedinMessagedAt);
+    if (remaining > 0) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Direct Mail in {remaining}d
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded px-1.5 py-0.5">
+        Ready for Direct Mail
+      </span>
+    );
+  }
+
+  // Direct Mail channel: show final outreach status
+  if (channel === "direct_mail" && mailSentAt) {
+    const days = daysSince(mailSentAt);
+    if (days >= DIRECT_MAIL_EXPIRY_DAYS) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          Action needed
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">
+        Final outreach sent
+      </span>
+    );
+  }
+
+  return null;
+}
+
+function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup, onRefresh }: ReEngageQueueProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
   const [actionNotes, setActionNotes] = useState("");
+
+  // Provider tier tracking (session-only, not persisted)
+  const [tierMap, setTierMap] = useState<Map<string, ProviderTier>>(new Map());
+
+  const setProviderTier = useCallback((providerId: string, tier: ProviderTier) => {
+    setTierMap((prev) => {
+      const next = new Map(prev);
+      next.set(providerId, tier);
+      return next;
+    });
+  }, []);
+
+  // LinkedIn tracking (session-only)
+  const [linkedInUrlMap, setLinkedInUrlMap] = useState<Map<string, string>>(new Map());
+  const [linkedInContactsMap, setLinkedInContactsMap] = useState<Map<string, LinkedInContact[]>>(new Map());
+  const [expandedLinkedIn, setExpandedLinkedIn] = useState<Set<string>>(new Set());
+
+  const updateLinkedInUrl = useCallback((providerId: string, url: string) => {
+    setLinkedInUrlMap((prev) => {
+      const next = new Map(prev);
+      next.set(providerId, url);
+      return next;
+    });
+  }, []);
+
+  const updateLinkedInContacts = useCallback((providerId: string, contacts: LinkedInContact[]) => {
+    setLinkedInContactsMap((prev) => {
+      const next = new Map(prev);
+      next.set(providerId, contacts);
+      return next;
+    });
+  }, []);
+
+  const toggleLinkedInExpanded = useCallback((providerId: string) => {
+    setExpandedLinkedIn((prev) => {
+      const next = new Set(prev);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  }, []);
+
+  // Fax preview state
+  const [faxPreviewProvider, setFaxPreviewProvider] = useState<OutreachProvider | null>(null);
+  // Track which providers have had fax sent (session-only, complements DB data)
+  const [faxSentSet, setFaxSentSet] = useState<Set<string>>(new Set());
+
+  const handleFaxSent = useCallback((providerId: string) => {
+    setFaxSentSet((prev) => {
+      const next = new Set(prev);
+      next.add(providerId);
+      return next;
+    });
+  }, []);
+
+  // Postcard preview state
+  const [postcardPreviewProvider, setPostcardPreviewProvider] = useState<OutreachProvider | null>(null);
+  // Track which providers have had postcard sent (session-only, complements DB data)
+  const [mailSentSet, setMailSentSet] = useState<Set<string>>(new Set());
+
+  const handleMailSent = useCallback((providerId: string) => {
+    setMailSentSet((prev) => {
+      const next = new Set(prev);
+      next.add(providerId);
+      return next;
+    });
+  }, []);
+
+  // Find Fax state for Alternative Channels
+  const [findingFaxId, setFindingFaxId] = useState<string | null>(null);
+  const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null; source_url: string | null; searched: boolean }>>(new Map());
+
+  // Manual fax input state
+  const [faxInputExpandedId, setFaxInputExpandedId] = useState<string | null>(null);
+  const [faxInputValue, setFaxInputValue] = useState("");
+  const [savingFaxId, setSavingFaxId] = useState<string | null>(null);
+  const [faxSaveError, setFaxSaveError] = useState<string | null>(null);
+
+  const handleSaveManualFax = useCallback(async (providerId: string) => {
+    if (!faxInputValue.trim()) return;
+    setSavingFaxId(providerId);
+    setFaxSaveError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          manual_fax: faxInputValue.trim(),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFaxResultsMap((prev) => {
+          const next = new Map(prev);
+          next.set(providerId, { fax: data.fax || faxInputValue.trim(), confidence: "manual", source_url: null, searched: true });
+          return next;
+        });
+        setFaxInputExpandedId(null);
+        setFaxInputValue("");
+      } else {
+        setFaxSaveError("Failed to save");
+      }
+    } catch {
+      setFaxSaveError("Failed to save");
+    } finally {
+      setSavingFaxId(null);
+    }
+  }, [faxInputValue]);
+
+  const handleFindFax = useCallback(async (provider: OutreachProvider) => {
+    setFindingFaxId(provider.provider_id);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFaxResultsMap((prev) => {
+          const next = new Map(prev);
+          next.set(provider.provider_id, { fax: data.fax, confidence: data.confidence, source_url: data.source_url || null, searched: true });
+          return next;
+        });
+      } else {
+        // Mark as searched but no fax found
+        setFaxResultsMap((prev) => {
+          const next = new Map(prev);
+          next.set(provider.provider_id, { fax: null, confidence: null, source_url: null, searched: true });
+          return next;
+        });
+      }
+    } catch {
+      // Mark as searched but failed
+      setFaxResultsMap((prev) => {
+        const next = new Map(prev);
+        next.set(provider.provider_id, { fax: null, confidence: null, source_url: null, searched: true });
+        return next;
+      });
+    } finally {
+      setFindingFaxId(null);
+    }
+  }, []);
+
+  // Move channel state
+  const handleMoveChannel = useCallback(async (providerId: string, newChannel: string) => {
+    try {
+      const res = await fetch("/api/admin/provider-outreach/move-channel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId, channel: newChannel }),
+      });
+      if (res.ok) {
+        // Refresh providers to reflect the change
+        onRefresh?.();
+      }
+    } catch {
+      // Ignore errors
+    }
+  }, [onRefresh]);
+
+  // Fax/Mail analytics tracking (fetched from re-engage-list API)
+  const [faxAnalyticsMap, setFaxAnalyticsMap] = useState<Map<string, FaxAnalytics>>(new Map());
+  const [mailAnalyticsMap, setMailAnalyticsMap] = useState<Map<string, MailAnalytics>>(new Map());
+  // Claimed status tracked independently (for LinkedIn-only claims)
+  const [claimedMap, setClaimedMap] = useState<Map<string, { claimed: boolean; claimed_at?: string }>>(new Map());
+  // Provider LinkedIn URLs from database (supplements session-only linkedInUrlMap)
+  const [providerLinkedInUrlMap, setProviderLinkedInUrlMap] = useState<Map<string, string>>(new Map());
+  // Enrichment "not found" status (persisted from database)
+  const [enrichmentNotFoundMap, setEnrichmentNotFoundMap] = useState<Map<string, { fax: boolean; linkedin: boolean }>>(new Map());
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
+
+  // Fetch analytics data when providers change
+  useEffect(() => {
+    if (providers.length === 0 || analyticsLoaded) return;
+
+    async function fetchAnalytics() {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/re-engage-list");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.providers) return;
+
+        const newFaxMap = new Map<string, FaxAnalytics>();
+        const newMailMap = new Map<string, MailAnalytics>();
+        const newClaimedMap = new Map<string, { claimed: boolean; claimed_at?: string }>();
+        const newLinkedInUrlMap = new Map<string, string>();
+        const newEnrichmentNotFoundMap = new Map<string, { fax: boolean; linkedin: boolean }>();
+
+        for (const p of data.providers) {
+          // Track claimed status for ALL providers (independent of channel)
+          if (p.claimed) {
+            newClaimedMap.set(p.provider_id, {
+              claimed: true,
+              claimed_at: p.claimed_at || undefined,
+            });
+          }
+
+          // Store LinkedIn URL from database (skip "not_found" marker)
+          if (p.linkedin_url && p.linkedin_url !== "not_found") {
+            newLinkedInUrlMap.set(p.provider_id, p.linkedin_url);
+          }
+
+          // Track enrichment "not found" status
+          // Fax: searched (fax_found_at set) but no number found
+          // LinkedIn: explicitly marked as "not_found" OR searched but no URL found
+          const faxNotFound = !!p.fax_found_at && !p.fax_number;
+          const linkedinNotFound = p.linkedin_url === "not_found" || (!!p.linkedin_found_at && !p.linkedin_url);
+          if (faxNotFound || linkedinNotFound) {
+            newEnrichmentNotFoundMap.set(p.provider_id, {
+              fax: faxNotFound,
+              linkedin: linkedinNotFound,
+            });
+          }
+
+          // Fax analytics
+          if (p.fax_sent_at) {
+            newFaxMap.set(p.provider_id, {
+              sent_at: p.fax_sent_at,
+              delivered: !!p.fax_delivered_at,
+              delivered_at: p.fax_delivered_at || undefined,
+              qr_scanned: false, // Not tracked yet
+              claimed: p.claimed || false,
+              claimed_at: p.claimed_at || undefined,
+            });
+          }
+
+          // Mail analytics
+          if (p.mail_sent_at) {
+            newMailMap.set(p.provider_id, {
+              sent_at: p.mail_sent_at,
+              status: p.mail_status || "ready",
+              estimated_delivery: p.mail_delivered_at || undefined,
+              qr_scanned: false, // Not tracked yet
+              claimed: p.claimed || false,
+              claimed_at: p.claimed_at || undefined,
+            });
+          }
+        }
+
+        setFaxAnalyticsMap(newFaxMap);
+        setMailAnalyticsMap(newMailMap);
+        setClaimedMap(newClaimedMap);
+        setProviderLinkedInUrlMap(newLinkedInUrlMap);
+        setEnrichmentNotFoundMap(newEnrichmentNotFoundMap);
+        setAnalyticsLoaded(true);
+      } catch {
+        // Non-critical - analytics just won't show
+      }
+    }
+
+    fetchAnalytics();
+  }, [providers.length, analyticsLoaded]);
 
   const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
     setActionLoading(provider.provider_id);
@@ -2228,54 +4280,145 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
         const isLoading = actionLoading === provider.provider_id;
         const isCycle2 = provider.cycle_number === 2;
 
+        // Check if direct_mail has expired (18+ days without claim)
+        const mailSentAt = mailAnalyticsMap.get(provider.provider_id)?.sent_at;
+        const mailExpired = provider.re_engage_channel === "direct_mail"
+          && mailSentAt
+          && daysSince(mailSentAt) >= DIRECT_MAIL_EXPIRY_DAYS
+          && !claimedMap.get(provider.provider_id)?.claimed;
+
         return (
-          <div
-            key={provider.provider_id}
-            className="flex items-center gap-4 px-5 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-          >
-            {/* Provider info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className="font-medium text-gray-900 truncate">
+          <div key={provider.provider_id} className="border-b border-gray-100">
+            {/* 18-day expiry action bar for direct_mail */}
+            {mailExpired && (
+              <div className="mx-5 mt-3 flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                <span className="text-xs text-amber-800 font-medium flex-1">
+                  No response after {daysSince(mailSentAt)} days. All channels exhausted.
+                </span>
+                {/* Only show Reactivate for Cycle 1 - Cycle 2 should only archive */}
+                {!isCycle2 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPendingAction({ provider, type: "re_engage" });
+                    }}
+                    disabled={isLoading}
+                    className="px-3 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-md transition disabled:opacity-50"
+                  >
+                    Reactivate Sequence
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onArchive(provider);
+                  }}
+                  disabled={isLoading}
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition disabled:opacity-50"
+                >
+                  Archive
+                </button>
+              </div>
+            )}
+            {/* Main row - restructured for better readability */}
+            <div className="px-5 py-3 hover:bg-gray-50 transition-colors">
+              {/* Row 1: Provider name (full width) + Cycle badge + Wait time */}
+              <div className="flex items-center justify-between gap-4 mb-1">
+                <span className="font-medium text-gray-900 text-sm">
                   {provider.provider_name}
                 </span>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      isCycle2
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    Cycle {provider.cycle_number}
+                  </span>
+                  <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
+                    {waitDays}d{waitDays >= 30 && " (Ready)"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Row 2: Category, location, email + channel badges */}
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1 flex-wrap">
+                {provider.provider_category && (
+                  <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+                )}
+                {provider.provider_category && provider.city && <span>·</span>}
+                {provider.city && (
+                  <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
+                )}
+                {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
+                {provider.email && <span>{provider.email}</span>}
+                {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                    provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
+                    provider.re_engage_channel === "linkedin" ? "bg-blue-50 text-blue-700" :
+                    provider.re_engage_channel === "direct_mail" ? "bg-teal-50 text-teal-700" :
+                    "bg-gray-50 text-gray-600"
+                  }`}>
+                    {provider.re_engage_channel === "fax" ? "Fax" :
+                     provider.re_engage_channel === "linkedin" ? "LinkedIn" :
+                     provider.re_engage_channel === "direct_mail" ? "Direct Mail" :
+                     provider.re_engage_channel}
+                  </span>
+                )}
+                <LifecycleTag
+                  channel={provider.re_engage_channel}
+                  faxSentAt={faxAnalyticsMap.get(provider.provider_id)?.sent_at}
+                  linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
+                  mailSentAt={mailAnalyticsMap.get(provider.provider_id)?.sent_at}
+                />
+                {enrichmentNotFoundMap.get(provider.provider_id)?.fax && !provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
+                    No Fax
+                  </span>
+                )}
+                {enrichmentNotFoundMap.get(provider.provider_id)?.linkedin && !providerLinkedInUrlMap.get(provider.provider_id) && !linkedInUrlMap.get(provider.provider_id) && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
+                    No LinkedIn
+                  </span>
+                )}
+              </div>
+
+              {/* Row 3: Assignment + Tier selector */}
+              <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                <span>Assigned:</span>
                 <AdminChip
                   adminId={provider.assigned_to}
                   adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
                   size="sm"
                   showUnassigned={true}
                 />
+                <TierSelector
+                  tier={tierMap.get(provider.provider_id)}
+                  onTierChange={(tier) => setProviderTier(provider.provider_id, tier)}
+                />
               </div>
-              <div className="text-xs text-gray-500 truncate">
-                {provider.city}, {provider.state} {provider.email && `• ${provider.email}`}
-              </div>
-            </div>
 
-            {/* Cycle badge */}
-            <div className="w-20 text-center">
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                  isCycle2
-                    ? "bg-amber-100 text-amber-800"
-                    : "bg-blue-100 text-blue-800"
-                }`}
-              >
-                Cycle {provider.cycle_number}
-              </span>
-            </div>
+              {/* Row 4: Channel tracking analytics */}
+              <ChannelTracking
+                faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at || faxSentSet.has(provider.provider_id)}
+                faxAnalytics={faxAnalyticsMap.get(provider.provider_id)}
+                faxNumber={provider.fax_number}
+                linkedinMessaged={linkedInContactsMap.get(provider.provider_id)?.some(c => c.messaged)}
+                linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
+                linkedinUrl={linkedInUrlMap.get(provider.provider_id)}
+                providerLinkedinUrl={providerLinkedInUrlMap.get(provider.provider_id)}
+                mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at || mailSentSet.has(provider.provider_id)}
+                mailAnalytics={mailAnalyticsMap.get(provider.provider_id)}
+                claimed={claimedMap.get(provider.provider_id)?.claimed}
+                claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
+              />
 
-            {/* Wait time */}
-            <div className="w-28 text-center">
-              <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
-                {waitDays} day{waitDays !== 1 ? "s" : ""}
-              </span>
-              {waitDays >= 30 && (
-                <div className="text-[10px] text-emerald-600">Ready</div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="w-56 flex items-center justify-end gap-2">
+              {/* Row 5: Actions */}
+              <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => setPendingAction({
@@ -2309,8 +4452,155 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               >
                 Archive
               </button>
+
+              {/* Find Fax / Manual Input for fax channel without fax number */}
+              {!provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && provider.re_engage_channel === "fax" && (
+                faxInputExpandedId === provider.provider_id ? (
+                  // Manual fax input expanded
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={faxInputValue}
+                      onChange={(e) => { setFaxInputValue(e.target.value); setFaxSaveError(null); }}
+                      placeholder="(555) 123-4567"
+                      className={`w-28 px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-purple-500 ${faxSaveError ? "border-red-300" : "border-gray-300"}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveManualFax(provider.provider_id);
+                        if (e.key === "Escape") { setFaxInputExpandedId(null); setFaxInputValue(""); setFaxSaveError(null); }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveManualFax(provider.provider_id)}
+                      disabled={!faxInputValue.trim() || savingFaxId === provider.provider_id}
+                      className="px-2 py-1 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded disabled:opacity-50"
+                    >
+                      {savingFaxId === provider.provider_id ? "..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setFaxInputExpandedId(null); setFaxInputValue(""); setFaxSaveError(null); }}
+                      className="px-1.5 py-1 text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                    {faxSaveError && <span className="text-[10px] text-red-500">{faxSaveError}</span>}
+                  </div>
+                ) : (
+                  // Find Fax buttons
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleFindFax(provider)}
+                      disabled={findingFaxId === provider.provider_id}
+                      className="px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
+                    >
+                      {findingFaxId === provider.provider_id ? "Finding..." :
+                       faxResultsMap.get(provider.provider_id)?.searched ? "Try Again" : "Find Fax"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setFaxInputExpandedId(provider.provider_id); setFaxInputValue(""); }}
+                      className="px-2 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      title="Enter fax number manually"
+                    >
+                      Manual
+                    </button>
+                    {faxResultsMap.get(provider.provider_id)?.searched && !faxResultsMap.get(provider.provider_id)?.fax && (
+                      <span className="text-[10px] text-gray-400">Not found</span>
+                    )}
+                  </>
+                )
+              )}
+
+              {/* Fax info + Send Fax button for fax channel with fax number */}
+              {(provider.fax_number || faxResultsMap.get(provider.provider_id)?.fax) && provider.re_engage_channel === "fax" && (
+                <>
+                  {/* Fax number display */}
+                  <span className="text-xs font-mono text-gray-700">
+                    {provider.fax_number || faxResultsMap.get(provider.provider_id)?.fax}
+                  </span>
+                  {/* Confidence badge */}
+                  {(provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                      (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "high"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "manual"
+                        ? "bg-gray-50 text-gray-600 border border-gray-200"
+                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                    }`}>
+                      {(provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "high" ? "High" :
+                       (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "manual" ? "Manual" : "Unsure"}
+                    </span>
+                  )}
+                  {/* Source URL link */}
+                  {(provider.fax_source_url || faxResultsMap.get(provider.provider_id)?.source_url) && (
+                    <a
+                      href={provider.fax_source_url || faxResultsMap.get(provider.provider_id)?.source_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-0.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Source
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setFaxPreviewProvider(provider)}
+                    className="px-2 py-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded transition-colors"
+                  >
+                    Send Fax
+                  </button>
+                </>
+              )}
+
+              {/* Send Postcard button for direct_mail channel */}
+              {provider.re_engage_channel === "direct_mail" && (
+                <button
+                  type="button"
+                  onClick={() => setPostcardPreviewProvider(provider)}
+                  className="px-2 py-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors"
+                >
+                  Send Postcard
+                </button>
+              )}
+
+              {/* Move Channel dropdown */}
+              <MoveChannelDropdown
+                currentChannel={provider.re_engage_channel}
+                onMove={(channel) => handleMoveChannel(provider.provider_id, channel)}
+                disabled={isLoading}
+              />
+
+              {/* LinkedIn expand toggle */}
+              {provider.re_engage_channel === "linkedin" && (
+                <button
+                  type="button"
+                  onClick={() => toggleLinkedInExpanded(provider.provider_id)}
+                  className="px-2 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                >
+                  {expandedLinkedIn.has(provider.provider_id) ? "Hide" : "LinkedIn"}
+                </button>
+              )}
             </div>
           </div>
+
+          {/* LinkedIn Expanded Section */}
+          {provider.re_engage_channel === "linkedin" && expandedLinkedIn.has(provider.provider_id) && (
+            <LinkedInSection
+              provider={provider}
+              linkedInUrl={linkedInUrlMap.get(provider.provider_id) || null}
+              contacts={linkedInContactsMap.get(provider.provider_id) || []}
+              onUrlChange={(url) => updateLinkedInUrl(provider.provider_id, url)}
+              onContactsChange={(contacts) => updateLinkedInContacts(provider.provider_id, contacts)}
+            />
+          )}
+        </div>
         );
       })}
 
@@ -2439,6 +4729,25 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
             </div>
           </div>
         </div>
+      )}
+
+      {/* Fax Preview Sidebar */}
+      {faxPreviewProvider && (
+        <FaxPreviewSidebar
+          provider={faxPreviewProvider}
+          onClose={() => setFaxPreviewProvider(null)}
+          onFaxSent={handleFaxSent}
+          faxNumberOverride={faxResultsMap.get(faxPreviewProvider.provider_id)?.fax}
+        />
+      )}
+
+      {/* Postcard Preview Sidebar */}
+      {postcardPreviewProvider && (
+        <PostcardPreviewSidebar
+          provider={postcardPreviewProvider}
+          onClose={() => setPostcardPreviewProvider(null)}
+          onMailSent={handleMailSent}
+        />
       )}
     </div>
   );
@@ -3990,13 +6299,13 @@ export default function ProviderOutreachPage() {
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalClaimedCount !== null ? globalClaimedCount.toLocaleString() : "—"}</p>
             <p className="mt-0.5 text-[11px] text-gray-500">all states, all time</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Follow-ups due today across all states">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Due Today</p>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers needing follow-up across all states">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Follow-Ups</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalFollowUpsToday.total}</p>
             <p className="mt-0.5 text-[11px] text-gray-500">
               {globalFollowUpsToday.by_admin.length > 0
-                ? globalFollowUpsToday.by_admin.map(a => `${a.display_name} ${a.count}`).join(" · ")
-                : "no follow-ups due"}
+                ? globalFollowUpsToday.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
+                : "none pending"}
             </p>
           </div>
         </div>
@@ -4194,8 +6503,8 @@ export default function ProviderOutreachPage() {
                   {[
                     { key: "intro", label: "Day 0" },
                     { key: "followup", label: "Day 3" },
-                    { key: "demand_loss", label: "Day 7" },
-                    { key: "final", label: "Day 14" },
+                    { key: "demand_loss", label: "Day 5" },
+                    { key: "final", label: "Day 7" },
                     { key: "nudge", label: "Nudge" },
                   ].map((t) => (
                     <button
@@ -4439,13 +6748,6 @@ export default function ProviderOutreachPage() {
         ) : isSearchResult ? (
           // Search results: flat list with stage badges
           <>
-            <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
-              <div className="w-5" />
-              <div className="flex-1">Provider</div>
-              <div className="w-24">City</div>
-              <div className="w-28">Stage</div>
-              <div className="w-10" />
-            </div>
             {loadingProviders ? (
               <div className="p-8 text-center">
                 <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
@@ -4457,96 +6759,105 @@ export default function ProviderOutreachPage() {
             ) : (
               <div className="divide-y divide-gray-100">
                 {providers.map((provider) => (
-                  <div key={provider.provider_id} className="group px-5 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={selectedProviders.has(provider.provider_id)}
-                      onChange={() => toggleProvider(provider.provider_id)}
-                      className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
-                    />
-                    {/* Provider Name + Category */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-                          className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate text-sm"
-                        >
-                          {provider.provider_name}
-                        </Link>
-                        {provider.email && (
-                          <span className="text-xs text-gray-500 truncate">{provider.email}</span>
-                        )}
-                      </div>
-                      {provider.provider_category && (
-                        <p className="text-xs text-gray-500 truncate">{provider.provider_category}</p>
-                      )}
-                    </div>
-                    {/* City */}
-                    <div className="w-24 text-sm text-gray-600 truncate">
-                      {provider.city || "—"}
-                    </div>
-                    {/* Stage Badge + Sequence Progress + Assignment */}
-                    <div className="w-32 flex items-center gap-1.5">
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                        provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
-                        provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
-                        provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
-                        provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
-                        provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
-                        "bg-gray-100 text-gray-600"
-                      }`}>
-                        {STAGE_LABELS[provider.stage]}
-                        {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
-                          <span className="ml-1 text-blue-500">
-                            ({provider.emails_sent}/4)
-                            {provider.cycle_number >= 2 && (
-                              <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
-                            )}
-                          </span>
-                        )}
-                      </span>
-                      <AdminChip
-                        adminId={provider.assigned_to}
-                        adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                        size="sm"
-                        showUnassigned={true}
+                  <div key={provider.provider_id} className="group px-5 py-3 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedProviders.has(provider.provider_id)}
+                        onChange={() => toggleProvider(provider.provider_id)}
+                        className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
                       />
-                    </div>
-                    {/* Actions - hide for claimed only (archived can be unarchived) */}
-                    <div className="w-10 flex items-center gap-1">
-                      {!["claimed"].includes(provider.stage) && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActionModalProvider(provider);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 transition-all text-gray-300 hover:text-gray-600"
-                          title="Actions"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                          </svg>
-                        </button>
-                      )}
-                      {/* Remove from outreach (trash icon) */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPendingRemoval({
-                            providerId: provider.provider_id,
-                            providerName: provider.provider_name,
-                            stage: provider.stage,
-                          });
-                        }}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 transition-all text-gray-300 hover:text-red-500"
-                        title="Remove from outreach"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+
+                      {/* Main content area */}
+                      <div className="flex-1 min-w-0">
+                        {/* Row 1: Provider name (full width) + Stage badge + hover actions */}
+                        <div className="flex items-center justify-between gap-4 mb-0.5">
+                          <Link
+                            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                            className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+                          >
+                            {provider.provider_name}
+                          </Link>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {/* Stage badge */}
+                            <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                              provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
+                              provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
+                              provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
+                              provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
+                              provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
+                              "bg-gray-100 text-gray-600"
+                            }`}>
+                              {STAGE_LABELS[provider.stage]}
+                              {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
+                                <span className="ml-1 text-blue-500">
+                                  ({provider.emails_sent}/4)
+                                  {provider.cycle_number >= 2 && (
+                                    <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
+                                  )}
+                                </span>
+                              )}
+                            </span>
+                            {/* Hover actions */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {!["claimed"].includes(provider.stage) && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActionModalProvider(provider);
+                                  }}
+                                  className="p-1 text-gray-300 hover:text-gray-600"
+                                  title="Actions"
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                  </svg>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPendingRemoval({
+                                    providerId: provider.provider_id,
+                                    providerName: provider.provider_name,
+                                    stage: provider.stage,
+                                  });
+                                }}
+                                className="p-1 text-gray-300 hover:text-red-500"
+                                title="Remove from outreach"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Row 2: Category, location, email */}
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5">
+                          {provider.provider_category && (
+                            <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+                          )}
+                          {provider.provider_category && provider.city && <span>·</span>}
+                          {provider.city && <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>}
+                          {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
+                          {provider.email && <span>{provider.email}</span>}
+                        </div>
+
+                        {/* Row 3: Assignment */}
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <span>Assigned:</span>
+                          <AdminChip
+                            adminId={provider.assigned_to}
+                            adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                            size="sm"
+                            showUnassigned={true}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -4689,6 +7000,7 @@ export default function ProviderOutreachPage() {
               setActionModalProvider(provider);
             }}
             adminNameLookup={adminNameLookup}
+            onRefresh={fetchProviders}
           />
           </>
         ) : (
@@ -5752,19 +8064,19 @@ export default function ProviderOutreachPage() {
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 7</span>
-                            <span className="text-xs text-gray-400">+7 days</span>
+                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 5</span>
+                            <span className="text-xs text-gray-400">+5 days</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-800">Demand-loss Email</p>
-                          <p className="text-xs text-gray-500 mt-1">What families couldn&apos;t ask you</p>
+                          <p className="text-sm font-medium text-gray-800">Why It&apos;s Free Email</p>
+                          <p className="text-xs text-gray-500 mt-1">No fees, direct family connections</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 14</span>
-                            <span className="text-xs text-gray-400">+14 days</span>
+                            <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded">Day 7</span>
+                            <span className="text-xs text-gray-400">+7 days</span>
                           </div>
-                          <p className="text-sm font-medium text-gray-800">Summary Email</p>
-                          <p className="text-xs text-gray-500 mt-1">Everything in one place</p>
+                          <p className="text-sm font-medium text-gray-800">Get Verified Email</p>
+                          <p className="text-xs text-gray-500 mt-1">Trust badge for families</p>
                         </div>
                       </>
                     )}

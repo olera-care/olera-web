@@ -40,8 +40,10 @@ export interface JourneyStep {
   phase?: string;
   /** Small, plain-language traits such as "Conditional" or "Repeats per lead". */
   traits?: string[];
-  /** Stable email-sample id for journey-first admin previews. */
-  sampleId?: string;
+  /** Exact email sample selected by the family-journey preview link. */
+  emailSampleId?: string;
+  /** Exact text sample selected by the family-journey preview link. */
+  smsSampleId?: string;
 }
 
 export interface CommsJourney {
@@ -61,15 +63,16 @@ const BENEFITS_CASCADE: CommsJourney = {
   title: "Benefits cascade — the family's sequence",
   ordering: "time",
   description:
-    "One family journey spanning the intake event and two follow-up automations: results arrive first, the daily coordinator drafts B1 and sends B2, and the hourly scheduler (or TJ's button) fires approved letters.",
+    "One guidance journey across the channels a family chose: results arrive first, the daily coordinator drafts B1 and sends B2, and the hourly scheduler (or TJ's button) fires the approved first step. Text replies update the same living plan.",
   steps: [
     {
       key: "intake_results",
-      title: "Results email delivered",
-      timing: "Day 0 · Intake completed",
+      title: "Results email delivered (when email is provided)",
+      timing: "Day 0 · New-family intake completed",
       description:
-        "The family completes the benefits finder. Their saved-results email delivers the matched programs and their living /m plan link.",
+        "A new family completes the benefits finder with an email. Olera identifies the strongest matches, adds them to the family's private plan, and emails the living /m plan link.",
       emailType: "benefits_results_saved",
+      emailSampleId: "benefits_results_saved",
       ownedBy: "benefits-results-texts",
     },
     {
@@ -77,48 +80,53 @@ const BENEFITS_CASCADE: CommsJourney = {
       title: "Results link texted (optional)",
       timing: "Day 0 · When a phone is provided",
       description:
-        "If the family chooses text delivery during intake or enters a number at the “Want this by text?” step, Olera immediately texts the same living /m plan link. This is the family's first text from us—not the later B1 companion text.",
+        "A new family who enters a phone under the SMS disclosure immediately receives the same living /m plan link. That choice is stored as sms_consent for the later navigator and check-in, so the text thread does not break after Day 0.",
       smsType: "benefits_results_sms",
+      smsSampleId: "sms_benefits_match",
       ownedBy: "benefits-results-texts",
       gate: "Requires a valid phone entered with the SMS disclosure; skipped when no phone is provided",
     },
     {
       key: "b1_draft",
-      title: "B1 · Navigator letter drafted",
+      title: "B1 · Navigator guidance drafted",
       timing: "Intake +2–10d",
       description:
-        "The coordinator composes a personal TJ-signed first-step letter (one program, its start-here phone number, a call script, three documents) and parks it as a draft in /admin/benefits.",
+        "The coordinator composes personal TJ-signed first-step guidance: an email when available and a reply-enabled text for consented families. It parks the draft in /admin/benefits for review.",
       ownedBy: "family-comms-coordinator",
       gate: "Draft only — nothing reaches the family until TJ approves it in the queue",
     },
     {
       key: "b1_send",
-      title: "B1 · Letter sent (+ companion text)",
+      title: "B1 · First step sent (email and/or text)",
       timing: "When TJ sends, or at the scheduled hour",
       description:
-        "TJ's Send-as-TJ button and the hourly scheduler run one shared send path: governance caps, DNC, and suppression re-checked at fire time. A TJ-voiced companion text (the doorbell for the letter) goes out with it.",
+        "TJ's Send-as-TJ button and the hourly scheduler run one shared send path. Email families receive the reviewed letter; consented text families receive the first step in the same thread. Text-only families keep moving without being forced into email.",
       emailType: "benefits_first_step",
       smsType: "benefits_first_step_sms",
+      emailSampleId: "benefits_first_step",
+      smsSampleId: "sms_benefits_first_step",
       ownedBy: "benefits-navigator-scheduler",
-      gate: "Text requires stored phone + sms_consent; fires outside the recipient's 8am–8pm window park in sms_queue for morning",
+      gate: "At least one reachable consented channel is required; an after-hours companion text queues for morning, while a text-only B1 stays pending and reschedules to the next legal window",
     },
     {
       key: "b2",
-      title: "B2 · Check-in (+ mirror text)",
+      title: "B2 · Progress check (email and/or text)",
       timing: "First step +3–14d",
       description:
-        "The check that's an offer: three forward-looking chips (it's moving / I want help / not right for me). If the family already marked the call done on their /m plan, it congratulates instead of asking. The mirror text links to the living plan.",
+        "Three to fourteen days after B1, Olera asks what happened next. Email offers the existing outcome choices; text understands CALLED, NO ANSWER, APPLIED, NEED DOCS, WAITING, NOT ELIGIBLE, or STUCK and writes that status back to the living plan. Text-only families receive B2 by text.",
       emailType: "benefits_check_in",
       smsType: "benefits_check_in_sms",
+      emailSampleId: "benefits_check_in",
+      smsSampleId: "sms_benefits_check_in",
       ownedBy: "family-comms-coordinator",
-      gate: "One-shot; skipped once an outcome is reported",
+      gate: "One-shot; skipped once an outcome is reported; STUCK alerts the Olera team without promising an unstaffed response time",
     },
     {
       key: "suppression",
       title: "Completion track paused",
       timing: "While the cascade is in flight (~21d)",
       description:
-        "Benefits families are excluded from profile-completion nudges while their cascade is active — LIHEAP help never interleaves with \"finish your profile\" asks. They rejoin the completion track after resolution.",
+        "Benefits families are excluded from generic profile-completion nudges while their cascade is active. They rejoin after an outcome is recorded or the 21-day window ends; the window ending is not treated as proof the problem was resolved.",
       ownedBy: "family-comms-coordinator",
     },
   ],
@@ -234,7 +242,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "Olera saves the provider's requested setup week and budget before their profile is ready, then points them to the missing profile or verification work.",
       emailType: "ad_boost_queued",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_queued",
+      emailSampleId: "ad_boost_queued",
       traits: ["Conditional", "One-time"],
       gate: "Only when the profile is below the launch threshold or verification is incomplete",
     },
@@ -247,7 +255,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "A complete, verified provider gets an immediate handoff: the request is actionable, the starter promotion is clear, and the concierge team can begin setup.",
       emailType: "ad_boost_requested",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_requested",
+      emailSampleId: "ad_boost_requested",
       traits: ["Conditional", "One-time"],
       gate: "Mutually exclusive with the queued email",
     },
@@ -260,7 +268,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "If the request is still blocked, the daily worker sends one focused reminder naming the next useful profile or verification step.",
       emailType: "ad_boost_profile_reminder",
       ownedBy: "ad-boost-profile-reminders",
-      sampleId: "ad_boost_profile_reminder",
+      emailSampleId: "ad_boost_profile_reminder",
       traits: ["Conditional", "One-time"],
       gate: "Skipped when the provider becomes launch-ready before the reminder is due",
     },
@@ -273,7 +281,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "The saved request advances without a second submission. The provider gets a clear confirmation and the concierge team is notified that setup can begin.",
       emailType: "ad_boost_ready",
       ownedBy: "ad-boost-profile-reminders",
-      sampleId: "ad_boost_ready",
+      emailSampleId: "ad_boost_ready",
       traits: ["Conditional", "One-time"],
       gate: "Only for a request that started in the queued path",
     },
@@ -297,7 +305,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "The provider learns that Find Families is live and where new inquiries will arrive. It sends immediately or at the chosen US Eastern hour through one deduplicated path.",
       emailType: "ad_boost_campaign_launched",
       ownedBy: "ad-boost-launch-scheduler",
-      sampleId: "ad_boost_campaign_launched",
+      emailSampleId: "ad_boost_campaign_launched",
       traits: ["One-time"],
       gate: "Missing email, unsubscribe, or suppression blocks the send; transport failures retry when scheduled",
     },
@@ -310,7 +318,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "Once real spend or clicks are recorded, the provider gets a concrete progress note with campaign activity before the starter promotion closes.",
       emailType: "ad_boost_traction",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_traction",
+      emailSampleId: "ad_boost_traction",
       traits: ["Conditional", "One-time"],
       gate: "Requires a live campaign and non-zero spend or clicks",
     },
@@ -323,7 +331,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "At the moment a managed-campaign inquiry arrives, the provider receives one campaign-specific lead email with a direct path to the family.",
       emailType: "ad_boost_lead_delivered",
       ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_lead_delivered",
+      emailSampleId: "ad_boost_lead_delivered",
       traits: ["Repeats per lead"],
       gate: "Deduplicated by connection; only inquiries carrying the campaign's managed attribution qualify",
     },
@@ -336,7 +344,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
         "A one-tap check asks whether the family became a client, is still talking, or did not work out. Answers update the living campaign receipt.",
       emailType: "ad_boost_lead_outcome_check",
       ownedBy: "ad-boost-profile-reminders",
-      sampleId: "ad_boost_lead_outcome_check",
+      emailSampleId: "ad_boost_lead_outcome_check",
       traits: ["Repeats per lead", "Up to twice"],
       gate: "At most one outcome email per provider per daily run; the second check stops after a final outcome",
     },
@@ -344,14 +352,14 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
       key: "promo_complete",
       phase: "Prove value",
       title: "Starter campaign complete",
-      timing: "When the concierge ends the campaign",
+      timing: "After the flight ends · next 10:15 AM ET business morning",
       description:
-        "The wrap-up brings spend, clicks, engagement, inquiries, and reported client outcomes into one receipt, then offers a clear path to continue.",
+        "The flight ends automatically after its final serving day, or when the concierge closes it. The wrap-up then brings spend, clicks, engagement, inquiries, and known outcomes into one receipt. If Olera recorded no inquiry, the provider gets a version that asks whether anyone contacted them another way.",
       emailType: "ad_boost_promo_complete",
-      ownedBy: "ad-boost-emails",
-      sampleId: "ad_boost_promo_complete",
-      traits: ["One-time"],
-      gate: "Outcome checks may continue after this email for leads that are still unresolved",
+      ownedBy: "ad-boost-end-scheduler",
+      emailSampleId: "ad_boost_promo_complete",
+      traits: ["One-time", "Two result variants"],
+      gate: "Requires an ended campaign and a due wrap-up schedule; outcome checks may continue for unresolved leads",
     },
     {
       key: "plan_decision",

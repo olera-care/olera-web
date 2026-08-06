@@ -12,9 +12,11 @@ import type { CommsJourney, JourneyStep } from "@/lib/family-comms/journey";
 export default function CommsJourneyBlock({
   journey,
   currentCronId,
+  onPreview,
 }: {
   journey: CommsJourney;
   currentCronId: string;
+  onPreview?: (channel: "email" | "sms", sampleId: string) => void;
 }) {
   const initiallyExpanded = journey.ordering === "time"
     ? journey.steps.find((step) => step.ownedBy === currentCronId)?.key
@@ -74,6 +76,7 @@ export default function CommsJourneyBlock({
             currentCronId={currentCronId}
             expanded={expandedSteps.has(step.key)}
             onToggle={() => toggleStep(step.key)}
+            onPreview={onPreview}
           />
         ))}
       </ol>
@@ -90,6 +93,7 @@ function StepRow({
   currentCronId,
   expanded,
   onToggle,
+  onPreview,
 }: {
   step: JourneyStep;
   journeyKey: string;
@@ -99,6 +103,7 @@ function StepRow({
   currentCronId: string;
   expanded: boolean;
   onToggle: () => void;
+  onPreview?: (channel: "email" | "sms", sampleId: string) => void;
 }) {
   const mine = step.ownedBy === currentCronId;
   const other = step.ownedBy && !mine ? getCronJob(step.ownedBy) : null;
@@ -176,16 +181,34 @@ function StepRow({
               </p>
             )}
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              {step.emailType && (
+              {step.emailType && (step.emailSampleId && onPreview ? (
+                <button
+                  type="button"
+                  onClick={() => onPreview("email", step.emailSampleId!)}
+                  title={`Show ${step.emailType}`}
+                  className="inline-flex min-h-7 items-center gap-1.5 rounded-md bg-gray-100 px-2.5 text-[11px] font-semibold text-gray-700 transition-colors hover:bg-gray-200 hover:text-gray-950"
+                >
+                  ✉ View email ↓
+                </button>
+              ) : (
                 <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-[10px] font-medium text-gray-500">
                   ✉ {step.emailType}
                 </span>
-              )}
-              {step.smsType && (
+              ))}
+              {step.smsType && (step.smsSampleId && onPreview ? (
+                <button
+                  type="button"
+                  onClick={() => onPreview("sms", step.smsSampleId!)}
+                  title={`Show ${step.smsType}`}
+                  className="inline-flex min-h-7 items-center gap-1.5 rounded-md bg-sky-50 px-2.5 text-[11px] font-semibold text-sky-700 ring-1 ring-inset ring-sky-100 transition-colors hover:bg-sky-100 hover:text-sky-900"
+                >
+                  ✆ View text ↓
+                </button>
+              ) : (
                 <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-1 text-[10px] font-medium text-sky-700 ring-1 ring-inset ring-sky-100">
                   ✆ {step.smsType}
                 </span>
-              )}
+              ))}
               {other && (
                 <Link
                   href={`/admin/automations/${other.id}`}

@@ -43,11 +43,15 @@ const SMS_ELIGIBLE: Record<string, PolicyEntry> = {
   provider_reach_out: { policy: "sms_reactive", transactional: true },
   connection_response: { policy: "sms_reactive", transactional: true },
   new_message_to_family: { policy: "sms_reactive", transactional: true },
+  // The family explicitly requested this report at intake.
+  benefits_results_sms: { policy: "sms_reactive", transactional: true },
 
   // ── Tier 2: proactive, opt-in, governed (Phase 2 — listed for completeness) ──
   family_outcome_check: { policy: "sms_proactive", transactional: false },
   family_provider_silent: { policy: "sms_proactive", transactional: false },
   family_reach_out_nudge: { policy: "sms_proactive", transactional: false },
+  benefits_first_step_sms: { policy: "sms_proactive", transactional: false },
+  benefits_check_in_sms: { policy: "sms_proactive", transactional: false },
 };
 
 /** The channel policy for a family message type. Unlisted → email-only. */

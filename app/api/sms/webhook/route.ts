@@ -3,6 +3,8 @@ import twilio from "twilio";
 import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone } from "@/lib/twilio";
 import { smsHelpReply } from "@/lib/sms/templates";
+import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
+import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server";
 
 /**
  * POST /api/sms/webhook
@@ -87,36 +89,65 @@ async function matchFamilyProfiles(
  * tell the story (metadata.sms_inbound, capped at 20). A family texting back
  * is the highest-intent signal we get — it must never evaporate.
  */
-async function recordInbound(phone: string, body: string, keyword: string | null): Promise<void> {
+async function recordInbound(
+  phone: string,
+  body: string,
+  keyword: string | null,
+  alertUnstructured = false,
+): Promise<{ response?: string; structured: boolean }> {
   const db = getServiceDb();
-  if (!db) return;
+  if (!db) return { structured: false };
   const profiles = await matchFamilyProfiles(phone);
   const at = new Date().toISOString();
+  let response: string | undefined;
+  let structured = false;
+  let humanAlert: string | null = null;
   for (const p of profiles) {
     const meta = p.metadata || {};
     const inbound = Array.isArray(meta.sms_inbound) ? (meta.sms_inbound as unknown[]) : [];
+    const isBenefitsFamily = Boolean(
+      meta.benefits_results || meta.benefits_cascade || meta.benefits_navigator,
+    );
+    const benefitsReply = keyword && isBenefitsFamily
+      ? interpretBenefitsSmsReply(keyword, readBenefitsCascade(meta), at)
+      : null;
+    if (benefitsReply) {
+      structured = true;
+      response ||= benefitsReply.response;
+      if (benefitsReply.needsHuman) humanAlert = benefitsReply.label;
+    }
+    // Store a keyword only when it has semantic meaning. The normalized
+    // parser token for an ordinary sentence ("I can't find the form" →
+    // ICANTFINDTHEFORM) must not hide the real body from the admin's free-form
+    // reply chip and timeline.
+    const storedKeyword = benefitsReply ? keyword : alertUnstructured ? null : keyword;
     await db
       .from("business_profiles")
       .update({
         metadata: {
           ...meta,
-          sms_inbound: [...inbound, { at, body: body.slice(0, 500), keyword }].slice(-20),
+          sms_inbound: [...inbound, { at, body: body.slice(0, 500), keyword: storedKeyword }].slice(-20),
+          ...(benefitsReply ? { benefits_cascade: benefitsReply.cascade } : {}),
         },
       })
       .eq("id", p.id);
   }
-  // A real (non-keyword) reply deserves a human: ping the team channel.
-  if (!keyword && profiles.length > 0) {
+  // A free-form reply or an explicit STUCK reply deserves a human. Other
+  // structured updates move the plan forward without creating queue noise.
+  if (((alertUnstructured && !structured) || humanAlert) && profiles.length > 0) {
     try {
       const { sendSlackAlert } = await import("@/lib/slack");
       const who = profiles[0].display_name || profiles[0].email || phone;
       await sendSlackAlert(
-        `Family texted back: ${who}: "${body.slice(0, 300)}" - reply from the Benefits queue (/admin/benefits)`,
+        humanAlert
+          ? `Benefits family needs help: ${who} ${humanAlert}. Reply from the Benefits queue (/admin/benefits)`
+          : `Family texted back: ${who}: "${body.slice(0, 300)}" - reply from the Benefits queue (/admin/benefits)`,
       );
     } catch (err) {
       console.error("[sms-webhook] Slack ping failed:", err);
     }
   }
+  return { response, structured };
 }
 
 /** Set phone_validity for every family profile whose phone matches `phone`. */
@@ -181,9 +212,11 @@ export async function POST(request: NextRequest) {
       await recordInbound(normalizedFrom, params.Body || keyword, keyword);
       return twiml(HELP_REPLY);
     }
-    // A real reply — persist it + Slack-ping so a human follows up.
+    // Benefits progress replies update the living plan and receive an
+    // immediate receipt. Unrecognized replies remain human-routed below.
     if ((params.Body || "").trim()) {
-      await recordInbound(normalizedFrom, params.Body.trim(), null);
+      const recorded = await recordInbound(normalizedFrom, params.Body.trim(), keyword, true);
+      if (recorded.structured) return twiml(recorded.response);
     }
   } catch (err) {
     console.error("[sms-webhook] Error handling inbound:", err);

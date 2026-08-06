@@ -79,6 +79,10 @@ interface FamilyRow {
     status: "matched" | "first_step_sent" | "moving" | "wants_help" | "wrong_program";
     firstStepProgram: string | null;
     firstStepSentAt: string | null;
+    applicationStatus: BenefitsApplicationStatus | null;
+    applicationStatusAt: string | null;
+    lastSmsReply: string | null;
+    lastSmsReplyAt: string | null;
     outcomeAt: string | null;
     outcomeReason: string | null;
   };
@@ -95,6 +99,15 @@ interface FamilyRow {
   /** Latest real inbound SMS — the 💬 chip (webhook writes metadata.sms_inbound). */
   inboundText: { at: string; body: string | null } | null;
 }
+
+type BenefitsApplicationStatus =
+  | "called"
+  | "no_answer"
+  | "needs_docs"
+  | "applied"
+  | "waiting"
+  | "not_eligible"
+  | "stuck";
 
 /** Next 10am US Eastern as a datetime-local value — the batch default. A
  *  morning slot beats "whenever TJ happens to click" (the Aug 1 wave landed
@@ -713,7 +726,7 @@ export default function BenefitsFamiliesView() {
             </button>
             {typeof batchState === "object" && (
               <span className="text-[11px] font-medium text-emerald-700">
-                {batchState.unscheduled ? "Unscheduled" : "Scheduled"} {batchState.ok} letter
+                {batchState.unscheduled ? "Unscheduled" : "Scheduled"} {batchState.ok} guidance send
                 {batchState.ok === 1 ? "" : "s"} ✓
                 {batchState.skipped > 0 ? ` (${batchState.skipped} skipped)` : ""}
               </span>
@@ -721,7 +734,7 @@ export default function BenefitsFamiliesView() {
             {draftReadyCount > 0 && (
               <button
                 onClick={openBatchModal}
-                title="Schedule every draft-ready letter for one send time — each goes through the same caps and checks as a hand send"
+                title="Schedule every draft-ready guidance message for one send time — each goes through the same caps and checks as a hand send"
                 className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
               >
                 Schedule all ({draftReadyCount})
@@ -768,9 +781,9 @@ export default function BenefitsFamiliesView() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => batchState !== "working" && setBatchOpen(false)}>
             <div className="w-full max-w-lg rounded-xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
               <div className="border-b border-gray-100 px-5 py-4">
-                <h3 className="text-sm font-semibold text-gray-900">Schedule {includedCount} letter{includedCount === 1 ? "" : "s"}</h3>
+                <h3 className="text-sm font-semibold text-gray-900">Schedule {includedCount} guidance send{includedCount === 1 ? "" : "s"}</h3>
                 <p className="mt-1 text-xs text-gray-500">
-                  Each letter sends its saved text through the normal caps and checks, at most 20 per hour
+                  Each family receives the saved email, text, or both through the normal caps and checks, at most 20 per hour
                   starting at the chosen time. Uncheck any you want to hold back.
                 </p>
               </div>
@@ -930,8 +943,15 @@ export default function BenefitsFamiliesView() {
                           : "direct"}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-flex flex-wrap items-center gap-1.5">
                         <LifecycleChip lifecycle={f.lifecycle} noteCount={f.caseInfo.noteCount} />
+                        {f.cascade.applicationStatus && (
+                          <BenefitsProgressChip
+                            status={f.cascade.applicationStatus}
+                            at={f.cascade.applicationStatusAt}
+                            reply={f.cascade.lastSmsReply}
+                          />
+                        )}
                         {/* Real reply in the last 14 days — the message itself
                             rides the tooltip; the full thread is the timeline. */}
                         {f.inboundText &&
@@ -961,7 +981,7 @@ export default function BenefitsFamiliesView() {
                           ) : (
                             <span
                               className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
-                              title="A navigator letter is drafted and waiting for your review"
+                              title="Navigator guidance is drafted and waiting for your review"
                             >
                               ✍ Draft ready
                             </span>
@@ -988,6 +1008,7 @@ export default function BenefitsFamiliesView() {
                           navigator={navigators[f.profileId]}
                           reviewContext={reviewContextFor(f)}
                           familyLabel={f.displayName || f.email || "this family"}
+                          hasEmail={!!f.email}
                           onNavigator={(action, subject, letter, sms, testEmail, scheduledAt) =>
                             navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt)
                           }
@@ -1009,8 +1030,8 @@ export default function BenefitsFamiliesView() {
 }
 
 /**
- * The navigator draft queue's editing surface: the AI-composed, TJ-signed
- * letter, editable in place. Nothing sends until the Send button — and every
+ * The navigator draft queue's editing surface: AI-composed, TJ-signed
+ * guidance, editable in place. Nothing sends until the Send button — and every
  * edit made here is the concierge feedback loop the draft-queue design exists
  * to capture.
  */
@@ -1018,6 +1039,7 @@ function NavigatorDraftEditor({
   navigator,
   reviewContext,
   familyLabel,
+  hasEmail,
   textable,
   busy,
   onNavigator,
@@ -1025,6 +1047,7 @@ function NavigatorDraftEditor({
   navigator: NavigatorDetail;
   reviewContext: Omit<ReviewItem, "draft" | "pick">;
   familyLabel: string;
+  hasEmail: boolean;
   textable: boolean;
   busy: boolean;
   onNavigator: (
@@ -1115,7 +1138,7 @@ function NavigatorDraftEditor({
     <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">
-          ✍ Navigator letter — waiting for you
+          ✍ Navigator guidance — waiting for you
         </p>
         <p className="text-[11px] text-amber-700/70">
           {navigator.pick?.shortName ? `First step: ${navigator.pick.shortName} · ` : ""}
@@ -1141,7 +1164,7 @@ function NavigatorDraftEditor({
       {textable ? (
         <div className="mt-2">
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700/80">
-            Companion text — sends with the email ({"{link}"} becomes their plan link; STOP line added automatically)
+            First-step text — sends with email when available and is the primary delivery for a text-only family ({"{link}"} becomes their plan link; reply choices and STOP are enforced at send)
           </p>
           <textarea
             value={sms}
@@ -1161,7 +1184,15 @@ function NavigatorDraftEditor({
         <button
           onClick={() => {
             const scheduledNote = navigator.scheduled_at ? " This replaces the scheduled send." : "";
-            if (window.confirm(`Send this letter to ${familyLabel}? It goes out under your name; replies land in the reply-to inbox (support).${scheduledNote}`)) {
+            const channelCopy = hasEmail && textable
+              ? "email and first-step text"
+              : hasEmail
+                ? "email"
+                : "first-step text";
+            const quietHoursNote = !hasEmail && textable
+              ? " Outside the family’s texting hours, it will stay pending and send in their next window."
+              : "";
+            if (window.confirm(`Send this ${channelCopy} to ${familyLabel}? It goes out under your name.${hasEmail ? " Email replies land in the support inbox." : ""}${quietHoursNote}${scheduledNote}`)) {
               onNavigator("navigator_send", subject, letter, sms.trim() || undefined);
             }
           }}
@@ -1181,7 +1212,7 @@ function NavigatorDraftEditor({
         <button
           onClick={() => {
             const scheduleNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
-            if (window.confirm(`Dismiss this draft? The family will not get a first-step letter unless you contact them another way.${scheduleNote}`)) {
+            if (window.confirm(`Dismiss this draft? The family will not get this first-step guidance unless you contact them another way.${scheduleNote}`)) {
               onNavigator("navigator_dismiss");
             }
           }}
@@ -1203,12 +1234,18 @@ function NavigatorDraftEditor({
         >
           {busy ? "Working…" : "Recompose"}
         </button>
-        <p className="text-[11px] text-amber-700/70">Sends the email now{textable ? " plus the companion text" : ""}.</p>
+        <p className="text-[11px] text-amber-700/70">
+          {hasEmail && textable
+            ? "Sends the email and first-step text now."
+            : hasEmail
+              ? "Sends the email now."
+              : "Sends in the family’s current texting window, or schedules the next one."}
+        </p>
         {saveState === "error" && (
           <span className="text-[11px] font-medium text-red-600">Couldn&apos;t save. Try again.</span>
         )}
       </div>
-      {/* Schedule: park the letter for the hourly scheduler cron. Scheduling
+      {/* Schedule: park the guidance for the hourly scheduler cron. Scheduling
           saves the on-screen edits atomically — what fires is what you see. */}
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-amber-200/60 pt-3">
         {navigator.scheduled_at ? (
@@ -1247,7 +1284,12 @@ function NavigatorDraftEditor({
             </button>
             <p className="basis-full text-[11px] text-amber-700/60">
               Time is US Eastern, wherever you are. Saves your edits and sends automatically
-              within an hour of the chosen time{textable ? ", companion text included (held to daytime hours)" : ""}.
+              within an hour of the chosen time
+              {hasEmail && textable
+                ? ", with email and first-step text (text held to daytime hours)"
+                : textable
+                  ? ", as a first-step text held to daytime hours"
+                  : ", by email"}.
             </p>
           </>
         )}
@@ -1376,6 +1418,42 @@ function LifecycleChip({
   );
 }
 
+const BENEFITS_PROGRESS_CHIP: Record<
+  BenefitsApplicationStatus,
+  { label: string; className: string }
+> = {
+  called: { label: "Called", className: "bg-cyan-50 text-cyan-800" },
+  no_answer: { label: "No answer", className: "bg-rose-50 text-rose-700" },
+  needs_docs: { label: "Needs documents", className: "bg-indigo-50 text-indigo-700" },
+  applied: { label: "Applied", className: "bg-emerald-100 text-emerald-800" },
+  waiting: { label: "Waiting on agency", className: "bg-blue-50 text-blue-700" },
+  not_eligible: { label: "Not eligible", className: "bg-slate-100 text-slate-700" },
+  stuck: { label: "Asked for help", className: "bg-amber-100 text-amber-800" },
+};
+
+function BenefitsProgressChip({
+  status,
+  at,
+  reply,
+}: {
+  status: BenefitsApplicationStatus;
+  at: string | null;
+  reply: string | null;
+}) {
+  const chip = BENEFITS_PROGRESS_CHIP[status];
+  const title = [at ? formatEt(at) : null, reply ? `Reply: ${reply}` : null]
+    .filter(Boolean)
+    .join(" — ");
+  return (
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap ${chip.className}`}
+      title={title || "Family-reported benefits progress"}
+    >
+      {chip.label}
+    </span>
+  );
+}
+
 const TIMELINE_ICON: Record<string, string> = {
   intake: "●",
   enriched: "✚",
@@ -1406,6 +1484,7 @@ function CasePanel({
   navigator,
   reviewContext,
   familyLabel,
+  hasEmail,
   onNavigator,
   onAction,
   onDelete,
@@ -1422,6 +1501,7 @@ function CasePanel({
   navigator: NavigatorDetail | null | undefined;
   reviewContext: Omit<ReviewItem, "draft" | "pick">;
   familyLabel: string;
+  hasEmail: boolean;
   onNavigator: (
     action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
     subject?: string,
@@ -1441,6 +1521,7 @@ function CasePanel({
           navigator={navigator}
           reviewContext={reviewContext}
           familyLabel={familyLabel}
+          hasEmail={hasEmail}
           textable={reach.textable}
           busy={busy}
           onNavigator={onNavigator}

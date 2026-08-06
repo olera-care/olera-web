@@ -37,7 +37,6 @@ const navSections: NavSection[] = [
       // Outreach merged into Connections (direction=outbound toggle)
       // Leads retired — Connections page now handles all lead management
       { label: "Provider Outreach", href: "/admin/provider-outreach" },
-      { label: "Re-Engagement", href: "/admin/provider-outreach/re-engagement" },
       { label: "Questions", href: "/admin/questions" },
     ],
   },

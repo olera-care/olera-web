@@ -8,7 +8,7 @@
  * (401) if CRON_SECRET is unset OR doesn't match — never publicly callable.
  *
  * Behavior:
- *   - Find providers in in_sequence stage where sequence_started_at + 14 days <= now()
+ *   - Find providers in in_sequence stage where sequence_started_at + cadence days <= now()
  *   - Check they haven't claimed (claimed_at is still null)
  *   - Check email engagement (did they click any links?)
  *   - Move to needs_call stage with appropriate reason:
@@ -16,7 +16,7 @@
  *       - 'sequence_exhausted' if no clicks detected
  *   - Log touchpoint for each transition
  *
- * Timing: The cadence is Day 0, 3, 7, 14. After Day 14 (final email) with
+ * Timing: The cadence is Day 0, 3, 5, 7. After Day 7 (final email) with
  * no claim, we immediately escalate to manual calls (Follow Up stage).
  *
  * Local testing:
@@ -28,6 +28,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { withCronRun } from "@/lib/crons/run";
 import { DAYS_AFTER_FINAL_TO_NEEDS_CALL, PROVIDER_OUTREACH_CADENCE } from "@/lib/provider-outreach";
+import { findFaxForProvider, saveFaxResult } from "@/lib/provider-fax-finder";
 
 function authorize(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -52,7 +53,7 @@ async function runCron(req: NextRequest) {
   return withCronRun("provider-outreach-sequence-check", async () => {
     const db = getServiceClient();
 
-    // Calculate the cutoff date: Day 14 (last email) + DAYS_AFTER_FINAL_TO_NEEDS_CALL
+    // Calculate the cutoff date: last cadence day + DAYS_AFTER_FINAL_TO_NEEDS_CALL
     const lastStep = PROVIDER_OUTREACH_CADENCE[PROVIDER_OUTREACH_CADENCE.length - 1];
     const totalDays = lastStep.day + DAYS_AFTER_FINAL_TO_NEEDS_CALL;
 
@@ -60,6 +61,7 @@ async function runCron(req: NextRequest) {
     cutoffDate.setDate(cutoffDate.getDate() - totalDays);
 
     // Find providers whose sequence has expired
+    // Limit to 20 because we also run fax lookup which takes time
     const { data: expiredProviders, error: fetchError } = await db
       .from("provider_outreach_tracking")
       .select("id, provider_id, sequence_started_at")
@@ -67,7 +69,7 @@ async function runCron(req: NextRequest) {
       .is("claimed_at", null)
       .not("sequence_started_at", "is", null)
       .lte("sequence_started_at", cutoffDate.toISOString())
-      .limit(50); // Process in batches
+      .limit(20);
 
     if (fetchError) {
       console.error("[provider-outreach-sequence-check] Fetch error:", fetchError);
@@ -136,6 +138,33 @@ async function runCron(req: NextRequest) {
         transitioned.push(provider.provider_id);
         if (hasClicked) {
           transitionedClicked.push(provider.provider_id);
+        }
+
+        // Auto-run fax finder so "Has Fax" indicator is pre-populated in Follow Up tab
+        try {
+          const { data: providerData } = await db
+            .from("olera-providers")
+            .select("provider_id, provider_name, website, place_id, city, state")
+            .eq("provider_id", provider.provider_id)
+            .maybeSingle();
+
+          if (providerData) {
+            const faxResult = await findFaxForProvider({
+              provider_id: providerData.provider_id,
+              provider_name: providerData.provider_name,
+              website: providerData.website,
+              place_id: providerData.place_id,
+              city: providerData.city,
+              state: providerData.state,
+            });
+            await saveFaxResult(db, provider.provider_id, faxResult);
+          }
+        } catch (faxErr) {
+          // Non-fatal: log but don't fail the transition
+          console.error(
+            `[provider-outreach-sequence-check] Fax lookup failed for ${provider.provider_id}:`,
+            faxErr instanceof Error ? faxErr.message : faxErr
+          );
         }
       } catch (err) {
         failed.push({

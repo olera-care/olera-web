@@ -172,6 +172,15 @@ interface RungPlan {
   /** Optional companion side effect after a successful send (e.g. the benefits
    *  rungs' SMS mirror). Failures are logged, never fatal to the run. */
   afterSend?: (sentAt: string) => Promise<void>;
+  /** A text-first equivalent for benefits families who explicitly chose SMS
+   * but have no deliverable email. Returns the effective send time when sent
+   * immediately or queued, otherwise null. */
+  smsOnlySend?: () => Promise<CascadeSmsDelivery | null>;
+}
+
+interface CascadeSmsDelivery {
+  at: string;
+  queued: boolean;
 }
 
 function norm(rel: ProfileRow | ProfileRow[] | null | undefined): ProfileRow | undefined {
@@ -238,6 +247,7 @@ export async function GET(request: NextRequest) {
     const counts = {
       families: 0,
       sent: 0,
+      queued: 0,
       skipped: 0,
       dry_run: dryRun,
       byRung: {} as Record<string, number>,
@@ -476,8 +486,8 @@ export async function GET(request: NextRequest) {
       const sendCascadeSms = async (
         body: string,
         stampKey: "first_step_sms_at" | "check_sms_at",
-      ) => {
-        if (!smsEligible || !fp.phone) return;
+      ): Promise<CascadeSmsDelivery | null> => {
+        if (!smsEligible || !fp.phone) return null;
         const smsType = stampKey === "first_step_sms_at" ? "benefits_first_step_sms" : "benefits_check_in_sms";
         // Quiet hours, same policy as the navigator scheduler's companion text:
         // 17:00 UTC is fine for CONUS, but Hawaii/Alaska (and unknown-state
@@ -497,7 +507,7 @@ export async function GET(request: NextRequest) {
           });
           if (qErr) {
             console.error(`[family-comms-coordinator] cascade SMS enqueue failed:`, qErr);
-            return;
+            return null;
           }
           const queuedKey = stampKey === "first_step_sms_at" ? "first_step_sms_queued_for" : "check_sms_queued_for";
           familyMeta.benefits_cascade = {
@@ -508,7 +518,7 @@ export async function GET(request: NextRequest) {
             .from("business_profiles")
             .update({ metadata: { ...familyMeta } })
             .eq("id", fam.familyId);
-          return;
+          return { at: sendAfter, queued: true };
         }
         // Logged under a distinct *_sms type: visible on /admin/family-comms and
         // the automations rollup, but NOT in FAMILY_NUDGE_EMAIL_TYPES — the
@@ -520,15 +530,17 @@ export async function GET(request: NextRequest) {
           recipientType: "family",
           recipientLogProfileId: fam.familyId,
         });
-        if (r.success) {
+        if (r.success && !r.skipped) {
+          const smsSentAt = new Date().toISOString();
           familyMeta.benefits_cascade = {
             ...readBenefitsCascade(familyMeta),
-            [stampKey]: new Date().toISOString(),
+            [stampKey]: smsSentAt,
           };
           await db
             .from("business_profiles")
             .update({ metadata: { ...familyMeta } })
             .eq("id", fam.familyId);
+          return { at: smsSentAt, queued: false };
         } else {
           console.error(`[family-comms-coordinator] cascade SMS failed:`, r.error);
           if (r.error?.includes("21610")) {
@@ -537,6 +549,7 @@ export async function GET(request: NextRequest) {
               .update({ phone_validity: "opted_out" })
               .eq("id", fam.familyId);
           }
+          return null;
         }
       };
       const benefitsCascadeActive =
@@ -1098,6 +1111,7 @@ export async function GET(request: NextRequest) {
         if (
           benefitsCascade.first_step_sent_at &&
           !benefitsCascade.check_sent_at &&
+          !benefitsCascade.check_sms_queued_for &&
           !benefitsCascade.outcome
         ) {
           const sinceStep = now - new Date(benefitsCascade.first_step_sent_at).getTime();
@@ -1106,6 +1120,24 @@ export async function GET(request: NextRequest) {
             // Retarget: the living-journey page saw the call happen — congratulate
             // and point forward instead of asking how it's going.
             const stepDone = !!benefitsCascade.first_step_done_at;
+            const sendCheckSms = async (): Promise<CascadeSmsDelivery | null> => {
+              const { data: tokenRow } = await db
+                .from("benefits_results_tokens")
+                .select("token")
+                .eq("profile_id", fam.familyId)
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              if (!tokenRow?.token) return null;
+              return sendCascadeSms(
+                benefitsCheckInSms({
+                  programShortName: programShort,
+                  url: `${siteUrl}/m/${tokenRow.token}`,
+                  done: stepDone,
+                }),
+                "check_sms_at",
+              );
+            };
             return {
               rung: "benefits_check_in",
               emailType: "benefits_check_in",
@@ -1132,24 +1164,8 @@ export async function GET(request: NextRequest) {
                 };
                 return stepDone ? benefitsCheckInDoneEmail(opts) : benefitsCheckInEmail(opts);
               },
-              afterSend: async () => {
-                const { data: tokenRow } = await db
-                  .from("benefits_results_tokens")
-                  .select("token")
-                  .eq("profile_id", fam.familyId)
-                  .order("created_at", { ascending: false })
-                  .limit(1)
-                  .maybeSingle();
-                if (!tokenRow?.token) return;
-                await sendCascadeSms(
-                  benefitsCheckInSms({
-                    programShortName: programShort,
-                    url: `${siteUrl}/m/${tokenRow.token}`,
-                    done: stepDone,
-                  }),
-                  "check_sms_at",
-                );
-              },
+              afterSend: async () => { await sendCheckSms(); },
+              smsOnlySend: sendCheckSms,
               stamp: async (sentAt) => {
                 familyMeta.benefits_cascade = {
                   ...readBenefitsCascade(familyMeta),
@@ -1309,6 +1325,34 @@ export async function GET(request: NextRequest) {
           }
         }
         if (!familyEmail) {
+          if (plan.smsOnlySend) {
+            const delivery = await plan.smsOnlySend();
+            if (delivery) {
+              const sentAt = delivery.at;
+              // A queued text-only B2 is not delivered yet. The queue flush
+              // owns the final check_sent_at stamp after Twilio accepts it.
+              if (!delivery.queued) await plan.stamp(sentAt);
+              await db
+                .from("business_profiles")
+                .update({
+                  metadata: {
+                    ...familyMeta,
+                    ...(delivery.queued
+                      ? { last_coordinator_sms_queued_for: sentAt }
+                      : { last_coordinator_sms_at: sentAt }),
+                    last_coordinator_rung: plan.rung,
+                  },
+                })
+                .eq("id", fam.familyId);
+              bump(plan.rung);
+              if (delivery.queued) counts.queued++;
+              else counts.sent++;
+            } else {
+              counts.skipped++;
+              counts.stops.no_email++;
+            }
+            continue;
+          }
           counts.skipped++;
           counts.stops.no_email++;
           continue;

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type CampaignCommunication,
   type CampaignLead,
@@ -14,6 +15,11 @@ import {
   AD_BOOST_PROVIDER_JOURNEY,
   type JourneyStep,
 } from "@/lib/family-comms/journey";
+import {
+  type AdBoostCommunicationTone,
+  formatAdBoostRelativeTime,
+  getAdBoostStepState,
+} from "@/lib/ad-boost/admin-communications";
 
 type EngineJob = {
   id: string;
@@ -45,25 +51,16 @@ type Preview = {
   preheader?: string | null;
 };
 
-type StepState = {
-  label: string;
-  detail?: string;
-  tone: "sent" | "active" | "scheduled" | "waiting" | "muted";
-};
-
 const ENGINE_IDS = [
   "ad-boost-emails",
   "ad-boost-profile-reminders",
   "ad-boost-launch-scheduler",
+  "ad-boost-end-scheduler",
 ];
 
 const EMAIL_TYPE_COUNT = new Set(
   AD_BOOST_PROVIDER_JOURNEY.steps.flatMap((step) => step.emailType ? [step.emailType] : []),
 ).size;
-const TEXT_TYPE_COUNT = new Set(
-  AD_BOOST_PROVIDER_JOURNEY.steps.flatMap((step) => step.smsType ? [step.smsType] : []),
-).size;
-
 const PHASE_DESCRIPTIONS: Record<string, string> = {
   Request: "Capture intent immediately, then take the path the provider qualifies for.",
   Prepare: "Clear the readiness gate and turn the saved request into launchable work.",
@@ -75,7 +72,7 @@ const PHASE_DESCRIPTIONS: Record<string, string> = {
 const ENGINE_COPY: Record<string, { eyebrow: string; description: string }> = {
   "ad-boost-emails": {
     eyebrow: "Event-driven",
-    description: "Request, lead, traction, and wrap-up messages fire when campaign activity happens.",
+    description: "Request, lead, and traction messages fire when campaign activity happens.",
   },
   "ad-boost-profile-reminders": {
     eyebrow: "Daily",
@@ -85,34 +82,13 @@ const ENGINE_COPY: Record<string, { eyebrow: string; description: string }> = {
     eyebrow: "Hourly",
     description: "Delivers launch confirmations at the provider-friendly US Eastern time selected by the concierge.",
   },
+  "ad-boost-end-scheduler": {
+    eyebrow: "Hourly",
+    description: "Ends finished flights and delivers their wrap-up at the next 10:15 AM ET business window.",
+  },
 };
 
-function ago(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const minutes = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function scheduledFor(iso: string): string {
-  const scheduled = new Date(iso);
-  if (scheduled.getTime() <= Date.now()) return ago(iso);
-  return scheduled.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/New_York",
-    timeZoneName: "short",
-  });
-}
-
-function stateClasses(tone: StepState["tone"]): string {
+function stateClasses(tone: AdBoostCommunicationTone): string {
   if (tone === "sent") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   if (tone === "active") return "bg-teal-50 text-teal-800 ring-teal-200";
   if (tone === "scheduled") return "bg-blue-50 text-blue-700 ring-blue-200";
@@ -120,110 +96,28 @@ function stateClasses(tone: StepState["tone"]): string {
   return "bg-gray-50 text-gray-400 ring-gray-200";
 }
 
-function successfulFor(detail: CampaignDetail, type: string): CampaignCommunication[] {
-  return detail.communications.filter(
-    (communication) => communication.email_type === type && communication.status === "sent",
-  );
-}
-
-function markerState(marker: string | null | undefined): StepState | null {
-  return marker ? { label: "Sent", detail: ago(marker), tone: "sent" } : null;
-}
-
-function actualState(step: JourneyStep, detail: CampaignDetail | null): StepState | null {
-  if (!detail) return null;
-  const request = detail.request;
-  const status = request.status;
-  const sentCount = step.emailType ? successfulFor(detail, step.emailType).length : 0;
-  const latest = step.emailType
-    ? successfulFor(detail, step.emailType).at(-1)?.created_at
-    : null;
-
-  switch (step.key) {
-    case "request_queued":
-      return markerState(request.queued_email_sent_at) ??
-        (request.requested_email_sent_at
-          ? { label: "Not this path", tone: "muted" }
-          : status === "pending_profile"
-            ? { label: "Waiting on profile", tone: "waiting" }
-            : { label: "Not recorded", tone: "muted" });
-    case "request_ready":
-      return markerState(request.requested_email_sent_at) ??
-        (request.queued_email_sent_at
-          ? { label: "Queued path", tone: "muted" }
-          : { label: "Not recorded", tone: "muted" });
-    case "profile_reminder":
-      return markerState(request.profile_reminder_email_sent_at) ??
-        (status === "pending_profile"
-          ? { label: "Watching", detail: "due after 48h", tone: "waiting" }
-          : { label: "Skipped", tone: "muted" });
-    case "promotion_ready":
-      return markerState(request.promotion_email_sent_at) ??
-        (status === "pending_profile"
-          ? { label: "Blocked", detail: "profile gate", tone: "waiting" }
-          : request.queued_email_sent_at
-            ? { label: "Not recorded", tone: "muted" }
-            : { label: "Not this path", tone: "muted" });
-    case "concierge_setup":
-      if (status === "pending_profile") return { label: "Blocked", tone: "waiting" };
-      if (status === "requested") return { label: "Ready for setup", tone: "active" };
-      if (status === "scheduled") return { label: "Scheduled", tone: "scheduled" };
-      if (["live", "ended"].includes(status)) return { label: "Complete", tone: "sent" };
-      return { label: STATUS_LABELS[status] ?? status, tone: "muted" };
-    case "campaign_launched":
-      return markerState(request.launched_email_sent_at) ??
-        (request.launched_email_scheduled_at
-          ? { label: "Scheduled", detail: scheduledFor(request.launched_email_scheduled_at), tone: "scheduled" }
-          : status === "live"
-            ? { label: "Awaiting send", tone: "waiting" }
-            : ["ended", "cancelled"].includes(status)
-              ? { label: "Not recorded", tone: "muted" }
-              : { label: "Not due", tone: "muted" });
-    case "traction":
-      return markerState(request.traction_email_sent_at) ??
-        (status === "live"
-          ? { label: "Watching metrics", tone: "active" }
-          : status === "ended"
-            ? { label: "Skipped", tone: "muted" }
-            : { label: "Not due", tone: "muted" });
-    case "lead_delivered":
-      if (sentCount > 0) return { label: `${sentCount} sent`, detail: latest ? ago(latest) : undefined, tone: "sent" };
-      return ["live", "ended"].includes(status)
-        ? { label: detail.leads.length > 0 ? "No email recorded" : "No attributed leads", tone: "muted" }
-        : { label: "Not due", tone: "muted" };
-    case "lead_outcome":
-      if (sentCount > 0) return { label: `${sentCount} sent`, detail: `${detail.receipt?.outcomes.unanswered ?? 0} unresolved`, tone: "sent" };
-      return detail.leads.length > 0 && ["live", "ended"].includes(status)
-        ? { label: "Watching lead age", detail: "7d / 21d", tone: "active" }
-        : { label: "Not due", tone: "muted" };
-    case "promo_complete":
-      return markerState(request.promo_complete_email_sent_at) ??
-        (status === "live"
-          ? { label: "Campaign in flight", tone: "active" }
-          : status === "ended"
-            ? { label: "Awaiting send", tone: "waiting" }
-            : { label: "Not due", tone: "muted" });
-    case "plan_decision":
-      if (request.plan_status) return { label: request.plan_status.replace("_", " "), tone: request.plan_status === "active" ? "sent" : "waiting" };
-      if ((request.delivered ?? 0) >= 3 || request.promo_complete_email_sent_at) return { label: "Decision open", tone: "active" };
-      return { label: "Value gate closed", tone: "muted" };
-    default:
-      return null;
-  }
-}
-
 export default function AdBoostJourneyExperience() {
+  const searchParams = useSearchParams();
+  const requestedCampaignId = searchParams.get("campaign") ?? "";
+  const requestedStepKey = searchParams.get("step");
+  const validRequestedStep = AD_BOOST_PROVIDER_JOURNEY.steps.some(
+    (step) => step.key === requestedStepKey,
+  )
+    ? requestedStepKey!
+    : "campaign_launched";
   const [campaigns, setCampaigns] = useState<CampaignRequest[]>([]);
   const [engines, setEngines] = useState<EngineJob[]>([]);
-  const [campaignId, setCampaignId] = useState("");
+  const [campaignId, setCampaignId] = useState(requestedCampaignId);
   const [detail, setDetail] = useState<CampaignDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStepKey, setSelectedStepKey] = useState("campaign_launched");
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(["campaign_launched"]));
+  const [selectedStepKey, setSelectedStepKey] = useState(validRequestedStep);
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set([validRequestedStep]));
   const [preview, setPreview] = useState<Preview | "loading" | "none" | null>(null);
   const [previewExpanded, setPreviewExpanded] = useState(false);
+  const journeyRef = useRef<HTMLElement>(null);
+  const previewRef = useRef<HTMLElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -242,7 +136,11 @@ export default function AdBoostJourneyExperience() {
       if (nextCampaigns.length > 0) {
         const rank: Record<string, number> = { live: 0, scheduled: 1, requested: 2, pending_profile: 3, ended: 4, cancelled: 5 };
         const first = [...nextCampaigns].sort((a, b) => (rank[a.status] ?? 9) - (rank[b.status] ?? 9))[0];
-        setCampaignId((current) => current || first.id);
+        setCampaignId((current) =>
+          current && nextCampaigns.some((campaign) => campaign.id === current)
+            ? current
+            : first.id,
+        );
       }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not load the Ad Boost journey");
@@ -252,6 +150,17 @@ export default function AdBoostJourneyExperience() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  // Journey links from a campaign detail page arrive with both the correct
+  // step and the preview anchor. The preview is client-rendered after the
+  // Suspense boundary, so repeat the browser's anchor scroll once it exists.
+  useEffect(() => {
+    if (window.location.hash !== "#ad-boost-message-preview") return;
+    const frame = window.requestAnimationFrame(() => {
+      previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     if (!campaignId) {
@@ -276,14 +185,14 @@ export default function AdBoostJourneyExperience() {
   const selectedStep = AD_BOOST_PROVIDER_JOURNEY.steps.find((step) => step.key === selectedStepKey) ?? AD_BOOST_PROVIDER_JOURNEY.steps[0];
 
   useEffect(() => {
-    if (!selectedStep.sampleId || !selectedStep.ownedBy) {
+    if (!selectedStep.emailSampleId || !selectedStep.ownedBy) {
       setPreview(null);
       return;
     }
     let active = true;
     setPreview("loading");
     setPreviewExpanded(false);
-    fetch(`/api/admin/automations/${selectedStep.ownedBy}/preview?variant=${encodeURIComponent(selectedStep.sampleId)}`)
+    fetch(`/api/admin/automations/${selectedStep.ownedBy}/preview?variant=${encodeURIComponent(selectedStep.emailSampleId)}`)
       .then(async (response) => {
         if (!response.ok) throw new Error("preview unavailable");
         return response.json() as Promise<Preview>;
@@ -317,6 +226,17 @@ export default function AdBoostJourneyExperience() {
     });
   }
 
+  function previewStep(step: JourneyStep) {
+    setSelectedStepKey(step.key);
+    setExpanded((current) => new Set(current).add(step.key));
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      window.setTimeout(
+        () => previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        50,
+      );
+    }
+  }
+
   return (
     <div className="max-w-6xl pb-16">
       <Link href="/admin/automations" className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 transition-colors hover:text-gray-700">
@@ -330,12 +250,12 @@ export default function AdBoostJourneyExperience() {
             See every Ad Boost message in order.
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-500">
-            One provider experience across request, launch, live results, and outcome follow-up. The machinery stays visible—without making you assemble the story yourself.
+            One provider experience across request, launch, live results, and outcome follow-up. Ad Boost is the internal program name; providers see it as their Find Families campaign.
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-gray-700">
             <span><strong className="text-xl text-gray-950">{EMAIL_TYPE_COUNT}</strong> email types</span>
             <span><strong className="text-xl text-gray-950">{ENGINE_IDS.length}</strong> delivery engines</span>
-            <span><strong className="text-xl text-gray-950">{TEXT_TYPE_COUNT}</strong> text messages</span>
+            <span className="text-gray-500">Email-only journey</span>
           </div>
         </div>
         <Link href="/admin/ad-boost" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-gray-950 px-5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2">
@@ -380,7 +300,7 @@ export default function AdBoostJourneyExperience() {
       </section>
 
       <div className="mt-8 grid items-start gap-7 lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
-        <section className="overflow-hidden rounded-2xl border border-teal-200/70 bg-white shadow-sm shadow-teal-950/5">
+        <section ref={journeyRef} className="scroll-mt-5 overflow-hidden rounded-2xl border border-teal-200/70 bg-white shadow-sm shadow-teal-950/5">
           <div className="flex flex-col gap-3 border-b border-teal-100 bg-gradient-to-br from-teal-50/80 via-white to-white px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-6">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">The campaign story</p>
@@ -407,7 +327,12 @@ export default function AdBoostJourneyExperience() {
                   {steps.map((step, stepIndex) => {
                     const isSelected = selectedStepKey === step.key;
                     const isExpanded = expanded.has(step.key);
-                    const state = actualState(step, detail);
+                    const state = detail
+                      ? getAdBoostStepState(step, detail.request, detail.communications, {
+                          leadCount: detail.leads.length,
+                          unresolvedOutcomes: detail.receipt?.outcomes.unanswered ?? 0,
+                        })
+                      : null;
                     return (
                       <li key={step.key} className="relative flex gap-2.5 sm:gap-3">
                         <div className="flex w-7 shrink-0 flex-col items-center" aria-hidden="true">
@@ -437,6 +362,15 @@ export default function AdBoostJourneyExperience() {
                               {state?.detail && <p className="mt-2 text-xs font-medium text-gray-400">This campaign: {state.detail}</p>}
                               {step.gate && <p className="mt-2 rounded-lg bg-amber-50/70 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-100"><strong>Gate:</strong> {step.gate}</p>}
                               <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px]">
+                                {step.emailSampleId && (
+                                  <button
+                                    type="button"
+                                    onClick={() => previewStep(step)}
+                                    className="inline-flex min-h-7 items-center rounded-md bg-teal-50 px-2.5 font-semibold text-teal-800 ring-1 ring-inset ring-teal-100 transition-colors hover:bg-teal-100"
+                                  >
+                                    Preview email ↓
+                                  </button>
+                                )}
                                 {step.emailType && <Link href={`/admin/emails?email_type=${encodeURIComponent(step.emailType)}`} className="rounded-md bg-gray-100 px-2 py-1 font-medium text-gray-500 hover:text-gray-800">✉ {step.emailType}</Link>}
                                 {step.ownedBy && <Link href={`/admin/automations/${step.ownedBy}`} className="font-semibold text-teal-700 hover:underline">Runs in {ENGINE_COPY[step.ownedBy]?.eyebrow ?? step.ownedBy} →</Link>}
                                 {!step.ownedBy && step.ownerNote && <span className="text-gray-400">{step.ownerNote}</span>}
@@ -453,14 +387,19 @@ export default function AdBoostJourneyExperience() {
           </div>
         </section>
 
-        <aside className="lg:sticky lg:top-5">
+        <aside ref={previewRef} id="ad-boost-message-preview" className="scroll-mt-5 lg:sticky lg:top-5">
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-100 px-5 py-4">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">What the provider receives</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Representative email</p>
               <h2 className="mt-1 text-lg font-semibold tracking-tight text-gray-950">{selectedStep.title}</h2>
               {preview && typeof preview === "object" && <p className="mt-1 text-xs text-gray-500">&ldquo;{preview.subject}&rdquo;</p>}
+              <p className="mt-2 text-[11px] leading-relaxed text-gray-400">
+                {selectedCampaign
+                  ? `Campaign status reflects ${selectedCampaign.display_name || selectedCampaign.provider_slug || "the selected provider"}; the message below uses representative sample data.`
+                  : "This is representative content. Open a campaign overlay to compare it with real delivery state."}
+              </p>
             </div>
-            {!selectedStep.sampleId ? (
+            {!selectedStep.emailSampleId ? (
               <div className="flex min-h-80 flex-col items-center justify-center px-8 text-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-400" aria-hidden="true">—</span>
                 <h3 className="mt-4 text-base font-semibold text-gray-900">No message at this step</h3>
@@ -490,6 +429,13 @@ export default function AdBoostJourneyExperience() {
               </>
             )}
           </div>
+          <button
+            type="button"
+            onClick={() => journeyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-600 lg:hidden"
+          >
+            ↑ Back to campaign journey
+          </button>
         </aside>
       </div>
 
@@ -515,7 +461,7 @@ export default function AdBoostJourneyExperience() {
                 <span className="flex shrink-0 items-center gap-5 text-xs text-gray-400">
                   <span className="text-right">
                     <strong className="block text-sm text-gray-700">
-                      {engine.lastRun ? `Last run ${ago(engine.lastRun.startedAt)}` : engine.id === "ad-boost-emails" ? "Activity-triggered" : "No run recorded"}
+                      {engine.lastRun ? `Last run ${formatAdBoostRelativeTime(engine.lastRun.startedAt)}` : engine.id === "ad-boost-emails" ? "Activity-triggered" : "No run recorded"}
                     </strong>
                     {engine.paused ? "delivery paused" : engine.lastRun?.status === "running" ? "currently running" : "operational detail"}
                   </span>

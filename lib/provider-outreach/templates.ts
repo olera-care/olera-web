@@ -167,25 +167,32 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
  * Day 0: Introduction email
  *
  * First touch from Dr. Logan DuBose. Introduces Olera, explains the
- * no-cost/no-referral-fee model, and invites them to review their page.
+ * free profile we've created, and invites them to manage their page.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
- * Each array element is a paragraph. Sentences flow within paragraphs.
+ * Style: Professional, warm, clear value proposition.
+ * Each array element is a paragraph. Empty strings create paragraph breaks.
+ * Single newlines within elements become <br> tags.
  */
 function introEmail(): EmailDraft {
   return {
-    subject: `A free way for more families to find ${PLACEHOLDER.providerName}`,
-    preheader: `No broker, no fee, families come directly to you`,
+    subject: `We've created a free profile for ${PLACEHOLDER.providerName}`,
     body: [
-      `**Your free Olera page is live.**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `We've created a free Olera page for ${PLACEHOLDER.providerName}, giving families an easier way to discover and connect with you. There's no cost to manage your page and no referral fees. When a family finds you through Olera, they contact your team directly.`,
+      `I'm Dr. Logan DuBose, a physician and co-founder of Olera.`,
       ``,
-      `[Review your page →](${PLACEHOLDER.claimUrl})`,
+      `As a physician, I've seen how difficult it can be for families to navigate senior care. That's why we created Olera. With support from the NIH, we're building a free referral platform that helps families discover trusted senior care providers.`,
       ``,
-      `I'm Dr. Logan DuBose, a physician-researcher and co-founder of Olera. With support from the NIH, we built Olera to make finding trusted senior care easier for families.`,
+      `As part of that, we've already created a free profile for ${PLACEHOLDER.providerName} using publicly available information. It's ready for your team to review and manage, making it easier for families to find your services.`,
       ``,
-      `We'd love for you to take a look and make sure the page accurately reflects ${PLACEHOLDER.providerName}. Questions or need help getting set up? Just reply.`,
+      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
+      ``,
+      `Claiming your profile takes less than two minutes and allows you to:`,
+      `✓ Have families contact you directly`,
+      `✓ Never pay referral or per-lead fees`,
+      `✓ Improve your online visibility`,
+      ``,
+      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }

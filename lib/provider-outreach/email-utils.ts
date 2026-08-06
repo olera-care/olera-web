@@ -60,7 +60,7 @@ export function polishedLayout(
   opts?: { preheader?: string; categoryLabel?: string }
 ): string {
   const categoryHtml = opts?.categoryLabel
-    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 16px;">${opts.categoryLabel}</p>`
+    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${opts.categoryLabel}</p>`
     : "";
 
   const preheader = preheaderHtml(opts?.preheader ?? "");
@@ -86,7 +86,7 @@ export function smartleadBrandedLayout(
   opts?: { categoryLabel?: string }
 ): string {
   const categoryHtml = opts?.categoryLabel
-    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 16px;">${opts.categoryLabel}</p>`
+    ? `<p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">${opts.categoryLabel}</p>`
     : "";
 
   const year = new Date().getFullYear();
@@ -117,9 +117,10 @@ function isCtaLink(label: string): boolean {
 /**
  * Render a CTA button block (standalone, not inside a paragraph).
  * NOTE: No leading/trailing newlines to avoid extra whitespace in email clients.
+ * Compact spacing: 12px top/bottom margin (was 24px).
  */
 function renderCtaButton(label: string, href: string): string {
-  return `<table cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:${BRAND_COLOR};border-radius:8px;"><a href="${href}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">${label}</a></td></tr></table>`;
+  return `<table cellpadding="0" cellspacing="0" style="margin:12px 0;"><tr><td style="background:${BRAND_COLOR};border-radius:8px;"><a href="${href}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">${label}</a></td></tr></table>`;
 }
 
 /**
@@ -169,7 +170,7 @@ function bodyToPolishedHtml(text: string): string {
       } else {
         // Standalone non-CTA link → wrap in paragraph
         outputBlocks.push(
-          `<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">${renderInlineLink(label, href)}</p>`
+          `<p style="font-size:15px;line-height:1.4;color:#374151;margin:0 0 8px;">${renderInlineLink(label, href)}</p>`
         );
       }
     } else {
@@ -183,7 +184,7 @@ function bodyToPolishedHtml(text: string): string {
       const withBreaks = processed.replace(/\n/g, "<br>");
 
       outputBlocks.push(
-        `<p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">${withBreaks}</p>`
+        `<p style="font-size:15px;line-height:1.4;color:#374151;margin:0 0 8px;">${withBreaks}</p>`
       );
     }
   }
@@ -265,7 +266,8 @@ export function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): stri
  * NOTE: Single-line HTML to avoid extra whitespace in email clients.
  */
 function composePolishedFooterHtml(vars: Record<string, string>): string {
-  return `<div style="margin-top:24px;"><p style="font-size:14px;color:#374151;margin:0 0 4px;">Best,</p><p style="font-size:14px;color:#374151;margin:0;">Logan</p>${loganSignatureHtml()}</div><div style="margin-top:24px;padding-top:16px;border-top:1px solid #f3f4f6;"><p style="font-size:12px;color:#6b7280;margin:0 0 8px;">Questions? Just reply — it goes straight to our team.</p><p style="font-size:12px;color:#9ca3af;margin:0;"><a href="${vars.manage_url}" style="color:#9ca3af;text-decoration:underline;">Manage listing</a> · <a href="${vars.remove_url}" style="color:#9ca3af;text-decoration:underline;">Remove listing</a> · <a href="${vars.unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></p><p style="font-size:11px;color:#d1d5db;margin:12px 0 0;">Olera · ${vars.mailing_address}</p></div>`;
+  // Compact spacing: 8px margins (matches SmartLead path)
+  return `<div style="margin-top:8px;"><p style="font-size:14px;color:#374151;margin:0 0 4px;">Best,</p><p style="font-size:14px;color:#374151;margin:0;">Logan</p>${loganSignatureHtml()}</div><div style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;"><p style="font-size:12px;color:#6b7280;margin:0 0 8px;">Questions? Just reply — it goes straight to our team.</p><p style="font-size:12px;color:#9ca3af;margin:0;"><a href="${vars.manage_url}" style="color:#9ca3af;text-decoration:underline;">Manage listing</a> · <a href="${vars.remove_url}" style="color:#9ca3af;text-decoration:underline;">Remove listing</a> · <a href="${vars.unsubscribe_url}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></p><p style="font-size:11px;color:#d1d5db;margin:8px 0 0;">Olera · ${vars.mailing_address}</p></div>`;
 }
 
 /**

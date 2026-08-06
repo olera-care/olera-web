@@ -298,8 +298,9 @@ function smartleadBodyToHtml(text: string): string {
 
   // 4) Single-div body: paragraphs joined by <br><br>
   // This prevents Gmail's auto-trim and keeps consistent spacing
+  // Compact line-height (1.4) matches email-utils.ts for consistency
   const paragraphs = s.split(/\n{2,}/).map((p) => p.replace(/\n/g, "<br>"));
-  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.6;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
+  return `<div style="font-family:Inter,Arial,sans-serif;font-size:14px;line-height:1.4;color:#1f2937;">${paragraphs.join("<br><br>")}</div>`;
 }
 
 /**
@@ -308,20 +309,20 @@ function smartleadBodyToHtml(text: string): string {
  * NOTE: Join with empty string to avoid extra whitespace in email clients.
  */
 function buildSmartleadFooterHtml(): string {
-  // NOTE: Spacing is carefully calibrated to avoid cumulative margin issues.
-  // - Sign-off "Best," has 16px top margin (space from body)
-  // - "Logan" has 8px bottom margin (tight coupling to signature)
+  // NOTE: Compact spacing to match email-utils.ts (8px/12px pattern).
+  // - Sign-off "Best," has 8px top margin (space from body)
+  // - "Logan" has 4px bottom margin (tight coupling to signature)
   // - Signature has 0 margin (set in loganSignatureHtml)
-  // - Footer div has 16px top margin (reasonable gap from signature)
+  // - Footer div has 8px top margin (compact gap from signature)
   // Footer links use &nbsp; to stay on one line in all email clients.
   return [
-    // Sign-off - 16px gap from body content
-    `<p style="margin:16px 0 4px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
-    `<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
+    // Sign-off - 8px gap from body content (compact)
+    `<p style="margin:8px 0 4px;font-size:14px;line-height:1.4;color:#374151;font-family:Inter,Arial,sans-serif;">Best,</p>`,
+    `<p style="margin:0 0 4px;font-size:14px;line-height:1.4;color:#374151;font-family:Inter,Arial,sans-serif;">Logan</p>`,
     // Signature block (shared with Resend emails)
     loganSignatureHtml(),
-    // Footer links with merge tags - reduced margin, inline links with &nbsp;
-    `<div style="margin:16px 0 0;padding:12px 0 0;border-top:1px solid #e5e7eb;">`,
+    // Footer links with merge tags - compact margin, inline links with &nbsp;
+    `<div style="margin:8px 0 0;padding:8px 0 0;border-top:1px solid #e5e7eb;">`,
     `<p style="font-size:12px;color:#6b7280;margin:0 0 8px;font-family:Inter,Arial,sans-serif;">Questions? Just reply — it goes straight to our team.</p>`,
     `<p style="font-size:12px;color:#9ca3af;margin:0;font-family:Inter,Arial,sans-serif;white-space:nowrap;">`,
     `<a href="${MERGE_TAGS.manageUrl}" style="color:#9ca3af;text-decoration:underline;">Manage your listing</a>&nbsp;·&nbsp;`,

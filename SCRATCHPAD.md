@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-08-06 — Ad Boost auto-end + buffered wrap-up send (`cool-ride`, PR #1489)
+
+Campaigns had to be ended by hand, and the flip to `ended` is what fires the promo-complete wrap-up (results summary + subscribe ask) — so flights sat `live` past their end date and the one email that asks for money went out late or not at all. New hourly cron `ad-boost-end-scheduler` (:40) does two rungs: **auto-end** a `live` campaign once the Eastern calendar rolls past its `flight_end_date` (that column is the *last serving day*, so a flight ending Aug 3 ends Aug 4 with a complete final day of metrics), and **send** the wrap-up at 10:15 AM ET on the next business day rather than whenever the flight happened to expire. Manual flips take the same buffered slot with a **Send now** override.
+
+New `lib/send-window.ts` composes the existing ET wall-clock math (`lib/eastern-time.ts`) with the weekend/holiday roll; `lib/business-day.ts` was promoted out of `lib/student-outreach/` now that it has a second consumer. Migration **163** adds `ended_at`, `ended_reason` (`admin` | `flight_end`), `promo_complete_email_scheduled_at`.
+
+**Decisions:** business-day roll chosen over "always 10:15 whatever the day" because the wrap-up carries the subscribe ask. Fully automatic, no click gate (unlike the benefits Care Navigator) — Slack posts on every auto-end and the send can be cancelled before its slot. Campaigns with no `flight_end_date` never auto-end; the cron counts them in Slack so the gap stays visible rather than silent.
+
+**Pre-test caught one critical bug:** the detail page's `Detail` component is re-rendered, not remounted, after a save (no `key` on the parent), so `useState` never saw the server-assigned slot. The input rendered blank next to a "Scheduled for…" banner, Save stayed lit, and the natural next click posted `null` — silently cancelling the very email the feature exists to deliver. Fixed with the adjust-state-during-render pattern (`8c11febc`).
+
+**Files:** `lib/send-window.ts`, `lib/business-day.ts`, `app/api/cron/ad-boost-end-scheduler/route.ts`, `supabase/migrations/163_ad_boost_auto_end.sql`, `app/api/admin/ad-boost/route.ts`, `app/admin/ad-boost/[id]/page.tsx`, `components/admin/AdBoost{Shared,JourneyExperience}.tsx`, cron registry/systems/vercel.json. **Validation:** `tsc --noEmit` 0 new errors, `check:crons` 32 crons, `nextBusinessSlotEt` verified against both DST boundaries + Labor Day/Thanksgiving/Christmas. **Commits:** `f71b7283`, `8c11febc`.
+
+**Next:** apply migration 163 in Supabase **before** merging (the admin `ROW_SELECT` names the new columns; deploying first 500s all of `/admin/ad-boost`), then QA per the PR checklist. See "Next Up" for the first-run interaction with the outcome-capture gap.
+
 ### 2026-08-06 — Benefits guidance communications (`codex/benefits-guidance-v1`)
 
 Turned the benefits cascade into one coherent email/text guidance journey: Day-0 results now lead with the family’s private Olera plan, B1 and B2 keep text-only families moving, reply vocabulary writes progress back to the living plan, and admin delivery states distinguish email, text, and mixed-channel families. The Automations journey now links directly to the correct email/text preview, smooth-scrolls there, and shows concise timing/context explainers so operators do not have to cross-reference the timeline.
@@ -3408,6 +3422,8 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ## Next Up
 
 **Ad Boost — reprioritised 2026-07-27 after the Franchil post-mortem:**
+- 🔴 **GATE before merging PR #1489 (auto-end):** apply migration `163_ad_boost_auto_end.sql` in the Supabase dashboard first — the admin `ROW_SELECT` names the three new columns and Supabase errors the whole query when one is missing, so deploying ahead of it takes down all of `/admin/ad-boost`.
+- 🔴 **Decide before the first auto-end run: it will send wrap-ups to the four unmeasured providers.** Abode (ended Jul 27), Impact, Miracle-Lightstar and HomeWell (all Aug 3) are past their flight dates, so the first cron run ends all four and mails each a demand receipt plus a subscribe pitch in the same 10:15 slot. Their zero-lead readings are the *same broken measurement* as Franchil's — so this ships a payment ask built on numbers we already know are wrong, which is exactly what the post-mortem said not to do. Either ring them first (item below), or pause the cron in the admin panel and end those four by hand once outcome capture lands. Everything after that cohort is measured correctly and can run automatically.
 - 🔴 **Provider-side outcome capture** (one-tap "Did this family become a client?" at ~7 and ~21 days). Top priority. Without it every wrap-up payment ask is blind and Ad Boost has no honest KPI. Note: no email chip may hit a GET that writes — route through a confirm screen. See memory `project_adboost_outcome_blindness`.
 - 🔴 **Record the confirmed Franchil close** (connection `0b4bd9d6`, still `pending`) and get the detail from Hilda: contract size, start date, how fast she called.
 - 🔴 **Ring the other four providers** (Abode, Impact, Miracle-Lightstar, HomeWell) and ask directly whether any lead became a client. Their zero-lead readings were measured the same broken way Franchil's were, so they are unmeasured, not proven.

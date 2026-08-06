@@ -254,7 +254,7 @@ export function getCategoryLabel(templateKey: ProviderOutreachTemplateKey): stri
     case "final":
       return "Get Verified";
     case "nudge":
-      return "Your Claim Link";
+      return "Your Free Profile";
     default:
       return "Olera";
   }

@@ -86,8 +86,6 @@ const PLACEHOLDER = {
   cityViews: "{city_views}",
 };
 
-// Preheader text (nudge only - other emails have inline preheaders)
-const PREHEADER_NUDGE = "Two minutes, and the page is yours";
 
 /**
  * Convert number to ordinal string (1 → "1st", 2 → "2nd", etc.)
@@ -292,26 +290,25 @@ function finalEmail(): EmailDraft {
  *   - Follow Up "resend link" action
  *   - Future re-engagement triggers
  *
- * Short and simple: just the claim link, easy to find.
+ * Personal tone emphasizing mission and direct family connections.
  *
- * Style: Apple/Airbnb - flowing prose that wraps naturally.
+ * Style: Personal, supportive, PitchBook-inspired clean layout.
  */
 function nudgeEmail(): EmailDraft {
   return {
     subject: `Your free Olera page for ${PLACEHOLDER.providerName} is ready`,
-    preheader: PREHEADER_NUDGE,
     body: [
-      `**Your page is ready.**`,
+      `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `We've already created a free Olera page for ${PLACEHOLDER.providerName}. It's ready for your team to manage whenever you are.`,
+      `Finding the right senior care is one of the biggest decisions a family will make. That's why we're building a better experience for both families and providers.`,
       ``,
-      `[Open your page →](${PLACEHOLDER.claimUrl})`,
+      `We've already created a free Olera profile to help more families discover ${PLACEHOLDER.providerName}, ask questions, and connect directly with your team.`,
       ``,
-      `It only takes about two minutes to get started. Once your page is yours, you can start receiving leads, answering questions, and connecting directly with families looking for care.`,
+      `[Review your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `No referral fees or brokers in between. The relationship stays directly with your team.`,
+      `There are no referral fees and no brokers in between, so every conversation stays directly between your team and the families you serve.`,
       ``,
-      `Questions? Just reply and I'll help personally.`,
+      `If you have any questions or need help getting started, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
     ].join("\n"),
   };
 }

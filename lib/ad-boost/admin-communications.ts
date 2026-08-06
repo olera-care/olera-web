@@ -297,6 +297,9 @@ export function getAdBoostStepState(
       const leadCount = options.leadCount ?? request.delivered ?? 0;
       const sentCount = sent?.sentCount ?? 0;
       if (leadCount > sentCount) {
+        if (predatesCommunicationMonitoring(request)) {
+          return historicalUnknownState("older leads—delivery was not tracked");
+        }
         return {
           label: sentCount > 0 ? `${sentCount}/${leadCount} sent` : "Email unconfirmed",
           detail: `${leadCount} attributed lead${leadCount === 1 ? "" : "s"}`,

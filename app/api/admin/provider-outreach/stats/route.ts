@@ -36,8 +36,9 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
 
-    // State is required for all metrics except "claimed" (which is always global)
-    if (!state && metric !== "claimed") {
+    // State is required for all metrics except global ones
+    const globalMetrics = ["claimed", "follow_ups_today", "sequence_conversion"];
+    if (!state && !globalMetrics.includes(metric)) {
       return NextResponse.json({ error: "State parameter is required for this metric" }, { status: 400 });
     }
 

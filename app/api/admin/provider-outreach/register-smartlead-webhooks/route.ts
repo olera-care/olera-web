@@ -26,6 +26,7 @@ import {
   createCampaignWebhook,
   isSmartleadConfigured,
   listCampaignWebhooks,
+  sameEventTypeSet,
   type EnsureWebhookResult,
 } from "@/lib/smartlead";
 
@@ -69,13 +70,6 @@ const PROVIDER_WEBHOOK_EVENT_TYPES = [
   "EMAIL_BOUNCE",
   "LEAD_UNSUBSCRIBED",
 ] as const;
-
-/** Check if two event type sets are equivalent. */
-function sameEventTypeSet(a: readonly string[], b: readonly string[]): boolean {
-  if (a.length !== b.length) return false;
-  const setA = new Set(a.map((e) => e.toUpperCase()));
-  return b.every((e) => setA.has(e.toUpperCase()));
-}
 
 /** Check if webhook URL has the expected secret. */
 function webhookSecretMatches(webhookUrl: string | undefined, expectedSecret: string): boolean {

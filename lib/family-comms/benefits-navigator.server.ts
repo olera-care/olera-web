@@ -165,6 +165,12 @@ export interface NavigatorComposeInput {
   profileMeta: Record<string, unknown>;
   /** Profile row fields familyBenefitsFacts reads (pass the loaded row). */
   factsRow: Parameters<typeof familyBenefitsFacts>[0];
+  /** Program ids the selector must skip. Used when a fact-check rules a pick
+   *  out but the family still has it saved, so the normal ladder would keep
+   *  choosing it (2026-08-07: a WV family's saved VISIONS outranked the Aged
+   *  and Disabled Waiver they saved first, because the ladder sorts by
+   *  ascending complexity before saved order). */
+  exclude?: string[];
 }
 
 export interface NavigatorDraft {
@@ -198,6 +204,7 @@ export async function composeNavigatorDraft(
     accountId: input.accountId,
     stateAbbrev: input.state,
     facts,
+    exclude: input.exclude,
   });
   if (!pick) return null;
 

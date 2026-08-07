@@ -29,7 +29,16 @@ for (const line of readFileSync("/Users/tfalohun/Desktop/olera-web/.env.local", 
 async function main() {
   const email = process.argv[2];
   const write = process.argv.includes("--write");
-  if (!email) throw new Error("usage: recompose-navigator-draft.ts <email> [--write]");
+  const excludeArg = process.argv.find((a) => a.startsWith("--exclude="));
+  const exclude = excludeArg
+    ? excludeArg.slice("--exclude=".length).split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+  const reasonArg = process.argv.find((a) => a.startsWith("--reason="));
+  if (!email) {
+    throw new Error(
+      "usage: recompose-navigator-draft.ts <email> [--write] [--exclude=id,id] [--reason=slug]",
+    );
+  }
 
   const db = getServiceClient();
   const { data: profile } = await db
@@ -49,6 +58,7 @@ async function main() {
   if (!intakeAt || !profile.account_id) throw new Error("family is missing intake data");
 
   console.log(`old pick: ${navigator.pick?.programId} (${navigator.pick?.stateId})`);
+  if (exclude.length) console.log(`excluding: ${exclude.join(", ")}`);
   const draft = await composeNavigatorDraft(db, {
     profileId: profile.id,
     accountId: profile.account_id,
@@ -59,6 +69,7 @@ async function main() {
     intakeAt,
     profileMeta: meta,
     factsRow: profile,
+    exclude,
   });
   if (!draft) throw new Error("no qualifying first-step program with current data");
 
@@ -81,7 +92,9 @@ async function main() {
     model: "claude-opus-5",
     pick: pickSnapshot(draft.pick),
     provider_count: draft.providerCount,
-    recomposed_reason: "program-removed-2026-08-04-factcheck",
+    recomposed_reason: reasonArg
+      ? reasonArg.slice("--reason=".length)
+      : "program-removed-2026-08-04-factcheck",
   };
   const { data: freshRow } = await db
     .from("business_profiles")

@@ -59,6 +59,16 @@ interface SendSMSOptions {
   /** Provider/business_profiles id, when the recipient has one. */
   recipientLogProfileId?: string;
   metadata?: Record<string, unknown>;
+  /**
+   * Skip the send unless the number can actually receive SMS (migration 167).
+   *
+   * Set this for numbers WE sourced — provider phones from the `olera-providers`
+   * directory are mostly front-desk landlines and office VoIP, and ~68% of those
+   * alerts died with Twilio error 30006. Do NOT set it for numbers a person gave
+   * us for this purpose (family phones, claim OTPs): there, a wrong skip breaks
+   * the flow, and the recipient chose the channel.
+   */
+  requireMobile?: boolean;
 }
 
 /**
@@ -110,7 +120,7 @@ async function logSms(params: {
 export async function sendSMS(
   options: SendSMSOptions
 ): Promise<{ success: boolean; error?: string; skipped?: boolean }> {
-  const { to, body, recipientProfileId, notificationType, emailType, recipientType, recipientLogProfileId, metadata } = options;
+  const { to, body, recipientProfileId, notificationType, emailType, recipientType, recipientLogProfileId, metadata, requireMobile } = options;
 
   // Do-Not-Contact kill switch — cross-channel HARD suppression (admin-managed).
   // A number here has asked to be removed from all Olera comms. Fails open.
@@ -127,6 +137,20 @@ export async function sendSMS(
     const shouldSend = await shouldSendNotification(recipientProfileId, notificationType, "sms");
     if (!shouldSend) {
       console.log(`[sms] Skipped to ${to} - user preference disabled for ${notificationType}`);
+      return { success: true, skipped: true };
+    }
+  }
+
+  // Line-type gate — deliberately LAST of the three checks, because it is the
+  // only one that can cost money (a Twilio Lookup on a cache miss). No point
+  // paying to classify a number we were already going to skip. Fails open.
+  if (requireMobile) {
+    const { isSmsCapable } = await import("@/lib/sms/line-type.server");
+    if (!(await isSmsCapable(to))) {
+      console.log(`[sms] Skipped to ${to} - number cannot receive SMS (landline/VoIP)`);
+      if (emailType) {
+        await logSms({ to, body, emailType, recipientType, providerId: recipientLogProfileId, status: "failed", errorMessage: "Skipped: number cannot receive SMS", metadata });
+      }
       return { success: true, skipped: true };
     }
   }

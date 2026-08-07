@@ -7,6 +7,28 @@
 
 ## Current Focus
 
+### 2026-08-07 — Benefits fact-check round + the tooling that should replace it (PRs #1497–#1505, all in prod)
+
+Ran `/benefits-factcheck` on a ChatGPT review of 13 pending letters. 18 corrections reported, **14 survived independent primary-source verification**. Everything below shipped to production in two promotions (`#1500`, `#1505`, final main `bda1ce48`).
+
+**Round output (#1497, #1498).** Call anchors fixed where the number reached the wrong service: **WV VISIONS had `contacts[0].phone: null`**, so the composer fell through to 2-1-1 — letters were routing people away from the program (real number: 1-800-642-3021). **CO SNAP anchored on the EBT card-services line**, which answers but cannot take an application. Savings figures corrected where a ceiling was sold as typical (AZ, CO) or where the field contradicted its own record (CT `savingsRange` said $1,500–$6,000 while its tagline/intro/FAQ all said $7,500). IL PACE and TX MSP overstated Medicare requirements. 10 pending letters patched in place, 2 recomposed (WV → Aged & Disabled Waiver, LA → Community Choices Waiver), 13 scheduled and sent 08-07 14:07 UTC.
+
+**LA was neither a fiction nor a parish reframe.** I nearly deleted "Caregiver Voucher Program" as hallucinated — absent from GOEA's service list, the AAA page, and the State Plan, present only on aggregators. It is **real** (a parish Council on Aging NFCSP program, named on St. James Parish's own site) but our record wore its name over **Community Choices Waiver's** tagline, intro, `sourceUrl`, and phone. A mislabeled duplicate. Renamed, not deleted.
+
+**Three mechanics made the review misleading** (now in `.claude/commands/benefits-factcheck.md`): the export renders the draft's **frozen `pick` snapshot**, not live data, so 2 of 18 corrections were already-fixed ghosts from 07-31; the composer shows only `documentsNeeded.slice(0,3)` (`benefits-cascade.server.ts:309`), so most document corrections are **reorderings, not replacements**; and `toPick` takes the first contact with a non-null phone, so a null lead phone degrades silently instead of failing.
+
+**Picker bug found, not fixed.** `selectFirstStepProgram` sorts saved programs by **ascending complexity before saved order** (`benefits-cascade.server.ts:448`). A WV family saved Aged & Disabled Waiver *first* and VISIONS *last*; VISIONS is `medium`, ADW is `deep`, so the composer picked their last save over their first — a blindness program for someone who never mentioned vision trouble. Recommendation on the table: **respect saved order, drop the complexity sort.** Awaiting TJ. `composeNavigatorDraft` now forwards `exclude` (#1498) so a recompose can move off a ruled-out pick at all.
+
+**Tooling (#1501–#1503).** `/benefits-factcheck` gained a **speed budget** (target 15–20 min/round; order of leverage is shrink → automate → parallelize). `scripts/benefits-lint.js` runs six offline checks, no network. The export now takes `skipVerifiedWithinDays` (batch button passes 30) — would have cut this round from 13 programs to ~4.
+
+**Root cause was three lines in the generator prompt, not bad luck.** `documentsNeeded`'s exemplar listed `"Medicare card (both parts)"` **second**; `contacts`' exemplar **led with "Texas 2-1-1"**; `savingsRange`'s format string **demanded a range**, so a ceiling got a fabricated low end. Those three explain **116 of 174** high findings — the model was doing what it was shown. Fixed in #1503, plus a lint gate at the end of every pipeline run (**reports, does not fail** — `benefits-batch.js` reads non-zero exit as a FAILED state; `--lint-strict` makes it fatal).
+
+**Desk fixes (#1504).** High findings **174 → 108**. `medicare-not-required` 36 → 0 (softened and demoted out of the visible three; every resulting window checked by hand). `self-contradiction` 32 → 2. 22 of those were Medicare Savings Programs quoting a verified premium as the floor and an invented ceiling as the top, several with **stale premiums** ($164 predates 2024, $174.70 is 2024, $185 is 2025) — all now the CMS 2026 figure, $2,435/yr. SC homestead and UT LIHEAP **deliberately left alone**: their `savingsSource` is an estimate or names no base award, so guessing would trade a visible defect for an invisible one.
+
+**Then measured, and it reframes all of the above.** Pulled the 50 already-sent letters: **48/50 delivered, 0 bounced, 16 opened (32%), 2 clicked (4%), 0 replied CALLED/NO ANSWER/STUCK, 0 of 50 with any site activity after their letter.** The only inbound SMS from a recipient was "STOP". Delivery and data quality are not the bottleneck. **But the phone number is in the email body — a family can call without clicking or replying, and we would never know.** Same outcome blindness as Ad Boost (see `project_adboost_outcome_blindness`). So the honest read is *not* "letters don't work", it is **"we cannot tell, and our proxies are weak."** The accuracy work was still right (a wrong number is definitely worse, no proof needed) but it cannot be claimed to have moved anything, and the 106 phone-number findings drop in priority because **the difference is undetectable either way**.
+
+**Files:** `data/pipeline/*/drafts.{json,ts}` (37 states), `scripts/benefits-{lint,pipeline}.js`, `lib/benefits/navigator-review-prompt.ts`, `lib/family-comms/benefits-navigator.server.ts`, `scripts/recompose-navigator-draft.ts`, `app/api/admin/benefits/families/[profileId]/route.ts`, `components/admin/BenefitsFamiliesView.tsx`, `.claude/commands/benefits-factcheck.md`. **Validation:** `tsc --noEmit` clean on every code PR; regen de-churned each time; content-regression checks clean on all five merges; program counts verified unchanged per state on the 75-file PR.
+
 ### 2026-08-07 — Ad Boost photo-readiness gate (`codex/ad-boost-photo-readiness`)
 
 Added a human-reviewed photo gate between an actionable Ad Boost request and paid-traffic scheduling/launch. Concierge now sees the effective landing-page gallery and one of four states (`unreviewed` → `update_requested` → `review_requested` → `ready`), can request stronger photos with supportive fixed copy, and cannot advance a pre-launch campaign until the gate is cleared. Providers receive the email first, a persistent `/provider/boost` task, a direct gallery-editor link, one reminder after three business days, and a resolution confirmation after approval. Gallery saves atomically return the campaign to concierge review and invalidate the cached public provider page so the reviewer sees the submitted images immediately. The Automations journey, email samples, queue next-action logic, and cron registry include the new branch.
@@ -3427,6 +3449,15 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+**Benefits letters — reprioritised 2026-08-07 after measuring the first 50 sends:**
+- 🔴 **Decide how a family tells us the call happened.** 50 letters produced 0 replies to the CALLED/NO ANSWER/STUCK ask and 0 post-send site activity. That ask does not work. Until a family can report an outcome in a way they will actually use, every downstream improvement to this funnel is unfalsifiable — same structural problem as Ad Boost outcome capture, and arguably the same fix. This is a product question, not a code one.
+- 🔴 **Decide the picker rule** (`benefits-cascade.server.ts:448`). Complexity sort currently overrides saved order, which picked a blindness program for a WV family who saved the Aged & Disabled Waiver first. Recommendation: respect saved order, drop the complexity sort for saved programs; complexity as a tiebreak only if you want the softer version. Affects every future send.
+- ⏳ **7 Medicare Savings pages still say "Parts A and B"** (CA, GA, MS, NE, RI, SC + 1) in the visible top three. The lint correctly does not flag them since MSP *is* Medicare-based — but Part A entitlement (or Part B-ID) is the actual rule, so this overstates it. Needs its own check with different logic.
+- ⏳ Re-measure the 13 letters sent 08-07 against the 50-letter baseline in a couple of days (48 delivered / 16 opened / 2 clicked / 0 replies).
+- 🅿️ **106 `null-lead-phone` + `generic-anchor` findings.** Deprioritised on 08-07: real defects, but on pages no family has been routed to, and the measurement above says we could not detect the improvement anyway. Fix just-in-time when a program is about to be picked, not as a backlog project. If reply data ever shows families do dial, promote this immediately — 58 programs currently route to 2-1-1 instead of the program.
+- 🅿️ SC `homestead-exemption-property-tax` and UT `liheap-heat-energy-assistance` keep unsupported savings figures until someone finds a real source (county millage rate / base award amount).
+- 🅿️ Parallel subagent verification (the third speed lever). Left unbuilt on purpose — see whether the `lastVerifiedDate` gate and the lint absorb enough first.
+
 **Ad Boost — reprioritised 2026-07-27 after the Franchil post-mortem:**
 - 🔴 **GATE before merging PR #1489 (auto-end):** apply migration `163_ad_boost_auto_end.sql` in the Supabase dashboard first — the admin `ROW_SELECT` names the three new columns and Supabase errors the whole query when one is missing, so deploying ahead of it takes down all of `/admin/ad-boost`.
 - 🔴 **Decide before the first auto-end run: it will send wrap-ups to the four unmeasured providers.** Abode (ended Jul 27), Impact, Miracle-Lightstar and HomeWell (all Aug 3) are past their flight dates, so the first cron run ends all four and mails each a demand receipt plus a subscribe pitch in the same 10:15 slot. Their zero-lead readings are the *same broken measurement* as Franchil's — so this ships a payment ask built on numbers we already know are wrong, which is exactly what the post-mortem said not to do. Either ring them first (item below), or pause the cron in the admin panel and end those four by hand once outcome capture lands. Everything after that cohort is measured correctly and can run automatically.
@@ -3602,6 +3633,16 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-08-07 — Benefits fact-check round, then the tooling to make it cheap, then measured whether any of it matters
+
+Five PRs (#1497, #1498, #1501–#1504) plus two production promotions (#1500, #1505). Applied 14 verified corrections across 8 states, patched 10 pending letters in place, recomposed 2, and sent 13. Then attacked the process itself: the round had taken over two hours, which does not scale to a two-day send cadence.
+
+Built `scripts/benefits-lint.js` (six offline checks, no network) and gated the fact-check export on `lastVerifiedDate`. Tracing the 174 high findings led to the actual cause — **three lines in the generator prompt**, where the exemplars were demonstrating the defects (a Medicare card listed second in `documentsNeeded`, "Texas 2-1-1" leading `contacts`, a format string demanding a range for `savingsRange`). Fixed the generator before cleaning the data, so the cleanup would not be a treadmill. Then cleared 61 desk-fixable defects: high findings 174 → 108.
+
+**Two lessons worth keeping.** First: the linter I built to find defects had **two precision bugs that would have corrupted four correct records** (TN snap, WA basic-food, WA abd-cash, MD sals) if I had batch-applied its output — found only by working the findings one at a time. Monthly amounts stated *before* the figure were never annualized; corroboration compared maxima only. The tool finds candidates, a human decides. Second, self-inflicted: my first AR LIHEAP value summed heating and cooling into $762, but LIHEAP pays one benefit per season, so the sum overstated. Corrected to state components separately.
+
+**Ended by measuring rather than building.** The 50 already-sent letters: 48 delivered, 0 bounced, 16 opened, **2 clicked, 0 replies, 0 post-send activity**. Delivery and data quality are not the bottleneck — but the phone number sits in the email body, so a family can act without leaving a trace. We are outcome-blind here in exactly the way Ad Boost is. That finding demoted the 106 remaining phone-number defects and promoted "how does a family tell us what happened" to the top of Next Up.
 
 ### 2026-08-05 — Magic-link "failure" deep-dive: scanner claims, bot audit, suppression fix + lead resend (no code)
 

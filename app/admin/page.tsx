@@ -29,6 +29,8 @@ type ActivityTrendMetric =
   | "active_providers"
   | "questions_answered"
   | "provider_page_views"
+  | "benefit_page_views"
+  | "guide_page_views"
   | "benefits_requested"
   | "email_clicks"
   | "text_messages_received"
@@ -92,6 +94,8 @@ export default function AdminOverviewPage() {
   const [questionsNeedEmail, setQuestionsNeedEmail] = useState<StatValue>(null);
   const [totalReviews, setTotalReviews] = useState<StatValue>(null);
   const [providerPageViews, setProviderPageViews] = useState<StatValue>(null);
+  const [benefitPageViews, setBenefitPageViews] = useState<StatValue>(null);
+  const [guidePageViews, setGuidePageViews] = useState<StatValue>(null);
   const [questionsAnswered, setQuestionsAnswered] = useState<StatValue>(null);
   const [meaningfullyActiveProviders, setMeaningfullyActiveProviders] = useState<StatValue>(null);
   const [leadsReceived, setLeadsReceived] = useState<StatValue>(null);
@@ -177,6 +181,8 @@ export default function AdminOverviewPage() {
     setTotalQuestions(null);
     setTotalReviews(null);
     setProviderPageViews(null);
+    setBenefitPageViews(null);
+    setGuidePageViews(null);
     setQuestionsAnswered(null);
     setMeaningfullyActiveProviders(null);
     setLeadsReceived(null);
@@ -196,6 +202,8 @@ export default function AdminOverviewPage() {
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("network health failed")))
       .then((data) => {
         setProviderPageViews(data?.providerPageViews ?? 0);
+        setBenefitPageViews(data?.benefitPageViews ?? 0);
+        setGuidePageViews(data?.guidePageViews ?? 0);
         setTotalQuestions(data?.questionsAsked ?? 0);
         setQuestionsAnswered(data?.questionsAnswered ?? 0);
         setMeaningfullyActiveProviders(data?.meaningfullyActiveProviders ?? 0);
@@ -212,6 +220,8 @@ export default function AdminOverviewPage() {
       .catch((fetchError: unknown) => {
         if ((fetchError as Error)?.name === "AbortError") return;
         setProviderPageViews(undefined);
+        setBenefitPageViews(undefined);
+        setGuidePageViews(undefined);
         setTotalQuestions(undefined);
         setQuestionsAnswered(undefined);
         setMeaningfullyActiveProviders(undefined);
@@ -366,6 +376,20 @@ export default function AdminOverviewPage() {
       trendMetric: "provider_page_views",
     },
     {
+      label: "Benefit Page Views",
+      value: benefitPageViews,
+      subtitle: `Benefits hub, state, and program pages · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+      trendMetric: "benefit_page_views",
+    },
+    {
+      label: "Guide Page Views",
+      value: guidePageViews,
+      subtitle: `Caregiver Support articles · ${selectedRangeLabel}`,
+      href: analyticsHref(),
+      trendMetric: "guide_page_views",
+    },
+    {
       label: "Benefits Requested",
       value: benefitsRequested,
       subtitle: `Completed benefits intakes · ${selectedRangeLabel}`,
@@ -438,6 +462,8 @@ export default function AdminOverviewPage() {
     totalQuestions,
     totalReviews,
     providerPageViews,
+    benefitPageViews,
+    guidePageViews,
     questionsAnswered,
     meaningfullyActiveProviders,
     leadsReceived,

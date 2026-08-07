@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import type { ArticleHeading } from "@/lib/article-html";
 import { type CareTypeId, CARE_TYPE_CONFIG } from "@/types/forum";
 import { createClient } from "@/lib/supabase/server";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 import {
   DesktopTableOfContents,
   MobileTableOfContents,
@@ -211,6 +212,7 @@ export default async function FreeServicesForSeniorsPage() {
 
   return (
     <main className="min-h-screen bg-white">
+      <ContentViewTracker page="/caregiver-support/free-services-for-senior-citizens-texas-complete-2026-guide" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />

@@ -12,6 +12,7 @@ import {
   DesktopTableOfContents,
   MobileTableOfContents,
 } from "@/components/article/TableOfContents";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 import SpendDownWidget from "@/components/article/SpendDownWidget";
 import ArticleFAQ from "@/components/article/ArticleFAQ";
 import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
@@ -234,6 +235,7 @@ export default async function ResourceArticlePage({
 
   return (
     <main className="min-h-screen bg-white">
+      <ContentViewTracker page={`/caregiver-support/${slug}`} />
       {/* JSON-LD */}
       {articleJsonLd && (
         <script

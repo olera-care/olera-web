@@ -16,6 +16,10 @@ import {
 } from "@/lib/admin-trends";
 import { createTwilioClient } from "@/lib/twilio";
 import { resolveCanonicalProviderKeys } from "@/lib/provider-id-variants";
+import {
+  CONTENT_PAGE_FILTERS,
+  type ContentPageClass,
+} from "@/lib/analytics/content-pages";
 
 export const maxDuration = 30;
 
@@ -25,6 +29,8 @@ const TREND_METRICS = [
   "active_providers",
   "questions_answered",
   "provider_page_views",
+  "benefit_page_views",
+  "guide_page_views",
   "benefits_requested",
   "email_clicks",
   "text_messages_received",
@@ -214,6 +220,36 @@ async function fetchReviewTimestamps(
   });
 }
 
+/**
+ * Content page views live in page_events, keyed by path rather than provider.
+ * Mirrors the network-health count exactly — page_view only, session_id
+ * required — so the card total and this trend line can't disagree.
+ */
+async function fetchContentViewTimestamps(
+  db: SupabaseClient,
+  pageClass: ContentPageClass,
+  from: Date,
+  to: Date,
+): Promise<LoadedRows<TimestampRow>> {
+  return fetchPaged<TimestampRow>(async (pageFrom, pageTo) => {
+    const result = await db
+      .from("page_events")
+      .select("created_at")
+      .eq("event_type", "page_view")
+      .not("session_id", "is", null)
+      .neq("session_id", "")
+      .or(CONTENT_PAGE_FILTERS[pageClass])
+      .gte("created_at", from.toISOString())
+      .lt("created_at", to.toISOString())
+      .order("created_at", { ascending: true })
+      .range(pageFrom, pageTo);
+    return {
+      data: (result.data ?? []).map((row) => ({ timestamp: row.created_at })),
+      error: result.error,
+    };
+  });
+}
+
 function summarizeTimestamps(
   timestamps: Date[],
   from: Date,
@@ -317,6 +353,18 @@ async function loadSupabaseTrend(
     } as const;
   }
 
+  if (metric === "benefit_page_views" || metric === "guide_page_views") {
+    const pageClass: ContentPageClass =
+      metric === "benefit_page_views" ? "benefit" : "guide";
+    const result = await fetchContentViewTimestamps(db, pageClass, priorFrom, to);
+    if (result.error) throw result.error;
+    if (result.truncated) return { truncated: true } as const;
+    return {
+      ...summarizeTimestamps(validDates(result.rows), from, to, priorFrom, bucket),
+      truncated: false,
+    } as const;
+  }
+
   const eventTypes: Record<
     Exclude<
       TrendMetric,
@@ -324,6 +372,8 @@ async function loadSupabaseTrend(
       | "questions_asked"
       | "questions_answered"
       | "benefits_requested"
+      | "benefit_page_views"
+      | "guide_page_views"
       | "email_clicks"
       | "text_messages_received"
       | "reviews_received"

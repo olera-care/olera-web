@@ -259,8 +259,8 @@
         ]
       },
       "intro": "If your loved one is 65+ and needs help with bathing, dressing, or medication management, CHCPE provides home care services to avoid nursing home placement. The program covers up to 70 hours per week of in-home assistance with daily activities, depending on your loved one's functional needs and income level.\n\nBecause CHCPE includes Medicare Savings Program benefits, qualified participants also get their Medicare Part B premiums covered ($185/month in 2026) plus deductibles and co-insurance. State-funded participants pay only 3% of service costs, while Medicaid-funded services have no client cost-share.\n\nThe program has two tracks: Medicaid-funded (income limit $1,956/month for singles in 2025) and state-funded (no income limit but asset limits apply). All participants must demonstrate risk of nursing home placement by needing assistance with at least one activity of daily living.",
-      "savingsRange": "$2,220 – $4,500/year in 2026",
-      "savingsSource": "Medicare Part B premium savings ($185/month) plus potential deductible/co-insurance coverage",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -439,7 +439,8 @@
       "phone": "1-855-626-6632",
       "sourceUrl": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-comprehensive-care",

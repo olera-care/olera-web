@@ -641,8 +641,8 @@
       "documentsNeeded": [
         "Valid government-issued photo ID or birth certificate",
         "Proof of King County residency (utility bill, lease, or state-issued document)",
-        "Medicare card (both parts A and B)",
         "Medicaid card (if applicable)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Social Security award letter or benefits statement",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
@@ -740,7 +740,8 @@
       "phone": "(206) 320-5325",
       "sourceUrl": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/all-inclusive-care-elderly-washington-pace",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs-qmb-slmb-qi",
@@ -760,8 +761,8 @@
         ]
       },
       "intro": "If your loved one struggles to afford Medicare premiums and medical bills, Washington's Medicare Savings Programs can eliminate these costs entirely. These state programs pay Medicare Part B premiums ($185/month in 2026), deductibles, and copays for people with monthly incomes under $1,835 for singles or $2,489 for couples.\n\nThere are three tiers: QMB covers all Medicare costs including premiums and copays, SLMB covers just the Part B premium, and QI covers the Part B premium with limited funding. All three programs automatically qualify your loved one for Extra Help with prescription drugs, capping medication copays at $12.65 per drug. Washington eliminated asset limits in 2023, so your loved one's home, car, and savings don't count against them.\n\nBecause these are state Medicaid programs, you apply through Washington's Health Care Authority, not Medicare directly. QMB takes effect the month after approval, while SLMB and QI can provide up to three months of retroactive coverage.",
-      "savingsRange": "$2,220 – $4,500/year in 2026",
-      "savingsSource": "Medicare Part B premium ($185/month) plus deductibles and copays for Medicare-covered services",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -951,7 +952,8 @@
       "phone": "(800) 562-3022",
       "sourceUrl": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/medicare-savings-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "basic-food-program",

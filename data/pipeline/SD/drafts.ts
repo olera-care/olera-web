@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.874Z
+ * Last updated: 2026-08-07T11:45:11.722Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -287,9 +287,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Proof of South Dakota residency (utility bill, lease, or state ID)",
         "Most recent Social Security award letter",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
@@ -374,7 +374,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(833) 663-9673",
       "sourceUrl": "https://dss.sd.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-all-inclusive-care",
@@ -531,8 +532,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles to pay Medicare premiums or copays, Medicare Savings Programs can cover these costs entirely. These three programs, QMB, SLMB, and QI, pay Medicare Part B premiums (around $185/month in 2026) directly to Medicare, and QMB also covers all deductibles and copays your loved one would normally pay at the doctor or hospital.\n\nTo qualify, your loved one must have Medicare and meet income limits: $1,350/month for QMB (the most comprehensive), up to $1,715/month for QI (premium help only). Because enrollment automatically qualifies your loved one for Extra Help with prescription drug costs (copays as low as $12.65 per medication), the total savings can exceed $3,000 annually.\n\nThe QI program has limited funding and operates first-come, first-served, so applying early in the year improves chances of approval. All three programs require annual income and asset verification.",
-      "savingsRange": "$2,220 – $3,600/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($2,220/year) plus potential deductibles, copays, and Extra Help prescription savings",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -737,7 +738,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-877-999-5612",
       "sourceUrl": "https://dss.sd.gov/medicaid/Eligibility/default.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "csfp-senior-food-box",

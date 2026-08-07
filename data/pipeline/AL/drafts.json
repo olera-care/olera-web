@@ -290,9 +290,9 @@
       },
       "documentsNeeded": [
         "Valid government-issued photo ID",
-        "Medicare card (both parts A and B)",
         "Medicaid card (if applicable)",
         "Social Security award letter",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent bank statements (last 3 months)",
         "Current medication list with prescribing physicians",
         "Medical records documenting need for assistance with daily activities",
@@ -363,7 +363,8 @@
       "phone": null,
       "sourceUrl": "https://medicaid.alabama.gov/content/5.0_Managed_Care/5.2_Other_MC_Programs/5.2.3_PACE.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs-qmb-slmb-qi",
@@ -383,8 +384,8 @@
         ]
       },
       "intro": "If your loved one struggles to pay Medicare costs on a fixed income, Alabama's Medicare Savings Programs can help. These three programs, QMB, SLMB, and QI, cover Medicare premiums, deductibles, and coinsurance based on income level. QMB provides the most comprehensive help, paying the $206.50 monthly Part B premium plus all deductibles and the 20% coinsurance that Medicare doesn't cover.\n\nYour loved one must have Medicare and meet strict income limits: $1,275/month for QMB, $1,506/month for SLMB, or $1,695/month for QI (higher limits for couples). Asset limits are $9,430 for individuals or $14,130 for couples. Because QMB automatically qualifies your loved one for Extra Help with prescription drug costs, it provides the most value.\n\nThe QI program has limited funding and operates first-come, first-served, so applications may be denied when funds run out. All three programs can provide retroactive coverage, but you must apply to find out which tier your loved one qualifies for.",
-      "savingsRange": "$1,200 – $3,500/year",
-      "savingsSource": "Part B premiums ($206.50/month = $2,478/year) plus deductibles and coinsurance for QMB",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -606,7 +607,8 @@
       "phone": "1-800-362-1504",
       "sourceUrl": "https://medicaid.alabama.gov/content/3.0_Apply/3.2_Qualifying/3.2.6_Help_Paying_Medicare.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "aesap-elderly-food-assistance",
@@ -2504,9 +2506,9 @@
       },
       "documentsNeeded": [
         "Social Security card for your loved one",
-        "Medicare card (both parts A and B)",
         "Birth certificate or passport for proof of age",
         "Proof of Alabama residency (utility bill, lease, or state ID)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Any pension or retirement income statements",
@@ -2598,7 +2600,8 @@
       "phone": "(877) 425-2243",
       "sourceUrl": "https://medicaid.alabama.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "seniorx-prescription-assistance",

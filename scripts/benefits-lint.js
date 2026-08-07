@@ -143,7 +143,12 @@ function annualizedAmounts(str, { benefitOnly = false } = {}) {
       const benefitAfter = /^\s*(per year|a year|annually|per month|a month|\/year|\/month|toward|in (?:benefits|assistance|help))/.test(after);
       if (!benefitBefore && !benefitAfter) continue;
     }
-    const isMonthly = /^\s*(?:\/\s*mo|per month|a month|monthly|\/month)/.test(after);
+    // "Monthly cash payments up to $450" states the period BEFORE the figure,
+    // so checking only the trailing context annualizes nothing and makes a
+    // correct record ($5,400–$6,840 = $450 and $570 a month) look contradictory.
+    const isMonthly =
+      /^\s*(?:\/\s*mo|per month|a month|monthly|\/month)/.test(after) ||
+      /\b(?:monthly|per month|a month)\b[^.$]*$/.test(before);
     out.push(isMonthly ? n * 12 : n);
   }
   return out;
@@ -163,6 +168,16 @@ function checkSelfContradiction(st, p) {
   const source = p.savingsSource;
   if (typeof range !== 'string' || !range.trim()) return;
   if (typeof source !== 'string' || !source.trim()) return; // unsourced-savings owns this
+  // Corroborated if the source repeats ANY figure the range quotes, raw or
+  // annualized. A range and its source often describe different household
+  // sizes ("up to $298/month for one person" vs a source listing one- through
+  // five-person allotments); comparing only the maxima calls that a conflict
+  // when the range is in fact well-formed and sourced.
+  const near = (a, b) => Math.abs(a - b) / Math.max(a, b) <= 0.02;
+  const rangeTop = Math.max(...moneyIn(range), 0);
+  const sourceFigures = moneyIn(source);
+  if (rangeTop > 0 && sourceFigures.some((s) => near(rangeTop, s) || near(rangeTop, s * 12))) return;
+
   const rangeMax = headlineAmount(annualizedAmounts(range));
   const sourceMax = headlineAmount(annualizedAmounts(source, { benefitOnly: true }));
   if (rangeMax === null || sourceMax === null) return;

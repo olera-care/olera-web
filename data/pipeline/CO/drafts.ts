@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T06:32:58.046Z
+ * Last updated: 2026-08-07T11:45:11.696Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -28,9 +28,9 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is on Medicare and struggles with monthly premiums or the 20% Medicare doesn't cover, Colorado's Medicare Savings Programs can help. These federal programs pay Medicare Part B premiums (around $185/month in 2026) and, depending on income level, cover deductibles and copays that Medicare leaves behind.\n\nThere are three tiers: QMB provides the most comprehensive coverage, paying both premiums and all out-of-pocket costs. SLMB and QI cover just the monthly premium, leaving your loved one responsible for deductibles and copays. Because these programs have both income and asset limits (typically around $9,660 for individuals, $14,490 for couples), your loved one's savings and investments count toward eligibility.",
-      "savingsRange": "$2,220 – $4,500/year in 2026",
-      "savingsSource": "Medicare Part B premium ($185/month) plus potential deductible and coinsurance coverage",
-      "savingsVerified": false,
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 65+ or disabled on Medicare",
@@ -233,7 +233,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 221-3943",
       "sourceUrl": "https://www.healthfirstcolorado.com/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "hcbs-waivers",

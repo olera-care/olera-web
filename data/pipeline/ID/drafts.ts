@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ID/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.855Z
+ * Last updated: 2026-08-07T11:45:11.702Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -456,8 +456,8 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Birth certificate or other proof of age",
         "Social Security card",
-        "Medicare card (both parts A and B)",
         "Medicaid card if already enrolled",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -540,7 +540,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs",

@@ -6,6 +6,9 @@ const VALID_REASONS = new Set([
   "angry_optout",
   "legal",
   "spam_complaint",
+  // Written automatically by /api/sms/webhook when someone texts STOP
+  // (migration 166). Listed here so the admin UI can round-trip those rows.
+  "sms_stop",
   "other",
 ]);
 

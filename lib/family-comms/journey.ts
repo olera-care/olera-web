@@ -540,6 +540,18 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       gate: "Requires provider website; admins manually reach out via LinkedIn",
     },
     {
+      key: "fax_discovery",
+      phase: "Follow Up",
+      title: "Fax number discovered",
+      timing: "Manual · Find Fax button",
+      description:
+        "Admin clicks 'Find Fax' to discover provider's fax number from their website. " +
+        "Once found, the fax channel becomes available for that provider.",
+      ownerNote: "Discovery tool in Follow Up tab",
+      traits: ["Manual", "Discovery"],
+      gate: "Requires provider website; found fax is saved to provider record",
+    },
+    {
       key: "directmail_attempt",
       phase: "Follow Up",
       title: "Direct mail sent",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T01:31:59.316Z
+ * Last updated: 2026-08-07T11:45:11.707Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -287,9 +287,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts A and B)",
         "Bank statements for all accounts (last 60 months)",
         "Proof of all income sources (Social Security award letters, pension statements)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Property deeds for all real estate owned",
         "Life insurance policies with face values and beneficiaries",
         "Vehicle titles and registration documents",
@@ -373,7 +373,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 841-2900",
       "sourceUrl": "https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-elder-care",
@@ -490,10 +491,10 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (Parts A and B)",
         "MassHealth card or Medicaid documentation if applicable",
         "Social Security card",
         "Birth certificate or other proof of age",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Massachusetts residency (utility bill, lease, or state ID)",
         "Complete list of current medications with dosages",
         "Recent medical records from primary care doctor",
@@ -584,7 +585,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 837-9009",
       "sourceUrl": "https://www.mass.gov/program-of-all-inclusive-care-for-the-elderly-pace",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",
@@ -2612,9 +2614,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of Massachusetts residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -2700,7 +2702,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(617) 727-7750",
       "sourceUrl": "https://www.mass.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "senior-care-options",

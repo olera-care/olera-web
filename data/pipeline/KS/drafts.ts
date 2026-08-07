@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.856Z
+ * Last updated: 2026-08-07T11:45:11.703Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -108,9 +108,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card",
-        "Medicare card (both parts A and B)",
         "Proof of Kansas residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
@@ -201,7 +201,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(785) 296-4986",
       "sourceUrl": "https://khap.kdhe.ks.gov/KEESM/Oct_2020_Output/keesm8210.htm",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-comprehensive-care",
@@ -301,10 +302,10 @@ export const drafts: PipelineStateDrafts = {
         "urls": []
       },
       "documentsNeeded": [
-        "Medicare card (both parts A and B)",
         "Medicaid card (if already enrolled)",
         "Social Security award letter or disability determination",
         "Proof of age (birth certificate or passport)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Kansas residency (utility bill or lease agreement)",
         "Most recent bank statements (last 3 months)",
         "Income statements (Social Security, pension, retirement accounts)",
@@ -402,7 +403,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://khap.kdhe.ks.gov/KEESM/Feb_2018_Output/keesm8300.htm",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs-qmb-slmb-qi",

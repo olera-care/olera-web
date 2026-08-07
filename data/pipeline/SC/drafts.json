@@ -212,8 +212,8 @@
         ]
       },
       "intro": "If your loved one struggles to afford Medicare premiums or copays, three programs can help. QMB (Qualified Medicare Beneficiary) covers your loved one's $202.90 monthly Medicare Part B premium plus all deductibles and copays. SLMB (Specified Low-Income Medicare Beneficiary) and QI (Qualifying Individual) cover just the Part B premium.\n\nYour loved one qualifies based on income: QMB for incomes up to $1,350/month for singles, SLMB for $1,350-$1,620/month, and QI for $1,620-$1,823/month (2026 limits). Asset limits are $9,660 for individuals, $14,470 for couples. In South Carolina, QMB provides full Medicaid benefits, meaning providers cannot bill your loved one for any covered services.\n\nQI has limited federal funding and operates first-come, first-served, if your loved one might qualify, apply early in the calendar year before funds run out.",
-      "savingsRange": "$2,435 – $4,870/year in 2026",
-      "savingsSource": "Medicare Part B premium ($202.90/month = $2,435/year) plus deductibles and copays for QMB",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -436,7 +436,8 @@
       "phone": "1-888-549-0820",
       "sourceUrl": "https://www.scdhhs.gov/members/program-eligibility-and-income-limits",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

@@ -1653,9 +1653,9 @@
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of Texas residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -1761,7 +1761,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://www.hhs.texas.gov/services/long-term-care/home-community-based-care/community-based-alternatives-cba",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "draftedAt": "2026-04-10",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "community-caregiver-support",

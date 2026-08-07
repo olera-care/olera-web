@@ -535,8 +535,8 @@
         ]
       },
       "intro": "If your loved one struggles to afford Medicare premiums, deductibles, and copays on a fixed income, Medicare Savings Programs can cover these costs, potentially saving $2,000-4,000 per year. Three tiers exist based on income: QMB (Qualified Medicare Beneficiary) for incomes under $1,550/month covers all Medicare costs including the $202.90 monthly Part B premium, $1,604 Part A deductible, and all copays. SLMB and QI cover the Part B premium only for incomes up to $2,095/month.\n\nBecause Hawaii has higher income limits than the mainland, your loved one may qualify even if they wouldn't elsewhere. The program also automatically triggers Extra Help for prescription drug costs. Asset limits are $9,950 for individuals ($14,910 for couples) but don't count the home, one car, or burial plots.\n\nThe QI tier operates first-come, first-served with limited annual funding and requires yearly reapplication, so timing matters if your loved one qualifies at that income level.",
-      "savingsRange": "$2,434 – $4,200/year in 2026",
-      "savingsSource": "Part B premium ($2,434/year) plus deductibles and copays for QMB",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -732,7 +732,8 @@
       "phone": "(808) 587-7500",
       "sourceUrl": "https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

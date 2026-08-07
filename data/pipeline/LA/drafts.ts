@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T08:34:45.165Z
+ * Last updated: 2026-08-07T11:45:11.705Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -627,8 +627,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles with Medicare costs, Louisiana's Medicare Savings Programs can eliminate monthly premiums and reduce out-of-pocket expenses. Three programs exist based on income: QMB covers the most costs for those earning under $1,350/month, SLMB covers Part B premiums for those under $1,616/month, and QI covers Part B premiums for those under $1,816/month.\n\nUnlike many states, Louisiana has no asset limits for these programs, your loved one keeps their home, car, and savings while getting help with Medicare costs. Because QMB also protects against balance billing, providers cannot charge your loved one extra for Medicare-covered services beyond what Medicare and the program pay.\n\nThese programs work alongside Medicare, not instead of it. Your loved one keeps their Medicare benefits and doctors while the state pays their share of costs. QI recipients automatically qualify for Extra Help with prescription costs, capping drug copays at $12.65 per medication in 2026.",
-      "savingsRange": "$1,200 – $4,800/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($174.70/month in 2026) plus deductibles and copays",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -818,7 +818,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://ldh.la.gov/medicaid/medicare-savings-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",
@@ -1457,8 +1458,8 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of Louisiana residency (utility bill, lease, or state-issued document)",
         "Social Security cards for your loved one and spouse (if married)",
-        "Medicare card (both parts A and B)",
         "Most recent Social Security award letter",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Bank statements for all accounts (last 3 months)",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
@@ -1542,7 +1543,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "caregiver-voucher-program",

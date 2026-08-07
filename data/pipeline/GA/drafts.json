@@ -285,9 +285,9 @@
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Birth certificate or passport for proof of age",
         "Proof of Georgia residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -373,7 +373,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://dch.georgia.gov/programs/hcbs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs",
@@ -393,8 +394,8 @@
         ]
       },
       "intro": "If your loved one has Medicare and limited income, Georgia's Medicare Savings Programs can pay their Medicare premiums and out-of-pocket costs. The three programs, QMB, SLMB, and QI, save between $2,435 and $6,000+ per year by covering Medicare Part B premiums ($202.90/month in 2026) and, for QMB enrollees, all Medicare deductibles and copayments.\n\nQMB (Qualified Medicare Beneficiary) provides the most help for parents earning up to $1,325/month ($1,783 for couples). SLMB and QI cover only the Part B premium for slightly higher incomes up to $1,660/month for individuals. Because QMB enrollees cannot be billed by providers for Medicare cost-sharing, it works like comprehensive Medigap coverage. All three programs automatically qualify your loved one for Extra Help with prescription drug costs.\n\nThese programs fill the gap for parents who earn too much for full Medicaid but struggle with Medicare costs. Apply early in the year for QI, funding is limited and eligible applicants can be denied once the federal allocation runs out.",
-      "savingsRange": "$2,435 – $6,000+/year in 2026",
-      "savingsSource": "Part B premium savings ($2,435/year) plus Medicare cost-sharing for QMB enrollees",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -629,7 +630,8 @@
       "phone": "1-866-552-4464",
       "sourceUrl": "https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "senior-snap",

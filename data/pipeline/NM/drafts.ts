@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NM/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.867Z
+ * Last updated: 2026-08-07T11:45:11.716Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -465,9 +465,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts A and B)",
         "Medicaid card or approval letter",
         "Birth certificate or passport for age verification",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of New Mexico residency (utility bill, lease, or state ID)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
@@ -559,7 +559,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 283-4465",
       "sourceUrl": "https://www.hca.nm.gov/community-benefit-program/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "senior-farmers-market-nutrition",

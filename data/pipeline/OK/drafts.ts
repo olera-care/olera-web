@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T01:31:59.325Z
+ * Last updated: 2026-08-07T11:45:11.719Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -292,9 +292,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Birth certificate or other proof of age",
         "Proof of Oklahoma residency (utility bill, lease, or driver's license)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
@@ -379,7 +379,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 522-0310",
       "sourceUrl": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-comprehensive-care",
@@ -1955,9 +1956,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Birth certificate or other proof of age",
         "Proof of Oklahoma residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -2043,7 +2044,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(405) 521-3646",
       "sourceUrl": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "chore-services-title-iii",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.919Z
+ * Last updated: 2026-08-07T11:45:11.698Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -404,10 +404,10 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both parts A and B)",
         "Medicaid card if already enrolled",
         "Social Security card",
         "Birth certificate or passport for proof of age",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Florida residency in PACE service area (utility bill, lease, or driver's license)",
         "Social Security award letter or pension statements",
         "Bank statements for all accounts (last 3 months)",
@@ -517,7 +517,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "786-933-7223",
       "sourceUrl": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs",
@@ -2737,8 +2738,8 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Valid government-issued photo ID for your loved one",
         "Social Security card",
-        "Medicare card (both parts A and B)",
         "Medicaid card if already enrolled",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Proof of any other income (pensions, retirement, wages)",
@@ -2830,7 +2831,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-96-ELDER",
       "sourceUrl": "https://agingresources.org/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicaid-for-aged-and-disabled-meds-ad",

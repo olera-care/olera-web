@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T06:32:58.061Z
+ * Last updated: 2026-08-07T11:45:11.715Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -101,9 +101,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card (both parts A and B)",
         "Birth certificate or passport to verify age",
         "Proof of New Hampshire residency (utility bill, lease, or driver's license)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter or disability determination",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
@@ -189,7 +189,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 852-3345",
       "sourceUrl": "https://www.healthcare.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "cfi-waiver",
@@ -518,8 +519,8 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true
       },
       "intro": "If your loved one struggles with Medicare premiums, deductibles, and copays, New Hampshire's Medicare Savings Programs can dramatically reduce these costs. Because these programs are tiered by income, your loved one might qualify for full coverage of Medicare costs (QMB tier: saves $4,000+ annually) or just premium help (SLMB/QI tiers: saves $2,435 annually on Part B premiums).\n\nNew Hampshire offers a $13 monthly income disregard that many families miss, this means your loved one can earn up to $1,660 monthly as a single person and still qualify for the highest tier. Because these programs automatically trigger Extra Help for prescription drug costs, your loved one gets additional Medicare Part D savings without separate applications.",
-      "savingsRange": "$2,435 – $4,000+/year in 2026",
-      "savingsSource": "Part B premiums ($2,435 annually) plus deductibles and copays for QMB tier",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -686,7 +687,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.dhhs.nh.gov/health-care/medicaid",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

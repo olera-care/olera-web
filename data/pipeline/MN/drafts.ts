@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.860Z
+ * Last updated: 2026-08-07T11:45:11.709Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -306,9 +306,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of Minnesota residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -394,7 +394,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 333-2433",
       "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "msho-senior-health-options",
@@ -479,9 +480,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Birth certificate or government-issued photo ID showing age 65+",
-        "Medicare card showing Parts A and B enrollment",
         "Social Security card",
         "Proof of US citizenship or lawful presence (passport, naturalization certificate, or permanent resident card)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Minnesota residency (utility bill, lease, or bank statement)",
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days if working",
@@ -573,7 +574,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(651) 431-2670",
       "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/msho.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs",

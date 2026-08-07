@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.871Z
+ * Last updated: 2026-08-07T11:45:11.719Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -381,8 +381,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles to pay Medicare premiums or co-pays, Oregon's Medicare Savings Programs can cover those costs based on their income. The most comprehensive tier covers all Medicare premiums, deductibles, and co-insurance for people with monthly income under $1,330 (single) or $1,804 (couple). Higher income tiers cover Medicare Part B premiums for those earning up to $1,796 monthly.\n\nOregon calculates eligibility using gross income minus $20, with additional deductions for earned income, so families may qualify even if their income appears too high. Unlike many programs, there are no asset limits, meaning savings and home value don't affect eligibility. Four different program levels provide different amounts of coverage, from comprehensive cost-sharing to Part B premium assistance only.",
-      "savingsRange": "$1,968 – $8,400/year in 2026",
-      "savingsSource": "Medicare Part B premium ($164/month) to comprehensive Medicare cost-sharing coverage",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -565,7 +565,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-282-8096",
       "sourceUrl": "https://www.oregon.gov/odhs/aging-disability-services/pages/medicare-savings-programs.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

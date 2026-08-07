@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.876Z
+ * Last updated: 2026-08-07T11:45:11.725Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -371,8 +371,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles with Medicare premiums and medical bills, three programs can help based on their income level. The Qualified Medicare Beneficiary (QMB) program covers all Medicare costs for individuals earning $1,350/month or less. The Specified Low-income Medicare Beneficiary (SLMB) program covers Part B premiums for those earning $1,351–$1,620/month. The Qualifying Individual (QI) program also covers Part B premiums for those earning $1,621–$1,823/month.\n\nBecause these programs work through Utah Medicaid, your loved one gets immediate relief from Medicare costs once approved. QMB recipients receive a Medicaid card marked \"MEDICARE COST-SHARING ONLY\" that prevents providers from billing them for covered services. SLMB and QI recipients don't get a card because Utah pays Medicare directly for their premiums.\n\nThe QI program has limited federal funding that can run out mid-year, blocking new applicants until the following year. QMB and SLMB are guaranteed for all who qualify.",
-      "savingsRange": "$1,968 – $7,872/year in 2026",
-      "savingsSource": "Based on Medicare Part B premium ($185/month) plus typical deductibles and coinsurance",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -586,7 +586,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://medicaid.utah.gov/medicare-cost-sharing-programs/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

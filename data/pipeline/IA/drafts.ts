@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.922Z
+ * Last updated: 2026-08-07T11:45:11.701Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -294,9 +294,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card for applicant",
-        "Medicare card (both parts A and B)",
         "Birth certificate or other proof of age",
         "Most recent Social Security award letter",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds and tax statements",
@@ -381,7 +381,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-338-8366",
       "sourceUrl": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-elderly-care",

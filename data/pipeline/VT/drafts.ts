@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.877Z
+ * Last updated: 2026-08-07T11:45:11.726Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -566,8 +566,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is enrolled in Medicare and has limited income, Vermont's Medicare Savings Programs can cover their monthly Medicare premiums and medical costs. QMB (the most comprehensive level) covers the $202.90/month Medicare Part B premium plus all deductibles and copayments for Medicare-covered services. SLMB and QI cover the Part B premium only.\n\nVermont has no asset limits for these programs, unlike most states. Your loved one can own their home, have savings, and still qualify based purely on income. Income limits for 2025: QMB covers people earning up to $1,305/month single ($1,763/month couple), SLMB up to $1,565/month single ($2,115/month couple), and QI up to $1,781/month single ($2,400/month couple).\n\nAll three programs automatically qualify your loved one for Extra Help with Medicare Part D prescription drug costs. Because Vermont administers these through the same office as Medicaid, you apply once and they'll determine which program your loved one qualifies for.",
-      "savingsRange": "$2,435 – $4,870/year in 2025",
-      "savingsSource": "Medicare Part B premiums ($202.90/month) plus estimated deductibles and copayments for QMB tier",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -752,7 +752,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-250-8427",
       "sourceUrl": "https://dvha.vermont.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "3squaresvt-older-vermonters",

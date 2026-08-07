@@ -6,11 +6,45 @@ TJ ran the navigator draft queue's "Copy AI review prompt" export through an ext
 
 The external reviewer is a lead generator, not an authority. It was right about 6 of 7 high-severity claims on the first run — but "mostly right" is exactly why every claim you apply must be re-verified. The failure mode this workflow exists to prevent: SEO aggregator sites echo each other's fictions (the CO "Older Coloradans Cash Fund" — a hallucinated $1,200 consumer grant our own data marked `savingsVerified: true`), so **source-counting proves nothing. Only primary sources settle a claim**: state statute, .gov program pages, the program operator, LIHEAP Clearinghouse, USDA/CMS schedules.
 
+**Open question on the round trip itself (raised 2026-08-07, undecided).** On that round the reviewer produced 14 usable leads out of 18, every one of which had to be re-verified from scratch, and two were overruled. It is a lead generator whose leads we re-derive — a lot of human latency for TJ (copy, paste, wait, paste back) on a mechanical step. The independence is still worth something: a different model catches what a Claude-only pipeline would systematically miss, which is a real argument against dropping it. Two reshapes are on the table, TJ's call and not yours: keep it but shrink the prompt via the `lastVerifiedDate` gate and the offline lint, or invert it so Claude subagents generate leads and the external model is used only as an adversarial check on disputed and high-severity items. **Until TJ decides, run it as written.**
+
+## Speed budget (added 2026-08-07)
+
+The 2026-08-07 round took over two hours. Much of that was one-time discovery now written down below, but the recurring cost was real. **Target for a steady-state round: 15–20 minutes of Claude time, a couple of minutes of TJ's.** If you are exceeding that, you are probably re-verifying something already verified, or fetching serially.
+
+The order of leverage is **shrink → automate → parallelize**, in that order. Parallelism is the third lever, not the first.
+
+1. **Shrink the input.** Do not review a program whose `lastVerifiedDate` is within 30 days unless the report flags it high-severity. On 2026-08-07 this alone would have cut 13 programs to roughly 4. The export should gate on this itself (see Code dependencies); until it does, drop fresh programs yourself before verifying anything.
+2. **Lint offline first.** Most findings are instances of a few recurring patterns, not novel facts. Run the mechanical checks below with zero network calls before touching the report. CT's 2026-08-07 error was findable with a grep: `savingsRange` said "$1,500–$6,000" while the same record's tagline, intro, `savingsSource`, and FAQ all said $7,500.
+3. **Parallelize the residue.** Whatever survives 1 and 2 gets one subagent per program, each hunting primary sources and returning a structured verdict. Wall clock becomes the slowest single verification, not the sum. Do NOT verify 18 claims in serial batches of three — that was the single largest recurring cost on 2026-08-07.
+
+### Offline lint — run these before any web call
+
+Each is a pure data check over `data/pipeline/*/drafts.json`. All produced real findings on 2026-08-07:
+
+- **Medicare "Parts A and B" on a non-Medicare program.** Grep `documentsNeeded[0..2]` for `/parts a and b/i`, cross-reference `structuredEligibility.summary` and `name` for `/waiver|medicaid|nursing home level/i`. 49 programs nationally match, 34 of them wrongly (including 11 PACE, which CMS directly contradicts).
+- **Internal contradiction.** Grep the whole record for the `savingsRange` figures. If the tagline/intro/`savingsSource`/FAQ disagree with `savingsRange`, the outlier is almost always `savingsRange`. Settles the claim with no source needed.
+- **Null lead phone.** `contacts[0].phone === null` means the composer silently falls through to the next contact, usually 2-1-1. A data error, not a blank.
+- **Generic anchor.** `contacts[0].phone` is `2-1-1` or a card-services/status line rather than an application door.
+- **Unsourced savings.** `savingsRange` set with a vague or missing `savingsSource`, or a maximum phrased as a typical range.
+- **Stale.** `lastVerifiedDate` null or older than ~6 months.
+
+### Known 403 walls — skip the fetch, go straight to search
+
+These blocked WebFetch on 2026-08-07 and will again. Do not burn a failed fetch on them: `des.az.gov`, `cdhs.colorado.gov`, `ldh.la.gov`, `cms.gov`, `hhs.texas.gov` (PDFs), `dhhs.nh.gov`, `medicare.gov`. Use WebSearch and read which domain the answer actually comes from. These fetched fine: `wvdrs.org`, `portal.ct.gov`, `hfs.illinois.gov`, `fhb.hhs.texas.gov`, `goea.la.gov`, and parish/county `.gov` sites.
+
+### Code dependencies (not built as of 2026-08-07)
+
+Two items belong in code, not this file. Until they exist, do their job by hand and say so in the report:
+
+- **`lastVerifiedDate` gate in the export** — `lib/benefits/navigator-review-prompt.ts` should omit programs verified within N days so the prompt, TJ's wait, and the verification all shrink together.
+- **`scripts/benefits-lint.js`** — the offline checks above as a real script. As prose they get re-derived ad hoc every round, which is the inefficiency this section exists to remove.
+
 ## Procedure
 
 1. **Read the report.** Find the CORRECTIONS block (the export prompt demands one: `[STATE] [program]: [field] — [old] → [new] (source)`). If there isn't one, extract the same structure from the findings tables. Separate corrections (data changes) from pick-fit/voice observations (report those to TJ; they're composer-level, not data).
 
-2. **Verify before applying.** For every high-severity correction, and any correction that removes or fundamentally reclassifies a program: independently confirm via WebFetch/WebSearch against primary sources. Government sites often block fetches (403/ECONNREFUSED) — fall back to WebSearch and read which domain the answer actually comes from. CAUTION (2026-08-01): WebSearch answer summaries can blend aggregator text into what looks like an official page's instruction — a summary claimed ADECA takes LIHEAP applications when ADECA's own page says the opposite. Phone NUMBERS from search summaries held up; ROUTING/PROCESS claims ("call X to apply") did not. For any claim about how to apply, fetch the operator's page directly or treat it as unverified. Med/low corrections (hours, document list wording) may be applied on the report's citation if the cited source is official. **If your verification disagrees with the report, or sources genuinely conflict (see the open MA FEW 60-month dispute), do NOT apply — flag it to TJ as disputed.**
+2. **Verify before applying — in parallel, not serially.** Fan out one subagent per surviving program (not per claim), each given the program's current record, the report's claims for it, the 403 list above, and instructions to return a structured verdict per claim naming the source domain the answer actually came from. For every high-severity correction, and any correction that removes or fundamentally reclassifies a program: independently confirm via WebFetch/WebSearch against primary sources. Government sites often block fetches (403/ECONNREFUSED) — fall back to WebSearch and read which domain the answer actually comes from. CAUTION (2026-08-01): WebSearch answer summaries can blend aggregator text into what looks like an official page's instruction — a summary claimed ADECA takes LIHEAP applications when ADECA's own page says the opposite. Phone NUMBERS from search summaries held up; ROUTING/PROCESS claims ("call X to apply") did not. For any claim about how to apply, fetch the operator's page directly or treat it as unverified. Med/low corrections (hours, document list wording) may be applied on the report's citation if the cited source is official. **If your verification disagrees with the report, or sources genuinely conflict (see the open MA FEW 60-month dispute), do NOT apply — flag it to TJ as disputed.**
 
 3. **Apply to `data/pipeline/<ST>/drafts.json`** (the source of truth — `drafts.ts` is generated). Write a Node script that locates programs by id/name regex and **fails loudly when a target isn't found**; never silently skip. Conventions:
    - `contacts[0]` is the letter's call anchor — the program's application door, not a generic referral line. 2-1-1 is only acceptable when it genuinely handles the program (TX SNAP) or is honestly labeled as a locator (FL LIHEAP).
@@ -19,11 +53,18 @@ The external reviewer is a lead generator, not an authority. It was right about 
    - Stamp `lastVerifiedDate: <today>` on every corrected program.
    - A program that doesn't exist as a consumer benefit gets **removed** — saved references drop out gracefully (`draftFor` returns null) and the page 404s.
 
-4. **Regenerate + de-churn:** `node scripts/benefits-pipeline.js --regen-index`, then revert the untouched states' `drafts.ts` (the regen rewrites all 51 headers with a new timestamp — keep only edited states + real changes; `git diff --numstat` = 1 line means timestamp-only). Then `tsc --noEmit` (run the binary directly, no `timeout` wrapper).
+4. **Regenerate + de-churn:** `node scripts/benefits-pipeline.js --regen-index`, then revert the untouched states' `drafts.ts` (the regen rewrites all 51 headers with a new timestamp — keep only edited states + real changes; `git diff --numstat` = 1 line means timestamp-only). Then `tsc --noEmit` (run the binary directly, no `timeout` wrapper). **Skip tsc entirely on a data-only round** — `drafts.ts` is generated from JSON with an unchanged shape, so there is nothing new to typecheck, and a fresh worktree carries no `node_modules`, making `npm install` pure dead time. Typecheck only when the round also touches code.
 
-5. **Branch + PR to staging** (`benefits-data-corrections-<date>` off `origin/staging`). PR body: what was verified against what source, what was deliberately not applied and why. Never merge — TJ merges via /pr-merge.
+5. **Branch + PR to staging** (`benefits-data-corrections-<date>` off `origin/staging`). PR body: what was verified against what source, what was deliberately not applied and why. Never merge — TJ merges via /pr-merge. **One PR per round, not one per discovery.** On 2026-08-07 a late finding produced a second PR and a second full regen/de-churn/tsc/merge cycle. Hold every data change until the whole report is triaged, then open once.
 
 6. **Patch the pending drafts directly — do not hand TJ an edit list.** Already-composed navigator drafts carry the old facts, and drafts are DATABASE rows (`business_profiles.metadata.benefits_navigator`), so corrections reach them without any deploy. For each pending draft citing corrected data: write a patch script with exact-string replacements on the letter body (miss = throw, never silently half-patch), keep the letter's voice (short sentences, 6th grade, no em dashes), fresh-read merge on write, stamp `factcheck_patched_at`. TJ still gates every send, so patched text gets his read at send time. First run: 2026-07-31, 10 letters patched in place. Special cases: a letter whose program was REMOVED can't be text-patched — flag it for TJ to dismiss, or recompose it after the data PR deploys (recompose re-picks from the deployed bundle and will choose the next-best program). Drafts for programs the report didn't cover stay untouched and are named in the summary for the next run.
+
+   **Mechanics that cost real time on 2026-08-07 — get them right the first time:**
+   - **Apostrophes.** Letter bodies in the DB use straight `'`, not curly `’`. A patch string with the wrong one throws on the exact-match guard. Normalize before writing the script, and remember single-quoted JS literals then need double quotes or escaping.
+   - **Drive the patcher from the CORRECTIONS block**, not hand-written per-state blocks. The find/replace pairs are data and belong in a table.
+   - **Refresh the `pick` snapshot in the same write as the body**, rebuilt from current pipeline data using the composer's own rules: first contact with a non-null phone, `documentsNeeded.slice(0, 3)`.
+   - **Sanity-check counts after editing.** Removing a document from a letter that says "have three things nearby" leaves it listing two. Grep the patched body for number words.
+   - **Run DB scripts from a checkout that has `node_modules`.** Worktrees usually don't.
 
 7. **Report to TJ:** corrections applied (with the one-line-each summary), disputes flagged, pick-fit/voice observations from the report worth a composer-rail change, and the recompose-after-deploy checklist.
 

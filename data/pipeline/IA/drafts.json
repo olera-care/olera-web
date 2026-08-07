@@ -289,9 +289,9 @@
       },
       "documentsNeeded": [
         "Social Security card for applicant",
-        "Medicare card (both parts A and B)",
         "Birth certificate or other proof of age",
         "Most recent Social Security award letter",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds and tax statements",
@@ -376,7 +376,8 @@
       "phone": "1-800-338-8366",
       "sourceUrl": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-elderly-care",

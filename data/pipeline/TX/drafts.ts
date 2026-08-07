@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T06:32:58.069Z
+ * Last updated: 2026-08-07T11:45:11.725Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1658,9 +1658,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of Texas residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -1766,7 +1766,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.hhs.texas.gov/services/long-term-care/home-community-based-care/community-based-alternatives-cba",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "draftedAt": "2026-04-10",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "community-caregiver-support",

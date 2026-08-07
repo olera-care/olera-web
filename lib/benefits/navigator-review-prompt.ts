@@ -31,6 +31,20 @@ export interface ReviewPick {
   contactHours?: string | null;
   documents?: string[];
   savingsRange?: string | null;
+  /** From the live pipeline record, not the frozen snapshot — attached by the
+   *  admin API so the export can skip programs verified recently. */
+  lastVerifiedDate?: string | null;
+}
+
+export interface ReviewPromptOptions {
+  /** Omit programs verified within this many days. A fact-check round costs
+   *  TJ a copy-paste, an external model's time, and a full verification pass
+   *  per program; re-auditing a program checked last week buys none of that
+   *  back. On 2026-08-07 this would have cut 13 programs to roughly 4.
+   *  Undefined or 0 includes everything. */
+  skipVerifiedWithinDays?: number;
+  /** Injected for deterministic tests; defaults to now. */
+  now?: Date;
 }
 
 export interface ReviewItem {
@@ -113,9 +127,20 @@ function letterSection(item: ReviewItem, label: string): string {
   return parts.join("\n");
 }
 
+function daysSince(iso: string | null | undefined, now: Date): number | null {
+  if (!iso) return null;
+  const then = new Date(iso);
+  if (isNaN(then.getTime())) return null;
+  return Math.floor((now.getTime() - then.getTime()) / 86_400_000);
+}
+
 /** Build the full paste-ready review prompt for one or many drafts. */
-export function buildNavigatorReviewPrompt(items: ReviewItem[]): string {
-  const today = new Date().toLocaleDateString("en-US", {
+export function buildNavigatorReviewPrompt(
+  items: ReviewItem[],
+  options: ReviewPromptOptions = {},
+): string {
+  const now = options.now ?? new Date();
+  const today = now.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -132,7 +157,32 @@ export function buildNavigatorReviewPrompt(items: ReviewItem[]): string {
     else groups.set(key, [item]);
   }
 
-  const header = `# Fact-check request: first-step benefits letters (${items.length} letter${items.length === 1 ? "" : "s"}, ${groups.size} program${groups.size === 1 ? "" : "s"})
+  // Drop programs verified recently. Done AFTER grouping so the unit skipped is
+  // a program, never a letter — a letter whose program is skipped still has its
+  // facts covered by the earlier round that verified them.
+  const skipDays = options.skipVerifiedWithinDays ?? 0;
+  const skipped: { label: string; age: number }[] = [];
+  if (skipDays > 0) {
+    for (const [key, groupItems] of [...groups]) {
+      const pick = groupItems[0]?.pick;
+      const age = daysSince(pick?.lastVerifiedDate, now);
+      if (age === null || age >= skipDays) continue;
+      skipped.push({
+        label: `${pick?.name ?? pick?.shortName ?? key} (${groupItems[0]?.state ?? pick?.stateId ?? "?"})`,
+        age,
+      });
+      groups.delete(key);
+    }
+  }
+
+  const reviewedLetters = [...groups.values()].reduce((n, g) => n + g.length, 0);
+  const skipNote = skipped.length
+    ? `\n\n_Not included: ${skipped.length} program${skipped.length === 1 ? "" : "s"} verified against primary sources within the last ${skipDays} days — ${skipped
+        .map((s) => `${s.label}, ${s.age}d ago`)
+        .join("; ")}. Their letters still send; their facts were checked in an earlier round._`
+    : "";
+
+  const header = `# Fact-check request: first-step benefits letters (${reviewedLetters} letter${reviewedLetters === 1 ? "" : "s"}, ${groups.size} program${groups.size === 1 ? "" : "s"})${skipNote}
 
 You are an independent benefits fact-checker reviewing letters written by Olera (olera.care), a senior-care platform. Each letter gives one family of an older adult a single "first step": one government benefit program worth calling, the phone number, and the documents to have ready before dialing. Recipients are mostly low-income seniors or their adult children. A wrong number or a poor program pick wastes the one call they may attempt. Today's date is ${today} — verify against CURRENT sources, not what was true last year.
 

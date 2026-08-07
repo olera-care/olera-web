@@ -520,7 +520,12 @@ export default function BenefitsFamiliesView() {
       );
       const items = results.filter((r): r is ReviewItem => r !== null);
       if (items.length === 0) throw new Error("no drafts loaded");
-      const prompt = buildNavigatorReviewPrompt(items);
+      // Batch export skips programs verified inside the window — re-auditing a
+      // program checked last week costs a paste, an external model's time, and
+      // a full verification pass, and buys nothing back. The per-letter export
+      // below deliberately does NOT skip: asking for one letter's review is an
+      // explicit request for that letter.
+      const prompt = buildNavigatorReviewPrompt(items, { skipVerifiedWithinDays: 30 });
       let downloaded = false;
       try {
         await window.navigator.clipboard.writeText(prompt);

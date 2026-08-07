@@ -104,9 +104,9 @@
       },
       "documentsNeeded": [
         "Social Security cards for your loved one",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of Mississippi residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security or SSI award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -192,7 +192,8 @@
       "phone": null,
       "sourceUrl": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "elderly-disabled-waiver",
@@ -396,8 +397,8 @@
         ]
       },
       "intro": "If your loved one is struggling with Medicare costs on a fixed income, Mississippi's Medicare Savings Programs can eliminate their Medicare Part B premium ($185/month in 2026) and potentially cover all Medicare deductibles and copays. The state offers three tiers based on income, QMB provides the most comprehensive coverage, while SLMB and QI cover premiums only.\n\nUnlike most states, Mississippi has no asset test for these programs. Because resources don't matter, your loved one could own their home, have savings, and still qualify based on income alone. Income limits range from $1,350/month for the most comprehensive tier up to $1,816/month for premium-only coverage (single person, 2026).\n\nThe catch: QI (the highest income tier) has federal funding caps, so even income-eligible applicants may face waitlists. QMB provides immediate comprehensive coverage but has the strictest income limits. All tiers require Medicare Part A eligibility and Mississippi residency.",
-      "savingsRange": "$2,220 – $6,000/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($185/month) plus potential deductibles and copays coverage",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -568,7 +569,8 @@
       "phone": "(800) 421-2408",
       "sourceUrl": "https://medicaid.ms.gov/medicaid-coverage/who-qualifies-for-coverage/medicare-cost-sharing/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

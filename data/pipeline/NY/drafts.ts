@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-06-06T10:25:13.549Z
+ * Last updated: 2026-08-07T11:45:11.717Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -109,9 +109,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of New York residency (utility bill, lease, or state ID)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -203,7 +203,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 355-5777",
       "sourceUrl": "https://www.health.ny.gov/health_care/medicaid/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "hcbs-developmental-disabilities-waiver",
@@ -466,8 +467,8 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Valid government-issued photo ID or birth certificate to verify age 55+",
         "Proof of residency in PACE service area (utility bill, lease, or mail within last 30 days)",
-        "Medicare card (both parts A and B)",
         "Medicaid card (if applicable) or proof of Medicaid eligibility",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Social Security award letter or other proof of income",
         "Current medication list with dosages and prescribing doctors",
         "Recent medical records documenting need for nursing home level of care",
@@ -548,7 +549,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-888-401-6582",
       "sourceUrl": "https://www.cms.gov/medicare/medicaid-coordination/about/pace",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-program-qmb-slmb-qi",

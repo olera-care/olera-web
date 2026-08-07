@@ -758,8 +758,8 @@
         ]
       },
       "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or copays, Montana's Medicare Savings Programs can eliminate these costs entirely. Because these programs pay Medicare expenses directly to providers, your loved one gets full Medicare coverage without the financial stress, QMB covers all Medicare out-of-pocket costs, while SLMB and QI cover at least the monthly Part B premium ($185 in 2026).\n\nThe programs have three tiers based on income: QMB for those earning up to $1,305/month, SLMB for $1,305–$1,565/month, and QI for $1,565–$1,761/month. Because all three tiers automatically qualify your loved one for Extra Help with prescription drug costs, they'll also pay minimal amounts for medications. Asset limits apply ($9,950 for individuals, $14,910 for couples), but the primary home and one car don't count toward this limit.",
-      "savingsRange": "$2,220 – $6,000/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($2,220/year) plus deductibles and coinsurance for QMB tier",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -971,7 +971,8 @@
       "phone": "1-800-362-1504",
       "sourceUrl": "https://dphhs.mt.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",
@@ -1952,9 +1953,9 @@
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card (both parts A and B)",
         "Birth certificate or other proof of age",
         "Proof of Montana residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Medical records documenting functional limitations and care needs",
@@ -2045,7 +2046,8 @@
       "phone": "(800) 219-7035",
       "sourceUrl": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "scsep-employment",

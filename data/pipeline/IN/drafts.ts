@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.856Z
+ * Last updated: 2026-08-07T11:45:11.703Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -285,9 +285,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate, passport, or driver's license)",
         "Proof of Indiana residency (utility bill, lease agreement, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
@@ -379,7 +379,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 986-3505",
       "sourceUrl": "https://www.in.gov/pathways/home/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pathways-aging-ltss",

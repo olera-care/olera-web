@@ -24,6 +24,11 @@
 
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
+
+/** Make high-severity lint findings fatal. Off by default because
+ *  benefits-batch.js reads a non-zero exit as a FAILED state. */
+const LINT_STRICT = process.argv.includes("--lint-strict");
 
 // ─── Worktree-compatible env loading ────────────────────────────────────────
 
@@ -127,6 +132,7 @@ function printUsage() {
     node scripts/benefits-pipeline.js --region "DMV" --run
 
     node scripts/benefits-pipeline.js --regen-index     # Rebuild all per-state drafts.ts + barrel from drafts.json
+    node scripts/benefits-pipeline.js --state CO --run --lint-strict   # Fail the run on high-severity data defects
 
   Phases:
     explore   Survey the landscape: what programs exist?
@@ -1216,8 +1222,8 @@ Generate the complete page content as a JSON object matching this exact structur
   "complexity": "${complexity}",
   "geographicScope": ${JSON.stringify(classification.geographicScope || { type: "state" })},
   "intro": "<2-3 paragraph introduction. Lead with what this means for the caregiver's parent. Be specific about what the program provides and who it's for. Include key numbers. Separate paragraphs with \\n\\n.>",
-  "savingsRange": "<'$X – $Y/year in 2026' format from research, or empty string '' for free services>",
-  "savingsSource": "<where the savings number comes from, or 'Free service' for resources>",
+  "savingsRange": "<What the program actually pays, worded to match the evidence. Use a range ONLY when research gives both ends: '$160 – $640/year in 2026'. When research gives only a ceiling, say so: 'Up to $3,576/year for one person (FY2026 maximum)'. NEVER invent a low end to make a range. Empty string '' for free services.>",
+  "savingsSource": "<The official basis for savingsRange: who publishes it and what kind of figure it is (maximum, standard benefit, average award, premium offset). Must name a number that appears in savingsRange. 'Free service' for resources.>",
   "savingsVerified": <true if we have specific dollar amounts from official sources, false otherwise>,
 
   "structuredEligibility": {
@@ -1241,18 +1247,20 @@ Generate the complete page content as a JSON object matching this exact structur
   },
 
   "documentsNeeded": [
-    <6-15 SPECIFIC items the applicant needs. Not "proof of income". Instead, "Social Security award letter", "Most recent bank statements (last 3 months)", "Medicare card (both parts)", "Pre-need burial contracts or irrevocable burial trusts". Be concrete.>
-    EXEMPLAR (MEPD, deep program, 15 items):
-    ["Social Security cards for all household members", "Medicare card (both parts)", "Proof of age (birth certificate or passport)", "Proof of Texas residency (utility bill, lease, or state-issued document)", "Most recent Social Security award letter", "Pension or retirement income statements", "Bank statements for all accounts (last 3 months)", "Investment documents (stocks, bonds, annuities, trust agreements)", "Property documents (deeds, tax statements, royalty statements)", "Life insurance policies with face values", "Vehicle titles and registration", "Pre-need burial contracts or irrevocable burial trusts", "Legal documents if you have a representative", "Documentation of medical expenses paid out-of-pocket (last 3 months)", "Proof of health insurance premiums paid"]
+    <6-15 SPECIFIC items the applicant needs. Not "proof of income". Instead, "Social Security award letter", "Most recent bank statements (last 3 months)", "Pre-need burial contracts or irrevocable burial trusts". Be concrete.
+    ORDER MATTERS MORE THAN LENGTH: only the FIRST THREE items are shown to a family before their first call. Lead with what the operator actually asks for on that call. Deep financial records (investments, burial contracts, vehicle titles) belong later in the list, not in the first three.>
+    EXEMPLAR (MEPD, deep program, 15 items — note the first three are what you need to make the call, not the full financial file):
+    ["Most recent Social Security award letter", "Proof of Texas residency (utility bill, lease, or state-issued document)", "Medicare card (Part A is what qualifies you)", "Social Security cards for all household members", "Proof of age (birth certificate or passport)", "Pension or retirement income statements", "Bank statements for all accounts (last 3 months)", "Investment documents (stocks, bonds, annuities, trust agreements)", "Property documents (deeds, tax statements, royalty statements)", "Life insurance policies with face values", "Vehicle titles and registration", "Pre-need burial contracts or irrevocable burial trusts", "Legal documents if you have a representative", "Documentation of medical expenses paid out-of-pocket (last 3 months)", "Proof of health insurance premiums paid"]
     EXEMPLAR (CEAP, simple program, 6 items):
     ["Valid government-issued photo ID", "Proof of citizenship or legal residency for all household members", "Proof of income from the last 30 days (pay stubs, SSI letter, or tax return)", "Most recent electric bill", "Most recent gas or propane bill", "Names and dates of birth for everyone in the household"]
     If the program has no application (e.g., a hotline), use null.
   ],
 
   "contacts": [
-    <Program-specific phone numbers with descriptions and hours. Not just one generic number; differentiate by purpose.>
-    EXEMPLAR: [{"label": "Texas 2-1-1", "phone": "2-1-1", "description": "Free 24/7 helpline for all social services", "hours": "24 hours, 7 days a week"}, {"label": "HHSC Benefits Line", "phone": "(877) 541-7905", "description": "Medicaid and benefits questions", "hours": "Mon-Fri 8am-6pm CT"}]
-    Include at least the primary program phone and a general helpline. null if no contacts found.
+    <Program-specific phone numbers with descriptions and hours. Not just one generic number; differentiate by purpose.
+    THE FIRST CONTACT IS THE ONE A FAMILY CALLS. It must have a real phone number and must be the program's own application door — the operator that can actually start or screen an application. A general referral line (2-1-1, an information helpline) goes LAST, never first, and its description must say plainly that it transfers you rather than handling the program itself. Never put a named individual's desk line first; use the organization's main line, which survives staff changes.>
+    EXEMPLAR: [{"label": "HHSC Benefits Line", "phone": "(877) 541-7905", "description": "Apply and ask about eligibility", "hours": "Mon-Fri 8am-6pm CT"}, {"label": "Texas 2-1-1", "phone": "2-1-1", "description": "General helpline that can transfer you to the right office if the line above is busy", "hours": "24 hours, 7 days a week"}]
+    If you cannot find the program's own number, put the best real number you DID find first and describe honestly what it reaches. Never leave the first contact's phone null. null for the whole array only if no contacts exist at all.
   ],
 
   "applicationNotes": [
@@ -1304,6 +1312,10 @@ CRITICAL RULES:
 - Savings range must be empty string "" for free services (resources, navigators).
 - Application steps must be specific to THIS program; include actual phone numbers, URLs, form names.
 - documentsNeeded must list CONCRETE items ("Social Security award letter") not categories ("proof of income").
+- Only documentsNeeded[0..2] reach a family before their first call. Put the first-call essentials there.
+- NEVER state Medicare as a requirement for a program that is not Medicare-based. Medicaid waivers, PACE, and state HCBS programs do NOT require Medicare: CMS is explicit that a person can join PACE with Medicaid only, or by paying privately. If a Medicare card is worth mentioning at all for such a program, write it as optional ("Medicare card if they have one"), never as "Medicare card (both parts A and B)".
+- Do not invent a low end for savingsRange. A ceiling stated as a range reads to a family as a typical amount, and the letters we generate turn savingsRange into "families that qualify often save X". If the research supports only a maximum, say maximum.
+- contacts[0] must have a real phone number and must be the program's application door, not a referral line.
 - FAQs must answer DECISION-MAKING questions, not definitions. Minimum ${complexity === "deep" ? 6 : complexity === "medium" ? 4 : 2}.
 - Content sections array should only include sections where you have real data to populate them.
 - Return ONLY the JSON object, no markdown wrapping.`;
@@ -2240,7 +2252,67 @@ async function main() {
   // Auto-generate pipeline-summary.ts for the admin dashboard
   generatePipelineSummary(dirName);
 
+  runLintGate(entity, dirName);
+
   console.log(`\n  Done. ${cost.summary()}\n`);
+}
+
+/**
+ * Data-quality gate. The generator prompt is the origin of the defect classes
+ * benefits-lint checks for — a bad exemplar or a loosened rule reintroduces
+ * them silently across every program it drafts, and the damage only surfaces
+ * weeks later in a fact-check round. Running the lint here puts the signal
+ * where the cause is.
+ *
+ * Reports by default rather than failing: benefits-batch.js treats a non-zero
+ * exit as a FAILED state, so hard-failing would mark healthy runs as broken and
+ * disrupt multi-state batches. Pass --lint-strict to make high findings fatal
+ * (use it in CI or a deliberate single-state run).
+ */
+function runLintGate(entity, dirName) {
+  const abbrev = (entity.stateCode || dirName || "").toUpperCase();
+  if (!/^[A-Z]{2}$/.test(abbrev)) return;
+  const lintScript = path.resolve(__dirname, "benefits-lint.js");
+  if (!fs.existsSync(lintScript)) return;
+
+  let parsed;
+  try {
+    const out = execFileSync(
+      "node",
+      [lintScript, `--state=${abbrev}`, "--high", "--json"],
+      { encoding: "utf-8", maxBuffer: 20 * 1024 * 1024 },
+    );
+    parsed = JSON.parse(out);
+  } catch (err) {
+    console.log(`\n  ⚠ Lint gate could not run: ${err.message.split("\n")[0]}`);
+    return;
+  }
+
+  const findings = parsed.findings || [];
+  if (!findings.length) {
+    console.log(`\n  ✓ Lint: no high-severity data defects in ${abbrev}.`);
+    return;
+  }
+
+  const byCheck = findings.reduce((acc, f) => ((acc[f.check] = (acc[f.check] || 0) + 1), acc), {});
+  console.log(`\n  ${"─".repeat(66)}`);
+  console.log(`  ⚠ LINT: ${findings.length} high-severity data defect${findings.length === 1 ? "" : "s"} in ${abbrev}`);
+  console.log(`  ${"─".repeat(66)}`);
+  for (const [check, n] of Object.entries(byCheck).sort((a, b) => b[1] - a[1])) {
+    console.log(`    ${check.padEnd(24)} ${n}`);
+  }
+  for (const f of findings.slice(0, 8)) {
+    console.log(`\n    ${f.programId}`);
+    console.log(`      ${f.detail}`);
+  }
+  if (findings.length > 8) console.log(`\n    ...and ${findings.length - 8} more.`);
+  console.log(`\n    Full detail: node scripts/benefits-lint.js --state=${abbrev} --high`);
+  console.log(`    These reach families through letters. Fix before promoting.`);
+
+  if (LINT_STRICT) {
+    console.log(`\n  ✗ --lint-strict set: failing the run.\n`);
+    process.exit(1);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

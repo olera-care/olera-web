@@ -99,17 +99,17 @@ export const CRON_REGISTRY: CronJob[] = [
   },
   {
     id: "ad-boost-profile-reminders",
-    name: "Ad Boost profile reminders + outcome pings",
+    name: "Ad Boost readiness reminders + outcome pings",
     description:
-      "Two rungs. 1: nudges providers whose Ad Boost launch plan is queued because their profile is still below the launch threshold (promotes launch-ready requests instead). 2: lead-outcome pings — asks providers, ~7 and ~21 days after a campaign-attributed inquiry, whether the family became a client (one-tap; feeds the campaign receipt).",
+      "Three rungs. 1: sends the one photo-update reminder after three business days. 2: nudges providers whose launch plan is queued because their profile is below the threshold (or promotes launch-ready requests). 3: asks providers ~7 and ~21 days after an attributed inquiry whether the family became a client.",
     recipientCohort:
-      "Providers with a pending-profile Ad Boost request at least 48 hours old, and providers of live/ended campaigns with un-reported leads in the 7d/21d windows (max one outcome ping per provider per day).",
+      "Providers waiting three business days on requested photos, providers with a pending-profile Ad Boost request at least 48 hours old, and providers of live/ended campaigns with un-reported leads in the 7d/21d windows.",
     audience: "Providers",
     fn: "nudge",
     schedule: "30 14 * * *",
     humanSchedule: "Daily, 14:30 UTC (~9–10 AM ET)",
     path: "/api/cron/ad-boost-profile-reminders",
-    emailTypes: ["ad_boost_profile_reminder", "ad_boost_ready", "ad_boost_lead_outcome_check"],
+    emailTypes: ["ad_boost_photo_reminder", "ad_boost_profile_reminder", "ad_boost_ready", "ad_boost_lead_outcome_check"],
     successSignal:
       "Queued campaigns move into setup; providers one-tap report lead outcomes that appear on the campaign receipt.",
     relatedAdminPath: "/admin/ad-boost",
@@ -152,7 +152,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "ad-boost-emails",
     name: "Ad Boost lifecycle events",
     description:
-      "Event-driven Ad Boost messages: request receipt, immediate campaign launch, campaign-attributed lead, and early traction. The starter-promo wrap-up appears here too, but only via the admin's explicit Send-now — a normal end schedules it for the hourly end-scheduler instead. The full provider journey also includes readiness/outcome work from the daily job and timed launches from the hourly launch scheduler.",
+      "Event-driven Ad Boost messages: request receipt, photo-review request/resolution, immediate campaign launch, campaign-attributed lead, and early traction. The starter-promo wrap-up appears here too, but only via the admin's explicit Send-now — a normal end schedules it for the hourly end-scheduler instead.",
     recipientCohort:
       "Providers who request, queue, launch, or receive activity from Find Families managed-ad campaigns.",
     audience: "Providers",
@@ -163,6 +163,8 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [
       "ad_boost_queued",
       "ad_boost_requested",
+      "ad_boost_photo_update",
+      "ad_boost_photos_ready",
       "ad_boost_campaign_launched",
       "ad_boost_lead_delivered",
       "ad_boost_traction",

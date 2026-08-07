@@ -31,6 +31,8 @@ const VALID_CHANNELS = ["google", "meta", "both"];
 const DEMAND_WINDOW_DAYS = 7;
 // The intro's value event: the wrap-up ask arms at this many delivered leads.
 const WRAPUP_LEADS_THRESHOLD = 3;
+const REQUEST_RETURN_SELECT =
+  "id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents, photo_readiness_status, photo_update_requested_at, photo_update_submitted_at";
 
 export async function GET() {
   const elig = await loadAdBoostEligibility();
@@ -47,7 +49,7 @@ export async function GET() {
 
   let { data: latest } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
+    .select(REQUEST_RETURN_SELECT)
     .eq("provider_id", elig.profileId)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -69,7 +71,7 @@ export async function GET() {
       })
       .eq("id", latest.id)
       .eq("status", "pending_profile") // guard against a double-promote race
-      .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
+      .select(REQUEST_RETURN_SELECT)
       .maybeSingle();
 
     if (promoted) {
@@ -267,7 +269,7 @@ export async function POST(request: NextRequest) {
   // ── Block a duplicate campaign (active OR already queued under-profile) ──
   const { data: existing } = await db
     .from("ad_campaign_requests")
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
+    .select(REQUEST_RETURN_SELECT)
     .eq("provider_id", elig.profileId)
     .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
@@ -294,7 +296,7 @@ export async function POST(request: NextRequest) {
       intended_monthly_budget: intendedMonthlyBudget,
       status: queued ? "pending_profile" : "requested",
     })
-    .select("id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents")
+    .select(REQUEST_RETURN_SELECT)
     .single();
 
   if (insertError || !inserted) {

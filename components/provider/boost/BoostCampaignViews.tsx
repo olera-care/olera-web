@@ -570,6 +570,7 @@ export function CampaignInMotion({
   onCheckout,
   submitting,
   error,
+  onEditPhotos,
 }: {
   request: BoostRequest;
   campaignStats: {
@@ -582,6 +583,7 @@ export function CampaignInMotion({
   onCheckout: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
+  onEditPhotos?: () => void;
 }) {
   const [showPlans, setShowPlans] = useState(false);
   const label: Record<string, string> = {
@@ -590,22 +592,72 @@ export function CampaignInMotion({
     live: "Your campaign is live",
   };
   const isLive = request.status === "live";
+  const photoUpdateRequested =
+    !isLive && request.photo_readiness_status === "update_requested";
+  const photoReviewRequested =
+    !isLive && request.photo_readiness_status === "review_requested";
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-2.5 mb-3">
-        <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-        <span className="text-sm font-semibold text-primary-700">
-          {label[request.status] ?? "In progress"}
+        <span className={`w-2 h-2 rounded-full animate-pulse ${photoUpdateRequested ? "bg-amber-500" : "bg-primary-500"}`} />
+        <span className={`text-sm font-semibold ${photoUpdateRequested ? "text-amber-700" : "text-primary-700"}`}>
+          {photoUpdateRequested
+            ? "Photo update needed"
+            : photoReviewRequested
+              ? "Updated photos received"
+              : label[request.status] ?? "In progress"}
         </span>
       </div>
       <h2 className="text-2xl font-display font-semibold text-gray-900">
-        {isLive ? "Your campaign is live." : "We\u2019re on it."}
+        {isLive
+          ? "Your campaign is live."
+          : photoUpdateRequested
+            ? "One photo update before we launch."
+            : photoReviewRequested
+              ? "We\u2019re reviewing your new photos."
+              : "We\u2019re on it."}
       </h2>
       <p className="text-gray-500 mt-3 leading-relaxed">
         {isLive
           ? "Here\u2019s how your campaign is performing. Families arrive on your dashboard as they come in."
+          : photoUpdateRequested
+            ? "Your request, timing, and campaign preferences are still saved. A few clearer, real-world photos will give the promotional budget a better chance of turning clicks into family inquiries."
+            : photoReviewRequested
+              ? "Thanks for updating your gallery. Our team will review it and continue campaign setup once the photos are ready; there is nothing else to resubmit."
           : "We\u2019ll send over the launch plan before anything goes live, confirm the details, then families arrive on your dashboard as they come in."}
       </p>
+
+      {photoUpdateRequested && (
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
+          <p className="text-sm font-semibold text-gray-900">Photos that help families choose</p>
+          <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-gray-600">
+            <li>• A welcoming photo of your team</li>
+            <li>• A clear photo of your location or care setting</li>
+            <li>• A natural care or service photo, with permission</li>
+          </ul>
+          <p className="mt-3 text-xs leading-relaxed text-gray-500">
+            Phone photos are completely fine—bright, sharp, and without text overlays works best.
+          </p>
+          {onEditPhotos && (
+            <button
+              type="button"
+              onClick={onEditPhotos}
+              className="mt-4 inline-flex items-center rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+            >
+              Add better photos
+            </button>
+          )}
+        </div>
+      )}
+
+      {photoReviewRequested && (
+        <div className="mt-6 rounded-2xl border border-primary-100 bg-primary-50/50 p-5">
+          <p className="text-sm font-semibold text-primary-800">Your update is back with our team</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-gray-600">
+            We’ll check the new gallery and email you as soon as campaign setup continues.
+          </p>
+        </div>
+      )}
 
       {/* The campaign they committed to — week, channel, budget, flight clock. */}
       <CampaignFacts request={request} />

@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { countDeliveredByCampaign, countAdLandingsByCampaign, listLeadsByCampaign, getCampaignStats, getCampaignQuestions } from "@/lib/ad-boost/delivered.server";
 import { getCampaignReceipt } from "@/lib/ad-boost/receipts.server";
 import { sendAdBoostLifecycleEmail } from "@/lib/ad-boost/lifecycle-notifications.server";
+import { sendAdBoostPhotoEmail } from "@/lib/ad-boost/photo-notifications.server";
 import { nextBusinessSlotEt } from "@/lib/send-window";
 
 /**
@@ -31,11 +32,15 @@ import { nextBusinessSlotEt } from "@/lib/send-window";
 
 const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
 const VALID_CHANNELS = ["google", "meta", "both"];
+const VALID_PHOTO_READINESS = ["unreviewed", "update_requested", "review_requested", "ready"];
 const AD_BOOST_EMAIL_TYPES = [
   "ad_boost_queued",
   "ad_boost_requested",
   "ad_boost_profile_reminder",
   "ad_boost_ready",
+  "ad_boost_photo_update",
+  "ad_boost_photo_reminder",
+  "ad_boost_photos_ready",
   "ad_boost_campaign_launched",
   "ad_boost_lead_delivered",
   "ad_boost_traction",
@@ -44,7 +49,7 @@ const AD_BOOST_EMAIL_TYPES = [
 ];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -110,7 +115,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     const tag = row.campaign_tag || row.id;
-    const [delivered, leads, receipt, communicationResult] = await Promise.all([
+    const [delivered, leads, receipt, communicationResult, profileResult] = await Promise.all([
       countDeliveredByCampaign(db, [tag]),
       listLeadsByCampaign(db, tag),
       getCampaignReceipt(db, row),
@@ -121,12 +126,50 @@ export async function GET(request: NextRequest) {
         .filter("metadata->>request_id", "eq", row.id)
         .order("created_at", { ascending: true })
         .limit(500),
+      db
+        .from("business_profiles")
+        .select("image_url, metadata, source_provider_id")
+        .eq("id", row.provider_id)
+        .maybeSingle(),
     ]);
 
     if (communicationResult.error) {
       console.error("[admin/ad-boost] communication history failed:", communicationResult.error);
       return NextResponse.json({ error: communicationResult.error.message }, { status: 500 });
     }
+    if (profileResult.error) {
+      console.error("[admin/ad-boost] provider photo lookup failed:", profileResult.error);
+      return NextResponse.json({ error: profileResult.error.message }, { status: 500 });
+    }
+
+    const profile = profileResult.data as {
+      image_url: string | null;
+      metadata: Record<string, unknown> | null;
+      source_provider_id: string | null;
+    } | null;
+    const profileMetadataImages = Array.isArray(profile?.metadata?.images)
+      ? (profile.metadata.images as unknown[]).filter((value): value is string => typeof value === "string" && !!value.trim())
+      : [];
+    let sourceImages: string[] = [];
+    if (profileMetadataImages.length === 0 && profile?.source_provider_id) {
+      const { data: source, error: sourceError } = await db
+        .from("olera-providers")
+        .select("provider_logo, provider_images")
+        .eq("provider_id", profile.source_provider_id)
+        .maybeSingle();
+      if (sourceError) {
+        console.error("[admin/ad-boost] source photo lookup failed:", sourceError);
+        return NextResponse.json({ error: sourceError.message }, { status: 500 });
+      }
+      sourceImages = [
+        source?.provider_logo ?? "",
+        ...((source?.provider_images ?? "") as string).split(" | "),
+      ].map((value) => value.trim()).filter(Boolean);
+    }
+    const profileImages = [...new Set([
+      profile?.image_url ?? "",
+      ...(profileMetadataImages.length > 0 ? profileMetadataImages : sourceImages),
+    ].filter(Boolean))];
 
     // Parity with the provider's own /provider/boost live view: the SAME real
     // visitors + leads + questions numbers Hilda sees, computed from the same
@@ -160,6 +203,7 @@ export async function GET(request: NextRequest) {
         expectedLeads: receipt.expectedLeads,
         week: receipt.week,
       },
+      profileImages,
     });
   }
 
@@ -384,6 +428,9 @@ export async function POST(request: NextRequest) {
     send_launch_email?: unknown;
     promo_complete_email_scheduled_at?: unknown;
     send_promo_complete_email?: unknown;
+    photo_readiness_status?: unknown;
+    photo_review_note?: unknown;
+    send_photo_email?: unknown;
   };
   try {
     body = await request.json();
@@ -430,6 +477,35 @@ export async function POST(request: NextRequest) {
   if (body.admin_note !== undefined) {
     update.admin_note =
       typeof body.admin_note === "string" ? body.admin_note : null;
+  }
+
+  if (body.photo_readiness_status !== undefined) {
+    if (
+      typeof body.photo_readiness_status !== "string" ||
+      !VALID_PHOTO_READINESS.includes(body.photo_readiness_status)
+    ) {
+      return NextResponse.json(
+        { error: `photo_readiness_status must be one of: ${VALID_PHOTO_READINESS.join(", ")}` },
+        { status: 400 },
+      );
+    }
+    // `review_requested` belongs to the provider after they save new photos.
+    // Admins can request an update, clear it, or reset the review; they should
+    // not impersonate that provider signal.
+    if (body.photo_readiness_status === "review_requested") {
+      return NextResponse.json(
+        { error: "review_requested is set by the provider after they update their gallery" },
+        { status: 400 },
+      );
+    }
+    update.photo_readiness_status = body.photo_readiness_status;
+  }
+
+  if (body.photo_review_note !== undefined) {
+    update.photo_review_note =
+      typeof body.photo_review_note === "string" && body.photo_review_note.trim()
+        ? body.photo_review_note.trim()
+        : null;
   }
 
   if (body.flight_end_date !== undefined) {
@@ -506,6 +582,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (
+    body.send_photo_email !== undefined &&
+    body.send_photo_email !== "update_requested" &&
+    body.send_photo_email !== "ready"
+  ) {
+    return NextResponse.json(
+      { error: "send_photo_email must be update_requested or ready" },
+      { status: 400 },
+    );
+  }
+
   // Soft delete (archive) / restore. `archived: true` sets deleted_at = now() so
   // the request drops out of the default queue but the record is kept; `false`
   // clears it (restore). Hard delete is the separate DELETE handler.
@@ -529,6 +616,52 @@ export async function POST(request: NextRequest) {
   }
   if (!current) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const changingPhotoStatus =
+    typeof update.photo_readiness_status === "string" &&
+    update.photo_readiness_status !== current.photo_readiness_status;
+  if (changingPhotoStatus) {
+    update.photo_reviewed_at = new Date().toISOString();
+    update.photo_reviewed_by = adminUser.id;
+    if (update.photo_readiness_status === "update_requested") {
+      update.photo_update_requested_at = new Date().toISOString();
+      update.photo_update_submitted_at = null;
+      // A provider can make a sincere update that still needs one more pass.
+      // Each new HUMAN review cycle gets one initial email + one reminder;
+      // nothing loops automatically. Clear the prior cycle even when an admin
+      // first reopened `ready` to `unreviewed`, then requested another update.
+      update.photo_nudge_email_sent_at = null;
+      update.photo_reminder_email_sent_at = null;
+      update.photo_ready_email_sent_at = null;
+    }
+  }
+
+  // Paid traffic cannot be scheduled or launched until a concierge has
+  // reviewed the effective landing-page photos. Existing live/ended rows are
+  // left alone; this guard applies only when an admin advances a campaign.
+  const effectivePhotoReadiness =
+    (update.photo_readiness_status as string | undefined) ?? current.photo_readiness_status;
+  if (
+    typeof update.status === "string" &&
+    update.status !== current.status &&
+    ["scheduled", "live"].includes(update.status) &&
+    !["live", "ended"].includes(current.status) &&
+    effectivePhotoReadiness !== "ready"
+  ) {
+    return NextResponse.json(
+      { error: "Review and approve the campaign photos before scheduling or launching" },
+      { status: 409 },
+    );
+  }
+  if (
+    body.send_photo_email === "update_requested" &&
+    effectivePhotoReadiness !== "update_requested"
+  ) {
+    return NextResponse.json({ error: "Campaign is not waiting on a photo update" }, { status: 409 });
+  }
+  if (body.send_photo_email === "ready" && effectivePhotoReadiness !== "ready") {
+    return NextResponse.json({ error: "Campaign photos are not marked ready" }, { status: 409 });
   }
 
   // Scheduling and send-now only make sense while the launch email is unsent.
@@ -646,6 +779,21 @@ export async function POST(request: NextRequest) {
   const hasMeaningfulTraction =
     (data.ad_spend_cents ?? 0) > 0 || (data.ad_clicks ?? 0) > 0;
   const lifecycleSends: Array<Promise<unknown>> = [];
+
+  if (
+    data.photo_readiness_status === "update_requested" &&
+    (current.photo_readiness_status !== "update_requested" || body.send_photo_email === "update_requested")
+  ) {
+    lifecycleSends.push(sendAdBoostPhotoEmail({ request: data, kind: "update_requested" }));
+  }
+
+  if (
+    data.photo_readiness_status === "ready" &&
+    (["update_requested", "review_requested"].includes(current.photo_readiness_status) ||
+      body.send_photo_email === "ready")
+  ) {
+    lifecycleSends.push(sendAdBoostPhotoEmail({ request: data, kind: "ready" }));
+  }
 
   // Going live emails the provider immediately UNLESS a launch-email time is
   // in play (set in this save or already stored) — then the hourly cron owns

@@ -249,10 +249,10 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
     {
       key: "request_ready",
       phase: "Request",
-      title: "Request ready for setup",
+      title: "Request received · campaign review next",
       timing: "At request · if launch-ready",
       description:
-        "A complete, verified provider gets an immediate handoff: the request is actionable, the starter promotion is clear, and the concierge team can begin setup.",
+        "A complete, verified provider gets an immediate confirmation: the request is saved, the starter promotion is clear, and the family-facing page enters campaign review before setup.",
       emailType: "ad_boost_requested",
       ownedBy: "ad-boost-emails",
       emailSampleId: "ad_boost_requested",
@@ -275,10 +275,10 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
     {
       key: "promotion_ready",
       phase: "Prepare",
-      title: "Queued request becomes launch-ready",
+      title: "Queued profile becomes review-ready",
       timing: "When eligibility is re-checked",
       description:
-        "The saved request advances without a second submission. The provider gets a clear confirmation and the concierge team is notified that setup can begin.",
+        "The saved request advances without a second submission. The provider gets a clear confirmation and the concierge team is notified that final campaign review can begin.",
       emailType: "ad_boost_ready",
       ownedBy: "ad-boost-profile-reminders",
       emailSampleId: "ad_boost_ready",
@@ -286,15 +286,65 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
       gate: "Only for a request that started in the queued path",
     },
     {
+      key: "photo_review",
+      phase: "Prepare",
+      title: "Review campaign photos",
+      timing: "Before concierge setup",
+      description:
+        "The concierge reviews the effective gallery at landing-page size. This is separate from profile completeness: image URLs can fill a profile without being useful paid-traffic creative.",
+      ownerNote: "Human-reviewed in the Ad Boost concierge queue",
+      traits: ["Silent step", "Paid-traffic gate"],
+      gate: "Every pre-launch campaign must be marked photo-ready before it can move to scheduled or live",
+    },
+    {
+      key: "photo_update_requested",
+      phase: "Prepare",
+      title: "One photo update requested",
+      timing: "After concierge photo review · if needed",
+      description:
+        "The provider's request remains saved while one supportive email explains why clearer real-world photos protect campaign spend and deep-links to the gallery editor.",
+      emailType: "ad_boost_photo_update",
+      ownedBy: "ad-boost-emails",
+      emailSampleId: "ad_boost_photo_update",
+      traits: ["Conditional", "One-time"],
+      gate: "Only when the concierge marks the landing-page gallery as needing an update",
+    },
+    {
+      key: "photo_update_reminder",
+      phase: "Prepare",
+      title: "Photo-update reminder",
+      timing: "After 3 business days · once",
+      description:
+        "If no new gallery has been saved, the daily worker sends one concise reminder. Saving photos stops the reminder immediately; there is no ongoing nag sequence.",
+      emailType: "ad_boost_photo_reminder",
+      ownedBy: "ad-boost-profile-reminders",
+      emailSampleId: "ad_boost_photo_reminder",
+      traits: ["Conditional", "One-time"],
+      gate: "Only while the campaign is still waiting on the provider's photo update",
+    },
+    {
+      key: "photos_ready",
+      phase: "Prepare",
+      title: "Updated photos approved",
+      timing: "When concierge clears the photo gate",
+      description:
+        "After the provider saves a new gallery, the concierge re-reviews it. Approval closes the loop by confirming that setup is continuing without another Ad Boost request.",
+      emailType: "ad_boost_photos_ready",
+      ownedBy: "ad-boost-emails",
+      emailSampleId: "ad_boost_photos_ready",
+      traits: ["Conditional", "One-time"],
+      gate: "Only sends when a campaign that received the photo-update request is later approved",
+    },
+    {
       key: "concierge_setup",
       phase: "Prepare",
       title: "Concierge setup and scheduling",
       timing: "Requested → scheduled",
       description:
-        "The team prepares the campaign, confirms the channel and budget, and chooses the flight and launch-email timing. This is an operational state, not a provider message.",
+        "After the profile, verification, and photo gates are clear, the team prepares the campaign, confirms the channel and budget, and chooses the flight and launch-email timing. This is an operational state, not a provider message.",
       ownerNote: "Managed in the Ad Boost concierge queue",
       traits: ["Silent step"],
-      gate: "No email is sent merely because the internal status becomes scheduled",
+      gate: "Requires photo readiness; no email is sent merely because the internal status becomes scheduled",
     },
     {
       key: "campaign_launched",

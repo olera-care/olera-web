@@ -8,6 +8,7 @@ import {
   type CampaignLead,
   type CampaignRequest,
   STATUS_LABELS,
+  PHOTO_READINESS_LABELS,
   channelLabel,
   fmtDateOnly,
 } from "@/components/admin/AdBoostShared";
@@ -72,11 +73,11 @@ const PHASE_DESCRIPTIONS: Record<string, string> = {
 const ENGINE_COPY: Record<string, { eyebrow: string; description: string }> = {
   "ad-boost-emails": {
     eyebrow: "Event-driven",
-    description: "Request, lead, and traction messages fire when campaign activity happens.",
+    description: "Request, photo-review, lead, and traction messages fire when campaign activity happens.",
   },
   "ad-boost-profile-reminders": {
     eyebrow: "Daily",
-    description: "Re-checks queued profiles and follows up on unresolved lead outcomes.",
+    description: "Re-checks queued profiles, sends the one photo reminder, and follows up on unresolved lead outcomes.",
   },
   "ad-boost-launch-scheduler": {
     eyebrow: "Hourly",
@@ -250,7 +251,7 @@ export default function AdBoostJourneyExperience() {
             See every Ad Boost message in order.
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-500">
-            One provider experience across request, launch, live results, and outcome follow-up. Ad Boost is the internal program name; providers see it as their Find Families campaign.
+            One provider experience across request, photo readiness, launch, live results, and outcome follow-up. Ad Boost is the internal program name; providers see it as their Find Families campaign.
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-gray-700">
             <span><strong className="text-xl text-gray-950">{EMAIL_TYPE_COUNT}</strong> email types</span>
@@ -290,9 +291,10 @@ export default function AdBoostJourneyExperience() {
           </div>
         </div>
         {selectedCampaign && (
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-gray-200 pt-4 text-xs sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-gray-200 pt-4 text-xs sm:grid-cols-5">
             <CampaignFact label="Provider" value={selectedCampaign.display_name || selectedCampaign.provider_slug || "Unknown"} />
             <CampaignFact label="Campaign state" value={detailLoading ? "Loading…" : STATUS_LABELS[selectedCampaign.status] ?? selectedCampaign.status} />
+            <CampaignFact label="Photo gate" value={PHOTO_READINESS_LABELS[selectedCampaign.photo_readiness_status]} />
             <CampaignFact label="Flight" value={`${fmtDateOnly(selectedCampaign.requested_setup_week)}${selectedCampaign.flight_end_date ? ` → ${fmtDateOnly(selectedCampaign.flight_end_date)}` : ""}`} />
             <CampaignFact label="Channel" value={channelLabel(selectedCampaign.channel) ?? "Not chosen"} />
           </div>

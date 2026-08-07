@@ -36,8 +36,9 @@ export async function GET(request: NextRequest) {
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
 
-    // State is required for all metrics except "claimed" (which is always global)
-    if (!state && metric !== "claimed") {
+    // State is required for all metrics except global ones
+    const globalMetrics = ["claimed", "follow_ups_today", "sequence_conversion"];
+    if (!state && !globalMetrics.includes(metric)) {
       return NextResponse.json({ error: "State parameter is required for this metric" }, { status: 400 });
     }
 
@@ -57,6 +58,12 @@ export async function GET(request: NextRequest) {
     // Global follow-ups due today (no state filter)
     if (metric === "follow_ups_today") {
       const stats = await getGlobalFollowUpsTodayStats(db);
+      return NextResponse.json(stats);
+    }
+
+    // Global sequence conversion stats (no state filter)
+    if (metric === "sequence_conversion") {
+      const stats = await getGlobalSequenceConversionStats(db);
       return NextResponse.json(stats);
     }
 
@@ -392,4 +399,68 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
   });
 
   return { total: totalCount, by_admin: byAdmin };
+}
+
+/**
+ * Get global sequence conversion stats across ALL states.
+ * Returns:
+ *   - sequenced: total providers who ever entered the email sequence (all time)
+ *   - claimed: providers who went through the sequence AND claimed their profile
+ *   - rate: conversion percentage
+ */
+async function getGlobalSequenceConversionStats(db: DB): Promise<{
+  sequenced: number;
+  claimed: number;
+  rate: number;
+}> {
+  // Get all providers who ever entered the sequence (sequence_started_at is set)
+  const { data: sequencedRows, error: seqError } = await db
+    .from("provider_outreach_tracking")
+    .select("provider_id")
+    .not("sequence_started_at", "is", null);
+
+  if (seqError) {
+    console.error("[sequence-conversion] Sequenced query error:", seqError);
+    return { sequenced: 0, claimed: 0, rate: 0 };
+  }
+
+  const sequencedProviderIds = new Set(
+    (sequencedRows || []).map((r: { provider_id: string }) => r.provider_id)
+  );
+
+  const sequencedCount = sequencedProviderIds.size;
+
+  if (sequencedCount === 0) {
+    return { sequenced: 0, claimed: 0, rate: 0 };
+  }
+
+  // Get claimed providers (have account_id in business_profiles)
+  const { data: claimedBps, error: claimedError } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .not("account_id", "is", null);
+
+  if (claimedError) {
+    console.error("[sequence-conversion] Claimed query error:", claimedError);
+    return { sequenced: sequencedCount, claimed: 0, rate: 0 };
+  }
+
+  // Count how many sequenced providers have claimed
+  let claimedFromSequenceCount = 0;
+  for (const bp of claimedBps || []) {
+    if (sequencedProviderIds.has(bp.source_provider_id)) {
+      claimedFromSequenceCount++;
+    }
+  }
+
+  const rate = sequencedCount > 0
+    ? Math.round((claimedFromSequenceCount / sequencedCount) * 1000) / 10 // One decimal place
+    : 0;
+
+  return {
+    sequenced: sequencedCount,
+    claimed: claimedFromSequenceCount,
+    rate,
+  };
 }

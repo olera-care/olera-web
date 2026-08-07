@@ -5198,6 +5198,13 @@ export default function ProviderOutreachPage() {
     by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
   }>({ total: 0, by_admin: [] });
 
+  // Global sequence conversion stats (all time)
+  const [sequenceConversion, setSequenceConversion] = useState<{
+    sequenced: number;
+    claimed: number;
+    rate: number;
+  } | null>(null);
+
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -5756,6 +5763,22 @@ export default function ProviderOutreachPage() {
     // Refresh every 5 minutes
     const interval = setInterval(fetchGlobalFollowUps, 5 * 60 * 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Effect: fetch sequence conversion stats on mount
+  useEffect(() => {
+    const fetchSequenceConversion = async () => {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/stats?metric=sequence_conversion");
+        if (res.ok) {
+          const data = await res.json();
+          setSequenceConversion(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch sequence conversion stats:", err);
+      }
+    };
+    fetchSequenceConversion();
   }, []);
 
   // Effect: fetch email performance stats when section is expanded
@@ -6554,7 +6577,7 @@ export default function ProviderOutreachPage() {
         </div>
 
         {/* Stat Boxes */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
           <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Number of states you've added for outreach work">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active States</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalStates}</p>
@@ -6577,6 +6600,19 @@ export default function ProviderOutreachPage() {
               {globalFollowUpsToday.by_admin.length > 0
                 ? globalFollowUpsToday.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
                 : "none pending"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Conversion rate: providers who claimed after going through the email sequence">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequence Conv.</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">
+              {sequenceConversion
+                ? `${sequenceConversion.claimed} / ${sequenceConversion.sequenced}`
+                : "—"}
+            </p>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {sequenceConversion
+                ? `${sequenceConversion.rate}% claimed from sequence`
+                : "loading..."}
             </p>
           </div>
         </div>

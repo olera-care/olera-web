@@ -14,6 +14,25 @@ import {
 import { sendEmail } from "@/lib/email";
 import { careUnsubscribeUrl } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
+import { pipelineDrafts } from "@/data/pipeline-drafts";
+import { getStateAbbrev } from "@/lib/program-data";
+
+/** Attach the live pipeline `lastVerifiedDate` to a navigator's pick snapshot.
+ *  Read-only enrichment: the stored snapshot is left untouched, so nothing the
+ *  letter promised can shift underneath it. */
+function withLiveVerifiedDate<T extends { pick?: { programId?: string; stateId?: string | null } | null }>(
+  navigator: T,
+): T {
+  const pick = navigator?.pick;
+  if (!pick?.programId || !pick.stateId) return navigator;
+  const abbrev = getStateAbbrev(pick.stateId);
+  const program = pipelineDrafts[abbrev]?.programs?.find((p) => p.id === pick.programId);
+  if (!program) return navigator;
+  return {
+    ...navigator,
+    pick: { ...pick, lastVerifiedDate: program.lastVerifiedDate ?? null },
+  };
+}
 import { sendNavigatorLetter } from "@/lib/family-comms/benefits-navigator-send.server";
 
 /**
@@ -253,7 +272,14 @@ export async function GET(
     push(navigator.dismissed_at, "navigator", "Navigator draft dismissed");
 
     events.sort((a, b) => a.at.localeCompare(b.at));
-    return NextResponse.json({ events, caseMeta, navigator });
+    // The stored pick is a compose-time snapshot. Attach the LIVE
+    // lastVerifiedDate so the fact-check export can skip programs already
+    // verified recently instead of paying a full round to re-audit them.
+    return NextResponse.json({
+      events,
+      caseMeta,
+      navigator: withLiveVerifiedDate(navigator),
+    });
   } catch (err) {
     console.error("Admin benefits timeline error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import {
   type CampaignRequest,
@@ -10,6 +11,7 @@ import {
   STATUSES,
   CHANNELS,
   StatusBadge,
+  PhotoReadinessBadge,
   utmUrl,
   fmtTimestamp,
   fmtDateOnly,
@@ -59,6 +61,7 @@ export default function AdBoostDetailPage() {
   const [communications, setCommunications] = useState<CampaignCommunication[]>([]);
   const [campaignStats, setCampaignStats] = useState<ProviderViewStats | null>(null);
   const [receipt, setReceipt] = useState<ReceiptRollup | null>(null);
+  const [profileImages, setProfileImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -75,6 +78,7 @@ export default function AdBoostDetailPage() {
       setCommunications((json.communications as CampaignCommunication[]) ?? []);
       setCampaignStats((json.campaignStats as ProviderViewStats | null) ?? null);
       setReceipt((json.receipt as ReceiptRollup | null) ?? null);
+      setProfileImages((json.profileImages as string[]) ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -106,6 +110,7 @@ export default function AdBoostDetailPage() {
           communications={communications}
           campaignStats={campaignStats}
           receipt={receipt}
+          profileImages={profileImages}
           onChanged={load}
           onDeleted={() => router.push("/admin/ad-boost")}
         />
@@ -120,6 +125,7 @@ function Detail({
   communications,
   campaignStats,
   receipt,
+  profileImages,
   onChanged,
   onDeleted,
 }: {
@@ -128,6 +134,7 @@ function Detail({
   communications: CampaignCommunication[];
   campaignStats: ProviderViewStats | null;
   receipt: ReceiptRollup | null;
+  profileImages: string[];
   onChanged: () => void;
   onDeleted: () => void;
 }) {
@@ -431,6 +438,9 @@ function Detail({
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold text-gray-900 truncate">{name}</h1>
             <StatusBadge status={request.status} />
+            {!["live", "ended", "cancelled"].includes(request.status) && (
+              <PhotoReadinessBadge status={request.photo_readiness_status} />
+            )}
             {isArchived && (
               <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-500">
                 archived
@@ -457,6 +467,14 @@ function Detail({
           View provider record ↗
         </Link>
       </div>
+
+      {!["live", "ended", "cancelled"].includes(request.status) && (
+        <PhotoReadinessReview
+          request={request}
+          profileImages={profileImages}
+          onChanged={onChanged}
+        />
+      )}
 
       {/* Campaign-specific communication truth. The canonical journey teaches
           the sequence; this card answers what happened and what happens next
@@ -543,7 +561,17 @@ function Detail({
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
             >
               {STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option
+                  key={s}
+                  value={s}
+                  disabled={
+                    ["scheduled", "live"].includes(s) &&
+                    !["live", "ended"].includes(request.status) &&
+                    request.photo_readiness_status !== "ready"
+                  }
+                >
+                  {s}
+                </option>
               ))}
             </select>
           </label>
@@ -582,6 +610,12 @@ function Detail({
             </span>
           </label>
         </div>
+
+        {!["live", "ended", "cancelled"].includes(request.status) && request.photo_readiness_status !== "ready" && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            Scheduling and launch stay locked until the photo-readiness review is approved above.
+          </p>
+        )}
 
         {/* Launch email timing: shown while the "campaign is live" provider
             email hasn't gone out. Empty = it fires the moment the live status
@@ -1021,6 +1055,217 @@ function Stat({ value, label, accent }: { value: string; label: string; accent?:
       </div>
       <div className="text-xs text-gray-500 mt-0.5">{label}</div>
     </div>
+  );
+}
+
+function PhotoReadinessReview({
+  request,
+  profileImages,
+  onChanged,
+}: {
+  request: CampaignRequest;
+  profileImages: string[];
+  onChanged: () => void;
+}) {
+  const [note, setNote] = useState(request.photo_review_note ?? "");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const updateReview = async (
+    status: "unreviewed" | "update_requested" | "ready",
+  ) => {
+    const sendsUpdateEmail =
+      status === "update_requested" && request.photo_readiness_status !== "update_requested";
+    const sendsReadyEmail =
+      status === "ready" &&
+      ["update_requested", "review_requested"].includes(request.photo_readiness_status);
+    if (
+      sendsUpdateEmail &&
+      !window.confirm(
+        "Request stronger photos and email the provider now? Their Ad Boost request will stay saved.",
+      )
+    ) return;
+    if (
+      sendsReadyEmail &&
+      !window.confirm("Approve the updated photos and email the provider that setup is continuing?")
+    ) return;
+
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/ad-boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: request.id,
+          photo_readiness_status: status,
+          photo_review_note: note || null,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Photo review update failed");
+      onChanged();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Photo review update failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resendPhotoEmail = async (kind: "update_requested" | "ready") => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/ad-boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: request.id, send_photo_email: kind }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Email send failed");
+      onChanged();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Email send failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const requested = request.photo_readiness_status === "update_requested";
+  const resubmitted = request.photo_readiness_status === "review_requested";
+  const ready = request.photo_readiness_status === "ready";
+
+  return (
+    <section className="mb-5 overflow-hidden rounded-xl border border-amber-200 bg-white">
+      <div className="border-b border-amber-100 bg-amber-50/45 px-5 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700">
+              Paid-traffic gate
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-gray-950">Photo readiness</h2>
+            <p className="mt-1 max-w-xl text-xs leading-relaxed text-gray-500">
+              Review what families will see at full landing-page size. Approve clear,
+              relevant real-world photos; request an update when the gallery is mostly
+              logos, text, close crops, duplicates, or visibly soft images.
+            </p>
+          </div>
+          <PhotoReadinessBadge status={request.photo_readiness_status} />
+        </div>
+      </div>
+
+      <div className="p-5">
+        {profileImages.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {profileImages.slice(0, 8).map((src, index) => (
+              <div key={src} className="relative aspect-[4/3] overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                <Image
+                  src={src}
+                  alt={`Provider photo ${index + 1}`}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 180px"
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-amber-200 bg-amber-50/30 px-4 py-5 text-sm text-amber-800">
+            No effective provider images were found. Requesting photos is appropriate.
+          </div>
+        )}
+
+        <label className="mt-4 block text-sm">
+          <span className="mb-1 block text-gray-500">Internal review note</span>
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            rows={2}
+            placeholder="Example: hero is a blurry text graphic; request team, setting, and care photos"
+            className="w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2"
+          />
+          <span className="mt-1 block text-xs text-gray-400">
+            Internal only. Provider emails use reviewed, supportive copy—not this note.
+          </span>
+        </label>
+
+        {requested && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            The provider was emailed and sees a persistent upload task in Ad Boost. One
+            reminder sends after three business days if they do not update the gallery.
+          </p>
+        )}
+        {resubmitted && (
+          <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800">
+            The provider saved new gallery photos. Review them, then approve or request
+            another update. Approving sends the resolution email.
+          </p>
+        )}
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {!ready && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => updateReview("ready")}
+              className="rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40"
+            >
+              {resubmitted ? "Approve updated photos" : "Mark photos ready"}
+            </button>
+          )}
+          {!requested && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => updateReview("update_requested")}
+              className="rounded-lg border border-amber-300 px-3.5 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-40"
+            >
+              {resubmitted ? "Request another update" : "Request better photos + email"}
+            </button>
+          )}
+          {requested && !request.photo_nudge_email_sent_at && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => resendPhotoEmail("update_requested")}
+              className="rounded-lg border border-amber-300 px-3.5 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:opacity-40"
+            >
+              Send photo email
+            </button>
+          )}
+          {ready && request.photo_update_requested_at && !request.photo_ready_email_sent_at && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => resendPhotoEmail("ready")}
+              className="rounded-lg border border-emerald-300 px-3.5 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-40"
+            >
+              Send ready confirmation
+            </button>
+          )}
+          {ready && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => updateReview("unreviewed")}
+              className="rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40"
+            >
+              Reopen review
+            </button>
+          )}
+          <Link
+            href={`/provider/${request.provider_slug ?? ""}`}
+            target="_blank"
+            rel="noreferrer"
+            className="ml-auto text-sm font-medium text-primary-700 hover:underline"
+          >
+            Open family-facing page ↗
+          </Link>
+        </div>
+        {message && <p className="mt-3 text-sm text-red-600">{message}</p>}
+      </div>
+    </section>
   );
 }
 

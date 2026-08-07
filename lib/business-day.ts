@@ -98,3 +98,22 @@ export function nextBusinessDayET(date: Date): Date {
   }
   return d;
 }
+
+/**
+ * Advance an instant by N business days in Eastern Time. Unlike
+ * `nextBusinessDayET`, the starting day never counts: Friday + 1 business day
+ * is Monday (or Tuesday when Monday is an observed holiday). Time-of-day is
+ * preserved, which makes this suitable for provider follow-up due timestamps.
+ */
+export function addBusinessDaysET(date: Date, days: number): Date {
+  if (!Number.isInteger(days) || days < 0) {
+    throw new Error("days must be a non-negative integer");
+  }
+  let result = new Date(date.getTime());
+  let remaining = days;
+  while (remaining > 0) {
+    result = new Date(result.getTime() + DAY_MS);
+    if (isBusinessDayET(result)) remaining -= 1;
+  }
+  return result;
+}

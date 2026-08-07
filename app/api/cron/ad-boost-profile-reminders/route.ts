@@ -5,6 +5,8 @@ import { evaluateAdBoostEligibility } from "@/lib/ad-boost/eligibility";
 import { sendDueLeadOutcomePings, type OutcomePingCounts } from "@/lib/ad-boost/outcome-pings.server";
 import { withCronRun } from "@/lib/crons/run";
 import { sendSlackAlert, slackAdBoostRequested } from "@/lib/slack";
+import { addBusinessDaysET } from "@/lib/business-day";
+import { sendAdBoostPhotoEmail } from "@/lib/ad-boost/photo-notifications.server";
 import type { ExtendedMetadata, ReviewsSummary, ResponseRateSummary } from "@/lib/profile-completeness";
 import type { Profile } from "@/lib/types";
 
@@ -77,6 +79,44 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const cutoff = new Date(Date.now() - REMINDER_AFTER_HOURS * 60 * 60 * 1000).toISOString();
 
+    // Photo-readiness follow-up is intentionally one-shot. The first message
+    // is sent by the concierge review action; this worker sends one reminder
+    // after three provider-facing business days and stops the moment the
+    // provider saves new gallery photos (`review_requested`).
+    const photoReminderCounts = { processed: 0, reminded: 0, not_due: 0, errors: 0 };
+    try {
+      const { data: photoRequests, error: photoRequestError } = await db
+        .from("ad_campaign_requests")
+        .select("id, provider_id, provider_slug, display_name, requested_setup_week, channel, photo_update_requested_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at")
+        .eq("photo_readiness_status", "update_requested")
+        .in("status", ["requested", "scheduled"])
+        .is("deleted_at", null)
+        .not("photo_nudge_email_sent_at", "is", null)
+        .is("photo_reminder_email_sent_at", null)
+        .limit(500);
+      if (photoRequestError) throw photoRequestError;
+
+      photoReminderCounts.processed = photoRequests?.length ?? 0;
+      for (const photoRequest of photoRequests ?? []) {
+        const requestedAt = photoRequest.photo_update_requested_at ?? photoRequest.photo_nudge_email_sent_at;
+        const dueAt = requestedAt ? addBusinessDaysET(new Date(requestedAt), 3) : null;
+        if (!dueAt || dueAt.getTime() > Date.now()) {
+          photoReminderCounts.not_due++;
+          continue;
+        }
+        if (dryRun) {
+          photoReminderCounts.reminded++;
+          continue;
+        }
+        const result = await sendAdBoostPhotoEmail({ request: photoRequest, kind: "reminder" });
+        if (result.sent || result.skipped === "already_sent") photoReminderCounts.reminded++;
+        else photoReminderCounts.errors++;
+      }
+    } catch (err) {
+      photoReminderCounts.errors++;
+      console.error("[cron/ad-boost-profile-reminders] photo reminders failed:", err);
+    }
+
     // Rung 2 of this daily job: lead-outcome pings ("did this family become a
     // client?") for live/ended campaigns. Runs first and independently — a
     // failure in either rung must not silently kill the other.
@@ -116,7 +156,7 @@ export async function GET(request: NextRequest) {
     counts.processed = staleRequests.length;
 
     if (staleRequests.length === 0) {
-      return { ok: true, dry_run: dryRun, ...counts, outcome_pings: outcomePings };
+      return { ok: true, dry_run: dryRun, ...counts, photo_reminders: photoReminderCounts, outcome_pings: outcomePings };
     }
 
     const profileIds = [...new Set(staleRequests.map((r) => r.provider_id).filter(Boolean))];
@@ -341,7 +381,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return { ok: true, dry_run: dryRun, ...counts, outcome_pings: outcomePings };
+    return { ok: true, dry_run: dryRun, ...counts, photo_reminders: photoReminderCounts, outcome_pings: outcomePings };
   });
 }
 

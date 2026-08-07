@@ -6,6 +6,7 @@ import {
   type CampaignRequest,
   STATUS_LABELS,
   StatusBadge,
+  PhotoReadinessBadge,
   channelLabel,
   fmtDateOnly,
   fmtTimestamp,
@@ -190,7 +191,7 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden lg:grid grid-cols-[minmax(160px,1fr)_90px_160px_55px_70px_50px_105px_60px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden lg:grid grid-cols-[minmax(160px,1fr)_125px_155px_55px_70px_50px_105px_60px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
           <span>Next move</span>
@@ -293,7 +294,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(160px,1fr)_90px_160px_55px_70px_50px_105px_60px] lg:items-center gap-2 lg:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(160px,1fr)_125px_155px_55px_70px_50px_105px_60px] lg:items-center gap-2 lg:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link
@@ -312,6 +313,9 @@ function RequestRow({
             into Setup week when a plan badge is present. */}
         <div className="flex flex-wrap items-center gap-1.5">
           <StatusBadge status={request.status} />
+          {!["live", "ended", "cancelled"].includes(request.status) && (
+            <PhotoReadinessBadge status={request.photo_readiness_status} />
+          )}
           <PlanBadge request={request} />
           {isArchived && (
             <span className="rounded-full bg-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-500">

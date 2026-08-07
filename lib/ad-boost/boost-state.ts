@@ -44,6 +44,11 @@ export interface BoostRequest {
   /** Last serving day of the ad flight (admin-entered from the ad platform).
    *  Powers the live view's "Day N of M" time context. Null = not entered. */
   flight_end_date?: string | null;
+  /** Concierge-reviewed landing-page photo gate. Kept separate from profile
+   * completeness because URL count does not establish campaign usefulness. */
+  photo_readiness_status?: "unreviewed" | "update_requested" | "review_requested" | "ready";
+  photo_update_requested_at?: string | null;
+  photo_update_submitted_at?: string | null;
 }
 
 export interface BoostStateResponse {

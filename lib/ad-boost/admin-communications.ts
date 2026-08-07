@@ -1,4 +1,5 @@
 import { AD_BOOST_PROVIDER_JOURNEY, type JourneyStep } from "@/lib/family-comms/journey";
+import { addBusinessDaysET } from "@/lib/business-day";
 
 export type AdBoostCommunicationTone =
   | "sent"
@@ -50,6 +51,12 @@ export interface AdBoostCommunicationRequest {
   requested_email_sent_at?: string | null;
   profile_reminder_email_sent_at?: string | null;
   promotion_email_sent_at?: string | null;
+  photo_readiness_status?: "unreviewed" | "update_requested" | "review_requested" | "ready";
+  photo_update_requested_at?: string | null;
+  photo_update_submitted_at?: string | null;
+  photo_nudge_email_sent_at?: string | null;
+  photo_reminder_email_sent_at?: string | null;
+  photo_ready_email_sent_at?: string | null;
   launched_email_sent_at?: string | null;
   launched_email_scheduled_at?: string | null;
   traction_email_sent_at?: string | null;
@@ -87,6 +94,9 @@ const MARKER_BY_EMAIL_TYPE: Record<string, keyof AdBoostCommunicationRequest> = 
   ad_boost_requested: "requested_email_sent_at",
   ad_boost_profile_reminder: "profile_reminder_email_sent_at",
   ad_boost_ready: "promotion_email_sent_at",
+  ad_boost_photo_update: "photo_nudge_email_sent_at",
+  ad_boost_photo_reminder: "photo_reminder_email_sent_at",
+  ad_boost_photos_ready: "photo_ready_email_sent_at",
   ad_boost_campaign_launched: "launched_email_sent_at",
   ad_boost_traction: "traction_email_sent_at",
   ad_boost_promo_complete: "promo_complete_email_sent_at",
@@ -257,8 +267,63 @@ export function getAdBoostStepState(
           : sentInfoForType(request, communications, "ad_boost_queued").lastSentAt
             ? { label: "Not recorded", tone: "muted" }
             : { label: "Not this path", tone: "muted" });
+    case "photo_review": {
+      if (["live", "ended"].includes(status)) return { label: "Complete", tone: "sent" };
+      if (request.photo_readiness_status === "ready") return { label: "Approved", tone: "sent" };
+      if (request.photo_readiness_status === "update_requested") {
+        return { label: "Blocked", detail: "waiting on provider photos", tone: "waiting" };
+      }
+      if (request.photo_readiness_status === "review_requested") {
+        return { label: "Review updated photos", tone: "active" };
+      }
+      return ["requested", "scheduled"].includes(status)
+        ? { label: "Needs review", detail: "paid-traffic gate", tone: "active" }
+        : { label: "Not due", tone: "muted" };
+    }
+    case "photo_update_requested": {
+      if (sent) return sent;
+      if (["update_requested", "review_requested"].includes(request.photo_readiness_status ?? "")) {
+        return { label: "Email missing", detail: "photo update was requested", tone: "waiting" };
+      }
+      return { label: "Not this path", tone: "muted" };
+    }
+    case "photo_update_reminder": {
+      if (sent) return sent;
+      if (request.photo_readiness_status !== "update_requested") {
+        return { label: "Skipped", tone: "muted" };
+      }
+      const requestedAt = request.photo_update_requested_at ?? request.photo_nudge_email_sent_at;
+      if (!requestedAt) return { label: "Waiting on first email", tone: "waiting" };
+      const dueAt = addBusinessDaysET(new Date(requestedAt), 3);
+      return dueAt.getTime() <= now
+        ? { label: "Due now", detail: "three business days", tone: "waiting" }
+        : {
+            label: "Watching",
+            detail: `due ${formatAdBoostScheduledTime(dueAt.toISOString(), now)}`,
+            tone: "scheduled",
+          };
+    }
+    case "photos_ready": {
+      if (sent) return sent;
+      if (
+        request.photo_readiness_status === "ready" &&
+        sentInfoForType(request, communications, "ad_boost_photo_update").lastSentAt
+      ) {
+        return { label: "Confirmation missing", tone: "waiting" };
+      }
+      if (request.photo_readiness_status === "review_requested") {
+        return { label: "Waiting on review", tone: "active" };
+      }
+      return { label: "Not due", tone: "muted" };
+    }
     case "concierge_setup":
       if (status === "pending_profile") return { label: "Blocked", tone: "waiting" };
+      if (
+        ["requested", "scheduled"].includes(status) &&
+        request.photo_readiness_status !== "ready"
+      ) {
+        return { label: "Blocked", detail: "photo gate", tone: "waiting" };
+      }
       if (status === "requested") return { label: "Ready for setup", tone: "active" };
       if (status === "scheduled") return { label: "Scheduled", tone: "scheduled" };
       if (["live", "ended"].includes(status)) return { label: "Complete", tone: "sent" };
@@ -444,6 +509,30 @@ export function getAdBoostNextAction(
       return { label: "Profile reminder due", detail: "Blocked for 48+ hours", level: "attention", stepKey: "profile_reminder", priority: 10 };
     }
     return { label: "Waiting on provider", detail: reminder.detail ?? "Profile gate", level: "waiting", stepKey: "profile_reminder", priority: 40 };
+  }
+
+  if (["requested", "scheduled"].includes(request.status)) {
+    const photoStatus = request.photo_readiness_status ?? "unreviewed";
+    if (photoStatus === "unreviewed") {
+      return { label: "Review campaign photos", detail: "Paid-traffic gate not reviewed", level: "attention", stepKey: "photo_review", priority: 4 };
+    }
+    if (photoStatus === "review_requested") {
+      return { label: "Review updated photos", detail: "Provider saved a new gallery", level: "attention", stepKey: "photos_ready", priority: 4 };
+    }
+    if (photoStatus === "update_requested") {
+      const requestEmail = state("photo_update_requested");
+      if (requestEmail.tone === "waiting") {
+        return { label: "Photo email missing", detail: requestEmail.detail ?? "No successful send recorded", level: "attention", stepKey: "photo_update_requested", priority: 3 };
+      }
+      const reminder = state("photo_update_reminder");
+      return {
+        label: reminder.label === "Due now" ? "Photo reminder due" : "Waiting on photo update",
+        detail: reminder.detail ?? "Provider request is saved",
+        level: reminder.label === "Due now" ? "attention" : "waiting",
+        stepKey: "photo_update_reminder",
+        priority: reminder.label === "Due now" ? 11 : 35,
+      };
+    }
   }
 
   if (request.status === "requested") {

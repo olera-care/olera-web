@@ -34,8 +34,8 @@ const EMAIL_TYPE: Record<AdBoostRequestEmailKind, string> = {
 
 const SUBJECT: Record<AdBoostRequestEmailKind, string> = {
   queued: "Your Ad Boost request is saved",
-  requested: "Your Ad Boost request is ready for setup",
-  promotion: "Your Ad Boost request is now launch-ready",
+  requested: "We received your Ad Boost request",
+  promotion: "Your Ad Boost profile is ready for review",
   profile_reminder: "Finish your Ad Boost launch setup",
 };
 

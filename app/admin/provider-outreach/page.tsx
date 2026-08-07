@@ -3087,9 +3087,9 @@ function getRecommendedAction(provider: OutreachProvider): {
       }
     case "email_bounced":
       return {
-        action: "Wrong Contact",
-        outcome: "wrong_contact",
-        rationale: "Email bounced. Find correct contact info.",
+        action: "Fix Email",
+        outcome: "fix_email", // Special: triggers inline editing, not a modal
+        rationale: "Email bounced. Update contact info and resend.",
         isPrimary: true,
       };
     case "manual":
@@ -3133,6 +3133,12 @@ function FollowUpProviderRow({
   // Fax finder state
   const [findingFax, setFindingFax] = useState(false);
   const [faxResult, setFaxResult] = useState<{ fax: string | null; confidence: string | null; source_url: string | null } | null>(null);
+  // Inline email editing state (for "Wrong Contact" flow)
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailJustSaved, setEmailJustSaved] = useState(false);
+  const [sendingClaimLink, setSendingClaimLink] = useState(false);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
@@ -3170,6 +3176,75 @@ function FollowUpProviderRow({
     }
   };
 
+  // Handle inline email save (for "Wrong Contact" / "Fix Email" flow)
+  const handleSaveEmail = async () => {
+    const trimmedEmail = newEmail.trim();
+    if (!trimmedEmail) return;
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Invalid email format");
+      return;
+    }
+
+    setSavingEmail(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email: trimmedEmail }),
+      });
+
+      if (res.ok) {
+        // Update local state
+        onProviderUpdated({ email: trimmedEmail });
+        setEditingEmail(false);
+        setEmailJustSaved(true);
+        // Keep newEmail populated - we use it for display in emailJustSaved state
+        // (avoids race condition where provider.email hasn't updated from parent yet)
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to save email");
+      }
+    } catch {
+      setError("Network error saving email");
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  // Handle sending claim link after email is fixed
+  const handleSendClaimLink = async () => {
+    setSendingClaimLink(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      if (res.ok) {
+        // Reset the editing flow state
+        setEmailJustSaved(false);
+        setNewEmail("");
+        // Trigger a refresh to update touchpoints/engagement
+        onOutcomeRecorded(false);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to send claim link");
+      }
+    } catch {
+      setError("Network error sending claim link");
+    } finally {
+      setSendingClaimLink(false);
+    }
+  };
+
   // Confirmation modal content for each outcome
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
@@ -3184,17 +3259,6 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Send & move to Alt. Channels",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "wrong_contact":
-        return {
-          title: "Wrong Contact Info",
-          description: "The contact information for this provider is incorrect.",
-          details: [
-            "Provider will be moved to Needs Email",
-            "Their email will be cleared from the system",
-          ],
-          confirmLabel: "Clear contact info",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
       case "not_interested":
         return {
@@ -3501,8 +3565,17 @@ function FollowUpProviderRow({
                 <div className="flex items-center gap-2 shrink-0">
                   {recommendation.outcome && (
                     <button
-                      onClick={() => setPendingOutcome(recommendation.outcome)}
-                      disabled={submitting !== null}
+                      onClick={() => {
+                        if (recommendation.outcome === "fix_email") {
+                          // Special case: trigger inline editing instead of modal
+                          setEditingEmail(true);
+                          setNewEmail(provider.email || "");
+                          setEmailJustSaved(false);
+                        } else {
+                          setPendingOutcome(recommendation.outcome);
+                        }
+                      }}
+                      disabled={submitting !== null || (recommendation.outcome === "fix_email" && editingEmail)}
                       className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {recommendation.action}
@@ -3534,10 +3607,83 @@ function FollowUpProviderRow({
                 {provider.city && (
                   <div className="text-gray-500">{provider.city}{provider.state ? `, ${provider.state}` : ""}</div>
                 )}
-                {provider.email && (
+                {/* Email display with inline edit capability */}
+                {editingEmail ? (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-500">Email</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        placeholder="Enter new email"
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleSaveEmail();
+                          } else if (e.key === "Escape") {
+                            setEditingEmail(false);
+                            setNewEmail("");
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveEmail();
+                        }}
+                        disabled={savingEmail || !newEmail.trim()}
+                        className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {savingEmail ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingEmail(false);
+                          setNewEmail("");
+                        }}
+                        disabled={savingEmail}
+                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : emailJustSaved ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-emerald-600">✓</span>
+                      <span className="text-sm text-gray-700">{newEmail || provider.email}</span>
+                      <span className="text-xs text-emerald-600 font-medium">Saved</span>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSendClaimLink();
+                      }}
+                      disabled={sendingClaimLink}
+                      className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {sendingClaimLink ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Sending...
+                        </span>
+                      ) : (
+                        "Send Claim Link"
+                      )}
+                    </button>
+                  </div>
+                ) : provider.email ? (
                   <a href={`mailto:${provider.email}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
                     {provider.email}
                   </a>
+                ) : (
+                  <span className="text-gray-400 italic">No email</span>
                 )}
                 {provider.phone && (
                   <a href={`tel:${provider.phone.replace(/\D/g, "")}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
@@ -3659,11 +3805,15 @@ function FollowUpProviderRow({
                 </button>
 
                 <button
-                  onClick={() => setPendingOutcome("wrong_contact")}
-                  disabled={submitting !== null}
+                  onClick={() => {
+                    setEditingEmail(true);
+                    setNewEmail(provider.email || "");
+                    setEmailJustSaved(false);
+                  }}
+                  disabled={submitting !== null || editingEmail}
                   className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Wrong contact
+                  Fix Email
                 </button>
 
                 <button

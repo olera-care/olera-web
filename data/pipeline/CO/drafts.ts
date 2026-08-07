@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.917Z
+ * Last updated: 2026-08-07T06:32:58.046Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -608,8 +608,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400+ monthly toward groceries through SNAP. Because seniors have relaxed income rules and special medical deductions, your loved one might qualify even if their Social Security puts them slightly over the standard income limits. In Colorado, there's no asset limit for most households, so your loved one can keep their home, car, and modest savings.\n\nSNAP provides an EBT card that works like a debit card at grocery stores, farmers markets, and many retailers. The amount depends on household size and income, a two-person elderly household with net income around $1,000/month typically receives about $400/month. Because all medical expenses over $35/month count as deductions for seniors, many families are surprised to discover their loved one qualifies.",
-      "savingsRange": "$1,200 – $4,800/year in 2026",
-      "savingsSource": "Based on typical monthly allotments for elderly households",
+      "savingsRange": "Up to $3,576/year for one person (FY2026 maximum)",
+      "savingsSource": "USDA FY2026 maximum allotment for a 1-person household is $298/month; actual amounts vary by household size, net income, and deductions",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -712,13 +712,13 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
+        "Proof of Colorado residency (utility bill, lease, or state-issued document)",
         "Social Security award letters for all household members",
+        "Medical bills and receipts showing out-of-pocket expenses over $35/month",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
-        "Medical bills and receipts showing out-of-pocket expenses over $35/month",
         "Rent or mortgage statement showing monthly housing costs",
         "Recent utility bills (electricity, gas, water, trash)",
-        "Proof of Colorado residency (utility bill, lease, or state-issued document)",
         "Social Security cards or proof of application for all household members",
         "Proof of citizenship or legal immigration status",
         "Life insurance policies with cash values",
@@ -727,15 +727,27 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "EBT Customer Service",
-          "phone": "(888) 328-2656",
-          "description": "SNAP application help and EBT card issues",
+          "label": "Hunger Free Colorado Food Resource Hotline",
+          "phone": "(855) 855-4626",
+          "description": "Free help applying for SNAP over the phone, in 150+ languages. Not a government office, but they walk you through the application.",
+          "hours": "Mon-Thu 8:30am-4:30pm, Fri 8am-12pm MT"
+        },
+        {
+          "label": "Colorado SNAP Support Line",
+          "phone": "(800) 816-4451",
+          "description": "State line for case status and general SNAP questions. Automated system.",
           "hours": "Business hours"
         },
         {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
-          "description": "Free 24/7 helpline to find your local county human services office",
+          "description": "Free 24/7 helpline to find your local county human services office, where applications are filed.",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "EBT Card Customer Service",
+          "phone": "(888) 328-2656",
+          "description": "Lost, stolen, or damaged EBT cards only. This line does not take applications.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -795,10 +807,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(888) 328-2656",
+      "phone": "(855) 855-4626",
       "sourceUrl": "https://www.colorado.gov/PEAK",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "weatherization-assistance-program",

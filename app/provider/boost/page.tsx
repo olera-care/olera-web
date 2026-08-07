@@ -360,8 +360,10 @@ export default function ProviderBoostPage() {
             onCheckout={startCheckout}
             submitting={checkoutSubmitting}
             error={checkoutError}
+            onEditPhotos={() => openEditor("gallery")}
           />
         </div>
+        {editorModals}
       </Shell>
     );
   }
@@ -760,7 +762,7 @@ function ApplyExperience({
               When should we start?
             </h1>
             <p className="mt-3 text-gray-500 leading-relaxed max-w-lg">
-              We'll run ads to bring families to your page.{" "}
+              We&apos;ll run ads to bring families to your page.{" "}
               <span className="font-semibold text-primary-600">Your first campaign is on us.</span>
             </p>
             <p className="mt-2 text-sm text-gray-400">
@@ -816,7 +818,7 @@ function ApplyExperience({
             </fieldset>
 
             <fieldset className="mt-8">
-              <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Where we'll advertise</legend>
+              <legend className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Where we&apos;ll advertise</legend>
               <div className="flex flex-wrap gap-2.5">
                 {CHANNELS.map((c) => {
                   const active = channel === c.value;
@@ -1216,4 +1218,3 @@ function isoDate(d: Date): string {
 function shortDate(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
-

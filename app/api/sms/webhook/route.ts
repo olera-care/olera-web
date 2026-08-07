@@ -5,6 +5,11 @@ import { normalizeUSPhone } from "@/lib/twilio";
 import { smsHelpReply } from "@/lib/sms/templates";
 import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
 import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server";
+import {
+  storeInboundMessage,
+  suppressPhone,
+  unsuppressPhone,
+} from "@/lib/sms/inbound-store.server";
 
 /**
  * POST /api/sms/webhook
@@ -21,6 +26,16 @@ import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server"
  * recording it here keeps OUR send path honest regardless (sendSMS callers check
  * phone_validity before texting). Verifies X-Twilio-Signature. Always 200s with
  * TwiML so Twilio doesn't retry.
+ *
+ * STORAGE (migration 166): every inbound message is written to `sms_inbound`
+ * first, before any keyword branching, matched to an account or not. This used
+ * to be family-only — a text from a provider or an unknown number was stored
+ * nowhere, alerted nobody, and existed only in Twilio. Since most of our
+ * outbound SMS goes to providers, that made us deaf on our busiest lane.
+ *
+ * OPT-OUT also writes do_not_contact (the cross-channel kill switch sendSMS
+ * enforces), not just family phone_validity. A provider who texted STOP was
+ * previously a complete no-op, and one was re-texted 11 days later.
  *
  * NOTE: matching phone → profile scans family profiles and filters in JS because
  * stored phone formats vary and we have no normalized-phone column. Inbound
@@ -174,6 +189,28 @@ async function setFamilyPhoneValidity(
   return ids.length;
 }
 
+/**
+ * Ping a human for an inbound text that no automation will answer. recordInbound
+ * only alerts when a FAMILY profile matched, so without this a provider's reply
+ * reached nobody — exactly how "I can't open that link, send me the family's
+ * details" from a provider's AI receptionist was lost.
+ */
+async function alertUnmatchedInbound(
+  phone: string,
+  body: string,
+  who: string | null,
+): Promise<void> {
+  try {
+    const { sendSlackAlert } = await import("@/lib/slack");
+    const label = who ? `${who} (${phone})` : phone;
+    await sendSlackAlert(
+      `Text from ${label}: "${body.slice(0, 300)}" - reply from the SMS inbox (/admin/inbox)`,
+    );
+  } catch (err) {
+    console.error("[sms-webhook] Unmatched-inbound Slack ping failed:", err);
+  }
+}
+
 export async function POST(request: NextRequest) {
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   if (!authToken) {
@@ -194,15 +231,49 @@ export async function POST(request: NextRequest) {
   const from = (params.From || "").trim();
   const normalizedFrom = normalizeUSPhone(from) ?? from;
   const keyword = (params.Body || "").trim().toUpperCase().replace(/[^A-Z]/g, "");
+  const messageBody = (params.Body || "").trim();
+  const isControlKeyword =
+    OPT_OUT_KEYWORDS.has(keyword) || OPT_IN_KEYWORDS.has(keyword) || HELP_KEYWORDS.has(keyword);
+
+  // Durable capture BEFORE any branching, so no code path below can drop a
+  // message. The family-profile work that follows is an additional step, not
+  // the storage layer — that inversion is what made us deaf to providers.
+  //
+  // Only a control keyword is stored in `keyword`; a free-form sentence
+  // normalizes to junk ("I can't find the form" → ICANTFINDTHEFORM) and must
+  // not masquerade as a recognized token. The full body is always kept.
+  let senderType: string | null = null;
+  let senderName: string | null = null;
+  try {
+    const captured = await storeInboundMessage({
+      twilioSid: params.MessageSid || null,
+      fromPhone: normalizedFrom,
+      body: messageBody || keyword,
+      keyword: isControlKeyword ? keyword : null,
+    });
+    senderType = captured.sender.profileType;
+    senderName = captured.sender.displayName;
+  } catch (err) {
+    console.error("[sms-webhook] Durable capture failed:", err);
+  }
 
   try {
     if (OPT_OUT_KEYWORDS.has(keyword)) {
+      // Cross-channel suppression first — this is the only opt-out record that
+      // covers a sender with no family profile, and sendSMS enforces it.
+      const suppressed = await suppressPhone(
+        normalizedFrom,
+        `Texted "${messageBody.slice(0, 80)}" to the Olera SMS number`,
+      );
       const n = await setFamilyPhoneValidity(normalizedFrom, "opted_out");
       await recordInbound(normalizedFrom, params.Body || keyword, keyword);
-      console.log(`[sms-webhook] STOP from ${normalizedFrom} → opted_out ${n} profile(s)`);
+      console.log(
+        `[sms-webhook] STOP from ${normalizedFrom} → do_not_contact=${suppressed}, opted_out ${n} profile(s)`,
+      );
       return twiml(); // Twilio sends the carrier opt-out confirmation.
     }
     if (OPT_IN_KEYWORDS.has(keyword)) {
+      await unsuppressPhone(normalizedFrom);
       const n = await setFamilyPhoneValidity(normalizedFrom, "unverified");
       await recordInbound(normalizedFrom, params.Body || keyword, keyword);
       console.log(`[sms-webhook] START from ${normalizedFrom} → cleared ${n} profile(s)`);
@@ -214,9 +285,14 @@ export async function POST(request: NextRequest) {
     }
     // Benefits progress replies update the living plan and receive an
     // immediate receipt. Unrecognized replies remain human-routed below.
-    if ((params.Body || "").trim()) {
-      const recorded = await recordInbound(normalizedFrom, params.Body.trim(), keyword, true);
+    if (messageBody) {
+      const recorded = await recordInbound(normalizedFrom, messageBody, keyword, true);
       if (recorded.structured) return twiml(recorded.response);
+      // recordInbound's Slack ping requires a family match. Everyone else —
+      // providers, unknown numbers — needs a human told about them here.
+      if (senderType !== "family") {
+        await alertUnmatchedInbound(normalizedFrom, messageBody, senderName);
+      }
     }
   } catch (err) {
     console.error("[sms-webhook] Error handling inbound:", err);

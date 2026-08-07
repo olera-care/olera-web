@@ -199,6 +199,10 @@ async function notifyRecipient(
           body: pendingInquirySms({ fromName: providerName, url: `${siteUrl}/portal/inbox` }),
           recipientProfileId: connection.to_profile_id,
           notificationType: "new_leads",
+          // Providers only (migration 167). A family gave us their number
+          // expecting texts, so we attempt it regardless; a provider's number
+          // is often a front desk we sourced, not one they handed us.
+          requireMobile: recipient.type !== "family",
         });
       }
     } catch (smsErr) {

@@ -36,6 +36,16 @@ export interface CampaignRequest {
   requested_email_sent_at?: string | null;
   profile_reminder_email_sent_at?: string | null;
   promotion_email_sent_at?: string | null;
+  /** Human-reviewed landing-page photo gate for paid traffic. */
+  photo_readiness_status: "unreviewed" | "update_requested" | "review_requested" | "ready";
+  photo_review_note?: string | null;
+  photo_reviewed_at?: string | null;
+  photo_reviewed_by?: string | null;
+  photo_update_requested_at?: string | null;
+  photo_update_submitted_at?: string | null;
+  photo_nudge_email_sent_at?: string | null;
+  photo_reminder_email_sent_at?: string | null;
+  photo_ready_email_sent_at?: string | null;
   /** When the campaign-launched provider email actually went out. NULL on
    *  pre-launch rows, and on live rows whose email is scheduled or failed. */
   launched_email_sent_at?: string | null;
@@ -169,6 +179,31 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone[status] ?? "bg-gray-100 text-gray-600"}`}>
       {STATUS_LABELS[status] ?? status}
+    </span>
+  );
+}
+
+export const PHOTO_READINESS_LABELS: Record<CampaignRequest["photo_readiness_status"], string> = {
+  unreviewed: "Photos not reviewed",
+  update_requested: "Waiting on photos",
+  review_requested: "Photos updated",
+  ready: "Photos ready",
+};
+
+export function PhotoReadinessBadge({
+  status,
+}: {
+  status: CampaignRequest["photo_readiness_status"];
+}) {
+  const tone: Record<CampaignRequest["photo_readiness_status"], string> = {
+    unreviewed: "bg-violet-50 text-violet-700",
+    update_requested: "bg-amber-50 text-amber-700",
+    review_requested: "bg-blue-50 text-blue-700",
+    ready: "bg-emerald-50 text-emerald-700",
+  };
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${tone[status]}`}>
+      {PHOTO_READINESS_LABELS[status]}
     </span>
   );
 }

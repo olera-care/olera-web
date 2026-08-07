@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.925Z
+ * Last updated: 2026-08-07T08:34:45.165Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -299,9 +299,10 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts A and B)",
         "Most recent Social Security award letter",
+        "Medical records documenting need for daily care assistance",
+        "Social Security cards for your loved one and spouse",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Bank statements for all accounts (last 3 months)",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
@@ -309,7 +310,6 @@ export const drafts: PipelineStateDrafts = {
         "Vehicle titles and registration",
         "Life insurance policies with face values",
         "Pre-paid burial contracts or funeral plans",
-        "Medical records documenting need for daily care assistance",
         "List of current medications and prescribing doctors",
         "Home equity documentation if home value approaches $752,000",
         "Documentation of any asset transfers in the last 5 years",
@@ -394,7 +394,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 456-1146",
       "sourceUrl": "https://ldh.la.gov/page/community-choices-waiver",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-elder-care",
@@ -1545,9 +1546,9 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "caregiver-voucher-program",
-      "name": "Caregiver Voucher Program",
-      "shortName": "Caregiver Voucher",
-      "tagline": "Get paid as your loved one's caregiver through Louisiana's Community Choices Waiver while helping them avoid nursing home placement.",
+      "name": "Paid Family Caregiver through the Community Choices Waiver",
+      "shortName": "Paid Family Caregiver",
+      "tagline": "Get paid to care for your loved one at home through Louisiana's Community Choices Waiver, instead of a nursing home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1564,7 +1565,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Louisiana's Caregiver Voucher Program can pay you to provide that care at home. Because this program allows family members who live with the care recipient to become paid caregivers, you can receive compensation while helping your loved one avoid nursing home placement.\n\nYour loved one must qualify for Louisiana's Long-Term Care Medicaid (monthly income typically under $2,829 for individuals in 2026) and meet Nursing Facility Level of Care through a clinical assessment. The program provides home and community-based services including personal care, homemaker services, and respite care through individualized care plans.\n\nPriority goes to specific groups including those with ALS diagnosis, abuse/neglect referrals, and nursing home residents, while other applicants are served first-come, first-served. You must live with your loved one and be at least 18 years old to serve as their paid caregiver.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Louisiana's Community Choices Waiver can pay you to provide that care at home. Because this program allows family members who live with the care recipient to become paid caregivers, you can receive compensation while helping your loved one avoid nursing home placement.\n\nYour loved one must qualify for Louisiana's Long-Term Care Medicaid (monthly income typically under $2,829 for individuals in 2026) and meet Nursing Facility Level of Care through a clinical assessment. The program provides home and community-based services including personal care, homemaker services, and respite care through individualized care plans.\n\nPriority goes to specific groups including those with ALS diagnosis, abuse/neglect referrals, and nursing home residents, while other applicants are served first-come, first-served. You must live with your loved one and be at least 18 years old to serve as their paid caregiver.\n\nA note on names: some Louisiana parish Councils on Aging run a separate, locally funded Caregiver Voucher Program for family caregivers. That is a different program from this one. If you want the parish voucher, call your parish Council on Aging directly.",
       "savingsRange": "",
       "savingsSource": "Paid caregiving service",
       "savingsVerified": false,
@@ -1655,14 +1656,14 @@ export const drafts: PipelineStateDrafts = {
         "Life insurance policies with face values",
         "Pre-need burial contracts or irrevocable burial trusts",
         "Medical records supporting need for daily care assistance",
-        "Medicare card (both parts A and B)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of health insurance premiums paid"
       ],
       "contacts": [
         {
           "label": "Louisiana Options in Long-Term Care",
           "phone": "(877) 456-1146",
-          "description": "Statewide screening line for OAAS home- and community-based support, including respite for caregivers. They can also point you to your parish Council on Aging, which runs local caregiver voucher services.",
+          "description": "Statewide screening line for Louisiana OAAS long-term care services: waivers, personal care, PACE, and nursing facility services. Ask them to screen you for caregiver respite through your parish Council on Aging.",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
@@ -1738,7 +1739,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-07"
     }
   ],
   "stateOverview": {

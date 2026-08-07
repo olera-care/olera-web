@@ -1511,7 +1511,7 @@
       "documentsNeeded": [
         "Proof of age (driver's license, birth certificate, or passport)",
         "Proof of residence in the provider's service area (utility bill or lease)",
-        "Emergency contact information for at least two people",
+        "Emergency contact information (name and phone for at least one person)",
         "List of current medications and dosages",
         "Dietary restrictions or food allergies documentation",
         "Insurance information (Medicare card if applicable)",
@@ -1591,7 +1591,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://mealsonwheelsnh.org",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "family-caregiver-support",

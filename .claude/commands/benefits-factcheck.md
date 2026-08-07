@@ -27,8 +27,19 @@ The external reviewer is a lead generator, not an authority. It was right about 
 
 7. **Report to TJ:** corrections applied (with the one-line-each summary), disputes flagged, pick-fit/voice observations from the report worth a composer-rail change, and the recompose-after-deploy checklist.
 
+## What the reviewer is actually looking at (read before trusting a verdict)
+
+Two mechanics decide whether a reported "correction" is real. Both were discovered on 2026-08-07 after the reviewer flagged GA data that had been fixed a week earlier.
+
+- **The export prompt renders the draft's frozen `pick` snapshot, not live pipeline data.** A draft stores `metadata.benefits_navigator.pick` at compose time. Step 6 patches letter bodies but historically left the snapshot alone, so corrected programs kept re-appearing in later reviews with their pre-correction values, and the plan page kept rendering them. **Always diff the CORRECTIONS block against the current `drafts.json` before verifying anything** — on 2026-08-07, 2 of 18 were already-fixed ghosts. And when you patch a body, refresh the snapshot in the same write.
+- **The composer shows only `documentsNeeded.slice(0, 3)`** (`lib/family-comms/benefits-cascade.server.ts:309`). The reviewer sees three documents and reasonably concludes the rest are missing; usually the right items are in the list but buried. So most document corrections are **reorderings, not replacements** — lead with what the operator actually asks for on a first call. Check the full array before rewriting it.
+
+Corollary for phones: `toPick` takes the first contact with a non-null `phone`. A `contacts[0]` with `phone: null` silently falls through to whatever is next, which is how WV VISIONS letters ended up sending people to 2-1-1 instead of the program's own line. A null phone on the lead contact is a bug, not a blank.
+
 ## Standing disputes / lessons
 
 - **MA Frail Elder Waiver, 60-month bank statements**: ChatGPT calls it institutional-lookback conflation (45-day current statements per MassHealth verification list); FEW-specific sources say 60 months is required. Unresolved as of 2026-07-31 — data unchanged, letters should soften to "recent bank statements."
 - Recurring report themes worth watching: 2-1-1 given as an application door; "families that qualify often save $X" phrasing on figures that are maximums; entry-source inferred as the family's need ("paying for care" ≠ energy bills).
+- **Savings fields drift from their own record.** CT Respite's `savingsRange` read "$1,500 – $6,000/year" while the same program's tagline, intro, `savingsSource`, and FAQ all said $7,500. Before web-verifying a savings claim, grep the whole record for the figure — an internal contradiction settles it faster than a source does, and it tells you which field is the outlier.
+- **A call anchor can be a real number for the wrong thing.** CO SNAP pointed at (888) 328-2656, which is genuinely the EBT customer service line and genuinely answers, but it handles lost cards and cannot take an application. "The number works" is not the test; "the number does the thing the letter says" is. Found 2026-08-07.
 - **Seasonality**: LIHEAP-class programs have application windows (IA: Nov 1–Apr 30, October for 60+; TN: fall portal opening). A letter composed off-season sends a family to call about a program that isn't taking applications — check the window and add a timing sentence, or question the pick. Found 2026-08-01.

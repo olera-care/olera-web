@@ -154,6 +154,22 @@ export default function EditGalleryModal({
         metadataFields: { images },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });
+      // If Ad Boost is waiting on stronger photos, an ACTUAL gallery change is
+      // the provider's re-review signal. A 409 is harmless (no applicable
+      // campaign, or the concierge already changed its state); other failures
+      // stay visible so the provider can retry instead of getting stuck after
+      // the profile save succeeds but the campaign transition does not.
+      if (hasChanges) {
+        const reviewResponse = await fetch("/api/provider/ad-boost/photo-review", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!reviewResponse.ok && reviewResponse.status !== 409) {
+          throw new Error(
+            "Your photos were saved, but we couldn't submit them for campaign review. Please try Save again.",
+          );
+        }
+      }
       if (hasChanges) trackProfileEdit(profile.slug, "gallery");
       onSaved();
     } catch (err) {

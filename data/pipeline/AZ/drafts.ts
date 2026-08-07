@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AZ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.916Z
+ * Last updated: 2026-08-07T06:32:58.045Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -822,7 +822,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP Energy Assistance",
-      "tagline": "Up to $640/year toward your loved one's electric and gas bills, plus emergency help during utility shutoffs.",
+      "tagline": "$160 to $640 a year toward your loved one's electric and gas bills, plus emergency help during utility shutoffs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -835,9 +835,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with electric or gas bills, LIHEAP can provide up to $640 per year toward heating and cooling costs. Because this program prioritizes households with adults 60+, disabled individuals, veterans, or children under 6, your elderly loved one likely qualifies for priority processing ahead of general applicants.\n\nLIHEAP operates on seasonal windows, heating assistance runs December through March, while cooling assistance runs April through October or November depending on your county. The program also offers crisis benefits up to $500 for emergency situations like utility shutoffs or equipment failures.\n\nBecause funding is limited and distributed first-come-first-served within priority groups, apply early when your loved one's season opens. There are no asset limits, but gross monthly income must stay below $2,807 for a single person or $3,671 for a couple.",
-      "savingsRange": "Up to $640/year in 2026",
-      "savingsSource": "DES: regular assistance up to $640 once per year, plus supplemental crisis assistance up to $500 for energy emergencies",
+      "intro": "If your loved one struggles with electric or gas bills, LIHEAP pays a standard benefit of $160 to $640 per year toward heating and cooling costs, set by a points system. Because this program prioritizes households with adults 60+, disabled individuals, veterans, or children under 6, your elderly loved one likely qualifies for priority processing ahead of general applicants.\n\nLIHEAP operates on seasonal windows, heating assistance runs December through March, while cooling assistance runs April through October or November depending on your county. The program also offers crisis benefits up to $500 for emergency situations like utility shutoffs or equipment failures.\n\nBecause funding is limited and distributed first-come-first-served within priority groups, apply early when your loved one's season opens. There are no asset limits, but gross monthly income must stay below $2,807 for a single person or $3,671 for a couple.",
+      "savingsRange": "$160 – $640/year in 2026, based on a points system",
+      "savingsSource": "DES: standard LIHEAP benefit runs $160–$640 per 12-month eligibility period, set by a points system (income, energy burden, household demographics); crisis assistance adds up to $500",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -919,12 +919,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "State driver's license or Arizona ID card",
+        "Current electric bill showing account number and balance",
+        "Income verification for all adults 18+ from last 30 days (pay stubs, Social Security award letters, pension statements)",
         "Proof of U.S. citizenship or immigration status (birth certificate, passport, or immigration documents)",
         "Proof of Arizona residence (lease agreement, deed, or property tax bill)",
         "Social Security numbers for all household members",
         "Birth certificates or school records for all household members",
-        "Income verification for all adults 18+ from last 30 days (pay stubs, Social Security award letters, pension statements)",
-        "Current electric bill showing account number and balance",
         "Current gas or propane bill showing account number and balance",
         "Utility disconnection notice or delinquent bill (if applying for crisis assistance)",
         "Current utility bills for the home"
@@ -1009,7 +1009,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://des.az.gov/liheap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "weatherization-assistance-program",

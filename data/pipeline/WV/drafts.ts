@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.879Z
+ * Last updated: 2026-08-07T06:32:58.072Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2232,9 +2232,9 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "West Virginia Division of Rehabilitation Services",
-          "phone": null,
-          "description": "Rehabilitation counselors specializing in blind and visually impaired services, visit website for local office numbers",
-          "hours": "Business hours vary by office"
+          "phone": "1-800-642-3021",
+          "description": "Statewide line for the VISIONS program. Ask for VISIONS when you call.",
+          "hours": "Business hours"
         },
         {
           "label": "West Virginia 2-1-1",
@@ -2290,10 +2290,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Wheelchair",
-      "phone": null,
-      "sourceUrl": "https://wvdrs.org/adults/specialized-services/services-for-the-blind-and-impaired/",
+      "phone": "1-800-642-3021",
+      "sourceUrl": "https://wvdrs.org/adults/specialized-services/visions/amp/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "home-modification-accessibility-grant",

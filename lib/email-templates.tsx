@@ -307,19 +307,20 @@ export function adBoostRequestedEmail(opts: {
   return layout(
     `
     <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost setup</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is ready for setup</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your managed-ads request came through, and your Olera page has enough detail for us to start setting up the campaign.</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">We received your Ad Boost request</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Your managed-ads request came through, and your Olera page has enough profile detail to enter our campaign review.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s how it works: we run a local ${channel} campaign for families searching for care, send them straight to your Olera page, and any who reach out land directly in your dashboard.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">To get started, the first $50 of ad spend is on us. That is enough to get the campaign live and let you see the flow end to end. After that, you can choose a flat monthly plan and we keep running everything for you. Nothing switches to a paid plan on its own: you see the results first, then decide.</p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
     </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 22px;line-height:1.65;">Before any ad spend begins, our team will review the family-facing page, including its photos. If one focused update could help protect the campaign budget, we&rsquo;ll email you with a direct link to make it. Your request stays saved throughout.</p>
     <div>${button("View Ad Boost", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
     </div>`,
-    "Your Ad Boost request is ready for setup.",
+    "We received your Ad Boost request and will review the family-facing page before launch.",
   );
 }
 
@@ -334,20 +335,74 @@ export function adBoostReadyEmail(opts: {
 
   return layout(
     `
-    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost now launch-ready</p>
-    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your Ad Boost request is now launch-ready</h1>
-    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Good news: your Olera page now has enough detail for us to start setting up the campaign, so your queued Ad Boost request has moved into the setup queue.</p>
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost profile ready</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your profile is ready for Ad Boost review</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Good news: your Olera page now has enough profile detail for your saved Ad Boost request to move into campaign review.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">We&rsquo;ll use your Olera page as the landing page for the ${channel} campaign, with families who reach out appearing in your dashboard.</p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 24px;">
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Requested setup week:</strong> ${launchWeek}</p>
     </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Before any ad spend begins, we&rsquo;ll review the family-facing page and its photos. If one focused update would strengthen it, we&rsquo;ll email you and keep the original request saved while you make the change.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">The first $50 promotional test is still on us. Once it is complete, we can review the results together and talk through the right monthly plan.</p>
     <div>${button("View Ad Boost", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
     </div>`,
-    "Your Ad Boost request is now ready for setup.",
+    "Your profile is ready for our final Ad Boost campaign review.",
+  );
+}
+
+export function adBoostPhotoUpdateEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+  reminder?: boolean;
+}): string {
+  const heading = opts.reminder
+    ? "Your Ad Boost request is waiting on one photo update"
+    : "One photo update before we launch your Ad Boost";
+  const intro = opts.reminder
+    ? `Your Ad Boost request for ${escapeHtml(opts.providerName)} is still saved. We&rsquo;re waiting on a few stronger photos before we put the promotional budget to work.`
+    : `Thanks for requesting Ad Boost for ${escapeHtml(opts.providerName)}. You&rsquo;ve already taken the time to add images and get your profile set up.`;
+
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost photo review</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">${heading}</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">${intro}</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">During our campaign review, we noticed that the current gallery relies mostly on branding, text-based, closely cropped, or low-resolution images. Those images can look soft at full size and may not give families enough of a feel for your team and the care you provide.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 14px;line-height:1.65;">A few clear, real-world photos will give the campaign a better chance of turning clicks into inquiries. The most helpful additions are:</p>
+    <ul style="font-size:15px;color:#374151;margin:0 0 18px;padding-left:20px;line-height:1.75;">
+      <li>A welcoming photo of your team</li>
+      <li>A clear photo of your location or care setting</li>
+      <li>A natural photo showing the kind of care you provide, with permission</li>
+    </ul>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">Phone photos are completely fine &mdash; bright, sharp, and without text overlays works best. Your request remains saved while you make the update, and you do not need to submit it again.</p>
+    <div>${button("Add better photos", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your Ad Boost request is saved; one photo update will help protect the campaign budget.",
+  );
+}
+
+export function adBoostPhotosReadyEmail(opts: {
+  providerName: string;
+  ctaUrl: string;
+}): string {
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Ad Boost photo review complete</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">Your photos are ready</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Thanks for updating the photos for ${escapeHtml(opts.providerName)}. We reviewed the new gallery, and your Ad Boost request is ready to continue through campaign setup.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">There&rsquo;s nothing else to submit. Your original request, timing, and campaign preferences are still saved, and we&rsquo;ll contact you before anything goes live.</p>
+    <div>${button("View Ad Boost", opts.ctaUrl)}</div>
+    ${adBoostAuthorBylineBlock({ topBorder: true })}
+    <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
+    </div>`,
+    "Your updated photos are ready and campaign setup is continuing.",
   );
 }
 

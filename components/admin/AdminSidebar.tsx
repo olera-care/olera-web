@@ -30,6 +30,9 @@ const navSections: NavSection[] = [
     defaultOpen: true,
     items: [
       { label: "Activity", href: "/admin/activity" },
+      // Inbound SMS. Carries an unhandled badge because the volume is low —
+      // without it this reads as a dead page and stops getting checked.
+      { label: "Messages", href: "/admin/inbox" },
       // "Referrals" = the market-outreach ambassador/nudge queue; renamed
       // to say the job, not the department (2026-07 sidebar naming pass)
       { label: "Referrals", href: "/admin/market-outreach" },
@@ -332,6 +335,28 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   useEffect(() => { void refetchCounts(); }, [refetchCounts]);
   useMedJobsRefresh(refetchCounts);
 
+  // Inbound texts still awaiting a human. Fetched with count_only so the badge
+  // costs one cheap COUNT, and re-checked when the tab regains focus — SMS
+  // arrives while the admin is elsewhere, and a stale zero is the whole reason
+  // a low-volume inbox stops getting opened.
+  const [smsUnhandled, setSmsUnhandled] = useState(0);
+  const refetchSmsUnhandled = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/sms-inbox?count_only=true");
+      if (!res.ok) return;
+      const data = (await res.json()) as { unhandled?: number };
+      setSmsUnhandled(data.unhandled ?? 0);
+    } catch {
+      /* non-critical */
+    }
+  }, []);
+  useEffect(() => {
+    void refetchSmsUnhandled();
+    const onFocus = () => void refetchSmsUnhandled();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refetchSmsUnhandled]);
+
   // Hydrate from localStorage after mount
   useEffect(() => {
     try {
@@ -462,18 +487,26 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                     {section.items.map((item) => {
                       const active = isActive(item.href);
                       const pinned = favorites.includes(item.href);
+                      const unread = item.href === "/admin/inbox" ? smsUnhandled : 0;
                       return (
                         <div key={item.href} className="relative group/item">
                           <Link
                             href={item.href}
                             className={[
-                              "block pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                              "flex items-center justify-between pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
                               active
                                 ? "text-gray-900 font-medium bg-gray-100"
-                                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                                : unread > 0
+                                  ? "text-gray-900 font-semibold hover:bg-gray-50"
+                                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
                             ].join(" ")}
                           >
-                            {item.label}
+                            <span>{item.label}</span>
+                            {unread > 0 && (
+                              <span className="ml-2 text-[11px] tabular-nums font-semibold text-gray-900 rounded px-1 bg-emerald-100">
+                                {unread}
+                              </span>
+                            )}
                           </Link>
                           <button
                             onClick={() => toggleFavorite(item.href)}

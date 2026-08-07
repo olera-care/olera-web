@@ -2227,9 +2227,9 @@
       "contacts": [
         {
           "label": "West Virginia Division of Rehabilitation Services",
-          "phone": null,
-          "description": "Rehabilitation counselors specializing in blind and visually impaired services, visit website for local office numbers",
-          "hours": "Business hours vary by office"
+          "phone": "1-800-642-3021",
+          "description": "Statewide line for the VISIONS program. Ask for VISIONS when you call.",
+          "hours": "Business hours"
         },
         {
           "label": "West Virginia 2-1-1",
@@ -2285,10 +2285,11 @@
         "visualTone": "warm"
       },
       "icon": "Wheelchair",
-      "phone": null,
-      "sourceUrl": "https://wvdrs.org/adults/specialized-services/services-for-the-blind-and-impaired/",
+      "phone": "1-800-642-3021",
+      "sourceUrl": "https://wvdrs.org/adults/specialized-services/visions/amp/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "home-modification-accessibility-grant",

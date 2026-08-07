@@ -440,8 +440,8 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
   description:
     "One outreach journey from enrollment to claim: provider-outreach-send fires the 4-email " +
     "sequence (Day 0/3/7/14), the sequence check moves non-claimers to Follow Up, and manual " +
-    "channels (fax, LinkedIn, direct mail) offer alternative touchpoints. Admins can manually " +
-    "trigger Cycle 2 or send claim links at any stage.",
+    "channels (fax, direct mail) offer alternative touchpoints. LinkedIn discovery helps admins " +
+    "find contact info. Admins can fix emails inline and send claim links at any stage.",
   steps: [
     // ── Email Sequence ──────────────────────────────────────────────────
     {
@@ -516,16 +516,28 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       gate: "Requires valid fax number (auto-discovered or manually added)",
     },
     {
-      key: "linkedin_attempt",
+      key: "fix_email",
       phase: "Follow Up",
-      title: "LinkedIn outreach",
-      timing: "Manual · When LinkedIn available",
+      title: "Email fixed inline",
+      timing: "Manual · Fix Email button",
       description:
-        "Admin sends personal LinkedIn message. Best for providers who " +
-        "clicked emails but didn't claim.",
-      ownerNote: "Triggered from Follow Up tab",
-      traits: ["Manual", "Conditional"],
-      gate: "Requires LinkedIn profile (auto-discovered or manually added)",
+        "Admin clicks 'Fix Email' to update a bounced or incorrect email address inline. " +
+        "Provider stays in Follow Up (not moved to Needs Email), and admin can immediately send a claim link.",
+      ownerNote: "Inline editing in Follow Up tab",
+      traits: ["Manual"],
+      gate: "Used when email bounced or contact info was wrong",
+    },
+    {
+      key: "linkedin_discovery",
+      phase: "Follow Up",
+      title: "LinkedIn discovered",
+      timing: "Manual · Find LinkedIn button",
+      description:
+        "Admin clicks 'Find LinkedIn' to discover provider's LinkedIn page from their website. " +
+        "LinkedIn is a discovery tool for manual outreach, not a channel providers are moved to.",
+      ownerNote: "Discovery tool in Follow Up tab",
+      traits: ["Manual", "Discovery"],
+      gate: "Requires provider website; admins manually reach out via LinkedIn",
     },
     {
       key: "directmail_attempt",
@@ -546,7 +558,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       title: "Provider in Alternative Channels",
       timing: "After Follow Up attempts",
       description:
-        "Provider moved to re_engage stage with a selected channel (fax, LinkedIn, or direct mail). " +
+        "Provider moved to re_engage stage with a selected channel (fax or direct mail). " +
         "Admins can send claim links or manually restart the sequence when ready.",
       ownerNote: "Manual admin decision from Follow Up tab",
       traits: ["Manual"],

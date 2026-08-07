@@ -3130,6 +3130,9 @@ function FollowUpProviderRow({
   const [showAllOptions, setShowAllOptions] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+  // Track expansion state for async operation guards
+  const isExpandedRef = useRef(isExpanded);
+  isExpandedRef.current = isExpanded;
   // Fax finder state
   const [findingFax, setFindingFax] = useState(false);
   const [faxResult, setFaxResult] = useState<{ fax: string | null; confidence: string | null; source_url: string | null } | null>(null);
@@ -3142,6 +3145,19 @@ function FollowUpProviderRow({
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailJustSaved, setEmailJustSaved] = useState(false);
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  // Session ID to track editing sessions and invalidate stale async operations
+  const editingSessionRef = useRef(0);
+
+  // Reset editing state when row is collapsed
+  useEffect(() => {
+    if (!isExpanded) {
+      editingSessionRef.current += 1; // Invalidate any in-flight operations
+      setEditingEmail(false);
+      setNewEmail("");
+      setEmailJustSaved(false);
+      setError(null);
+    }
+  }, [isExpanded]);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
@@ -3174,11 +3190,13 @@ function FollowUpProviderRow({
         if (data.fax) {
           onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
         }
-      } else {
+      } else if (isExpandedRef.current) {
         setError(data.error || "Failed to find fax");
       }
     } catch {
-      setError("Network error finding fax");
+      if (isExpandedRef.current) {
+        setError("Network error finding fax");
+      }
     } finally {
       setFindingFax(false);
     }
@@ -3200,11 +3218,13 @@ function FollowUpProviderRow({
         if (data.linkedin_url) {
           onProviderUpdated({ linkedin_url: data.linkedin_url });
         }
-      } else {
+      } else if (isExpandedRef.current) {
         setError(data.error || "Failed to find LinkedIn");
       }
     } catch {
-      setError("Network error finding LinkedIn");
+      if (isExpandedRef.current) {
+        setError("Network error finding LinkedIn");
+      }
     } finally {
       setFindingLinkedIn(false);
     }
@@ -3222,6 +3242,7 @@ function FollowUpProviderRow({
       return;
     }
 
+    const sessionAtStart = editingSessionRef.current;
     setSavingEmail(true);
     setError(null);
 
@@ -3232,26 +3253,38 @@ function FollowUpProviderRow({
         body: JSON.stringify({ provider_id: provider.provider_id, email: trimmedEmail }),
       });
 
+      // Check if this operation is still valid (same session, still expanded)
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
       if (res.ok) {
-        // Update local state
+        // Always update parent state (email was saved successfully)
         onProviderUpdated({ email: trimmedEmail });
-        setEditingEmail(false);
-        setEmailJustSaved(true);
-        // Keep newEmail populated - we use it for display in emailJustSaved state
-        // (avoids race condition where provider.email hasn't updated from parent yet)
-      } else {
+        // Only update local UI state if operation is still valid
+        if (stillValid) {
+          setEditingEmail(false);
+          setEmailJustSaved(true);
+          // Keep newEmail populated - we use it for display in emailJustSaved state
+          // (avoids race condition where provider.email hasn't updated from parent yet)
+        }
+      } else if (stillValid) {
         const data = await res.json();
         setError(data.error || "Failed to save email");
       }
     } catch {
-      setError("Network error saving email");
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error saving email");
+      }
     } finally {
-      setSavingEmail(false);
+      // Only reset loading state if this session is still current
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingEmail(false);
+      }
     }
   };
 
   // Handle sending claim link after email is fixed
   const handleSendClaimLink = async () => {
+    const sessionAtStart = editingSessionRef.current;
     setSendingClaimLink(true);
     setError(null);
 
@@ -3262,20 +3295,28 @@ function FollowUpProviderRow({
         body: JSON.stringify({ provider_id: provider.provider_id }),
       });
 
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
       if (res.ok) {
-        // Reset the editing flow state
-        setEmailJustSaved(false);
-        setNewEmail("");
-        // Trigger a refresh to update touchpoints/engagement
+        // Only reset local UI state if operation is still valid
+        if (stillValid) {
+          setEmailJustSaved(false);
+          setNewEmail("");
+        }
+        // Always trigger refresh (claim link was sent successfully)
         onOutcomeRecorded(false);
-      } else {
+      } else if (stillValid) {
         const data = await res.json();
         setError(data.error || "Failed to send claim link");
       }
     } catch {
-      setError("Network error sending claim link");
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error sending claim link");
+      }
     } finally {
-      setSendingClaimLink(false);
+      if (editingSessionRef.current === sessionAtStart) {
+        setSendingClaimLink(false);
+      }
     }
   };
 

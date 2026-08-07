@@ -4148,6 +4148,31 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
   const [actionNotes, setActionNotes] = useState("");
 
+  // Send Claim Link state
+  const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
+  const [claimLinkSentIds, setClaimLinkSentIds] = useState<Set<string>>(new Set());
+
+  const handleSendClaimLink = useCallback(async (providerId: string) => {
+    setSendingClaimLinkId(providerId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      if (res.ok) {
+        setClaimLinkSentIds((prev) => new Set([...prev, providerId]));
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to send claim link");
+      }
+    } catch {
+      alert("Failed to send claim link");
+    } finally {
+      setSendingClaimLinkId(null);
+    }
+  }, []);
+
   // Provider tier tracking (session-only, not persisted)
   const [tierMap, setTierMap] = useState<Map<string, ProviderTier>>(new Map());
 
@@ -4655,6 +4680,31 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
               >
                 Archive
               </button>
+
+              {/* Send Claim Link - only show if provider has email */}
+              {provider.email && (
+                <button
+                  type="button"
+                  onClick={() => handleSendClaimLink(provider.provider_id)}
+                  disabled={sendingClaimLinkId === provider.provider_id || claimLinkSentIds.has(provider.provider_id)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    claimLinkSentIds.has(provider.provider_id)
+                      ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                      : "text-primary-600 bg-white border border-primary-300 hover:bg-primary-50 hover:border-primary-400"
+                  }`}
+                >
+                  {sendingClaimLinkId === provider.provider_id ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      Sending...
+                    </span>
+                  ) : claimLinkSentIds.has(provider.provider_id) ? (
+                    "Link Sent"
+                  ) : (
+                    "Send Claim Link"
+                  )}
+                </button>
+              )}
 
               {/* Find Fax / Manual Input for fax channel without fax number */}
               {!provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && provider.re_engage_channel === "fax" && (
@@ -5188,6 +5238,10 @@ export default function ProviderOutreachPage() {
   // Pending stage move confirmation (for Move to Stage buttons)
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
 
+  // Send Claim Link state (for action modal)
+  const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  const [claimLinkSent, setClaimLinkSent] = useState(false);
+
   // Remove from outreach confirmation state
   const [pendingRemoval, setPendingRemoval] = useState<{
     providerId: string;
@@ -5329,6 +5383,7 @@ export default function ProviderOutreachPage() {
     setUnarchivePreview(null);
     setUnarchivePreviewConfirmed(false);
     setPendingStageMove(null);
+    setClaimLinkSent(false);
   };
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
@@ -7523,6 +7578,67 @@ export default function ProviderOutreachPage() {
                       <div>
                         <p className="font-medium text-gray-900">Remove Assignment</p>
                         <p className="text-xs text-gray-500">Unassign this provider so anyone can pick it up</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Send Claim Link - show for not_interested stage with email */}
+                {/* Note: re_engage providers use the inline button in ReEngageQueue instead */}
+                {actionModalProvider.stage === "not_interested" && actionModalProvider.email && (
+                  <button
+                    onClick={async () => {
+                      setSendingClaimLink(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ provider_id: actionModalProvider.provider_id }),
+                        });
+                        if (res.ok) {
+                          setClaimLinkSent(true);
+                        } else {
+                          const err = await res.json();
+                          alert(err.error || "Failed to send claim link");
+                        }
+                      } catch {
+                        alert("Failed to send claim link");
+                      } finally {
+                        setSendingClaimLink(false);
+                      }
+                    }}
+                    disabled={sendingClaimLink || claimLinkSent}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-colors disabled:opacity-50 ${
+                      claimLinkSent
+                        ? "border-emerald-200 bg-emerald-50"
+                        : "border-gray-200 hover:border-primary-300 hover:bg-primary-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className={claimLinkSent ? "text-emerald-500 mt-0.5" : "text-primary-500 mt-0.5"}>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {sendingClaimLink ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              Sending...
+                            </span>
+                          ) : claimLinkSent ? (
+                            "Claim Link Sent"
+                          ) : (
+                            "Send Claim Link"
+                          )}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {claimLinkSent
+                            ? `Email sent to ${actionModalProvider.email}`
+                            : `Send claim link email to ${actionModalProvider.email}`
+                          }
+                        </p>
                       </div>
                     </div>
                   </button>

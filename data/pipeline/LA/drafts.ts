@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.925Z
+ * Last updated: 2026-08-07T06:32:58.054Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1662,7 +1662,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Louisiana Options in Long-Term Care",
           "phone": "(877) 456-1146",
-          "description": "Statewide screening line for OAAS home- and community-based support, including respite for caregivers. They can also point you to your parish Council on Aging, which runs local caregiver voucher services.",
+          "description": "Statewide screening line for Louisiana OAAS long-term care services: waivers, personal care, PACE, and nursing facility services. Ask them to screen you for caregiver respite through your parish Council on Aging.",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
@@ -1738,7 +1738,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-07"
     }
   ],
   "stateOverview": {

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.866Z
+ * Last updated: 2026-08-07T06:32:58.061Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1516,7 +1516,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of age (driver's license, birth certificate, or passport)",
         "Proof of residence in the provider's service area (utility bill or lease)",
-        "Emergency contact information for at least two people",
+        "Emergency contact information (name and phone for at least one person)",
         "List of current medications and dosages",
         "Dietary restrictions or food allergies documentation",
         "Insurance information (Medicare card if applicable)",
@@ -1596,7 +1596,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://mealsonwheelsnh.org",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "family-caregiver-support",

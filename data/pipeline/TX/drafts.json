@@ -137,7 +137,7 @@
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card showing Parts A and B (for QMB/SLMB/QI)",
+        "Medicare card (you need Medicare Part A, or Part B immunosuppressive-drug coverage)",
         "Proof of Texas residency (utility bill, lease agreement, or state-issued document)",
         "Citizenship or immigration documents for all household members",
         "Pay stubs from last 30 days or most recent tax return",
@@ -263,7 +263,7 @@
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "star-plus-medicaid-hcbs",
@@ -813,8 +813,8 @@
         {
           "label": "Texas 2-1-1",
           "phone": "2-1-1",
-          "description": "Statewide helpline for SNAP applications and local office locations",
-          "hours": "24 hours, 7 days a week"
+          "description": "Statewide helpline. Choose your language, then press 2 for SNAP staff, available Mon-Fri 8am-6pm CT. The general referral line answers 24/7.",
+          "hours": "Mon-Fri 8am-6pm CT for benefits staff"
         },
         {
           "label": "HHSC Customer Service",
@@ -874,7 +874,7 @@
       "sourceUrl": "https://www.yourtexasbenefits.com",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
-      "lastVerifiedDate": "2026-07-31"
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "liheap-energy-assistance",

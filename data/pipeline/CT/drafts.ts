@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.850Z
+ * Last updated: 2026-08-07T06:32:58.047Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1367,8 +1367,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one has Alzheimer's disease or related dementia, Connecticut provides up to $7,500 annually to help pay for respite care services. This program covers adult day care, home health aides, personal care assistants, short-term nursing home stays, and other services that give you breaks from caregiving.\n\nYour loved one must have a physician-confirmed diagnosis of irreversible dementia and annual income below $58,772. Because this is a subsidy program, you'll pay 20% of the service costs (unless waived for financial hardship), and the state covers the rest up to the annual cap. Both you and your loved one must live in Connecticut, and your loved one cannot already receive services through the Connecticut Homecare Program for Elders.",
-      "savingsRange": "$1,500 – $6,000/year in 2026",
-      "savingsSource": "Up to $7,500 annual subsidy minus 20% co-payment required in most cases",
+      "savingsRange": "Up to $7,500/year",
+      "savingsSource": "CT ADS: up to $7,500 per year depending on funding and need, minus a 20% co-payment in most cases",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1433,10 +1433,10 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Completed program application form",
-        "Physician Statement form with dementia diagnosis confirmation",
         "Proof of Connecticut residency for both care recipient and caregiver",
         "Social Security award letters or other income verification",
+        "Physician Statement form with dementia diagnosis confirmation",
+        "Completed program application form",
         "Bank statements showing liquid assets (last 3 months)",
         "Investment account statements if applicable",
         "Power of Attorney documentation if someone else is applying",
@@ -1444,9 +1444,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Connecticut Statewide Access Line",
+          "label": "Connecticut Statewide Respite Care Line",
           "phone": "(800) 994-9422",
-          "description": "Connects you to your nearest Area Agency on Aging for applications",
+          "description": "Connects you to the Area Agency on Aging closest to you, which runs the program and helps you complete the application and physician statement.",
           "hours": "Business hours"
         },
         {
@@ -1521,7 +1521,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 994-9422",
       "sourceUrl": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "scsep-employment-training",

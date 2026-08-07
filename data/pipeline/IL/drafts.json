@@ -485,10 +485,10 @@
       "documentsNeeded": [
         "Valid government-issued photo ID showing age 55+",
         "Proof of residence in PACE service area (utility bill or lease showing qualifying zip code)",
-        "Medicare card (both parts A and B)",
+        "Medical records documenting functional limitations and care needs",
+        "Medicare or Medicaid card if you have them (neither is required to join PACE)",
         "Medicaid card if applicable",
         "Complete list of current medications and dosages",
-        "Medical records documenting functional limitations and care needs",
         "Contact information for current doctors and specialists",
         "List of current home care or health services being received",
         "Documentation of Activities of Daily Living assistance needed",
@@ -500,7 +500,7 @@
         {
           "label": "Illinois Department on Aging",
           "phone": "(800) 252-8966",
-          "description": "Statewide aging services and Community Care Unit referrals",
+          "description": "Statewide aging services line. They can tell you which PACE organization serves your ZIP code. Enrollment itself happens through that local PACE organization, not this line.",
           "hours": "Mon-Fri 8:30am-5pm CT"
         },
         {
@@ -561,7 +561,8 @@
       "phone": "(800) 252-8966",
       "sourceUrl": "https://hfs.illinois.gov/medicalproviders/pace.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-programs",
@@ -1081,13 +1082,13 @@
         ]
       },
       "documentsNeeded": [
+        "Gross income documentation for all household members 18+ (last 90 days)",
+        "Proof of home ownership (deed, tax bill, mortgage statement, or title)",
         "Valid driver's license or state ID for head of household",
         "Social Security cards or numbers for all household members",
         "Proof of qualified alien status if not US citizen",
-        "Gross income documentation for all household members 18+ (last 90 days)",
         "Most recent gas utility bill",
         "Most recent electric utility bill",
-        "Proof of home ownership (deed, tax bill, mortgage statement, or title)",
         "Lease agreement plus landlord consent form (renters only)",
         "Income verification for all tenants (multi-family properties)",
         "LIHEAP award letter if received in last 12 months",
@@ -1178,7 +1179,7 @@
       "sourceUrl": "https://dceo.illinois.gov/communityservices/homeweatherization.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-07-31"
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "ship-medicare-counseling",

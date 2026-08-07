@@ -3059,11 +3059,11 @@ function getRecommendedAction(provider: OutreachProvider): {
         isPrimary: true,
       };
     case "clicked_not_claimed":
-      // Engaged but stuck - try personal touch
+      // Engaged but stuck - try personal touch via phone
       return {
-        action: "LinkedIn",
-        outcome: "try_linkedin",
-        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. Personal outreach may help.`,
+        action: "Call Provider",
+        outcome: "", // No automatic outcome, just recommendation
+        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. A personal call may help close the deal.`,
         isPrimary: true,
       };
     case "sequence_exhausted":
@@ -3133,6 +3133,9 @@ function FollowUpProviderRow({
   // Fax finder state
   const [findingFax, setFindingFax] = useState(false);
   const [faxResult, setFaxResult] = useState<{ fax: string | null; confidence: string | null; source_url: string | null } | null>(null);
+  // LinkedIn finder state
+  const [findingLinkedIn, setFindingLinkedIn] = useState(false);
+  const [linkedInResult, setLinkedInResult] = useState<{ linkedin_url: string | null; source_url: string | null } | null>(null);
   // Inline email editing state (for "Wrong Contact" flow)
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -3147,7 +3150,12 @@ function FollowUpProviderRow({
 
   // Channel availability
   const hasFax = !!provider.fax_number || !!faxResult?.fax;
-  const hasLinkedIn = !!provider.linkedin_url;
+  // Note: linkedin_url can be "not_found" sentinel value - filter it out
+  const validLinkedInUrl = provider.linkedin_url && provider.linkedin_url !== "not_found"
+    ? provider.linkedin_url
+    : linkedInResult?.linkedin_url;
+  const hasLinkedIn = !!validLinkedInUrl;
+  const linkedInUrl = validLinkedInUrl;
   const hasAddress = !!provider.mail_address;
 
   // Find fax number for this provider
@@ -3173,6 +3181,32 @@ function FollowUpProviderRow({
       setError("Network error finding fax");
     } finally {
       setFindingFax(false);
+    }
+  };
+
+  // Find LinkedIn URL for this provider
+  const handleFindLinkedIn = async () => {
+    setFindingLinkedIn(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setLinkedInResult({ linkedin_url: data.linkedin_url, source_url: data.source_url });
+        if (data.linkedin_url) {
+          onProviderUpdated({ linkedin_url: data.linkedin_url });
+        }
+      } else {
+        setError(data.error || "Failed to find LinkedIn");
+      }
+    } catch {
+      setError("Network error finding LinkedIn");
+    } finally {
+      setFindingLinkedIn(false);
     }
   };
 
@@ -3281,17 +3315,6 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Move to Fax",
           confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
-        };
-      case "try_linkedin":
-        return {
-          title: "Move to LinkedIn Channel",
-          description: "Move this provider to the LinkedIn channel for social outreach.",
-          details: [
-            "Provider will be moved to Alternative Channels (LinkedIn)",
-            "You can find their profile and reach out from there",
-          ],
-          confirmLabel: "Move to LinkedIn",
-          confirmClass: "bg-blue-700 hover:bg-blue-800 text-white",
         };
       case "try_direct_mail":
         return {
@@ -3696,9 +3719,19 @@ function FollowUpProviderRow({
                   <span className={`text-xs ${hasFax ? "text-emerald-600" : "text-gray-300"}`}>
                     Fax {hasFax ? "✓" : "—"}
                   </span>
-                  <span className={`text-xs ${hasLinkedIn ? "text-emerald-600" : "text-gray-300"}`}>
-                    LinkedIn {hasLinkedIn ? "✓" : "—"}
-                  </span>
+                  {hasLinkedIn && linkedInUrl ? (
+                    <a
+                      href={linkedInUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      LinkedIn ✓
+                    </a>
+                  ) : (
+                    <span className="text-xs text-gray-300">LinkedIn —</span>
+                  )}
                   <span className={`text-xs ${hasAddress ? "text-emerald-600" : "text-gray-300"}`}>
                     Address {hasAddress ? "✓" : "—"}
                   </span>
@@ -3745,10 +3778,6 @@ function FollowUpProviderRow({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">LinkedIn — {hasLinkedIn ? "ready" : "available"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
                     <span className="text-gray-500">Direct mail — {hasAddress ? "ready" : "available"}</span>
                   </div>
                 </div>
@@ -3763,20 +3792,38 @@ function FollowUpProviderRow({
                 <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
                   All Options
                 </div>
-                {!hasFax && !findingFax && provider.website && (
-                  <button
-                    onClick={handleFindFax}
-                    className="text-xs text-teal-600 hover:text-teal-700"
-                  >
-                    Find fax number
-                  </button>
-                )}
-                {findingFax && (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                    Finding fax...
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  {/* Find LinkedIn button */}
+                  {!hasLinkedIn && !findingLinkedIn && provider.website && (
+                    <button
+                      onClick={handleFindLinkedIn}
+                      className="text-xs text-blue-600 hover:text-blue-700"
+                    >
+                      Find LinkedIn
+                    </button>
+                  )}
+                  {findingLinkedIn && (
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                      Finding LinkedIn...
+                    </span>
+                  )}
+                  {/* Find Fax button */}
+                  {!hasFax && !findingFax && provider.website && (
+                    <button
+                      onClick={handleFindFax}
+                      className="text-xs text-teal-600 hover:text-teal-700"
+                    >
+                      Find fax number
+                    </button>
+                  )}
+                  {findingFax && (
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                      Finding fax...
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Fax found indicator */}
@@ -3786,6 +3833,24 @@ function FollowUpProviderRow({
                   {(provider.fax_confidence || faxResult?.confidence) && (
                     <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
                   )}
+                </div>
+              )}
+
+              {/* LinkedIn found indicator */}
+              {linkedInUrl && (
+                <div className="mb-3 p-2 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
+                  <a
+                    href={linkedInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline flex items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    {linkedInUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                  </a>
                 </div>
               )}
 
@@ -3822,14 +3887,6 @@ function FollowUpProviderRow({
                   className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Fax
-                </button>
-
-                <button
-                  onClick={() => setPendingOutcome("try_linkedin")}
-                  disabled={submitting !== null}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  LinkedIn
                 </button>
 
                 <button
@@ -4116,7 +4173,6 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
 
 const CHANNEL_OPTIONS: { value: string; label: string; color: string }[] = [
   { value: "fax", label: "Fax", color: "text-purple-700" },
-  { value: "linkedin", label: "LinkedIn", color: "text-blue-700" },
   { value: "direct_mail", label: "Direct Mail", color: "text-teal-700" },
 ];
 
@@ -5183,7 +5239,7 @@ export default function ProviderOutreachPage() {
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
 
   // Channel filter state (for Alternative Channels tab)
-  type ChannelFilter = "all" | "email" | "fax" | "linkedin" | "direct_mail";
+  type ChannelFilter = "all" | "email" | "fax" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
   // All admins for name lookup (fetched once)
@@ -7400,7 +7456,7 @@ export default function ProviderOutreachPage() {
             {/* Channel filter chips */}
             <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
               <span className="text-xs text-gray-500 mr-1">Channel:</span>
-              {(["all", "email", "fax", "linkedin", "direct_mail"] as const).map((channel) => {
+              {(["all", "email", "fax", "direct_mail"] as const).map((channel) => {
                 const count = channel === "all"
                   ? providers.length
                   : providers.filter((p) =>
@@ -7410,8 +7466,7 @@ export default function ProviderOutreachPage() {
                     ).length;
                 const label = channel === "all" ? "All" :
                   channel === "email" ? "Email" :
-                  channel === "fax" ? "Fax" :
-                  channel === "linkedin" ? "LinkedIn" : "Direct Mail";
+                  channel === "fax" ? "Fax" : "Direct Mail";
                 const isSelected = selectedChannelFilter === channel;
                 return (
                   <button

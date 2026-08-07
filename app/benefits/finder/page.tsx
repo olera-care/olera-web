@@ -11,6 +11,7 @@ import {
 } from "@/lib/benefits-intake-cache";
 import type { BenefitsIntakeAnswers, BenefitsSearchResult } from "@/lib/types/benefits";
 import type { FamilyMetadata } from "@/lib/types";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 
 export default function BenefitsFinderPage() {
   const { pageState, result, errorMsg, reset, restoreResults, setPublishCarePost } = useCareProfile();
@@ -61,6 +62,7 @@ export default function BenefitsFinderPage() {
 
   return (
     <div className="max-w-lg">
+      <ContentViewTracker page="/benefits/finder" />
       {/* Intake form — no card wrapper, content sits directly on page */}
       {pageState === "intake" && <BenefitsIntakeForm />}
 

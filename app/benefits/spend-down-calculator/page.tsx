@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 
 // ── State Medicaid asset & income limits (2024/2025 approximations) ──────────
 
@@ -232,9 +233,19 @@ export { STATE_LIMITS };
 
 interface SpendDownCalculatorProps {
   initialStateCode?: string;
+  /**
+   * Path to record the page view under. This component is both the
+   * /benefits/spend-down-calculator route and the body of the per-state
+   * route, so the caller owns the path — otherwise every state page would
+   * report as the bare calculator.
+   */
+  trackingPath?: string;
 }
 
-export default function SpendDownCalculatorPage({ initialStateCode }: SpendDownCalculatorProps = {}) {
+export default function SpendDownCalculatorPage({
+  initialStateCode,
+  trackingPath = "/benefits/spend-down-calculator",
+}: SpendDownCalculatorProps = {}) {
   const searchParams = useSearchParams();
   const urlState = initialStateCode || searchParams.get("state")?.toUpperCase() || "";
   // Restore saved form data from localStorage
@@ -351,6 +362,7 @@ export default function SpendDownCalculatorPage({ initialStateCode }: SpendDownC
 
   return (
     <div className="min-h-screen bg-vanilla-100">
+      <ContentViewTracker page={trackingPath} />
       {/* ── Hero Banner ──────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-800 via-primary-700 to-primary-600">
         {/* Soft warm overlay */}

@@ -8,6 +8,7 @@ import { MOCK_RESOURCES } from "@/data/mock/resources";
 import { Resource } from "@/types/resource";
 import { ArticleTopic, TOPIC_CONFIG, ALL_TOPICS } from "@/lib/article-topics";
 import Pagination from "@/components/ui/Pagination";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 
 // ---------------------------------------------------------------------------
 // Types & helpers
@@ -550,6 +551,7 @@ function LoadingSkeleton() {
 export default function CaregiverSupportPage() {
   return (
     <Suspense fallback={<LoadingSkeleton />}>
+      <ContentViewTracker page="/caregiver-support" />
       <CaregiverSupportContent />
     </Suspense>
   );

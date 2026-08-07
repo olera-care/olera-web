@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import type { ArticleHeading } from "@/lib/article-html";
 import { type CareTypeId, CARE_TYPE_CONFIG } from "@/types/forum";
 import { createClient } from "@/lib/supabase/server";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 import {
   DesktopTableOfContents,
   MobileTableOfContents,
@@ -261,6 +262,7 @@ export default async function VACaregiverApprovalLetterPage() {
   }
   return (
     <main className="min-h-screen bg-white">
+      <ContentViewTracker page="/caregiver-support/va-caregiver-approval-letter" />
       {/* JSON-LD */}
       <script
         type="application/ld+json"

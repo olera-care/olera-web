@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { ArticleHeading } from "@/lib/article-html";
 import { createClient } from "@/lib/supabase/server";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 import {
   DesktopTableOfContents,
   MobileTableOfContents,
@@ -337,6 +338,7 @@ export default async function MedicaidLookBackRulePage() {
 
   return (
     <main className="min-h-screen bg-white">
+      <ContentViewTracker page="/caregiver-support/medicaid-5-year-look-back-rule" />
       {/* JSON-LD */}
       <script
         type="application/ld+json"

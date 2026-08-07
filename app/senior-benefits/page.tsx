@@ -6,6 +6,7 @@ import { USMap } from "@/components/waiver-library/USMap";
 import { StateSearchProvider } from "@/components/waiver-library/StateSearchContext";
 import { HeroStateSearch } from "@/components/waiver-library/HeroStateSearch";
 import { MobileStateList } from "@/components/waiver-library/MobileStateList";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 
 export const metadata: Metadata = {
   title: "Senior Benefit Programs by State | Olera",
@@ -40,6 +41,7 @@ export default function WaiverLibraryPage() {
   return (
     <StateSearchProvider>
     <div className="bg-vanilla-100 min-h-[100dvh]">
+      <ContentViewTracker page="/senior-benefits" />
       {/* Hero */}
       <section className="relative min-h-[360px] md:min-h-[420px] text-white overflow-hidden">
         {/* Full-bleed background image */}

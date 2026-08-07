@@ -136,8 +136,10 @@ export default function AdminSmsInboxPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to send");
       setReply("");
-      setNotice("Reply sent.");
       await Promise.all([loadDetail(selected), loadThreads()]);
+      // Set AFTER the reload: loadDetail clears `notice`, so setting it first
+      // wipes the confirmation before it ever paints.
+      setNotice("Reply sent.");
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to send reply");
     } finally {
@@ -279,6 +281,23 @@ export default function AdminSmsInboxPage() {
               {[0, 1, 2].map((i) => (
                 <div key={i} className="h-14 bg-gray-100 rounded animate-pulse" />
               ))}
+            </div>
+          )}
+
+          {/* Load failure (expired session, DB error). Without this the error
+              lives inside the `detail &&` block below and can never render —
+              a failed thread load would be a silent blank pane. */}
+          {selected && !detailLoading && !detail && (
+            <div className="p-8">
+              <p className="text-[13px] text-red-600">
+                {actionError || "Could not load this conversation."}
+              </p>
+              <button
+                onClick={() => loadDetail(selected)}
+                className="mt-2 text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Try again
+              </button>
             </div>
           )}
 

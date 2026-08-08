@@ -149,6 +149,7 @@ export default function ProviderBoostPage() {
   const hasTrackedView = useRef(false);
   const hasTrackedPitch = useRef(false);
   const hasTrackedResults = useRef(false);
+  const hasTrackedPlans = useRef(false);
   useEffect(() => {
     if (!state || !assignedVariant) return;
     if (isManagedAdsPreviewMode()) return;
@@ -176,6 +177,22 @@ export default function ProviderBoostPage() {
         leads: state.campaignStats?.leads ?? 0,
         questions: state.campaignStats?.questions.received ?? 0,
         reported_clients: state.receipt?.outcomes.client ?? 0,
+        managed_ads_variant: assignedVariant,
+      });
+    }
+    const planChoiceVisible = !!(
+      state.request &&
+      (state.request.plan_status == null || state.request.plan_status === "canceled") &&
+      (viewState === "results" ||
+        (viewState === "in_motion" && state.request.status === "live"))
+    );
+    if (planChoiceVisible && state.request && !hasTrackedPlans.current) {
+      hasTrackedPlans.current = true;
+      trackProviderEvent(state.provider.slug, "managed_ads_plans_viewed", {
+        provider_name: state.provider.displayName,
+        request_id: state.request.id,
+        source: viewState === "results" ? "wrapup" : "live_campaign",
+        result_kind: (state.campaignStats?.leads ?? 0) > 0 ? "inquiries" : "engagement_only",
         managed_ads_variant: assignedVariant,
       });
     }
@@ -251,8 +268,8 @@ export default function ProviderBoostPage() {
     }
   };
 
-  // The wrap-up payment moment: POST the chosen plan, redirect to Stripe
-  // Checkout. The only payment ask in the system (plan of record 2026-07-06).
+  // POST the chosen plan from a live campaign or results moment, then redirect
+  // to Stripe Checkout.
   const startCheckout = async (planValue: number) => {
     setCheckoutSubmitting(true);
     setCheckoutError(null);
@@ -418,7 +435,7 @@ export default function ProviderBoostPage() {
     );
   }
 
-  // The wrap-up moment — the intro finished its job; ask (or honestly don't).
+  // The featured wrap-up moment—the intro finished its job and results lead.
   if (wrapupRequest) {
     return (
       <Shell>
@@ -771,8 +788,9 @@ const APPLY_STEP_NAMES = ["timing", "first_campaign", "confirm"] as const;
  *
  * There is no plan decision in this flow (2026-07-10): every request starts as
  * the free intro campaign, so the middle step de-risks and shows the payoff
- * instead of asking for a budget. Paid tiers appear only as a quiet preview —
- * the wrap-up moment is the only payment ask (plan of record 2026-07-06). Order
+ * instead of asking for a budget. Paid tiers are previewed here, become
+ * actionable once the intro is live, and remain featured in the results
+ * wrap-up. Order
  * within the step matters: reassurance (trust strip) before any price is seen.
  * Clean white ground + one elevated summary card + teal as the single accent —
  * a focused transaction, not an editorial pitch. On mobile the columns stack.

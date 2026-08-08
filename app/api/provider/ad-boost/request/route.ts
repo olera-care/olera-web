@@ -159,7 +159,8 @@ export async function GET() {
   // The wrap-up payment moment (Phase 2) arms on a VALUE EVENT, never a
   // calendar: the intro delivered its 3rd inquiry, or the concierge marked the
   // promo complete (promo_complete_email_sent_at). Only for campaigns that ran
-  // and have no plan yet — the only payment ask in the system.
+  // and have no plan yet. Live campaigns also expose the same plan chooser;
+  // this flag controls the featured results-led payment moment.
   // Never re-arm for an active plan OR a past_due one — past_due means Stripe
   // is dunning the existing subscription; showing the ask again would let the
   // provider create a second subscription on top of it.

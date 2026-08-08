@@ -28,8 +28,9 @@
  *  - The apply flow does NOT ask the provider to pick a paid tier (2026-07-10:
  *    every real request chose the free/cheapest stop, so the pick was pure
  *    friction). Every request starts as the free intro; paid tiers appear on
- *    the apply step only as a quiet non-interactive preview. The wrap-up moment
- *    (results in hand) is the only payment ask.
+ *    the apply step only as a non-interactive preview. Once the campaign is
+ *    live, providers can choose a plan directly; the results wrap-up repeats
+ *    that choice with the completed receipt in hand.
  *
  * The honesty model: as the budget rises, the estimate shifts from REACH framing
  * ($50 = "You're live", NO number) to a LEAD range. The provider feels "more
@@ -44,9 +45,9 @@ export type BudgetStop = {
   value: number;
   /** Tier name — the outcome ladder (First campaign / Starter / Growth / Scale). */
   name: string;
-  /** Full label for the summary / review / facts rows, e.g. "Starter · $150/mo". */
+  /** Full label for the summary / review / facts rows, e.g. "Starter · $75/mo". */
   label: string;
-  /** Big amount on the card (e.g. "$150") — kept short so it never clips. */
+  /** Big amount on the card (e.g. "$75") — kept short so it never clips. */
   amount: string;
   /** Small descriptor beside the amount (e.g. "/mo", "on us"). */
   sublabel: string;
@@ -68,7 +69,7 @@ export type BudgetStop = {
 export const STEADY_LEADS_THRESHOLD = 600;
 
 /** Sensible default so the budget step opens with its payoff already visible. */
-export const DEFAULT_BUDGET = 150;
+export const DEFAULT_BUDGET = 75;
 
 export const BUDGET_STOPS: BudgetStop[] = [
   {
@@ -83,16 +84,16 @@ export const BUDGET_STOPS: BudgetStop[] = [
     estimate: "Local families start seeing your page.",
   },
   {
-    value: 150,
+    value: 75,
     name: "Starter",
-    label: "Starter · $150/mo",
-    amount: "$150",
+    label: "Starter · $75/mo",
+    amount: "$75",
     sublabel: "/mo",
     kind: "leads",
-    headline: "1–2",
+    headline: "0–1",
     unit: "inquiries / mo",
-    blurb: "Keep the ads running and learn what families respond to.",
-    estimate: "Enough to learn what families respond to.",
+    blurb: "A low-risk way to keep the campaign learning after your intro.",
+    estimate: "A low-risk way to keep learning what families respond to.",
   },
   {
     value: 300,

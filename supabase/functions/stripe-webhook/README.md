@@ -1,7 +1,8 @@
 # Stripe Webhook — Supabase Edge Function
 
-Receives Stripe webhook events and updates `business_profiles.metadata` to
-activate/deactivate MedJobs Pro subscriptions.
+Receives Stripe webhook events for MedJobs Pro and Ad Boost. It updates
+`business_profiles.metadata` for MedJobs and the corresponding
+`ad_campaign_requests` row for Ad Boost.
 
 ## Why this exists (not on Vercel)
 
@@ -18,12 +19,15 @@ The Vercel route is retained as documented backup in the repo (see
 
 ## What this function does
 
-**Scope is narrow by design**: only the MedJobs Pro subscription flow.
+**Scope is narrow by design**: MedJobs Pro and Ad Boost subscription lifecycle
+only. Generic portal memberships remain out of scope.
 
 | Stripe event | Action |
 | --- | --- |
 | `checkout.session.completed` (with `metadata.product === "medjobs"`) | Sets `business_profiles.metadata.medjobs_subscription_active = true`, stores subscription and customer IDs |
-| `customer.subscription.deleted` | Finds profiles by `medjobs_stripe_customer_id`, sets `medjobs_subscription_active = false` |
+| `checkout.session.completed` (with `metadata.product === "adboost"`) | Activates the campaign plan, stores the selected value and Stripe IDs, records `managed_ads_subscribed`, and sends the conversion alert |
+| `customer.subscription.updated` (Ad Boost metadata) | Synchronizes `active`, `past_due`, or `canceled` onto the campaign request |
+| `customer.subscription.deleted` | Cancels Ad Boost by subscription ID, or deactivates MedJobs by customer ID |
 | Any other event type | Acknowledged with 200 and logged; no DB changes |
 
 Generic portal memberships (`memberships` table) are intentionally NOT handled
@@ -55,15 +59,15 @@ by this function. That paywall is not in MVP scope.
 Supabase auto-injects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` into
 Edge Functions — do NOT set these manually.
 
-Set Stripe secrets:
+Set the Stripe API key first:
 
 ```bash
 supabase secrets set STRIPE_SECRET_KEY=sk_live_...
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 - `STRIPE_SECRET_KEY`: from Stripe Dashboard → Developers → API keys (live mode)
-- `STRIPE_WEBHOOK_SECRET`: from the webhook endpoint page (set after Stripe registration below)
+- `STRIPE_WEBHOOK_SECRET`: comes from the webhook endpoint page, so set it
+  after registering the function URL in Stripe below.
 
 Verify the secrets are set:
 ```bash
@@ -90,8 +94,9 @@ Copy this URL.
 2. URL: paste the Supabase function URL from the deploy step
 3. Events to send (click "Select events"):
    - `checkout.session.completed`
+   - `customer.subscription.updated`
    - `customer.subscription.deleted`
-   - (Optional extra coverage — ignored currently but harmless if subscribed: `customer.subscription.updated`, `invoice.payment_failed`)
+   - Optional diagnostic coverage: `invoice.payment_failed` (acknowledged but not currently processed)
 4. Click **Add endpoint**.
 5. On the endpoint detail page, reveal the **Signing secret** (`whsec_...`).
 6. Set it in Supabase:
@@ -131,7 +136,33 @@ You should see:
 ```
 ("Ignoring" is correct — Stripe's stock test events don't have `metadata.product = "medjobs"`.)
 
-### Checkpoint 3: Real $1 medjobs payment
+### Checkpoint 3: Controlled Ad Boost checkout
+
+Use a designated test provider and test-mode Stripe configuration when
+available. Complete a $75 Starter checkout from `/provider/boost`, then query:
+
+```sql
+select
+  id,
+  plan_status,
+  plan_value,
+  stripe_subscription_id,
+  stripe_customer_id,
+  subscribed_at
+from ad_campaign_requests
+where id = '<the request_id used at checkout>';
+```
+
+Expected: `plan_status = 'active'`, `plan_value = 75`, and the Stripe IDs and
+`subscribed_at` are populated. `provider_activity` should also contain a
+`managed_ads_subscribed` event with the same `request_id`.
+
+Supabase logs should contain:
+```
+[stripe-webhook] Ad Boost plan activated for request <id> ($75/mo, sub=sub_...)
+```
+
+### Checkpoint 4: MedJobs payment
 
 Go through your normal provider upgrade flow in live mode, pay with a real card ($1), observe redirect back to your site.
 
@@ -153,14 +184,24 @@ Also in Supabase Logs:
 [stripe-webhook] Activated medjobs subscription for profile <id> (sub=sub_...)
 ```
 
-### Checkpoint 4: Cancellation test (optional)
+### Checkpoint 5: Cancellation test (optional)
 
-Stripe Dashboard → Customers → cancel the subscription from Checkpoint 3.
-Supabase Logs should show:
+Stripe Dashboard → Customers → cancel the Ad Boost subscription from
+Checkpoint 3. Supabase Logs should show:
+
+```
+[stripe-webhook] Ad Boost sub <id> -> plan_status=canceled
+```
+
+The corresponding `ad_campaign_requests.plan_status` should become
+`canceled`.
+
+For a MedJobs cancellation, logs should instead show:
 ```
 [stripe-webhook] Deactivated medjobs subscription for profile <id>
 ```
-And `active` in DB flips back to `"false"`.
+and `business_profiles.metadata.medjobs_subscription_active` flips to
+`"false"`.
 
 ## Cutover from the old Vercel endpoint
 

@@ -28,15 +28,18 @@ import {
 export function CampaignFacts({ request }: { request: BoostRequest }) {
   const channelLabel = BOOST_CHANNELS.find((c) => c.value === request.channel)?.label ?? null;
   // An active paid plan supersedes the (non-binding) signup intent.
+  const hasPaidPlan =
+    (request.plan_status === "active" || request.plan_status === "past_due") &&
+    request.plan_value != null;
   const budget =
-    request.plan_status === "active" && request.plan_value != null
+    hasPaidPlan
       ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`)
       : budgetLabel(request.intended_monthly_budget);
   const facts: { label: string; value: string }[] = [
     { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
-  if (budget) facts.push({ label: "Plan", value: budget });
+  if (budget) facts.push({ label: hasPaidPlan ? "Paid plan" : "Campaign budget", value: budget });
   // Flight time context — the "day N of M" that makes a live campaign feel
   // like a running clock instead of a static state. Only when the end date
   // has been entered from the ad platform.
@@ -442,7 +445,7 @@ export function PlanChooser({
  * The wrap-up moment — the FEATURED payment ask. Arms on a value event (3rd
  * lead, or concierge marked the promo complete). Leads with the provider's
  * own numbers, then one calm plan choice -> Stripe Checkout. The live view
- * carries a quieter always-available PlanChooser behind a disclosure.
+ * carries the same always-visible PlanChooser once the campaign is running.
  */
 export function WrapUpMoment({
   request,
@@ -644,6 +647,7 @@ export function CampaignInMotion({
     live: "Your campaign is live",
   };
   const isLive = request.status === "live";
+  const canChoosePlan = request.plan_status == null || request.plan_status === "canceled";
   const photoUpdateRequested =
     !isLive && request.photo_readiness_status === "update_requested";
   const photoReviewRequested =
@@ -725,7 +729,7 @@ export function CampaignInMotion({
       {/* The early plan choice uses the same visible cards as the wrap-up.
           Providers should not have to discover that a section-heading-looking
           line is clickable, especially after they have already seen value. */}
-      {isLive && !request.plan_status && (
+      {isLive && canChoosePlan && (
         <div className="mt-10 border-t border-gray-100 pt-8">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
             Keep it going

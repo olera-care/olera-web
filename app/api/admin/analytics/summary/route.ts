@@ -207,6 +207,8 @@ type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 //   viewed     → managed_ads_boost_viewed in apply/gate state
 //   requested  → managed_ads_requested
 //   results_viewed   → managed_ads_results_viewed
+//   plans_viewed     → managed_ads_plans_viewed
+//   plan_selected    → managed_ads_plan_selected
 //   checkout_started → managed_ads_checkout_started
 //   subscribed       → managed_ads_subscribed (Stripe webhook)
 type ManagedAdsFunnel = {
@@ -215,6 +217,8 @@ type ManagedAdsFunnel = {
   viewed: number;
   requested: number;
   results_viewed: number;
+  plans_viewed: number;
+  plan_selected: number;
   not_now: number;
   checkout_started: number;
   checkout_created: number;
@@ -357,6 +361,8 @@ const EMPTY_MANAGED_ADS_FUNNEL = (): ManagedAdsFunnel => ({
   viewed: 0,
   requested: 0,
   results_viewed: 0,
+  plans_viewed: 0,
+  plan_selected: 0,
   not_now: 0,
   checkout_started: 0,
   checkout_created: 0,
@@ -610,6 +616,8 @@ async function fetchWindow(
       "managed_ads_boost_viewed",
       "managed_ads_requested",
       "managed_ads_results_viewed",
+      "managed_ads_plans_viewed",
+      "managed_ads_plan_selected",
       "managed_ads_not_now",
       "managed_ads_checkout_started",
       "managed_ads_checkout_created",
@@ -1347,6 +1355,8 @@ async function fetchWindow(
     viewed: new Set(),
     requested: new Set(),
     results_viewed: new Set(),
+    plans_viewed: new Set(),
+    plan_selected: new Set(),
     not_now: new Set(),
     checkout_started: new Set(),
     checkout_created: new Set(),
@@ -1382,6 +1392,8 @@ async function fetchWindow(
     ) stage = "viewed";
     else if (r.event_type === "managed_ads_requested") stage = "requested";
     else if (r.event_type === "managed_ads_results_viewed") stage = "results_viewed";
+    else if (r.event_type === "managed_ads_plans_viewed") stage = "plans_viewed";
+    else if (r.event_type === "managed_ads_plan_selected") stage = "plan_selected";
     else if (r.event_type === "managed_ads_not_now") stage = "not_now";
     else if (r.event_type === "managed_ads_checkout_started") stage = "checkout_started";
     else if (r.event_type === "managed_ads_checkout_created") stage = "checkout_created";
@@ -1399,6 +1411,8 @@ async function fetchWindow(
     viewed: managedAdsStageSets.viewed.size,
     requested: managedAdsStageSets.requested.size,
     results_viewed: managedAdsStageSets.results_viewed.size,
+    plans_viewed: managedAdsStageSets.plans_viewed.size,
+    plan_selected: managedAdsStageSets.plan_selected.size,
     not_now: managedAdsStageSets.not_now.size,
     checkout_started: managedAdsStageSets.checkout_started.size,
     checkout_created: managedAdsStageSets.checkout_created.size,
@@ -1411,6 +1425,8 @@ async function fetchWindow(
     viewed: managedAdsByVariantSets[b].viewed.size,
     requested: managedAdsByVariantSets[b].requested.size,
     results_viewed: managedAdsByVariantSets[b].results_viewed.size,
+    plans_viewed: managedAdsByVariantSets[b].plans_viewed.size,
+    plan_selected: managedAdsByVariantSets[b].plan_selected.size,
     not_now: managedAdsByVariantSets[b].not_now.size,
     checkout_started: managedAdsByVariantSets[b].checkout_started.size,
     checkout_created: managedAdsByVariantSets[b].checkout_created.size,

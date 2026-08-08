@@ -5,6 +5,8 @@
  * Design: clean, minimal, system font stack. Matches Olera brand colors.
  */
 
+import { DEFAULT_BUDGET } from "@/lib/ad-boost/estimate";
+
 const BRAND_COLOR = "#198087";
 const FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -624,9 +626,7 @@ export function adBoostPromoCompleteEmail(opts: {
       : "";
   const budgetLine = !gotLeads
     ? `${showedInterest ? "This intro showed interest, but it did not run at enough volume" : "This intro did not produce enough measurable activity"} to produce an Olera inquiry. A monthly plan gives the campaign more room to work&mdash;and if a full paid month produces zero inquiries, that month is credited or refunded.`
-    : opts.intendedMonthlyBudget
-      ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
-      : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
+    : `When you&rsquo;re ready, paid plans now start at $${DEFAULT_BUDGET}/month. You can choose from your results and adjust as the campaign learns.`;
 
   return layout(
     `

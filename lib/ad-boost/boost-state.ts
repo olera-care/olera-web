@@ -36,7 +36,7 @@ export interface BoostRequest {
   created_at: string;
   /** Paid plan lifecycle from Stripe. NULL = never subscribed (intro-only). */
   plan_status: "active" | "past_due" | "canceled" | null;
-  /** Subscribed monthly plan in whole USD (150/300/600). NULL until checkout. */
+  /** Subscribed monthly plan in whole USD (75/300/600). NULL until checkout. */
   plan_value: number | null;
   /** Idempotency marker for the promo-complete email; doubles as the concierge
    *  "intro is wrapped" signal that arms the wrap-up ask. */
@@ -86,7 +86,7 @@ export interface BoostStateResponse {
     questions: { received: number; unanswered: number };
     since: string;
   } | null;
-  /** True when the post-intro wrap-up (the only payment ask) should show:
+  /** True when the featured post-intro results/payment moment should show:
    *  campaign ran (live/ended), no active plan, and the value event fired
    *  (3rd lead or concierge marked the promo complete). Server-computed. */
   wrapupReady: boolean;

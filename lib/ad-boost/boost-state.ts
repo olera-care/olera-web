@@ -41,6 +41,9 @@ export interface BoostRequest {
   /** Idempotency marker for the promo-complete email; doubles as the concierge
    *  "intro is wrapped" signal that arms the wrap-up ask. */
   promo_complete_email_sent_at: string | null;
+  /** Whole-flight outcome reported from the zero-lead wrap-up email when a
+   * family contacted the provider outside Olera's attributed lead path. */
+  provider_reported_outcome?: "client" | "talking" | "no" | null;
   /** Last serving day of the ad flight (admin-entered from the ad platform).
    *  Powers the live view's "Day N of M" time context. Null = not entered. */
   flight_end_date?: string | null;

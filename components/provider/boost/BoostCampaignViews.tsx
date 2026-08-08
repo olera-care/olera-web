@@ -293,11 +293,38 @@ export function PlanActive({
 }
 
 /**
- * The wrap-up moment — the ONLY payment ask in the system. Arms on a value
- * event (3rd lead, or concierge marked the promo complete). Leads with the
- * provider's own numbers, then one calm plan choice -> Stripe Checkout.
- * Zero leads = the honest no-ask path: we re-run on us, nothing to pay.
+ * Terminal intro state before the featured results/payment moment is armed.
+ * Auto-end and the buffered wrap-up email are deliberately separate; this
+ * view closes that interval without falling back to the free application.
  */
+export function CampaignWrapUpPending({ request }: { request: BoostRequest }) {
+  const cancelled = request.status === "cancelled";
+  return (
+    <div className="max-w-2xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
+        {cancelled ? "Campaign closed" : "Campaign complete"}
+      </p>
+      <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
+        {cancelled ? "Your campaign is no longer running." : "Your results are being finalized."}
+      </h2>
+      <p className="mt-3 max-w-lg text-gray-500 leading-relaxed">
+        {cancelled
+          ? "Your introductory campaign remains on your account. Reply to any campaign email if you want help choosing a paid plan to restart it."
+          : "We’re checking the final campaign numbers now. We’ll email you as soon as your results and next-step options are ready here."}
+      </p>
+      <Link
+        href="/provider"
+        className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"
+      >
+        Back to dashboard
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
+      </Link>
+    </div>
+  );
+}
+
 /**
  * The plan cards + de-risk promises + checkout CTA, extracted so the wrap-up
  * moment and the live view's early-upgrade path stay one implementation.
@@ -306,11 +333,13 @@ export function PlanActive({
 export function PlanChooser({
   request,
   onCheckout,
+  onPlanSelected,
   submitting,
   error,
 }: {
   request: BoostRequest;
   onCheckout: (planValue: number) => void;
+  onPlanSelected?: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
 }) {
@@ -337,7 +366,10 @@ export function PlanChooser({
                 key={b.value}
                 type="button"
                 aria-pressed={active}
-                onClick={() => setPlan(b.value)}
+                onClick={() => {
+                  setPlan(b.value);
+                  onPlanSelected?.(b.value);
+                }}
                 className={`w-full rounded-2xl border px-5 py-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                   active
                     ? "border-primary-500 bg-primary-50/70"
@@ -417,6 +449,8 @@ export function WrapUpMoment({
   campaignStats,
   receipt,
   onCheckout,
+  onPlanSelected,
+  onNotNow,
   submitting,
   error,
 }: {
@@ -429,16 +463,25 @@ export function WrapUpMoment({
   } | null;
   receipt?: CampaignReceiptData | null;
   onCheckout: (planValue: number) => void;
+  onPlanSelected?: (planValue: number) => void;
+  onNotNow?: () => void;
   submitting: boolean;
   error: string | null;
 }) {
   const leads = campaignStats?.leads ?? 0;
   const planSection = (
     <>
-      <PlanChooser request={request} onCheckout={onCheckout} submitting={submitting} error={error} />
+      <PlanChooser
+        request={request}
+        onCheckout={onCheckout}
+        onPlanSelected={onPlanSelected}
+        submitting={submitting}
+        error={error}
+      />
       <div className="mt-10">
         <Link
           href="/provider"
+          onClick={onNotNow}
           className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
         >
           Not now, back to dashboard
@@ -448,10 +491,16 @@ export function WrapUpMoment({
   );
 
   // Zero leads = the demand-receipt path. No fake celebration; instead the
-  // itemized proof the ad worked (reach, clicks, saves) + the volume math, the
-  // re-run promise, and the plans as a volume choice, not a victory lap.
+  // itemized proof the ad worked (reach, clicks, saves) + the volume math and
+  // the plans as a volume choice, not a victory lap or a false celebration.
   if (leads === 0) {
     const impressions = receipt?.google.impressions;
+    const showedInterest =
+      (impressions ?? 0) > 0 ||
+      (receipt?.google.clicks ?? 0) > 0 ||
+      (receipt?.engagement.visitors ?? 0) > 0 ||
+      (receipt?.engagement.saves ?? 0) > 0 ||
+      (receipt?.engagement.questionsReceived ?? 0) > 0;
     return (
       <div className="max-w-2xl">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
@@ -471,9 +520,11 @@ export function WrapUpMoment({
         {receipt && <ReceiptMathLine receipt={receipt} />}
 
         <p className="text-gray-500 mt-6 leading-relaxed max-w-lg">
-          We&apos;ll tune your page and run another window on us. Nothing to
-          pay. If you&apos;d rather not wait, a monthly plan runs the same
-          campaign at several times the volume.
+          {showedInterest
+            ? "This intro showed interest, but it did not run at enough volume to produce an Olera inquiry. "
+            : "This intro did not produce enough measurable activity to generate an Olera inquiry. "}
+          A monthly plan gives the campaign more room to work—and if a full paid
+          month produces zero inquiries, that month is credited or refunded.
         </p>
 
         <p className="mt-10 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
@@ -571,6 +622,8 @@ export function CampaignInMotion({
   submitting,
   error,
   onEditPhotos,
+  onPlanSelected,
+  onPlanDismissed,
 }: {
   request: BoostRequest;
   campaignStats: {
@@ -584,6 +637,8 @@ export function CampaignInMotion({
   submitting: boolean;
   error: string | null;
   onEditPhotos?: () => void;
+  onPlanSelected?: (planValue: number) => void;
+  onPlanDismissed?: () => void;
 }) {
   const [showPlans, setShowPlans] = useState(false);
   const label: Record<string, string> = {
@@ -696,12 +751,16 @@ export function CampaignInMotion({
               <PlanChooser
                 request={request}
                 onCheckout={onCheckout}
+                onPlanSelected={onPlanSelected}
                 submitting={submitting}
                 error={error}
               />
               <button
                 type="button"
-                onClick={() => setShowPlans(false)}
+                onClick={() => {
+                  setShowPlans(false);
+                  onPlanDismissed?.();
+                }}
                 className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
               >
                 Maybe later

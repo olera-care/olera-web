@@ -88,7 +88,6 @@ export const BUDGET_STOPS: BudgetStop[] = [
     label: "Starter · $150/mo",
     amount: "$150",
     sublabel: "/mo",
-    chip: "Most chosen",
     kind: "leads",
     headline: "1–2",
     unit: "inquiries / mo",

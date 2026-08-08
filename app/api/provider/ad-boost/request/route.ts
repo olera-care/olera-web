@@ -25,14 +25,12 @@ import { BUDGET_VALUES } from "@/lib/ad-boost/estimate";
 // yet-actionable and is handled separately (it can still block a duplicate and
 // it auto-promotes when the provider crosses the completeness threshold).
 const OPEN_STATUSES = ["requested", "scheduled", "live"];
-// Anything that should stop a provider from queueing a *second* campaign.
-const ACTIVE_OR_PENDING = ["pending_profile", "requested", "scheduled", "live"];
 const VALID_CHANNELS = ["google", "meta", "both"];
 const DEMAND_WINDOW_DAYS = 7;
 // The intro's value event: the wrap-up ask arms at this many delivered leads.
 const WRAPUP_LEADS_THRESHOLD = 3;
 const REQUEST_RETURN_SELECT =
-  "id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents, photo_readiness_status, photo_update_requested_at, photo_update_submitted_at";
+  "id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents, provider_reported_outcome, photo_readiness_status, photo_update_requested_at, photo_update_submitted_at";
 
 export async function GET() {
   const elig = await loadAdBoostEligibility();
@@ -149,6 +147,7 @@ export async function GET() {
         ad_impressions: latest.ad_impressions ?? null,
         ad_clicks: latest.ad_clicks ?? null,
         ad_spend_cents: latest.ad_spend_cents ?? null,
+        provider_reported_outcome: latest.provider_reported_outcome ?? null,
       }),
     ]);
     campaignStats = { ...stats, questions, since };
@@ -266,19 +265,40 @@ export async function POST(request: NextRequest) {
 
   const db = getServiceClient();
 
-  // ── Block a duplicate campaign (active OR already queued under-profile) ──
-  const { data: existing } = await db
+  // ── Enforce the one-time introductory campaign ──────────────────────────
+  // The offer and terms promise one free intro per provider. Checking only
+  // active statuses created a race after auto-end: until the buffered wrap-up
+  // email was sent, the page fell back to Apply and POST accepted another $50
+  // request. Any prior intro row now blocks at the API boundary too,
+  // so a stale client or direct request cannot mint a second free flight.
+  // A cancelled request is reopened by the concierge when appropriate rather
+  // than minting another intro row. Hard-deleted test records are absent, while
+  // archived real records still correctly count as the provider's one intro.
+  const { data: previousRequests, error: historyError } = await db
     .from("ad_campaign_requests")
     .select(REQUEST_RETURN_SELECT)
     .eq("provider_id", elig.profileId)
-    .in("status", ACTIVE_OR_PENDING)
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  if (historyError) {
+    console.error("[ad-boost/request] intro history lookup failed:", historyError);
+    return NextResponse.json({ error: "Could not verify campaign history" }, { status: 500 });
+  }
+
+  const existing = previousRequests?.[0] ?? null;
 
   if (existing) {
+    const inProgress =
+      existing.status === "pending_profile" || OPEN_STATUSES.includes(existing.status);
     return NextResponse.json(
-      { error: "You already have an active campaign request", request: existing },
+      {
+        error: inProgress
+          ? "You already have an active campaign request"
+          : "Your free introductory campaign has already been used. Choose a plan from your campaign results to continue.",
+        request: existing,
+        introUsed: !inProgress,
+      },
       { status: 409 },
     );
   }

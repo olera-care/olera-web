@@ -208,6 +208,12 @@ interface ManagedAdsFunnel {
   clicked: number;
   viewed: number;
   requested: number;
+  results_viewed: number;
+  not_now: number;
+  checkout_started: number;
+  checkout_created: number;
+  checkout_failed: number;
+  subscribed: number;
 }
 
 type ManagedAdsVariantKeyWithUnassigned = ManagedAdsVariant | "unassigned";
@@ -2857,11 +2863,11 @@ function ManagedAdsVariantsCard({
       tooltip: "Distinct providers who clicked toward the managed-ads launch plan.",
     },
     {
-      label: "Viewed Plan",
+      label: "Viewed Offer",
       value: f.viewed,
       prior: pf?.viewed ?? null,
       prev: f.clicked,
-      tooltip: "Distinct providers who landed on /provider/boost.",
+      tooltip: "Distinct providers who landed on the /provider/boost application or eligibility gate.",
     },
     {
       label: "Requested",
@@ -2870,15 +2876,57 @@ function ManagedAdsVariantsCard({
       prev: f.viewed,
       tooltip: "Distinct providers who submitted a managed-ads request.",
     },
+    {
+      label: "Viewed Results",
+      value: f.results_viewed,
+      prior: pf?.results_viewed ?? null,
+      prev: f.requested,
+      tooltip: "Distinct providers who saw their completed campaign receipt and paid plan choice.",
+    },
+    {
+      label: "Not Now",
+      value: f.not_now,
+      prior: pf?.not_now ?? null,
+      prev: null,
+      tooltip: "Distinct providers who explicitly left or dismissed a paid plan choice.",
+    },
+    {
+      label: "Started Checkout",
+      value: f.checkout_started,
+      prior: pf?.checkout_started ?? null,
+      prev: f.results_viewed,
+      tooltip: "Distinct providers who clicked Continue with a paid Ad Boost plan.",
+    },
+    {
+      label: "Checkout Ready",
+      value: f.checkout_created,
+      prior: pf?.checkout_created ?? null,
+      prev: f.checkout_started,
+      tooltip: "Distinct providers for whom Stripe returned a Checkout session URL.",
+    },
+    {
+      label: "Subscribed",
+      value: f.subscribed,
+      prior: pf?.subscribed ?? null,
+      prev: f.checkout_created,
+      tooltip: "Distinct providers activated by the authoritative Stripe webhook.",
+    },
+    {
+      label: "Checkout Failed",
+      value: f.checkout_failed,
+      prior: pf?.checkout_failed ?? null,
+      prev: null,
+      tooltip: "Distinct providers whose Checkout session failed before redirecting to Stripe.",
+    },
   ];
 
   return (
     <>
       <p className="text-xs text-gray-500 mb-5">
-        Managed Ads A/B testing funnel {rangeLabel(range).toLowerCase()} — distinct providers per stage. Shown = pitch rendered; Clicked = launch-plan CTA clicked; Viewed Plan = /provider/boost viewed; Requested = campaign request submitted.
+        Managed Ads funnel {rangeLabel(range).toLowerCase()} — distinct providers per stage, from pitch through Stripe activation. The stages are measured in the selected window, not forced into a same-cohort sequence.
       </p>
 
-      <div className="grid grid-cols-4 gap-x-5 gap-y-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4 mb-6">
         {stages.map((s) => (
           <FunnelStat key={s.label} {...s} />
         ))}

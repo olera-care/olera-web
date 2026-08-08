@@ -118,11 +118,8 @@ export async function POST() {
 
     const stats = statsResult.data;
     if (stats) {
-      // SmartLead API may return "contacted" or "sent" - try both
-      const sentCount = stats.contacted ?? (stats as Record<string, unknown>).sent ?? 0;
-
       result.stats = {
-        sent: typeof sentCount === "number" ? sentCount : 0,
+        sent: stats.contacted ?? 0,
         opened: stats.opened ?? 0,
         clicked: stats.clicked ?? 0,
         open_rate: stats.open_rate ?? 0,
@@ -222,21 +219,19 @@ export async function GET() {
     const statsResult = await getCampaignStatistics(campaignId);
     if (statsResult.ok && statsResult.data) {
       const stats = statsResult.data;
-      // SmartLead API may return "contacted" or "sent" - try both
-      const sentCount = stats.contacted ?? (stats as Record<string, unknown>).sent ?? 0;
       campaignPreviews.push({
         campaign_id: campaignId,
         campaign_name: info.name,
         providers_in_db: info.provider_count,
         smartlead_stats: {
-          sent: typeof sentCount === "number" ? sentCount : 0,
+          total_leads: stats.total_leads ?? 0,
+          sent: stats.contacted ?? 0,
           opened: stats.opened ?? 0,
           clicked: stats.clicked ?? 0,
+          bounced: stats.bounced ?? 0,
           open_rate: stats.open_rate ?? 0,
           click_rate: stats.click_rate ?? 0,
         },
-        // Include raw response for debugging field names
-        raw_api_response: stats,
       });
     } else {
       campaignPreviews.push({

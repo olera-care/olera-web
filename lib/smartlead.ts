@@ -726,15 +726,95 @@ export interface SmartleadCampaignStats {
 }
 
 /**
- * Get campaign-level statistics (sent, opened, clicked, etc.) from SmartLead.
- * Used for backfilling historical data and dashboard displays.
+ * Raw lead statistics from SmartLead's /statistics endpoint.
+ * Each lead has engagement data that we aggregate.
+ */
+export interface SmartleadLeadStats {
+  lead_email?: string;
+  open_count?: number;
+  click_count?: number;
+  is_bounced?: boolean;
+  is_unsubscribed?: boolean;
+  sent_time?: string;
+  sequence_number?: number;
+}
+
+/**
+ * Get per-lead statistics for a campaign from SmartLead.
+ * Returns raw lead data with open_count, click_count per lead.
+ * We aggregate these to get campaign-level stats.
+ */
+export async function getCampaignLeadStatistics(
+  campaignId: number
+): Promise<SmartleadResult<SmartleadLeadStats[]>> {
+  const raw = await smartleadRequest<unknown>(
+    "GET",
+    `/campaigns/${campaignId}/statistics`
+  );
+
+  if (!raw.ok) return { ok: false, error: raw.error, status: raw.status };
+
+  // SmartLead returns { data: [...], limit, offset, total_stats }
+  const response = raw.data as { data?: unknown[] } | null;
+  const leads = response?.data ?? [];
+
+  const stats: SmartleadLeadStats[] = leads.map((item) => {
+    const o = (item ?? {}) as Record<string, unknown>;
+    return {
+      lead_email: typeof o.lead_email === "string" ? o.lead_email : undefined,
+      open_count: typeof o.open_count === "number" ? o.open_count : 0,
+      click_count: typeof o.click_count === "number" ? o.click_count : 0,
+      is_bounced: o.is_bounced === true,
+      is_unsubscribed: o.is_unsubscribed === true,
+      sent_time: typeof o.sent_time === "string" ? o.sent_time : undefined,
+      sequence_number: typeof o.sequence_number === "number" ? o.sequence_number : undefined,
+    };
+  });
+
+  return { ok: true, data: stats, status: raw.status };
+}
+
+/**
+ * Get aggregated campaign statistics by summing per-lead data.
  */
 export async function getCampaignStatistics(
   campaignId: number
 ): Promise<SmartleadResult<SmartleadCampaignStats>> {
-  return smartleadRequest<SmartleadCampaignStats>(
-    "GET",
-    `/campaigns/${campaignId}/statistics`
-  );
+  const leadsResult = await getCampaignLeadStatistics(campaignId);
+
+  if (!leadsResult.ok) {
+    return { ok: false, error: leadsResult.error, status: leadsResult.status };
+  }
+
+  const leads = leadsResult.data ?? [];
+
+  // Aggregate stats from per-lead data
+  let sent = 0;
+  let opened = 0;
+  let clicked = 0;
+  let bounced = 0;
+  let unsubscribed = 0;
+
+  for (const lead of leads) {
+    if (lead.sent_time) sent++;
+    if ((lead.open_count ?? 0) > 0) opened++;
+    if ((lead.click_count ?? 0) > 0) clicked++;
+    if (lead.is_bounced) bounced++;
+    if (lead.is_unsubscribed) unsubscribed++;
+  }
+
+  const stats: SmartleadCampaignStats = {
+    campaign_id: campaignId,
+    total_leads: leads.length,
+    contacted: sent,
+    opened,
+    clicked,
+    bounced,
+    unsubscribed,
+    open_rate: sent > 0 ? Math.round((opened / sent) * 1000) / 10 : 0,
+    click_rate: sent > 0 ? Math.round((clicked / sent) * 1000) / 10 : 0,
+  };
+
+  return { ok: true, data: stats, status: leadsResult.status };
 }
 

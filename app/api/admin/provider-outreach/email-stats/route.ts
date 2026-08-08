@@ -207,6 +207,10 @@ export async function GET(request: NextRequest) {
     // 3. Fetch LIVE data from SmartLead API for accurate per-template engagement
     // The touchpoints table is append-only (can't update engagement), so we fetch
     // directly from SmartLead API to get real open/click counts per sequence step.
+    //
+    // IMPORTANT: SmartLead's `sequence_number` field is unreliable (always returns 1).
+    // Instead, we infer which emails were sent based on `sent_time` (days elapsed).
+    // Cadence: Day 0 (step 1), Day 3 (step 2), Day 5 (step 3), Day 7 (step 4).
     if (isSmartleadConfigured()) {
       // Get all campaign IDs from tracking data
       const { data: trackingWithCampaigns } = await db
@@ -223,9 +227,8 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // Fetch per-lead stats from each campaign and aggregate by sequence_number
-        // IMPORTANT: We track sent/opened/clicked consistently using SmartLead data
-        // A lead with sequence_number=N has been sent emails for steps 1 through N
+        // Fetch per-lead stats from each campaign and aggregate by inferred step
+        // We infer which emails were sent based on days since sent_time
         const smartleadStats: Record<number, { sent: number; opened: number; clicked: number }> = {
           1: { sent: 0, opened: 0, clicked: 0 },
           2: { sent: 0, opened: 0, clicked: 0 },
@@ -233,27 +236,38 @@ export async function GET(request: NextRequest) {
           4: { sent: 0, opened: 0, clicked: 0 },
         };
 
+        const now = new Date();
+
         for (const campaignId of campaignIds) {
           const leadsResult = await getCampaignLeadStatistics(campaignId);
           if (leadsResult.ok && leadsResult.data) {
             for (const lead of leadsResult.data) {
-              const currentStep = lead.sequence_number && lead.sequence_number > 0 && lead.sequence_number <= 4
-                ? lead.sequence_number
-                : 1;
+              // Skip leads that haven't been sent any email
+              if (!lead.sent_time) continue;
 
-              // A lead on step N has been sent emails for steps 1 through N
-              // (SmartLead sequences are progressive)
-              for (let step = 1; step <= currentStep; step++) {
-                smartleadStats[step].sent++;
-              }
+              // Calculate days since first email was sent
+              const sentDate = new Date(lead.sent_time);
+              const daysSinceSent = Math.floor(
+                (now.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
+              );
 
-              // Attribute opens/clicks to current step (best approximation)
-              // SmartLead gives aggregate counts, we can't know which specific email was opened
+              // Determine which emails have been sent based on cadence
+              // Day 0 → step 1, Day 3 → step 2, Day 5 → step 3, Day 7 → step 4
+              // A lead gets an email on each cadence day that has passed
+              if (daysSinceSent >= 0) smartleadStats[1].sent++;
+              if (daysSinceSent >= 3) smartleadStats[2].sent++;
+              if (daysSinceSent >= 5) smartleadStats[3].sent++;
+              if (daysSinceSent >= 7) smartleadStats[4].sent++;
+
+              // For opens/clicks, attribute to the furthest step reached
+              // SmartLead gives aggregate counts, we can't know which specific email was engaged
+              const furthestStep = inferSequenceStep(daysSinceSent);
+
               if ((lead.open_count ?? 0) > 0) {
-                smartleadStats[currentStep].opened++;
+                smartleadStats[furthestStep].opened++;
               }
               if ((lead.click_count ?? 0) > 0) {
-                smartleadStats[currentStep].clicked++;
+                smartleadStats[furthestStep].clicked++;
               }
             }
           }

@@ -1576,6 +1576,11 @@ interface OutreachProvider {
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
   emails_sent?: number;
+  sequence_status?: {
+    last_email_at?: string;
+    failed_step?: number;
+    failed_reason?: string;
+  };
   // Engagement data (for needs_call stage) - powers intelligence recommendations
   engagement?: {
     emails_sent: number;
@@ -1642,6 +1647,33 @@ function timeAgo(isoDate: string | undefined | null): string {
   if (days < 7) return `${days}d ago`;
   if (days < 30) return `${Math.floor(days / 7)}w ago`;
   return `${Math.floor(days / 30)}mo ago`;
+}
+
+// Get sequence status sublabel for in_sequence providers (like care seekers pattern)
+function getSequenceSublabel(provider: OutreachProvider): { text: string; isFailed: boolean } {
+  const status = provider.sequence_status;
+
+  // If there's a failed task, show that prominently
+  if (status?.failed_step !== undefined) {
+    const dayLabel = status.failed_step === 0 ? "Intro" :
+                     status.failed_step === 3 ? "Day 3" :
+                     status.failed_step === 7 ? "Day 7" :
+                     status.failed_step === 14 ? "Day 14" :
+                     `Day ${status.failed_step}`;
+    return { text: `Failed · ${dayLabel}`, isFailed: true };
+  }
+
+  // If emails have been sent, show recency
+  if (status?.last_email_at) {
+    return { text: timeAgo(status.last_email_at), isFailed: false };
+  }
+
+  // No emails sent yet
+  if (provider.emails_sent === 0) {
+    return { text: "Pending", isFailed: false };
+  }
+
+  return { text: "—", isFailed: false };
 }
 
 function formatPhone(phone: string): string {
@@ -7333,25 +7365,40 @@ export default function ProviderOutreachPage() {
                             {provider.provider_name}
                           </Link>
                           <div className="flex items-center gap-2 shrink-0">
-                            {/* Stage badge */}
-                            <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
-                              provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
-                              provider.stage === "in_sequence" ? "bg-blue-100 text-blue-700" :
-                              provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
-                              provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
-                              provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
-                              "bg-gray-100 text-gray-600"
-                            }`}>
-                              {STAGE_LABELS[provider.stage]}
-                              {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
-                                <span className="ml-1 text-blue-500">
-                                  ({provider.emails_sent}/4)
-                                  {provider.cycle_number >= 2 && (
-                                    <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
-                                  )}
-                                </span>
-                              )}
-                            </span>
+                            {/* Stage badge with sequence status */}
+                            <div className="flex flex-col items-end">
+                              <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                                provider.stage === "claimed" ? "bg-emerald-100 text-emerald-700" :
+                                provider.stage === "in_sequence" ? (
+                                  provider.sequence_status?.failed_step !== undefined
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-blue-100 text-blue-700"
+                                ) :
+                                provider.stage === "needs_call" ? "bg-amber-100 text-amber-700" :
+                                provider.stage === "re_engage" ? "bg-blue-100 text-blue-700" :
+                                provider.stage === "archived" ? "bg-gray-100 text-gray-600" :
+                                "bg-gray-100 text-gray-600"
+                              }`}>
+                                {STAGE_LABELS[provider.stage]}
+                                {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
+                                  <span className={`ml-1 ${provider.sequence_status?.failed_step !== undefined ? "text-red-600" : "text-blue-500"}`}>
+                                    ({provider.emails_sent}/4)
+                                    {provider.cycle_number >= 2 && (
+                                      <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
+                                    )}
+                                  </span>
+                                )}
+                              </span>
+                              {/* Sequence sublabel (recency or failure) */}
+                              {provider.stage === "in_sequence" && (() => {
+                                const sublabel = getSequenceSublabel(provider);
+                                return (
+                                  <span className={`text-[10px] mt-0.5 ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                                    {sublabel.text}
+                                  </span>
+                                );
+                              })()}
+                            </div>
                             {/* Hover actions */}
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               {!["claimed"].includes(provider.stage) && (
@@ -7774,6 +7821,43 @@ export default function ProviderOutreachPage() {
                       <div>
                         <p className="font-medium text-gray-900">Unarchive</p>
                         <p className="text-xs text-gray-500">Restore to Not Contacted for outreach</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Retry sequence - only show for in_sequence providers with failed tasks */}
+                {actionModalProvider.stage === "in_sequence" && actionModalProvider.sequence_status?.failed_step !== undefined && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/retry-sequence", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ provider_id: actionModalProvider.provider_id }),
+                        });
+                        if (res.ok) {
+                          closeActionModal();
+                          fetchProviders();
+                        } else {
+                          const data = await res.json();
+                          alert(data.error || "Failed to retry sequence");
+                        }
+                      } catch {
+                        alert("Failed to retry sequence");
+                      }
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-blue-500 mt-0.5">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">Retry sequence</p>
+                        <p className="text-xs text-gray-500">Reset failed tasks and continue sending</p>
                       </div>
                     </div>
                   </button>

@@ -155,6 +155,11 @@ export interface OutreachProvider {
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
   emails_sent?: number;
+  sequence_status?: {
+    last_email_at?: string;  // When last email was sent (for recency display)
+    failed_step?: number;    // Cadence day that failed (0, 3, 7, 14)
+    failed_reason?: string;  // Why it failed
+  };
   // Engagement data (for needs_call stage) - powers intelligence recommendations
   engagement?: {
     emails_sent: number;
@@ -452,6 +457,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Sequence status map for in_sequence providers (last email, failed tasks)
+    let sequenceStatusMap = new Map<string, { last_email_at?: string; failed_step?: number; failed_reason?: string }>();
+
     if (stage === "in_sequence" && providerIds.length > 0) {
       // Build map of provider_id -> stage_changed_at for filtering
       const stageChangedMap = new Map<string, string>();
@@ -468,12 +476,46 @@ export async function GET(request: NextRequest) {
         .eq("touchpoint_type", "email_sent");
 
       // Count emails per provider, only those created after entering in_sequence
+      // Also track the most recent email sent time
       for (const tp of touchpoints || []) {
         const stageChangedAt = stageChangedMap.get(tp.provider_id);
         // Only count if touchpoint was created after entering current sequence
         if (stageChangedAt && tp.created_at >= stageChangedAt) {
           const count = emailsSentMap.get(tp.provider_id) || 0;
           emailsSentMap.set(tp.provider_id, count + 1);
+
+          // Track last email time
+          const existing = sequenceStatusMap.get(tp.provider_id);
+          if (!existing?.last_email_at || tp.created_at > existing.last_email_at) {
+            sequenceStatusMap.set(tp.provider_id, { ...existing, last_email_at: tp.created_at });
+          }
+        }
+      }
+
+      // Query tasks to find failed sequences - use tracking_ids to filter to current sequence only
+      const trackingIds = (trackingRows as TrackingRow[])
+        .filter(t => t.stage === "in_sequence")
+        .map(t => t.id);
+
+      if (trackingIds.length > 0) {
+        const { data: tasks } = await db
+          .from("provider_outreach_tasks")
+          .select("provider_id, cadence_day, status, payload")
+          .in("tracking_id", trackingIds)
+          .eq("status", "failed");
+
+        // Build failed task info per provider (take the first/most relevant failed task)
+        for (const task of tasks || []) {
+          const existing = sequenceStatusMap.get(task.provider_id) || {};
+          // Only set if not already set (first failed task takes priority)
+          if (existing.failed_step === undefined) {
+            const payload = task.payload as Record<string, unknown> | null;
+            sequenceStatusMap.set(task.provider_id, {
+              ...existing,
+              failed_step: task.cadence_day,
+              failed_reason: (payload?.error as string) || "Send failed",
+            });
+          }
         }
       }
     }
@@ -520,6 +562,7 @@ export async function GET(request: NextRequest) {
           assigned_to: t.assigned_to ?? null,
           // Sequence progress (for in_sequence)
           emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
+          sequence_status: stage === "in_sequence" ? sequenceStatusMap.get(p.provider_id) : undefined,
           // Engagement data (for needs_call)
           engagement: stage === "needs_call" ? engagementMap.get(p.provider_id) : undefined,
           // Generic email warning state (persisted for page refresh)
@@ -1193,6 +1236,8 @@ async function searchProviders(
     .map((t) => t.provider_id);
 
   let emailsSentMap = new Map<string, number>();
+  let sequenceStatusMap = new Map<string, { last_email_at?: string; failed_step?: number; failed_reason?: string }>();
+
   if (inSequenceProviderIds.length > 0) {
     // Build map of provider_id -> stage_changed_at for filtering
     const stageChangedMap = new Map<string, string>();
@@ -1209,11 +1254,44 @@ async function searchProviders(
       .eq("touchpoint_type", "email_sent");
 
     // Count emails per provider, only those created after entering current sequence
+    // Also track the most recent email sent time
     for (const tp of touchpoints || []) {
       const stageChangedAt = stageChangedMap.get(tp.provider_id);
       if (stageChangedAt && tp.created_at >= stageChangedAt) {
         const count = emailsSentMap.get(tp.provider_id) || 0;
         emailsSentMap.set(tp.provider_id, count + 1);
+
+        // Track last email time
+        const existing = sequenceStatusMap.get(tp.provider_id);
+        if (!existing?.last_email_at || tp.created_at > existing.last_email_at) {
+          sequenceStatusMap.set(tp.provider_id, { ...existing, last_email_at: tp.created_at });
+        }
+      }
+    }
+
+    // Query tasks to find failed sequences - use tracking_ids to filter to current sequence only
+    const inSequenceTrackingIds = (trackingRows || [])
+      .filter(t => t.stage === "in_sequence" && !claimedMap.has(t.provider_id))
+      .map(t => t.id);
+
+    if (inSequenceTrackingIds.length > 0) {
+      const { data: tasks } = await db
+        .from("provider_outreach_tasks")
+        .select("provider_id, cadence_day, status, payload")
+        .in("tracking_id", inSequenceTrackingIds)
+        .eq("status", "failed");
+
+      // Build failed task info per provider
+      for (const task of tasks || []) {
+        const existing = sequenceStatusMap.get(task.provider_id) || {};
+        if (existing.failed_step === undefined) {
+          const payload = task.payload as Record<string, unknown> | null;
+          sequenceStatusMap.set(task.provider_id, {
+            ...existing,
+            failed_step: task.cadence_day,
+            failed_reason: (payload?.error as string) || "Send failed",
+          });
+        }
       }
     }
   }
@@ -1302,6 +1380,7 @@ async function searchProviders(
       assigned_to: tracking?.assigned_to ?? null,
       // Sequence progress (for in_sequence)
       emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
+      sequence_status: stage === "in_sequence" ? sequenceStatusMap.get(p.provider_id) : undefined,
       verification_state: claimInfo?.verification_state || null,
       // Generic email warning state (from tracking if available)
       generic_email_called_at: tracking?.generic_email_called_at ?? null,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getCampaignLeadStatistics, isSmartleadConfigured } from "@/lib/smartlead";
 
 /**
  * GET /api/admin/provider-outreach/email-stats
@@ -203,40 +204,70 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Check for synced SmartLead campaign stats as fallback
-    // If we have touchpoints but no opens/clicks recorded, use synced campaign stats
-    let smartleadCampaignOpens = 0;
-    let smartleadCampaignClicks = 0;
-
-    const touchpointOpens = Object.values(statsMap).reduce((sum, s) => sum + s.opened, 0);
-    const touchpointClicks = Object.values(statsMap).reduce((sum, s) => sum + s.clicked, 0);
-
-    if (touchpointOpens === 0 || touchpointClicks === 0) {
-      // Fetch synced campaign stats from provider_outreach_tracking
-      // Note: We fetch all rows with smartlead_data and filter in JS for reliability
-      // (PostgREST nested JSON filtering can be fragile)
-      const { data: trackingWithStats, error: trackingStatsError } = await db
+    // 3. Fetch LIVE data from SmartLead API for accurate per-template engagement
+    // The touchpoints table is append-only (can't update engagement), so we fetch
+    // directly from SmartLead API to get real open/click counts per sequence step.
+    if (isSmartleadConfigured()) {
+      // Get all campaign IDs from tracking data
+      const { data: trackingWithCampaigns } = await db
         .from("provider_outreach_tracking")
         .select("smartlead_data")
         .not("smartlead_data", "is", null);
 
-      if (trackingStatsError) {
-        console.error("[email-stats] Failed to fetch synced stats:", trackingStatsError.message);
-      } else if (trackingWithStats && trackingWithStats.length > 0) {
-        // Aggregate campaign stats (deduplicate by campaign_id)
-        const seenCampaigns = new Set<number>();
-        for (const row of trackingWithStats) {
-          const sd = row.smartlead_data as { campaign_id?: number; campaign_stats?: { opened?: number; clicked?: number } } | null;
-          const campaignId = sd?.campaign_id;
-          const stats = sd?.campaign_stats;
+      if (trackingWithCampaigns && trackingWithCampaigns.length > 0) {
+        const campaignIds = new Set<number>();
+        for (const row of trackingWithCampaigns) {
+          const sd = row.smartlead_data as { campaign_id?: number } | null;
+          if (typeof sd?.campaign_id === "number") {
+            campaignIds.add(sd.campaign_id);
+          }
+        }
 
-          // Skip if no campaign_stats synced yet
-          if (!stats) continue;
+        // Fetch per-lead stats from each campaign and aggregate by sequence_number
+        // IMPORTANT: We track sent/opened/clicked consistently using SmartLead data
+        // A lead with sequence_number=N has been sent emails for steps 1 through N
+        const smartleadStats: Record<number, { sent: number; opened: number; clicked: number }> = {
+          1: { sent: 0, opened: 0, clicked: 0 },
+          2: { sent: 0, opened: 0, clicked: 0 },
+          3: { sent: 0, opened: 0, clicked: 0 },
+          4: { sent: 0, opened: 0, clicked: 0 },
+        };
 
-          if (typeof campaignId === "number" && !seenCampaigns.has(campaignId)) {
-            seenCampaigns.add(campaignId);
-            smartleadCampaignOpens += stats.opened ?? 0;
-            smartleadCampaignClicks += stats.clicked ?? 0;
+        for (const campaignId of campaignIds) {
+          const leadsResult = await getCampaignLeadStatistics(campaignId);
+          if (leadsResult.ok && leadsResult.data) {
+            for (const lead of leadsResult.data) {
+              const currentStep = lead.sequence_number && lead.sequence_number > 0 && lead.sequence_number <= 4
+                ? lead.sequence_number
+                : 1;
+
+              // A lead on step N has been sent emails for steps 1 through N
+              // (SmartLead sequences are progressive)
+              for (let step = 1; step <= currentStep; step++) {
+                smartleadStats[step].sent++;
+              }
+
+              // Attribute opens/clicks to current step (best approximation)
+              // SmartLead gives aggregate counts, we can't know which specific email was opened
+              if ((lead.open_count ?? 0) > 0) {
+                smartleadStats[currentStep].opened++;
+              }
+              if ((lead.click_count ?? 0) > 0) {
+                smartleadStats[currentStep].clicked++;
+              }
+            }
+          }
+        }
+
+        // Use SmartLead data for SmartLead campaigns (more accurate than stale touchpoints)
+        // Take the higher value in case touchpoints have some data
+        for (const [stepStr, data] of Object.entries(smartleadStats)) {
+          const step = parseInt(stepStr, 10);
+          const templateKey = SEQUENCE_STEP_MAP[step]?.template_key;
+          if (templateKey && statsMap[templateKey]) {
+            statsMap[templateKey].sent = Math.max(statsMap[templateKey].sent, data.sent);
+            statsMap[templateKey].opened = Math.max(statsMap[templateKey].opened, data.opened);
+            statsMap[templateKey].clicked = Math.max(statsMap[templateKey].clicked, data.clicked);
           }
         }
       }
@@ -266,20 +297,12 @@ export async function GET(request: NextRequest) {
       totalClicked += stat.clicked;
     }
 
-    // Use synced SmartLead stats if touchpoint data shows zeros
-    // This happens when webhooks weren't working but we synced from SmartLead API
-    const finalOpened = totalOpened > 0 ? totalOpened : smartleadCampaignOpens;
-    const finalClicked = totalClicked > 0 ? totalClicked : smartleadCampaignClicks;
-
     const totals = {
       sent: totalSent,
-      opened: finalOpened,
-      open_rate: totalSent > 0 ? Math.round((finalOpened / totalSent) * 1000) / 10 : 0,
-      clicked: finalClicked,
-      click_rate: totalSent > 0 ? Math.round((finalClicked / totalSent) * 1000) / 10 : 0,
-      // Flag if using synced data (for transparency)
-      using_synced_stats: (totalOpened === 0 && smartleadCampaignOpens > 0) ||
-                          (totalClicked === 0 && smartleadCampaignClicks > 0),
+      opened: totalOpened,
+      open_rate: totalSent > 0 ? Math.round((totalOpened / totalSent) * 1000) / 10 : 0,
+      clicked: totalClicked,
+      click_rate: totalSent > 0 ? Math.round((totalClicked / totalSent) * 1000) / 10 : 0,
     };
 
     return NextResponse.json({

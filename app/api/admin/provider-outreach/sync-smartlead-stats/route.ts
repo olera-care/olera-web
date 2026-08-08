@@ -50,6 +50,8 @@ interface CampaignSyncResult {
   insert_errors: number;
   /** Number of update operations that failed */
   update_errors: number;
+  /** Sample error messages for debugging (first 5) */
+  error_samples?: string[];
   error?: string;
 }
 
@@ -130,6 +132,7 @@ export async function POST() {
       unmatched_emails: [],
       insert_errors: 0,
       update_errors: 0,
+      error_samples: [],
     };
 
     // Fetch per-lead statistics from SmartLead
@@ -213,6 +216,10 @@ export async function POST() {
 
           if (updateError) {
             result.update_errors++;
+            // Capture first 5 error messages for debugging
+            if (result.error_samples && result.error_samples.length < 5) {
+              result.error_samples.push(`UPDATE ${providerId}: ${updateError.message}`);
+            }
             console.error(`[sync-smartlead-stats] Update failed for provider ${providerId}:`, updateError.message);
           } else {
             result.touchpoints_updated++;
@@ -243,6 +250,10 @@ export async function POST() {
 
         if (insertError) {
           result.insert_errors++;
+          // Capture first 5 error messages for debugging
+          if (result.error_samples && result.error_samples.length < 5) {
+            result.error_samples.push(`INSERT ${providerId}: ${insertError.message}`);
+          }
           console.error(`[sync-smartlead-stats] Insert failed for provider ${providerId}:`, insertError.message);
         } else {
           result.touchpoints_created++;
@@ -250,9 +261,12 @@ export async function POST() {
       }
     }
 
-    // Clean up empty unmatched_emails array for cleaner response
+    // Clean up empty arrays for cleaner response
     if (result.unmatched_emails?.length === 0) {
       delete result.unmatched_emails;
+    }
+    if (result.error_samples?.length === 0) {
+      delete result.error_samples;
     }
 
     results.push(result);

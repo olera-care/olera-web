@@ -288,12 +288,72 @@ function checkStale(st, p) {
   }
 }
 
+/**
+ * A program that offers to pay a family member, but never says whether a SPOUSE
+ * can be one.
+ *
+ * From the 2026-08-08 Louisiana case: a woman caring for her husband was routed
+ * to "Caregiver Voucher", whose intro said family members living with the
+ * recipient can be paid. Louisiana treats a spouse as a legally responsible
+ * individual, payable only under an Extraordinary Care standard with written
+ * state approval. She was the one reader that page could never help, and the
+ * program's own applicationNotes contradicted its intro.
+ *
+ * Most state HCBS waivers carry the same carve-out, and a sweep on 08-08 found
+ * 36 of 37 paid-caregiver programs across 28 states silent on it. Silence is
+ * the finding here: some states genuinely do pay spouses, so this flags an
+ * unanswered question rather than asserting the answer.
+ */
+function checkSpouseCaveatMissing(st, p) {
+  const blob = JSON.stringify(p).toLowerCase();
+  const promisesPay = /get paid to care|paid family caregiver|paid caregiver|become a paid|pay you to (provide|care)/.test(blob);
+  if (!promisesPay) return;
+  if (/legally responsible|extraordinary care|spouses? (cannot|may not|are not|is not)/.test(blob)) return;
+  report({
+    state: st, programId: p.id, program: p.name, check: 'spouse-caveat-missing', severity: 'high',
+    detail: 'Offers payment to a family caregiver but never says whether a spouse can be one. Most HCBS waivers treat a spouse as a legally responsible individual.',
+    value: 'no mention of legally responsible individual or Extraordinary Care',
+    fix: 'Check the state rule. If spouses are restricted, say so in the intro and the first FAQ. If they are not, say that explicitly so the question is answered either way.',
+  });
+}
+
+/**
+ * A slow program that never says it is slow.
+ *
+ * Same case: the letter framed a Medicaid waiver as one phone call. The real
+ * path was a 45 to 90 day application behind a registry waitlist. She spent 45
+ * minutes on hold discovering that herself. An unstated timeline is not a
+ * neutral omission, because the reader supplies an optimistic one.
+ *
+ * Scoped to `deep` complexity only. An earlier draft also caught anything
+ * mentioning Medicaid anywhere in the record, which flagged 48% of the library
+ * (305 of 642) including programs that only mention Medicaid to say it is not
+ * required. A lint that flags half of everything gets ignored. Deep programs
+ * are the slow ones by definition, which lands at 187 and is a real backlog
+ * rather than noise.
+ */
+function checkNoTimeline(st, p) {
+  if (p.complexity !== 'deep') return;
+  const guide = p.applicationGuide || {};
+  const timelineFields = `${guide.processingTime || ''} ${guide.waitlist || ''}`.toLowerCase();
+  const statesDuration = /\b\d+\s*(to|-|–)\s*\d+\s*(day|week|month|year)|\b\d+\s*(day|week|month|year)s?\b|waitlist|waiting list|registry|first-come/.test(timelineFields);
+  if (statesDuration) return;
+  report({
+    state: st, programId: p.id, program: p.name, check: 'no-timeline', severity: 'medium',
+    detail: 'A deep program with no processing time and no waitlist note, so the letter cannot tell the family how long this takes.',
+    value: `processingTime: ${JSON.stringify(guide.processingTime ?? null)}, waitlist: ${JSON.stringify(guide.waitlist ?? null)}`,
+    fix: 'Fill processingTime with a real range and waitlist with whether one exists. Families who expect an answer this week and wait three months stop replying to us.',
+  });
+}
+
 const CHECKS = [
   checkMedicareNotRequired,
   checkSelfContradiction,
   checkNullLeadPhone,
   checkGenericAnchor,
   checkUnsourcedSavings,
+  checkSpouseCaveatMissing,
+  checkNoTimeline,
   checkStale,
 ];
 

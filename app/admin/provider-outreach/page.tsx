@@ -3059,11 +3059,11 @@ function getRecommendedAction(provider: OutreachProvider): {
         isPrimary: true,
       };
     case "clicked_not_claimed":
-      // Engaged but stuck - try personal touch
+      // Engaged but stuck - try personal touch via phone
       return {
-        action: "LinkedIn",
-        outcome: "try_linkedin",
-        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. Personal outreach may help.`,
+        action: "Call Provider",
+        outcome: "", // No automatic outcome, just recommendation
+        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. A personal call may help close the deal.`,
         isPrimary: true,
       };
     case "sequence_exhausted":
@@ -3087,9 +3087,9 @@ function getRecommendedAction(provider: OutreachProvider): {
       }
     case "email_bounced":
       return {
-        action: "Wrong Contact",
-        outcome: "wrong_contact",
-        rationale: "Email bounced. Find correct contact info.",
+        action: "Fix Email",
+        outcome: "fix_email", // Special: triggers inline editing, not a modal
+        rationale: "Email bounced. Update contact info and resend.",
         isPrimary: true,
       };
     case "manual":
@@ -3130,9 +3130,34 @@ function FollowUpProviderRow({
   const [showAllOptions, setShowAllOptions] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
+  // Track expansion state for async operation guards
+  const isExpandedRef = useRef(isExpanded);
+  isExpandedRef.current = isExpanded;
   // Fax finder state
   const [findingFax, setFindingFax] = useState(false);
   const [faxResult, setFaxResult] = useState<{ fax: string | null; confidence: string | null; source_url: string | null } | null>(null);
+  // LinkedIn finder state
+  const [findingLinkedIn, setFindingLinkedIn] = useState(false);
+  const [linkedInResult, setLinkedInResult] = useState<{ linkedin_url: string | null; source_url: string | null } | null>(null);
+  // Inline email editing state (for "Wrong Contact" flow)
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailJustSaved, setEmailJustSaved] = useState(false);
+  const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  // Session ID to track editing sessions and invalidate stale async operations
+  const editingSessionRef = useRef(0);
+
+  // Reset editing state when row is collapsed
+  useEffect(() => {
+    if (!isExpanded) {
+      editingSessionRef.current += 1; // Invalidate any in-flight operations
+      setEditingEmail(false);
+      setNewEmail("");
+      setEmailJustSaved(false);
+      setError(null);
+    }
+  }, [isExpanded]);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
@@ -3141,7 +3166,12 @@ function FollowUpProviderRow({
 
   // Channel availability
   const hasFax = !!provider.fax_number || !!faxResult?.fax;
-  const hasLinkedIn = !!provider.linkedin_url;
+  // Note: linkedin_url can be "not_found" sentinel value - filter it out
+  const validLinkedInUrl = provider.linkedin_url && provider.linkedin_url !== "not_found"
+    ? provider.linkedin_url
+    : linkedInResult?.linkedin_url;
+  const hasLinkedIn = !!validLinkedInUrl;
+  const linkedInUrl = validLinkedInUrl;
   const hasAddress = !!provider.mail_address;
 
   // Find fax number for this provider
@@ -3160,13 +3190,133 @@ function FollowUpProviderRow({
         if (data.fax) {
           onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
         }
-      } else {
+      } else if (isExpandedRef.current) {
         setError(data.error || "Failed to find fax");
       }
     } catch {
-      setError("Network error finding fax");
+      if (isExpandedRef.current) {
+        setError("Network error finding fax");
+      }
     } finally {
       setFindingFax(false);
+    }
+  };
+
+  // Find LinkedIn URL for this provider
+  const handleFindLinkedIn = async () => {
+    setFindingLinkedIn(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setLinkedInResult({ linkedin_url: data.linkedin_url, source_url: data.source_url });
+        if (data.linkedin_url) {
+          onProviderUpdated({ linkedin_url: data.linkedin_url });
+        }
+      } else if (isExpandedRef.current) {
+        setError(data.error || "Failed to find LinkedIn");
+      }
+    } catch {
+      if (isExpandedRef.current) {
+        setError("Network error finding LinkedIn");
+      }
+    } finally {
+      setFindingLinkedIn(false);
+    }
+  };
+
+  // Handle inline email save (for "Wrong Contact" / "Fix Email" flow)
+  const handleSaveEmail = async () => {
+    const trimmedEmail = newEmail.trim();
+    if (!trimmedEmail) return;
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Invalid email format");
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setSavingEmail(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email: trimmedEmail }),
+      });
+
+      // Check if this operation is still valid (same session, still expanded)
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        // Always update parent state (email was saved successfully)
+        onProviderUpdated({ email: trimmedEmail });
+        // Only update local UI state if operation is still valid
+        if (stillValid) {
+          setEditingEmail(false);
+          setEmailJustSaved(true);
+          // Keep newEmail populated - we use it for display in emailJustSaved state
+          // (avoids race condition where provider.email hasn't updated from parent yet)
+        }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to save email");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error saving email");
+      }
+    } finally {
+      // Only reset loading state if this session is still current
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingEmail(false);
+      }
+    }
+  };
+
+  // Handle sending claim link after email is fixed
+  const handleSendClaimLink = async () => {
+    const sessionAtStart = editingSessionRef.current;
+    setSendingClaimLink(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        // Only reset local UI state if operation is still valid
+        if (stillValid) {
+          setEmailJustSaved(false);
+          setNewEmail("");
+        }
+        // Always trigger refresh (claim link was sent successfully)
+        onOutcomeRecorded(false);
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to send claim link");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error sending claim link");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSendingClaimLink(false);
+      }
     }
   };
 
@@ -3184,17 +3334,6 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Send & move to Alt. Channels",
           confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "wrong_contact":
-        return {
-          title: "Wrong Contact Info",
-          description: "The contact information for this provider is incorrect.",
-          details: [
-            "Provider will be moved to Needs Email",
-            "Their email will be cleared from the system",
-          ],
-          confirmLabel: "Clear contact info",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
       case "not_interested":
         return {
@@ -3217,17 +3356,6 @@ function FollowUpProviderRow({
           ],
           confirmLabel: "Move to Fax",
           confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
-        };
-      case "try_linkedin":
-        return {
-          title: "Move to LinkedIn Channel",
-          description: "Move this provider to the LinkedIn channel for social outreach.",
-          details: [
-            "Provider will be moved to Alternative Channels (LinkedIn)",
-            "You can find their profile and reach out from there",
-          ],
-          confirmLabel: "Move to LinkedIn",
-          confirmClass: "bg-blue-700 hover:bg-blue-800 text-white",
         };
       case "try_direct_mail":
         return {
@@ -3501,8 +3629,17 @@ function FollowUpProviderRow({
                 <div className="flex items-center gap-2 shrink-0">
                   {recommendation.outcome && (
                     <button
-                      onClick={() => setPendingOutcome(recommendation.outcome)}
-                      disabled={submitting !== null}
+                      onClick={() => {
+                        if (recommendation.outcome === "fix_email") {
+                          // Special case: trigger inline editing instead of modal
+                          setEditingEmail(true);
+                          setNewEmail(provider.email || "");
+                          setEmailJustSaved(false);
+                        } else {
+                          setPendingOutcome(recommendation.outcome);
+                        }
+                      }}
+                      disabled={submitting !== null || (recommendation.outcome === "fix_email" && editingEmail)}
                       className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {recommendation.action}
@@ -3534,10 +3671,83 @@ function FollowUpProviderRow({
                 {provider.city && (
                   <div className="text-gray-500">{provider.city}{provider.state ? `, ${provider.state}` : ""}</div>
                 )}
-                {provider.email && (
+                {/* Email display with inline edit capability */}
+                {editingEmail ? (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-500">Email</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        placeholder="Enter new email"
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleSaveEmail();
+                          } else if (e.key === "Escape") {
+                            setEditingEmail(false);
+                            setNewEmail("");
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveEmail();
+                        }}
+                        disabled={savingEmail || !newEmail.trim()}
+                        className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {savingEmail ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingEmail(false);
+                          setNewEmail("");
+                        }}
+                        disabled={savingEmail}
+                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : emailJustSaved ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-emerald-600">✓</span>
+                      <span className="text-sm text-gray-700">{newEmail || provider.email}</span>
+                      <span className="text-xs text-emerald-600 font-medium">Saved</span>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSendClaimLink();
+                      }}
+                      disabled={sendingClaimLink}
+                      className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {sendingClaimLink ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Sending...
+                        </span>
+                      ) : (
+                        "Send Claim Link"
+                      )}
+                    </button>
+                  </div>
+                ) : provider.email ? (
                   <a href={`mailto:${provider.email}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
                     {provider.email}
                   </a>
+                ) : (
+                  <span className="text-gray-400 italic">No email</span>
                 )}
                 {provider.phone && (
                   <a href={`tel:${provider.phone.replace(/\D/g, "")}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
@@ -3550,9 +3760,19 @@ function FollowUpProviderRow({
                   <span className={`text-xs ${hasFax ? "text-emerald-600" : "text-gray-300"}`}>
                     Fax {hasFax ? "✓" : "—"}
                   </span>
-                  <span className={`text-xs ${hasLinkedIn ? "text-emerald-600" : "text-gray-300"}`}>
-                    LinkedIn {hasLinkedIn ? "✓" : "—"}
-                  </span>
+                  {hasLinkedIn && linkedInUrl ? (
+                    <a
+                      href={linkedInUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      LinkedIn ✓
+                    </a>
+                  ) : (
+                    <span className="text-xs text-gray-300">LinkedIn —</span>
+                  )}
                   <span className={`text-xs ${hasAddress ? "text-emerald-600" : "text-gray-300"}`}>
                     Address {hasAddress ? "✓" : "—"}
                   </span>
@@ -3599,10 +3819,6 @@ function FollowUpProviderRow({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">LinkedIn — {hasLinkedIn ? "ready" : "available"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
                     <span className="text-gray-500">Direct mail — {hasAddress ? "ready" : "available"}</span>
                   </div>
                 </div>
@@ -3617,20 +3833,38 @@ function FollowUpProviderRow({
                 <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
                   All Options
                 </div>
-                {!hasFax && !findingFax && provider.website && (
-                  <button
-                    onClick={handleFindFax}
-                    className="text-xs text-teal-600 hover:text-teal-700"
-                  >
-                    Find fax number
-                  </button>
-                )}
-                {findingFax && (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                    Finding fax...
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  {/* Find LinkedIn button */}
+                  {!hasLinkedIn && !findingLinkedIn && provider.website && (
+                    <button
+                      onClick={handleFindLinkedIn}
+                      className="text-xs text-blue-600 hover:text-blue-700"
+                    >
+                      Find LinkedIn
+                    </button>
+                  )}
+                  {findingLinkedIn && (
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                      Finding LinkedIn...
+                    </span>
+                  )}
+                  {/* Find Fax button */}
+                  {!hasFax && !findingFax && provider.website && (
+                    <button
+                      onClick={handleFindFax}
+                      className="text-xs text-teal-600 hover:text-teal-700"
+                    >
+                      Find fax number
+                    </button>
+                  )}
+                  {findingFax && (
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                      Finding fax...
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Fax found indicator */}
@@ -3640,6 +3874,24 @@ function FollowUpProviderRow({
                   {(provider.fax_confidence || faxResult?.confidence) && (
                     <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
                   )}
+                </div>
+              )}
+
+              {/* LinkedIn found indicator */}
+              {linkedInUrl && (
+                <div className="mb-3 p-2 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
+                  <a
+                    href={linkedInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline flex items-center gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    {linkedInUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                  </a>
                 </div>
               )}
 
@@ -3659,11 +3911,15 @@ function FollowUpProviderRow({
                 </button>
 
                 <button
-                  onClick={() => setPendingOutcome("wrong_contact")}
-                  disabled={submitting !== null}
+                  onClick={() => {
+                    setEditingEmail(true);
+                    setNewEmail(provider.email || "");
+                    setEmailJustSaved(false);
+                  }}
+                  disabled={submitting !== null || editingEmail}
                   className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Wrong contact
+                  Fix Email
                 </button>
 
                 <button
@@ -3672,14 +3928,6 @@ function FollowUpProviderRow({
                   className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Fax
-                </button>
-
-                <button
-                  onClick={() => setPendingOutcome("try_linkedin")}
-                  disabled={submitting !== null}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  LinkedIn
                 </button>
 
                 <button
@@ -3966,7 +4214,6 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
 
 const CHANNEL_OPTIONS: { value: string; label: string; color: string }[] = [
   { value: "fax", label: "Fax", color: "text-purple-700" },
-  { value: "linkedin", label: "LinkedIn", color: "text-blue-700" },
   { value: "direct_mail", label: "Direct Mail", color: "text-teal-700" },
 ];
 
@@ -4147,6 +4394,31 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
   const [actionNotes, setActionNotes] = useState("");
+
+  // Send Claim Link state
+  const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
+  const [claimLinkSentIds, setClaimLinkSentIds] = useState<Set<string>>(new Set());
+
+  const handleSendClaimLink = useCallback(async (providerId: string) => {
+    setSendingClaimLinkId(providerId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      if (res.ok) {
+        setClaimLinkSentIds((prev) => new Set([...prev, providerId]));
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to send claim link");
+      }
+    } catch {
+      alert("Failed to send claim link");
+    } finally {
+      setSendingClaimLinkId(null);
+    }
+  }, []);
 
   // Provider tier tracking (session-only, not persisted)
   const [tierMap, setTierMap] = useState<Map<string, ProviderTier>>(new Map());
@@ -4656,6 +4928,31 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 Archive
               </button>
 
+              {/* Send Claim Link - only show if provider has email */}
+              {provider.email && (
+                <button
+                  type="button"
+                  onClick={() => handleSendClaimLink(provider.provider_id)}
+                  disabled={sendingClaimLinkId === provider.provider_id || claimLinkSentIds.has(provider.provider_id)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    claimLinkSentIds.has(provider.provider_id)
+                      ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                      : "text-primary-600 bg-white border border-primary-300 hover:bg-primary-50 hover:border-primary-400"
+                  }`}
+                >
+                  {sendingClaimLinkId === provider.provider_id ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      Sending...
+                    </span>
+                  ) : claimLinkSentIds.has(provider.provider_id) ? (
+                    "Link Sent"
+                  ) : (
+                    "Send Claim Link"
+                  )}
+                </button>
+              )}
+
               {/* Find Fax / Manual Input for fax channel without fax number */}
               {!provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && provider.re_engage_channel === "fax" && (
                 faxInputExpandedId === provider.provider_id ? (
@@ -4983,7 +5280,7 @@ export default function ProviderOutreachPage() {
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
 
   // Channel filter state (for Alternative Channels tab)
-  type ChannelFilter = "all" | "email" | "fax" | "linkedin" | "direct_mail";
+  type ChannelFilter = "all" | "email" | "fax" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
   // All admins for name lookup (fetched once)
@@ -5148,6 +5445,13 @@ export default function ProviderOutreachPage() {
     by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
   }>({ total: 0, by_admin: [] });
 
+  // Global sequence conversion stats (all time)
+  const [sequenceConversion, setSequenceConversion] = useState<{
+    sequenced: number;
+    claimed: number;
+    rate: number;
+  } | null>(null);
+
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -5187,6 +5491,10 @@ export default function ProviderOutreachPage() {
   const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
   // Pending stage move confirmation (for Move to Stage buttons)
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
+
+  // Send Claim Link state (for action modal)
+  const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  const [claimLinkSent, setClaimLinkSent] = useState(false);
 
   // Remove from outreach confirmation state
   const [pendingRemoval, setPendingRemoval] = useState<{
@@ -5329,6 +5637,7 @@ export default function ProviderOutreachPage() {
     setUnarchivePreview(null);
     setUnarchivePreviewConfirmed(false);
     setPendingStageMove(null);
+    setClaimLinkSent(false);
   };
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
@@ -5701,6 +6010,22 @@ export default function ProviderOutreachPage() {
     // Refresh every 5 minutes
     const interval = setInterval(fetchGlobalFollowUps, 5 * 60 * 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Effect: fetch sequence conversion stats on mount
+  useEffect(() => {
+    const fetchSequenceConversion = async () => {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/stats?metric=sequence_conversion");
+        if (res.ok) {
+          const data = await res.json();
+          setSequenceConversion(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch sequence conversion stats:", err);
+      }
+    };
+    fetchSequenceConversion();
   }, []);
 
   // Effect: fetch email performance stats when section is expanded
@@ -6499,7 +6824,7 @@ export default function ProviderOutreachPage() {
         </div>
 
         {/* Stat Boxes */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
           <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Number of states you've added for outreach work">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active States</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalStates}</p>
@@ -6522,6 +6847,19 @@ export default function ProviderOutreachPage() {
               {globalFollowUpsToday.by_admin.length > 0
                 ? globalFollowUpsToday.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
                 : "none pending"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Conversion rate: providers who claimed after going through the email sequence">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequence Conv.</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">
+              {sequenceConversion
+                ? `${sequenceConversion.claimed} / ${sequenceConversion.sequenced}`
+                : "—"}
+            </p>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {sequenceConversion
+                ? `${sequenceConversion.rate}% claimed from sequence`
+                : "loading..."}
             </p>
           </div>
         </div>
@@ -7159,7 +7497,7 @@ export default function ProviderOutreachPage() {
             {/* Channel filter chips */}
             <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
               <span className="text-xs text-gray-500 mr-1">Channel:</span>
-              {(["all", "email", "fax", "linkedin", "direct_mail"] as const).map((channel) => {
+              {(["all", "email", "fax", "direct_mail"] as const).map((channel) => {
                 const count = channel === "all"
                   ? providers.length
                   : providers.filter((p) =>
@@ -7169,8 +7507,7 @@ export default function ProviderOutreachPage() {
                     ).length;
                 const label = channel === "all" ? "All" :
                   channel === "email" ? "Email" :
-                  channel === "fax" ? "Fax" :
-                  channel === "linkedin" ? "LinkedIn" : "Direct Mail";
+                  channel === "fax" ? "Fax" : "Direct Mail";
                 const isSelected = selectedChannelFilter === channel;
                 return (
                   <button
@@ -7523,6 +7860,67 @@ export default function ProviderOutreachPage() {
                       <div>
                         <p className="font-medium text-gray-900">Remove Assignment</p>
                         <p className="text-xs text-gray-500">Unassign this provider so anyone can pick it up</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Send Claim Link - show for not_interested stage with email */}
+                {/* Note: re_engage providers use the inline button in ReEngageQueue instead */}
+                {actionModalProvider.stage === "not_interested" && actionModalProvider.email && (
+                  <button
+                    onClick={async () => {
+                      setSendingClaimLink(true);
+                      try {
+                        const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ provider_id: actionModalProvider.provider_id }),
+                        });
+                        if (res.ok) {
+                          setClaimLinkSent(true);
+                        } else {
+                          const err = await res.json();
+                          alert(err.error || "Failed to send claim link");
+                        }
+                      } catch {
+                        alert("Failed to send claim link");
+                      } finally {
+                        setSendingClaimLink(false);
+                      }
+                    }}
+                    disabled={sendingClaimLink || claimLinkSent}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-colors disabled:opacity-50 ${
+                      claimLinkSent
+                        ? "border-emerald-200 bg-emerald-50"
+                        : "border-gray-200 hover:border-primary-300 hover:bg-primary-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className={claimLinkSent ? "text-emerald-500 mt-0.5" : "text-primary-500 mt-0.5"}>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {sendingClaimLink ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              Sending...
+                            </span>
+                          ) : claimLinkSent ? (
+                            "Claim Link Sent"
+                          ) : (
+                            "Send Claim Link"
+                          )}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {claimLinkSent
+                            ? `Email sent to ${actionModalProvider.email}`
+                            : `Send claim link email to ${actionModalProvider.email}`
+                          }
+                        </p>
                       </div>
                     </div>
                   </button>

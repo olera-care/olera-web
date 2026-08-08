@@ -288,32 +288,6 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/provider-outreach",
   },
-  {
-    id: "provider-outreach-auto-re-engage",
-    name: "Provider outreach — auto re-engage",
-    description: "Daily: processes providers stuck in 're_engage' stage for 30+ days. Cycle 1 providers restart as cycle 2; cycle 2 providers move to soft terminal (not_interested).",
-    recipientCohort: "(No recipients — a state-transition job.)",
-    audience: "Providers",
-    fn: "maintenance",
-    schedule: "0 6 * * *",
-    humanSchedule: "Daily, 06:00 UTC (~1-2 AM ET)",
-    path: "/api/cron/provider-outreach-auto-re-engage",
-    emailTypes: [],
-    relatedAdminPath: "/admin/provider-outreach",
-  },
-  {
-    id: "provider-outreach-channel-lifecycle",
-    name: "Provider outreach — channel lifecycle",
-    description: "Daily: auto-moves providers between alternative channels after 5 days. Fax → LinkedIn → Direct Mail progression based on time since outreach was sent.",
-    recipientCohort: "(No recipients — a state-transition job.)",
-    audience: "Providers",
-    fn: "maintenance",
-    schedule: "0 14 * * *",
-    humanSchedule: "Daily, 14:00 UTC (~9-10 AM ET)",
-    path: "/api/cron/provider-outreach-channel-lifecycle",
-    emailTypes: [],
-    relatedAdminPath: "/admin/provider-outreach",
-  },
   // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
   // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
   {

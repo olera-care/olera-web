@@ -429,9 +429,8 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
  * follow-up channels to re-engagement cycles.
  *
  * DRIFT GUARD: mirrors the provider-outreach-send 4-email cadence (Day 0/3/7/14),
- * the provider-outreach-sequence-check stage transitions, the follow-up channel
- * queue in /admin/provider-outreach, and the provider-outreach-auto-re-engage
- * 30-day recycle.
+ * the provider-outreach-sequence-check stage transitions, and the follow-up channel
+ * queue in /admin/provider-outreach. Channel progression and Cycle 2 are manual.
  */
 export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
   key: "provider_outreach_journey",
@@ -441,7 +440,8 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
   description:
     "One outreach journey from enrollment to claim: provider-outreach-send fires the 4-email " +
     "sequence (Day 0/3/7/14), the sequence check moves non-claimers to Follow Up, and manual " +
-    "channels (fax, LinkedIn, direct mail) offer alternative touchpoints. Cycle 2 re-engages after 30 days.",
+    "channels (fax, direct mail) offer alternative touchpoints. LinkedIn discovery helps admins " +
+    "find contact info. Admins can fix emails inline and send claim links at any stage.",
   steps: [
     // ── Email Sequence ──────────────────────────────────────────────────
     {
@@ -516,16 +516,40 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       gate: "Requires valid fax number (auto-discovered or manually added)",
     },
     {
-      key: "linkedin_attempt",
+      key: "fix_email",
       phase: "Follow Up",
-      title: "LinkedIn outreach",
-      timing: "Manual · When LinkedIn available",
+      title: "Email fixed inline",
+      timing: "Manual · Fix Email button",
       description:
-        "Admin sends personal LinkedIn message. Best for providers who " +
-        "clicked emails but didn't claim.",
-      ownerNote: "Triggered from Follow Up tab",
-      traits: ["Manual", "Conditional"],
-      gate: "Requires LinkedIn profile (auto-discovered or manually added)",
+        "Admin clicks 'Fix Email' to update a bounced or incorrect email address inline. " +
+        "Provider stays in Follow Up (not moved to Needs Email), and admin can immediately send a claim link.",
+      ownerNote: "Inline editing in Follow Up tab",
+      traits: ["Manual"],
+      gate: "Used when email bounced or contact info was wrong",
+    },
+    {
+      key: "linkedin_discovery",
+      phase: "Follow Up",
+      title: "LinkedIn discovered",
+      timing: "Manual · Find LinkedIn button",
+      description:
+        "Admin clicks 'Find LinkedIn' to discover provider's LinkedIn page from their website. " +
+        "LinkedIn is a discovery tool for manual outreach, not a channel providers are moved to.",
+      ownerNote: "Discovery tool in Follow Up tab",
+      traits: ["Manual", "Discovery"],
+      gate: "Requires provider website; admins manually reach out via LinkedIn",
+    },
+    {
+      key: "fax_discovery",
+      phase: "Follow Up",
+      title: "Fax number discovered",
+      timing: "Manual · Find Fax button",
+      description:
+        "Admin clicks 'Find Fax' to discover provider's fax number from their website. " +
+        "Once found, the fax channel becomes available for that provider.",
+      ownerNote: "Discovery tool in Follow Up tab",
+      traits: ["Manual", "Discovery"],
+      gate: "Requires provider website; found fax is saved to provider record",
     },
     {
       key: "directmail_attempt",
@@ -543,24 +567,25 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "re_engage_wait",
       phase: "Re-engagement",
-      title: "30-day cooling period",
+      title: "Provider in Alternative Channels",
       timing: "After Follow Up attempts",
       description:
-        "Provider marked as re_engage. System waits 30 days before " +
-        "attempting another outreach cycle.",
-      ownerNote: "Automatic transition after Follow Up",
-      traits: ["Silent step"],
+        "Provider moved to re_engage stage with a selected channel (fax or direct mail). " +
+        "Admins can send claim links or manually restart the sequence when ready.",
+      ownerNote: "Manual admin decision from Follow Up tab",
+      traits: ["Manual"],
     },
     {
       key: "cycle_2",
       phase: "Re-engagement",
-      title: "Cycle 2 begins (or terminal)",
-      timing: "30 days after Cycle 1",
+      title: "Cycle 2 (manual)",
+      timing: "Admin decision",
       description:
-        "Cycle 1 providers automatically restart the sequence. " +
-        "Cycle 2 providers move to not_interested (soft terminal).",
-      ownedBy: "provider-outreach-auto-re-engage",
-      gate: "Only Cycle 1 providers restart; Cycle 2 providers are terminal",
+        "Admin clicks 'Re-engage now' to restart the email sequence for Cycle 1 providers. " +
+        "Cycle 2 providers can be moved to not_interested or have claim links sent manually.",
+      ownerNote: "Triggered via 'Re-engage now' button in Alternative Channels tab",
+      traits: ["Manual"],
+      gate: "Admin decides when to restart; no automatic progression",
     },
   ],
 };

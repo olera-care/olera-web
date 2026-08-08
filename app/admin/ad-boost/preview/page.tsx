@@ -57,7 +57,7 @@ const PREVIEWS: {
   {
     key: "live",
     label: "Live · mid-flight",
-    blurb: "The in-campaign view where conviction builds: momentum line under the stat row, accruing receipt, flight clock in the facts row, and the quiet early-upgrade disclosure (\u201cStart a monthly plan early\u201d) so a provider can subscribe before the wrap-up.",
+    blurb: "The in-campaign view where conviction builds: momentum line under the stat row, accruing receipt, flight clock in the facts row, and a visible plan choice so a provider can keep the campaign running without hunting for the action.",
   },
   {
     key: "wrapup",

@@ -611,7 +611,7 @@ function MomentumLine({ week }: { week: CampaignReceiptData["week"] }) {
  * The live / in-motion campaign view — where conviction builds. The wrap-up
  * converts providers who already decided; this view is where they watch the
  * numbers move (momentum line, accruing receipt, flight clock) and can start
- * a plan EARLY through a quiet disclosure instead of waiting for the wrap-up.
+ * a plan early without hunting for a low-contrast disclosure.
  * Shared with the admin preview gallery so TJ sees exactly what providers see.
  */
 export function CampaignInMotion({
@@ -623,7 +623,6 @@ export function CampaignInMotion({
   error,
   onEditPhotos,
   onPlanSelected,
-  onPlanDismissed,
 }: {
   request: BoostRequest;
   campaignStats: {
@@ -638,9 +637,7 @@ export function CampaignInMotion({
   error: string | null;
   onEditPhotos?: () => void;
   onPlanSelected?: (planValue: number) => void;
-  onPlanDismissed?: () => void;
 }) {
-  const [showPlans, setShowPlans] = useState(false);
   const label: Record<string, string> = {
     requested: "Launch plan received",
     scheduled: "Setup scheduled",
@@ -725,68 +722,31 @@ export function CampaignInMotion({
       {/* The accruing receipt: ad reach, saves, questions, reported outcomes. */}
       {isLive && receipt && <CampaignReceiptBlock receipt={receipt} />}
 
-      {/* Set up the wrap-up moment BEFORE it arrives: the no-silent-rollover
-          promise, planted while the intro is still running. */}
-      {isLive && !request.plan_status && !showPlans && (
-        <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
-          When your intro wraps, your results will be right here and you choose
-          whether to keep going. Nothing switches to a paid plan on its own.
-        </p>
-      )}
-
-      {/* The early-upgrade path: a quiet disclosure, never a hard ask — the
-          wrap-up stays the featured moment. Checkout accepts live campaigns. */}
+      {/* The early plan choice uses the same visible cards as the wrap-up.
+          Providers should not have to discover that a section-heading-looking
+          line is clickable, especially after they have already seen value. */}
       {isLive && !request.plan_status && (
-        <div className="mt-8 border-t border-gray-100 pt-6">
-          {showPlans ? (
-            <>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-                Keep it running without a gap
-              </p>
-              <p className="mt-2 text-sm text-gray-500 leading-relaxed max-w-md">
-                Your free intro keeps running either way. When it ends, the
-                plan takes over the same day, at several times the volume, so
-                families keep arriving with no interruption.
-              </p>
-              <PlanChooser
-                request={request}
-                onCheckout={onCheckout}
-                onPlanSelected={onPlanSelected}
-                submitting={submitting}
-                error={error}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setShowPlans(false);
-                  onPlanDismissed?.();
-                }}
-                className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                Maybe later
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Continuity frame, anchored to the real end date when we have
-                  one. The reason to act now is the flight clock above, not
-                  manufactured urgency. */}
-              <button
-                type="button"
-                onClick={() => setShowPlans(true)}
-                className="text-sm font-medium text-primary-600 hover:underline"
-              >
-                {request.flight_end_date
-                  ? `Keep your campaign running past ${formatWeek(request.flight_end_date)}`
-                  : "Start a monthly plan early"}
-              </button>
-              <p className="mt-1.5 text-xs text-gray-400 leading-relaxed max-w-md">
-                The ads stop when your free intro ends. Starting a plan now
-                means no gap: the campaign keeps running and families keep
-                arriving.
-              </p>
-            </>
-          )}
+        <div className="mt-10 border-t border-gray-100 pt-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+            Keep it going
+          </p>
+          <h3 className="mt-2 text-xl font-display font-semibold text-gray-900">
+            {request.flight_end_date
+              ? `Keep your campaign running past ${formatWeek(request.flight_end_date)}.`
+              : "Keep your campaign running without a gap."}
+          </h3>
+          <p className="mt-2 text-sm text-gray-500 leading-relaxed max-w-lg">
+            Choose a monthly plan now and it takes over when your free intro
+            ends. Your intro continues either way, and nothing becomes paid
+            until you confirm in Stripe.
+          </p>
+          <PlanChooser
+            request={request}
+            onCheckout={onCheckout}
+            onPlanSelected={onPlanSelected}
+            submitting={submitting}
+            error={error}
+          />
         </div>
       )}
 

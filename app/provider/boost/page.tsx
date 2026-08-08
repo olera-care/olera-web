@@ -451,7 +451,6 @@ export default function ProviderBoostPage() {
             receipt={state.receipt}
             onCheckout={startCheckout}
             onPlanSelected={trackPlanSelected}
-            onPlanDismissed={trackNotNow}
             submitting={checkoutSubmitting}
             error={checkoutError}
             onEditPhotos={() => openEditor("gallery")}

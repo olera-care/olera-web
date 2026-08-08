@@ -20,9 +20,10 @@
  * + Budget-Step UX — Handoff"):
  *  - The $50 stop is a FREE one-time intro campaign Olera covers ("First
  *    campaign"), gated on the existing eligibility (verified + 70% complete).
- *  - Paid tiers are named by outcome (Starter / Growth / Scale) and priced flat
- *    and ALL-IN: ad spend + setup + management bundled. Never itemize a service
- *    fee, never per-lead pricing.
+ *  - Paid tiers are named by outcome (Starter / Momentum / Growth) and priced
+ *    flat and ALL-IN: ad spend + setup + management bundled. Scale is a custom
+ *    conversation, not a self-serve checkout. Never itemize a service fee,
+ *    never per-lead pricing.
  *  - The risk-reversal is the zero-inquiry-month guarantee (see
  *    /managed-ads-terms), surfaced here via BUDGET_TRUST_STRIP.
  *  - The apply flow does NOT ask the provider to pick a paid tier (2026-07-10:
@@ -34,8 +35,8 @@
  *
  * The honesty model: as the budget rises, the estimate shifts from REACH framing
  * ($50 = "You're live", NO number) to a LEAD range. The provider feels "more
- * spend -> real leads" without a lecture. Scale's blurb carries the "steady flow
- * honestly starts here" anchor; BUDGET_ESTIMATE_CAVEAT bridges to the live
+ * spend -> real leads" without a lecture. The custom Scale row carries the
+ * "steady flow honestly starts here" anchor; BUDGET_ESTIMATE_CAVEAT bridges to the live
  * `delivered` counter (the truthful payoff that justifies not promising leads
  * upfront).
  */
@@ -43,7 +44,7 @@
 export type BudgetStop = {
   /** Whole dollars per month. The $50 stop is the free intro Olera covers. */
   value: number;
-  /** Tier name — the outcome ladder (First campaign / Starter / Growth / Scale). */
+  /** Tier name — the outcome ladder (First campaign / Starter / Momentum / Growth / Scale). */
   name: string;
   /** Full label for the summary / review / facts rows, e.g. "Starter · $75/mo". */
   label: string;
@@ -96,6 +97,18 @@ export const BUDGET_STOPS: BudgetStop[] = [
     estimate: "A low-risk way to keep learning what families respond to.",
   },
   {
+    value: 150,
+    name: "Momentum",
+    label: "Momentum · $150/mo",
+    amount: "$150",
+    sublabel: "/mo",
+    kind: "leads",
+    headline: "1–2",
+    unit: "inquiries / mo",
+    blurb: "Build meaningful signal without making a large jump in spend.",
+    estimate: "Enough volume to build on what your intro learned.",
+  },
+  {
     value: 300,
     name: "Growth",
     label: "Growth · $300/mo",
@@ -107,19 +120,23 @@ export const BUDGET_STOPS: BudgetStop[] = [
     blurb: "More hours in front of families who are searching right now.",
     estimate: "A steady read on what your market sends.",
   },
-  {
-    value: STEADY_LEADS_THRESHOLD,
-    name: "Scale",
-    label: "Scale · $600+/mo",
-    amount: "$600+",
-    sublabel: "/mo",
-    kind: "leads",
-    headline: "4–8",
-    unit: "inquiries / mo",
-    blurb: "Where steady weekly inquiries begin. Most agencies run at this level.",
-    estimate: "Consistent flow, month over month.",
-  },
 ];
+
+/** Higher-volume service is intentionally consultative. It remains available
+ *  to label historical $600 subscriptions, but is excluded from BUDGET_STOPS
+ *  so request validation and Stripe self-serve checkout cannot select it. */
+export const CUSTOM_SCALE_STOP: BudgetStop = {
+  value: STEADY_LEADS_THRESHOLD,
+  name: "Scale",
+  label: "Scale · $600+/mo",
+  amount: "$600+",
+  sublabel: "/mo",
+  kind: "leads",
+  headline: "4–8",
+  unit: "inquiries / mo",
+  blurb: "Where steady weekly inquiries begin. We shape the market and budget with you.",
+  estimate: "Custom plan for consistent volume.",
+};
 
 /** The exact dollar values a request may carry (POST validation allowlist). */
 export const BUDGET_VALUES: number[] = BUDGET_STOPS.map((s) => s.value);
@@ -147,7 +164,8 @@ export const BUDGET_TRUST_STRIP: { value: string; label: string }[] = [
 /** Look up a stop by its dollar value (null-safe). */
 export function budgetStop(value: number | null | undefined): BudgetStop | null {
   if (value == null) return null;
-  return BUDGET_STOPS.find((s) => s.value === value) ?? null;
+  return BUDGET_STOPS.find((s) => s.value === value) ??
+    (CUSTOM_SCALE_STOP.value === value ? CUSTOM_SCALE_STOP : null);
 }
 
 /** Human label for a stored budget value (e.g. for the summary / in-motion echo). */

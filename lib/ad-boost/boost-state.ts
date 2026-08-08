@@ -36,7 +36,7 @@ export interface BoostRequest {
   created_at: string;
   /** Paid plan lifecycle from Stripe. NULL = never subscribed (intro-only). */
   plan_status: "active" | "past_due" | "canceled" | null;
-  /** Subscribed monthly plan in whole USD (75/300/600). NULL until checkout. */
+  /** Subscribed self-serve plan in whole USD (75/150/300). Historical/custom values may also exist. */
   plan_value: number | null;
   /** Idempotency marker for the promo-complete email; doubles as the concierge
    *  "intro is wrapped" signal that arms the wrap-up ask. */

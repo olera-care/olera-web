@@ -220,6 +220,11 @@ interface ManagedAdsFunnel {
 
 type ManagedAdsVariantKeyWithUnassigned = ManagedAdsVariant | "unassigned";
 type ManagedAdsFunnelByVariant = Record<ManagedAdsVariantKeyWithUnassigned, ManagedAdsFunnel>;
+type ManagedAdsPlanIntent = Record<string, {
+  selected: number;
+  checkout_started: number;
+  subscribed: number;
+}>;
 
 interface ReferrerBreakdown {
   ai_chat: number;
@@ -260,6 +265,7 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     managed_ads_funnel: ManagedAdsFunnel;
     managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
+    managed_ads_plan_intent: ManagedAdsPlanIntent;
     referrer_breakdown: ReferrerBreakdown;
   };
   prior: {
@@ -276,6 +282,7 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     managed_ads_funnel: ManagedAdsFunnel;
     managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
+    managed_ads_plan_intent: ManagedAdsPlanIntent;
     referrer_breakdown: ReferrerBreakdown;
   } | null;
   insight: string | null;
@@ -2971,6 +2978,20 @@ function ManagedAdsVariantsCard({
       stages: paymentStages,
     },
   ];
+  const planIntent = summary.windowed.managed_ads_plan_intent ?? {};
+  const namedPlans = [
+    { value: 75, label: "Starter" },
+    { value: 150, label: "Momentum" },
+    { value: 300, label: "Growth" },
+    { value: 600, label: "Scale · custom" },
+  ];
+  const knownPlanValues = new Set(namedPlans.map((plan) => String(plan.value)));
+  const historicalPlans = Object.keys(planIntent)
+    .filter((value) => !knownPlanValues.has(value))
+    .map((value) => ({ value: Number(value), label: "Historical" }))
+    .filter((plan) => Number.isFinite(plan.value))
+    .sort((a, b) => a.value - b.value);
+  const planRows = [...namedPlans, ...historicalPlans];
 
   return (
     <>
@@ -2999,6 +3020,46 @@ function ManagedAdsVariantsCard({
           </section>
         ))}
       </div>
+
+      <section className="mb-7 overflow-hidden rounded-xl border border-gray-100">
+        <div className="border-b border-gray-100 bg-gray-50/50 px-4 py-3">
+          <h3 className="text-xs font-semibold text-gray-800">Which price gets intent?</h3>
+          <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
+            Distinct providers by plan; someone can appear in more than one row after comparing tiers. Started checkout is the clearest price signal; Clicked tier excludes providers who accepted the preselected Starter without switching. Labels reflect the current ladder; older events remain grouped by dollar amount.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-left text-[10px] uppercase tracking-wider text-gray-400">
+                <th className="px-4 py-2.5 font-medium">Plan</th>
+                <th className="px-4 py-2.5 text-right font-medium">Clicked tier</th>
+                <th className="px-4 py-2.5 text-right font-medium">Started checkout</th>
+                <th className="px-4 py-2.5 text-right font-medium">Subscribed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {planRows.map((plan) => {
+                const row = planIntent[String(plan.value)] ?? {
+                  selected: 0,
+                  checkout_started: 0,
+                  subscribed: 0,
+                };
+                return (
+                  <tr key={`${plan.value}-${plan.label}`} className="border-b border-gray-50 last:border-0">
+                    <td className="px-4 py-3 font-medium text-gray-700">
+                      {plan.label} <span className="font-normal text-gray-400">· ${plan.value}{plan.value === 600 ? "+" : ""}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-gray-600">{row.selected}</td>
+                    <td className="px-4 py-3 text-right tabular-nums font-medium text-gray-900">{row.checkout_started}</td>
+                    <td className="px-4 py-3 text-right tabular-nums font-medium text-primary-700">{row.subscribed}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div className="border-t border-gray-100 pt-6">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">

@@ -9,6 +9,7 @@ import {
 } from "@/lib/ad-boost/boost-state";
 import {
   BUDGET_STOPS,
+  CUSTOM_SCALE_STOP,
   DEFAULT_BUDGET,
   budgetStop,
   budgetLabel,
@@ -403,6 +404,26 @@ export function PlanChooser({
           })}
         </div>
       </fieldset>
+
+      <a
+        href="mailto:support@olera.care?subject=Olera%20Ad%20Boost%20Scale"
+        onClick={() => onPlanSelected?.(CUSTOM_SCALE_STOP.value)}
+        className="mt-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl border border-dashed border-gray-200 px-5 py-4 text-left transition-colors hover:border-primary-300 hover:bg-primary-50/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+      >
+        <span>
+          <span className="text-base font-semibold text-gray-900">
+            {CUSTOM_SCALE_STOP.name}
+            <span className="font-normal text-gray-300"> · </span>
+            <span className="tabular-nums">{CUSTOM_SCALE_STOP.amount}/mo</span>
+          </span>
+          <span className="mt-1 block text-xs text-gray-400">
+            {estimateSummary(CUSTOM_SCALE_STOP)} · shaped around your market
+          </span>
+        </span>
+        <span className="shrink-0 text-sm font-medium text-primary-600">
+          Talk with us →
+        </span>
+      </a>
 
       {/* The de-risking, promoted from fine print to first-class promises —
           this is the page where money is asked, so this is where the safety

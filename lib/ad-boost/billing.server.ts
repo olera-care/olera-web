@@ -23,6 +23,10 @@ export const PAID_PLAN_VALUES: number[] = BUDGET_STOPS.filter(
 ).map((s) => s.value);
 
 function lookupKey(planValue: number): string {
+  // $150 previously represented the old Starter tier. Momentum needs a new
+  // lookup key so Stripe cannot reuse a historical price whose product name
+  // disagrees with the provider-facing ladder.
+  if (planValue === 150) return "adboost_momentum_150_monthly";
   return `adboost_${planValue}_monthly`;
 }
 

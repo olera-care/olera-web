@@ -26,6 +26,7 @@ import {
   BUDGET_STOPS,
   BUDGET_ESTIMATE_CAVEAT,
   BUDGET_TRUST_STRIP,
+  CUSTOM_SCALE_STOP,
   INTRO_STEP_LINE,
   PAID_PREVIEW_LINE,
   estimateSummary,
@@ -1033,6 +1034,14 @@ function ApplyExperience({
                     </dd>
                   </div>
                 ))}
+                <div className="flex items-baseline justify-between gap-4 py-3">
+                  <dt className="text-sm">
+                    <span className="font-medium text-gray-900">{CUSTOM_SCALE_STOP.name}</span>
+                    <span className="text-gray-300"> · </span>
+                    <span className="tabular-nums text-gray-500">{CUSTOM_SCALE_STOP.amount}/mo</span>
+                  </dt>
+                  <dd className="shrink-0 text-sm text-gray-400">Talk with us</dd>
+                </div>
               </dl>
               <p className="mt-4 max-w-md text-sm text-gray-500 leading-relaxed">
                 {PAID_PREVIEW_LINE}

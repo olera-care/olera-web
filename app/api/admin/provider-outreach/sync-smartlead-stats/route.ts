@@ -42,14 +42,12 @@ interface CampaignSyncResult {
     clicked: number;
   };
   touchpoints_created: number;
-  touchpoints_updated: number;
+  touchpoints_replaced: number;
   providers_not_found: number;
   /** Emails that couldn't be matched to providers (for debugging) */
   unmatched_emails?: string[];
   /** Number of insert operations that failed */
   insert_errors: number;
-  /** Number of update operations that failed */
-  update_errors: number;
   /** Sample error messages for debugging (first 5) */
   error_samples?: string[];
   error?: string;
@@ -127,11 +125,10 @@ export async function POST() {
     const result: CampaignSyncResult = {
       campaign_id: campaignId,
       touchpoints_created: 0,
-      touchpoints_updated: 0,
+      touchpoints_replaced: 0,
       providers_not_found: 0,
       unmatched_emails: [],
       insert_errors: 0,
-      update_errors: 0,
       error_samples: [],
     };
 
@@ -192,65 +189,66 @@ export async function POST() {
         .limit(1)
         .single();
 
+      // Build the new touchpoint data
+      const newTouchpointData = {
+        provider_id: providerId,
+        touchpoint_type: "email_sent",
+        details: {
+          source: "smartlead",
+          campaign_id: campaignId,
+          lead_email: lead.lead_email,
+          sequence_step: sequenceStep,
+          open_count: openCount,
+          click_count: clickCount,
+          is_bounced: lead.is_bounced ?? false,
+          is_unsubscribed: lead.is_unsubscribed ?? false,
+          synthetic: true, // Mark as backfilled
+          synced_from_smartlead: true,
+          synced_at: new Date().toISOString(),
+        },
+        created_at: lead.sent_time ?? new Date().toISOString(),
+      };
+
       if (existingTouchpoint) {
-        // Update existing touchpoint with engagement data
-        const existingDetails = (existingTouchpoint.details ?? {}) as Record<string, unknown>;
-        const existingOpenCount = Number(existingDetails.open_count ?? 0);
-        const existingClickCount = Number(existingDetails.click_count ?? 0);
+        // Delete existing touchpoint, then create new one with engagement data
+        // (Table is append-only for UPDATE, but DELETE might be allowed)
+        const { error: deleteError } = await supabase
+          .from("provider_outreach_touchpoints")
+          .delete()
+          .eq("id", existingTouchpoint.id);
 
-        // Only update if we have new/higher engagement
-        if (openCount > existingOpenCount || clickCount > existingClickCount) {
-          const { error: updateError } = await supabase
-            .from("provider_outreach_touchpoints")
-            .update({
-              details: {
-                ...existingDetails,
-                sequence_step: sequenceStep,
-                open_count: Math.max(openCount, existingOpenCount),
-                click_count: Math.max(clickCount, existingClickCount),
-                synced_from_smartlead: true,
-                synced_at: new Date().toISOString(),
-              },
-            })
-            .eq("id", existingTouchpoint.id);
-
-          if (updateError) {
-            result.update_errors++;
-            // Capture first 5 error messages for debugging
-            if (result.error_samples && result.error_samples.length < 5) {
-              result.error_samples.push(`UPDATE ${providerId}: ${updateError.message}`);
-            }
-            console.error(`[sync-smartlead-stats] Update failed for provider ${providerId}:`, updateError.message);
-          } else {
-            result.touchpoints_updated++;
+        if (deleteError) {
+          // DELETE also blocked - capture error and skip
+          result.insert_errors++;
+          if (result.error_samples && result.error_samples.length < 5) {
+            result.error_samples.push(`DELETE ${providerId}: ${deleteError.message}`);
           }
+          console.error(`[sync-smartlead-stats] Delete failed for provider ${providerId}:`, deleteError.message);
+          continue;
+        }
+
+        // Now insert the new touchpoint with engagement data
+        const { error: insertError } = await supabase
+          .from("provider_outreach_touchpoints")
+          .insert(newTouchpointData);
+
+        if (insertError) {
+          result.insert_errors++;
+          if (result.error_samples && result.error_samples.length < 5) {
+            result.error_samples.push(`INSERT (replace) ${providerId}: ${insertError.message}`);
+          }
+          console.error(`[sync-smartlead-stats] Insert (replace) failed for provider ${providerId}:`, insertError.message);
+        } else {
+          result.touchpoints_replaced++;
         }
       } else {
         // Create new touchpoint
         const { error: insertError } = await supabase
           .from("provider_outreach_touchpoints")
-          .insert({
-            provider_id: providerId,
-            touchpoint_type: "email_sent",
-            details: {
-              source: "smartlead",
-              campaign_id: campaignId,
-              lead_email: lead.lead_email,
-              sequence_step: sequenceStep,
-              open_count: openCount,
-              click_count: clickCount,
-              is_bounced: lead.is_bounced ?? false,
-              is_unsubscribed: lead.is_unsubscribed ?? false,
-              synthetic: true, // Mark as backfilled
-              synced_from_smartlead: true,
-              synced_at: new Date().toISOString(),
-            },
-            created_at: lead.sent_time ?? new Date().toISOString(),
-          });
+          .insert(newTouchpointData);
 
         if (insertError) {
           result.insert_errors++;
-          // Capture first 5 error messages for debugging
           if (result.error_samples && result.error_samples.length < 5) {
             result.error_samples.push(`INSERT ${providerId}: ${insertError.message}`);
           }
@@ -273,20 +271,18 @@ export async function POST() {
   }
 
   const totalCreated = results.reduce((sum, r) => sum + r.touchpoints_created, 0);
-  const totalUpdated = results.reduce((sum, r) => sum + r.touchpoints_updated, 0);
+  const totalReplaced = results.reduce((sum, r) => sum + r.touchpoints_replaced, 0);
   const totalInsertErrors = results.reduce((sum, r) => sum + r.insert_errors, 0);
-  const totalUpdateErrors = results.reduce((sum, r) => sum + r.update_errors, 0);
   const totalProvidersNotFound = results.reduce((sum, r) => sum + r.providers_not_found, 0);
   const hasCampaignErrors = results.some(r => r.error);
-  const hasDbErrors = totalInsertErrors > 0 || totalUpdateErrors > 0;
+  const hasDbErrors = totalInsertErrors > 0;
 
   return NextResponse.json({
     ok: !hasCampaignErrors && !hasDbErrors,
     campaigns_synced: results.length,
     touchpoints_created: totalCreated,
-    touchpoints_updated: totalUpdated,
+    touchpoints_replaced: totalReplaced,
     insert_errors: totalInsertErrors,
-    update_errors: totalUpdateErrors,
     providers_not_found: totalProvidersNotFound,
     results,
   });

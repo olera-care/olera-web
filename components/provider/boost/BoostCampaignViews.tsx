@@ -332,7 +332,10 @@ export function CampaignWrapUpPending({ request }: { request: BoostRequest }) {
 /**
  * The plan cards + de-risk promises + checkout CTA, extracted so the wrap-up
  * moment and the live view's early-upgrade path stay one implementation.
- * Owns its own selection state; defaults to the signup intent, else Starter.
+ * Owns its own selection state and always defaults to the current Starter.
+ * `intended_monthly_budget` is historical signup data: older campaign rows can
+ * carry the former $150 Starter choice, while new requests carry the free intro
+ * amount. Neither should silently override today's $75 entry offer.
  */
 export function PlanChooser({
   request,
@@ -348,13 +351,9 @@ export function PlanChooser({
   error: string | null;
 }) {
   const paidStops = BUDGET_STOPS.filter((b) => b.sublabel !== "on us");
-  // Default to what they said they intended at signup, else Starter.
-  const [plan, setPlan] = useState<number>(() =>
-    paidStops.some((b) => b.value === request.intended_monthly_budget)
-      ? (request.intended_monthly_budget as number)
-      : DEFAULT_BUDGET,
-  );
+  const [plan, setPlan] = useState<number>(DEFAULT_BUDGET);
   const selected = budgetStop(plan);
+  const scaleContactHref = `mailto:support@olera.care?subject=${encodeURIComponent("Olera Ad Boost Scale")}&body=${encodeURIComponent(`Campaign request: ${request.id}`)}`;
 
   return (
     <>
@@ -406,7 +405,7 @@ export function PlanChooser({
       </fieldset>
 
       <a
-        href="mailto:support@olera.care?subject=Olera%20Ad%20Boost%20Scale"
+        href={scaleContactHref}
         onClick={() => onPlanSelected?.(CUSTOM_SCALE_STOP.value)}
         className="mt-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl border border-dashed border-gray-200 px-5 py-4 text-left transition-colors hover:border-primary-300 hover:bg-primary-50/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
       >

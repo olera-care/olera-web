@@ -18,6 +18,8 @@ const REASON_OPTIONS = [
   { value: "angry_optout", label: "Angry opt-out" },
   { value: "legal", label: "Legal" },
   { value: "spam_complaint", label: "Spam complaint" },
+  // Added automatically by the SMS webhook when someone texts STOP.
+  { value: "sms_stop", label: "Texted STOP" },
   { value: "other", label: "Other" },
 ] as const;
 

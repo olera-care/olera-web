@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/PA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-06-19T09:41:54.992Z
+ * Last updated: 2026-08-07T11:45:11.721Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -114,9 +114,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card (both parts A and B)",
         "Current Medicaid card or approval letter",
         "Proof of Pennsylvania residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Property deeds and tax statements for real estate owned",
@@ -203,7 +203,8 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "Cecille Chavez",
-      "reviewedAt": "2026-06-17"
+      "reviewedAt": "2026-06-17",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "life-program",
@@ -500,8 +501,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 65+ with Medicare and struggling with out-of-pocket medical costs, Pennsylvania's Healthy Horizons program can help. This program offers different levels of assistance depending on income: the QMB tier can cover Medicare Part A and B premiums, deductibles, and coinsurance, while SLMB and QI tiers provide assistance with the Medicare Part B premium.\n\nTo qualify, your loved one must be entitled to Medicare Part A and meet income and resource limits. Because these calculations can include spousal income and assets, the financial picture may be complex, but the potential savings are significant for those who qualify.",
-      "savingsRange": "$200 – $3,000/year in 2026",
-      "savingsSource": "Medicare Part B premium ($185/month in 2026) plus deductibles and copayments",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -686,7 +687,8 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "Cecille Chavez",
-      "reviewedAt": "2026-06-17"
+      "reviewedAt": "2026-06-17",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

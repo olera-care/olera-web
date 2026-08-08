@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.866Z
+ * Last updated: 2026-08-07T11:45:11.715Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -389,9 +389,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card for applicant",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of New Jersey residency (utility bill, lease agreement, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Social Security award letter or benefit statement",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
@@ -483,7 +483,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-877-222-3737",
       "sourceUrl": "https://www.state.nj.us/humanservices/doas/services/jacc/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "paad-prescription-assistance",

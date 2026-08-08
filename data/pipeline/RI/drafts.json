@@ -571,8 +571,8 @@
         ]
       },
       "intro": "If your loved one has Medicare but struggles with the monthly premiums and medical costs, Rhode Island's Medicare Savings Programs can help. The program has two main levels: Qualified Medicare Beneficiary (QMB) pays all Medicare costs including the $185/month Part B premium, deductibles, and copays. Qualified Individual (QI) covers just the Part B premium but has limited funding and operates first-come, first-served.\n\nIncome limits are $1,683/month for a single person (QMB) or $2,255/month (QI). Your loved one also needs less than $9,950 in countable assets. Because this program pays Medicare costs directly to providers, your loved one won't see bills for covered services, the state handles payment automatically.\n\nRhode Island expanded its program in February 2026, automatically moving people from the limited SLMB tier into the more comprehensive QMB program. If qualified, your loved one also gets automatic enrollment in Extra Help for prescription drug costs.",
-      "savingsRange": "$2,220 – $3,500/year in 2026",
-      "savingsSource": "Part B premium savings ($185/month minimum) plus additional medical cost coverage for QMB recipients",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -743,7 +743,8 @@
       "phone": "(401) 462-0311",
       "sourceUrl": "https://eohhs.ri.gov/Consumer/ProgramsServices/MedicarePremiumPaymentProgram.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

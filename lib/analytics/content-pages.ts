@@ -1,0 +1,44 @@
+/**
+ * Which public content pages roll up into which admin Overview card.
+ *
+ * Both the count (api/admin/network-health) and the trend line
+ * (api/admin/network-health/trend) read these rules, so a page can never be
+ * counted by one and missed by the other.
+ *
+ * Classification is by path prefix against `page_events.page`. The benefits
+ * tree lives entirely under /benefits/** after the Tier 7 redirects in
+ * next.config.ts (/senior-benefits/:state/** 301s to /benefits/**); only the
+ * /senior-benefits root survives as the Benefits Hub landing page, so it is
+ * listed explicitly.
+ */
+export type ContentPageClass = "benefit" | "guide";
+
+/**
+ * PostgREST `or=` filter selecting every page in a class. Values contain no
+ * commas, so they are safe to join into the comma-separated or() syntax.
+ */
+export const CONTENT_PAGE_FILTERS: Record<ContentPageClass, string> = {
+  // Everything under /benefits counts — hub, state, program, and the finder /
+  // spend-down calculator tools. Plus the surviving /senior-benefits hub.
+  //
+  // The wildcard requires the trailing slash on purpose: a bare `/benefits%`
+  // also swallows the unrelated /benefits-outcome route.
+  benefit: "page.eq./senior-benefits,page.eq./benefits,page.like./benefits/%",
+  // Editorial: the Caregiver Support index and every article beneath it.
+  guide: "page.eq./caregiver-support,page.like./caregiver-support/%",
+};
+
+/** Same rules in code form, for classifying rows already in hand. */
+export function classifyContentPage(page: string): ContentPageClass | null {
+  if (
+    page === "/senior-benefits" ||
+    page === "/benefits" ||
+    page.startsWith("/benefits/")
+  ) {
+    return "benefit";
+  }
+  if (page === "/caregiver-support" || page.startsWith("/caregiver-support/")) {
+    return "guide";
+  }
+  return null;
+}

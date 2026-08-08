@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getCampaignLeadStatistics, isSmartleadConfigured } from "@/lib/smartlead";
 
 /**
  * GET /api/admin/provider-outreach/email-stats
@@ -203,7 +204,76 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Calculate rates and build response
+    // 3. Fetch LIVE data from SmartLead API for accurate per-template engagement
+    // The touchpoints table is append-only (can't update engagement), so we fetch
+    // directly from SmartLead API to get real open/click counts per sequence step.
+    if (isSmartleadConfigured()) {
+      // Get all campaign IDs from tracking data
+      const { data: trackingWithCampaigns } = await db
+        .from("provider_outreach_tracking")
+        .select("smartlead_data")
+        .not("smartlead_data", "is", null);
+
+      if (trackingWithCampaigns && trackingWithCampaigns.length > 0) {
+        const campaignIds = new Set<number>();
+        for (const row of trackingWithCampaigns) {
+          const sd = row.smartlead_data as { campaign_id?: number } | null;
+          if (typeof sd?.campaign_id === "number") {
+            campaignIds.add(sd.campaign_id);
+          }
+        }
+
+        // Fetch per-lead stats from each campaign and aggregate by sequence_number
+        // IMPORTANT: We track sent/opened/clicked consistently using SmartLead data
+        // A lead with sequence_number=N has been sent emails for steps 1 through N
+        const smartleadStats: Record<number, { sent: number; opened: number; clicked: number }> = {
+          1: { sent: 0, opened: 0, clicked: 0 },
+          2: { sent: 0, opened: 0, clicked: 0 },
+          3: { sent: 0, opened: 0, clicked: 0 },
+          4: { sent: 0, opened: 0, clicked: 0 },
+        };
+
+        for (const campaignId of campaignIds) {
+          const leadsResult = await getCampaignLeadStatistics(campaignId);
+          if (leadsResult.ok && leadsResult.data) {
+            for (const lead of leadsResult.data) {
+              const currentStep = lead.sequence_number && lead.sequence_number > 0 && lead.sequence_number <= 4
+                ? lead.sequence_number
+                : 1;
+
+              // A lead on step N has been sent emails for steps 1 through N
+              // (SmartLead sequences are progressive)
+              for (let step = 1; step <= currentStep; step++) {
+                smartleadStats[step].sent++;
+              }
+
+              // Attribute opens/clicks to current step (best approximation)
+              // SmartLead gives aggregate counts, we can't know which specific email was opened
+              if ((lead.open_count ?? 0) > 0) {
+                smartleadStats[currentStep].opened++;
+              }
+              if ((lead.click_count ?? 0) > 0) {
+                smartleadStats[currentStep].clicked++;
+              }
+            }
+          }
+        }
+
+        // Use SmartLead data for SmartLead campaigns (more accurate than stale touchpoints)
+        // Take the higher value in case touchpoints have some data
+        for (const [stepStr, data] of Object.entries(smartleadStats)) {
+          const step = parseInt(stepStr, 10);
+          const templateKey = SEQUENCE_STEP_MAP[step]?.template_key;
+          if (templateKey && statsMap[templateKey]) {
+            statsMap[templateKey].sent = Math.max(statsMap[templateKey].sent, data.sent);
+            statsMap[templateKey].opened = Math.max(statsMap[templateKey].opened, data.opened);
+            statsMap[templateKey].clicked = Math.max(statsMap[templateKey].clicked, data.clicked);
+          }
+        }
+      }
+    }
+
+    // 4. Calculate rates and build response
     const templates: TemplateStats[] = [];
     let totalSent = 0;
     let totalOpened = 0;

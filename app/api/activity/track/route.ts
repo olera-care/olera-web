@@ -5,6 +5,7 @@ import {
   classifyReferrer,
   sanitizeReferrer,
 } from "@/lib/analytics/referrer";
+import { classifyUserAgent } from "@/lib/analytics/user-agent";
 
 const PROVIDER_EVENT_TYPES = [
   "email_click",
@@ -135,14 +136,6 @@ function getServiceDb() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) return null;
   return createClient(url, serviceKey);
-}
-
-function classifyUserAgent(ua: string | null): "mobile" | "tablet" | "desktop" | "other" {
-  if (!ua) return "other";
-  if (/iPad|Tablet/i.test(ua)) return "tablet";
-  if (/Mobile|iPhone|Android/i.test(ua)) return "mobile";
-  if (/Mozilla|Chrome|Safari|Firefox|Edg/i.test(ua)) return "desktop";
-  return "other";
 }
 
 async function markEmailClicked(

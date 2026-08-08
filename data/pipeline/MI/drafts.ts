@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.860Z
+ * Last updated: 2026-08-07T11:45:11.709Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -114,9 +114,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letters for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Current Medicaid card or proof of Medicaid eligibility",
         "Bank statements for all accounts (last 3 months)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Investment account statements (stocks, bonds, annuities)",
         "Property deeds and current tax assessments",
         "Vehicle titles and registration documents",
@@ -209,7 +209,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "health-link-program",

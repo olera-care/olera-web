@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { isBotRequest } from "@/lib/analytics/bot-filter";
+import { isBotRequest, incrementBotReject } from "@/lib/analytics/bot-filter";
+import { classifyReferrer, sanitizeReferrer } from "@/lib/analytics/referrer";
+import { classifyUserAgent } from "@/lib/analytics/user-agent";
 
 const VALID_EVENT_TYPES = [
   "page_view",
@@ -28,6 +30,7 @@ export async function POST(request: NextRequest) {
   try {
     const userAgent = request.headers.get("user-agent");
     if (isBotRequest(userAgent)) {
+      incrementBotReject();
       return new NextResponse(null, { status: 204 });
     }
 
@@ -56,11 +59,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Same enrichment the anonymous branch of /api/activity/track applies, so
+    // content page views and provider page views can be sliced by device and
+    // traffic source with one shared vocabulary. No raw User-Agent is stored.
+    const enrichedMetadata = {
+      ...(metadata || {}),
+      ua_class: classifyUserAgent(userAgent),
+      referrer: sanitizeReferrer(metadata?.referrer),
+      referrer_class: classifyReferrer(metadata?.referrer),
+    };
+
     const { error } = await db.from("page_events").insert({
       page,
       event_type,
       session_id: session_id || null,
-      metadata: metadata || {},
+      metadata: enrichedMetadata,
     });
 
     if (error) {

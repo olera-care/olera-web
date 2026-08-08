@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getStateById, allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
 import { pipelineDrafts, type PipelineDraft } from "@/data/pipeline-drafts";
 import { ProgramPageV3 } from "@/components/waiver-library/ProgramPageV3";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 import { getRelatedArticles } from "@/lib/content";
 import { getDisplayName } from "@/lib/program-name";
 import { getEnrichedProgram } from "@/lib/program-data";
@@ -263,6 +264,7 @@ export default async function BenefitsProgramPage({ params }: Props) {
 
   return (
     <>
+      <ContentViewTracker page={`/benefits/${slug}/${programId}`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}

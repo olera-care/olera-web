@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getStateById, allStates, type StateData, type WaiverProgram } from "@/data/waiver-library";
 import { pipelineDrafts, type PipelineStateOverview, type PipelineDraft } from "@/data/pipeline-drafts";
 import { StatePageV3 } from "@/components/waiver-library/StatePageV3";
+import { ContentViewTracker } from "@/components/analytics/ContentViewTracker";
 import { createClient } from "@/lib/supabase/server";
 import { shouldDiscoverBenefitsProgram } from "@/lib/benefits/program-content-quality";
 
@@ -274,6 +275,7 @@ export default async function BenefitsSlugPage({ params }: Props) {
 
   return (
     <>
+      <ContentViewTracker page={`/benefits/${slug}`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       {faqJsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />}

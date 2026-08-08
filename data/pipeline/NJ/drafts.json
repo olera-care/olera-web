@@ -384,9 +384,9 @@
       },
       "documentsNeeded": [
         "Social Security card for applicant",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of New Jersey residency (utility bill, lease agreement, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Social Security award letter or benefit statement",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
@@ -478,7 +478,8 @@
       "phone": "1-877-222-3737",
       "sourceUrl": "https://www.state.nj.us/humanservices/doas/services/jacc/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "paad-prescription-assistance",

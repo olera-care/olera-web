@@ -23,9 +23,9 @@
         ]
       },
       "intro": "If your loved one is on Medicare and struggles with monthly premiums or the 20% Medicare doesn't cover, Colorado's Medicare Savings Programs can help. These federal programs pay Medicare Part B premiums (around $185/month in 2026) and, depending on income level, cover deductibles and copays that Medicare leaves behind.\n\nThere are three tiers: QMB provides the most comprehensive coverage, paying both premiums and all out-of-pocket costs. SLMB and QI cover just the monthly premium, leaving your loved one responsible for deductibles and copays. Because these programs have both income and asset limits (typically around $9,660 for individuals, $14,490 for couples), your loved one's savings and investments count toward eligibility.",
-      "savingsRange": "$2,220 – $4,500/year in 2026",
-      "savingsSource": "Medicare Part B premium ($185/month) plus potential deductible and coinsurance coverage",
-      "savingsVerified": false,
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 65+ or disabled on Medicare",
@@ -228,7 +228,8 @@
       "phone": "(800) 221-3943",
       "sourceUrl": "https://www.healthfirstcolorado.com/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "hcbs-waivers",
@@ -603,8 +604,8 @@
         ]
       },
       "intro": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400+ monthly toward groceries through SNAP. Because seniors have relaxed income rules and special medical deductions, your loved one might qualify even if their Social Security puts them slightly over the standard income limits. In Colorado, there's no asset limit for most households, so your loved one can keep their home, car, and modest savings.\n\nSNAP provides an EBT card that works like a debit card at grocery stores, farmers markets, and many retailers. The amount depends on household size and income, a two-person elderly household with net income around $1,000/month typically receives about $400/month. Because all medical expenses over $35/month count as deductions for seniors, many families are surprised to discover their loved one qualifies.",
-      "savingsRange": "$1,200 – $4,800/year in 2026",
-      "savingsSource": "Based on typical monthly allotments for elderly households",
+      "savingsRange": "Up to $3,576/year for one person (FY2026 maximum)",
+      "savingsSource": "USDA FY2026 maximum allotment for a 1-person household is $298/month; actual amounts vary by household size, net income, and deductions",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -707,13 +708,13 @@
         ]
       },
       "documentsNeeded": [
+        "Proof of Colorado residency (utility bill, lease, or state-issued document)",
         "Social Security award letters for all household members",
+        "Medical bills and receipts showing out-of-pocket expenses over $35/month",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
-        "Medical bills and receipts showing out-of-pocket expenses over $35/month",
         "Rent or mortgage statement showing monthly housing costs",
         "Recent utility bills (electricity, gas, water, trash)",
-        "Proof of Colorado residency (utility bill, lease, or state-issued document)",
         "Social Security cards or proof of application for all household members",
         "Proof of citizenship or legal immigration status",
         "Life insurance policies with cash values",
@@ -722,15 +723,27 @@
       ],
       "contacts": [
         {
-          "label": "EBT Customer Service",
-          "phone": "(888) 328-2656",
-          "description": "SNAP application help and EBT card issues",
+          "label": "Hunger Free Colorado Food Resource Hotline",
+          "phone": "(855) 855-4626",
+          "description": "Free help applying for SNAP over the phone, in 150+ languages. Not a government office, but they walk you through the application.",
+          "hours": "Mon-Thu 8:30am-4:30pm, Fri 8am-12pm MT"
+        },
+        {
+          "label": "Colorado SNAP Support Line",
+          "phone": "(800) 816-4451",
+          "description": "State line for case status and general SNAP questions. Automated system.",
           "hours": "Business hours"
         },
         {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
-          "description": "Free 24/7 helpline to find your local county human services office",
+          "description": "Free 24/7 helpline to find your local county human services office, where applications are filed.",
+          "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "EBT Card Customer Service",
+          "phone": "(888) 328-2656",
+          "description": "Lost, stolen, or damaged EBT cards only. This line does not take applications.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -790,10 +803,11 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(888) 328-2656",
+      "phone": "(855) 855-4626",
       "sourceUrl": "https://www.colorado.gov/PEAK",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "weatherization-assistance-program",

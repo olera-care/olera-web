@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.867Z
+ * Last updated: 2026-08-07T11:45:11.716Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -571,9 +571,9 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is on Medicare and struggling with premiums, deductibles, or copays, Nevada's Medicare Savings Programs can eliminate most or all of these costs. The three programs cover different income levels: QMB (up to $1,235/month for singles) covers all Medicare costs, SLMB (up to $1,478/month) covers Part B premiums, and QI (up to $1,660/month) covers Part B premiums plus prescription drug savings.\n\nBecause these programs work directly with Medicare, your loved one won't get bills for covered services, the state pays providers directly. QMB provides the most comprehensive coverage, paying Medicare premiums, deductibles, and all copays for Medicare-approved services. All three programs also qualify your loved one for Extra Help with prescription drug costs, reducing copays to $12.65 or less per medication.\n\nIncome limits change every April, and QI has limited federal funding that can run out during the year. Your loved one must be enrolled in both Medicare Parts A and B, and asset limits are $9,090 for singles or $13,630 for married couples.",
-      "savingsRange": "$1,800 – $7,200/year",
-      "savingsSource": "Medicare Part B premiums ($174.70/month in 2026) plus potential deductibles and copays",
-      "savingsVerified": false,
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 65+ or disabled with Medicare",
@@ -763,7 +763,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(775) 684-0645",
       "sourceUrl": "https://www.dss.nv.gov/programs/medical/general-medical-information/2-general-information-4mb/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

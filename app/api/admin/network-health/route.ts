@@ -5,6 +5,7 @@ import {
   fetchMeaningfulProviderActivity,
 } from "@/lib/admin-provider-activity";
 import { resolveCanonicalProviderKeys } from "@/lib/provider-id-variants";
+import { CONTENT_PAGE_FILTERS } from "@/lib/analytics/content-pages";
 
 type ReferralActivityRow = {
   profile_id: string | null;
@@ -78,6 +79,23 @@ export async function GET(request: NextRequest) {
     .eq("event_type", "page_view")
     .not("metadata->>session_id", "is", null)
     .neq("metadata->>session_id", "");
+  // Content page views live in page_events (not provider-scoped). Same
+  // definition as provider page views above — one row per view, session_id
+  // required — so the three cards on the Overview grid are comparable.
+  let benefitPageViewsQuery = db
+    .from("page_events")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", "page_view")
+    .not("session_id", "is", null)
+    .neq("session_id", "")
+    .or(CONTENT_PAGE_FILTERS.benefit);
+  let guidePageViewsQuery = db
+    .from("page_events")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", "page_view")
+    .not("session_id", "is", null)
+    .neq("session_id", "")
+    .or(CONTENT_PAGE_FILTERS.guide);
   let leadsQuery = db
     .from("provider_activity")
     .select("id", { count: "exact", head: true })
@@ -122,6 +140,8 @@ export async function GET(request: NextRequest) {
 
   if (from) {
     pageViewsQuery = pageViewsQuery.gte("created_at", from);
+    benefitPageViewsQuery = benefitPageViewsQuery.gte("created_at", from);
+    guidePageViewsQuery = guidePageViewsQuery.gte("created_at", from);
     leadsQuery = leadsQuery.gte("created_at", from);
     questionsAskedQuery = questionsAskedQuery.gte("created_at", from);
     questionsAnsweredQuery = questionsAnsweredQuery.gte("answered_at", from);
@@ -134,6 +154,8 @@ export async function GET(request: NextRequest) {
   }
   if (to) {
     pageViewsQuery = pageViewsQuery.lt("created_at", to);
+    benefitPageViewsQuery = benefitPageViewsQuery.lt("created_at", to);
+    guidePageViewsQuery = guidePageViewsQuery.lt("created_at", to);
     leadsQuery = leadsQuery.lt("created_at", to);
     questionsAskedQuery = questionsAskedQuery.lt("created_at", to);
     questionsAnsweredQuery = questionsAnsweredQuery.lt("answered_at", to);
@@ -147,6 +169,8 @@ export async function GET(request: NextRequest) {
 
   const [
     pageViews,
+    benefitPageViews,
+    guidePageViews,
     leads,
     questionsAsked,
     questionsAnswered,
@@ -160,6 +184,8 @@ export async function GET(request: NextRequest) {
     providerActivity,
   ] = await Promise.all([
     pageViewsQuery,
+    benefitPageViewsQuery,
+    guidePageViewsQuery,
     leadsQuery,
     questionsAskedQuery,
     questionsAnsweredQuery,
@@ -173,6 +199,8 @@ export async function GET(request: NextRequest) {
     fetchMeaningfulProviderActivity(db, from, to),
   ]);
   const error = pageViews.error
+    ?? benefitPageViews.error
+    ?? guidePageViews.error
     ?? leads.error
     ?? questionsAsked.error
     ?? questionsAnswered.error
@@ -238,6 +266,8 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     providerPageViews: pageViews.count ?? 0,
+    benefitPageViews: benefitPageViews.count ?? 0,
+    guidePageViews: guidePageViews.count ?? 0,
     leadsReceived: leads.count ?? 0,
     questionsAsked: askedCount,
     questionsAnswered: answeredCount,

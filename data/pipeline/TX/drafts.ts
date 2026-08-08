@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.940Z
+ * Last updated: 2026-08-07T11:45:11.725Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -142,7 +142,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card showing Parts A and B (for QMB/SLMB/QI)",
+        "Medicare card (you need Medicare Part A, or Part B immunosuppressive-drug coverage)",
         "Proof of Texas residency (utility bill, lease agreement, or state-issued document)",
         "Citizenship or immigration documents for all household members",
         "Pay stubs from last 30 days or most recent tax return",
@@ -268,7 +268,7 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "star-plus-medicaid-hcbs",
@@ -818,8 +818,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Texas 2-1-1",
           "phone": "2-1-1",
-          "description": "Statewide helpline for SNAP applications and local office locations",
-          "hours": "24 hours, 7 days a week"
+          "description": "Statewide helpline. Choose your language, then press 2 for SNAP staff, available Mon-Fri 8am-6pm CT. The general referral line answers 24/7.",
+          "hours": "Mon-Fri 8am-6pm CT for benefits staff"
         },
         {
           "label": "HHSC Customer Service",
@@ -879,7 +879,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.yourtexasbenefits.com",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
-      "lastVerifiedDate": "2026-07-31"
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "liheap-energy-assistance",
@@ -1658,9 +1658,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both parts A and B)",
         "Proof of age (birth certificate or passport)",
         "Proof of Texas residency (utility bill, lease, or state-issued document)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -1766,7 +1766,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.hhs.texas.gov/services/long-term-care/home-community-based-care/community-based-alternatives-cba",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-10"
+      "draftedAt": "2026-04-10",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "community-caregiver-support",

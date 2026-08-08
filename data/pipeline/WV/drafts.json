@@ -23,8 +23,8 @@
         ]
       },
       "intro": "If your loved one struggles to pay Medicare premiums or prescription costs, West Virginia's Medicare Savings Programs can help. These programs pay Medicare Part B premiums ($185/month in 2026) and may cover deductibles and copays, plus automatically qualify your loved one for Extra Help with prescription costs (drug copays drop to $12.65 or less).\n\nThere are three programs with different income limits and benefits. QMB covers the most costs for those with income up to $1,350/month for singles. SLMB and QI cover Medicare premiums for those with slightly higher incomes up to about $1,824/month for singles. All require assets below $9,660 for individuals or $14,470 for couples.\n\nBecause these programs automatically trigger Extra Help for prescription drug coverage, your loved one gets dual protection against both Medicare costs and high prescription prices. QI has limited funding and operates first-come, first-served, so apply early in the year.",
-      "savingsRange": "$2,220 – $4,500/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($2,220/year), deductibles, and prescription drug savings through Extra Help",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -211,7 +211,8 @@
       "phone": "(304) 587-0105",
       "sourceUrl": "https://bms.wv.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "aged-disabled-waiver",
@@ -470,10 +471,10 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both parts A and B)",
         "Medicaid card if applicable",
         "Social Security card",
         "Valid government-issued photo ID or driver's license",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of West Virginia residency (utility bill, lease agreement, or bank statement)",
         "List of all current medications with dosages",
         "Medical records from primary care doctor and specialists",
@@ -555,7 +556,8 @@
       "phone": null,
       "sourceUrl": "https://paceyourlifemwv.com",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",
@@ -2227,9 +2229,9 @@
       "contacts": [
         {
           "label": "West Virginia Division of Rehabilitation Services",
-          "phone": null,
-          "description": "Rehabilitation counselors specializing in blind and visually impaired services, visit website for local office numbers",
-          "hours": "Business hours vary by office"
+          "phone": "1-800-642-3021",
+          "description": "Statewide line for the VISIONS program. Ask for VISIONS when you call.",
+          "hours": "Business hours"
         },
         {
           "label": "West Virginia 2-1-1",
@@ -2285,10 +2287,11 @@
         "visualTone": "warm"
       },
       "icon": "Wheelchair",
-      "phone": null,
-      "sourceUrl": "https://wvdrs.org/adults/specialized-services/services-for-the-blind-and-impaired/",
+      "phone": "1-800-642-3021",
+      "sourceUrl": "https://wvdrs.org/adults/specialized-services/visions/amp/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "home-modification-accessibility-grant",

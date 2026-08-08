@@ -61,7 +61,10 @@ export default async function StateSpendDownPage({
 
   return (
     <Suspense>
-      <SpendDownCalculatorPage initialStateCode={code} />
+      <SpendDownCalculatorPage
+        initialStateCode={code}
+        trackingPath={`/benefits/spend-down-calculator/${slug}`}
+      />
     </Suspense>
   );
 }

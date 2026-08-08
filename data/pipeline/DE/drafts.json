@@ -574,8 +574,8 @@
         ]
       },
       "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or co-pays, Delaware may cover these costs entirely. The state offers two levels of help: QMB (Qualified Medicare Beneficiary) covers all Medicare out-of-pocket costs for people with income under $1,325/month, while SLMB (Specified Low-Income Medicare Beneficiary) covers just the Part B premium for those earning $1,325–$1,585/month.\n\nUnlike most states, Delaware has no asset test, your loved one can own their home, have savings, or other assets and still qualify. The only requirement is low income and existing Medicare coverage. Because Delaware pays providers directly, your loved one cannot be billed for Medicare-covered services beyond what Medicare allows.\n\nThis isn't additional Medicaid coverage, it's specifically Medicare cost-sharing help. Your loved one keeps their existing Medicare benefits and providers, but Delaware eliminates the financial burden of premiums, deductibles, and co-payments.",
-      "savingsRange": "$1,800 – $4,200/year in 2025",
-      "savingsSource": "Medicare Part B premium ($174.70/month) plus typical deductibles and co-pays",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -725,7 +725,8 @@
       "phone": "(800) 852-9089",
       "sourceUrl": "https://regulations.delaware.gov/board/division-of-medicaid-and-medical-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",
@@ -960,8 +961,8 @@
         ]
       },
       "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct grants to help cover energy costs. Delaware households earning up to $3,278/month (single person) or $4,287/month (couple) can receive $100–$2,561 for heating assistance, plus up to $1,000 for cooling and $10,000 for energy emergencies like shut-off notices.\n\nBecause funding is limited and distributed first-come-first-served, applications often close before the season ends, even though heating season runs October through March. Priority goes to households with someone 60 or older, disabled family members, or children under 5.\n\nThe program covers all common heating fuels (electricity, natural gas, oil, propane, wood) and works for both homeowners and renters. Grants are paid either directly to your loved one or to their utility company to reduce bills.",
-      "savingsRange": "$100 – $2,561/year in 2026",
-      "savingsSource": "Delaware LIHEAP heating assistance grants, with average of $553/year",
+      "savingsRange": "$553/year on average in 2026",
+      "savingsSource": "Delaware LIHEAP heating assistance grants average $553/year; individual awards vary with income, household size, and fuel cost",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1126,7 +1127,8 @@
       "phone": "(302) 255-9875",
       "sourceUrl": "https://www.dhss.delaware.gov/dhss/dss/liheap.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "weatherization-assistance-program",

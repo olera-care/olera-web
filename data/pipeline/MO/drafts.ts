@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.928Z
+ * Last updated: 2026-08-07T11:45:11.710Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -502,8 +502,8 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Birth certificate or other proof of age",
         "Proof of residency in PACE service area (utility bill, lease, or mortgage statement)",
-        "Medicare card (both parts A and B)",
         "Medicaid card if enrolled",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Complete medical records and physician assessments",
         "Hospital discharge summaries if applicable",
         "Current medication list and prescription bottles",
@@ -600,7 +600,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://mydss.mo.gov/mhd/pace",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "medicare-savings-program",
@@ -614,8 +615,8 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true
       },
       "intro": "If your loved one struggles with Medicare premiums or medical bills, Missouri's Medicare Savings Program can reduce their costs by $200–500+ per month. The program has three tiers based on income: QMB covers all Medicare premiums plus deductibles and copays, while SLMB and QI cover the $202.90 monthly Part B premium.\n\nYour loved one must be enrolled in Medicare Part A and meet income limits that range from $1,325/month (QMB) to $1,781/month (QI) for single people in 2026. Because the program counts less than half of employment income, working individuals with disabilities may qualify despite higher total income. Asset limits are $9,660 for singles and $14,470 for married couples.",
-      "savingsRange": "$2,435 – $6,000+/year in 2026",
-      "savingsSource": "Part B premiums ($202.90/month) plus potential cost-sharing coverage",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -829,7 +830,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/medicare-cost-savings-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",

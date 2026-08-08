@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.777Z
+ * Last updated: 2026-08-07T11:45:11.704Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -691,8 +691,8 @@ export const drafts: PipelineStateDrafts = {
         "type": "state"
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, Kentucky SNAP provides monthly assistance loaded onto an EBT card. Your loved one could receive $100-400+ per month for groceries, depending on household income and size. The average single senior gets around $188 monthly.\n\nKentucky has simplified rules for seniors and disabled adults, your loved one can qualify even with higher income if they have significant medical or housing expenses. Because Kentucky waives the standard asset test for most households, your loved one can keep their home, car, and retirement savings while still receiving food assistance.",
-      "savingsRange": "$2,256 - $4,980/year in 2026",
-      "savingsSource": "Average monthly SNAP benefit of $188 to maximum benefit amounts based on household size",
+      "savingsRange": "$2,256/year on average ($188/month), more for larger households",
+      "savingsSource": "Average monthly SNAP benefit for Kentucky seniors is $188 ($2,256/year); maximum allotments rise with household size",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -876,7 +876,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-855-306-8959",
       "sourceUrl": "https://chfs.ky.gov/agencies/dcbs/dfs/nab/Pages/snap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "energy-assistance-liheap",

@@ -923,6 +923,10 @@ async function handleGuestConnection({
           body: newInquirySms({ familyName: firstName, url: `${getSiteUrl()}/provider/connections` }),
           recipientProfileId: toProfileId,
           notificationType: "new_leads",
+          // Phone comes from the olera-providers directory, not from the
+          // provider. Mostly front-desk landlines — skip the ones that can't
+          // receive SMS. They still get the email sent above.
+          requireMobile: true,
         });
       }
     }
@@ -2043,6 +2047,8 @@ export async function POST(request: Request) {
             body: newInquirySms({ familyName: firstName, url: `${getSiteUrl()}/provider/connections` }),
             recipientProfileId: toProfileId,
             notificationType: "new_leads",
+            // Directory-sourced number — see the guest path above.
+            requireMobile: true,
           });
           console.log("[sms] Send result:", JSON.stringify(result));
         } else {

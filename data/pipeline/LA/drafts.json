@@ -119,10 +119,10 @@
       ],
       "contacts": [
         {
-          "label": "Louisiana Department of Health",
-          "phone": null,
-          "description": "Contact for local Medicaid office locations and current application procedures",
-          "hours": "Contact hours not specified, call for current information"
+          "label": "Louisiana Medicaid Long-Term Care",
+          "phone": "(800) 230-0690",
+          "description": "Questions about long-term care Medicaid eligibility and the application. Married couples should ask about spousal impoverishment rules, where only the applicant's own income is counted.",
+          "hours": "Mon-Fri business hours"
         },
         {
           "label": "Louisiana 2-1-1",
@@ -209,7 +209,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Louisiana's Community Choices Waiver covers personal care, homemaker services, adult day care, home-delivered meals, and respite care. Income limit: $2,742/month for a single person (recent data). Your loved one must meet nursing home-level care requirements and qualify for Medicaid.\n\nBecause this waiver has limited slots, most applicants join a priority waitlist. Emergency cases (abuse, neglect, imminent institutionalization) get priority, followed by people with ALS, then nursing facility residents wanting to return home. Others wait on a first-come, first-served basis, potentially months to years.\n\nThe waiver does not cover 24-hour care. If your loved one needs overnight supervision, you'll need to arrange separate coverage through private pay or other programs.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Louisiana's Community Choices Waiver covers personal care, homemaker services, adult day care, home-delivered meals, and respite care. Income limit: $2,982/month for a single person in 2026. Your loved one must meet nursing home-level care requirements and qualify for Medicaid.\n\nBecause this waiver has limited slots, most applicants join a priority waitlist. Emergency cases (abuse, neglect, imminent institutionalization) get priority, followed by people with ALS, then nursing facility residents wanting to return home. Others wait on a first-come, first-served basis, potentially months to years.\n\nThe waiver does not cover 24-hour care. If your loved one needs overnight supervision, you'll need to arrange separate coverage through private pay or other programs.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -218,7 +218,7 @@
           "Age 21+",
           "Louisiana resident",
           "Meet nursing home level of care",
-          "Income below $2,742/month (single)",
+          "Income below $2,982/month (single)",
           "Assets below $2,000 (single)"
         ],
         "ageRequirement": "21+",
@@ -294,9 +294,10 @@
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts A and B)",
         "Most recent Social Security award letter",
+        "Medical records documenting need for daily care assistance",
+        "Social Security cards for your loved one and spouse",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Bank statements for all accounts (last 3 months)",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
@@ -304,7 +305,6 @@
         "Vehicle titles and registration",
         "Life insurance policies with face values",
         "Pre-paid burial contracts or funeral plans",
-        "Medical records documenting need for daily care assistance",
         "List of current medications and prescribing doctors",
         "Home equity documentation if home value approaches $752,000",
         "Documentation of any asset transfers in the last 5 years",
@@ -349,7 +349,7 @@
           "answer": "Yes, the primary home is exempt from the $2,000 asset limit as long as your loved one intends to return home, or a spouse/minor child/disabled adult child lives there. However, home equity cannot exceed $752,000 in 2026."
         },
         {
-          "question": "What if my loved one's income is slightly over $2,742/month?",
+          "question": "What if my loved one's income is slightly over $2,982/month?",
           "answer": "Your loved one may still qualify through Medicaid spend-down. They can pay medical expenses each month to reduce countable income below the limit. Call (888) 342-6207 to discuss spend-down calculations."
         },
         {
@@ -389,7 +389,8 @@
       "phone": "(877) 456-1146",
       "sourceUrl": "https://ldh.la.gov/page/community-choices-waiver",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "pace-elder-care",
@@ -621,8 +622,8 @@
         ]
       },
       "intro": "If your loved one struggles with Medicare costs, Louisiana's Medicare Savings Programs can eliminate monthly premiums and reduce out-of-pocket expenses. Three programs exist based on income: QMB covers the most costs for those earning under $1,350/month, SLMB covers Part B premiums for those under $1,616/month, and QI covers Part B premiums for those under $1,816/month.\n\nUnlike many states, Louisiana has no asset limits for these programs, your loved one keeps their home, car, and savings while getting help with Medicare costs. Because QMB also protects against balance billing, providers cannot charge your loved one extra for Medicare-covered services beyond what Medicare and the program pay.\n\nThese programs work alongside Medicare, not instead of it. Your loved one keeps their Medicare benefits and doctors while the state pays their share of costs. QI recipients automatically qualify for Extra Help with prescription costs, capping drug copays at $12.65 per medication in 2026.",
-      "savingsRange": "$1,200 – $4,800/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($174.70/month in 2026) plus deductibles and copays",
+      "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
+      "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -818,7 +819,8 @@
       "phone": null,
       "sourceUrl": "https://ldh.la.gov/medicaid/medicare-savings-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "snap-food-benefits",
@@ -1457,8 +1459,8 @@
       "documentsNeeded": [
         "Proof of Louisiana residency (utility bill, lease, or state-issued document)",
         "Social Security cards for your loved one and spouse (if married)",
-        "Medicare card (both parts A and B)",
         "Most recent Social Security award letter",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Bank statements for all accounts (last 3 months)",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
@@ -1471,6 +1473,12 @@
         "Pre-need burial contracts or irrevocable burial trusts"
       ],
       "contacts": [
+        {
+          "label": "Louisiana Options in Long-Term Care",
+          "phone": "(877) 456-1146",
+          "description": "OAAS single point of entry for the Adult Day Health Care Waiver. Ask to be added to the Request for Services Registry. You can also submit the request online at ldh.la.gov/form/15 and staff will call you back.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
         {
           "label": "Louisiana 2-1-1",
           "phone": "2-1-1",
@@ -1539,16 +1547,17 @@
         "visualTone": "editorial"
       },
       "icon": "Users",
-      "phone": "2-1-1",
+      "phone": "(877) 456-1146",
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-07"
     },
     {
       "id": "caregiver-voucher-program",
-      "name": "Caregiver Voucher Program",
-      "shortName": "Caregiver Voucher",
-      "tagline": "Get paid as your loved one's caregiver through Louisiana's Community Choices Waiver while helping them avoid nursing home placement.",
+      "name": "Paid Family Caregiver through the Community Choices Waiver",
+      "shortName": "Paid Family Caregiver",
+      "tagline": "Get paid to care for your loved one at home through Louisiana's Community Choices Waiver, instead of a nursing home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1565,14 +1574,14 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Louisiana's Caregiver Voucher Program can pay you to provide that care at home. Because this program allows family members who live with the care recipient to become paid caregivers, you can receive compensation while helping your loved one avoid nursing home placement.\n\nYour loved one must qualify for Louisiana's Long-Term Care Medicaid (monthly income typically under $2,829 for individuals in 2026) and meet Nursing Facility Level of Care through a clinical assessment. The program provides home and community-based services including personal care, homemaker services, and respite care through individualized care plans.\n\nPriority goes to specific groups including those with ALS diagnosis, abuse/neglect referrals, and nursing home residents, while other applicants are served first-come, first-served. You must live with your loved one and be at least 18 years old to serve as their paid caregiver.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Louisiana's Community Choices Waiver can pay you to provide that care at home. Because this program allows family members who live with the care recipient to become paid caregivers, you can receive compensation while helping your loved one avoid nursing home placement.\n\nYour loved one must qualify for Louisiana's Long-Term Care Medicaid (monthly income typically under $2,982 for individuals in 2026) and meet Nursing Facility Level of Care through a clinical assessment. The program provides home and community-based services including personal care, homemaker services, and respite care through individualized care plans.\n\nPriority goes to specific groups including those with ALS diagnosis, abuse/neglect referrals, and nursing home residents, while other applicants are served first-come, first-served. You must live with your loved one and be at least 18 years old to serve as their paid caregiver. If you are the care recipient's spouse, different rules apply. Louisiana treats a spouse as a legally responsible individual, so a spouse can be paid only after meeting the state's Extraordinary Care standard and receiving written approval from the Office of Aging and Adult Services. Ask about that review on your first call.\n\nA note on names: some Louisiana parish Councils on Aging run a separate, locally funded Caregiver Voucher Program for family caregivers. That is a different program from this one. If you want the parish voucher, call your parish Council on Aging directly.",
       "savingsRange": "",
       "savingsSource": "Paid caregiving service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 21+",
-          "Income under $2,829/month (typical)",
+          "Income under $2,982/month (typical)",
           "Assets under $2,000",
           "Needs daily care assistance",
           "Louisiana resident"
@@ -1600,6 +1609,7 @@
         "otherRequirements": [
           "Louisiana resident",
           "Family caregiver must be 18+, live with recipient, and able to provide care",
+          "A spouse is a legally responsible individual and can be paid only under the Extraordinary Care standard with OAAS approval",
           "Enroll through Supports for Caregivers provider"
         ],
         "povertyLevelReference": null
@@ -1616,7 +1626,7 @@
           {
             "step": 2,
             "title": "Contact Regional Coordinating Council",
-            "description": "Find your local RCC through ldh.la.gov/office-of-aging-and-adult-services or call 1-866-783-5553 to request Community Choices Waiver services."
+            "description": "Call Louisiana Options in Long-Term Care at 1-877-456-1146 to request Community Choices Waiver services and be added to the Request for Services Registry. Hold times can be long, so you can also submit the request online at ldh.la.gov/form/15 and OAAS staff will call you back."
           },
           {
             "step": 3,
@@ -1631,7 +1641,7 @@
         ],
         "processingTime": "Not specified, involves assessment and care plan approval",
         "waitlist": "Priority groups served first; others served first-come, first-served with potential wait",
-        "tip": "Apply for Medicaid Long-Term Care first, you cannot access the Caregiver Voucher Program without this eligibility.",
+        "tip": "Apply for Medicaid Long-Term Care first, you cannot be paid as a family caregiver through this waiver without it. If you need help sooner, ask about Long-Term Personal Care Services, a Medicaid state plan service with no waiting list.",
         "urls": [
           {
             "label": "Community Choices Waiver application",
@@ -1640,6 +1650,10 @@
           {
             "label": "Medicaid application (Healthy Louisiana)",
             "url": "https://bayouhealth.com"
+          },
+          {
+            "label": "Request OAAS services online (staff call you back)",
+            "url": "https://ldh.la.gov/form/15"
           }
         ]
       },
@@ -1656,14 +1670,14 @@
         "Life insurance policies with face values",
         "Pre-need burial contracts or irrevocable burial trusts",
         "Medical records supporting need for daily care assistance",
-        "Medicare card (both parts A and B)",
+        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of health insurance premiums paid"
       ],
       "contacts": [
         {
           "label": "Louisiana Options in Long-Term Care",
           "phone": "(877) 456-1146",
-          "description": "Statewide screening line for OAAS home- and community-based support, including respite for caregivers. They can also point you to your parish Council on Aging, which runs local caregiver voucher services.",
+          "description": "Statewide screening line for Louisiana OAAS long-term care services: waivers, personal care, PACE, and nursing facility services. Ask them to screen you for caregiver respite through your parish Council on Aging. If the hold time is long, submit the same request online at ldh.la.gov/form/15 and staff will call you back.",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
@@ -1680,9 +1694,9 @@
         }
       ],
       "applicationNotes": [
-        "Caregiver voucher services are run by parish Councils on Aging, so availability and rules vary by parish",
+        "The parish Council on Aging caregiver voucher is a separate, locally run program with no Medicaid requirement, and its rules vary by parish",
         "Priority groups (ALS diagnosis, abuse/neglect referrals, nursing home residents) get served first, others wait on first-come, first-served basis",
-        "Not all family members can be paid caregivers, spouses may have restrictions and you must live with the care recipient",
+        "Not all family members can be paid caregivers. A spouse can be paid only under the Extraordinary Care standard with written OAAS approval, and any paid family caregiver must live with the care recipient",
         "This is not a standalone voucher program but consumer-directed care within the Community Choices Waiver",
         "Dementia diagnosis alone doesn't qualify, your loved one must meet full Nursing Facility Level of Care through assessment"
       ],
@@ -1695,10 +1709,10 @@
       "faqs": [
         {
           "question": "Can I get paid to care for my loved one if I already live with them?",
-          "answer": "Yes, if you're at least 18 years old and live with your loved one, you can become a paid caregiver through the Supports for Caregivers program. You'll need to enroll through an approved SFC provider like Entyre Care or Careforth once your loved one is approved for Community Choices Waiver services."
+          "answer": "Usually yes, if you are at least 18 and live with your loved one. You enroll through an approved Supports for Caregivers provider once your loved one is approved for Community Choices Waiver services. Spouses are the exception. Louisiana treats a spouse as a legally responsible individual, so a spouse can be paid only after meeting the Extraordinary Care standard and receiving written approval from the Office of Aging and Adult Services. If you are the spouse, ask about the legally responsible individual request form on your first call."
         },
         {
-          "question": "What if my loved one's income is slightly over $2,829 per month?",
+          "question": "What if my loved one's income is slightly over $2,982 per month?",
           "answer": "Your loved one may still qualify through spousal impoverishment protections or by establishing a Miller Trust. Louisiana's Long-Term Care Medicaid has different rules than regular Medicaid. Contact the Medicaid office at 1-888-342-6207 to discuss options."
         },
         {
@@ -1735,11 +1749,11 @@
         "visualTone": "editorial"
       },
       "icon": "HandHeart",
-      "phone": "(866) 783-5553",
+      "phone": "(877) 456-1146",
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-07"
     }
   ],
   "stateOverview": {

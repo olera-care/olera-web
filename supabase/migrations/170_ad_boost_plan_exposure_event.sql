@@ -1,11 +1,12 @@
--- Migration: Ad Boost results-to-subscription instrumentation
+-- Migration: Ad Boost paid-plan exposure event
 --
--- Adds the paid conversion events that were missing after the free-campaign
--- request. The admin funnel can now distinguish results exposure, plan intent,
--- checkout attempts/session creation/failure, explicit deferral, and an
--- authoritative Stripe subscription activation.
+-- Plans are now actionable while a campaign is live as well as in the results
+-- wrap-up. `managed_ads_results_viewed` can therefore no longer serve as the
+-- exposure denominator for plan selection and checkout intent. This event
+-- records the actual moment actionable plan cards are visible.
 --
--- Apply via Supabase dashboard before deploying the client/webhook changes.
+-- Migration 169 has already been applied in production, so this migration
+-- restates its complete CHECK allowlist and adds managed_ads_plans_viewed.
 
 ALTER TABLE provider_activity DROP CONSTRAINT IF EXISTS provider_activity_event_type_check;
 
@@ -49,6 +50,7 @@ ALTER TABLE provider_activity ADD CONSTRAINT provider_activity_event_type_check 
     'managed_ads_step_viewed',
     'managed_ads_requested',
     'managed_ads_results_viewed',
+    'managed_ads_plans_viewed',
     'managed_ads_plan_selected',
     'managed_ads_checkout_started',
     'managed_ads_checkout_created',
@@ -96,4 +98,4 @@ ALTER TABLE provider_activity ADD CONSTRAINT provider_activity_event_type_check 
 );
 
 COMMENT ON CONSTRAINT provider_activity_event_type_check ON provider_activity IS
-'Allowed event types including the Ad Boost results-to-subscription funnel. Last update: migration 166 (ad_boost_conversion_events).';
+'Allowed event types including actionable Ad Boost plan exposure. Last update: migration 170 (ad_boost_plan_exposure_event).';

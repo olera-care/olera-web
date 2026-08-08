@@ -5,9 +5,10 @@
  * This pulls data that was missed because webhooks weren't working.
  *
  * Approach:
- * 1. For each campaign, fetch campaign-level statistics from SmartLead
- * 2. Store aggregate stats in provider_outreach_tracking.smartlead_data
- * 3. The email-stats endpoint will read these and display totals
+ * 1. For each campaign, fetch per-lead statistics from SmartLead
+ * 2. Match leads to providers by email
+ * 3. Create/update touchpoints with open_count, click_count, sequence_step
+ * 4. The email-stats endpoint will read these for per-template breakdown
  *
  * Auth: admin-only.
  */
@@ -17,8 +18,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { isAdmin } from "@/lib/admin";
 import {
+  getCampaignLeadStatistics,
   getCampaignStatistics,
   isSmartleadConfigured,
+  type SmartleadLeadStats,
 } from "@/lib/smartlead";
 
 export const maxDuration = 300;
@@ -33,16 +36,21 @@ interface CampaignSyncResult {
   campaign_id: number;
   campaign_name?: string;
   stats?: {
+    total_leads: number;
     sent: number;
     opened: number;
     clicked: number;
-    open_rate: number;
-    click_rate: number;
   };
-  providers_updated: number;
-  providers_failed: number;
+  touchpoints_created: number;
+  touchpoints_updated: number;
+  providers_not_found: number;
+  /** Emails that couldn't be matched to providers (for debugging) */
+  unmatched_emails?: string[];
+  /** Number of insert operations that failed */
+  insert_errors: number;
+  /** Number of update operations that failed */
+  update_errors: number;
   error?: string;
-  update_errors?: string[];
 }
 
 export async function POST() {
@@ -64,7 +72,7 @@ export async function POST() {
 
   const supabase = makeServiceClient(supabaseUrl, serviceKey);
 
-  // 1. Get all providers with SmartLead data, grouped by campaign
+  // 1. Get all providers with SmartLead data and build email -> provider_id map
   const { data: trackingRows, error: trackingError } = await supabase
     .from("provider_outreach_tracking")
     .select("id, provider_id, smartlead_data")
@@ -78,98 +86,194 @@ export async function POST() {
     return NextResponse.json({ ok: true, message: "No providers with SmartLead data found", synced: 0 });
   }
 
-  // Group by campaign_id
-  const campaignProviders = new Map<number, Array<{ tracking_id: string; provider_id: string; smartlead_data: Record<string, unknown> }>>();
+  // Get provider emails
+  const providerIds = trackingRows.map(r => r.provider_id);
+  const { data: providers } = await supabase
+    .from("providers")
+    .select("id, email")
+    .in("id", providerIds);
 
-  for (const row of trackingRows) {
-    const sd = row.smartlead_data as { campaign_id?: number } | null;
-    const campaignId = sd?.campaign_id;
-    if (typeof campaignId !== "number") continue;
-
-    if (!campaignProviders.has(campaignId)) {
-      campaignProviders.set(campaignId, []);
+  // Build email -> provider_id map (lowercase for matching)
+  const emailToProviderId = new Map<string, string>();
+  for (const p of (providers ?? [])) {
+    if (p.email) {
+      emailToProviderId.set(p.email.toLowerCase(), p.id);
     }
-    campaignProviders.get(campaignId)!.push({
-      tracking_id: row.id,
-      provider_id: row.provider_id,
-      smartlead_data: row.smartlead_data as Record<string, unknown>,
-    });
   }
 
-  // 2. Fetch stats for each campaign from SmartLead API
+  // Also check smartlead_data for lead_email
+  for (const row of trackingRows) {
+    const sd = row.smartlead_data as { lead_email?: string } | null;
+    if (sd?.lead_email) {
+      emailToProviderId.set(sd.lead_email.toLowerCase(), row.provider_id);
+    }
+  }
+
+  // Group tracking rows by campaign_id
+  const campaignIds = new Set<number>();
+  for (const row of trackingRows) {
+    const sd = row.smartlead_data as { campaign_id?: number } | null;
+    if (typeof sd?.campaign_id === "number") {
+      campaignIds.add(sd.campaign_id);
+    }
+  }
+
+  // 2. Process each campaign
   const results: CampaignSyncResult[] = [];
 
-  for (const [campaignId, providers] of campaignProviders) {
+  for (const campaignId of campaignIds) {
     const result: CampaignSyncResult = {
       campaign_id: campaignId,
-      providers_updated: 0,
-      providers_failed: 0,
-      update_errors: [],
+      touchpoints_created: 0,
+      touchpoints_updated: 0,
+      providers_not_found: 0,
+      unmatched_emails: [],
+      insert_errors: 0,
+      update_errors: 0,
     };
 
-    // Fetch campaign statistics from SmartLead
-    const statsResult = await getCampaignStatistics(campaignId);
+    // Fetch per-lead statistics from SmartLead
+    const leadsResult = await getCampaignLeadStatistics(campaignId);
 
-    if (!statsResult.ok) {
-      result.error = statsResult.error ?? "Failed to fetch stats";
+    if (!leadsResult.ok) {
+      result.error = leadsResult.error ?? "Failed to fetch lead stats";
       results.push(result);
       continue;
     }
 
-    const stats = statsResult.data;
-    if (stats) {
-      result.stats = {
-        sent: stats.contacted ?? 0,
-        opened: stats.opened ?? 0,
-        clicked: stats.clicked ?? 0,
-        open_rate: stats.open_rate ?? 0,
-        click_rate: stats.click_rate ?? 0,
-      };
+    const leads = leadsResult.data ?? [];
+    result.stats = {
+      total_leads: leads.length,
+      sent: leads.filter(l => l.sent_time).length,
+      opened: leads.filter(l => (l.open_count ?? 0) > 0).length,
+      clicked: leads.filter(l => (l.click_count ?? 0) > 0).length,
+    };
 
-      // Update each provider's smartlead_data with campaign stats
-      for (const provider of providers) {
-        const updatedSmartleadData = {
-          ...provider.smartlead_data,
-          campaign_stats: {
-            sent: result.stats.sent,
-            opened: result.stats.opened,
-            clicked: result.stats.clicked,
-            open_rate: result.stats.open_rate,
-            click_rate: result.stats.click_rate,
-            synced_at: new Date().toISOString(),
-          },
-        };
+    // Process each lead with engagement data
+    for (const lead of leads) {
+      if (!lead.lead_email) continue;
 
-        const { error: updateError } = await supabase
-          .from("provider_outreach_tracking")
-          .update({ smartlead_data: updatedSmartleadData })
-          .eq("id", provider.tracking_id);
+      const openCount = lead.open_count ?? 0;
+      const clickCount = lead.click_count ?? 0;
 
-        if (updateError) {
-          result.providers_failed++;
-          result.update_errors!.push(`${provider.provider_id}: ${updateError.message}`);
-          console.error(`[sync-smartlead-stats] Failed to update provider ${provider.provider_id}:`, updateError.message);
+      // Skip leads with no engagement
+      if (openCount === 0 && clickCount === 0 && !lead.sent_time) continue;
+
+      const providerId = emailToProviderId.get(lead.lead_email.toLowerCase());
+      if (!providerId) {
+        result.providers_not_found++;
+        // Track unmatched emails for debugging (limit to first 50 to avoid huge responses)
+        if (result.unmatched_emails && result.unmatched_emails.length < 50) {
+          result.unmatched_emails.push(lead.lead_email);
+        }
+        continue;
+      }
+
+      // Map sequence_number to sequence_step (1-4)
+      // sequence_number 1 = Day 0 (step 1), 2 = Day 3 (step 2), etc.
+      // Guard against invalid values (0, negative, or missing)
+      const sequenceStep = lead.sequence_number && lead.sequence_number > 0 && lead.sequence_number <= 4
+        ? lead.sequence_number
+        : 1;
+
+      // Check for existing touchpoint FOR THIS SPECIFIC SEQUENCE STEP
+      // Critical: We must match by sequence_step to avoid overwriting touchpoints
+      // for different steps when a lead progresses through the sequence.
+      const { data: existingTouchpoint } = await supabase
+        .from("provider_outreach_touchpoints")
+        .select("id, details")
+        .eq("provider_id", providerId)
+        .eq("touchpoint_type", "email_sent")
+        .eq("details->>source", "smartlead")
+        .eq("details->>sequence_step", sequenceStep.toString())
+        .limit(1)
+        .single();
+
+      if (existingTouchpoint) {
+        // Update existing touchpoint with engagement data
+        const existingDetails = (existingTouchpoint.details ?? {}) as Record<string, unknown>;
+        const existingOpenCount = Number(existingDetails.open_count ?? 0);
+        const existingClickCount = Number(existingDetails.click_count ?? 0);
+
+        // Only update if we have new/higher engagement
+        if (openCount > existingOpenCount || clickCount > existingClickCount) {
+          const { error: updateError } = await supabase
+            .from("provider_outreach_touchpoints")
+            .update({
+              details: {
+                ...existingDetails,
+                sequence_step: sequenceStep,
+                open_count: Math.max(openCount, existingOpenCount),
+                click_count: Math.max(clickCount, existingClickCount),
+                synced_from_smartlead: true,
+                synced_at: new Date().toISOString(),
+              },
+            })
+            .eq("id", existingTouchpoint.id);
+
+          if (updateError) {
+            result.update_errors++;
+            console.error(`[sync-smartlead-stats] Update failed for provider ${providerId}:`, updateError.message);
+          } else {
+            result.touchpoints_updated++;
+          }
+        }
+      } else {
+        // Create new touchpoint
+        const { error: insertError } = await supabase
+          .from("provider_outreach_touchpoints")
+          .insert({
+            provider_id: providerId,
+            touchpoint_type: "email_sent",
+            details: {
+              source: "smartlead",
+              campaign_id: campaignId,
+              lead_email: lead.lead_email,
+              sequence_step: sequenceStep,
+              open_count: openCount,
+              click_count: clickCount,
+              is_bounced: lead.is_bounced ?? false,
+              is_unsubscribed: lead.is_unsubscribed ?? false,
+              synthetic: true, // Mark as backfilled
+              synced_from_smartlead: true,
+              synced_at: new Date().toISOString(),
+            },
+            created_at: lead.sent_time ?? new Date().toISOString(),
+          });
+
+        if (insertError) {
+          result.insert_errors++;
+          console.error(`[sync-smartlead-stats] Insert failed for provider ${providerId}:`, insertError.message);
         } else {
-          result.providers_updated++;
+          result.touchpoints_created++;
         }
       }
+    }
 
-      // Clean up empty errors array
-      if (result.update_errors!.length === 0) {
-        delete result.update_errors;
-      }
+    // Clean up empty unmatched_emails array for cleaner response
+    if (result.unmatched_emails?.length === 0) {
+      delete result.unmatched_emails;
     }
 
     results.push(result);
   }
 
-  const totalUpdated = results.reduce((sum, r) => sum + r.providers_updated, 0);
-  const hasErrors = results.some(r => r.error);
+  const totalCreated = results.reduce((sum, r) => sum + r.touchpoints_created, 0);
+  const totalUpdated = results.reduce((sum, r) => sum + r.touchpoints_updated, 0);
+  const totalInsertErrors = results.reduce((sum, r) => sum + r.insert_errors, 0);
+  const totalUpdateErrors = results.reduce((sum, r) => sum + r.update_errors, 0);
+  const totalProvidersNotFound = results.reduce((sum, r) => sum + r.providers_not_found, 0);
+  const hasCampaignErrors = results.some(r => r.error);
+  const hasDbErrors = totalInsertErrors > 0 || totalUpdateErrors > 0;
 
   return NextResponse.json({
-    ok: !hasErrors,
+    ok: !hasCampaignErrors && !hasDbErrors,
     campaigns_synced: results.length,
-    providers_updated: totalUpdated,
+    touchpoints_created: totalCreated,
+    touchpoints_updated: totalUpdated,
+    insert_errors: totalInsertErrors,
+    update_errors: totalUpdateErrors,
+    providers_not_found: totalProvidersNotFound,
     results,
   });
 }

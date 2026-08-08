@@ -2753,7 +2753,7 @@ function CityRow({
 
                       {/* Main content area */}
                       <div className="flex-1 min-w-0">
-                        {/* Row 1: Provider name (full width) + hover actions */}
+                        {/* Row 1: Provider name (full width) + Stage badge + hover actions */}
                         <div className="flex items-center justify-between gap-4 mb-0.5">
                           <div className="flex items-center gap-2">
                             <Link
@@ -2762,6 +2762,30 @@ function CityRow({
                             >
                               {provider.provider_name}
                             </Link>
+                            {/* Sequence progress badge - only show in In Sequence tab */}
+                            {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
+                              <div className="flex flex-col items-start">
+                                <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                  provider.sequence_status?.failed_step !== undefined
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-blue-100 text-blue-700"
+                                }`}>
+                                  {provider.emails_sent}/4
+                                  {provider.cycle_number >= 2 && (
+                                    <span className="ml-0.5 text-gray-400">·C{provider.cycle_number}</span>
+                                  )}
+                                </span>
+                                {/* Sequence sublabel (recency or failure) */}
+                                {(() => {
+                                  const sublabel = getSequenceSublabel(provider);
+                                  return (
+                                    <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                                      {sublabel.text}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                            )}
                             {/* Confirm button - only show in Ready tab */}
                             {activeTab === "ready" && (
                               provider.confirmed_at || confirmedProviders.has(provider.provider_id) ? (

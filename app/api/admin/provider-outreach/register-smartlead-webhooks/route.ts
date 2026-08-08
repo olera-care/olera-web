@@ -62,12 +62,13 @@ function buildProviderWebhookUrl(secret: string): string | null {
 
 // Webhook configuration
 const PROVIDER_WEBHOOK_NAME = "Olera Provider Outreach";
+// Note: SmartLead uses EMAIL_LINK_CLICK (not EMAIL_CLICK)
+// EMAIL_BOUNCE is not a valid SmartLead event type (see lib/smartlead.ts comments)
 const PROVIDER_WEBHOOK_EVENT_TYPES = [
   "EMAIL_SENT",
   "EMAIL_OPEN",
-  "EMAIL_CLICK",
+  "EMAIL_LINK_CLICK",
   "EMAIL_REPLY",
-  "EMAIL_BOUNCE",
   "LEAD_UNSUBSCRIBED",
 ] as const;
 

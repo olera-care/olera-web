@@ -42,7 +42,7 @@ interface CampaignSyncResult {
     clicked: number;
   };
   touchpoints_created: number;
-  touchpoints_skipped: number;
+  touchpoints_replaced: number;
   providers_not_found: number;
   /** Emails that couldn't be matched to providers (for debugging) */
   unmatched_emails?: string[];
@@ -125,7 +125,7 @@ export async function POST() {
     const result: CampaignSyncResult = {
       campaign_id: campaignId,
       touchpoints_created: 0,
-      touchpoints_skipped: 0,
+      touchpoints_replaced: 0,
       providers_not_found: 0,
       unmatched_emails: [],
       insert_errors: 0,
@@ -189,36 +189,66 @@ export async function POST() {
         .limit(1)
         .single();
 
+      // Build the new touchpoint data
+      const newTouchpointData = {
+        provider_id: providerId,
+        touchpoint_type: "email_sent",
+        details: {
+          source: "smartlead",
+          campaign_id: campaignId,
+          lead_email: lead.lead_email,
+          sequence_step: sequenceStep,
+          open_count: openCount,
+          click_count: clickCount,
+          is_bounced: lead.is_bounced ?? false,
+          is_unsubscribed: lead.is_unsubscribed ?? false,
+          synthetic: true, // Mark as backfilled
+          synced_from_smartlead: true,
+          synced_at: new Date().toISOString(),
+        },
+        created_at: lead.sent_time ?? new Date().toISOString(),
+      };
+
       if (existingTouchpoint) {
-        // Skip - touchpoint already exists for this provider + sequence_step
-        // Note: provider_outreach_touchpoints table is append-only (no updates allowed)
-        result.touchpoints_skipped++;
+        // Delete existing touchpoint, then create new one with engagement data
+        // (Table is append-only for UPDATE, but DELETE might be allowed)
+        const { error: deleteError } = await supabase
+          .from("provider_outreach_touchpoints")
+          .delete()
+          .eq("id", existingTouchpoint.id);
+
+        if (deleteError) {
+          // DELETE also blocked - capture error and skip
+          result.insert_errors++;
+          if (result.error_samples && result.error_samples.length < 5) {
+            result.error_samples.push(`DELETE ${providerId}: ${deleteError.message}`);
+          }
+          console.error(`[sync-smartlead-stats] Delete failed for provider ${providerId}:`, deleteError.message);
+          continue;
+        }
+
+        // Now insert the new touchpoint with engagement data
+        const { error: insertError } = await supabase
+          .from("provider_outreach_touchpoints")
+          .insert(newTouchpointData);
+
+        if (insertError) {
+          result.insert_errors++;
+          if (result.error_samples && result.error_samples.length < 5) {
+            result.error_samples.push(`INSERT (replace) ${providerId}: ${insertError.message}`);
+          }
+          console.error(`[sync-smartlead-stats] Insert (replace) failed for provider ${providerId}:`, insertError.message);
+        } else {
+          result.touchpoints_replaced++;
+        }
       } else {
         // Create new touchpoint
         const { error: insertError } = await supabase
           .from("provider_outreach_touchpoints")
-          .insert({
-            provider_id: providerId,
-            touchpoint_type: "email_sent",
-            details: {
-              source: "smartlead",
-              campaign_id: campaignId,
-              lead_email: lead.lead_email,
-              sequence_step: sequenceStep,
-              open_count: openCount,
-              click_count: clickCount,
-              is_bounced: lead.is_bounced ?? false,
-              is_unsubscribed: lead.is_unsubscribed ?? false,
-              synthetic: true, // Mark as backfilled
-              synced_from_smartlead: true,
-              synced_at: new Date().toISOString(),
-            },
-            created_at: lead.sent_time ?? new Date().toISOString(),
-          });
+          .insert(newTouchpointData);
 
         if (insertError) {
           result.insert_errors++;
-          // Capture first 5 error messages for debugging
           if (result.error_samples && result.error_samples.length < 5) {
             result.error_samples.push(`INSERT ${providerId}: ${insertError.message}`);
           }
@@ -241,7 +271,7 @@ export async function POST() {
   }
 
   const totalCreated = results.reduce((sum, r) => sum + r.touchpoints_created, 0);
-  const totalSkipped = results.reduce((sum, r) => sum + r.touchpoints_skipped, 0);
+  const totalReplaced = results.reduce((sum, r) => sum + r.touchpoints_replaced, 0);
   const totalInsertErrors = results.reduce((sum, r) => sum + r.insert_errors, 0);
   const totalProvidersNotFound = results.reduce((sum, r) => sum + r.providers_not_found, 0);
   const hasCampaignErrors = results.some(r => r.error);
@@ -251,7 +281,7 @@ export async function POST() {
     ok: !hasCampaignErrors && !hasDbErrors,
     campaigns_synced: results.length,
     touchpoints_created: totalCreated,
-    touchpoints_skipped: totalSkipped,
+    touchpoints_replaced: totalReplaced,
     insert_errors: totalInsertErrors,
     providers_not_found: totalProvidersNotFound,
     results,

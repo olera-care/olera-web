@@ -46,6 +46,8 @@ type CampaignRow = {
   ad_clicks: number | null;
   /** Optional: older callers may not select it; the receipt degrades. */
   ad_impressions?: number | null;
+  /** Optional whole-flight direct-contact outcome (migration 164). */
+  provider_reported_outcome?: "client" | "talking" | "no" | null;
   created_at?: string;
 };
 
@@ -146,6 +148,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
           ad_impressions: opts.request.ad_impressions ?? null,
           ad_clicks: opts.request.ad_clicks,
           ad_spend_cents: opts.request.ad_spend_cents,
+          provider_reported_outcome: opts.request.provider_reported_outcome ?? null,
         })
       : null;
 

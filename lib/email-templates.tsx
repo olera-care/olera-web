@@ -5,6 +5,8 @@
  * Design: clean, minimal, system font stack. Matches Olera brand colors.
  */
 
+import { DEFAULT_BUDGET } from "@/lib/ad-boost/estimate";
+
 const BRAND_COLOR = "#198087";
 const FONT_STACK =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -564,6 +566,12 @@ export function adBoostPromoCompleteEmail(opts: {
       ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
       : "—";
   const gotLeads = opts.leads > 0;
+  const showedInterest =
+    (opts.impressions ?? 0) > 0 ||
+    (opts.clicks ?? 0) > 0 ||
+    opts.visitors > 0 ||
+    (opts.saves ?? 0) > 0 ||
+    (opts.questionsReceived ?? 0) > 0;
   // The demand receipt: itemized reach lines that make a zero-lead flight read
   // as real, underfunded demand (families saw you, clicked, saved you) instead
   // of a silent zero. Rows render only when the number exists.
@@ -617,10 +625,8 @@ export function adBoostPromoCompleteEmail(opts: {
     </div>`
       : "";
   const budgetLine = !gotLeads
-    ? "We&rsquo;ll tune your page, adjust the ads, and run another window on us. Nothing to pay. If you&rsquo;d rather not wait, a monthly plan runs the same campaign at several times the volume."
-    : opts.intendedMonthlyBudget
-      ? `When you&rsquo;re ready, we can use your original $${opts.intendedMonthlyBudget}/mo plan as a starting point and adjust from the results.`
-      : "When you&rsquo;re ready, we can talk through the monthly plan that makes sense from the results.";
+    ? `${showedInterest ? "This intro showed interest, but it did not run at enough volume" : "This intro did not produce enough measurable activity"} to produce an Olera inquiry. A monthly plan gives the campaign more room to work&mdash;and if a full paid month produces zero inquiries, that month is credited or refunded.`
+    : `When you&rsquo;re ready, paid plans now start at $${DEFAULT_BUDGET}/month. You can choose from your results and adjust as the campaign learns.`;
 
   return layout(
     `
@@ -676,9 +682,9 @@ export function adBoostPromoCompleteEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
       gotLeads
         ? "You can pick a plan right from your results page, no call needed. A month with zero family inquiries is free. Or reply to this email and we&rsquo;ll review the numbers together first."
-        : "Reply to this email if you&rsquo;d like to review what happened together, or just watch for the next window."
+        : "You can pick a plan right from your results page, no call needed. Or reply to this email and we&rsquo;ll review what happened together first."
     }</p>
-    <div>${button(gotLeads ? "See your results and choose" : "See your results", opts.ctaUrl)}</div>
+    <div>${button("See your results and choose", opts.ctaUrl)}</div>
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>

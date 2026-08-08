@@ -36,11 +36,14 @@ export interface BoostRequest {
   created_at: string;
   /** Paid plan lifecycle from Stripe. NULL = never subscribed (intro-only). */
   plan_status: "active" | "past_due" | "canceled" | null;
-  /** Subscribed monthly plan in whole USD (150/300/600). NULL until checkout. */
+  /** Subscribed self-serve plan in whole USD (75/150/300). Historical/custom values may also exist. */
   plan_value: number | null;
   /** Idempotency marker for the promo-complete email; doubles as the concierge
    *  "intro is wrapped" signal that arms the wrap-up ask. */
   promo_complete_email_sent_at: string | null;
+  /** Whole-flight outcome reported from the zero-lead wrap-up email when a
+   * family contacted the provider outside Olera's attributed lead path. */
+  provider_reported_outcome?: "client" | "talking" | "no" | null;
   /** Last serving day of the ad flight (admin-entered from the ad platform).
    *  Powers the live view's "Day N of M" time context. Null = not entered. */
   flight_end_date?: string | null;
@@ -83,7 +86,7 @@ export interface BoostStateResponse {
     questions: { received: number; unanswered: number };
     since: string;
   } | null;
-  /** True when the post-intro wrap-up (the only payment ask) should show:
+  /** True when the featured post-intro results/payment moment should show:
    *  campaign ran (live/ended), no active plan, and the value event fired
    *  (3rd lead or concierge marked the promo complete). Server-computed. */
   wrapupReady: boolean;

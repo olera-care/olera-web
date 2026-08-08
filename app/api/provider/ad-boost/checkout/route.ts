@@ -10,11 +10,11 @@ import {
 /**
  * Ad Boost Phase 2 — the wrap-up payment moment.
  *
- * POST: the signed-in provider, at the post-intro wrap-up on /provider/boost,
- * picks a paid monthly plan and is sent to Stripe Checkout (subscription mode).
- * This is the ONLY payment ask in the system (plan of record 2026-07-06): no
- * card is ever collected at signup, and nothing rolls over silently — the
- * provider explicitly chooses here. Activation happens in the Stripe webhook.
+ * POST: the signed-in provider, from a live campaign or its results wrap-up on
+ * /provider/boost, picks a paid monthly plan and is sent to Stripe Checkout
+ * (subscription mode). No card is collected at campaign signup and nothing
+ * rolls over silently—the provider explicitly chooses here. Activation happens
+ * in the Stripe webhook.
  *
  * Auth: authenticated provider only (loadAdBoostEligibility); the campaign row
  * is looked up by the caller's own provider_id, so a provider can only ever

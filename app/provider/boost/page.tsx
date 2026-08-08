@@ -26,6 +26,7 @@ import {
   BUDGET_STOPS,
   BUDGET_ESTIMATE_CAVEAT,
   BUDGET_TRUST_STRIP,
+  CUSTOM_SCALE_STOP,
   INTRO_STEP_LINE,
   PAID_PREVIEW_LINE,
   estimateSummary,
@@ -33,6 +34,7 @@ import {
 import {
   CampaignFacts,
   CampaignInMotion,
+  CampaignWrapUpPending,
   PlanActive,
   WrapUpMoment,
 } from "@/components/provider/boost/BoostCampaignViews";
@@ -59,6 +61,31 @@ import {
 const CHANNELS = BOOST_CHANNELS;
 
 const OPEN_STATUSES = ["requested", "scheduled", "live"];
+
+function managedAdsViewState(
+  state: BoostStateResponse,
+  justSubscribed: boolean,
+): "gate" | "apply" | "queued" | "in_motion" | "wrapup_pending" | "results" | "plan_active" | "closed" {
+  const request = state.request;
+  if (
+    request &&
+    (request.plan_status === "active" || request.plan_status === "past_due" || justSubscribed)
+  ) {
+    return "plan_active";
+  }
+  if (
+    request &&
+    state.wrapupReady &&
+    (request.status === "live" || request.status === "ended")
+  ) {
+    return "results";
+  }
+  if (request && OPEN_STATUSES.includes(request.status)) return "in_motion";
+  if (request?.status === "pending_profile") return "queued";
+  if (request?.status === "ended") return "wrapup_pending";
+  if (request?.status === "cancelled") return "closed";
+  return state.eligibility.eligible ? "apply" : "gate";
+}
 
 export default function ProviderBoostPage() {
   const { isLoading, user, refreshAccountData } = useAuth();
@@ -117,14 +144,18 @@ export default function ProviderBoostPage() {
     fetchState();
   }, [fetchState, user?.id]);
 
-  // Fire one managed_ads_boost_viewed event per load, once state resolves —
-  // tags which funnel state they landed in (gate / apply / in_motion).
+  // Fire one state-accurate page event per load. Results and subscribed visits
+  // are intentionally not counted as fresh pitch views: mixing returning
+  // campaign users into top-of-funnel traffic made the money journey invisible.
   const hasTrackedView = useRef(false);
   const hasTrackedPitch = useRef(false);
+  const hasTrackedResults = useRef(false);
+  const hasTrackedPlans = useRef(false);
   useEffect(() => {
     if (!state || !assignedVariant) return;
     if (isManagedAdsPreviewMode()) return;
-    if (!hasTrackedPitch.current) {
+    const viewState = managedAdsViewState(state, justSubscribed);
+    if ((viewState === "apply" || viewState === "gate") && !hasTrackedPitch.current) {
       hasTrackedPitch.current = true;
       trackProviderEvent(state.provider.slug, "managed_ads_pitch_viewed", {
         provider_name: state.provider.displayName,
@@ -137,17 +168,37 @@ export default function ProviderBoostPage() {
         demand_scope: state.demand.scope,
       });
     }
+    if (viewState === "results" && state.request && !hasTrackedResults.current) {
+      hasTrackedResults.current = true;
+      trackProviderEvent(state.provider.slug, "managed_ads_results_viewed", {
+        provider_name: state.provider.displayName,
+        request_id: state.request.id,
+        result_kind: (state.campaignStats?.leads ?? 0) > 0 ? "inquiries" : "engagement_only",
+        visitors: state.campaignStats?.visitors ?? 0,
+        leads: state.campaignStats?.leads ?? 0,
+        questions: state.campaignStats?.questions.received ?? 0,
+        reported_clients: state.receipt?.outcomes.client ?? 0,
+        managed_ads_variant: assignedVariant,
+      });
+    }
+    const planChoiceVisible = !!(
+      state.request &&
+      (state.request.plan_status == null || state.request.plan_status === "canceled") &&
+      (viewState === "results" ||
+        (viewState === "in_motion" && state.request.status === "live"))
+    );
+    if (planChoiceVisible && state.request && !hasTrackedPlans.current) {
+      hasTrackedPlans.current = true;
+      trackProviderEvent(state.provider.slug, "managed_ads_plans_viewed", {
+        provider_name: state.provider.displayName,
+        request_id: state.request.id,
+        source: viewState === "results" ? "wrapup" : "live_campaign",
+        result_kind: (state.campaignStats?.leads ?? 0) > 0 ? "inquiries" : "engagement_only",
+        managed_ads_variant: assignedVariant,
+      });
+    }
     if (hasTrackedView.current) return;
     hasTrackedView.current = true;
-    const open = !!state.request && OPEN_STATUSES.includes(state.request.status);
-    const pending = state.request?.status === "pending_profile";
-    const viewState = open
-      ? "in_motion"
-      : pending
-        ? "queued"
-        : state.eligibility.eligible
-          ? "apply"
-          : "gate";
     trackProviderEvent(state.provider.slug, "managed_ads_boost_viewed", {
       provider_name: state.provider.displayName,
       state: viewState,
@@ -159,7 +210,7 @@ export default function ProviderBoostPage() {
       demand_scope: state.demand.scope,
       managed_ads_variant: assignedVariant,
     });
-  }, [assignedVariant, state]);
+  }, [assignedVariant, justSubscribed, state]);
 
   // Next four Mondays — "select next week to set up".
   const weekOptions = useMemo(() => nextMondays(4), []);
@@ -183,9 +234,11 @@ export default function ProviderBoostPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        // 409 (already have a request) returns the existing one — fold it in.
+        // A stale application can race with an existing/finished intro. Reload
+        // the authoritative state so it lands on in-motion, results, or the
+        // terminal waiting view with the correct receipt and wrap-up flags.
         if (res.status === 409 && json.request) {
-          setState((prev) => (prev ? { ...prev, request: json.request } : prev));
+          await fetchState();
           return;
         }
         setSubmitError(json.error || "Something went wrong. Please try again.");
@@ -216,11 +269,22 @@ export default function ProviderBoostPage() {
     }
   };
 
-  // The wrap-up payment moment: POST the chosen plan, redirect to Stripe
-  // Checkout. The only payment ask in the system (plan of record 2026-07-06).
+  // POST the chosen plan from a live campaign or results moment, then redirect
+  // to Stripe Checkout.
   const startCheckout = async (planValue: number) => {
     setCheckoutSubmitting(true);
     setCheckoutError(null);
+    const eventMetadata = {
+      provider_name: state?.provider.displayName,
+      request_id: state?.request?.id,
+      plan_value: planValue,
+      source: state?.wrapupReady ? "wrapup" : "live_campaign",
+      result_kind: (state?.campaignStats?.leads ?? 0) > 0 ? "inquiries" : "engagement_only",
+      managed_ads_variant: assignedVariant ?? "unassigned",
+    };
+    if (state && !isManagedAdsPreviewMode()) {
+      trackProviderEvent(state.provider.slug, "managed_ads_checkout_started", eventMetadata);
+    }
     try {
       const res = await fetch("/api/provider/ad-boost/checkout", {
         method: "POST",
@@ -231,14 +295,50 @@ export default function ProviderBoostPage() {
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.url) {
         setCheckoutError(json.error || "Something went wrong. Please try again.");
+        if (state && !isManagedAdsPreviewMode()) {
+          trackProviderEvent(state.provider.slug, "managed_ads_checkout_failed", {
+            ...eventMetadata,
+            response_status: res.status,
+          });
+        }
         return;
+      }
+      if (state && !isManagedAdsPreviewMode()) {
+        trackProviderEvent(state.provider.slug, "managed_ads_checkout_created", eventMetadata);
       }
       window.location.assign(json.url);
     } catch {
       setCheckoutError("Network error. Please try again.");
+      if (state && !isManagedAdsPreviewMode()) {
+        trackProviderEvent(state.provider.slug, "managed_ads_checkout_failed", {
+          ...eventMetadata,
+          failure: "network_error",
+        });
+      }
     } finally {
       setCheckoutSubmitting(false);
     }
+  };
+
+  const trackPlanSelected = (planValue: number) => {
+    if (!state || isManagedAdsPreviewMode()) return;
+    trackProviderEvent(state.provider.slug, "managed_ads_plan_selected", {
+      provider_name: state.provider.displayName,
+      request_id: state.request?.id,
+      plan_value: planValue,
+      source: state.wrapupReady ? "wrapup" : "live_campaign",
+      managed_ads_variant: assignedVariant ?? "unassigned",
+    });
+  };
+
+  const trackNotNow = () => {
+    if (!state || isManagedAdsPreviewMode()) return;
+    trackProviderEvent(state.provider.slug, "managed_ads_not_now", {
+      provider_name: state.provider.displayName,
+      request_id: state.request?.id,
+      source: state.wrapupReady ? "wrapup" : "live_campaign",
+      managed_ads_variant: assignedVariant ?? "unassigned",
+    });
   };
 
   // Inline section editing — finish a profile section without leaving the boost
@@ -303,23 +403,31 @@ export default function ProviderBoostPage() {
     state.request?.status === "pending_profile" ? state.request : null;
   // A finished intro with an active plan keeps the in-motion treatment (the
   // concierge keeps the campaign running); without one it may show the wrap-up.
-  const endedRequest = state.request?.status === "ended" ? state.request : null;
+  const terminalRequest =
+    state.request?.status === "ended" || state.request?.status === "cancelled"
+      ? state.request
+      : null;
   // past_due counts as running: Stripe dunning owns payment recovery, and the
   // wrap-up ask must never show over an existing subscription.
-  const planStatus = (openRequest ?? endedRequest)?.plan_status;
+  const planStatus = state.request?.plan_status;
   const planActive =
     planStatus === "active" || planStatus === "past_due" || justSubscribed;
   const wrapupRequest =
-    state.wrapupReady && !planActive ? (openRequest ?? endedRequest) : null;
+    state.wrapupReady &&
+    !planActive &&
+    state.request &&
+    (state.request.status === "live" || state.request.status === "ended")
+      ? state.request
+      : null;
 
   // Post-checkout celebration — commitment earns theater. Also the steady state
   // for an active plan (justSubscribed covers the webhook-lag window).
-  if (planActive && (openRequest || endedRequest)) {
+  if (planActive && state.request) {
     return (
       <Shell>
         <div className="mt-2">
           <PlanActive
-            request={(openRequest ?? endedRequest)!}
+            request={state.request}
             campaignStats={state.campaignStats}
             celebrate={justSubscribed}
           />
@@ -328,7 +436,7 @@ export default function ProviderBoostPage() {
     );
   }
 
-  // The wrap-up moment — the intro finished its job; ask (or honestly don't).
+  // The featured wrap-up moment—the intro finished its job and results lead.
   if (wrapupRequest) {
     return (
       <Shell>
@@ -338,6 +446,8 @@ export default function ProviderBoostPage() {
             campaignStats={state.campaignStats}
             receipt={state.receipt}
             onCheckout={startCheckout}
+            onPlanSelected={trackPlanSelected}
+            onNotNow={trackNotNow}
             submitting={checkoutSubmitting}
             error={checkoutError}
           />
@@ -358,6 +468,7 @@ export default function ProviderBoostPage() {
             campaignStats={state.campaignStats}
             receipt={state.receipt}
             onCheckout={startCheckout}
+            onPlanSelected={trackPlanSelected}
             submitting={checkoutSubmitting}
             error={checkoutError}
             onEditPhotos={() => openEditor("gallery")}
@@ -393,6 +504,19 @@ export default function ProviderBoostPage() {
           userName={providerProfile?.display_name ?? undefined}
           allowDismiss={false}
         />
+      </Shell>
+    );
+  }
+
+  // Ended and cancelled intros must never fall back to Apply. In particular,
+  // the hours between auto-end and the buffered wrap-up email are a waiting
+  // state—not a chance to request another free campaign.
+  if (terminalRequest) {
+    return (
+      <Shell>
+        <div className="mt-2">
+          <CampaignWrapUpPending request={terminalRequest} />
+        </div>
       </Shell>
     );
   }
@@ -665,8 +789,9 @@ const APPLY_STEP_NAMES = ["timing", "first_campaign", "confirm"] as const;
  *
  * There is no plan decision in this flow (2026-07-10): every request starts as
  * the free intro campaign, so the middle step de-risks and shows the payoff
- * instead of asking for a budget. Paid tiers appear only as a quiet preview —
- * the wrap-up moment is the only payment ask (plan of record 2026-07-06). Order
+ * instead of asking for a budget. Paid tiers are previewed here, become
+ * actionable once the intro is live, and remain featured in the results
+ * wrap-up. Order
  * within the step matters: reassurance (trust strip) before any price is seen.
  * Clean white ground + one elevated summary card + teal as the single accent —
  * a focused transaction, not an editorial pitch. On mobile the columns stack.
@@ -909,6 +1034,14 @@ function ApplyExperience({
                     </dd>
                   </div>
                 ))}
+                <div className="flex items-baseline justify-between gap-4 py-3">
+                  <dt className="text-sm">
+                    <span className="font-medium text-gray-900">{CUSTOM_SCALE_STOP.name}</span>
+                    <span className="text-gray-300"> · </span>
+                    <span className="tabular-nums text-gray-500">{CUSTOM_SCALE_STOP.amount}/mo</span>
+                  </dt>
+                  <dd className="shrink-0 text-sm text-gray-400">Talk with us</dd>
+                </div>
               </dl>
               <p className="mt-4 max-w-md text-sm text-gray-500 leading-relaxed">
                 {PAID_PREVIEW_LINE}

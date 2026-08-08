@@ -20,21 +20,23 @@
  * + Budget-Step UX — Handoff"):
  *  - The $50 stop is a FREE one-time intro campaign Olera covers ("First
  *    campaign"), gated on the existing eligibility (verified + 70% complete).
- *  - Paid tiers are named by outcome (Starter / Growth / Scale) and priced flat
- *    and ALL-IN: ad spend + setup + management bundled. Never itemize a service
- *    fee, never per-lead pricing.
+ *  - Paid tiers are named by outcome (Starter / Momentum / Growth) and priced
+ *    flat and ALL-IN: ad spend + setup + management bundled. Scale is a custom
+ *    conversation, not a self-serve checkout. Never itemize a service fee,
+ *    never per-lead pricing.
  *  - The risk-reversal is the zero-inquiry-month guarantee (see
  *    /managed-ads-terms), surfaced here via BUDGET_TRUST_STRIP.
  *  - The apply flow does NOT ask the provider to pick a paid tier (2026-07-10:
  *    every real request chose the free/cheapest stop, so the pick was pure
  *    friction). Every request starts as the free intro; paid tiers appear on
- *    the apply step only as a quiet non-interactive preview. The wrap-up moment
- *    (results in hand) is the only payment ask.
+ *    the apply step only as a non-interactive preview. Once the campaign is
+ *    live, providers can choose a plan directly; the results wrap-up repeats
+ *    that choice with the completed receipt in hand.
  *
  * The honesty model: as the budget rises, the estimate shifts from REACH framing
  * ($50 = "You're live", NO number) to a LEAD range. The provider feels "more
- * spend -> real leads" without a lecture. Scale's blurb carries the "steady flow
- * honestly starts here" anchor; BUDGET_ESTIMATE_CAVEAT bridges to the live
+ * spend -> real leads" without a lecture. The custom Scale row carries the
+ * "steady flow honestly starts here" anchor; BUDGET_ESTIMATE_CAVEAT bridges to the live
  * `delivered` counter (the truthful payoff that justifies not promising leads
  * upfront).
  */
@@ -42,11 +44,11 @@
 export type BudgetStop = {
   /** Whole dollars per month. The $50 stop is the free intro Olera covers. */
   value: number;
-  /** Tier name — the outcome ladder (First campaign / Starter / Growth / Scale). */
+  /** Tier name — the outcome ladder (First campaign / Starter / Momentum / Growth / Scale). */
   name: string;
-  /** Full label for the summary / review / facts rows, e.g. "Starter · $150/mo". */
+  /** Full label for the summary / review / facts rows, e.g. "Starter · $75/mo". */
   label: string;
-  /** Big amount on the card (e.g. "$150") — kept short so it never clips. */
+  /** Big amount on the card (e.g. "$75") — kept short so it never clips. */
   amount: string;
   /** Small descriptor beside the amount (e.g. "/mo", "on us"). */
   sublabel: string;
@@ -68,7 +70,7 @@ export type BudgetStop = {
 export const STEADY_LEADS_THRESHOLD = 600;
 
 /** Sensible default so the budget step opens with its payoff already visible. */
-export const DEFAULT_BUDGET = 150;
+export const DEFAULT_BUDGET = 75;
 
 export const BUDGET_STOPS: BudgetStop[] = [
   {
@@ -83,17 +85,28 @@ export const BUDGET_STOPS: BudgetStop[] = [
     estimate: "Local families start seeing your page.",
   },
   {
-    value: 150,
+    value: 75,
     name: "Starter",
-    label: "Starter · $150/mo",
+    label: "Starter · $75/mo",
+    amount: "$75",
+    sublabel: "/mo",
+    kind: "leads",
+    headline: "0–1",
+    unit: "inquiries / mo",
+    blurb: "A low-risk way to keep the campaign learning after your intro.",
+    estimate: "A low-risk way to keep learning what families respond to.",
+  },
+  {
+    value: 150,
+    name: "Momentum",
+    label: "Momentum · $150/mo",
     amount: "$150",
     sublabel: "/mo",
-    chip: "Most chosen",
     kind: "leads",
     headline: "1–2",
     unit: "inquiries / mo",
-    blurb: "Keep the ads running and learn what families respond to.",
-    estimate: "Enough to learn what families respond to.",
+    blurb: "Build meaningful signal without making a large jump in spend.",
+    estimate: "Enough volume to build on what your intro learned.",
   },
   {
     value: 300,
@@ -107,19 +120,23 @@ export const BUDGET_STOPS: BudgetStop[] = [
     blurb: "More hours in front of families who are searching right now.",
     estimate: "A steady read on what your market sends.",
   },
-  {
-    value: STEADY_LEADS_THRESHOLD,
-    name: "Scale",
-    label: "Scale · $600+/mo",
-    amount: "$600+",
-    sublabel: "/mo",
-    kind: "leads",
-    headline: "4–8",
-    unit: "inquiries / mo",
-    blurb: "Where steady weekly inquiries begin. Most agencies run at this level.",
-    estimate: "Consistent flow, month over month.",
-  },
 ];
+
+/** Higher-volume service is intentionally consultative. It remains available
+ *  to label historical $600 subscriptions, but is excluded from BUDGET_STOPS
+ *  so request validation and Stripe self-serve checkout cannot select it. */
+export const CUSTOM_SCALE_STOP: BudgetStop = {
+  value: STEADY_LEADS_THRESHOLD,
+  name: "Scale",
+  label: "Scale · $600+/mo",
+  amount: "$600+",
+  sublabel: "/mo",
+  kind: "leads",
+  headline: "4–8",
+  unit: "inquiries / mo",
+  blurb: "Where steady weekly inquiries begin. We shape the market and budget with you.",
+  estimate: "Custom plan for consistent volume.",
+};
 
 /** The exact dollar values a request may carry (POST validation allowlist). */
 export const BUDGET_VALUES: number[] = BUDGET_STOPS.map((s) => s.value);
@@ -147,7 +164,8 @@ export const BUDGET_TRUST_STRIP: { value: string; label: string }[] = [
 /** Look up a stop by its dollar value (null-safe). */
 export function budgetStop(value: number | null | undefined): BudgetStop | null {
   if (value == null) return null;
-  return BUDGET_STOPS.find((s) => s.value === value) ?? null;
+  return BUDGET_STOPS.find((s) => s.value === value) ??
+    (CUSTOM_SCALE_STOP.value === value ? CUSTOM_SCALE_STOP : null);
 }
 
 /** Human label for a stored budget value (e.g. for the summary / in-motion echo). */

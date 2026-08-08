@@ -204,13 +204,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Fetch LIVE data from SmartLead API for accurate per-template engagement
+    // 3. Fetch LIVE data from SmartLead API for Day 0 stats only
     // The touchpoints table is append-only (can't update engagement), so we fetch
-    // directly from SmartLead API to get real open/click counts per sequence step.
+    // directly from SmartLead API to get real open/click counts.
     //
     // IMPORTANT: SmartLead's `sequence_number` field is unreliable (always returns 1).
-    // Instead, we infer which emails were sent based on `sent_time` (days elapsed).
-    // Cadence: Day 0 (step 1), Day 3 (step 2), Day 5 (step 3), Day 7 (step 4).
+    // We can only confirm Day 0 was sent (via sent_time). For Day 3/5/7, we rely on
+    // EMAIL_SENT webhooks stored in touchpoints - we do NOT infer from timing because
+    // SmartLead may not have actually sent those emails yet.
     if (isSmartleadConfigured()) {
       // Get all campaign IDs from tracking data
       const { data: trackingWithCampaigns } = await db
@@ -227,16 +228,10 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // Fetch per-lead stats from each campaign and aggregate by inferred step
-        // We infer which emails were sent based on days since sent_time
-        const smartleadStats: Record<number, { sent: number; opened: number; clicked: number }> = {
-          1: { sent: 0, opened: 0, clicked: 0 },
-          2: { sent: 0, opened: 0, clicked: 0 },
-          3: { sent: 0, opened: 0, clicked: 0 },
-          4: { sent: 0, opened: 0, clicked: 0 },
-        };
-
-        const now = new Date();
+        // Only count Day 0 (intro) from SmartLead API - that's the only email we can confirm
+        let day0Sent = 0;
+        let day0Opened = 0;
+        let day0Clicked = 0;
 
         for (const campaignId of campaignIds) {
           const leadsResult = await getCampaignLeadStatistics(campaignId);
@@ -245,51 +240,31 @@ export async function GET(request: NextRequest) {
               // Skip leads that haven't been sent any email
               if (!lead.sent_time) continue;
 
-              // Calculate days since first email was sent
               const sentDate = new Date(lead.sent_time);
 
               // Respect the lookback period - skip leads enrolled before cutoff
               if (sentDate < cutoffDate) continue;
 
-              const daysSinceSent = Math.floor(
-                (now.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
-              );
+              // Count Day 0 (intro) - the only email we can confirm was sent
+              day0Sent++;
 
-              // Determine which emails have been sent based on cadence
-              // Day 0 → step 1, Day 3 → step 2, Day 5 → step 3, Day 7 → step 4
-              // A lead gets an email on each cadence day that has passed
-              if (daysSinceSent >= 0) smartleadStats[1].sent++;
-              if (daysSinceSent >= 3) smartleadStats[2].sent++;
-              if (daysSinceSent >= 5) smartleadStats[3].sent++;
-              if (daysSinceSent >= 7) smartleadStats[4].sent++;
-
-              // For opens/clicks, attribute to the furthest step reached.
-              // KNOWN LIMITATION: SmartLead gives aggregate open_count/click_count per lead,
-              // not per email. We can't know which specific email was engaged. Attributing
-              // to the furthest step means Day 3+ rates may appear slightly inflated.
-              const furthestStep = inferSequenceStep(daysSinceSent);
-
+              // Attribute all opens/clicks to Day 0 since that's the only confirmed email
               if ((lead.open_count ?? 0) > 0) {
-                smartleadStats[furthestStep].opened++;
+                day0Opened++;
               }
               if ((lead.click_count ?? 0) > 0) {
-                smartleadStats[furthestStep].clicked++;
+                day0Clicked++;
               }
             }
           }
         }
 
-        // Use SmartLead data for SmartLead campaigns (more accurate than stale touchpoints)
-        // Take the higher value in case touchpoints have some data
-        for (const [stepStr, data] of Object.entries(smartleadStats)) {
-          const step = parseInt(stepStr, 10);
-          const templateKey = SEQUENCE_STEP_MAP[step]?.template_key;
-          if (templateKey && statsMap[templateKey]) {
-            statsMap[templateKey].sent = Math.max(statsMap[templateKey].sent, data.sent);
-            statsMap[templateKey].opened = Math.max(statsMap[templateKey].opened, data.opened);
-            statsMap[templateKey].clicked = Math.max(statsMap[templateKey].clicked, data.clicked);
-          }
-        }
+        // Update Day 0 stats from SmartLead (take higher value in case touchpoints have data)
+        statsMap["intro"].sent = Math.max(statsMap["intro"].sent, day0Sent);
+        statsMap["intro"].opened = Math.max(statsMap["intro"].opened, day0Opened);
+        statsMap["intro"].clicked = Math.max(statsMap["intro"].clicked, day0Clicked);
+
+        // Day 3/5/7 stats come only from touchpoints (section 1) which track actual EMAIL_SENT webhooks
       }
     }
 

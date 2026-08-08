@@ -705,3 +705,36 @@ export async function resumeLeadInCampaign(
     `/campaigns/${campaignId}/leads/${leadId}/resume`
   );
 }
+
+/**
+ * Campaign-level statistics from SmartLead.
+ * Used to backfill historical open/click data that predates webhook registration.
+ */
+export interface SmartleadCampaignStats {
+  id?: number;
+  campaign_id?: number;
+  total_leads?: number;
+  contacted?: number;
+  opened?: number;
+  clicked?: number;
+  replied?: number;
+  bounced?: number;
+  unsubscribed?: number;
+  open_rate?: number;
+  click_rate?: number;
+  reply_rate?: number;
+}
+
+/**
+ * Get campaign-level statistics (sent, opened, clicked, etc.) from SmartLead.
+ * Used for backfilling historical data and dashboard displays.
+ */
+export async function getCampaignStatistics(
+  campaignId: number
+): Promise<SmartleadResult<SmartleadCampaignStats>> {
+  return smartleadRequest<SmartleadCampaignStats>(
+    "GET",
+    `/campaigns/${campaignId}/statistics`
+  );
+}
+

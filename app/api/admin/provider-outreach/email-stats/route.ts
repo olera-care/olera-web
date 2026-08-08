@@ -203,7 +203,46 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Calculate rates and build response
+    // 3. Check for synced SmartLead campaign stats as fallback
+    // If we have touchpoints but no opens/clicks recorded, use synced campaign stats
+    let smartleadCampaignOpens = 0;
+    let smartleadCampaignClicks = 0;
+
+    const touchpointOpens = Object.values(statsMap).reduce((sum, s) => sum + s.opened, 0);
+    const touchpointClicks = Object.values(statsMap).reduce((sum, s) => sum + s.clicked, 0);
+
+    if (touchpointOpens === 0 || touchpointClicks === 0) {
+      // Fetch synced campaign stats from provider_outreach_tracking
+      // Note: We fetch all rows with smartlead_data and filter in JS for reliability
+      // (PostgREST nested JSON filtering can be fragile)
+      const { data: trackingWithStats, error: trackingStatsError } = await db
+        .from("provider_outreach_tracking")
+        .select("smartlead_data")
+        .not("smartlead_data", "is", null);
+
+      if (trackingStatsError) {
+        console.error("[email-stats] Failed to fetch synced stats:", trackingStatsError.message);
+      } else if (trackingWithStats && trackingWithStats.length > 0) {
+        // Aggregate campaign stats (deduplicate by campaign_id)
+        const seenCampaigns = new Set<number>();
+        for (const row of trackingWithStats) {
+          const sd = row.smartlead_data as { campaign_id?: number; campaign_stats?: { opened?: number; clicked?: number } } | null;
+          const campaignId = sd?.campaign_id;
+          const stats = sd?.campaign_stats;
+
+          // Skip if no campaign_stats synced yet
+          if (!stats) continue;
+
+          if (typeof campaignId === "number" && !seenCampaigns.has(campaignId)) {
+            seenCampaigns.add(campaignId);
+            smartleadCampaignOpens += stats.opened ?? 0;
+            smartleadCampaignClicks += stats.clicked ?? 0;
+          }
+        }
+      }
+    }
+
+    // 4. Calculate rates and build response
     const templates: TemplateStats[] = [];
     let totalSent = 0;
     let totalOpened = 0;
@@ -227,12 +266,20 @@ export async function GET(request: NextRequest) {
       totalClicked += stat.clicked;
     }
 
+    // Use synced SmartLead stats if touchpoint data shows zeros
+    // This happens when webhooks weren't working but we synced from SmartLead API
+    const finalOpened = totalOpened > 0 ? totalOpened : smartleadCampaignOpens;
+    const finalClicked = totalClicked > 0 ? totalClicked : smartleadCampaignClicks;
+
     const totals = {
       sent: totalSent,
-      opened: totalOpened,
-      open_rate: totalSent > 0 ? Math.round((totalOpened / totalSent) * 1000) / 10 : 0,
-      clicked: totalClicked,
-      click_rate: totalSent > 0 ? Math.round((totalClicked / totalSent) * 1000) / 10 : 0,
+      opened: finalOpened,
+      open_rate: totalSent > 0 ? Math.round((finalOpened / totalSent) * 1000) / 10 : 0,
+      clicked: finalClicked,
+      click_rate: totalSent > 0 ? Math.round((finalClicked / totalSent) * 1000) / 10 : 0,
+      // Flag if using synced data (for transparency)
+      using_synced_stats: (totalOpened === 0 && smartleadCampaignOpens > 0) ||
+                          (totalClicked === 0 && smartleadCampaignClicks > 0),
     };
 
     return NextResponse.json({

@@ -6,8 +6,9 @@ import { isPhoneDoNotContact } from "@/lib/do-not-contact";
 /**
  * One SMS conversation, and the ability to answer it.
  *
- * GET  /api/admin/sms-inbox/[phone]  — full thread, both directions
+ * GET  /api/admin/sms-inbox/[phone]  — full thread, both directions, plus any saved draft
  * POST /api/admin/sms-inbox/[phone]  — { action: "reply", body } | { action: "mark_handled" }
+ *                                    | { action: "save_draft", body } | { action: "discard_draft" }
  *
  * The thread is read from TWILIO, not our database, because Twilio holds the
  * complete permanent history of both directions and our own outbound logging is
@@ -20,6 +21,9 @@ import { isPhoneDoNotContact } from "@/lib/do-not-contact";
  */
 
 const MAX_THREAD = 200;
+
+/** Matches the reply box and the sms_drafts CHECK — one limit, three places. */
+const MAX_BODY = 480;
 
 /** Twilio addresses US numbers in E.164; our thread key is the last 10 digits. */
 function toE164(last10: string): string {
@@ -48,13 +52,14 @@ export async function GET(
     const db = getServiceClient();
     const e164 = toE164(last10);
 
-    const [inboundRes, dncRes] = await Promise.all([
+    const [inboundRes, dncRes, draftRes] = await Promise.all([
       db
         .from("sms_inbound")
         .select("id, from_phone, body, keyword, profile_id, profile_type, display_name, handled_at, created_at")
         .eq("phone_last10", last10)
         .order("created_at", { ascending: true }),
       db.from("do_not_contact").select("id, reason, note").eq("phone", last10).limit(1).maybeSingle(),
+      db.from("sms_drafts").select("body, updated_by, updated_at").eq("phone_last10", last10).maybeSingle(),
     ]);
     if (inboundRes.error) {
       console.error("[admin/sms-inbox/phone] inbound load failed:", inboundRes.error);
@@ -124,6 +129,17 @@ export async function GET(
       inbound: inboundRows,
       messages,
       twilioError,
+      // A draft read failure must never blank the conversation — the thread is
+      // the point of the page, the unsent reply is an extra.
+      draft: draftRes.error
+        ? null
+        : draftRes.data
+          ? {
+              body: draftRes.data.body,
+              updated_by: draftRes.data.updated_by,
+              updated_at: draftRes.data.updated_at,
+            }
+          : null,
     });
   } catch (err) {
     console.error("[admin/sms-inbox/phone] Unexpected error:", err);
@@ -162,12 +178,63 @@ export async function POST(
       return NextResponse.json({ success: true });
     }
 
+    // Park an unsent reply against the thread. Autosaved from the inbox as you
+    // type, so this is deliberately cheap: upsert, no audit row (a keystroke
+    // trail would bury real admin actions), and no effect on handled state —
+    // writing a draft is not answering anyone.
+    if (action === "save_draft") {
+      const text = typeof body?.body === "string" ? body.body : "";
+      // An empty draft is the absence of a draft, not a row holding "".
+      if (!text.trim()) {
+        const { error } = await db.from("sms_drafts").delete().eq("phone_last10", last10);
+        if (error) {
+          console.error("[admin/sms-inbox/phone] draft clear failed:", error);
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ success: true, draft: null });
+      }
+      if (text.length > MAX_BODY) {
+        return NextResponse.json(
+          { error: `Draft is too long (${MAX_BODY} characters max)` },
+          { status: 400 },
+        );
+      }
+
+      const updatedAt = new Date().toISOString();
+      const { error } = await db.from("sms_drafts").upsert(
+        {
+          phone_last10: last10,
+          body: text,
+          updated_by: user.email ?? admin.id,
+          updated_at: updatedAt,
+        },
+        { onConflict: "phone_last10" },
+      );
+      if (error) {
+        console.error("[admin/sms-inbox/phone] draft save failed:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({
+        success: true,
+        draft: { body: text, updated_by: user.email ?? admin.id, updated_at: updatedAt },
+      });
+    }
+
+    if (action === "discard_draft") {
+      const { error } = await db.from("sms_drafts").delete().eq("phone_last10", last10);
+      if (error) {
+        console.error("[admin/sms-inbox/phone] draft discard failed:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, draft: null });
+    }
+
     if (action === "reply") {
       const text = typeof body?.body === "string" ? body.body.trim() : "";
       if (!text) return NextResponse.json({ error: "Message body is required" }, { status: 400 });
-      if (text.length > 480) {
+      if (text.length > MAX_BODY) {
         return NextResponse.json(
-          { error: "Message is too long (480 characters max)" },
+          { error: `Message is too long (${MAX_BODY} characters max)` },
           { status: 400 },
         );
       }
@@ -207,12 +274,18 @@ export async function POST(
         );
       }
 
-      // Answering the thread IS handling it.
-      await db
-        .from("sms_inbound")
-        .update({ handled_at: new Date().toISOString(), handled_by: user.email ?? admin.id })
-        .eq("phone_last10", last10)
-        .is("handled_at", null);
+      // Answering the thread IS handling it. The draft has served its purpose
+      // and must go with it, or the box refills with the message just sent the
+      // next time the thread is opened. Awaited, not fire-and-forget: Vercel
+      // kills pending promises once the response is returned.
+      await Promise.all([
+        db
+          .from("sms_inbound")
+          .update({ handled_at: new Date().toISOString(), handled_by: user.email ?? admin.id })
+          .eq("phone_last10", last10)
+          .is("handled_at", null),
+        db.from("sms_drafts").delete().eq("phone_last10", last10),
+      ]);
 
       await logAuditAction({
         adminUserId: admin.id,

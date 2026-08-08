@@ -117,17 +117,27 @@ export async function GET(request: NextRequest) {
 
     // Which of these numbers are suppressed? The reply box must refuse to text
     // someone who opted out, so the UI needs this up front.
+    // And which have an unsent draft parked against them? A draft you forgot
+    // about is the same failure as an unanswered text, so the list has to show
+    // it — otherwise the only way to find one is to open every thread.
     const suppressed = new Set<string>();
+    const drafted = new Set<string>();
     if (list.length > 0) {
-      const { data: dnc } = await db
-        .from("do_not_contact")
-        .select("phone")
-        .in("phone", list.map((t) => t.phone_last10));
-      for (const row of dnc ?? []) if (row.phone) suppressed.add(String(row.phone));
+      const keys = list.map((t) => t.phone_last10);
+      const [dncRes, draftRes] = await Promise.all([
+        db.from("do_not_contact").select("phone").in("phone", keys),
+        db.from("sms_drafts").select("phone_last10").in("phone_last10", keys),
+      ]);
+      for (const row of dncRes.data ?? []) if (row.phone) suppressed.add(String(row.phone));
+      for (const row of draftRes.data ?? []) if (row.phone_last10) drafted.add(String(row.phone_last10));
     }
 
     return NextResponse.json({
-      threads: list.map((t) => ({ ...t, suppressed: suppressed.has(t.phone_last10) })),
+      threads: list.map((t) => ({
+        ...t,
+        suppressed: suppressed.has(t.phone_last10),
+        has_draft: drafted.has(t.phone_last10),
+      })),
       unhandled: list.reduce((sum, t) => sum + t.unhandled, 0),
       truncated: rows.length >= MAX_ROWS,
     });

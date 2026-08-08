@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * SMS inbox — every inbound text, and the ability to answer it.
@@ -8,7 +8,17 @@ import { useCallback, useEffect, useState } from "react";
  * Two panes: threads on the left, conversation + reply box on the right.
  * The thread body comes from Twilio (complete, both directions); our own
  * sms_inbound rows supply identity and the handled/unhandled state.
+ *
+ * Replies autosave as drafts (sms_drafts, one row per thread). The reply box
+ * used to be pure component state, wiped on every thread switch and lost on
+ * reload, so a reply you wanted to check a fact for first had nowhere to sit.
+ * Drafts live server-side rather than in localStorage so one can be written on
+ * a laptop and finished on a phone, and nothing here is ever sent on its own —
+ * a draft is text waiting for a human to press Send.
  */
+
+/** Idle time before an edit is persisted. Long enough not to write per keystroke. */
+const DRAFT_SAVE_DELAY_MS = 1200;
 
 interface Thread {
   phone_last10: string;
@@ -22,6 +32,7 @@ interface Thread {
   unhandled: number;
   total: number;
   suppressed: boolean;
+  has_draft: boolean;
 }
 
 interface ThreadMessage {
@@ -44,7 +55,16 @@ interface ThreadDetail {
   messages: ThreadMessage[];
   inbound: { id: number; body: string; created_at: string; handled_at: string | null }[];
   twilioError: string | null;
+  draft: { body: string; updated_by: string | null; updated_at: string } | null;
 }
+
+/** What the draft indicator is currently saying. */
+type DraftState =
+  | { kind: "none" }
+  | { kind: "dirty" }
+  | { kind: "saving" }
+  | { kind: "saved"; at: string; by: string | null }
+  | { kind: "error"; message: string };
 
 function formatPhone(last10: string): string {
   return `(${last10.slice(0, 3)}) ${last10.slice(3, 6)}-${last10.slice(6)}`;
@@ -71,6 +91,29 @@ function relative(iso: string): string {
   return `${Math.round(hours / 24)}d`;
 }
 
+/**
+ * Autosave indicator. Quiet by design — a draft saving is the expected case,
+ * so only a failure earns colour. A silent "saved" would be worse than none:
+ * the whole point is knowing the text is safe to walk away from.
+ */
+function DraftStatus({ state }: { state: DraftState }) {
+  if (state.kind === "none") return null;
+  if (state.kind === "error") {
+    return (
+      <span className="text-[11px] text-red-600" title={state.message}>
+        Draft not saved
+      </span>
+    );
+  }
+  if (state.kind === "dirty") return <span className="text-[11px] text-gray-400">Unsaved…</span>;
+  if (state.kind === "saving") return <span className="text-[11px] text-gray-400">Saving…</span>;
+  return (
+    <span className="text-[11px] text-gray-500" title={state.by ? `Last saved by ${state.by}` : undefined}>
+      Draft saved {formatEt(state.at)}
+    </span>
+  );
+}
+
 export default function AdminSmsInboxPage() {
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [truncated, setTruncated] = useState(false);
@@ -83,6 +126,37 @@ export default function AdminSmsInboxPage() {
   const [sending, setSending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [draftState, setDraftState] = useState<DraftState>({ kind: "none" });
+
+  // The reply text last known to be on the server for the OPEN thread. Edits are
+  // measured against this, so adopting a loaded draft into the box doesn't
+  // immediately look like a change and save it straight back.
+  const draftBaselineRef = useRef("");
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Which thread's draft has actually been loaded. Autosave stays off until this
+  // matches the open thread: without it, the empty box during a thread switch
+  // would be saved against the newly-selected number and wipe its draft.
+  const draftLoadedForRef = useRef<string | null>(null);
+  // Bumped whenever the draft context changes under a request that is already in
+  // flight (thread switch, discard, send). A save that resolves against a stale
+  // epoch must not write its result back into the box — otherwise the reply you
+  // were typing for one number can end up labelled as another's saved draft.
+  const draftEpochRef = useRef(0);
+  // The save currently in flight, so a discard can land AFTER it. Without this a
+  // delete can be overtaken by an upsert that was already on the wire, leaving a
+  // draft row behind that the UI has already forgotten about.
+  const inFlightSaveRef = useRef<Promise<void> | null>(null);
+  // What is in the box right now. A save that started before the last few
+  // keystrokes must not report "Draft saved" over text that has since moved on —
+  // an indicator that lies about safety is worse than no indicator.
+  const latestReplyRef = useRef("");
+
+  const cancelPendingDraftSave = useCallback(() => {
+    if (draftTimerRef.current) {
+      clearTimeout(draftTimerRef.current);
+      draftTimerRef.current = null;
+    }
+  }, []);
 
   const loadThreads = useCallback(async () => {
     setListError(null);
@@ -100,33 +174,187 @@ export default function AdminSmsInboxPage() {
 
   useEffect(() => { void loadThreads(); }, [loadThreads]);
 
-  const loadDetail = useCallback(async (phone: string) => {
-    setDetailLoading(true);
-    setActionError(null);
-    setNotice(null);
-    try {
-      const res = await fetch(`/api/admin/sms-inbox/${phone}`);
-      if (!res.ok) throw new Error((await res.json())?.error || "Failed to load thread");
-      setDetail(await res.json());
-    } catch (err) {
-      setDetail(null);
-      setActionError(err instanceof Error ? err.message : "Failed to load thread");
-    } finally {
-      setDetailLoading(false);
+  /**
+   * `adoptDraft` decides whether the saved draft is pulled into the reply box.
+   * True when opening a thread (show me what I parked) and after sending (the
+   * server just deleted it, so this clears the box). False for Mark handled,
+   * which must not overwrite whatever is being typed right now.
+   */
+  const loadDetail = useCallback(
+    async (phone: string, { adoptDraft = false }: { adoptDraft?: boolean } = {}) => {
+      setDetailLoading(true);
+      setActionError(null);
+      setNotice(null);
+      try {
+        const res = await fetch(`/api/admin/sms-inbox/${phone}`);
+        if (!res.ok) throw new Error((await res.json())?.error || "Failed to load thread");
+        const data: ThreadDetail = await res.json();
+        setDetail(data);
+        if (adoptDraft) {
+          const body = data.draft?.body ?? "";
+          draftBaselineRef.current = body;
+          draftLoadedForRef.current = phone;
+          setReply(body);
+          setDraftState(
+            data.draft
+              ? { kind: "saved", at: data.draft.updated_at, by: data.draft.updated_by }
+              : { kind: "none" },
+          );
+        }
+      } catch (err) {
+        setDetail(null);
+        setActionError(err instanceof Error ? err.message : "Failed to load thread");
+      } finally {
+        setDetailLoading(false);
+      }
+    },
+    [],
+  );
+
+  const saveDraft = useCallback(
+    async (phone: string, text: string) => {
+      const epoch = draftEpochRef.current;
+      const had = draftBaselineRef.current.trim().length > 0;
+      const has = text.trim().length > 0;
+      setDraftState({ kind: "saving" });
+
+      const run = (async () => {
+        try {
+          const res = await fetch(`/api/admin/sms-inbox/${phone}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "save_draft", body: text }),
+            // Survives the tab being closed mid-flight (see the visibility flush).
+            keepalive: true,
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data?.error || "Failed to save draft");
+          // The box has moved on (different thread, discarded, sent). The write
+          // still stands server-side; it just isn't this view's story anymore.
+          if (draftEpochRef.current !== epoch) return;
+          draftBaselineRef.current = text;
+          // Only refresh the list when the thread's draft chip would actually
+          // change. Re-fetching every autosave would re-read the whole inbox
+          // every couple of seconds of typing. This runs before the early
+          // return below: the follow-up save compares against the baseline THIS
+          // call just moved, so it would see no transition and never ask.
+          if (had !== has) void loadThreads();
+          // Typing continued while this was in flight. A later save is already
+          // queued for the newer text, so stay honest and keep saying unsaved.
+          if (latestReplyRef.current !== text) {
+            setDraftState({ kind: "dirty" });
+            return;
+          }
+          setDraftState(
+            data?.draft
+              ? { kind: "saved", at: data.draft.updated_at, by: data.draft.updated_by }
+              : { kind: "none" },
+          );
+        } catch (err) {
+          if (draftEpochRef.current !== epoch) return;
+          setDraftState({
+            kind: "error",
+            message: err instanceof Error ? err.message : "Failed to save draft",
+          });
+        }
+      })();
+
+      inFlightSaveRef.current = run;
+      await run;
+      if (inFlightSaveRef.current === run) inFlightSaveRef.current = null;
+    },
+    [loadThreads],
+  );
+
+  // Declared before the autosave effect so the ref is current by the time any
+  // in-flight save resolves and asks what is in the box now.
+  useEffect(() => {
+    latestReplyRef.current = reply;
+  }, [reply]);
+
+  // Debounced autosave. Cleanup cancels the pending write on every keystroke and
+  // on thread switch, so only a pause in typing reaches the server.
+  useEffect(() => {
+    if (!selected || draftLoadedForRef.current !== selected) return;
+    if (reply === draftBaselineRef.current) return;
+    setDraftState({ kind: "dirty" });
+    const phone = selected;
+    const text = reply;
+    draftTimerRef.current = setTimeout(() => {
+      draftTimerRef.current = null;
+      void saveDraft(phone, text);
+    }, DRAFT_SAVE_DELAY_MS);
+    return cancelPendingDraftSave;
+  }, [reply, selected, saveDraft, cancelPendingDraftSave]);
+
+  // Closing the tab or switching away shouldn't cost you the last few seconds of
+  // typing. Flush immediately instead of warning with a dialog.
+  useEffect(() => {
+    function flush() {
+      if (document.visibilityState !== "hidden") return;
+      if (!selected || draftLoadedForRef.current !== selected) return;
+      if (reply === draftBaselineRef.current) return;
+      cancelPendingDraftSave();
+      void saveDraft(selected, reply);
     }
-  }, []);
+    document.addEventListener("visibilitychange", flush);
+    return () => document.removeEventListener("visibilitychange", flush);
+  }, [reply, selected, saveDraft, cancelPendingDraftSave]);
 
   function openThread(phone: string) {
+    cancelPendingDraftSave();
+    draftEpochRef.current += 1;
+    draftLoadedForRef.current = null;
+    draftBaselineRef.current = "";
     setSelected(phone);
     setReply("");
-    void loadDetail(phone);
+    setDraftState({ kind: "none" });
+    void loadDetail(phone, { adoptDraft: true });
+  }
+
+  async function discardDraft() {
+    if (!selected) return;
+    cancelPendingDraftSave();
+    draftEpochRef.current += 1;
+    setActionError(null);
+    // Clear the box first so the pane responds immediately; the request only
+    // removes the stored copy.
+    draftBaselineRef.current = "";
+    setReply("");
+    setDraftState({ kind: "none" });
+    // Let any save already on the wire finish, so the delete is the last write
+    // to land. Otherwise the row can outlive the discard that removed it.
+    await inFlightSaveRef.current?.catch(() => {});
+    try {
+      const res = await fetch(`/api/admin/sms-inbox/${selected}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "discard_draft" }),
+      });
+      if (!res.ok) throw new Error((await res.json())?.error || "Failed to discard draft");
+      await loadThreads();
+    } catch (err) {
+      setDraftState({
+        kind: "error",
+        message: err instanceof Error ? err.message : "Failed to discard draft",
+      });
+    }
   }
 
   async function sendReply() {
     if (!selected || !reply.trim() || sending) return;
+    // Claim the send synchronously — the drain below awaits, and without the
+    // flag set first a fast double-click would get two messages past the guard.
     setSending(true);
     setActionError(null);
     setNotice(null);
+    // A queued autosave must not fire after the send: the server deletes the
+    // draft as part of sending, and a late write would put the sent message
+    // straight back in the box. Any save already on the wire is drained first
+    // so it cannot land after the send's delete.
+    cancelPendingDraftSave();
+    draftEpochRef.current += 1;
+    await inFlightSaveRef.current?.catch(() => {});
     try {
       const res = await fetch(`/api/admin/sms-inbox/${selected}`, {
         method: "POST",
@@ -135,8 +363,10 @@ export default function AdminSmsInboxPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to send");
+      draftBaselineRef.current = "";
       setReply("");
-      await Promise.all([loadDetail(selected), loadThreads()]);
+      setDraftState({ kind: "none" });
+      await Promise.all([loadDetail(selected, { adoptDraft: true }), loadThreads()]);
       // Set AFTER the reload: loadDetail clears `notice`, so setting it first
       // wipes the confirmation before it ever paints.
       setNotice("Reply sent.");
@@ -163,7 +393,13 @@ export default function AdminSmsInboxPage() {
     }
   }
 
-  const visible = (threads ?? []).filter((t) => (unhandledOnly ? t.unhandled > 0 : true));
+  // A parked draft counts as needing you, the same as an unanswered text —
+  // otherwise a draft written on an already-handled thread is invisible in the
+  // default view, which is most of the inbox. The `draft` chip says why the row
+  // is here when `N new` doesn't.
+  const visible = (threads ?? []).filter((t) =>
+    unhandledOnly ? t.unhandled > 0 || t.has_draft : true,
+  );
   const totalUnhandled = (threads ?? []).reduce((s, t) => s + t.unhandled, 0);
   // GSM-7 single segment is 160 chars; longer bodies split and bill per segment.
   const segments = reply.length === 0 ? 0 : Math.ceil(reply.length / 160);
@@ -263,6 +499,14 @@ export default function AdminSmsInboxPage() {
                         {t.unhandled} new
                       </span>
                     )}
+                    {t.has_draft && (
+                      <span
+                        className="text-[10px] uppercase tracking-wide text-violet-700 bg-violet-50 rounded px-1 py-px"
+                        title="An unsent reply is saved against this conversation"
+                      >
+                        draft
+                      </span>
+                    )}
                   </div>
                 </button>
               );
@@ -293,7 +537,7 @@ export default function AdminSmsInboxPage() {
                 {actionError || "Could not load this conversation."}
               </p>
               <button
-                onClick={() => loadDetail(selected)}
+                onClick={() => loadDetail(selected, { adoptDraft: true })}
                 className="mt-2 text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Try again
@@ -394,18 +638,30 @@ export default function AdminSmsInboxPage() {
                       placeholder="Write a reply…"
                       className="w-full text-[13px] border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
                     />
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center justify-between gap-3 mt-2">
                       <span className="text-[11px] text-gray-400 tabular-nums">
                         {reply.length}/480
                         {segments > 1 ? ` · ${segments} segments` : ""}
                       </span>
-                      <button
-                        onClick={sendReply}
-                        disabled={!reply.trim() || sending}
-                        className="text-[13px] font-medium px-3.5 py-1.5 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {sending ? "Sending…" : "Send text"}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <DraftStatus state={draftState} />
+                        {(draftState.kind === "saved" || reply.length > 0) && (
+                          <button
+                            onClick={discardDraft}
+                            disabled={sending}
+                            className="text-[11px] text-gray-400 hover:text-red-600 disabled:opacity-40 transition-colors"
+                          >
+                            Discard
+                          </button>
+                        )}
+                        <button
+                          onClick={sendReply}
+                          disabled={!reply.trim() || sending}
+                          className="text-[13px] font-medium px-3.5 py-1.5 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {sending ? "Sending…" : "Send text"}
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}

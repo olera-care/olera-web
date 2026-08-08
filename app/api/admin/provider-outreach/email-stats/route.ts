@@ -247,6 +247,10 @@ export async function GET(request: NextRequest) {
 
               // Calculate days since first email was sent
               const sentDate = new Date(lead.sent_time);
+
+              // Respect the lookback period - skip leads enrolled before cutoff
+              if (sentDate < cutoffDate) continue;
+
               const daysSinceSent = Math.floor(
                 (now.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24)
               );
@@ -259,8 +263,10 @@ export async function GET(request: NextRequest) {
               if (daysSinceSent >= 5) smartleadStats[3].sent++;
               if (daysSinceSent >= 7) smartleadStats[4].sent++;
 
-              // For opens/clicks, attribute to the furthest step reached
-              // SmartLead gives aggregate counts, we can't know which specific email was engaged
+              // For opens/clicks, attribute to the furthest step reached.
+              // KNOWN LIMITATION: SmartLead gives aggregate open_count/click_count per lead,
+              // not per email. We can't know which specific email was engaged. Attributing
+              // to the furthest step means Day 3+ rates may appear slightly inflated.
               const furthestStep = inferSequenceStep(daysSinceSent);
 
               if ((lead.open_count ?? 0) > 0) {

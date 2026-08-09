@@ -18,6 +18,7 @@ import {
 import { sendSlackAlert } from "@/lib/slack";
 import { sendSMS } from "@/lib/twilio";
 import { benefitsCheckInSms } from "@/lib/sms/templates";
+import { withSmsSource } from "@/lib/sms/click-source";
 import { quietHoursCheck } from "@/lib/sms/quiet-hours";
 import { familyBenefitsFacts, friendlyCareLabel, getProgramsForFamily, pickQuizQuestion, pathTellBackLine } from "@/lib/family-comms/benefits-guidance.server";
 import { US_STATES } from "@/lib/us-states";
@@ -1132,7 +1133,7 @@ export async function GET(request: NextRequest) {
               return sendCascadeSms(
                 benefitsCheckInSms({
                   programShortName: programShort,
-                  url: `${siteUrl}/m/${tokenRow.token}`,
+                  url: withSmsSource(`${siteUrl}/m/${tokenRow.token}`, "benefits_check_in_sms"),
                   done: stepDone,
                 }),
                 "check_sms_at",

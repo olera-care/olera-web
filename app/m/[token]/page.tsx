@@ -19,6 +19,7 @@ import {
   rankProgramsForFamily,
 } from "@/lib/benefits/eligibility.server";
 import { getStateSlug } from "@/lib/program-data";
+import { recordSmsClick, SMS_SOURCE_PARAM } from "@/lib/sms/click-source";
 
 /**
  * /m/{token} — addressable benefits results page, rebuilt as the family's
@@ -56,8 +57,10 @@ function getAdminClient() {
 
 export default async function BenefitsResultsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { token } = await params;
 
@@ -67,6 +70,24 @@ export default async function BenefitsResultsPage({
   const db = getAdminClient();
   const bundle = await lookupResultByToken(db, token);
   if (!bundle) notFound();
+
+  // Click attribution for texts. The marker says which text sent them here;
+  // email needs no equivalent because Resend's click webhook already fills
+  // first_clicked_at.
+  //
+  // Awaited rather than floated. The last_viewed_at bump in benefits-token.ts
+  // floats safely because it is one statement; this is a read then a write, and
+  // Vercel kills pending promises once the response is sent. Two round trips on
+  // a page that already makes several, in exchange for a click count that is
+  // not silently short. Only runs when a marker is present, so an email arrival
+  // or a bare link pays nothing.
+  const smsSource = (await searchParams)?.[SMS_SOURCE_PARAM];
+  if (smsSource) {
+    await recordSmsClick(db, {
+      profileId: bundle.profile.id,
+      sourceCode: Array.isArray(smsSource) ? smsSource[0] : smsSource,
+    });
+  }
 
   const stateSlug = getStateSlug(bundle.token.state_code);
   if (!stateSlug) notFound();

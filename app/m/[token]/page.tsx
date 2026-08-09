@@ -19,6 +19,7 @@ import {
   rankProgramsForFamily,
 } from "@/lib/benefits/eligibility.server";
 import { getStateSlug } from "@/lib/program-data";
+import { recordSmsClick, SMS_SOURCE_PARAM } from "@/lib/sms/click-source";
 
 /**
  * /m/{token} — addressable benefits results page, rebuilt as the family's
@@ -56,8 +57,10 @@ function getAdminClient() {
 
 export default async function BenefitsResultsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { token } = await params;
 
@@ -67,6 +70,16 @@ export default async function BenefitsResultsPage({
   const db = getAdminClient();
   const bundle = await lookupResultByToken(db, token);
   if (!bundle) notFound();
+
+  // Click attribution for texts. The marker says which text sent them here;
+  // email needs no equivalent because Resend's click webhook already fills
+  // first_clicked_at. Fire-and-forget so a family never waits on analytics,
+  // matching the last_viewed_at bump in lib/benefits-token.ts.
+  const smsSource = (await searchParams)?.[SMS_SOURCE_PARAM];
+  void recordSmsClick(db, {
+    profileId: bundle.profile.id,
+    sourceCode: Array.isArray(smsSource) ? smsSource[0] : smsSource,
+  });
 
   const stateSlug = getStateSlug(bundle.token.state_code);
   if (!stateSlug) notFound();

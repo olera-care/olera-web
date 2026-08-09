@@ -29,6 +29,7 @@ import {
 import { getStateAbbrev, getStateSlug } from "@/lib/program-data";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { benefitsResultsSms } from "@/lib/sms/templates";
+import { withSmsSource } from "@/lib/sms/click-source";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendSlackAlert } from "@/lib/slack";
 
@@ -639,7 +640,7 @@ export async function captureFamilyPhoneAndTextResults(
     body: benefitsResultsSms({
       matchCount: tokenRow.match_count || 0,
       familyPhrase: opts.familyPhrase || "your family",
-      url: `${getSiteUrl()}/m/${tokenRow.token}`,
+      url: withSmsSource(`${getSiteUrl()}/m/${tokenRow.token}`, "benefits_results_sms"),
     }),
     // Ledger entry (channel='sms') so the send shows on /admin/family-comms.
     // benefits_results_sms is transactional — deliberately NOT a governed type.

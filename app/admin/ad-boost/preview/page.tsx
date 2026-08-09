@@ -41,7 +41,7 @@ const SAMPLE_BASE: BoostRequest = {
   status: "live",
   requested_setup_week: "2026-06-22",
   channel: "google",
-  intended_monthly_budget: 150,
+  intended_monthly_budget: 50,
   campaign_tag: "preview-campaign",
   created_at: "2026-06-16T12:00:00Z",
   plan_status: null,
@@ -57,7 +57,7 @@ const PREVIEWS: {
   {
     key: "live",
     label: "Live · mid-flight",
-    blurb: "The in-campaign view where conviction builds: momentum line under the stat row, accruing receipt, flight clock in the facts row, and the quiet early-upgrade disclosure (\u201cStart a monthly plan early\u201d) so a provider can subscribe before the wrap-up.",
+    blurb: "The in-campaign view where conviction builds: momentum line under the stat row, accruing receipt, flight clock in the facts row, and a visible plan choice so a provider can keep the campaign running without hunting for the action.",
   },
   {
     key: "wrapup",
@@ -113,7 +113,7 @@ export default function AdBoostPreviewPage() {
   const active: BoostRequest = {
     ...SAMPLE_BASE,
     plan_status: "active",
-    plan_value: 150,
+    plan_value: 75,
   };
 
   return (

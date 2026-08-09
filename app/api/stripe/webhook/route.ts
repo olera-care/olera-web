@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
             typeof session.subscription === "string"
               ? session.subscription
               : (session.subscription as Stripe.Subscription | null)?.id ?? null;
-          const { data: row } = await supabase
+          const { data: row, error: activationError } = await supabase
             .from("ad_campaign_requests")
             .update({
               plan_status: "active",
@@ -136,18 +136,41 @@ export async function POST(request: NextRequest) {
               updated_at: new Date().toISOString(),
             })
             .eq("id", session.metadata.request_id)
-            .select("id, display_name, provider_slug")
+            .select("id, provider_id, display_name, provider_slug")
             .maybeSingle();
-          if (row) {
-            await sendSlackAlert(
-              `:moneybag: Ad Boost conversion: *${row.display_name ?? row.provider_slug ?? row.id}* subscribed at $${session.metadata.plan_value}/mo`,
-            );
-          } else {
-            console.error(
-              "[stripe/webhook] Ad Boost activation: request not found",
-              session.metadata.request_id,
+          if (activationError) {
+            throw new Error(
+              `Ad Boost activation failed for request ${session.metadata.request_id}: ${activationError.message}`,
             );
           }
+          if (!row) {
+            throw new Error(
+              `Ad Boost activation: request ${session.metadata.request_id} not found`,
+            );
+          }
+
+          // Keep the rollback/local webhook behavior aligned with the
+          // production Supabase Edge Function. This remains best-effort so an
+          // analytics write cannot undo an otherwise valid subscription.
+          const { error: eventError } = await supabase.from("provider_activity").insert({
+            provider_id: row.provider_slug || row.provider_id,
+            event_type: "managed_ads_subscribed",
+            metadata: {
+              request_id: session.metadata.request_id,
+              plan_value: Number(session.metadata.plan_value) || null,
+              source: "stripe_webhook",
+            },
+          });
+          if (eventError) {
+            console.error(
+              `[stripe/webhook] Ad Boost subscription analytics failed for request ${session.metadata.request_id}:`,
+              eventError,
+            );
+          }
+
+          await sendSlackAlert(
+            `:moneybag: Ad Boost conversion: *${row.display_name ?? row.provider_slug ?? row.id}* subscribed at $${session.metadata.plan_value}/mo`,
+          );
           break;
         }
 

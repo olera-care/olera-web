@@ -204,17 +204,35 @@ type CTAFunnelByVariant = Record<CTAVariantKey, CTAVariantRow>;
 // Managed Ads pitch A/B funnel. Distinct providers per stage:
 //   shown      → managed_ads_pitch_viewed
 //   clicked    → managed_ads_cta_clicked
-//   viewed     → managed_ads_boost_viewed
+//   viewed     → managed_ads_boost_viewed in apply/gate state
 //   requested  → managed_ads_requested
+//   results_viewed   → managed_ads_results_viewed
+//   plans_viewed     → managed_ads_plans_viewed
+//   plan_selected    → managed_ads_plan_selected
+//   checkout_started → managed_ads_checkout_started
+//   subscribed       → managed_ads_subscribed (Stripe webhook)
 type ManagedAdsFunnel = {
   shown: number;
   clicked: number;
   viewed: number;
   requested: number;
+  results_viewed: number;
+  plans_viewed: number;
+  plan_selected: number;
+  not_now: number;
+  checkout_started: number;
+  checkout_created: number;
+  checkout_failed: number;
+  subscribed: number;
 };
 type ManagedAdsVariantRow = ManagedAdsFunnel;
 type ManagedAdsVariantKey = ManagedAdsVariant | "unassigned";
 type ManagedAdsFunnelByVariant = Record<ManagedAdsVariantKey, ManagedAdsVariantRow>;
+type ManagedAdsPlanIntent = Record<string, {
+  selected: number;
+  checkout_started: number;
+  subscribed: number;
+}>;
 // Page-view referrer breakdown — counts page_view events by traffic class
 // (ai_chat / search / social / olera_internal / direct / other). Lets us
 // watch the AI-chat slice grow as ChatGPT/Claude/Gemini/Perplexity start
@@ -237,6 +255,7 @@ type WindowResult = {
   cta_funnel_by_variant: CTAFunnelByVariant;
   managed_ads_funnel: ManagedAdsFunnel;
   managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
+  managed_ads_plan_intent: ManagedAdsPlanIntent;
   referrer_breakdown: ReferrerBreakdown;
 };
 
@@ -347,6 +366,14 @@ const EMPTY_MANAGED_ADS_FUNNEL = (): ManagedAdsFunnel => ({
   clicked: 0,
   viewed: 0,
   requested: 0,
+  results_viewed: 0,
+  plans_viewed: 0,
+  plan_selected: 0,
+  not_now: 0,
+  checkout_started: 0,
+  checkout_created: 0,
+  checkout_failed: 0,
+  subscribed: 0,
 });
 const EMPTY_MANAGED_ADS_FUNNEL_BY_VARIANT = (): ManagedAdsFunnelByVariant => ({
   ...Object.fromEntries(MANAGED_ADS_VARIANTS.map(v => [v, EMPTY_MANAGED_ADS_FUNNEL()])),
@@ -584,8 +611,8 @@ async function fetchWindow(
   if (from) ctaQ = ctaQ.gte("created_at", from);
   if (to) ctaQ = ctaQ.lt("created_at", to);
 
-  // Managed Ads pitch A/B funnel. Distinct provider-level stages for the
-  // logged-in buyer journey: shown → clicked → viewed plan → requested.
+  // Managed Ads end-to-end funnel. Distinct provider-level stages from pitch
+  // through the authoritative Stripe subscription event.
   let managedAdsQ = db
     .from("provider_activity")
     .select("provider_id, event_type, metadata")
@@ -594,6 +621,14 @@ async function fetchWindow(
       "managed_ads_cta_clicked",
       "managed_ads_boost_viewed",
       "managed_ads_requested",
+      "managed_ads_results_viewed",
+      "managed_ads_plans_viewed",
+      "managed_ads_plan_selected",
+      "managed_ads_not_now",
+      "managed_ads_checkout_started",
+      "managed_ads_checkout_created",
+      "managed_ads_checkout_failed",
+      "managed_ads_subscribed",
     ])
     .order("created_at", { ascending: false })
     .limit(50000);
@@ -1325,8 +1360,21 @@ async function fetchWindow(
     clicked: new Set(),
     viewed: new Set(),
     requested: new Set(),
+    results_viewed: new Set(),
+    plans_viewed: new Set(),
+    plan_selected: new Set(),
+    not_now: new Set(),
+    checkout_started: new Set(),
+    checkout_created: new Set(),
+    checkout_failed: new Set(),
+    subscribed: new Set(),
   });
   const managedAdsStageSets = emptyManagedAdsStages();
+  const managedAdsPlanIntentSets = new Map<string, {
+    selected: Set<string>;
+    checkout_started: Set<string>;
+    subscribed: Set<string>;
+  }>();
   const managedAdsByVariantSets: Record<ManagedAdsVariantKey, Record<keyof ManagedAdsFunnel, Set<string>>> = {
     ...Object.fromEntries(MANAGED_ADS_VARIANTS.map(v => [v, emptyManagedAdsStages()])),
     unassigned: emptyManagedAdsStages(),
@@ -1346,11 +1394,50 @@ async function fetchWindow(
         ? (variant as ManagedAdsVariant)
         : "unassigned";
 
+    const rawPlanValue = r.metadata?.plan_value;
+    const numericPlanValue = typeof rawPlanValue === "number"
+      ? rawPlanValue
+      : typeof rawPlanValue === "string"
+        ? Number(rawPlanValue)
+        : NaN;
+    if (
+      Number.isFinite(numericPlanValue) &&
+      numericPlanValue > 0 &&
+      (r.event_type === "managed_ads_plan_selected" ||
+        r.event_type === "managed_ads_checkout_started" ||
+        r.event_type === "managed_ads_subscribed")
+    ) {
+      const planKey = String(numericPlanValue);
+      let planSets = managedAdsPlanIntentSets.get(planKey);
+      if (!planSets) {
+        planSets = {
+          selected: new Set(),
+          checkout_started: new Set(),
+          subscribed: new Set(),
+        };
+        managedAdsPlanIntentSets.set(planKey, planSets);
+      }
+      if (r.event_type === "managed_ads_plan_selected") planSets.selected.add(pid);
+      else if (r.event_type === "managed_ads_checkout_started") planSets.checkout_started.add(pid);
+      else planSets.subscribed.add(pid);
+    }
+
     let stage: keyof ManagedAdsFunnel | undefined;
     if (r.event_type === "managed_ads_pitch_viewed") stage = "shown";
     else if (r.event_type === "managed_ads_cta_clicked") stage = "clicked";
-    else if (r.event_type === "managed_ads_boost_viewed") stage = "viewed";
+    else if (
+      r.event_type === "managed_ads_boost_viewed" &&
+      (r.metadata?.state === "apply" || r.metadata?.state === "gate")
+    ) stage = "viewed";
     else if (r.event_type === "managed_ads_requested") stage = "requested";
+    else if (r.event_type === "managed_ads_results_viewed") stage = "results_viewed";
+    else if (r.event_type === "managed_ads_plans_viewed") stage = "plans_viewed";
+    else if (r.event_type === "managed_ads_plan_selected") stage = "plan_selected";
+    else if (r.event_type === "managed_ads_not_now") stage = "not_now";
+    else if (r.event_type === "managed_ads_checkout_started") stage = "checkout_started";
+    else if (r.event_type === "managed_ads_checkout_created") stage = "checkout_created";
+    else if (r.event_type === "managed_ads_checkout_failed") stage = "checkout_failed";
+    else if (r.event_type === "managed_ads_subscribed") stage = "subscribed";
     if (!stage) continue;
 
     managedAdsStageSets[stage].add(pid);
@@ -1362,17 +1449,42 @@ async function fetchWindow(
     clicked: managedAdsStageSets.clicked.size,
     viewed: managedAdsStageSets.viewed.size,
     requested: managedAdsStageSets.requested.size,
+    results_viewed: managedAdsStageSets.results_viewed.size,
+    plans_viewed: managedAdsStageSets.plans_viewed.size,
+    plan_selected: managedAdsStageSets.plan_selected.size,
+    not_now: managedAdsStageSets.not_now.size,
+    checkout_started: managedAdsStageSets.checkout_started.size,
+    checkout_created: managedAdsStageSets.checkout_created.size,
+    checkout_failed: managedAdsStageSets.checkout_failed.size,
+    subscribed: managedAdsStageSets.subscribed.size,
   };
   const managedAdsSizesFor = (b: ManagedAdsVariantKey): ManagedAdsVariantRow => ({
     shown: managedAdsByVariantSets[b].shown.size,
     clicked: managedAdsByVariantSets[b].clicked.size,
     viewed: managedAdsByVariantSets[b].viewed.size,
     requested: managedAdsByVariantSets[b].requested.size,
+    results_viewed: managedAdsByVariantSets[b].results_viewed.size,
+    plans_viewed: managedAdsByVariantSets[b].plans_viewed.size,
+    plan_selected: managedAdsByVariantSets[b].plan_selected.size,
+    not_now: managedAdsByVariantSets[b].not_now.size,
+    checkout_started: managedAdsByVariantSets[b].checkout_started.size,
+    checkout_created: managedAdsByVariantSets[b].checkout_created.size,
+    checkout_failed: managedAdsByVariantSets[b].checkout_failed.size,
+    subscribed: managedAdsByVariantSets[b].subscribed.size,
   });
   const managedAdsFunnelByVariant: ManagedAdsFunnelByVariant = {
     ...Object.fromEntries(MANAGED_ADS_VARIANTS.map(v => [v, managedAdsSizesFor(v)])),
     unassigned: managedAdsSizesFor("unassigned"),
   } as ManagedAdsFunnelByVariant;
+  const managedAdsPlanIntent: ManagedAdsPlanIntent = Object.fromEntries(
+    [...managedAdsPlanIntentSets.entries()]
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([planValue, sets]) => [planValue, {
+        selected: sets.selected.size,
+        checkout_started: sets.checkout_started.size,
+        subscribed: sets.subscribed.size,
+      }]),
+  );
 
   const connectionsRaw = (connectionsRes.data ?? []) as Array<{
     id: string;
@@ -1495,6 +1607,7 @@ async function fetchWindow(
     cta_funnel_by_variant: ctaFunnelByVariant,
     managed_ads_funnel: managedAdsFunnel,
     managed_ads_funnel_by_variant: managedAdsFunnelByVariant,
+    managed_ads_plan_intent: managedAdsPlanIntent,
     referrer_breakdown: referrerBreakdown,
   };
 }
@@ -1946,6 +2059,7 @@ export async function GET(request: NextRequest) {
         cta_funnel_by_variant: windowedRes.cta_funnel_by_variant,
         managed_ads_funnel: windowedRes.managed_ads_funnel,
         managed_ads_funnel_by_variant: windowedRes.managed_ads_funnel_by_variant,
+        managed_ads_plan_intent: windowedRes.managed_ads_plan_intent,
         referrer_breakdown: windowedRes.referrer_breakdown,
       },
       prior: prior
@@ -1963,6 +2077,7 @@ export async function GET(request: NextRequest) {
             cta_funnel_by_variant: prior.cta_funnel_by_variant,
             managed_ads_funnel: prior.managed_ads_funnel,
             managed_ads_funnel_by_variant: prior.managed_ads_funnel_by_variant,
+            managed_ads_plan_intent: prior.managed_ads_plan_intent,
             referrer_breakdown: prior.referrer_breakdown,
           }
         : null,

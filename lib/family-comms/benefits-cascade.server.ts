@@ -394,8 +394,22 @@ export async function selectFirstStepProgram(
   if (facts) {
     sbfRows = await loadSbfEligibility(db, opts.stateAbbrev);
   }
-  const factsRuleOut = (draft: PipelineDraft, stateId: string): boolean => {
-    if (!facts) return false;
+  /**
+   * Screen one program against the family's facts.
+   *
+   * Returns the verdict's ruled-out flag AND its fit boost. The boost is the
+   * same score /m/[token] ranks the plan page with (rankProgramsForFamily),
+   * so the letter and the plan page now agree on what leads instead of the
+   * letter picking on complexity while the page picks on fit.
+   *
+   * Fact-free families get {ruledOut: false, boost: 0}, which leaves their
+   * selection exactly as it was.
+   */
+  const screen = (
+    draft: PipelineDraft,
+    stateId: string,
+  ): { ruledOut: boolean; boost: number } => {
+    if (!facts) return { ruledOut: false, boost: 0 };
     const stateName = stateId.replace(/-/g, " ");
     const verdict = evaluateProgramForFamily(
       {
@@ -407,7 +421,7 @@ export async function selectFirstStepProgram(
       resolveSbfRow(sbfRows, draft.name, stateName),
       facts,
     );
-    return verdict.ruledOut;
+    return { ruledOut: verdict.ruledOut, boost: verdict.boost };
   };
   const { data: account } = await db
     .from("accounts")
@@ -421,32 +435,52 @@ export async function selectFirstStepProgram(
   if (entry && !excluded.has(entry.programId)) {
     const abbrev = getStateAbbrev(entry.stateId);
     const draft = draftFor(abbrev, entry.programId);
-    if (draft && !factsRuleOut(draft, entry.stateId)) {
+    if (draft && !screen(draft, entry.stateId).ruledOut) {
       const pick = toPick(draft, abbrev, entry.stateId, "entry");
       if (pick) return pick;
     }
   }
 
-  // 2. Saved matches by ascending complexity. saved_programs.state_id is the
+  // 2. Saved matches, ranked by FIT first. saved_programs.state_id is the
   //    state slug; federal programs have no per-state draft and drop out here.
+  //
+  //    The secondary .order("id") is load-bearing. ~90% of families have every
+  //    saved program on an identical created_at because the rows are bulk
+  //    inserted at intake, and ordering on a column full of ties leaves the
+  //    row order undefined in Postgres. Without a stable tiebreak the same
+  //    family could get a different letter on different runs. Ordering by id
+  //    is arbitrary but deterministic, which is all the tiebreak needs to be.
   const { data: saved } = await db
     .from("saved_programs")
-    .select("program_id, state_id, created_at")
+    .select("id, program_id, state_id, created_at")
     .eq("user_id", account.user_id)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
 
-  const candidates: { pick: FirstStepPick; rank: number; idx: number }[] = [];
+  const candidates: { pick: FirstStepPick; boost: number; rank: number; idx: number }[] = [];
   (saved || []).forEach((row, idx) => {
     if (!row.program_id || !row.state_id || excluded.has(row.program_id)) return;
     const abbrev = getStateAbbrev(row.state_id);
     const draft = draftFor(abbrev, row.program_id);
     if (!draft) return;
-    if (factsRuleOut(draft, row.state_id)) return;
+    const verdict = screen(draft, row.state_id);
+    if (verdict.ruledOut) return;
     const pick = toPick(draft, abbrev, row.state_id, "saved");
     if (!pick) return;
-    candidates.push({ pick, rank: COMPLEXITY_RANK[draft.complexity] ?? 3, idx });
+    candidates.push({
+      pick,
+      boost: verdict.boost,
+      rank: COMPLEXITY_RANK[draft.complexity] ?? 3,
+      idx,
+    });
   });
-  candidates.sort((a, b) => a.rank - b.rank || a.idx - b.idx);
+  // Fit, then ease, then a stable tiebreak. Complexity used to lead here, which
+  // let an easy program outrank a relevant one: a WV family saw a blindness
+  // program promoted over the waiver they actually matched, purely because it
+  // was `medium` and the waiver was `deep`. Relevance has to beat convenience.
+  // Families with no eligibility facts have boost 0 across the board and fall
+  // straight through to the old complexity ordering.
+  candidates.sort((a, b) => b.boost - a.boost || a.rank - b.rank || a.idx - b.idx);
   if (candidates[0]) return candidates[0].pick;
 
   // 3. State fallback: the pipeline's own "start here" list.
@@ -459,7 +493,7 @@ export async function selectFirstStepProgram(
         if (excluded.has(s.programId)) continue;
         const draft = draftFor(abbrev, s.programId);
         if (!draft) continue;
-        if (factsRuleOut(draft, stateId)) continue;
+        if (screen(draft, stateId).ruledOut) continue;
         const pick = toPick(draft, abbrev, stateId, "state");
         if (pick) return pick;
       }

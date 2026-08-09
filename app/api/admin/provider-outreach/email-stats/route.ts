@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getCampaignLeadStatistics, isSmartleadConfigured } from "@/lib/smartlead";
 
 /**
  * GET /api/admin/provider-outreach/email-stats
@@ -203,42 +204,67 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Check for synced SmartLead campaign stats as fallback
-    // If we have touchpoints but no opens/clicks recorded, use synced campaign stats
-    let smartleadCampaignOpens = 0;
-    let smartleadCampaignClicks = 0;
-
-    const touchpointOpens = Object.values(statsMap).reduce((sum, s) => sum + s.opened, 0);
-    const touchpointClicks = Object.values(statsMap).reduce((sum, s) => sum + s.clicked, 0);
-
-    if (touchpointOpens === 0 || touchpointClicks === 0) {
-      // Fetch synced campaign stats from provider_outreach_tracking
-      // Note: We fetch all rows with smartlead_data and filter in JS for reliability
-      // (PostgREST nested JSON filtering can be fragile)
-      const { data: trackingWithStats, error: trackingStatsError } = await db
+    // 3. Fetch LIVE data from SmartLead API for Day 0 stats only
+    // The touchpoints table is append-only (can't update engagement), so we fetch
+    // directly from SmartLead API to get real open/click counts.
+    //
+    // IMPORTANT: SmartLead's `sequence_number` field is unreliable (always returns 1).
+    // We can only confirm Day 0 was sent (via sent_time). For Day 3/5/7, we rely on
+    // EMAIL_SENT webhooks stored in touchpoints - we do NOT infer from timing because
+    // SmartLead may not have actually sent those emails yet.
+    if (isSmartleadConfigured()) {
+      // Get all campaign IDs from tracking data
+      const { data: trackingWithCampaigns } = await db
         .from("provider_outreach_tracking")
         .select("smartlead_data")
         .not("smartlead_data", "is", null);
 
-      if (trackingStatsError) {
-        console.error("[email-stats] Failed to fetch synced stats:", trackingStatsError.message);
-      } else if (trackingWithStats && trackingWithStats.length > 0) {
-        // Aggregate campaign stats (deduplicate by campaign_id)
-        const seenCampaigns = new Set<number>();
-        for (const row of trackingWithStats) {
-          const sd = row.smartlead_data as { campaign_id?: number; campaign_stats?: { opened?: number; clicked?: number } } | null;
-          const campaignId = sd?.campaign_id;
-          const stats = sd?.campaign_stats;
-
-          // Skip if no campaign_stats synced yet
-          if (!stats) continue;
-
-          if (typeof campaignId === "number" && !seenCampaigns.has(campaignId)) {
-            seenCampaigns.add(campaignId);
-            smartleadCampaignOpens += stats.opened ?? 0;
-            smartleadCampaignClicks += stats.clicked ?? 0;
+      if (trackingWithCampaigns && trackingWithCampaigns.length > 0) {
+        const campaignIds = new Set<number>();
+        for (const row of trackingWithCampaigns) {
+          const sd = row.smartlead_data as { campaign_id?: number } | null;
+          if (typeof sd?.campaign_id === "number") {
+            campaignIds.add(sd.campaign_id);
           }
         }
+
+        // Only count Day 0 (intro) from SmartLead API - that's the only email we can confirm
+        let day0Sent = 0;
+        let day0Opened = 0;
+        let day0Clicked = 0;
+
+        for (const campaignId of campaignIds) {
+          const leadsResult = await getCampaignLeadStatistics(campaignId);
+          if (leadsResult.ok && leadsResult.data) {
+            for (const lead of leadsResult.data) {
+              // Skip leads that haven't been sent any email
+              if (!lead.sent_time) continue;
+
+              const sentDate = new Date(lead.sent_time);
+
+              // Respect the lookback period - skip leads enrolled before cutoff
+              if (sentDate < cutoffDate) continue;
+
+              // Count Day 0 (intro) - the only email we can confirm was sent
+              day0Sent++;
+
+              // Attribute all opens/clicks to Day 0 since that's the only confirmed email
+              if ((lead.open_count ?? 0) > 0) {
+                day0Opened++;
+              }
+              if ((lead.click_count ?? 0) > 0) {
+                day0Clicked++;
+              }
+            }
+          }
+        }
+
+        // Update Day 0 stats from SmartLead (take higher value in case touchpoints have data)
+        statsMap["intro"].sent = Math.max(statsMap["intro"].sent, day0Sent);
+        statsMap["intro"].opened = Math.max(statsMap["intro"].opened, day0Opened);
+        statsMap["intro"].clicked = Math.max(statsMap["intro"].clicked, day0Clicked);
+
+        // Day 3/5/7 stats come only from touchpoints (section 1) which track actual EMAIL_SENT webhooks
       }
     }
 
@@ -266,20 +292,12 @@ export async function GET(request: NextRequest) {
       totalClicked += stat.clicked;
     }
 
-    // Use synced SmartLead stats if touchpoint data shows zeros
-    // This happens when webhooks weren't working but we synced from SmartLead API
-    const finalOpened = totalOpened > 0 ? totalOpened : smartleadCampaignOpens;
-    const finalClicked = totalClicked > 0 ? totalClicked : smartleadCampaignClicks;
-
     const totals = {
       sent: totalSent,
-      opened: finalOpened,
-      open_rate: totalSent > 0 ? Math.round((finalOpened / totalSent) * 1000) / 10 : 0,
-      clicked: finalClicked,
-      click_rate: totalSent > 0 ? Math.round((finalClicked / totalSent) * 1000) / 10 : 0,
-      // Flag if using synced data (for transparency)
-      using_synced_stats: (totalOpened === 0 && smartleadCampaignOpens > 0) ||
-                          (totalClicked === 0 && smartleadCampaignClicks > 0),
+      opened: totalOpened,
+      open_rate: totalSent > 0 ? Math.round((totalOpened / totalSent) * 1000) / 10 : 0,
+      clicked: totalClicked,
+      click_rate: totalSent > 0 ? Math.round((totalClicked / totalSent) * 1000) / 10 : 0,
     };
 
     return NextResponse.json({

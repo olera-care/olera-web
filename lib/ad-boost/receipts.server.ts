@@ -54,7 +54,8 @@ export interface CampaignReceipt {
     questionsReceived: number;
   };
   leads: CampaignLead[];
-  /** Rollup of provider self-reports across leads. */
+  /** Rollup of provider self-reports across attributed leads plus the optional
+   * campaign-level direct-contact answer used when no inquiry row existed. */
   outcomes: { client: number; talking: number; no: number; unanswered: number };
   /** Expected leads for the clicks bought, per the category benchmark.
    *  Null when clicks were never entered. */
@@ -75,6 +76,9 @@ export interface ReceiptRequestRow {
   ad_impressions: number | null;
   ad_clicks: number | null;
   ad_spend_cents: number | null;
+  /** Whole-flight answer for families who called or visited the provider
+   * directly and therefore never created an Olera lead row. */
+  provider_reported_outcome?: "client" | "talking" | "no" | null;
 }
 
 export async function getCampaignReceipt(
@@ -105,6 +109,13 @@ export async function getCampaignReceipt(
   for (const lead of leads) {
     if (lead.outcome) outcomes[lead.outcome] += 1;
     else outcomes.unanswered += 1;
+  }
+  // This sensor is only asked on zero-attributed-lead wrap-ups today, so it
+  // does not double-count a known lead outcome. Keeping it in the shared
+  // receipt means a later visit to /provider/boost reflects the answer the
+  // provider just gave instead of leaving the strongest proof admin-only.
+  if (request.provider_reported_outcome) {
+    outcomes[request.provider_reported_outcome] += 1;
   }
 
   const impressions = request.ad_impressions ?? null;

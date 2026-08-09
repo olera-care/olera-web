@@ -69,7 +69,7 @@ export interface CampaignRequest {
   provider_reported_outcome_at?: string | null;
   /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
   plan_status?: "active" | "past_due" | "canceled" | null;
-  /** Subscribed monthly plan in whole USD (150/300/600). */
+  /** Subscribed self-serve plan in whole USD (75/150/300). Historical/custom values may also exist. */
   plan_value?: number | null;
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;

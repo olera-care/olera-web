@@ -481,15 +481,17 @@ export default function AdminAnalyticsPage() {
         <CTAVariantsCard summary={summary} loading={loading} range={range} />
       </CollapsibleSection>
 
-      <CollapsibleSection
-        title="Ad Boost Purchase Funnel"
-        storageKey="managedAdsFunnel"
-        defaultCollapsed={false}
-        forceOpen={searchParams.get("ad_boost_funnel") === "1"}
-        loading={loading && !!summary}
-      >
-        <ManagedAdsVariantsCard summary={summary} loading={loading} range={range} />
-      </CollapsibleSection>
+      <div id="ad-boost-purchase-funnel" className="scroll-mt-6">
+        <CollapsibleSection
+          title="Ad Boost Purchase Funnel"
+          storageKey="managedAdsFunnel"
+          defaultCollapsed={false}
+          forceOpen={searchParams.get("ad_boost_funnel") === "1"}
+          loading={loading && !!summary}
+        >
+          <ManagedAdsVariantsCard summary={summary} loading={loading} range={range} />
+        </CollapsibleSection>
+      </div>
 
       <CollapsibleSection
         title="Provider Hub Mobile Nav"

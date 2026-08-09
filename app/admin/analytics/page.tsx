@@ -208,10 +208,23 @@ interface ManagedAdsFunnel {
   clicked: number;
   viewed: number;
   requested: number;
+  results_viewed: number;
+  plans_viewed: number;
+  plan_selected: number;
+  not_now: number;
+  checkout_started: number;
+  checkout_created: number;
+  checkout_failed: number;
+  subscribed: number;
 }
 
 type ManagedAdsVariantKeyWithUnassigned = ManagedAdsVariant | "unassigned";
 type ManagedAdsFunnelByVariant = Record<ManagedAdsVariantKeyWithUnassigned, ManagedAdsFunnel>;
+type ManagedAdsPlanIntent = Record<string, {
+  selected: number;
+  checkout_started: number;
+  subscribed: number;
+}>;
 
 interface ReferrerBreakdown {
   ai_chat: number;
@@ -252,6 +265,7 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     managed_ads_funnel: ManagedAdsFunnel;
     managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
+    managed_ads_plan_intent: ManagedAdsPlanIntent;
     referrer_breakdown: ReferrerBreakdown;
   };
   prior: {
@@ -268,6 +282,7 @@ interface SummaryResponse {
     cta_funnel_by_variant: CTAFunnelByVariant;
     managed_ads_funnel: ManagedAdsFunnel;
     managed_ads_funnel_by_variant: ManagedAdsFunnelByVariant;
+    managed_ads_plan_intent: ManagedAdsPlanIntent;
     referrer_breakdown: ReferrerBreakdown;
   } | null;
   insight: string | null;
@@ -467,9 +482,10 @@ export default function AdminAnalyticsPage() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Managed Ads Variants"
+        title="Ad Boost Purchase Funnel"
         storageKey="managedAdsFunnel"
-        defaultCollapsed={true}
+        defaultCollapsed={false}
+        forceOpen={searchParams.get("ad_boost_funnel") === "1"}
         loading={loading && !!summary}
       >
         <ManagedAdsVariantsCard summary={summary} loading={loading} range={range} />
@@ -2835,13 +2851,14 @@ function ManagedAdsVariantsCard({
 
   const f = summary.windowed.managed_ads_funnel;
   const pf = summary.prior?.managed_ads_funnel ?? null;
-  const stages: Array<{
+  type Stage = {
     label: string;
     value: number;
     prior: number | null;
     prev: number | null;
     tooltip: string;
-  }> = [
+  };
+  const acquisitionStages: Stage[] = [
     {
       label: "Shown",
       value: f.shown,
@@ -2857,11 +2874,11 @@ function ManagedAdsVariantsCard({
       tooltip: "Distinct providers who clicked toward the managed-ads launch plan.",
     },
     {
-      label: "Viewed Plan",
+      label: "Viewed Offer",
       value: f.viewed,
       prior: pf?.viewed ?? null,
       prev: f.clicked,
-      tooltip: "Distinct providers who landed on /provider/boost.",
+      tooltip: "Distinct providers who landed on the /provider/boost application or eligibility gate.",
     },
     {
       label: "Requested",
@@ -2871,19 +2888,187 @@ function ManagedAdsVariantsCard({
       tooltip: "Distinct providers who submitted a managed-ads request.",
     },
   ];
+  const decisionStages: Stage[] = [
+    {
+      label: "Viewed Results",
+      value: f.results_viewed,
+      prior: pf?.results_viewed ?? null,
+      prev: null,
+      tooltip: "Distinct providers who saw their completed campaign receipt and paid plan choice.",
+    },
+    {
+      label: "Saw Plans",
+      value: f.plans_viewed,
+      prior: pf?.plans_viewed ?? null,
+      prev: null,
+      tooltip: "Distinct providers for whom actionable paid plan cards were visible, either during a live campaign or in the completed-results moment.",
+    },
+    {
+      label: "Selected Plan",
+      value: f.plan_selected,
+      prior: pf?.plan_selected ?? null,
+      prev: f.plans_viewed,
+      tooltip: "Distinct providers who explicitly clicked a paid plan tier. Continuing with the already-selected default Starter plan can skip this event and still appear under Started Checkout.",
+    },
+    {
+      label: "Not Now",
+      value: f.not_now,
+      prior: pf?.not_now ?? null,
+      prev: null,
+      tooltip: "Distinct providers who explicitly left or dismissed a paid plan choice.",
+    },
+  ];
+  const paymentStages: Stage[] = [
+    {
+      label: "Started Checkout",
+      value: f.checkout_started,
+      prior: pf?.checkout_started ?? null,
+      prev: f.plans_viewed,
+      tooltip: "Distinct providers who clicked Continue with a paid Ad Boost plan.",
+    },
+    {
+      label: "Checkout Ready",
+      value: f.checkout_created,
+      prior: pf?.checkout_created ?? null,
+      prev: f.checkout_started,
+      tooltip: "Distinct providers for whom Stripe returned a Checkout session URL.",
+    },
+    {
+      label: "Subscribed",
+      value: f.subscribed,
+      prior: pf?.subscribed ?? null,
+      prev: f.checkout_created,
+      tooltip: "Distinct providers activated by the authoritative Stripe webhook.",
+    },
+    {
+      label: "Checkout Failed",
+      value: f.checkout_failed,
+      prior: pf?.checkout_failed ?? null,
+      prev: null,
+      tooltip: "Distinct providers whose Checkout session failed before redirecting to Stripe.",
+    },
+  ];
+
+  const currentRead = f.subscribed > 0
+    ? `${f.subscribed} provider${f.subscribed === 1 ? "" : "s"} subscribed in this window.`
+    : f.checkout_created > 0
+      ? `${f.checkout_created} provider${f.checkout_created === 1 ? "" : "s"} reached Stripe Checkout, but no subscription activation is recorded yet.`
+      : f.checkout_started > 0
+        ? `${f.checkout_started} provider${f.checkout_started === 1 ? "" : "s"} tried to continue; none reached a recorded Stripe Checkout session yet.`
+        : f.plan_selected > 0
+          ? `${f.plan_selected} provider${f.plan_selected === 1 ? "" : "s"} interacted with a plan, but none started checkout yet.`
+          : f.plans_viewed > 0
+            ? `${f.plans_viewed} provider${f.plans_viewed === 1 ? "" : "s"} saw paid plans, but none showed recorded checkout intent yet.`
+            : "No paid-plan exposure or purchase decisions are recorded in this window yet.";
+
+  const groups: Array<{ title: string; description: string; stages: Stage[] }> = [
+    {
+      title: "1 · Discover and request",
+      description: "Can providers find the offer and start an introductory campaign?",
+      stages: acquisitionStages,
+    },
+    {
+      title: "2 · Review and decide",
+      description: "When paid plans are visible, do providers engage with a tier or defer?",
+      stages: decisionStages,
+    },
+    {
+      title: "3 · Checkout and pay",
+      description: "Does purchase intent become a Stripe session and an active subscription?",
+      stages: paymentStages,
+    },
+  ];
+  const planIntent = summary.windowed.managed_ads_plan_intent ?? {};
+  const namedPlans = [
+    { value: 75, label: "Starter" },
+    { value: 150, label: "Momentum" },
+    { value: 300, label: "Growth" },
+    { value: 600, label: "Scale · custom" },
+  ];
+  const knownPlanValues = new Set(namedPlans.map((plan) => String(plan.value)));
+  const historicalPlans = Object.keys(planIntent)
+    .filter((value) => !knownPlanValues.has(value))
+    .map((value) => ({ value: Number(value), label: "Historical" }))
+    .filter((plan) => Number.isFinite(plan.value))
+    .sort((a, b) => a.value - b.value);
+  const planRows = [...namedPlans, ...historicalPlans];
 
   return (
     <>
-      <p className="text-xs text-gray-500 mb-5">
-        Managed Ads A/B testing funnel {rangeLabel(range).toLowerCase()} — distinct providers per stage. Shown = pitch rendered; Clicked = launch-plan CTA clicked; Viewed Plan = /provider/boost viewed; Requested = campaign request submitted.
-      </p>
+      <div className="mb-5 rounded-xl border border-primary-100 bg-primary-50/50 px-4 py-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary-700">
+          Current read
+        </p>
+        <p className="mt-1 text-sm font-medium text-gray-800">{currentRead}</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
+          Distinct providers {rangeLabel(range).toLowerCase()}. Stages share a date window but are not forced into the same cohort.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-4 gap-x-5 gap-y-4 mb-6">
-        {stages.map((s) => (
-          <FunnelStat key={s.label} {...s} />
+      <div className="grid gap-4 lg:grid-cols-3 mb-7">
+        {groups.map((group) => (
+          <section key={group.title} className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+            <h3 className="text-xs font-semibold text-gray-800">{group.title}</h3>
+            <p className="mt-1 min-h-8 text-[11px] leading-relaxed text-gray-500">
+              {group.description}
+            </p>
+            <div className={`mt-4 grid grid-cols-2 gap-x-4 gap-y-4 ${group.stages.length === 3 ? "sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3" : "sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4"}`}>
+              {group.stages.map((stage) => (
+                <FunnelStat key={stage.label} {...stage} />
+              ))}
+            </div>
+          </section>
         ))}
       </div>
 
+      <section className="mb-7 overflow-hidden rounded-xl border border-gray-100">
+        <div className="border-b border-gray-100 bg-gray-50/50 px-4 py-3">
+          <h3 className="text-xs font-semibold text-gray-800">Which price gets intent?</h3>
+          <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
+            Distinct providers by plan; someone can appear in more than one row after comparing tiers. Started checkout is the clearest price signal; Clicked tier excludes providers who accepted the preselected Starter without switching. Labels reflect the current ladder; older events remain grouped by dollar amount.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 text-left text-[10px] uppercase tracking-wider text-gray-400">
+                <th className="px-4 py-2.5 font-medium">Plan</th>
+                <th className="px-4 py-2.5 text-right font-medium">Clicked tier</th>
+                <th className="px-4 py-2.5 text-right font-medium">Started checkout</th>
+                <th className="px-4 py-2.5 text-right font-medium">Subscribed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {planRows.map((plan) => {
+                const row = planIntent[String(plan.value)] ?? {
+                  selected: 0,
+                  checkout_started: 0,
+                  subscribed: 0,
+                };
+                return (
+                  <tr key={`${plan.value}-${plan.label}`} className="border-b border-gray-50 last:border-0">
+                    <td className="px-4 py-3 font-medium text-gray-700">
+                      {plan.label} <span className="font-normal text-gray-400">· ${plan.value}{plan.value === 600 ? "+" : ""}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-gray-600">{row.selected}</td>
+                    <td className="px-4 py-3 text-right tabular-nums font-medium text-gray-900">{row.checkout_started}</td>
+                    <td className="px-4 py-3 text-right tabular-nums font-medium text-primary-700">{row.subscribed}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div className="border-t border-gray-100 pt-6">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+          Acquisition experiment
+        </p>
+        <p className="mt-1 mb-4 text-[11px] text-gray-500">
+          Traffic allocation and pitch-variant performance live below the purchase journey so experimentation does not obscure the buying decision.
+        </p>
+      </div>
       <ManagedAdsTrafficAllocationControl />
       <ManagedAdsVariantSplit byVariant={summary.windowed.managed_ads_funnel_by_variant} />
     </>

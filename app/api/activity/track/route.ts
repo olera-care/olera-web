@@ -43,6 +43,13 @@ const PROVIDER_EVENT_TYPES = [
   "managed_ads_boost_viewed",  // Provider viewed the managed-ads page
   "managed_ads_step_viewed",   // Provider reached a step in the apply flow (metadata.step, migration 130)
   "managed_ads_requested",     // Provider submitted a managed-ads campaign request
+  "managed_ads_results_viewed", // Provider saw the completed campaign receipt + plan choice
+  "managed_ads_plans_viewed",   // Provider saw actionable paid plan cards (live or results)
+  "managed_ads_plan_selected",  // Provider explicitly changed the selected paid tier
+  "managed_ads_checkout_started", // Provider clicked Continue with a paid plan
+  "managed_ads_checkout_created", // Stripe returned a Checkout session URL
+  "managed_ads_checkout_failed",  // Checkout session creation failed before redirect
+  "managed_ads_not_now",          // Provider dismissed the featured/early plan choice
   "your_market_viewed",        // Provider viewed the Your Market diagnostic
   "your_market_playbook_clicked", // Provider tapped a Your Market playbook step
   // Review SMS demand signal

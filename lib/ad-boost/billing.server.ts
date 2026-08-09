@@ -12,8 +12,9 @@ import { BUDGET_STOPS, budgetStop } from "./estimate";
  * checkout reuses it. Retuning tier amounts in estimate.ts mints new lookup
  * keys automatically (the key embeds the amount).
  *
- * The ONLY place this is called from is the post-intro wrap-up moment
- * (/provider/boost) — the plan of record forbids a payment ask at signup.
+ * The only place this is called from is /provider/boost, where a provider may
+ * continue while the intro is live or from the featured results wrap-up. The
+ * plan of record still forbids collecting payment during campaign signup.
  */
 
 /** Paid plan values (the free intro stop is excluded — it is never billable). */
@@ -22,6 +23,10 @@ export const PAID_PLAN_VALUES: number[] = BUDGET_STOPS.filter(
 ).map((s) => s.value);
 
 function lookupKey(planValue: number): string {
+  // $150 previously represented the old Starter tier. Momentum needs a new
+  // lookup key so Stripe cannot reuse a historical price whose product name
+  // disagrees with the provider-facing ladder.
+  if (planValue === 150) return "adboost_momentum_150_monthly";
   return `adboost_${planValue}_monthly`;
 }
 

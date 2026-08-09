@@ -9,6 +9,7 @@ import {
 } from "@/lib/ad-boost/boost-state";
 import {
   BUDGET_STOPS,
+  CUSTOM_SCALE_STOP,
   DEFAULT_BUDGET,
   budgetStop,
   budgetLabel,
@@ -28,15 +29,18 @@ import {
 export function CampaignFacts({ request }: { request: BoostRequest }) {
   const channelLabel = BOOST_CHANNELS.find((c) => c.value === request.channel)?.label ?? null;
   // An active paid plan supersedes the (non-binding) signup intent.
+  const hasPaidPlan =
+    (request.plan_status === "active" || request.plan_status === "past_due") &&
+    request.plan_value != null;
   const budget =
-    request.plan_status === "active" && request.plan_value != null
+    hasPaidPlan
       ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`)
       : budgetLabel(request.intended_monthly_budget);
   const facts: { label: string; value: string }[] = [
     { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
-  if (budget) facts.push({ label: "Plan", value: budget });
+  if (budget) facts.push({ label: hasPaidPlan ? "Paid plan" : "Campaign budget", value: budget });
   // Flight time context — the "day N of M" that makes a live campaign feel
   // like a running clock instead of a static state. Only when the end date
   // has been entered from the ad platform.
@@ -293,35 +297,63 @@ export function PlanActive({
 }
 
 /**
- * The wrap-up moment — the ONLY payment ask in the system. Arms on a value
- * event (3rd lead, or concierge marked the promo complete). Leads with the
- * provider's own numbers, then one calm plan choice -> Stripe Checkout.
- * Zero leads = the honest no-ask path: we re-run on us, nothing to pay.
+ * Terminal intro state before the featured results/payment moment is armed.
+ * Auto-end and the buffered wrap-up email are deliberately separate; this
+ * view closes that interval without falling back to the free application.
  */
+export function CampaignWrapUpPending({ request }: { request: BoostRequest }) {
+  const cancelled = request.status === "cancelled";
+  return (
+    <div className="max-w-2xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
+        {cancelled ? "Campaign closed" : "Campaign complete"}
+      </p>
+      <h2 className="text-[clamp(1.5rem,4vw,2rem)] font-display font-bold text-gray-900 leading-tight">
+        {cancelled ? "Your campaign is no longer running." : "Your results are being finalized."}
+      </h2>
+      <p className="mt-3 max-w-lg text-gray-500 leading-relaxed">
+        {cancelled
+          ? "Your introductory campaign remains on your account. Reply to any campaign email if you want help choosing a paid plan to restart it."
+          : "We’re checking the final campaign numbers now. We’ll email you as soon as your results and next-step options are ready here."}
+      </p>
+      <Link
+        href="/provider"
+        className="inline-flex items-center gap-2 mt-8 text-primary-600 font-medium hover:gap-3 transition-all"
+      >
+        Back to dashboard
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+        </svg>
+      </Link>
+    </div>
+  );
+}
+
 /**
  * The plan cards + de-risk promises + checkout CTA, extracted so the wrap-up
  * moment and the live view's early-upgrade path stay one implementation.
- * Owns its own selection state; defaults to the signup intent, else Starter.
+ * Owns its own selection state and always defaults to the current Starter.
+ * `intended_monthly_budget` is historical signup data: older campaign rows can
+ * carry the former $150 Starter choice, while new requests carry the free intro
+ * amount. Neither should silently override today's $75 entry offer.
  */
 export function PlanChooser({
   request,
   onCheckout,
+  onPlanSelected,
   submitting,
   error,
 }: {
   request: BoostRequest;
   onCheckout: (planValue: number) => void;
+  onPlanSelected?: (planValue: number) => void;
   submitting: boolean;
   error: string | null;
 }) {
   const paidStops = BUDGET_STOPS.filter((b) => b.sublabel !== "on us");
-  // Default to what they said they intended at signup, else Starter.
-  const [plan, setPlan] = useState<number>(() =>
-    paidStops.some((b) => b.value === request.intended_monthly_budget)
-      ? (request.intended_monthly_budget as number)
-      : DEFAULT_BUDGET,
-  );
+  const [plan, setPlan] = useState<number>(DEFAULT_BUDGET);
   const selected = budgetStop(plan);
+  const scaleContactHref = `mailto:support@olera.care?subject=${encodeURIComponent("Olera Ad Boost Scale")}&body=${encodeURIComponent(`Campaign request: ${request.id}`)}`;
 
   return (
     <>
@@ -337,7 +369,10 @@ export function PlanChooser({
                 key={b.value}
                 type="button"
                 aria-pressed={active}
-                onClick={() => setPlan(b.value)}
+                onClick={() => {
+                  setPlan(b.value);
+                  onPlanSelected?.(b.value);
+                }}
                 className={`w-full rounded-2xl border px-5 py-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${
                   active
                     ? "border-primary-500 bg-primary-50/70"
@@ -368,6 +403,26 @@ export function PlanChooser({
           })}
         </div>
       </fieldset>
+
+      <a
+        href={scaleContactHref}
+        onClick={() => onPlanSelected?.(CUSTOM_SCALE_STOP.value)}
+        className="mt-4 flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl border border-dashed border-gray-200 px-5 py-4 text-left transition-colors hover:border-primary-300 hover:bg-primary-50/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+      >
+        <span>
+          <span className="text-base font-semibold text-gray-900">
+            {CUSTOM_SCALE_STOP.name}
+            <span className="font-normal text-gray-300"> · </span>
+            <span className="tabular-nums">{CUSTOM_SCALE_STOP.amount}/mo</span>
+          </span>
+          <span className="mt-1 block text-xs text-gray-400">
+            {estimateSummary(CUSTOM_SCALE_STOP)} · shaped around your market
+          </span>
+        </span>
+        <span className="shrink-0 text-sm font-medium text-primary-600">
+          Talk with us →
+        </span>
+      </a>
 
       {/* The de-risking, promoted from fine print to first-class promises —
           this is the page where money is asked, so this is where the safety
@@ -410,13 +465,15 @@ export function PlanChooser({
  * The wrap-up moment — the FEATURED payment ask. Arms on a value event (3rd
  * lead, or concierge marked the promo complete). Leads with the provider's
  * own numbers, then one calm plan choice -> Stripe Checkout. The live view
- * carries a quieter always-available PlanChooser behind a disclosure.
+ * carries the same always-visible PlanChooser once the campaign is running.
  */
 export function WrapUpMoment({
   request,
   campaignStats,
   receipt,
   onCheckout,
+  onPlanSelected,
+  onNotNow,
   submitting,
   error,
 }: {
@@ -429,16 +486,25 @@ export function WrapUpMoment({
   } | null;
   receipt?: CampaignReceiptData | null;
   onCheckout: (planValue: number) => void;
+  onPlanSelected?: (planValue: number) => void;
+  onNotNow?: () => void;
   submitting: boolean;
   error: string | null;
 }) {
   const leads = campaignStats?.leads ?? 0;
   const planSection = (
     <>
-      <PlanChooser request={request} onCheckout={onCheckout} submitting={submitting} error={error} />
+      <PlanChooser
+        request={request}
+        onCheckout={onCheckout}
+        onPlanSelected={onPlanSelected}
+        submitting={submitting}
+        error={error}
+      />
       <div className="mt-10">
         <Link
           href="/provider"
+          onClick={onNotNow}
           className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
         >
           Not now, back to dashboard
@@ -448,10 +514,16 @@ export function WrapUpMoment({
   );
 
   // Zero leads = the demand-receipt path. No fake celebration; instead the
-  // itemized proof the ad worked (reach, clicks, saves) + the volume math, the
-  // re-run promise, and the plans as a volume choice, not a victory lap.
+  // itemized proof the ad worked (reach, clicks, saves) + the volume math and
+  // the plans as a volume choice, not a victory lap or a false celebration.
   if (leads === 0) {
     const impressions = receipt?.google.impressions;
+    const showedInterest =
+      (impressions ?? 0) > 0 ||
+      (receipt?.google.clicks ?? 0) > 0 ||
+      (receipt?.engagement.visitors ?? 0) > 0 ||
+      (receipt?.engagement.saves ?? 0) > 0 ||
+      (receipt?.engagement.questionsReceived ?? 0) > 0;
     return (
       <div className="max-w-2xl">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600 mb-2">
@@ -471,9 +543,11 @@ export function WrapUpMoment({
         {receipt && <ReceiptMathLine receipt={receipt} />}
 
         <p className="text-gray-500 mt-6 leading-relaxed max-w-lg">
-          We&apos;ll tune your page and run another window on us. Nothing to
-          pay. If you&apos;d rather not wait, a monthly plan runs the same
-          campaign at several times the volume.
+          {showedInterest
+            ? "This intro showed interest, but it did not run at enough volume to produce an Olera inquiry. "
+            : "This intro did not produce enough measurable activity to generate an Olera inquiry. "}
+          A monthly plan gives the campaign more room to work—and if a full paid
+          month produces zero inquiries, that month is credited or refunded.
         </p>
 
         <p className="mt-10 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
@@ -560,7 +634,7 @@ function MomentumLine({ week }: { week: CampaignReceiptData["week"] }) {
  * The live / in-motion campaign view — where conviction builds. The wrap-up
  * converts providers who already decided; this view is where they watch the
  * numbers move (momentum line, accruing receipt, flight clock) and can start
- * a plan EARLY through a quiet disclosure instead of waiting for the wrap-up.
+ * a plan early without hunting for a low-contrast disclosure.
  * Shared with the admin preview gallery so TJ sees exactly what providers see.
  */
 export function CampaignInMotion({
@@ -571,6 +645,7 @@ export function CampaignInMotion({
   submitting,
   error,
   onEditPhotos,
+  onPlanSelected,
 }: {
   request: BoostRequest;
   campaignStats: {
@@ -584,14 +659,15 @@ export function CampaignInMotion({
   submitting: boolean;
   error: string | null;
   onEditPhotos?: () => void;
+  onPlanSelected?: (planValue: number) => void;
 }) {
-  const [showPlans, setShowPlans] = useState(false);
   const label: Record<string, string> = {
     requested: "Launch plan received",
     scheduled: "Setup scheduled",
     live: "Your campaign is live",
   };
   const isLive = request.status === "live";
+  const canChoosePlan = request.plan_status == null || request.plan_status === "canceled";
   const photoUpdateRequested =
     !isLive && request.photo_readiness_status === "update_requested";
   const photoReviewRequested =
@@ -670,64 +746,31 @@ export function CampaignInMotion({
       {/* The accruing receipt: ad reach, saves, questions, reported outcomes. */}
       {isLive && receipt && <CampaignReceiptBlock receipt={receipt} />}
 
-      {/* Set up the wrap-up moment BEFORE it arrives: the no-silent-rollover
-          promise, planted while the intro is still running. */}
-      {isLive && !request.plan_status && !showPlans && (
-        <p className="mt-6 text-sm text-gray-500 leading-relaxed max-w-md">
-          When your intro wraps, your results will be right here and you choose
-          whether to keep going. Nothing switches to a paid plan on its own.
-        </p>
-      )}
-
-      {/* The early-upgrade path: a quiet disclosure, never a hard ask — the
-          wrap-up stays the featured moment. Checkout accepts live campaigns. */}
-      {isLive && !request.plan_status && (
-        <div className="mt-8 border-t border-gray-100 pt-6">
-          {showPlans ? (
-            <>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
-                Keep it running without a gap
-              </p>
-              <p className="mt-2 text-sm text-gray-500 leading-relaxed max-w-md">
-                Your free intro keeps running either way. When it ends, the
-                plan takes over the same day, at several times the volume, so
-                families keep arriving with no interruption.
-              </p>
-              <PlanChooser
-                request={request}
-                onCheckout={onCheckout}
-                submitting={submitting}
-                error={error}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPlans(false)}
-                className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                Maybe later
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Continuity frame, anchored to the real end date when we have
-                  one. The reason to act now is the flight clock above, not
-                  manufactured urgency. */}
-              <button
-                type="button"
-                onClick={() => setShowPlans(true)}
-                className="text-sm font-medium text-primary-600 hover:underline"
-              >
-                {request.flight_end_date
-                  ? `Keep your campaign running past ${formatWeek(request.flight_end_date)}`
-                  : "Start a monthly plan early"}
-              </button>
-              <p className="mt-1.5 text-xs text-gray-400 leading-relaxed max-w-md">
-                The ads stop when your free intro ends. Starting a plan now
-                means no gap: the campaign keeps running and families keep
-                arriving.
-              </p>
-            </>
-          )}
+      {/* The early plan choice uses the same visible cards as the wrap-up.
+          Providers should not have to discover that a section-heading-looking
+          line is clickable, especially after they have already seen value. */}
+      {isLive && canChoosePlan && (
+        <div className="mt-10 border-t border-gray-100 pt-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
+            Keep it going
+          </p>
+          <h3 className="mt-2 text-xl font-display font-semibold text-gray-900">
+            {request.flight_end_date
+              ? `Keep your campaign running past ${formatWeek(request.flight_end_date)}.`
+              : "Keep your campaign running without a gap."}
+          </h3>
+          <p className="mt-2 text-sm text-gray-500 leading-relaxed max-w-lg">
+            Choose a monthly plan now and it takes over when your free intro
+            ends. Your intro continues either way, and nothing becomes paid
+            until you confirm in Stripe.
+          </p>
+          <PlanChooser
+            request={request}
+            onCheckout={onCheckout}
+            onPlanSelected={onPlanSelected}
+            submitting={submitting}
+            error={error}
+          />
         </div>
       )}
 

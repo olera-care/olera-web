@@ -249,7 +249,7 @@ async function activateAdBoostPlan(
       updated_at: new Date().toISOString(),
     })
     .eq("id", requestId)
-    .select("id, display_name, provider_slug")
+    .select("id, provider_id, display_name, provider_slug")
     .maybeSingle();
 
   if (error) {
@@ -265,6 +265,26 @@ async function activateAdBoostPlan(
   console.log(
     `[stripe-webhook] Ad Boost plan activated for request ${requestId} ($${planValue}/mo, sub=${subscriptionId})`,
   );
+
+  // Authoritative bottom-of-funnel event. Client-side return tracking can be
+  // skipped by a closed tab or delayed redirect; Stripe completion is the
+  // business fact. Best-effort so an analytics issue never rolls back an
+  // otherwise successful subscription activation.
+  const { error: eventError } = await supabase.from("provider_activity").insert({
+    provider_id: row.provider_slug || row.provider_id,
+    event_type: "managed_ads_subscribed",
+    metadata: {
+      request_id: requestId,
+      plan_value: planValue,
+      source: "stripe_webhook",
+    },
+  });
+  if (eventError) {
+    console.error(
+      `[stripe-webhook] Ad Boost subscription analytics failed for request ${requestId}:`,
+      eventError,
+    );
+  }
 
   // Best-effort Slack ping — never fail the webhook over it. Requires
   // SLACK_WEBHOOK_URL via `supabase secrets set` (optional).

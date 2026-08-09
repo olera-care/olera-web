@@ -100,9 +100,14 @@ async function logSms(params: {
   errorMessage?: string;
   metadata?: Record<string, unknown>;
   /** Twilio message SID. Stored in resend_id, the existing provider-message-id
-   *  column, so the status callback can find this row by an indexed lookup and
-   *  SMS reads symmetrically with email. No collision risk: Resend ids are
-   *  UUIDs, Twilio SIDs are prefixed SM/MM. */
+   *  column, so the status callback has a key to find this row by and SMS reads
+   *  symmetrically with email. No collision risk: Resend ids are UUIDs, Twilio
+   *  SIDs are prefixed SM/MM.
+   *
+   *  Note: resend_id is NOT indexed on email_log (024 indexes recipient,
+   *  email_type, created_at, provider_id, status, recipient_type; 051 adds
+   *  first_opened_at and bounced_at). At ~1k rows the callback's lookup is a
+   *  cheap scan. Worth an index if SMS volume grows. */
   providerMessageId?: string;
 }): Promise<void> {
   try {

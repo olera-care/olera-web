@@ -34,6 +34,27 @@ import { createClient } from "@supabase/supabase-js";
 /** Twilio's terminal failure states. Everything else is progress. */
 const FAILED = new Set(["undelivered", "failed"]);
 
+/**
+ * Lifecycle order, used to stop a late callback demoting the row.
+ *
+ * Twilio resends callbacks and does not guarantee arrival order, and unlike
+ * Resend it sends no event timestamp in the body — so there is nothing to
+ * compare but our own receive time, which says nothing about the order Twilio
+ * actually emitted them in. Ranking the states is the only reliable guard.
+ * Unknown states rank -1 so they can never displace a known one.
+ */
+const RANK: Record<string, number> = {
+  queued: 0,
+  accepted: 0,
+  scheduled: 0,
+  sending: 1,
+  sent: 2,
+  delivered: 3,
+  undelivered: 3,
+  failed: 3,
+};
+const rankOf = (s: string | null | undefined) => (s && s in RANK ? RANK[s] : -1);
+
 function getServiceDb() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -81,7 +102,7 @@ export async function POST(request: NextRequest) {
   try {
     const { data: row } = await db
       .from("email_log")
-      .select("id, delivered_at, bounced_at")
+      .select("id, delivered_at, bounced_at, last_event_type")
       .eq("resend_id", sid)
       .maybeSingle();
     // Sends that pass no emailType never reach email_log, so an unmatched SID
@@ -96,10 +117,17 @@ export async function POST(request: NextRequest) {
     // status of "delivered" would add a fourth value nothing reads AND leave
     // the column it feeds empty.
     const now = new Date().toISOString();
-    const update: Record<string, unknown> = {
-      last_event_type: status,
-      last_event_at: now,
-    };
+    const update: Record<string, unknown> = {};
+
+    // Only advance the last-event snapshot. Writing it unconditionally meant a
+    // late `sent` arriving after `delivered` left the row with delivered_at set
+    // but last_event_type reading "sent", which is what the recipient drawer
+    // displays. Mirrors the isNewer guard in lib/resend-events.ts, but on rank
+    // rather than timestamp, because Twilio sends no event time.
+    if (rankOf(status) >= rankOf(row.last_event_type)) {
+      update.last_event_type = status;
+      update.last_event_at = now;
+    }
 
     // A terminal receipt already landed. Twilio can resend a callback and can
     // deliver them out of order, so record the event but never walk the row
@@ -119,6 +147,8 @@ export async function POST(request: NextRequest) {
     } else if (status === "delivered" && !row.delivered_at) {
       update.delivered_at = now;
     }
+
+    if (Object.keys(update).length === 0) return NextResponse.json({ ok: true });
 
     const { error } = await db.from("email_log").update(update).eq("id", row.id);
     if (error) console.error("[sms-status] update failed:", error.message);

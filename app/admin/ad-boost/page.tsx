@@ -108,6 +108,15 @@ export default function AdminAdBoostPage() {
             View messaging journey
             <span aria-hidden="true">&rarr;</span>
           </Link>
+          <span className="mx-1.5 text-gray-300" aria-hidden="true">·</span>
+          <Link
+            href="/admin/analytics?ad_boost_funnel=1#ad-boost-purchase-funnel"
+            className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+            title="Open the expanded Ad Boost purchase funnel in Analytics"
+          >
+            View purchase analytics
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </p>
       </header>
 

@@ -77,6 +77,19 @@ interface SendSMSOptions {
  * short label since SMS has no subject line. Only called when the caller passes
  * emailType, so transactional one-offs can opt out of the ledger.
  */
+/**
+ * Public HTTPS base for Twilio to POST delivery receipts back to.
+ * Mirrors buildWebhookUrl in app/api/sms/webhook/route.ts so the signature
+ * Twilio computes matches the URL that route validates against.
+ */
+function statusCallbackUrl(): string | null {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL;
+  if (!siteUrl) return null;
+  const base = siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`;
+  if (!base.startsWith("https://")) return null;
+  return `${base}/api/sms/status`;
+}
+
 async function logSms(params: {
   to: string;
   body: string;
@@ -86,6 +99,16 @@ async function logSms(params: {
   status: "sent" | "failed";
   errorMessage?: string;
   metadata?: Record<string, unknown>;
+  /** Twilio message SID. Stored in resend_id, the existing provider-message-id
+   *  column, so the status callback has a key to find this row by and SMS reads
+   *  symmetrically with email. No collision risk: Resend ids are UUIDs, Twilio
+   *  SIDs are prefixed SM/MM.
+   *
+   *  Note: resend_id is NOT indexed on email_log (024 indexes recipient,
+   *  email_type, created_at, provider_id, status, recipient_type; 051 adds
+   *  first_opened_at and bounced_at). At ~1k rows the callback's lookup is a
+   *  cheap scan. Worth an index if SMS volume grows. */
+  providerMessageId?: string;
 }): Promise<void> {
   try {
     const db = getServiceDb();
@@ -102,6 +125,7 @@ async function logSms(params: {
       error_message: params.errorMessage ?? null,
       html_body: params.body,
       metadata: params.metadata ?? {},
+      resend_id: params.providerMessageId ?? null,
     });
   } catch (err) {
     console.error("[sms] Failed to log send:", err);
@@ -164,13 +188,33 @@ export async function sendSMS(
   }
 
   try {
-    await client.messages.create({
+    // statusCallback is what turns "we handed it to Twilio" into "the carrier
+    // actually delivered it". Without it every row reads `sent` forever, which
+    // is not a cosmetic gap: before the 10DLC campaign cleared in July 2026 the
+    // carriers silently dropped ~80% of our texts (error 30034) while our own
+    // log said `sent`. Only set when a public HTTPS base URL exists — Twilio
+    // cannot reach localhost, and passing an unreachable callback just produces
+    // noise in the Twilio error log.
+    const callbackUrl = statusCallbackUrl();
+    const msg = await client.messages.create({
       from,
       to,
       body,
+      ...(callbackUrl ? { statusCallback: callbackUrl } : {}),
     });
     if (emailType) {
-      await logSms({ to, body, emailType, recipientType, providerId: recipientLogProfileId, status: "sent", metadata });
+      await logSms({
+        to,
+        body,
+        emailType,
+        recipientType,
+        providerId: recipientLogProfileId,
+        status: "sent",
+        metadata,
+        // The Twilio SID is the only key the status callback carries back, so
+        // without storing it here a callback has no row to update.
+        providerMessageId: msg.sid,
+      });
     }
     return { success: true };
   } catch (err) {

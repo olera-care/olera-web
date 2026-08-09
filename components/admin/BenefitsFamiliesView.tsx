@@ -575,6 +575,15 @@ export default function BenefitsFamiliesView() {
             View messaging journey
             <span aria-hidden="true">&rarr;</span>
           </Link>
+          <span className="mx-1.5 text-gray-300" aria-hidden="true">·</span>
+          <Link
+            href="/admin/inbox"
+            className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+            title="Open family text replies in Messages"
+          >
+            Review family replies
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
         </p>
         <div className="shrink-0">
           <DateRangePopover value={range} onChange={setRange} />

@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-08-09 — Connect operational queues to their next workspace (`codex/adboost-analytics-link`, PR #1527)
+
+Added durable cross-links so the work does not disappear into separate admin sections: `/admin/ad-boost` now shows **View purchase analytics →** beside its messaging journey and deep-links to the expanded, anchored **Ad Boost Purchase Funnel**; the Benefits Families queue now shows **Review family replies →** beside its messaging journey and opens `/admin/inbox` in the default **Needs reply** mode. **Decision:** use “Review family replies” rather than “Benefits messages” because the shared SMS inbox also contains provider and non-benefits threads; the source context is specific, the destination label remains honest. **Files:** `app/admin/ad-boost/page.tsx`, `app/admin/analytics/page.tsx`, `components/admin/BenefitsFamiliesView.tsx`. **Validation:** TypeScript, targeted ESLint, and diff checks pass. **Commits:** `4e747449b`, `ca02d8d1a`. **Next:** preview PR #1527 against `staging`, then merge only after TJ approval.
+
 ### 2026-08-08 — Ad Boost conversion foundation + $75 ladder (`codex/adboost-conversion-foundation`)
 
 Rebuilt the free-intro-to-paid journey around the actual problem: providers were seeing some campaign activity, but Olera could not tell whether they saw the payment moment, considered a price, reached Stripe, abandoned, or subscribed. Added distinct-provider instrumentation for results viewed, plans viewed, tier selected, not now, checkout started/created/failed, and authoritative subscription completion from the Stripe webhook. `/admin/analytics` now opens with a human-readable **Ad Boost Purchase Funnel** and a **Which price gets intent?** table so exposure, decision, technical checkout health, abandonment, and conversion are separable.

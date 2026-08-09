@@ -58,19 +58,36 @@ export function emailTypeForSmsSource(code: string | null | undefined): string |
 /**
  * Stamp first_clicked_at on the send this arrival came from.
  *
- * Matching: the newest unclicked SMS row for this family of this email_type.
- * The link cannot carry the email_log row id because the URL is built before
- * the row exists, so profile + type + recency is the available join. A family
- * receiving two of the same rung days apart would attribute a late click to
- * the newer send; that is the known imprecision, and it is bounded because the
- * rung types are sent on a cadence rather than in bursts.
+ * Matching: the NEWEST SMS row for this family of this email_type, clicked or
+ * not, stamped only if it is still unclicked. The link cannot carry the
+ * email_log row id because the URL is built before the row exists, so profile
+ * + type + recency is the available join.
  *
- * Write-once, mirroring the email path (lib/resend-events.ts): a second visit
- * leaves the first click time alone, so the column means "first arrival" on
- * both channels rather than "most recent" on one.
+ * Selecting the newest row outright rather than the newest UNCLICKED one is
+ * load-bearing. Filtering on unclicked meant a second visit skipped past the
+ * already-attributed send and stamped an OLDER one, inventing a click on a
+ * message nobody opened. 2 of 65 profile+type pairs already have repeat sends,
+ * so that was live rather than theoretical. Now a repeat visit finds the newest
+ * row already clicked and does nothing.
  *
- * Fire-and-forget at the call site. Supabase resolves with {data, error}
- * rather than rejecting, so errors are read explicitly.
+ * Write-once, mirroring the email path (lib/resend-events.ts), so
+ * first_clicked_at means "first arrival" on both channels rather than "most
+ * recent" on one.
+ *
+ * Known imprecision that remains: a family sent the same rung twice who only
+ * opens the older link still gets the newer send credited. Bounded, because
+ * rungs go out on a cadence rather than in bursts, and it cannot manufacture a
+ * click that did not happen — only attribute a real one to the wrong send.
+ *
+ * Awaited by the caller, not fire-and-forget. The last_viewed_at bump in
+ * lib/benefits-token.ts floats safely because it is a single statement; this is
+ * a read followed by a write, which doubles the window for Vercel to kill the
+ * pending promise after the response. Silently dropping clicks is the one
+ * failure this feature cannot tolerate, since undercounting is invisible.
+ *
+ * Supabase resolves with {data, error} rather than rejecting, so errors are
+ * read explicitly and never thrown — an analytics write must not break a
+ * family's page.
  */
 export async function recordSmsClick(
   client: SupabaseClient,
@@ -81,11 +98,10 @@ export async function recordSmsClick(
 
   const { data: row, error: findErr } = await client
     .from("email_log")
-    .select("id")
+    .select("id, first_clicked_at")
     .eq("channel", "sms")
     .eq("email_type", emailType)
     .eq("provider_id", opts.profileId)
-    .is("first_clicked_at", null)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -93,9 +109,12 @@ export async function recordSmsClick(
     console.error("[sms-click] lookup failed:", findErr.message);
     return;
   }
-  // No unclicked send of this type: either already attributed, or the send
-  // predates click tracking. Both are expected, neither is an error.
+  // No send of this type on file: the link predates click tracking, or the
+  // marker was hand-edited. Expected, not an error.
   if (!row) return;
+  // Already attributed. A repeat visit must not move it, and must not fall
+  // through to an older send.
+  if (row.first_clicked_at) return;
 
   const { error: updateErr } = await client
     .from("email_log")

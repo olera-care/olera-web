@@ -73,13 +73,21 @@ export default async function BenefitsResultsPage({
 
   // Click attribution for texts. The marker says which text sent them here;
   // email needs no equivalent because Resend's click webhook already fills
-  // first_clicked_at. Fire-and-forget so a family never waits on analytics,
-  // matching the last_viewed_at bump in lib/benefits-token.ts.
+  // first_clicked_at.
+  //
+  // Awaited rather than floated. The last_viewed_at bump in benefits-token.ts
+  // floats safely because it is one statement; this is a read then a write, and
+  // Vercel kills pending promises once the response is sent. Two round trips on
+  // a page that already makes several, in exchange for a click count that is
+  // not silently short. Only runs when a marker is present, so an email arrival
+  // or a bare link pays nothing.
   const smsSource = (await searchParams)?.[SMS_SOURCE_PARAM];
-  void recordSmsClick(db, {
-    profileId: bundle.profile.id,
-    sourceCode: Array.isArray(smsSource) ? smsSource[0] : smsSource,
-  });
+  if (smsSource) {
+    await recordSmsClick(db, {
+      profileId: bundle.profile.id,
+      sourceCode: Array.isArray(smsSource) ? smsSource[0] : smsSource,
+    });
+  }
 
   const stateSlug = getStateSlug(bundle.token.state_code);
   if (!stateSlug) notFound();

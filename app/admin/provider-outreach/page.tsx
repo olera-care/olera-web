@@ -2360,64 +2360,29 @@ function formatDueDateBadge(dateStr: string | null): { text: string; className: 
   }
 }
 
-// Intelligence layer: Recommend action based on engagement and needs_call_reason
-function getRecommendedAction(provider: OutreachProvider): {
-  action: string;
-  outcome: string;
-  rationale: string;
-  isPrimary: boolean;
-} | null {
+// Get human-readable explanation for why provider is in Follow Up
+function getFollowUpReasonExplanation(provider: OutreachProvider): string {
   const reason = provider.needs_call_reason;
   const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
 
-  // Priority order based on the plan's recommendation logic
   switch (reason) {
     case "replied":
-      // Hottest lead - they responded, call them
-      return {
-        action: "Call Provider",
-        outcome: "", // No automatic outcome, just recommendation
-        rationale: "Provider replied to an email. Call them now - this is a hot lead.",
-        isPrimary: true,
-      };
+      return "Provider replied to an email — this is a hot lead.";
     case "clicked_not_claimed":
-      // Engaged but stuck - try personal touch via phone
-      return {
-        action: "Call Provider",
-        outcome: "", // No automatic outcome, just recommendation
-        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. A personal call may help close the deal.`,
-        isPrimary: true,
-      };
+      return `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim.`;
     case "sequence_exhausted":
     case "sequence_completed":
-      // Check if they opened emails but didn't act
       if (engagement.opens > 0) {
-        return {
-          action: "Fax",
-          outcome: "try_fax",
-          rationale: `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click. Try a different channel.`,
-          isPrimary: true,
-        };
+        return `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click.`;
       } else {
-        // No opens - email not reaching them
-        return {
-          action: "Direct Mail",
-          outcome: "try_direct_mail",
-          rationale: "No email engagement detected. Try direct mail to reach them.",
-          isPrimary: true,
-        };
+        return "No email engagement detected.";
       }
     case "email_bounced":
-      return {
-        action: "Fix Email",
-        outcome: "fix_email", // Special: triggers inline editing, not a modal
-        rationale: "Email bounced. Update contact info and resend.",
-        isPrimary: true,
-      };
+      return "Email bounced — contact info needs to be updated.";
     case "manual":
+      return "Manually added to follow-up queue.";
     default:
-      // No strong recommendation for manual additions
-      return null;
+      return "Ready for follow-up.";
   }
 }
 
@@ -2449,7 +2414,6 @@ function FollowUpProviderRow({
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
-  const [showAllOptions, setShowAllOptions] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
   // Track expansion state for async operation guards
@@ -2467,17 +2431,27 @@ function FollowUpProviderRow({
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailJustSaved, setEmailJustSaved] = useState(false);
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  // Inline phone editing state
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [savingPhone, setSavingPhone] = useState(false);
   // Not interested reason state
   const [notInterestedReason, setNotInterestedReason] = useState<string>("");
-  // Inline fax send modal state
-  const [showFaxSendModal, setShowFaxSendModal] = useState(false);
+  // Inline fax editing state
+  const [editingFax, setEditingFax] = useState(false);
   const [faxNumberInput, setFaxNumberInput] = useState("");
   const [sendingFax, setSendingFax] = useState(false);
-  // Inline direct mail send modal state
-  const [showDirectMailModal, setShowDirectMailModal] = useState(false);
+  const [pendingFaxSend, setPendingFaxSend] = useState(false);
+  const [faxNotFound, setFaxNotFound] = useState(false);
+  // Inline direct mail editing state
+  const [editingDirectMail, setEditingDirectMail] = useState(false);
   const [addressInput, setAddressInput] = useState("");
   const [sendingDirectMail, setSendingDirectMail] = useState(false);
+  const [pendingDirectMailSend, setPendingDirectMailSend] = useState(false);
   const [findingAddress, setFindingAddress] = useState(false);
+  const [addressNotFound, setAddressNotFound] = useState(false);
+  // Confirmation checkbox state
+  const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -2488,36 +2462,37 @@ function FollowUpProviderRow({
       setEditingEmail(false);
       setNewEmail("");
       setEmailJustSaved(false);
+      setEditingPhone(false);
+      setNewPhone("");
       setError(null);
       setNotInterestedReason("");
-      setShowFaxSendModal(false);
+      setEditingFax(false);
       setFaxNumberInput("");
       setSendingFax(false);
-      setShowDirectMailModal(false);
+      setPendingFaxSend(false);
+      setFaxNotFound(false);
+      setEditingDirectMail(false);
       setAddressInput("");
       setSendingDirectMail(false);
+      setPendingDirectMailSend(false);
       setFindingAddress(false);
+      setAddressNotFound(false);
+      setConfirmedWithProvider(false);
     }
   }, [isExpanded]);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
-  const recommendation = getRecommendedAction(provider);
-  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
 
-  // Channel availability
-  const hasFax = !!provider.fax_number || !!faxResult?.fax;
-  // Note: linkedin_url can be "not_found" sentinel value - filter it out
-  const validLinkedInUrl = provider.linkedin_url && provider.linkedin_url !== "not_found"
+  // LinkedIn URL (filter out "not_found" sentinel value)
+  const linkedInUrl = (provider.linkedin_url && provider.linkedin_url !== "not_found")
     ? provider.linkedin_url
     : linkedInResult?.linkedin_url;
-  const hasLinkedIn = !!validLinkedInUrl;
-  const linkedInUrl = validLinkedInUrl;
-  const hasAddress = !!provider.mail_address;
 
   // Find fax number for this provider
   const handleFindFax = async () => {
     setFindingFax(true);
+    setFaxNotFound(false);
     setError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/find-fax", {
@@ -2529,7 +2504,10 @@ function FollowUpProviderRow({
       if (res.ok) {
         setFaxResult({ fax: data.fax, confidence: data.confidence, source_url: data.source_url });
         if (data.fax) {
+          setFaxNumberInput(data.fax); // Populate input so Send button appears
           onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
+        } else if (isExpandedRef.current) {
+          setFaxNotFound(true); // Show "not found" message
         }
       } else if (isExpandedRef.current) {
         setError(data.error || "Failed to find fax");
@@ -2619,6 +2597,44 @@ function FollowUpProviderRow({
       // Only reset loading state if this session is still current
       if (editingSessionRef.current === sessionAtStart) {
         setSavingEmail(false);
+      }
+    }
+  };
+
+  // Handle saving updated phone number
+  const handleSavePhone = async () => {
+    const trimmedPhone = newPhone.trim();
+    // Allow empty to clear phone, or validate format
+    const sessionAtStart = editingSessionRef.current;
+    setSavingPhone(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-phone", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, phone: trimmedPhone || null }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        onProviderUpdated({ phone: trimmedPhone || null });
+        if (stillValid) {
+          setEditingPhone(false);
+          setNewPhone("");
+        }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to save phone");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error saving phone");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingPhone(false);
       }
     }
   };
@@ -2741,10 +2757,12 @@ function FollowUpProviderRow({
         return; // Don't close modal or trigger refresh - let user handle manually
       }
 
-      // Success - close modal and refresh
+      // Success - close inline editing and refresh
       if (stillValid) {
-        setShowFaxSendModal(false);
+        setEditingFax(false);
+        setPendingFaxSend(false);
         setFaxNumberInput("");
+        setConfirmedWithProvider(false);
       }
       onOutcomeRecorded(true); // Stage changed, trigger refresh
     } catch {
@@ -2761,6 +2779,7 @@ function FollowUpProviderRow({
   // Find address for direct mail
   const handleFindAddress = async () => {
     setFindingAddress(true);
+    setAddressNotFound(false);
     setError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/find-address", {
@@ -2775,6 +2794,9 @@ function FollowUpProviderRow({
       const data = await res.json();
       if (res.ok && data.address) {
         setAddressInput(data.address);
+      } else if (res.ok) {
+        // API succeeded but no address found
+        setAddressNotFound(true);
       } else {
         setError(data.error || "Could not find a mailing address");
       }
@@ -2844,10 +2866,12 @@ function FollowUpProviderRow({
         return; // Don't close modal or trigger refresh - let user handle manually
       }
 
-      // Success - close modal and refresh
+      // Success - close inline editing and refresh
       if (stillValid) {
-        setShowDirectMailModal(false);
+        setEditingDirectMail(false);
+        setPendingDirectMailSend(false);
         setAddressInput("");
+        setConfirmedWithProvider(false);
       }
       onOutcomeRecorded(true); // Stage changed, trigger refresh
     } catch {
@@ -3140,113 +3164,23 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Recommended Action Card */}
-          {recommendation && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Recommended Action
-              </div>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900 mb-1">{recommendation.action}</div>
-                  <p className="text-sm text-gray-500">{recommendation.rationale}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {recommendation.outcome && (
-                    <button
-                      onClick={() => {
-                        if (recommendation.outcome === "fix_email") {
-                          // Special case: trigger inline editing instead of modal
-                          setEditingEmail(true);
-                          setNewEmail(provider.email || "");
-                          setEmailJustSaved(false);
-                        } else {
-                          setPendingOutcome(recommendation.outcome);
-                        }
-                      }}
-                      disabled={submitting !== null || (recommendation.outcome === "fix_email" && editingEmail)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {recommendation.action}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowAllOptions(!showAllOptions)}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {showAllOptions ? "Hide options" : "Show all options"}
-                  </button>
-                </div>
-              </div>
+          {/* Follow Up Action Card */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+            {/* Reason for follow-up */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-700">{getFollowUpReasonExplanation(provider)}</p>
+              <p className="text-sm text-gray-500 mt-1">Consider calling to ask which channel they prefer.</p>
             </div>
-          )}
 
-          {/* Two-column layout: Provider Details + Outreach History */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Provider Details Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Provider
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="font-medium text-gray-900">{provider.provider_name}</div>
-                {provider.provider_category && (
-                  <div className="text-gray-500">{provider.provider_category}</div>
-                )}
-                {provider.city && (
-                  <div className="text-gray-500">{provider.city}{provider.state ? `, ${provider.state}` : ""}</div>
-                )}
-                {/* Email display with inline edit capability */}
-                {editingEmail ? (
-                  <div className="space-y-2">
-                    <label className="block text-xs font-medium text-gray-500">Email</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="email"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                        placeholder="Enter new email"
-                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleSaveEmail();
-                          } else if (e.key === "Escape") {
-                            setEditingEmail(false);
-                            setNewEmail("");
-                          }
-                        }}
-                        autoFocus
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSaveEmail();
-                        }}
-                        disabled={savingEmail || !newEmail.trim()}
-                        className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {savingEmail ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingEmail(false);
-                          setNewEmail("");
-                        }}
-                        disabled={savingEmail}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : emailJustSaved ? (
-                  <div className="space-y-2">
+            {/* Contact boxes - Email & Phone side by side */}
+            <div className="mb-4 flex gap-3">
+              {/* Email box */}
+              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                {emailJustSaved ? (
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-emerald-600">✓</span>
-                      <span className="text-sm text-gray-700">{newEmail || provider.email}</span>
+                      <span className="text-sm text-gray-700 truncate">{newEmail || provider.email}</span>
                       <span className="text-xs text-emerald-600 font-medium">Saved</span>
                     </div>
                     <button
@@ -3257,227 +3191,382 @@ function FollowUpProviderRow({
                       disabled={sendingClaimLink}
                       className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {sendingClaimLink ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Sending...
-                        </span>
-                      ) : (
-                        "Send Claim Link"
-                      )}
+                      {sendingClaimLink ? "Sending..." : "Send Claim Link"}
                     </button>
                   </div>
-                ) : provider.email ? (
-                  <a href={`mailto:${provider.email}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                    {provider.email}
-                  </a>
-                ) : (
-                  <span className="text-gray-400 italic">No email</span>
-                )}
-                {provider.phone && (
-                  <a href={`tel:${provider.phone.replace(/\D/g, "")}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                    {formatPhone(provider.phone)}
-                  </a>
-                )}
-                {/* Channel availability indicators */}
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 mt-3">
-                  <span className="text-xs text-gray-400">Channels:</span>
-                  <span className={`text-xs ${hasFax ? "text-emerald-600" : "text-gray-300"}`}>
-                    Fax {hasFax ? "✓" : "—"}
-                  </span>
-                  {hasLinkedIn && linkedInUrl ? (
-                    <a
-                      href={linkedInUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                ) : editingEmail ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="Enter email"
+                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
                       onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSaveEmail();
+                        } else if (e.key === "Escape") {
+                          setEditingEmail(false);
+                          setNewEmail("");
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSaveEmail();
+                      }}
+                      disabled={savingEmail || !newEmail.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      LinkedIn ✓
-                    </a>
-                  ) : (
-                    <span className="text-xs text-gray-300">LinkedIn —</span>
-                  )}
-                  <span className={`text-xs ${hasAddress ? "text-emerald-600" : "text-gray-300"}`}>
-                    Address {hasAddress ? "✓" : "—"}
-                  </span>
-                </div>
-                {provider.slug && (
-                  <Link
-                    href={`/admin/directory/${provider.slug}`}
-                    className="inline-block mt-2 text-xs text-gray-500 hover:text-gray-700"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View Profile →
-                  </Link>
+                      {savingEmail ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingEmail(false);
+                        setNewEmail("");
+                      }}
+                      disabled={savingEmail}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      {provider.email ? (
+                        <a
+                          href={`mailto:${provider.email}`}
+                          className="text-sm text-primary-600 hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {provider.email}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">No email</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingEmail(true);
+                        setNewEmail(provider.email || "");
+                        setEmailJustSaved(false);
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Phone box */}
+              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                {editingPhone ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSavePhone();
+                        } else if (e.key === "Escape") {
+                          setEditingPhone(false);
+                          setNewPhone("");
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSavePhone();
+                      }}
+                      disabled={savingPhone}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {savingPhone ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingPhone(false);
+                        setNewPhone("");
+                      }}
+                      disabled={savingPhone}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      {provider.phone ? (
+                        <a
+                          href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                          className="text-sm text-primary-600 hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {formatPhone(provider.phone)}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">No phone</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingPhone(true);
+                        setNewPhone(provider.phone || "");
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Outreach History Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Outreach History
-              </div>
-              <div className="space-y-2 text-sm">
-                {/* Email sequence stats */}
-                <div className="flex items-center gap-2">
-                  <span className={engagement.emails_sent > 0 ? "text-emerald-600" : "text-gray-400"}>
-                    {engagement.emails_sent > 0 ? "✓" : "○"}
+            {/* Found contact info (fax/LinkedIn) + Find LinkedIn option */}
+            {((provider.fax_number || faxResult?.fax) || linkedInUrl || (provider.website && !findingLinkedIn)) && (
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+                {(provider.fax_number || faxResult?.fax) && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded">
+                    Fax: {provider.fax_number || faxResult?.fax}
                   </span>
-                  <span className="text-gray-700">
-                    Email sequence ({engagement.emails_sent} sent{engagement.opens > 0 ? `, ${engagement.opens} opens` : ""}{engagement.clicks > 0 ? `, ${engagement.clicks} clicks` : ""})
-                  </span>
-                </div>
-                {/* Resend stats */}
-                {engagement.resends > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600">✓</span>
-                    <span className="text-gray-700">Resend link ({engagement.resends}x)</span>
-                  </div>
                 )}
-                {/* Available channels */}
-                <div className="border-t border-gray-100 pt-2 mt-2 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">Fax — {hasFax ? "ready" : "available"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">Direct mail — {hasAddress ? "ready" : "available"}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* All Options Section (collapsible, collapsed by default) */}
-          {(showAllOptions || !recommendation) && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                  All Options
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Find LinkedIn button */}
-                  {!hasLinkedIn && !findingLinkedIn && provider.website && (
-                    <button
-                      onClick={handleFindLinkedIn}
-                      className="text-xs text-blue-600 hover:text-blue-700"
-                    >
-                      Find LinkedIn
-                    </button>
-                  )}
-                  {findingLinkedIn && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-                      Finding LinkedIn...
-                    </span>
-                  )}
-                  {/* Find Fax button */}
-                  {!hasFax && !findingFax && provider.website && (
-                    <button
-                      onClick={handleFindFax}
-                      className="text-xs text-teal-600 hover:text-teal-700"
-                    >
-                      Find fax number
-                    </button>
-                  )}
-                  {findingFax && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                      Finding fax...
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Fax found indicator */}
-              {(provider.fax_number || faxResult?.fax) && (
-                <div className="mb-3 p-2 bg-emerald-50 border border-emerald-100 rounded text-sm text-emerald-700">
-                  Fax: {provider.fax_number || faxResult?.fax}
-                  {(provider.fax_confidence || faxResult?.confidence) && (
-                    <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
-                  )}
-                </div>
-              )}
-
-              {/* LinkedIn found indicator */}
-              {linkedInUrl && (
-                <div className="mb-3 p-2 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
+                {linkedInUrl ? (
                   <a
                     href={linkedInUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:underline flex items-center gap-1"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                     </svg>
-                    {linkedInUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                    LinkedIn
                   </a>
-                </div>
-              )}
-
-              {/* Action buttons - shortened labels */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setPendingOutcome("resend_link")}
-                  disabled={submitting !== null || resendDisabled}
-                  title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
-                    resendDisabled
-                      ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                      : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
-                  }`}
-                >
-                  Resend Link{resendDisabled ? " (max)" : ""}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setEditingEmail(true);
-                    setNewEmail(provider.email || "");
-                    setEmailJustSaved(false);
-                  }}
-                  disabled={submitting !== null || editingEmail}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Fix Email
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowFaxSendModal(true);
-                    setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
-                    setError(null);
-                  }}
-                  disabled={submitting !== null || sendingFax}
-                  className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Fax
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowDirectMailModal(true);
-                    setAddressInput(provider.mail_address || "");
-                    setError(null);
-                  }}
-                  disabled={submitting !== null || sendingDirectMail}
-                  className="px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Direct Mail
-                </button>
+                ) : provider.website && !findingLinkedIn ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFindLinkedIn();
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    Find LinkedIn
+                  </button>
+                ) : null}
+                {findingLinkedIn && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-blue-500">
+                    <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                    Finding...
+                  </span>
+                )}
               </div>
+            )}
 
-              {/* Cost warning */}
-              <p className="mt-3 text-xs text-gray-400">
-                Note: Fax and Direct Mail have costs. Consider calling the provider first.
-              </p>
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setPendingOutcome("resend_link")}
+                disabled={submitting !== null || resendDisabled}
+                title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
+                  resendDisabled
+                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                }`}
+              >
+                Resend Claim Link{resendDisabled ? " (max)" : ""}
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingFax(true);
+                  setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
+                  setFaxNotFound(false);
+                  setError(null);
+                  // Auto-find fax if none exists
+                  if (!provider.fax_number && !faxResult?.fax && !findingFax) {
+                    handleFindFax();
+                  }
+                }}
+                disabled={submitting !== null || editingFax || sendingFax}
+                className="px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Send Fax
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingDirectMail(true);
+                  setAddressInput(provider.mail_address || "");
+                  setAddressNotFound(false);
+                  setError(null);
+                  // Auto-find address if none exists
+                  if (!provider.mail_address && !findingAddress) {
+                    handleFindAddress();
+                  }
+                }}
+                disabled={submitting !== null || editingDirectMail || sendingDirectMail}
+                className="px-4 py-2 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Send Postcard
+              </button>
             </div>
-          )}
+
+            {/* Inline Fax editing */}
+            {editingFax && (
+              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-purple-700 uppercase tracking-wide">
+                    Fax Number
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingFax(false);
+                      setFaxNumberInput("");
+                      setError(null);
+                    }}
+                    className="text-xs text-purple-600 hover:text-purple-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={faxNumberInput}
+                    onChange={(e) => {
+                      setFaxNumberInput(e.target.value);
+                      setFaxNotFound(false); // Clear "not found" when typing
+                    }}
+                    placeholder={findingFax ? "Finding fax number..." : "(555) 123-4567"}
+                    className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    disabled={findingFax}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {!faxNumberInput && !findingFax && (
+                    <button
+                      onClick={handleFindFax}
+                      className="px-3 py-2 text-sm font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100"
+                    >
+                      Find
+                    </button>
+                  )}
+                  {findingFax && (
+                    <span className="px-3 py-2 text-sm text-purple-600 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                </div>
+                {faxNotFound && !faxNumberInput && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No fax number found. Please enter manually.
+                  </p>
+                )}
+                {faxNumberInput && (
+                  <button
+                    onClick={() => setPendingFaxSend(true)}
+                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                  >
+                    Send Fax
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Inline Direct Mail editing */}
+            {editingDirectMail && (
+              <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-teal-700 uppercase tracking-wide">
+                    Mailing Address
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingDirectMail(false);
+                      setAddressInput("");
+                      setError(null);
+                    }}
+                    className="text-xs text-teal-600 hover:text-teal-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <textarea
+                    value={addressInput}
+                    onChange={(e) => {
+                      setAddressInput(e.target.value);
+                      setAddressNotFound(false); // Clear "not found" when typing
+                    }}
+                    placeholder={findingAddress ? "Finding address..." : "123 Main St\nCity, State ZIP"}
+                    rows={2}
+                    className="flex-1 px-3 py-2 text-sm border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white resize-none"
+                    disabled={findingAddress}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {!addressInput && !findingAddress && (
+                    <button
+                      onClick={handleFindAddress}
+                      className="px-3 py-2 text-sm font-medium text-teal-700 bg-white border border-teal-200 rounded-lg hover:bg-teal-100 self-start"
+                    >
+                      Find
+                    </button>
+                  )}
+                  {findingAddress && (
+                    <span className="px-3 py-2 text-sm text-teal-600 flex items-center gap-1 self-start">
+                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                </div>
+                {addressNotFound && !addressInput && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No address found. Please enter manually.
+                  </p>
+                )}
+                {addressInput && (
+                  <button
+                    onClick={() => setPendingDirectMailSend(true)}
+                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors"
+                  >
+                    Send Postcard
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Cost note */}
+            <p className="mt-4 text-xs text-gray-400">
+              Fax and postcard have per-send costs.
+            </p>
+          </div>
         </div>
       )}
 
@@ -3490,6 +3579,7 @@ function FollowUpProviderRow({
             setPendingOutcome(null);
             setPendingStageMove(null);
             setNotInterestedReason("");
+            setConfirmedWithProvider(false);
           }}
         >
           <div
@@ -3521,6 +3611,21 @@ function FollowUpProviderRow({
                   ))}
                 </ul>
               </div>
+
+              {/* Confirmation checkbox for resend_link */}
+              {pendingOutcome === "resend_link" && (
+                <label className="flex items-start gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={confirmedWithProvider}
+                    onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                  />
+                  <span className="text-sm text-amber-900">
+                    I called the provider and confirmed they want to receive the claim link again
+                  </span>
+                </label>
+              )}
 
               {/* Reason dropdown for not_interested */}
               {pendingOutcome === "not_interested" && (
@@ -3561,6 +3666,7 @@ function FollowUpProviderRow({
                   setPendingOutcome(null);
                   setPendingStageMove(null);
                   setNotInterestedReason("");
+                  setConfirmedWithProvider(false);
                 }}
                 disabled={submitting !== null || stageChangeLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -3587,6 +3693,7 @@ function FollowUpProviderRow({
                 disabled={
                   submitting !== null ||
                   stageChangeLoading ||
+                  (pendingOutcome === "resend_link" && !confirmedWithProvider) ||
                   (pendingOutcome === "not_interested" && !notInterestedReason) ||
                   (pendingOutcome === "not_interested" && notInterestedReason === "other" && !notes.trim())
                 }
@@ -3606,16 +3713,15 @@ function FollowUpProviderRow({
         </div>
       )}
 
-      {/* Fax Send Modal - Inline send from Follow Up */}
-      {showFaxSendModal && (
+      {/* Fax Confirmation Modal */}
+      {pendingFaxSend && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
           onClick={(e) => {
             e.stopPropagation();
             if (!sendingFax) {
-              setShowFaxSendModal(false);
-              setFaxNumberInput("");
-              setError(null);
+              setPendingFaxSend(false);
+              setConfirmedWithProvider(false);
             }
           }}
         >
@@ -3624,7 +3730,7 @@ function FollowUpProviderRow({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Send Fax</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Fax</h3>
               <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
             </div>
 
@@ -3635,66 +3741,47 @@ function FollowUpProviderRow({
                 </div>
               )}
 
-              <p className="text-sm text-gray-700 mb-4">
-                Send a fax with claim link via Telnyx. Provider will move to Alternative Channels for delivery tracking.
-              </p>
-
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Fax Number <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={faxNumberInput}
-                    onChange={(e) => setFaxNumberInput(e.target.value)}
-                    placeholder="(555) 123-4567"
-                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    disabled={sendingFax}
-                  />
-                  {!faxNumberInput && !provider.fax_number && !faxResult?.fax && (
-                    <button
-                      type="button"
-                      onClick={handleFindFax}
-                      disabled={findingFax || sendingFax}
-                      className="px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 disabled:opacity-50"
-                    >
-                      {findingFax ? "Finding..." : "Find Fax"}
-                    </button>
-                  )}
-                </div>
-                {faxResult?.fax && !faxNumberInput && (
-                  <p className="mt-1.5 text-xs text-gray-500">
-                    Found: {faxResult.fax} ({faxResult.confidence})
-                  </p>
-                )}
+              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-sm font-medium text-purple-900">Fax Number:</p>
+                <p className="text-sm text-purple-700">{faxNumberInput}</p>
               </div>
 
-              <div className="bg-purple-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-purple-700 uppercase tracking-wide mb-2">What will happen:</p>
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
                 <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-purple-900">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    Fax with claim link sent immediately via Telnyx
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Fax with claim link sent immediately
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-purple-900">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    Provider moves to Alternative Channels for tracking
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-purple-900">
-                    <span className="text-purple-400 mt-0.5">•</span>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
                     Fax has per-page costs
                   </li>
                 </ul>
               </div>
+
+              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmedWithProvider}
+                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-amber-900">
+                  I called the provider and confirmed they want to receive information via fax
+                </span>
+              </label>
             </div>
 
             <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button
                 onClick={() => {
-                  setShowFaxSendModal(false);
-                  setFaxNumberInput("");
-                  setError(null);
+                  setPendingFaxSend(false);
+                  setConfirmedWithProvider(false);
                 }}
                 disabled={sendingFax}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -3703,7 +3790,7 @@ function FollowUpProviderRow({
               </button>
               <button
                 onClick={handleSendFaxInline}
-                disabled={sendingFax || (!faxNumberInput.trim() && !provider.fax_number && !faxResult?.fax)}
+                disabled={sendingFax || !confirmedWithProvider}
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingFax ? (
@@ -3720,16 +3807,15 @@ function FollowUpProviderRow({
         </div>
       )}
 
-      {/* Direct Mail Send Modal - Inline send from Follow Up */}
-      {showDirectMailModal && (
+      {/* Direct Mail Confirmation Modal */}
+      {pendingDirectMailSend && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
           onClick={(e) => {
             e.stopPropagation();
             if (!sendingDirectMail) {
-              setShowDirectMailModal(false);
-              setAddressInput("");
-              setError(null);
+              setPendingDirectMailSend(false);
+              setConfirmedWithProvider(false);
             }
           }}
         >
@@ -3738,7 +3824,7 @@ function FollowUpProviderRow({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Send Postcard</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Postcard</h3>
               <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
             </div>
 
@@ -3749,61 +3835,47 @@ function FollowUpProviderRow({
                 </div>
               )}
 
-              <p className="text-sm text-gray-700 mb-4">
-                Send a postcard with claim link via PostGrid. Provider will move to Alternative Channels for delivery tracking.
-              </p>
-
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Mailing Address <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <textarea
-                    value={addressInput}
-                    onChange={(e) => setAddressInput(e.target.value)}
-                    placeholder="123 Main St, City, ST 12345"
-                    rows={2}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
-                    disabled={sendingDirectMail}
-                  />
-                </div>
-                {!addressInput && !provider.mail_address && (
-                  <button
-                    type="button"
-                    onClick={handleFindAddress}
-                    disabled={findingAddress || sendingDirectMail}
-                    className="mt-2 px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 disabled:opacity-50"
-                  >
-                    {findingAddress ? "Finding..." : "Find Address"}
-                  </button>
-                )}
+              <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                <p className="text-sm font-medium text-teal-900">Mailing Address:</p>
+                <p className="text-sm text-teal-700 whitespace-pre-line">{addressInput}</p>
               </div>
 
-              <div className="bg-teal-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-teal-700 uppercase tracking-wide mb-2">What will happen:</p>
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
                 <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-teal-900">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
                     Postcard with claim link sent via PostGrid
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-teal-900">
-                    <span className="text-teal-400 mt-0.5">•</span>
-                    Provider moves to Alternative Channels for tracking
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-teal-900">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
                     Postcards have printing and mailing costs
                   </li>
                 </ul>
               </div>
+
+              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmedWithProvider}
+                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-amber-900">
+                  I called the provider and confirmed they want to receive information via mail
+                </span>
+              </label>
             </div>
 
             <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button
                 onClick={() => {
-                  setShowDirectMailModal(false);
-                  setAddressInput("");
-                  setError(null);
+                  setPendingDirectMailSend(false);
+                  setConfirmedWithProvider(false);
                 }}
                 disabled={sendingDirectMail}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -3812,7 +3884,7 @@ function FollowUpProviderRow({
               </button>
               <button
                 onClick={handleSendDirectMailInline}
-                disabled={sendingDirectMail || (!addressInput.trim() && !provider.mail_address)}
+                disabled={sendingDirectMail || !confirmedWithProvider}
                 className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingDirectMail ? (

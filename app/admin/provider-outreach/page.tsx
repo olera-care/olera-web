@@ -4542,30 +4542,25 @@ export default function ProviderOutreachPage() {
   // Stats section expanded state
   const [statsExpanded, setStatsExpanded] = useState(false);
 
-  // Email performance stats section
+  // Email performance / claims dashboard section
   const [emailStatsExpanded, setEmailStatsExpanded] = useState(false);
-  const [emailStats, setEmailStats] = useState<{
-    templates: Array<{
-      template_key: string;
-      name: string;
-      sequence_step: number | null;
-      sent: number;
-      opened: number;
-      open_rate: number;
-      clicked: number;
-      click_rate: number;
-    }>;
+  const [claimsDashboard, setClaimsDashboard] = useState<{
     totals: {
-      sent: number;
-      opened: number;
-      open_rate: number;
-      clicked: number;
-      click_rate: number;
+      sequenced: number;
+      claimed: number;
+      conversion_rate: number;
+      avg_time_to_claim_days: number | null;
     };
-    period_days: number;
+    sequence_day_breakdown: Array<{
+      label: string;
+      day_min: number;
+      day_max: number | null;
+      count: number;
+      percentage: number;
+    }>;
   } | null>(null);
-  const [emailStatsLoading, setEmailStatsLoading] = useState(false);
-  const [emailStatsError, setEmailStatsError] = useState(false);
+  const [claimsDashboardLoading, setClaimsDashboardLoading] = useState(false);
+  const [claimsDashboardError, setClaimsDashboardError] = useState(false);
 
   // Sequence conversion stats section
   const [conversionExpanded, setConversionExpanded] = useState(false);
@@ -4589,9 +4584,6 @@ export default function ProviderOutreachPage() {
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  // Preview engine for template preview section (separate from sequence preview)
-  const [templatePreviewEngine, setTemplatePreviewEngine] = useState<"smartlead" | "resend">("smartlead");
-  const [templatePreviewSmartleadConfigured, setTemplatePreviewSmartleadConfigured] = useState(false);
 
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
@@ -5188,30 +5180,30 @@ export default function ProviderOutreachPage() {
     fetchSequenceConversion();
   }, []);
 
-  // Effect: fetch email performance stats when section is expanded
+  // Effect: fetch claims dashboard when section is expanded
   useEffect(() => {
-    if (!emailStatsExpanded || emailStats) return; // Only fetch once when first expanded
+    if (!emailStatsExpanded || claimsDashboard) return; // Only fetch once when first expanded
 
-    const fetchEmailStats = async () => {
-      setEmailStatsLoading(true);
-      setEmailStatsError(false);
+    const fetchClaimsDashboard = async () => {
+      setClaimsDashboardLoading(true);
+      setClaimsDashboardError(false);
       try {
-        const res = await fetch("/api/admin/provider-outreach/email-stats?days=30");
+        const res = await fetch("/api/admin/provider-outreach/claims-dashboard");
         if (res.ok) {
           const data = await res.json();
-          setEmailStats(data);
+          setClaimsDashboard(data);
         } else {
-          setEmailStatsError(true);
+          setClaimsDashboardError(true);
         }
       } catch (err) {
-        console.error("Failed to fetch email stats:", err);
-        setEmailStatsError(true);
+        console.error("Failed to fetch claims dashboard:", err);
+        setClaimsDashboardError(true);
       } finally {
-        setEmailStatsLoading(false);
+        setClaimsDashboardLoading(false);
       }
     };
-    fetchEmailStats();
-  }, [emailStatsExpanded, emailStats]);
+    fetchClaimsDashboard();
+  }, [emailStatsExpanded, claimsDashboard]);
 
   // Effect: fetch sequence conversion stats when section is expanded
   useEffect(() => {
@@ -5254,11 +5246,11 @@ export default function ProviderOutreachPage() {
       setPreviewLoading(true);
       setPreviewHtml(null); // Clear old preview while loading new one
       try {
-        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=${templatePreviewEngine}`);
+        // Always use smartlead engine (the templates actually sent)
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=smartlead`);
         if (res.ok) {
           const data = await res.json();
           setPreviewHtml(data.html);
-          setTemplatePreviewSmartleadConfigured(data.smartlead_configured ?? false);
         }
       } catch (err) {
         console.error("Failed to fetch template preview:", err);
@@ -5267,7 +5259,7 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchPreview();
-  }, [previewTemplate, templatePreviewEngine]);
+  }, [previewTemplate]);
 
   // Effect: fetch provider counts when Add State modal opens
   useEffect(() => {
@@ -6148,65 +6140,84 @@ export default function ProviderOutreachPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
           <span>Email Performance</span>
-          <span className="text-xs text-gray-400">(Last 30 days)</span>
+          {claimsDashboard && (
+            <span className="text-xs text-gray-400">
+              ({claimsDashboard.totals.claimed} claims · {claimsDashboard.totals.conversion_rate}% rate)
+            </span>
+          )}
         </button>
 
         {emailStatsExpanded && (
           <div className="mt-4 space-y-6">
-            {/* Stats Table */}
-            {emailStatsLoading ? (
-              <div className="text-sm text-gray-500">Loading email stats...</div>
-            ) : emailStatsError ? (
+            {/* Claims Dashboard */}
+            {claimsDashboardLoading ? (
+              <div className="text-sm text-gray-500">Loading claims data...</div>
+            ) : claimsDashboardError ? (
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-red-600">Failed to load email stats</span>
+                <span className="text-red-600">Failed to load claims data</span>
                 <button
                   type="button"
                   onClick={() => {
-                    setEmailStats(null);
-                    setEmailStatsError(false);
+                    setClaimsDashboard(null);
+                    setClaimsDashboardError(false);
                   }}
                   className="text-teal-700 hover:underline"
                 >
                   Retry
                 </button>
               </div>
-            ) : emailStats ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 pr-4 font-medium text-gray-600">Template</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Sent</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Opened</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Open %</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Clicked</th>
-                      <th className="text-right py-2 pl-3 font-medium text-gray-600">Click %</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {emailStats.templates.map((t) => (
-                      <tr key={t.template_key} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 text-gray-900">{t.name}</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.sent.toLocaleString()}</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.opened.toLocaleString()}</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.open_rate}%</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.clicked.toLocaleString()}</td>
-                        <td className="py-2 pl-3 text-right text-gray-700">{t.click_rate}%</td>
-                      </tr>
+            ) : claimsDashboard ? (
+              <div className="space-y-6">
+                {/* 4-stat grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {claimsDashboard.totals.sequenced.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Sequenced</div>
+                    <div className="text-xs text-gray-400">entered seq</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-emerald-600">
+                      {claimsDashboard.totals.claimed.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Claimed</div>
+                    <div className="text-xs text-gray-400">from sequence</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {claimsDashboard.totals.conversion_rate}%
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Conversion</div>
+                    <div className="text-xs text-gray-400">seq→claimed</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {claimsDashboard.totals.avg_time_to_claim_days !== null
+                        ? `${claimsDashboard.totals.avg_time_to_claim_days} days`
+                        : "—"}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Avg Time to Claim</div>
+                    <div className="text-xs text-gray-400">first email</div>
+                  </div>
+                </div>
+
+                {/* When Providers Claim breakdown */}
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">When Providers Claim</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {claimsDashboard.sequence_day_breakdown.map((bucket) => (
+                      <div key={bucket.label} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                        <div className="text-xs text-gray-500 mb-1">{bucket.label}</div>
+                        <div className="text-lg font-semibold text-gray-900">{bucket.count}</div>
+                        <div className="text-xs text-gray-400">{bucket.percentage}%</div>
+                      </div>
                     ))}
-                    <tr className="font-medium bg-gray-50">
-                      <td className="py-2 pr-4 text-gray-900">Total</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.sent.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.opened.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.open_rate}%</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.clicked.toLocaleString()}</td>
-                      <td className="py-2 pl-3 text-right text-gray-900">{emailStats.totals.click_rate}%</td>
-                    </tr>
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="text-sm text-gray-500">No email data available</div>
+              <div className="text-sm text-gray-500">No claims data available</div>
             )}
 
             {/* Template Preview */}
@@ -6239,34 +6250,6 @@ export default function ProviderOutreachPage() {
 
               {previewTemplate && (
                 <div className="rounded-xl border border-gray-200 overflow-hidden">
-                  {/* Preview engine toggle - show when SmartLead is configured */}
-                  {templatePreviewSmartleadConfigured && (
-                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">Preview rendering:</span>
-                      <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-md p-0.5">
-                        <button
-                          onClick={() => setTemplatePreviewEngine("smartlead")}
-                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                            templatePreviewEngine === "smartlead"
-                              ? "bg-blue-100 text-blue-700"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          SmartLead
-                        </button>
-                        <button
-                          onClick={() => setTemplatePreviewEngine("resend")}
-                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                            templatePreviewEngine === "resend"
-                              ? "bg-gray-200 text-gray-700"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          Resend
-                        </button>
-                      </div>
-                    </div>
-                  )}
                   {previewLoading ? (
                     <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview...</div>
                   ) : previewHtml ? (

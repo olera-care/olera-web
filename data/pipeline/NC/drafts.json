@@ -196,7 +196,7 @@
         },
         {
           "question": "Can family members be paid to provide care through the waiver?",
-          "answer": "In some cases, yes. Personal care services under CAP/DA and some other waivers can be provided by family members who meet training and background check requirements. However, spouses typically cannot be paid caregivers. Ask your case manager about family caregiver options."
+          "answer": "Yes, more often than families expect. For a CAP/DA beneficiary who is 18 or older, North Carolina's policy allows a spouse, parent, step-parent, child, sibling or other relative to be hired to provide in-home aide or personal assistance services, as long as that person is at least 18 and is qualified through the needs assessment. The real restriction is on people holding legal authority: a legal guardian, power of attorney or health power of attorney generally cannot be hired, with a narrow exception for extraordinary circumstances. If you choose the consumer-directed option instead of an agency, the person you hire also cannot be a guardian, power of attorney or legally responsible person, so ask your case manager which route applies before you decide."
         },
         {
           "question": "What if we need services immediately due to a hospital discharge?",
@@ -2486,7 +2486,8 @@
         "If your loved one is currently receiving Medicaid CAP/DA Waiver services, you cannot get care consultation but can still receive dementia education and referrals",
         "Processing times and waitlist status are not publicly documented, ask your regional provider for current timelines",
         "Priority is given to low-income, minority, and rural families, which may affect how quickly you receive services",
-        "Respite care vouchers are limited, ask specifically about availability when you apply"
+        "Respite care vouchers are limited, ask specifically about availability when you apply",
+        "This program supports unpaid caregivers, so spouses are not paid to provide care through it. If getting paid is your goal, ask the agency which Medicaid options in your state allow a family caregiver to be hired."
       ],
       "relatedPrograms": [
         "NC Medicaid CAP/DA Waiver",

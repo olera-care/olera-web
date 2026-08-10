@@ -221,7 +221,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, or medication management, PASSPORT Waiver provides comprehensive home care services through Ohio Medicaid to prevent nursing home placement. Your loved one receives a customized care package that may include personal care assistants, home-delivered meals, adult day care, medical equipment, and emergency response systems, all coordinated by one team.\n\nBecause PASSPORT covers services under one program, your loved one won't need to coordinate between separate providers or pay out-of-pocket for most care needs. The program added Structured Family Caregiving in October 2024, which means live-in family members (including spouses) can now be paid to provide care. Your loved one must qualify for Ohio Medicaid and meet nursing home level of care through a clinical assessment.",
+      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, or medication management, PASSPORT Waiver provides comprehensive home care services through Ohio Medicaid to prevent nursing home placement. Your loved one receives a customized care package that may include personal care assistants, home-delivered meals, adult day care, medical equipment, and emergency response systems, all coordinated by one team.\n\nBecause PASSPORT covers services under one program, your loved one won't need to coordinate between separate providers or pay out-of-pocket for most care needs. The program added Structured Family Caregiving in October 2024, so a family member who lives with your loved one can be paid to provide daily care. A spouse can qualify, but Ohio treats a spouse as a legally responsible individual, so the bar is higher than it is for other relatives. Your loved one must qualify for Ohio Medicaid and meet nursing home level of care through a clinical assessment.",
       "savingsRange": "",
       "savingsSource": "Free service through Ohio Medicaid",
       "savingsVerified": false,
@@ -326,7 +326,7 @@
       ],
       "applicationNotes": [
         "Each of Ohio's 12 Area Agencies on Aging has different local providers and contact numbers, make sure you're calling the right region",
-        "Structured Family Caregiving is new as of October 2024, ask specifically about paying family members to provide care",
+        "Structured Family Caregiving is new as of October 2024, ask specifically about paying family members to provide care. A spouse or a relative with legal decision-making authority is paid only when no other willing and able caregiver is available and the state confirms health and safety needs can be met, capped at 40 hours per week",
         "The nursing home level of care assessment is strict, your loved one must need significant daily assistance, not just occasional help",
         "Services are customized but capped at 60% of nursing home costs, higher-need individuals may hit this limit and need additional private care"
       ],
@@ -348,7 +348,7 @@
         },
         {
           "question": "Can I get paid to care for my loved one through PASSPORT?",
-          "answer": "Yes, as of October 2024, Structured Family Caregiving allows live-in family members including spouses to be paid caregivers. You'll need to meet provider qualifications and have this included in your loved one's approved care plan."
+          "answer": "Sometimes, and it depends on who you are. Since October 2024, Structured Family Caregiving can pay a family member who lives with your loved one, working through a certified agency and written into the approved care plan. If you are the spouse, or a relative who holds legal decision-making authority, the bar is higher: Ohio pays you only when there is no other willing and able caregiver available and the state agrees your loved one's health and safety can still be met. Payment to a spouse is also capped at 40 hours a week. Ask your Area Agency on Aging whether you clear those conditions before counting on the income."
         },
         {
           "question": "What if my loved one needs more care than the 60% cost cap allows?",
@@ -1829,7 +1829,8 @@
         "Services vary significantly by county, some areas have extensive respite programs while others focus on support groups and counseling",
         "Grandparents and relatives raising children often don't realize they qualify, the program isn't just for elderly care",
         "You don't need a formal diagnosis for the care recipient, but describing their specific needs helps AAAs match appropriate services",
-        "Some counties have immediate openings while others maintain waitlists for popular services like respite care"
+        "Some counties have immediate openings while others maintain waitlists for popular services like respite care",
+        "This program supports unpaid caregivers, so spouses are not paid to provide care through it. If getting paid is your goal, ask the agency which Medicaid options in your state allow a family caregiver to be hired."
       ],
       "relatedPrograms": [
         "PASSPORT Medicaid Waiver Program",

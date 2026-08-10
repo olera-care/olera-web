@@ -320,7 +320,8 @@
         "If your family member experiences a crisis, such as the loss of a caregiver, risk of homelessness, or significant health and safety concerns, OPWDD may be able to help identify emergency or priority services",
         "Apply as early as possible. Availability of specific services and providers varies by region, and some services may have waiting periods depending on local capacity",
         "Medicaid eligibility rules can vary depending on age, disability status, living arrangements, and the specific program involved. Ask OPWDD or your local Medicaid office how income and resources will be evaluated in your family member's situation",
-        "Your OPWDD care manager or regional office can help explain which waiver services and supports are available in your area and how to access them"
+        "Your OPWDD care manager or regional office can help explain which waiver services and supports are available in your area and how to access them",
+        "If you are considering self-direction so a relative can be paid, check the relationship rules first. OPWDD does not allow payment to the participant's spouse, parent, legal guardian or adult child, and does not allow payment to a relative who lives in the same home"
       ],
       "relatedPrograms": [
         "New York Medicaid",
@@ -344,7 +345,7 @@
         },
         {
           "question": "Can we choose our own service providers or are they assigned?",
-          "answer": "You typically can choose from approved providers in your area, though options may be limited in some regions. Some waiver programs also offer self-direction options where families have more control over hiring and managing supports, including hiring family members as paid caregivers in certain situations."
+          "answer": "You can typically choose from approved providers in your area, though options may be limited in some regions. Some waiver programs also offer self-direction, where families have more control over hiring and managing supports. Be aware that self-direction has firm limits on hiring relatives: the person you pay cannot be the participant's spouse, parent, legal guardian or adult child (including sons and daughters-in-law), and cannot live in the same home. So a husband or wife, or an adult child caring for a parent, cannot be the paid worker, even when they are the one providing the care."
         },
         {
           "question": "What happens if our income is too high for regular Medicaid?",
@@ -1756,7 +1757,8 @@
         "Free Emergency/Extended Hours Respite Care may be available for eligible families when a primary caregiver is unavailable during evenings, weekends, holidays, or emergencies. Availability may depend on program funding and eligibility requirements.",
         "Regular respite care services are available for a fee. Contact NYFSC for current rates and payment information.",
         "NYFSC social workers assess each family's needs and help coordinate appropriate services.",
-        "This program serves residents of New York City's five boroughs. Families outside New York City should contact their local county Office for the Aging or Area Agency on Aging to learn about respite care programs in their area."
+        "This program serves residents of New York City's five boroughs. Families outside New York City should contact their local county Office for the Aging or Area Agency on Aging to learn about respite care programs in their area.",
+        "This program supports unpaid caregivers, so spouses are not paid to provide care through it. If getting paid is your goal, ask the agency which Medicaid options in your state allow a family caregiver to be hired."
       ],
       "relatedPrograms": [
         "NY State Office for the Aging Respite Programs",

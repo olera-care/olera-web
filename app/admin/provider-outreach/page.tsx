@@ -2478,15 +2478,10 @@ function FollowUpProviderRow({
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
 
-  // Channel availability
-  const hasFax = !!provider.fax_number || !!faxResult?.fax;
-  // Note: linkedin_url can be "not_found" sentinel value - filter it out
-  const validLinkedInUrl = provider.linkedin_url && provider.linkedin_url !== "not_found"
+  // LinkedIn URL (filter out "not_found" sentinel value)
+  const linkedInUrl = (provider.linkedin_url && provider.linkedin_url !== "not_found")
     ? provider.linkedin_url
     : linkedInResult?.linkedin_url;
-  const hasLinkedIn = !!validLinkedInUrl;
-  const linkedInUrl = validLinkedInUrl;
-  const hasAddress = !!provider.mail_address;
 
   // Find fax number for this provider
   const handleFindFax = async () => {
@@ -3125,197 +3120,150 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Provider Details + Follow Up Card (Merged) */}
+          {/* Follow Up Action Card */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  {provider.slug ? (
-                    <Link
-                      href={`/admin/directory/${provider.slug}`}
-                      className="font-medium text-gray-900 hover:text-primary-600 hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {provider.provider_name}
-                    </Link>
-                  ) : (
-                    <span className="font-medium text-gray-900">{provider.provider_name}</span>
-                  )}
-                  <div className="text-sm text-gray-500 mt-0.5">
-                    {[provider.provider_category, provider.city && `${provider.city}${provider.state ? `, ${provider.state}` : ""}`].filter(Boolean).join(" · ")}
+            {/* Reason for follow-up */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-700">{getFollowUpReasonExplanation(provider)}</p>
+              <p className="text-sm text-gray-500 mt-1">Consider calling to ask which channel they prefer.</p>
+            </div>
+
+            {/* Email box */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              {editingEmail ? (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Enter email address"
+                    className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSaveEmail();
+                      } else if (e.key === "Escape") {
+                        setEditingEmail(false);
+                        setNewEmail("");
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSaveEmail();
+                    }}
+                    disabled={savingEmail || !newEmail.trim()}
+                    className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {savingEmail ? "..." : "Save"}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingEmail(false);
+                      setNewEmail("");
+                    }}
+                    disabled={savingEmail}
+                    className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : emailJustSaved ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-600">✓</span>
+                    <span className="text-sm text-gray-700">{newEmail || provider.email}</span>
+                    <span className="text-xs text-emerald-600 font-medium">Saved</span>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSendClaimLink();
+                    }}
+                    disabled={sendingClaimLink}
+                    className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {sendingClaimLink ? "Sending..." : "Send Claim Link"}
+                  </button>
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* Find LinkedIn button */}
-                  {!hasLinkedIn && !findingLinkedIn && provider.website && (
-                    <button
-                      onClick={handleFindLinkedIn}
-                      className="text-xs text-blue-600 hover:text-blue-700"
-                    >
-                      Find LinkedIn
-                    </button>
-                  )}
-                  {findingLinkedIn && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-                    </span>
-                  )}
-                  {/* Find Fax button */}
-                  {!hasFax && !findingFax && provider.website && (
-                    <button
-                      onClick={handleFindFax}
-                      className="text-xs text-teal-600 hover:text-teal-700"
-                    >
-                      Find fax
-                    </button>
-                  )}
-                  {findingFax && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Why in Follow Up - subtle inline */}
-              <div className="text-sm text-gray-600 mb-3 pb-3 border-b border-gray-100">
-                {getFollowUpReasonExplanation(provider)}
-                <span className="text-gray-400 ml-1">— Consider calling first.</span>
-              </div>
-
-              <div className="space-y-2 text-sm">
-                {/* Email display with inline edit capability */}
-                {editingEmail ? (
-                  <div className="space-y-2">
-                    <label className="block text-xs font-medium text-gray-500">Email</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="email"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                        placeholder="Enter new email"
-                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    {provider.email ? (
+                      <a
+                        href={`mailto:${provider.email}`}
+                        className="text-sm text-primary-600 hover:underline truncate"
                         onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleSaveEmail();
-                          } else if (e.key === "Escape") {
-                            setEditingEmail(false);
-                            setNewEmail("");
-                          }
-                        }}
-                        autoFocus
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSaveEmail();
-                        }}
-                        disabled={savingEmail || !newEmail.trim()}
-                        className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        {savingEmail ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingEmail(false);
-                          setNewEmail("");
-                        }}
-                        disabled={savingEmail}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                        {provider.email}
+                      </a>
+                    ) : (
+                      <span className="text-sm text-gray-400 italic">No email on file</span>
+                    )}
                   </div>
-                ) : emailJustSaved ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-emerald-600">✓</span>
-                      <span className="text-sm text-gray-700">{newEmail || provider.email}</span>
-                      <span className="text-xs text-emerald-600 font-medium">Saved</span>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSendClaimLink();
-                      }}
-                      disabled={sendingClaimLink}
-                      className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {sendingClaimLink ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Sending...
-                        </span>
-                      ) : (
-                        "Send Claim Link"
-                      )}
-                    </button>
-                  </div>
-                ) : provider.email ? (
-                  <a href={`mailto:${provider.email}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                    {provider.email}
-                  </a>
-                ) : (
-                  <span className="text-gray-400 italic">No email</span>
-                )}
-                {provider.phone && (
-                  <a href={`tel:${provider.phone.replace(/\D/g, "")}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                    {formatPhone(provider.phone)}
-                  </a>
-                )}
-                {/* Channel availability indicators */}
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 mt-3">
-                  <span className="text-xs text-gray-400">Channels:</span>
-                  <span className={`text-xs ${hasFax ? "text-emerald-600" : "text-gray-300"}`}>
-                    Fax {hasFax ? "✓" : "—"}
-                  </span>
-                  {hasLinkedIn && linkedInUrl ? (
-                    <a
-                      href={linkedInUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      LinkedIn ✓
-                    </a>
-                  ) : (
-                    <span className="text-xs text-gray-300">LinkedIn —</span>
-                  )}
-                  <span className={`text-xs ${hasAddress ? "text-emerald-600" : "text-gray-300"}`}>
-                    Address {hasAddress ? "✓" : "—"}
-                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingEmail(true);
+                      setNewEmail(provider.email || "");
+                      setEmailJustSaved(false);
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0 ml-2"
+                  >
+                    Edit
+                  </button>
                 </div>
-              </div>
+              )}
+            </div>
 
-            {/* Fax found indicator */}
-            {(provider.fax_number || faxResult?.fax) && (
-              <div className="mb-3 p-2 bg-emerald-50 border border-emerald-100 rounded text-sm text-emerald-700">
-                Fax: {provider.fax_number || faxResult?.fax}
-                {(provider.fax_confidence || faxResult?.confidence) && (
-                  <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
+            {/* Found contact info (fax/LinkedIn) + Find LinkedIn option */}
+            {((provider.fax_number || faxResult?.fax) || linkedInUrl || (provider.website && !findingLinkedIn)) && (
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+                {(provider.fax_number || faxResult?.fax) && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded">
+                    Fax: {provider.fax_number || faxResult?.fax}
+                  </span>
                 )}
-              </div>
-            )}
-
-            {/* LinkedIn found indicator */}
-            {linkedInUrl && (
-              <div className="mb-3 p-2 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
-                <a
-                  href={linkedInUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline flex items-center gap-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                  </svg>
-                  {linkedInUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                </a>
+                {linkedInUrl ? (
+                  <a
+                    href={linkedInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    LinkedIn
+                  </a>
+                ) : provider.website && !findingLinkedIn ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFindLinkedIn();
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    Find LinkedIn
+                  </button>
+                ) : null}
+                {findingLinkedIn && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-blue-500">
+                    <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                    Finding...
+                  </span>
+                )}
               </div>
             )}
 
@@ -3325,25 +3273,13 @@ function FollowUpProviderRow({
                 onClick={() => setPendingOutcome("resend_link")}
                 disabled={submitting !== null || resendDisabled}
                 title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
                   resendDisabled
                     ? "text-gray-400 bg-gray-100 cursor-not-allowed"
                     : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
                 }`}
               >
-                Resend Link{resendDisabled ? " (max)" : ""}
-              </button>
-
-              <button
-                onClick={() => {
-                  setEditingEmail(true);
-                  setNewEmail(provider.email || "");
-                  setEmailJustSaved(false);
-                }}
-                disabled={submitting !== null || editingEmail}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Fix Email
+                Resend Claim Link{resendDisabled ? " (max)" : ""}
               </button>
 
               <button
@@ -3358,9 +3294,9 @@ function FollowUpProviderRow({
                   }
                 }}
                 disabled={submitting !== null || editingFax || sendingFax}
-                className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Fax
+                Send Fax
               </button>
 
               <button
@@ -3375,9 +3311,9 @@ function FollowUpProviderRow({
                   }
                 }}
                 disabled={submitting !== null || editingDirectMail || sendingDirectMail}
-                className="px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Direct Mail
+                Send Postcard
               </button>
             </div>
 
@@ -3503,9 +3439,9 @@ function FollowUpProviderRow({
               </div>
             )}
 
-            {/* Cost warning */}
-            <p className="mt-3 text-xs text-gray-400">
-              Note: Fax and Direct Mail have costs.
+            {/* Cost note */}
+            <p className="mt-4 text-xs text-gray-400">
+              Fax and postcard have per-send costs.
             </p>
           </div>
         </div>

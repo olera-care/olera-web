@@ -4804,7 +4804,6 @@ function MoveChannelDropdown({
 interface ReEngageQueueProps {
   providers: OutreachProvider[];
   loading: boolean;
-  onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
   onArchive: (provider: OutreachProvider) => void;
   adminNameLookup: Map<string, string>;
   onRefresh?: () => void;
@@ -4907,10 +4906,8 @@ function LifecycleTag({
   return null;
 }
 
-function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup, onRefresh }: ReEngageQueueProps) {
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
-  const [actionNotes, setActionNotes] = useState("");
+function ReEngageQueue({ providers, loading, onArchive, adminNameLookup, onRefresh }: ReEngageQueueProps) {
+  // Note: Re-engage functionality removed - Alternative Channels is now tracking-only
 
   // Send Claim Link state
   const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
@@ -5194,40 +5191,6 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     fetchAnalytics();
   }, [providers.length, analyticsLoaded]);
 
-  const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
-    setActionLoading(provider.provider_id);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/re-engage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          notes: notes?.trim() || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to process re-engage action");
-      }
-
-      const result = await res.json();
-      onReEngageAction(provider.provider_id, result);
-    } catch (err) {
-      console.error("Re-engage error:", err);
-      alert(err instanceof Error ? err.message : "Failed to process re-engage action");
-    } finally {
-      setActionLoading(null);
-      setPendingAction(null);
-      setActionNotes("");
-    }
-  };
-
-  const confirmAction = async () => {
-    if (!pendingAction) return;
-    await handleReEngage(pendingAction.provider, actionNotes);
-  };
-
   // Filter to only show providers actually in re_engage stage
   // This prevents ghost data from appearing during tab switches (React state sync issue)
   const reEngageProviders = providers.filter(p => p.stage === "re_engage");
@@ -5269,7 +5232,6 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       {/* Provider rows */}
       {sorted.map((provider) => {
         const waitDays = daysSince(provider.re_engage_entered_at);
-        const isLoading = actionLoading === provider.provider_id;
         const isCycle2 = provider.cycle_number === 2;
 
         // Check if direct_mail has expired (18+ days without claim)
@@ -5287,28 +5249,13 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 <span className="text-xs text-amber-800 font-medium flex-1">
                   No response after {daysSince(mailSentAt)} days. All channels exhausted.
                 </span>
-                {/* Only show Reactivate for Cycle 1 - Cycle 2 should only archive */}
-                {!isCycle2 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPendingAction({ provider, type: "re_engage" });
-                    }}
-                    disabled={isLoading}
-                    className="px-3 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-md transition disabled:opacity-50"
-                  >
-                    Reactivate Sequence
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onArchive(provider);
                   }}
-                  disabled={isLoading}
-                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition"
                 >
                   Archive
                 </button>
@@ -5409,38 +5356,12 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
               />
 
-              {/* Row 5: Actions */}
+              {/* Row 5: Actions - Tracking only (Archive opens modal with stage options, Send Claim Link) */}
               <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
               <button
                 type="button"
-                onClick={() => setPendingAction({
-                  provider,
-                  type: isCycle2 ? "cycle2_archive" : "re_engage"
-                })}
-                disabled={isLoading}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isCycle2
-                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    : "bg-primary-600 text-white hover:bg-primary-700"
-                }`}
-              >
-                {isLoading ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Processing...
-                  </span>
-                ) : isCycle2 ? (
-                  "Archive (2 cycles done)"
-                ) : (
-                  "Re-engage now"
-                )}
-              </button>
-
-              <button
-                type="button"
                 onClick={() => onArchive(provider)}
-                disabled={isLoading}
-                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
               >
                 Archive
               </button>
@@ -5624,129 +5545,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       {/* Summary footer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
         {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Alternative Channels
-        {" • "}
-        {reEngageProviders.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
       </div>
-
-      {/* Confirmation Modal */}
-      {pendingAction && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={() => {
-            setPendingAction(null);
-            setActionNotes("");
-          }}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {pendingAction.type === "re_engage" ? "Start Cycle 2" : "Archive Provider"}
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">{pendingAction.provider.provider_name}</p>
-            </div>
-
-            {/* Content */}
-            <div className="px-5 py-4">
-              <div className={`p-3 rounded-lg border mb-4 ${
-                pendingAction.type === "re_engage"
-                  ? "bg-blue-50 border-blue-200"
-                  : "bg-gray-50 border-gray-200"
-              }`}>
-                <p className="text-sm text-gray-700 mb-2">
-                  {pendingAction.type === "re_engage"
-                    ? "This will prepare the provider for their second and final email sequence."
-                    : "This provider has completed 2 cycles without claiming. They will be archived."}
-                </p>
-                <ul className="space-y-1.5">
-                  {pendingAction.type === "re_engage" ? (
-                    <>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Provider will move to Ready tab (cycle 2)
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Launch the sequence from the Ready tab
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        This is their final outreach cycle
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Provider will be moved to Not Interested
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        No more outreach emails will be sent
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Questions and connections can still flow to them
-                      </li>
-                    </>
-                  )}
-                </ul>
-              </div>
-
-              {/* Notes field */}
-              <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Notes (optional)
-                </label>
-                <textarea
-                  value={actionNotes}
-                  onChange={(e) => setActionNotes(e.target.value)}
-                  placeholder="Add context or reason..."
-                  rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setPendingAction(null);
-                  setActionNotes("");
-                }}
-                disabled={actionLoading !== null}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmAction}
-                disabled={actionLoading !== null}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  pendingAction.type === "re_engage"
-                    ? "bg-primary-600 hover:bg-primary-700"
-                    : "bg-gray-800 hover:bg-gray-900"
-                }`}
-              >
-                {actionLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
-                  </span>
-                ) : pendingAction.type === "re_engage" ? (
-                  "Yes, start Cycle 2"
-                ) : (
-                  "Yes, archive provider"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Fax Preview Sidebar */}
       {faxPreviewProvider && (
@@ -8068,28 +7867,12 @@ export default function ProviderOutreachPage() {
                     : providers.filter((p) => p.re_engage_channel === selectedChannelFilter)
               }
               loading={loadingProviders}
-            onReEngageAction={(providerId, result) => {
-              // Mark as recently moved to filter from stale API responses
-              markAsRecentlyMoved(providerId);
-              // Provider moved out of re_engage - remove from local state
-              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-              // Update stage counts
-              setStageCounts((prev) => ({
-                ...prev,
-                re_engage: Math.max(0, prev.re_engage - 1),
-                ...(result.new_stage === "not_contacted" && { ready: prev.ready + 1 }),
-                ...(result.new_stage === "not_interested" && { not_interested: prev.not_interested + 1 }),
-                ...(result.new_stage === "archived" && { archived: prev.archived + 1 }),
-              }));
-              // Refresh to sync
-              fetchProviders();
-            }}
-            onArchive={(provider) => {
-              setActionModalProvider(provider);
-            }}
-            adminNameLookup={adminNameLookup}
-            onRefresh={fetchProviders}
-          />
+              onArchive={(provider) => {
+                setActionModalProvider(provider);
+              }}
+              adminNameLookup={adminNameLookup}
+              onRefresh={fetchProviders}
+            />
           </>
         ) : (
           // Normal city-grouped view

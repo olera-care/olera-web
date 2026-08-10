@@ -3390,18 +3390,44 @@ function FollowUpProviderRow({
   // Handle inline fax send from Follow Up
   // Sends fax via Telnyx, then moves provider to Alternative Channels
   const handleSendFaxInline = async () => {
-    const faxToSend = faxNumberInput.trim() || provider.fax_number || faxResult?.fax;
+    const manualInput = faxNumberInput.trim();
+    const existingFax = provider.fax_number || faxResult?.fax;
+    const faxToSend = manualInput || existingFax;
+
     if (!faxToSend) {
       setError("Please enter a fax number");
       return;
     }
+
+    // Check if this is a manually entered number (different from existing)
+    const isManualEntry = manualInput && manualInput !== existingFax;
 
     const sessionAtStart = editingSessionRef.current;
     setSendingFax(true);
     setError(null);
 
     try {
-      // Step 1: Send fax via Telnyx
+      // Step 1: If manually entered, save fax number to provider record first
+      if (isManualEntry) {
+        const saveRes = await fetch("/api/admin/provider-outreach/find-fax", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            manual_fax: manualInput,
+          }),
+        });
+
+        if (!saveRes.ok) {
+          // Non-fatal: log but continue with send
+          console.warn("Failed to save manual fax number:", await saveRes.json());
+        } else {
+          // Update local state so UI reflects saved number
+          onProviderUpdated({ fax_number: manualInput, fax_confidence: "high" });
+        }
+      }
+
+      // Step 2: Send fax via Telnyx
       const sendRes = await fetch("/api/admin/provider-outreach/send-fax", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -3421,7 +3447,7 @@ function FollowUpProviderRow({
         return;
       }
 
-      // Step 2: Move provider to Alternative Channels (re_engage stage with fax channel)
+      // Step 3: Move provider to Alternative Channels (re_engage stage with fax channel)
       const moveRes = await fetch("/api/admin/provider-outreach/record-outcome", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

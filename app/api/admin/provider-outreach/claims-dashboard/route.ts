@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getCampaignLeadStatistics, isSmartleadConfigured } from "@/lib/smartlead";
 
 /**
  * GET /api/admin/provider-outreach/claims-dashboard
  *
  * Returns claims-based metrics for the Email Performance section.
- * All data sourced from provider_outreach_tracking (100% accurate).
+ * Claims data from provider_outreach_tracking (100% accurate).
+ * Engagement data (opens/clicks) from SmartLead API (aggregate only).
  *
  * Data flow:
  * 1. Provider enters sequence → sequence_started_at is set
@@ -15,6 +17,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Returns:
  *   - totals: { sequenced, claimed, conversion_rate, avg_time_to_claim_days }
  *   - sequence_day_breakdown: Claims bucketed by email day (Day 0, 3, 5, 7+)
+ *   - engagement: Aggregate open/click stats from SmartLead (null if unavailable)
  */
 
 interface ClaimsDashboardResponse {
@@ -31,6 +34,13 @@ interface ClaimsDashboardResponse {
     count: number;
     percentage: number;
   }>;
+  engagement: {
+    contacted: number;
+    opened: number;
+    open_rate: number;
+    clicked: number;
+    click_rate: number;
+  } | null;
 }
 
 export async function GET() {
@@ -120,6 +130,57 @@ export async function GET() {
       };
     });
 
+    // Fetch aggregate engagement stats from SmartLead API
+    // Note: SmartLead only gives us total opens/clicks per lead, not per-email breakdown
+    let engagement: ClaimsDashboardResponse["engagement"] = null;
+
+    if (isSmartleadConfigured()) {
+      try {
+        // Get all campaign IDs from tracking data
+        const { data: campaignRows } = await db
+          .from("provider_outreach_tracking")
+          .select("smartlead_data")
+          .not("smartlead_data", "is", null);
+
+        const campaignIds = new Set<number>();
+        for (const row of campaignRows || []) {
+          const sd = row.smartlead_data as { campaign_id?: number } | null;
+          if (typeof sd?.campaign_id === "number") {
+            campaignIds.add(sd.campaign_id);
+          }
+        }
+
+        // Aggregate stats across all campaigns
+        let totalContacted = 0;
+        let totalOpened = 0;
+        let totalClicked = 0;
+
+        for (const campaignId of campaignIds) {
+          const statsResult = await getCampaignLeadStatistics(campaignId);
+          if (statsResult.ok && statsResult.data) {
+            for (const lead of statsResult.data) {
+              if (lead.sent_time) totalContacted++;
+              if ((lead.open_count ?? 0) > 0) totalOpened++;
+              if ((lead.click_count ?? 0) > 0) totalClicked++;
+            }
+          }
+        }
+
+        if (totalContacted > 0) {
+          engagement = {
+            contacted: totalContacted,
+            opened: totalOpened,
+            open_rate: Math.round((totalOpened / totalContacted) * 1000) / 10,
+            clicked: totalClicked,
+            click_rate: Math.round((totalClicked / totalContacted) * 1000) / 10,
+          };
+        }
+      } catch (err) {
+        console.error("[claims-dashboard] SmartLead stats error:", err);
+        // Continue without engagement stats - not a fatal error
+      }
+    }
+
     const response: ClaimsDashboardResponse = {
       totals: {
         sequenced: sequencedCount,
@@ -128,6 +189,7 @@ export async function GET() {
         avg_time_to_claim_days: avgTimeToClaimDays,
       },
       sequence_day_breakdown: sequenceDayBreakdown,
+      engagement,
     };
 
     return NextResponse.json(response);

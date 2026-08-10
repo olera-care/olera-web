@@ -4558,6 +4558,13 @@ export default function ProviderOutreachPage() {
       count: number;
       percentage: number;
     }>;
+    engagement: {
+      contacted: number;
+      opened: number;
+      open_rate: number;
+      clicked: number;
+      click_rate: number;
+    } | null;
   } | null>(null);
   const [claimsDashboardLoading, setClaimsDashboardLoading] = useState(false);
   const [claimsDashboardError, setClaimsDashboardError] = useState(false);
@@ -6168,6 +6175,18 @@ export default function ProviderOutreachPage() {
               </div>
             ) : claimsDashboard ? (
               <div className="space-y-6">
+                {/* Email engagement line (aggregate from SmartLead) */}
+                {claimsDashboard.engagement && (
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Email Engagement:</span>{" "}
+                    <span>{claimsDashboard.engagement.opened.toLocaleString()} of {claimsDashboard.engagement.contacted.toLocaleString()} opened</span>
+                    <span className="text-gray-400"> ({claimsDashboard.engagement.open_rate}%)</span>
+                    <span className="mx-2 text-gray-300">·</span>
+                    <span>{claimsDashboard.engagement.clicked.toLocaleString()} clicked</span>
+                    <span className="text-gray-400"> ({claimsDashboard.engagement.click_rate}%)</span>
+                  </div>
+                )}
+
                 {/* 4-stat grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="bg-gray-50 rounded-lg p-3 text-center">

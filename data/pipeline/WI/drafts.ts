@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.879Z
+ * Last updated: 2026-08-10T10:39:40.182Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -716,7 +716,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "IRIS gives your loved one control over their long-term care budget instead of being assigned specific providers. Your loved one gets a monthly budget based on their assessed needs, then chooses and hires their own caregivers, purchases approved services, and manages their care team. Because your loved one controls the budget directly, they can hire family members as paid caregivers or find providers that match their preferences and schedule.\n\nTo qualify, your loved one must need nursing home level care but want to stay in their own home or community setting. They must meet Wisconsin Medicaid income and asset rules, including a home equity limit of $750,000 if they live in their home. The program covers personal care, adult day services, home modifications, and other approved supports, your loved one decides how to spend their allocated budget.",
+      "intro": "IRIS gives your loved one control over their long-term care budget instead of being assigned specific providers. Your loved one gets a monthly budget based on their assessed needs, then chooses and hires their own caregivers, purchases approved services, and manages their care team. Because your loved one controls the budget directly, they can hire family members as paid caregivers or find providers that match their preferences and schedule. Which relatives can be paid depends on the specific service, and a spouse is limited to some of them.\n\nTo qualify, your loved one must need nursing home level care but want to stay in their own home or community setting. They must meet Wisconsin Medicaid income and asset rules, including a home equity limit of $750,000 if they live in their home. The program covers personal care, adult day services, home modifications, and other approved supports, your loved one decides how to spend their allocated budget.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -821,7 +821,7 @@ export const drafts: PipelineStateDrafts = {
       "applicationNotes": [
         "You must live in an eligible community setting, not in a nursing facility or certain residential care facilities",
         "Self-direction means your loved one manages their budget, hires and fires providers, and follows program rules, the FEA handles payroll but not service decisions",
-        "All hired providers must enroll with Wisconsin's ForwardHealth Portal before they can be paid",
+        "All hired providers must enroll with Wisconsin's ForwardHealth Portal before they can be paid. If the paid caregiver is the participant's spouse, check the service first: a spouse can be paid for supportive home care, self-directed personal care, respite and nursing, but is excluded from several other IRIS services",
         "Having existing Medicaid coverage speeds up IRIS enrollment since financial eligibility is already established"
       ],
       "relatedPrograms": [
@@ -834,7 +834,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one hire family members as paid caregivers through IRIS?",
-          "answer": "Yes, your loved one can hire family members as caregivers using their IRIS budget. The family member must enroll with ForwardHealth Portal as a provider and follow all program requirements. The Fiscal Employer Agent will handle payroll, taxes, and workers' compensation."
+          "answer": "Yes, though which services you can be paid for depends on your relationship. Most relatives can be hired across IRIS services. IRIS treats a spouse as a legally responsible person, and a spouse can be paid for supportive home care, self-directed personal care, respite and nursing services, but not for services like life skills training, day habilitation, adult day care or support broker work. Separately, someone acting as a legal representative or non-limited guardian cannot provide self-directed personal care to the person they represent. Anyone hired has to enroll with the ForwardHealth Portal first, and the Fiscal Employer Agent handles payroll and taxes."
         },
         {
           "question": "What happens if my loved one's care needs change after they're enrolled?",

@@ -2466,7 +2466,6 @@ function FollowUpProviderRow({
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
-  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
 
   // Channel availability
   const hasFax = !!provider.fax_number || !!faxResult?.fax;
@@ -3103,10 +3102,8 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Two-column layout: Provider Details + Outreach History */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Provider Details Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+          {/* Provider Details Card */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
               <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 Provider
               </div>
@@ -3234,43 +3231,6 @@ function FollowUpProviderRow({
                   </Link>
                 )}
               </div>
-            </div>
-
-            {/* Outreach History Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Outreach History
-              </div>
-              <div className="space-y-2 text-sm">
-                {/* Email sequence stats */}
-                <div className="flex items-center gap-2">
-                  <span className={engagement.emails_sent > 0 ? "text-emerald-600" : "text-gray-400"}>
-                    {engagement.emails_sent > 0 ? "✓" : "○"}
-                  </span>
-                  <span className="text-gray-700">
-                    Email sequence ({engagement.emails_sent} sent{engagement.opens > 0 ? `, ${engagement.opens} opens` : ""}{engagement.clicks > 0 ? `, ${engagement.clicks} clicks` : ""})
-                  </span>
-                </div>
-                {/* Resend stats */}
-                {engagement.resends > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600">✓</span>
-                    <span className="text-gray-700">Resend link ({engagement.resends}x)</span>
-                  </div>
-                )}
-                {/* Available channels */}
-                <div className="border-t border-gray-100 pt-2 mt-2 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">Fax — {hasFax ? "ready" : "available"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">Direct mail — {hasAddress ? "ready" : "available"}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Why in Follow Up + Actions */}

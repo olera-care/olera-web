@@ -8,6 +8,7 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
+import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -3201,6 +3202,8 @@ function FollowUpProviderRow({
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailJustSaved, setEmailJustSaved] = useState(false);
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  // Not interested reason state
+  const [notInterestedReason, setNotInterestedReason] = useState<string>("");
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -3212,6 +3215,7 @@ function FollowUpProviderRow({
       setNewEmail("");
       setEmailJustSaved(false);
       setError(null);
+      setNotInterestedReason("");
     }
   }, [isExpanded]);
 
@@ -3452,6 +3456,10 @@ function FollowUpProviderRow({
       if (notes.trim()) {
         body.notes = notes.trim();
       }
+      // Include reason for not_interested outcome
+      if (outcome === "not_interested" && notInterestedReason) {
+        body.not_interested_reason = notInterestedReason;
+      }
 
       const res = await fetch("/api/admin/provider-outreach/record-outcome", {
         method: "POST",
@@ -3466,6 +3474,7 @@ function FollowUpProviderRow({
           setError(`Email failed: ${data.email_error}. Provider was still moved.`);
         }
         setNotes("");
+        setNotInterestedReason(""); // Reset reason
       } else {
         const errData = await res.json();
         setError(errData.error || "Failed to record outcome");
@@ -4012,6 +4021,7 @@ function FollowUpProviderRow({
             e.stopPropagation();
             setPendingOutcome(null);
             setPendingStageMove(null);
+            setNotInterestedReason("");
           }}
         >
           <div
@@ -4044,14 +4054,33 @@ function FollowUpProviderRow({
                 </ul>
               </div>
 
+              {/* Reason dropdown for not_interested */}
+              {pendingOutcome === "not_interested" && (
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                    Reason <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={notInterestedReason}
+                    onChange={(e) => setNotInterestedReason(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                  >
+                    <option value="">Select a reason...</option>
+                    {NOT_INTERESTED_REASONS.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Notes (optional)
+                  Notes {pendingOutcome === "not_interested" && notInterestedReason === "other" ? <span className="text-red-500">*</span> : "(optional)"}
                 </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add context or reason..."
+                  placeholder={pendingOutcome === "not_interested" && notInterestedReason === "other" ? "Please explain..." : "Add context or reason..."}
                   rows={2}
                   className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
@@ -4063,6 +4092,7 @@ function FollowUpProviderRow({
                 onClick={() => {
                   setPendingOutcome(null);
                   setPendingStageMove(null);
+                  setNotInterestedReason("");
                 }}
                 disabled={submitting !== null || stageChangeLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -4086,7 +4116,12 @@ function FollowUpProviderRow({
                     }
                   }
                 }}
-                disabled={submitting !== null || stageChangeLoading}
+                disabled={
+                  submitting !== null ||
+                  stageChangeLoading ||
+                  (pendingOutcome === "not_interested" && !notInterestedReason) ||
+                  (pendingOutcome === "not_interested" && notInterestedReason === "other" && !notes.trim())
+                }
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
               >
                 {submitting || stageChangeLoading ? (
@@ -5547,6 +5582,8 @@ export default function ProviderOutreachPage() {
   const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
   // Pending stage move confirmation (for Move to Stage buttons)
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
+  // Not interested reason for action modal stage move
+  const [actionNotInterestedReason, setActionNotInterestedReason] = useState("");
 
   // Send Claim Link state (for action modal)
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
@@ -5694,6 +5731,7 @@ export default function ProviderOutreachPage() {
     setUnarchivePreviewConfirmed(false);
     setPendingStageMove(null);
     setClaimLinkSent(false);
+    setActionNotInterestedReason("");
   };
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
@@ -8079,7 +8117,10 @@ export default function ProviderOutreachPage() {
               <div className="p-4 space-y-4">
                 {/* Back button */}
                 <button
-                  onClick={() => setPendingStageMove(null)}
+                  onClick={() => {
+                    setPendingStageMove(null);
+                    setActionNotInterestedReason("");
+                  }}
                   className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -8165,15 +8206,34 @@ export default function ProviderOutreachPage() {
                   </ul>
                 </div>
 
+                {/* Reason dropdown for not_interested */}
+                {pendingStageMove === "not_interested" && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                      Reason <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={actionNotInterestedReason}
+                      onChange={(e) => setActionNotInterestedReason(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                    >
+                      <option value="">Select a reason...</option>
+                      {NOT_INTERESTED_REASONS.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* Notes field */}
                 <div className="mt-3">
                   <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                    Notes (optional)
+                    Notes {pendingStageMove === "not_interested" && actionNotInterestedReason === "other" ? <span className="text-red-500">*</span> : "(optional)"}
                   </label>
                   <textarea
                     value={actionNotes}
                     onChange={(e) => setActionNotes(e.target.value)}
-                    placeholder="Add context or reason..."
+                    placeholder={pendingStageMove === "not_interested" && actionNotInterestedReason === "other" ? "Please explain..." : "Add context or reason..."}
                     rows={2}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                   />
@@ -8185,6 +8245,7 @@ export default function ProviderOutreachPage() {
                     onClick={() => {
                       setPendingStageMove(null);
                       setActionNotes("");
+                      setActionNotInterestedReason("");
                     }}
                     disabled={actionLoading}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -8202,6 +8263,10 @@ export default function ProviderOutreachPage() {
                             provider_ids: [actionModalProvider.provider_id],
                             stage: pendingStageMove,
                             notes: actionNotes.trim() || undefined,
+                            // Include reason for not_interested
+                            ...(pendingStageMove === "not_interested" && actionNotInterestedReason && {
+                              not_interested_reason: actionNotInterestedReason,
+                            }),
                           }),
                         });
                         if (res.ok) {
@@ -8250,7 +8315,11 @@ export default function ProviderOutreachPage() {
                         setActionLoading(false);
                       }
                     }}
-                    disabled={actionLoading}
+                    disabled={
+                      actionLoading ||
+                      (pendingStageMove === "not_interested" && !actionNotInterestedReason) ||
+                      (pendingStageMove === "not_interested" && actionNotInterestedReason === "other" && !actionNotes.trim())
+                    }
                     className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       pendingStageMove === "not_contacted" ? "bg-gray-600 hover:bg-gray-700" :
                       pendingStageMove === "in_sequence" ? "bg-blue-600 hover:bg-blue-700" :

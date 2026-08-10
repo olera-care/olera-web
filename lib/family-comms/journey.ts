@@ -428,7 +428,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
  * Provider outreach journey — the claim funnel from enrollment through
  * follow-up channels to re-engagement cycles.
  *
- * DRIFT GUARD: mirrors the provider-outreach-send 4-email cadence (Day 0/3/7/14),
+ * DRIFT GUARD: mirrors the provider-outreach-send 4-email cadence (Day 0/3/5/7),
  * the provider-outreach-sequence-check stage transitions, and the follow-up channel
  * queue in /admin/provider-outreach. Channel progression and Cycle 2 are manual.
  */
@@ -439,7 +439,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
   audienceLabel: "Provider journey",
   description:
     "One outreach journey from enrollment to claim: provider-outreach-send fires the 4-email " +
-    "sequence (Day 0/3/7/14), the sequence check moves non-claimers to Follow Up, and manual " +
+    "sequence (Day 0/3/5/7), the sequence check moves non-claimers to Follow Up, and manual " +
     "channels (fax, direct mail) offer alternative touchpoints. LinkedIn discovery helps admins " +
     "find contact info. Admins can fix emails inline and send claim links at any stage.",
   steps: [
@@ -472,7 +472,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "demand_loss_email",
       phase: "Email Sequence",
       title: "Why It's Free email",
-      timing: "Day 7",
+      timing: "Day 5",
       description:
         "Explains the free model — no referral fees, no pay-per-lead, " +
         "direct family connections.",
@@ -484,7 +484,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "final_email",
       phase: "Email Sequence",
       title: "Get Verified email",
-      timing: "Day 14",
+      timing: "Day 7",
       description:
         "Final push focusing on the verified badge as a trust signal for families.",
       emailType: "provider_outreach_sequence",
@@ -496,7 +496,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "sequence_exhausted",
       phase: "Follow Up",
       title: "Provider enters Follow Up queue",
-      timing: "Day 14+ · No claim",
+      timing: "Day 7+ · No claim",
       description:
         "Sequence complete without a claim. Provider moves to needs_call stage " +
         "with reason: clicked_not_claimed (engaged) or sequence_exhausted (no engagement).",
@@ -509,9 +509,9 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       title: "Fax sent",
       timing: "Manual · When fax number available",
       description:
-        "Admin sends fax via ClickSend. Useful when emails aren't reaching " +
+        "Admin sends fax via Telnyx. Useful when emails aren't reaching " +
         "the decision maker.",
-      ownerNote: "Triggered from Follow Up tab",
+      ownerNote: "Triggered from Follow Up or Alternative Channels tab",
       traits: ["Manual", "Conditional"],
       gate: "Requires valid fax number (auto-discovered or manually added)",
     },
@@ -563,29 +563,31 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       traits: ["Manual", "Has cost"],
       gate: "Requires valid mailing address",
     },
-    // ── Re-engagement ───────────────────────────────────────────────────
+    // ── Alternative Channels ─────────────────────────────────────────────
     {
       key: "re_engage_wait",
-      phase: "Re-engagement",
+      phase: "Alternative Channels",
       title: "Provider in Alternative Channels",
-      timing: "After Follow Up attempts",
+      timing: "After Follow Up · Admin decision",
       description:
         "Provider moved to re_engage stage with a selected channel (fax or direct mail). " +
-        "Admins can send claim links or manually restart the sequence when ready.",
+        "Admins can send fax/postcard, send claim links, or click 'Re-engage now' to restart " +
+        "the email sequence. There is no automatic progression — all actions are manual.",
       ownerNote: "Manual admin decision from Follow Up tab",
-      traits: ["Manual"],
+      traits: ["Manual", "No auto-progression"],
     },
     {
-      key: "cycle_2",
-      phase: "Re-engagement",
-      title: "Cycle 2 (manual)",
-      timing: "Admin decision",
+      key: "cycle_restart",
+      phase: "Alternative Channels",
+      title: "Restart sequence (optional)",
+      timing: "Admin clicks 'Re-engage now'",
       description:
-        "Admin clicks 'Re-engage now' to restart the email sequence for Cycle 1 providers. " +
-        "Cycle 2 providers can be moved to not_interested or have claim links sent manually.",
+        "Admin can restart the 4-email sequence for providers who haven't claimed. " +
+        "This returns the provider to In Sequence for another cycle. " +
+        "Currently there is no defined terminal state after Alternative Channels.",
       ownerNote: "Triggered via 'Re-engage now' button in Alternative Channels tab",
-      traits: ["Manual"],
-      gate: "Admin decides when to restart; no automatic progression",
+      traits: ["Manual", "Optional"],
+      gate: "Admin decides if/when to restart; provider stays in Alternative Channels indefinitely otherwise",
     },
   ],
 };
@@ -608,7 +610,6 @@ const JOURNEYS_BY_CRON: Record<string, string[]> = {
   "provider-outreach-send": [PROVIDER_OUTREACH_JOURNEY.key],
   "provider-outreach-sequence-check": [PROVIDER_OUTREACH_JOURNEY.key],
   "provider-outreach-channel-lifecycle": [PROVIDER_OUTREACH_JOURNEY.key],
-  "provider-outreach-auto-re-engage": [PROVIDER_OUTREACH_JOURNEY.key],
 };
 
 export function journeysForCron(cronId: string): CommsJourney[] {

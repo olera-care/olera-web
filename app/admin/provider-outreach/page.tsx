@@ -2360,64 +2360,29 @@ function formatDueDateBadge(dateStr: string | null): { text: string; className: 
   }
 }
 
-// Intelligence layer: Recommend action based on engagement and needs_call_reason
-function getRecommendedAction(provider: OutreachProvider): {
-  action: string;
-  outcome: string;
-  rationale: string;
-  isPrimary: boolean;
-} | null {
+// Get human-readable explanation for why provider is in Follow Up
+function getFollowUpReasonExplanation(provider: OutreachProvider): string {
   const reason = provider.needs_call_reason;
   const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
 
-  // Priority order based on the plan's recommendation logic
   switch (reason) {
     case "replied":
-      // Hottest lead - they responded, call them
-      return {
-        action: "Call Provider",
-        outcome: "", // No automatic outcome, just recommendation
-        rationale: "Provider replied to an email. Call them now - this is a hot lead.",
-        isPrimary: true,
-      };
+      return "Provider replied to an email — this is a hot lead.";
     case "clicked_not_claimed":
-      // Engaged but stuck - try personal touch via phone
-      return {
-        action: "Call Provider",
-        outcome: "", // No automatic outcome, just recommendation
-        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. A personal call may help close the deal.`,
-        isPrimary: true,
-      };
+      return `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim.`;
     case "sequence_exhausted":
     case "sequence_completed":
-      // Check if they opened emails but didn't act
       if (engagement.opens > 0) {
-        return {
-          action: "Fax",
-          outcome: "try_fax",
-          rationale: `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click. Try a different channel.`,
-          isPrimary: true,
-        };
+        return `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click.`;
       } else {
-        // No opens - email not reaching them
-        return {
-          action: "Direct Mail",
-          outcome: "try_direct_mail",
-          rationale: "No email engagement detected. Try direct mail to reach them.",
-          isPrimary: true,
-        };
+        return "No email engagement detected.";
       }
     case "email_bounced":
-      return {
-        action: "Fix Email",
-        outcome: "fix_email", // Special: triggers inline editing, not a modal
-        rationale: "Email bounced. Update contact info and resend.",
-        isPrimary: true,
-      };
+      return "Email bounced — contact info needs to be updated.";
     case "manual":
+      return "Manually added to follow-up queue.";
     default:
-      // No strong recommendation for manual additions
-      return null;
+      return "Ready for follow-up.";
   }
 }
 
@@ -2449,7 +2414,6 @@ function FollowUpProviderRow({
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
-  const [showAllOptions, setShowAllOptions] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
   // Track expansion state for async operation guards
@@ -2502,7 +2466,6 @@ function FollowUpProviderRow({
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
-  const recommendation = getRecommendedAction(provider);
   const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
 
   // Channel availability
@@ -3140,47 +3103,6 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Recommended Action Card */}
-          {recommendation && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Recommended Action
-              </div>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900 mb-1">{recommendation.action}</div>
-                  <p className="text-sm text-gray-500">{recommendation.rationale}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {recommendation.outcome && (
-                    <button
-                      onClick={() => {
-                        if (recommendation.outcome === "fix_email") {
-                          // Special case: trigger inline editing instead of modal
-                          setEditingEmail(true);
-                          setNewEmail(provider.email || "");
-                          setEmailJustSaved(false);
-                        } else {
-                          setPendingOutcome(recommendation.outcome);
-                        }
-                      }}
-                      disabled={submitting !== null || (recommendation.outcome === "fix_email" && editingEmail)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {recommendation.action}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowAllOptions(!showAllOptions)}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {showAllOptions ? "Hide options" : "Show all options"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Two-column layout: Provider Details + Outreach History */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Provider Details Card */}
@@ -3351,133 +3273,139 @@ function FollowUpProviderRow({
             </div>
           </div>
 
-          {/* All Options Section (collapsible, collapsed by default) */}
-          {(showAllOptions || !recommendation) && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                  All Options
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Find LinkedIn button */}
-                  {!hasLinkedIn && !findingLinkedIn && provider.website && (
-                    <button
-                      onClick={handleFindLinkedIn}
-                      className="text-xs text-blue-600 hover:text-blue-700"
-                    >
-                      Find LinkedIn
-                    </button>
-                  )}
-                  {findingLinkedIn && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-                      Finding LinkedIn...
-                    </span>
-                  )}
-                  {/* Find Fax button */}
-                  {!hasFax && !findingFax && provider.website && (
-                    <button
-                      onClick={handleFindFax}
-                      className="text-xs text-teal-600 hover:text-teal-700"
-                    >
-                      Find fax number
-                    </button>
-                  )}
-                  {findingFax && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                      Finding fax...
-                    </span>
-                  )}
-                </div>
+          {/* Why in Follow Up + Actions */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                Why in Follow Up
               </div>
-
-              {/* Fax found indicator */}
-              {(provider.fax_number || faxResult?.fax) && (
-                <div className="mb-3 p-2 bg-emerald-50 border border-emerald-100 rounded text-sm text-emerald-700">
-                  Fax: {provider.fax_number || faxResult?.fax}
-                  {(provider.fax_confidence || faxResult?.confidence) && (
-                    <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
-                  )}
-                </div>
-              )}
-
-              {/* LinkedIn found indicator */}
-              {linkedInUrl && (
-                <div className="mb-3 p-2 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
-                  <a
-                    href={linkedInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline flex items-center gap-1"
-                    onClick={(e) => e.stopPropagation()}
+              <div className="flex items-center gap-3">
+                {/* Find LinkedIn button */}
+                {!hasLinkedIn && !findingLinkedIn && provider.website && (
+                  <button
+                    onClick={handleFindLinkedIn}
+                    className="text-xs text-blue-600 hover:text-blue-700"
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                    </svg>
-                    {linkedInUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                  </a>
-                </div>
-              )}
-
-              {/* Action buttons - shortened labels */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setPendingOutcome("resend_link")}
-                  disabled={submitting !== null || resendDisabled}
-                  title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
-                    resendDisabled
-                      ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                      : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
-                  }`}
-                >
-                  Resend Link{resendDisabled ? " (max)" : ""}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setEditingEmail(true);
-                    setNewEmail(provider.email || "");
-                    setEmailJustSaved(false);
-                  }}
-                  disabled={submitting !== null || editingEmail}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Fix Email
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowFaxSendModal(true);
-                    setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
-                    setError(null);
-                  }}
-                  disabled={submitting !== null || sendingFax}
-                  className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Fax
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowDirectMailModal(true);
-                    setAddressInput(provider.mail_address || "");
-                    setError(null);
-                  }}
-                  disabled={submitting !== null || sendingDirectMail}
-                  className="px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Direct Mail
-                </button>
+                    Find LinkedIn
+                  </button>
+                )}
+                {findingLinkedIn && (
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                    Finding LinkedIn...
+                  </span>
+                )}
+                {/* Find Fax button */}
+                {!hasFax && !findingFax && provider.website && (
+                  <button
+                    onClick={handleFindFax}
+                    className="text-xs text-teal-600 hover:text-teal-700"
+                  >
+                    Find fax number
+                  </button>
+                )}
+                {findingFax && (
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                    Finding fax...
+                  </span>
+                )}
               </div>
-
-              {/* Cost warning */}
-              <p className="mt-3 text-xs text-gray-400">
-                Note: Fax and Direct Mail have costs. Consider calling the provider first.
-              </p>
             </div>
-          )}
+
+            {/* Reason explanation */}
+            <p className="text-sm text-gray-700 mb-1">
+              {getFollowUpReasonExplanation(provider)}
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Consider calling the provider first to ask which channel they prefer.
+            </p>
+
+            {/* Fax found indicator */}
+            {(provider.fax_number || faxResult?.fax) && (
+              <div className="mb-3 p-2 bg-emerald-50 border border-emerald-100 rounded text-sm text-emerald-700">
+                Fax: {provider.fax_number || faxResult?.fax}
+                {(provider.fax_confidence || faxResult?.confidence) && (
+                  <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
+                )}
+              </div>
+            )}
+
+            {/* LinkedIn found indicator */}
+            {linkedInUrl && (
+              <div className="mb-3 p-2 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
+                <a
+                  href={linkedInUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline flex items-center gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  {linkedInUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                </a>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setPendingOutcome("resend_link")}
+                disabled={submitting !== null || resendDisabled}
+                title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
+                  resendDisabled
+                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                }`}
+              >
+                Resend Link{resendDisabled ? " (max)" : ""}
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingEmail(true);
+                  setNewEmail(provider.email || "");
+                  setEmailJustSaved(false);
+                }}
+                disabled={submitting !== null || editingEmail}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Fix Email
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowFaxSendModal(true);
+                  setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
+                  setError(null);
+                }}
+                disabled={submitting !== null || sendingFax}
+                className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Fax
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowDirectMailModal(true);
+                  setAddressInput(provider.mail_address || "");
+                  setError(null);
+                }}
+                disabled={submitting !== null || sendingDirectMail}
+                className="px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Direct Mail
+              </button>
+            </div>
+
+            {/* Cost warning */}
+            <p className="mt-3 text-xs text-gray-400">
+              Note: Fax and Direct Mail have costs.
+            </p>
+          </div>
         </div>
       )}
 

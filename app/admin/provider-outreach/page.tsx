@@ -3204,6 +3204,10 @@ function FollowUpProviderRow({
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
   // Not interested reason state
   const [notInterestedReason, setNotInterestedReason] = useState<string>("");
+  // Inline fax send modal state
+  const [showFaxSendModal, setShowFaxSendModal] = useState(false);
+  const [faxNumberInput, setFaxNumberInput] = useState("");
+  const [sendingFax, setSendingFax] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -3216,6 +3220,9 @@ function FollowUpProviderRow({
       setEmailJustSaved(false);
       setError(null);
       setNotInterestedReason("");
+      setShowFaxSendModal(false);
+      setFaxNumberInput("");
+      setSendingFax(false);
     }
   }, [isExpanded]);
 
@@ -3380,6 +3387,77 @@ function FollowUpProviderRow({
     }
   };
 
+  // Handle inline fax send from Follow Up
+  // Sends fax via Telnyx, then moves provider to Alternative Channels
+  const handleSendFaxInline = async () => {
+    const faxToSend = faxNumberInput.trim() || provider.fax_number || faxResult?.fax;
+    if (!faxToSend) {
+      setError("Please enter a fax number");
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setSendingFax(true);
+    setError(null);
+
+    try {
+      // Step 1: Send fax via Telnyx
+      const sendRes = await fetch("/api/admin/provider-outreach/send-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          fax_number: faxToSend,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!sendRes.ok) {
+        const errData = await sendRes.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to send fax");
+        }
+        return;
+      }
+
+      // Step 2: Move provider to Alternative Channels (re_engage stage with fax channel)
+      const moveRes = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_fax",
+          notes: `Fax sent to ${faxToSend}`,
+        }),
+      });
+
+      if (!moveRes.ok) {
+        // Fax was sent but stage move failed - keep modal open with error
+        console.error("Fax sent but failed to move provider:", await moveRes.json());
+        if (stillValid) {
+          setError("Fax sent successfully, but failed to move provider to Alternative Channels. Please close this modal and refresh the page.");
+        }
+        return; // Don't close modal or trigger refresh - let user handle manually
+      }
+
+      // Success - close modal and refresh
+      if (stillValid) {
+        setShowFaxSendModal(false);
+        setFaxNumberInput("");
+      }
+      onOutcomeRecorded(true); // Stage changed, trigger refresh
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error sending fax");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSendingFax(false);
+      }
+    }
+  };
+
   // Confirmation modal content for each outcome
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
@@ -3406,17 +3484,7 @@ function FollowUpProviderRow({
           confirmLabel: "Mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
-      case "try_fax":
-        return {
-          title: "Move to Fax Channel",
-          description: "Move this provider to the Fax channel for follow-up.",
-          details: [
-            "Provider will be moved to Alternative Channels (Fax)",
-            "Fax has per-page costs - consider calling first",
-          ],
-          confirmLabel: "Move to Fax",
-          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
-        };
+      // Note: "try_fax" removed - now uses dedicated fax send modal (showFaxSendModal)
       case "try_direct_mail":
         return {
           title: "Move to Direct Mail",
@@ -3988,9 +4056,13 @@ function FollowUpProviderRow({
                 </button>
 
                 <button
-                  onClick={() => setPendingOutcome("try_fax")}
-                  disabled={submitting !== null}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  onClick={() => {
+                    setShowFaxSendModal(true);
+                    setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
+                    setError(null);
+                  }}
+                  disabled={submitting !== null || sendingFax}
+                  className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Fax
                 </button>
@@ -4131,6 +4203,120 @@ function FollowUpProviderRow({
                   </span>
                 ) : (
                   confirmationContent.confirmLabel
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fax Send Modal - Inline send from Follow Up */}
+      {showFaxSendModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!sendingFax) {
+              setShowFaxSendModal(false);
+              setFaxNumberInput("");
+              setError(null);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Send Fax</h3>
+              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
+            </div>
+
+            <div className="px-5 py-4">
+              {error && (
+                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <p className="text-sm text-gray-700 mb-4">
+                Send a fax with claim link via Telnyx. Provider will move to Alternative Channels for delivery tracking.
+              </p>
+
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                  Fax Number <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={faxNumberInput}
+                    onChange={(e) => setFaxNumberInput(e.target.value)}
+                    placeholder="(555) 123-4567"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    disabled={sendingFax}
+                  />
+                  {!faxNumberInput && !provider.fax_number && !faxResult?.fax && (
+                    <button
+                      type="button"
+                      onClick={handleFindFax}
+                      disabled={findingFax || sendingFax}
+                      className="px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 disabled:opacity-50"
+                    >
+                      {findingFax ? "Finding..." : "Find Fax"}
+                    </button>
+                  )}
+                </div>
+                {faxResult?.fax && !faxNumberInput && (
+                  <p className="mt-1.5 text-xs text-gray-500">
+                    Found: {faxResult.fax} ({faxResult.confidence})
+                  </p>
+                )}
+              </div>
+
+              <div className="bg-purple-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-purple-700 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-purple-900">
+                    <span className="text-purple-400 mt-0.5">•</span>
+                    Fax with claim link sent immediately via Telnyx
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-purple-900">
+                    <span className="text-purple-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels for tracking
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-purple-900">
+                    <span className="text-purple-400 mt-0.5">•</span>
+                    Fax has per-page costs
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowFaxSendModal(false);
+                  setFaxNumberInput("");
+                  setError(null);
+                }}
+                disabled={sendingFax}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendFaxInline}
+                disabled={sendingFax || (!faxNumberInput.trim() && !provider.fax_number && !faxResult?.fax)}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingFax ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  "Send Fax"
                 )}
               </button>
             </div>

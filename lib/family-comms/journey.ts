@@ -506,14 +506,14 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "fax_attempt",
       phase: "Follow Up",
-      title: "Fax sent",
+      title: "Fax sent inline",
       timing: "Manual · When fax number available",
       description:
-        "Admin sends fax via Telnyx. Useful when emails aren't reaching " +
-        "the decision maker.",
-      ownerNote: "Triggered from Follow Up or Alternative Channels tab",
-      traits: ["Manual", "Conditional"],
-      gate: "Requires valid fax number (auto-discovered or manually added)",
+        "Admin clicks 'Fax' in Follow Up, enters/confirms fax number in modal, " +
+        "and fax is sent immediately via Telnyx. Provider then moves to Alternative Channels for tracking.",
+      ownerNote: "Inline send from Follow Up tab; tracked in Alternative Channels",
+      traits: ["Manual", "Conditional", "Has cost"],
+      gate: "Requires valid fax number (auto-discovered or manually entered)",
     },
     {
       key: "fix_email",
@@ -554,40 +554,28 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "directmail_attempt",
       phase: "Follow Up",
-      title: "Direct mail sent",
+      title: "Direct mail sent inline",
       timing: "Manual · When address available",
       description:
-        "Physical letter sent to provider. Last resort when digital " +
-        "channels aren't working.",
-      ownerNote: "Triggered from Follow Up tab",
-      traits: ["Manual", "Has cost"],
+        "Admin clicks 'Direct Mail' in Follow Up, enters/confirms mailing address in modal, " +
+        "and postcard is sent immediately via PostGrid. Provider then moves to Alternative Channels for tracking.",
+      ownerNote: "Inline send from Follow Up tab; tracked in Alternative Channels",
+      traits: ["Manual", "Conditional", "Has cost"],
       gate: "Requires valid mailing address",
     },
-    // ── Alternative Channels ─────────────────────────────────────────────
+    // ── Alternative Channels (End of Funnel) ────────────────────────────
     {
-      key: "re_engage_wait",
+      key: "alternative_channels_tracking",
       phase: "Alternative Channels",
-      title: "Provider in Alternative Channels",
-      timing: "After Follow Up · Admin decision",
+      title: "Tracking delivery status",
+      timing: "After fax/direct mail sent from Follow Up",
       description:
-        "Provider moved to re_engage stage with a selected channel (fax or direct mail). " +
-        "Admins can send fax/postcard, send claim links, or click 'Re-engage now' to restart " +
-        "the email sequence. There is no automatic progression — all actions are manual.",
-      ownerNote: "Manual admin decision from Follow Up tab",
-      traits: ["Manual", "No auto-progression"],
-    },
-    {
-      key: "cycle_restart",
-      phase: "Alternative Channels",
-      title: "Restart sequence (optional)",
-      timing: "Admin clicks 'Re-engage now'",
-      description:
-        "Admin can restart the 4-email sequence for providers who haven't claimed. " +
-        "This returns the provider to In Sequence for another cycle. " +
-        "Currently there is no defined terminal state after Alternative Channels.",
-      ownerNote: "Triggered via 'Re-engage now' button in Alternative Channels tab",
-      traits: ["Manual", "Optional"],
-      gate: "Admin decides if/when to restart; provider stays in Alternative Channels indefinitely otherwise",
+        "Provider arrives here after fax or direct mail was sent from Follow Up. " +
+        "This tab is tracking-only: shows delivery status (queued → sent → delivered). " +
+        "Admin can Archive or mark Not Interested. This is the end of the outreach funnel.",
+      ownerNote: "Tracking-only tab; no further outreach actions",
+      traits: ["Tracking", "Terminal"],
+      gate: "End of funnel — provider either claims, is archived, or marked not interested",
     },
   ],
 };

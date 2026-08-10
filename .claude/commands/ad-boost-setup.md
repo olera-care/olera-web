@@ -41,6 +41,44 @@ For each provider (from screenshot or $ARGUMENTS, matched against `ad_campaign_r
 
 ## Phase 2 — Build in Google Ads (chrome-devtools MCP)
 
+### Step A — prove the window is REAL and VISIBLE before touching the wizard (do this every session)
+
+**TJ has to watch this flow and personally complete the Publish click and any Google "Confirm it's you" re-auth. A window he cannot see makes the whole session worthless.** So the very first browser action of every session is a visibility check, not a navigation:
+
+```
+evaluate_script: () => ({ innerW: innerWidth, innerH: innerHeight, outerW: outerWidth, outerH: outerHeight })
+```
+
+**`outerW`/`outerH` of 0 means the automation browser process is alive but windowless** — snapshot/evaluate/click still work, so the session *looks* fine while TJ sees nothing. Screenshots time out ("Page.captureScreenshot timed out") and `resize_page` errors "Active contents not found". Do NOT paper over this with `emulate` viewport — that restores clicking but never puts a window on TJ's screen, and you will get all the way to the publish gate before discovering he was blind the whole time. (Cost this once, 2026-08-10.)
+
+**Fix — relaunch the automation browser with a real window (~15s).** The MCP for this account runs in **attach mode** (`--browserUrl http://127.0.0.1:9222` in `~/.claude.json`), so it will **not** relaunch the browser for you; killing it and calling `new_page` just fails. You must hand-launch:
+
+```bash
+# 1. Kill ONLY the automation instance — it is the one with --remote-debugging-port.
+#    NEVER kill TJ's main Dia (plain command line, no automation flags).
+pgrep -f "remote-debugging-port=9222"   # confirm the pid first
+kill <automation-pid>; sleep 3
+
+# 2. Relaunch with explicit window geometry and a URL arg (the URL is what forces a window to open)
+nohup /Applications/Dia.app/Contents/MacOS/Dia \
+  --user-data-dir=/Users/tfalohun/.cache/chrome-devtools-mcp/chrome-profile \
+  --remote-debugging-port=9222 \
+  --no-first-run --no-default-browser-check --restore-last-session=false \
+  --window-size=1440,900 --window-position=40,40 \
+  "https://ads.google.com/aw/overview?ocid=984737409" \
+  >/tmp/dia-9222.log 2>&1 &
+sleep 8
+curl -s --max-time 5 http://127.0.0.1:9222/json/version   # must return JSON
+```
+
+Then `list_pages` (it will report "browser was restarted or reconnected" — call it again), `new_page`, and **re-run the visibility check**. Success looks like `outerW: 1440, outerH: 900` and a `take_screenshot` that actually returns an image. Confirm to TJ that the window is up before proceeding.
+
+Note `--window-size` alone is not enough on a bare relaunch; pass the **URL argument** too or Dia can come back windowless again. If CDP answers but bounds are still 0×0, `Browser.setWindowBounds` over raw CDP on port 9222 can force geometry — but a fresh launch with the URL arg is the reliable path.
+
+This is the same failure documented in the `/open-dia` skill under "Screenshots/resize time out but snapshot/evaluate still work" — that skill assumes launch mode (`kill` → `new_page` auto-relaunch); **this account is attach mode, so the hand-launch above is the correct version.** Read `/open-dia` for the other browser failure modes (Vercel Code 21, MCP launch hangs).
+
+### Step B — the wizard
+
 Open `ads.google.com` (Olera account 419-933-1442, tj@olera.care). If the Claude-managed Chrome profile is signed out, ask TJ to sign in once and wait.
 
 Wizard path: Create campaign → New campaign → **Create a campaign without guidance** → Search → keep default conversion goals → check Website visits only (never Phone calls) → tagged Final URL → campaign name → then per step:
@@ -50,6 +88,7 @@ Wizard path: Create campaign → New campaign → **Create a campaign without gu
 - **AI Max**: leave OFF. **Keyword/asset generation**: Skip.
 - **Keywords and ads**: paste keywords; set display paths; **replace every prefilled asset** — Google prefills an "Olera.care" headline (URL in ad text = the classic past denial) and sometimes wrong-city descriptions. Add headline slots to reach 13.
 - **Budget**: Campaign total, $50, start/end dates.
+  - **If campaign-total refuses to publish, fall back to a daily budget.** A draft can get stuck showing `Add a budget: To publish your campaign, enter a budget` with **no Publish button**, even with `$50.00` and both dates entered and rendering correctly in the Overview. Re-entering, blurring, and re-saving does not clear it. Switching to **Average daily budget → Set custom budget → $50 ÷ flight days** (14d ⇒ `$3.57`) clears it instantly. Same spend envelope; the differences are that daily can flex up to 2× on a given day and the stop is enforced by the **end date** rather than a hard total cap — so after switching, **confirm the end date survived** (Campaign settings → More settings), because the dates live on the campaign-total widget and vanish from the Overview when you switch. This is draft-specific, NOT account-wide: existing campaigns run on campaign-total fine, and reviving one (below) can still use it.
 
 ### Mandatory policy audit (TJ requirement — do this before Review, every time)
 
@@ -58,12 +97,17 @@ Scripted check over every headline + description: **no URLs** (`http|www|.com|.c
 ### Known blockers & how to handle
 
 - `"home health care {city}"` keywords → hard policy block ("Health in personalized advertising"). **Remove the keyword**, don't request an exception. `"home health aide {city}"` passes. Never include dementia/alzheimer's/memory-care terms.
-- Budget step may fire a Google **"Confirm it's you"** re-auth that only TJ can complete in the browser ("Changes failed to save" in the sidebar until cleared). Ask TJ, retry, continue. One verification usually covers the whole session.
+- Budget step may fire a Google **"Confirm it's you"** re-auth that only TJ can complete in the browser ("Changes failed to save" in the sidebar until cleared). Ask TJ, retry, continue. Clicking **Confirm** opens the real challenge in a **new tab** — `list_pages`, `select_page` with `bringToFront`, screenshot it, and hand TJ the window. Never type credentials.
+- **The `AD_FINAL_URL` re-auth SILENTLY ROLLS BACK the entire ads step.** (Cost this a full rebuild, 2026-08-10.) It is triggered by the ad's destination URL, so it fires on a first-time domain/UTM combo and again on any later Final URL edit — not by the budget itself, despite appearing during the budget step. After ANY Google identity challenge, **re-verify the ads step field-by-field before trusting the Review screen**: expect all headlines/descriptions reverted to Google's prefill (the `Olera.care` headline reappears), keywords and display paths blank, and the budget reset. Verify with `Headlines n/15` + `Descriptions n/4` counters and by asserting no headline equals `Olera.care`.
+- **The Review screen's Overview is not a reliable mirror of saved state.** It showed `Locations: All countries and territories` and AI Max "turned on" while the actual Campaign settings step held the correct radius and AI Max off — and it omits campaign start/end dates entirely even when they are set. Verify anything suspicious on its own step (dates live under Campaign settings → **More settings**, which does load despite the sub-panel warning above) before "fixing" what isn't broken.
+- **`Publish campaign` only renders when you arrive at the summary through the wizard.** Loading `currentStep=campaign-summary` by URL, or reloading it, produces a page that says "ready to publish" with no button anywhere in the DOM. Go back one step and click **Next** to surface it.
 - Bidding warning triangle after setting the CPC cap = standard advisory, not a blocker.
 - Angular-Dart dropdowns don't expose options to the a11y tree — click options via evaluate_script on `material-list-item` / `material-select-dropdown-item`.
 - **Synthetic JS `.click()` on `material-checkbox` does NOT register** — Angular never sees it and the counters don't even move. Use the real chrome-devtools `click` tool with snapshot uids. (JS native-setter DOES work for `<textarea>`, e.g. the negative-keyword paste box; it does NOT work for material-inputs or checkboxes.)
 - **Campaign Settings sub-panels ("Other settings", where device/ad-schedule controls live) never finish loading** under the automation profile — they hang on "Loading name / Loading summary" forever, and Google shows a persistent "turn off ad blockers" dialog. Don't debug it; use the direct URLs below.
 - **Before concluding "this setting won't save," check for a leave-confirmation modal.** Several Google Ads panels (notably auto-apply) defer the write until you navigate away. Uncheck → refresh will always look like a silent revert.
+- **Clicks that "succeed" but change nothing → look for a stuck `ipl-progress-indicator`.** The wizard sometimes leaves a full-screen `position:fixed; z-index:9999; pointer-events:auto` loading overlay up permanently. The click tool reports success (it dispatched at the coordinates) but the overlay ate it, and `aria-selected` never flips. Diagnose with `document.elementFromPoint(x, y)` on the target's center — if it returns `IPL-PROGRESS-INDICATOR` instead of your element, that's it. **Fix: `navigate_page` reload.** Re-select from the reloaded page; wizard state up to that point lives in the `cmpnInfo` URL param and survives.
+- **Verify each wizard selection actually took** before clicking Continue — `[role=tab]` → `aria-selected`, `material-checkbox` → `aria-checked`, dropdowns → the combobox `value`. Do not trust "Successfully clicked".
 
 ### Direct URLs (the in-app nav hides or 404s on most of these)
 
@@ -77,7 +121,7 @@ Scripted check over every headline + description: **no URLs** (`http|www|.com|.c
 | Conversion actions | `/aw/conversions?ocid=984737409&subtab=allconv` |
 | Change history | `/aw/changehistory?ocid=984737409` |
 
-Campaign IDs: HomeWell `24052308622` · Legacy Haven `24062146484` · Miracle-Lightstar `23998344651` · Impact `23998367469` · Abode `23981427299`
+Campaign IDs: HomeWell `24052308622` · Legacy Haven `24062146484` · Miracle-Lightstar `23998344651` · Impact `23998367469` · Abode `23981427299` · Rosemonte (assisted living) `24126008389`
 
 ### Conversion tracking — known dead, don't chase it
 
@@ -102,6 +146,8 @@ Open `https://ads.google.com/aw/keywords/searchterms?campaignId={id}&ocid=984737
 
 What we found on HomeWell (2026-07-25) after 5 days: **all 50 named search terms had ZERO clicks.** ~28 were competitor brand navigation (`amada senior care`, `ohana home care`, `home instead`, `shannondale`) and ~14 were the wrong category (`home health`, `nursing home`, `assisted living`, `hospice`). Phrase match with close variants pulls brand queries hard. Nobody clicks a generic ad after searching a specific company by name — so CTR collapses (1.04%), Quality Score follows, and the campaign loses **87% of its auctions to Ad Rank** and underspends ($4.91 of $50). Death spiral.
 
+**Full-flight numbers for that same campaign (measured 2026-08-10, after it ended — supersedes the mid-flight read above):** 14 clicks, 462 impressions, **CTR 3.03%**, avg CPC $2.36, **$33.02 of $50**, zero leads. So it recovered from 1.04%, and named terms did eventually get clicks. But **every one of the 4 named-term clicks ($9.23) was still wasted** — `commonwealth senior living at oak ridge`, `private duty nursing knoxville tn`, `private nursing near me`, `south knoxville senior living photos`. Of 119 total terms: ~55 local competitor brands, ~20 senior-living communities, ~15 wrong-category, 4 out-of-market cities. **Read the mid-flight number as a leading indicator, not a verdict — but the waste pattern persists regardless of what CTR does.**
+
 Harvest into negatives, **always phrase match, never broad** (broad would kill the live `"home health aide {city}"` keyword):
 
 - **Local competitor brands.** The national list is already applied; every market has its own operators that ONLY surface here. This is why the harvest is per-campaign and recurring, not one-time.
@@ -120,6 +166,26 @@ Add local brands at **campaign level**; add anything nationally reusable to the 
 | Zero leads on a clean campaign | Just the $50 math (~0.7 expected leads) | Nothing. Do not thrash. |
 
 **Sequence matters:** fix negatives first, wait 48h, then re-read CTR. Only rebuild keywords if CTR did not move. One number decides; do not rebuild on a hunch.
+
+## Phase 3.6 — Repeat customers (flight 2+): REVIVE, don't rebuild
+
+**Always check `ad_campaign_requests` for prior rows on the same `provider_id` before building anything.** A provider whose earlier flight `ended` and who has requested again does NOT need a new campaign. Quality Score and ad history are per-campaign, and QS/Ad Rank is the thing throttling these campaigns — a fresh build throws that away and restarts learning. TJ chose revive on 2026-08-10 (HomeWell flight 2).
+
+Revive order matters — **fix the config first, turn spend on last:**
+
+1. **Harvest the prior flight's search terms first** (Phase 3.5) — an ended campaign's terms are the whole point of flight 2. Set the date range to **All time**; the default window is empty for an ended campaign.
+2. **Check what negatives already exist** before pasting. The shared list is usually already attached; you only need the delta. Read the `Level` column — a shared list shows as `List`, everything else as `Campaign`.
+3. **Read the live keywords before writing negatives** (`/aw/keywords?campaignId=X`). A phrase negative blocks any query containing it, so it can silently kill a live keyword — e.g. negating `"home health"` kills the live `"home health aide {city}"`. Negate the specific variants instead (`"home health care"`, `"home health {city}"`, `"home health agencies"`, branded ones).
+4. **Never negate the provider's own brand.** It will appear in the search terms and it is the cheapest, highest-intent traffic they get.
+5. **Update the ad's Final URL `utm_campaign`** to the new flight tag (`{stub}-{city}-{mon}{yy}`) or attribution merges both flights. Hover the ad row → the `Edit this Ad` pencil (`.ess-edit-icon`) only appears on hover. **This edit re-triggers the `AD_FINAL_URL` re-auth** — see Known blockers.
+6. **Raise the campaign total budget** to `already-spent + 50` (HomeWell: $33.02 spent ⇒ $83) so the flight gets a real $50 of runway.
+7. **Extend the end date LAST** — that is what flips `Ended → Eligible` and turns spend back on.
+
+Then run Phase 3 checks (AI Max off, auto-apply 0/7 + 0/14) as normal.
+
+**Reporting caveat to tell TJ:** flight 1 and flight 2 metrics blend inside the revived campaign. Record flight 1's final numbers in `admin_note` before reviving so the flights stay separable.
+
+**Don't change keywords in the same pass as negatives.** Per the diagnosis table, negatives first → wait 48h → re-read CTR. Changing both makes the read unattributable. Dead `"near me"` keywords can stay; they draw zero impressions and cost nothing.
 
 ## Phase 4 — Handoff (TJ-gated, do NOT do automatically)
 

@@ -119,6 +119,10 @@
     {
       "path": "/api/cron/ad-boost-end-scheduler",
       "schedule": "40 * * * *"
+    },
+    {
+      "path": "/api/cron/support-email-sync",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

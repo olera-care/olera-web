@@ -58,7 +58,7 @@ async function resolveTestProfile(db: ReturnType<typeof getServiceClient>) {
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
-  return (data as { id: string; display_name: string | null } | null) ?? null;
+  return (data as { id: string; display_name: string | null; state: string | null } | null) ?? null;
 }
 
 /** Find or create a plan token for the test profile, so the link resolves to a
@@ -66,6 +66,7 @@ async function resolveTestProfile(db: ReturnType<typeof getServiceClient>) {
 async function resolveTestToken(
   db: ReturnType<typeof getServiceClient>,
   profileId: string,
+  stateCode: string | null,
 ): Promise<string | null> {
   const { data: existing } = await db
     .from("benefits_results_tokens")
@@ -81,7 +82,11 @@ async function resolveTestToken(
     token,
     profile_id: profileId,
     care_need: "payingForCare",
-    state_code: "TX",
+    // The profile's own state, not a hardcoded one. A token stamped TX for a
+    // family in ND renders their state's chips above another state's programs,
+    // which looks like a routing bug in the product rather than a quirk of the
+    // test fixture. Falls back only when the profile has no state at all.
+    state_code: stateCode || "TX",
     match_count: 0,
   });
   if (error) {
@@ -146,7 +151,7 @@ export async function GET(req: Request) {
     });
   }
 
-  const token = await resolveTestToken(db, profile.id);
+  const token = await resolveTestToken(db, profile.id, profile.state);
   if (!token) {
     return NextResponse.json({ error: "Could not create a test plan token" }, { status: 500 });
   }

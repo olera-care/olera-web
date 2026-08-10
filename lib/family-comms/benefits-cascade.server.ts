@@ -458,7 +458,8 @@ export async function selectFirstStepProgram(
     .order("created_at", { ascending: true })
     .order("id", { ascending: true });
 
-  const candidates: { pick: FirstStepPick; boost: number; rank: number; idx: number }[] = [];
+  const ownAbbrev = opts.stateAbbrev ? opts.stateAbbrev.toUpperCase() : null;
+  const candidates: { pick: FirstStepPick; boost: number; rank: number; idx: number; sameState: boolean }[] = [];
   (saved || []).forEach((row, idx) => {
     if (!row.program_id || !row.state_id || excluded.has(row.program_id)) return;
     const abbrev = getStateAbbrev(row.state_id);
@@ -473,15 +474,37 @@ export async function selectFirstStepProgram(
       boost: verdict.boost,
       rank: COMPLEXITY_RANK[draft.complexity] ?? 3,
       idx,
+      // Saved programs accumulate across states — a family exploring care for a
+      // parent elsewhere ends up with two states in one list. Nothing here used
+      // to compare them against the family's OWN state, so a Texas program
+      // could lead the plan page and the letter for a family in North Dakota,
+      // carrying Texas's phone number and Texas's residency paperwork. That is
+      // the Louisiana failure again: right program, wrong state's office.
+      sameState: ownAbbrev ? abbrev.toUpperCase() === ownAbbrev : true,
     });
   });
-  // Fit, then ease, then a stable tiebreak. Complexity used to lead here, which
-  // let an easy program outrank a relevant one: a WV family saw a blindness
-  // program promoted over the waiver they actually matched, purely because it
-  // was `medium` and the waiver was `deep`. Relevance has to beat convenience.
-  // Families with no eligibility facts have boost 0 across the board and fall
-  // straight through to the old complexity ordering.
-  candidates.sort((a, b) => b.boost - a.boost || a.rank - b.rank || a.idx - b.idx);
+  // Own state, then fit, then ease, then a stable tiebreak.
+  //
+  // State leads because a program in the wrong state is not a worse match, it
+  // is unusable: the number rings another state's agency and the paperwork asks
+  // for residency the family can't prove. Fit still decides among the programs
+  // they can actually apply to. A foreign-state program is demoted rather than
+  // dropped, so a family whose own state offers nothing still gets a real
+  // starting point instead of an empty plan.
+  //
+  // Fit beats ease, which was the previous fix here: complexity used to lead,
+  // letting an easy program outrank a relevant one — a WV family saw a
+  // blindness program promoted over the waiver they actually matched, purely
+  // because it was `medium` and the waiver was `deep`. Families with no
+  // eligibility facts have boost 0 across the board and fall straight through
+  // to the complexity ordering.
+  candidates.sort(
+    (a, b) =>
+      Number(b.sameState) - Number(a.sameState) ||
+      b.boost - a.boost ||
+      a.rank - b.rank ||
+      a.idx - b.idx,
+  );
   if (candidates[0]) return candidates[0].pick;
 
   // 3. State fallback: the pipeline's own "start here" list.

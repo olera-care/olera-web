@@ -6,13 +6,15 @@ import { getCampaignLeadStatistics, isSmartleadConfigured } from "@/lib/smartlea
  * GET /api/admin/provider-outreach/claims-dashboard
  *
  * Returns claims-based metrics for the Email Performance section.
- * Claims data from provider_outreach_tracking (100% accurate).
- * Engagement data (opens/clicks) from SmartLead API (aggregate only, cached 5 min).
  *
- * Data flow:
- * 1. Provider enters sequence → sequence_started_at is set
- * 2. Provider clicks magic link → business_profiles.account_id is set
- * 3. Database trigger sets provider_outreach_tracking.claimed_at = now()
+ * Data sources:
+ * - Claimed count: business_profiles.account_id (source of truth, matches header stat)
+ * - Sequenced count: provider_outreach_tracking.sequence_started_at
+ * - Timing data: provider_outreach_tracking.claimed_at (where available)
+ * - Engagement: SmartLead API (cached 5 min)
+ *
+ * Note: The "When Providers Claim" breakdown only includes claims where we have
+ * timing data (claimed_at is set). Older claims may lack this timestamp.
  *
  * Returns:
  *   - totals: { sequenced, claimed, conversion_rate, avg_time_to_claim_days }
@@ -116,7 +118,7 @@ export async function GET() {
 
     const db = getServiceClient();
 
-    // Single query for all tracking data (claims + campaign IDs)
+    // Query 1: Get all sequenced providers with their tracking data
     const { data: trackingRows, error: trackingError } = await db
       .from("provider_outreach_tracking")
       .select("provider_id, sequence_started_at, claimed_at, smartlead_data")
@@ -127,10 +129,43 @@ export async function GET() {
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
 
-    // Process tracking data: calculate claims metrics AND collect campaign IDs
-    const claimsFromSequence: Array<{ daysSinceSequence: number }> = [];
+    // Query 2: Get claimed providers from business_profiles (source of truth)
+    // This matches the logic used by the header "SEQUENCE CONV." stat
+    const { data: claimedBps, error: claimedError } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .not("source_provider_id", "is", null)
+      .not("account_id", "is", null);
+
+    if (claimedError) {
+      console.error("[claims-dashboard] Claimed query error:", claimedError);
+      return NextResponse.json({ error: "Database error" }, { status: 500 });
+    }
+
+    // Build set of claimed provider IDs (from business_profiles)
+    const claimedProviderIds = new Set(
+      (claimedBps || []).map((bp) => bp.source_provider_id)
+    );
+
+    // Build map of sequence start times for claimed providers (for time calculations)
+    const sequenceStartMap = new Map<string, Date>();
+    for (const row of trackingRows || []) {
+      sequenceStartMap.set(row.provider_id, new Date(row.sequence_started_at));
+    }
+
+    // Build map of claimed_at times (for time calculations, where available)
+    const claimedAtMap = new Map<string, Date>();
+    for (const row of trackingRows || []) {
+      if (row.claimed_at) {
+        claimedAtMap.set(row.provider_id, new Date(row.claimed_at));
+      }
+    }
+
+    // Process tracking data: calculate metrics AND collect campaign IDs
+    const claimsWithTiming: Array<{ daysSinceSequence: number }> = [];
     const campaignIds = new Set<number>();
     let sequencedCount = 0;
+    let claimedCount = 0;
 
     for (const row of trackingRows || []) {
       sequencedCount++;
@@ -143,20 +178,23 @@ export async function GET() {
         }
       }
 
-      // Calculate claim timing if claimed
-      if (row.claimed_at) {
-        const sequenceStartedAt = new Date(row.sequence_started_at);
-        const claimedAt = new Date(row.claimed_at);
-        const daysSinceSequence = Math.floor(
-          (claimedAt.getTime() - sequenceStartedAt.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        claimsFromSequence.push({
-          daysSinceSequence: Math.max(0, daysSinceSequence),
-        });
+      // Check if this provider claimed (using business_profiles as source of truth)
+      if (claimedProviderIds.has(row.provider_id)) {
+        claimedCount++;
+
+        // Calculate timing only if we have claimed_at (for day breakdown)
+        const claimedAt = claimedAtMap.get(row.provider_id);
+        if (claimedAt) {
+          const sequenceStartedAt = new Date(row.sequence_started_at);
+          const daysSinceSequence = Math.floor(
+            (claimedAt.getTime() - sequenceStartedAt.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          claimsWithTiming.push({
+            daysSinceSequence: Math.max(0, daysSinceSequence),
+          });
+        }
       }
     }
-
-    const claimedCount = claimsFromSequence.length;
 
     // Calculate conversion rate
     const conversionRate =
@@ -164,14 +202,15 @@ export async function GET() {
         ? Math.round((claimedCount / sequencedCount) * 1000) / 10
         : 0;
 
-    // Calculate average time to claim
+    // Calculate average time to claim (only for claims where we have timing data)
     let avgTimeToClaimDays: number | null = null;
-    if (claimsFromSequence.length > 0) {
-      const totalDays = claimsFromSequence.reduce((sum, c) => sum + c.daysSinceSequence, 0);
-      avgTimeToClaimDays = Math.round((totalDays / claimsFromSequence.length) * 10) / 10;
+    if (claimsWithTiming.length > 0) {
+      const totalDays = claimsWithTiming.reduce((sum, c) => sum + c.daysSinceSequence, 0);
+      avgTimeToClaimDays = Math.round((totalDays / claimsWithTiming.length) * 10) / 10;
     }
 
-    // Calculate sequence day breakdown
+    // Calculate sequence day breakdown (only for claims where we have timing data)
+    // Note: This may not sum to claimedCount if some claims lack claimed_at timestamps
     const dayBuckets = [
       { label: "Day 0", day_min: 0, day_max: 2 },
       { label: "Day 3", day_min: 3, day_max: 4 },
@@ -179,8 +218,9 @@ export async function GET() {
       { label: "Day 7+", day_min: 7, day_max: null },
     ];
 
+    const claimsWithTimingCount = claimsWithTiming.length;
     const sequenceDayBreakdown = dayBuckets.map((bucket) => {
-      const count = claimsFromSequence.filter((c) => {
+      const count = claimsWithTiming.filter((c) => {
         if (bucket.day_max === null) {
           return c.daysSinceSequence >= bucket.day_min;
         }
@@ -192,7 +232,8 @@ export async function GET() {
         day_min: bucket.day_min,
         day_max: bucket.day_max,
         count,
-        percentage: claimedCount > 0 ? Math.round((count / claimedCount) * 100) : 0,
+        // Percentage is of claims WITH timing data, not total claims
+        percentage: claimsWithTimingCount > 0 ? Math.round((count / claimsWithTimingCount) * 100) : 0,
       };
     });
 

@@ -7,6 +7,14 @@
 
 ## Current Focus
 
+### 2026-08-10 — Gmail support inbox + Olera Support Copilot (`codex/gmail-support-inbox`)
+
+Built `/admin/support-email` as a Gmail-backed operations inbox for `support@olera.care`: resumable full-history/incremental sync, thread state and audit trail, reply drafts/sends, noise-vs-customer classification, suggested next actions, internal escalation, unsubscribe guidance, and guarded agent recommendations. Added OAuth/admin APIs, the `support-email-sync` recovery cron, migration `171_support_email_inbox.sql`, the minimal `gmail-webhook` Edge Function, documentation, environment contracts, and Admin sidebar entry.
+
+**External setup completed and live-tested:** dedicated Internal Google Cloud project `olera-support-inbox`; Gmail API + `gmail.modify`; production/staging OAuth callbacks; permanent Pub/Sub topic/subscription; Gmail publisher IAM; Vercel Production+Preview secrets/topic/redirects; Supabase `GMAIL_WEBHOOK_SECRET`; deployed webhook with legacy JWT verification off and private URL-token auth. TJ applied migration 171. A Gmail-shaped Pub/Sub message reached `support_email_events`; the test row was removed.
+
+**Validation:** pre-test fixes applied; TypeScript, build, targeted lint/diff review, and cron registry checks passed before external setup. **Next:** preview PR to `staging`, wait for Vercel, connect `support@olera.care` from the preview admin panel, then run live import/classification/reply QA. Do not merge without TJ.
+
 ### 2026-08-09 — Connect operational queues to their next workspace (`codex/adboost-analytics-link`, PR #1527)
 
 Added durable cross-links so the work does not disappear into separate admin sections: `/admin/ad-boost` now shows **View purchase analytics →** beside its messaging journey and deep-links to the expanded, anchored **Ad Boost Purchase Funnel**; the Benefits Families queue now shows **Review family replies →** beside its messaging journey and opens `/admin/inbox` in the default **Needs reply** mode. **Decision:** use “Review family replies” rather than “Benefits messages” because the shared SMS inbox also contains provider and non-benefits threads; the source context is specific, the destination label remains honest. **Files:** `app/admin/ad-boost/page.tsx`, `app/admin/analytics/page.tsx`, `components/admin/BenefitsFamiliesView.tsx`. **Validation:** TypeScript, targeted ESLint, and diff checks pass. **Commits:** `4e747449b`, `ca02d8d1a`. **Next:** preview PR #1527 against `staging`, then merge only after TJ approval.

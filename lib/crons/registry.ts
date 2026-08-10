@@ -577,6 +577,20 @@ export const CRON_REGISTRY: CronJob[] = [
 
   // ── Data & maintenance ─────────────────────────────────────────────
   {
+    id: "support-email-sync",
+    name: "Support Gmail sync + triage",
+    description:
+      "Keeps the support inbox current from Gmail history, imports the next full-history page until the entire mailbox is present, renews Gmail push watches, and generates safe support-copilot recommendations for new inbound threads.",
+    recipientCohort: "(No recipients -- synchronizes support@olera.care into the admin support queue.)",
+    audience: "Data & maintenance",
+    fn: "refresh",
+    schedule: "*/5 * * * *",
+    humanSchedule: "Every 5 minutes; Gmail Pub/Sub supplies the low-latency change signal",
+    path: "/api/cron/support-email-sync",
+    emailTypes: [],
+    relatedAdminPath: "/admin/support-email",
+  },
+  {
     id: "aggregate-provider-views",
     name: "Provider view stats rollup",
     description: "Nightly: rolls up the prior UTC day's page_view events from provider_activity into provider_page_view_stats (per-provider/day) and city_category_view_benchmarks (peer cohort aggregates). Feeds the provider analytics surfaces and the weekly digest's demand line.",

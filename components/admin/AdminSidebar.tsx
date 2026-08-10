@@ -33,6 +33,7 @@ const navSections: NavSection[] = [
       // Inbound SMS. Carries an unhandled badge because the volume is low —
       // without it this reads as a dead page and stops getting checked.
       { label: "Messages", href: "/admin/inbox" },
+      { label: "Support Email", href: "/admin/support-email" },
       // "Referrals" = the market-outreach ambassador/nudge queue; renamed
       // to say the job, not the department (2026-07 sidebar naming pass)
       { label: "Referrals", href: "/admin/market-outreach" },
@@ -340,6 +341,7 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   // arrives while the admin is elsewhere, and a stale zero is the whole reason
   // a low-volume inbox stops getting opened.
   const [smsUnhandled, setSmsUnhandled] = useState(0);
+  const [emailUnhandled, setEmailUnhandled] = useState(0);
   const refetchSmsUnhandled = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/sms-inbox?count_only=true");
@@ -356,6 +358,23 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refetchSmsUnhandled]);
+
+  const refetchEmailUnhandled = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/support-email?count_only=true");
+      if (!res.ok) return;
+      const data = (await res.json()) as { unhandled?: number };
+      setEmailUnhandled(data.unhandled ?? 0);
+    } catch {
+      /* Inbox is inert until migration 171 + Gmail connection are configured. */
+    }
+  }, []);
+  useEffect(() => {
+    void refetchEmailUnhandled();
+    const onFocus = () => void refetchEmailUnhandled();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [refetchEmailUnhandled]);
 
   // Hydrate from localStorage after mount
   useEffect(() => {
@@ -487,7 +506,11 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                     {section.items.map((item) => {
                       const active = isActive(item.href);
                       const pinned = favorites.includes(item.href);
-                      const unread = item.href === "/admin/inbox" ? smsUnhandled : 0;
+                      const unread = item.href === "/admin/inbox"
+                        ? smsUnhandled
+                        : item.href === "/admin/support-email"
+                          ? emailUnhandled
+                          : 0;
                       return (
                         <div key={item.href} className="relative group/item">
                           <Link

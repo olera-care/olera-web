@@ -2431,6 +2431,10 @@ function FollowUpProviderRow({
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailJustSaved, setEmailJustSaved] = useState(false);
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  // Inline phone editing state
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [savingPhone, setSavingPhone] = useState(false);
   // Not interested reason state
   const [notInterestedReason, setNotInterestedReason] = useState<string>("");
   // Inline fax editing state
@@ -2458,6 +2462,8 @@ function FollowUpProviderRow({
       setEditingEmail(false);
       setNewEmail("");
       setEmailJustSaved(false);
+      setEditingPhone(false);
+      setNewPhone("");
       setError(null);
       setNotInterestedReason("");
       setEditingFax(false);
@@ -2591,6 +2597,44 @@ function FollowUpProviderRow({
       // Only reset loading state if this session is still current
       if (editingSessionRef.current === sessionAtStart) {
         setSavingEmail(false);
+      }
+    }
+  };
+
+  // Handle saving updated phone number
+  const handleSavePhone = async () => {
+    const trimmedPhone = newPhone.trim();
+    // Allow empty to clear phone, or validate format
+    const sessionAtStart = editingSessionRef.current;
+    setSavingPhone(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-phone", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, phone: trimmedPhone || null }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        onProviderUpdated({ phone: trimmedPhone || null });
+        if (stillValid) {
+          setEditingPhone(false);
+          setNewPhone("");
+        }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to save phone");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error saving phone");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingPhone(false);
       }
     }
   };
@@ -3128,99 +3172,178 @@ function FollowUpProviderRow({
               <p className="text-sm text-gray-500 mt-1">Consider calling to ask which channel they prefer.</p>
             </div>
 
-            {/* Email box */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              {editingEmail ? (
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="Enter email address"
-                    className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
+            {/* Contact boxes - Email & Phone side by side */}
+            <div className="mb-4 flex gap-3">
+              {/* Email box */}
+              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                {emailJustSaved ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-emerald-600">✓</span>
+                      <span className="text-sm text-gray-700 truncate">{newEmail || provider.email}</span>
+                      <span className="text-xs text-emerald-600 font-medium">Saved</span>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSendClaimLink();
+                      }}
+                      disabled={sendingClaimLink}
+                      className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {sendingClaimLink ? "Sending..." : "Send Claim Link"}
+                    </button>
+                  </div>
+                ) : editingEmail ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="Enter email"
+                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSaveEmail();
+                        } else if (e.key === "Escape") {
+                          setEditingEmail(false);
+                          setNewEmail("");
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleSaveEmail();
-                      } else if (e.key === "Escape") {
+                      }}
+                      disabled={savingEmail || !newEmail.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {savingEmail ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setEditingEmail(false);
                         setNewEmail("");
-                      }
-                    }}
-                    autoFocus
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSaveEmail();
-                    }}
-                    disabled={savingEmail || !newEmail.trim()}
-                    className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {savingEmail ? "..." : "Save"}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingEmail(false);
-                      setNewEmail("");
-                    }}
-                    disabled={savingEmail}
-                    className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : emailJustSaved ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600">✓</span>
-                    <span className="text-sm text-gray-700">{newEmail || provider.email}</span>
-                    <span className="text-xs text-emerald-600 font-medium">Saved</span>
+                      }}
+                      disabled={savingEmail}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSendClaimLink();
-                    }}
-                    disabled={sendingClaimLink}
-                    className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {sendingClaimLink ? "Sending..." : "Send Claim Link"}
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {provider.email ? (
-                      <a
-                        href={`mailto:${provider.email}`}
-                        className="text-sm text-primary-600 hover:underline truncate"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {provider.email}
-                      </a>
-                    ) : (
-                      <span className="text-sm text-gray-400 italic">No email on file</span>
-                    )}
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      {provider.email ? (
+                        <a
+                          href={`mailto:${provider.email}`}
+                          className="text-sm text-primary-600 hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {provider.email}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">No email</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingEmail(true);
+                        setNewEmail(provider.email || "");
+                        setEmailJustSaved(false);
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                    >
+                      Edit
+                    </button>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingEmail(true);
-                      setNewEmail(provider.email || "");
-                      setEmailJustSaved(false);
-                    }}
-                    className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0 ml-2"
-                  >
-                    Edit
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Phone box */}
+              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                {editingPhone ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSavePhone();
+                        } else if (e.key === "Escape") {
+                          setEditingPhone(false);
+                          setNewPhone("");
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSavePhone();
+                      }}
+                      disabled={savingPhone}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {savingPhone ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingPhone(false);
+                        setNewPhone("");
+                      }}
+                      disabled={savingPhone}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      {provider.phone ? (
+                        <a
+                          href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                          className="text-sm text-primary-600 hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {formatPhone(provider.phone)}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">No phone</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingPhone(true);
+                        setNewPhone(provider.phone || "");
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Found contact info (fax/LinkedIn) + Find LinkedIn option */}

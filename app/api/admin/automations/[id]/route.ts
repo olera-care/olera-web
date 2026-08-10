@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getCronJob, jobChannels } from "@/lib/crons/registry";
 import { variantsForJourneys, variantBelongsToCron } from "@/lib/email-samples";
 import { smsLabelForType } from "@/lib/sms-samples";
+import { isClickTagged } from "@/lib/sms/click-source";
 
 /**
  * GET /api/admin/automations/[id]
@@ -138,6 +139,37 @@ function countConvertedByVariant(
 }
 type VStat = { sent: number; delivered: number; opened: number; clicked: number; bounced: number; complained: number };
 const emptyVStat = (): VStat => ({ sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 });
+
+type SmsRow = {
+  email_type: string; delivered_at: string | null; first_clicked_at: string | null;
+  resend_id: string | null; html_body: string | null;
+};
+/**
+ * Texts carry two denominators, not one, because a send can be un-measurable in
+ * either dimension independently.
+ *
+ * `deliverable` — sends carrying a Twilio SID. Delivery receipts arrive against
+ * the SID, so a send made before receipt capture shipped can never be confirmed
+ * delivered. Counting those in the denominator would report a delivery rate near
+ * zero and read as an outage.
+ *
+ * `clickable` — sends whose link was tagged with a source marker. Same logic: an
+ * untagged link cannot register a click, so it must not dilute the click rate.
+ *
+ * Both converge on `sent` as pre-instrumentation sends age out of the window, so
+ * neither needs a dated cutoff. The page renders "—" rather than 0% when a
+ * denominator is 0, which is the difference between "nothing to measure yet" and
+ * "measured, and nobody clicked".
+ */
+type SmsStat = { sent: number; deliverable: number; delivered: number; clickable: number; clicked: number };
+const emptySmsStat = (): SmsStat => ({ sent: 0, deliverable: 0, delivered: 0, clickable: 0, clicked: 0 });
+function accSmsStat(s: SmsStat, r: SmsRow) {
+  s.sent += 1;
+  if (r.resend_id) s.deliverable += 1;
+  if (r.delivered_at) s.delivered += 1;
+  if (isClickTagged(r.html_body)) s.clickable += 1;
+  if (r.first_clicked_at) s.clicked += 1;
+}
 function accVStat(s: VStat, e: VRow) {
   s.sent += 1;
   if (e.delivered_at) s.delivered += 1;
@@ -246,8 +278,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   type VariantOut = VStat & {
     key: string; label: string; split?: { withRank: VStat; plain: VStat };
     converted?: number; convRate?: number; convEvent?: string; convLabel?: string;
-    /** "sms" rows are texts riding the same table — no open/click semantics. */
+    /** "sms" rows are texts riding the same table. Delivery and clicks are real
+     *  for them; opens are not. `deliverable`/`clickable` are their denominators
+     *  (see SmsStat) — absent on email rows, where `sent` is the denominator. */
     channel?: "sms";
+    deliverable?: number;
+    clickable?: number;
   };
   let variants: VariantOut[] = [];
   if (job.emailTypes.length > 0) {
@@ -377,31 +413,41 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   //    total sent, per-type breakdown rows, and the parked quiet-hours queue ──
   let smsSent: number | null = null;
   let smsQueued: number | null = null;
+  let smsRollup: SmsStat | null = null;
   if (job.smsTypes && job.smsTypes.length > 0) {
     try {
       const { data: smsRows } = await db
         .from("email_log")
-        .select("email_type")
+        .select("email_type, delivered_at, first_clicked_at, resend_id, html_body")
         .eq("channel", "sms")
         .eq("status", "sent")
         .in("email_type", job.smsTypes)
         .gte("created_at", since)
         .limit(100000);
-      const perType = new Map<string, number>();
-      for (const r of (smsRows ?? []) as Array<{ email_type: string }>) {
-        perType.set(r.email_type, (perType.get(r.email_type) ?? 0) + 1);
+      const perType = new Map<string, SmsStat>();
+      smsRollup = emptySmsStat();
+      for (const r of (smsRows ?? []) as SmsRow[]) {
+        const s = perType.get(r.email_type) ?? emptySmsStat();
+        accSmsStat(s, r);
+        accSmsStat(smsRollup, r);
+        perType.set(r.email_type, s);
       }
-      smsSent = (smsRows ?? []).length;
-      // Texts ride the same breakdown table as the emails they mirror. Open/
-      // click/delivery semantics don't apply (Twilio owns delivery) — the page
-      // renders those cells as "—" via `channel: "sms"`.
+      smsSent = smsRollup.sent;
+      // Texts ride the same breakdown table as the emails they mirror. Delivery
+      // and clicks are real for them now (Twilio receipts + link markers); opens
+      // are not and never will be, so the page renders only that cell as "—".
       if (id !== "weekly-provider-digest" && job.emailTypes.length > 0) {
         for (const smsType of job.smsTypes) {
+          const s = perType.get(smsType) ?? emptySmsStat();
           variants.push({
             key: smsType,
             label: smsLabelForType(smsType) ?? smsType.replace(/_/g, " "),
             ...emptyVStat(),
-            sent: perType.get(smsType) ?? 0,
+            sent: s.sent,
+            delivered: s.delivered,
+            clicked: s.clicked,
+            deliverable: s.deliverable,
+            clickable: s.clickable,
             channel: "sms",
           });
         }
@@ -438,6 +484,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     samplePreviewTypes,
     smsSent,
     smsQueued,
+    smsRollup,
     runs,
     windowDays,
   });

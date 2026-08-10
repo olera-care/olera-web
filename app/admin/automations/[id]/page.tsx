@@ -30,8 +30,20 @@ interface VariantRow extends Rollup {
   convRate?: number;
   convEvent?: string;
   convLabel?: string;
-  // "sms" rows are texts riding the same table — no open/click/delivery semantics here.
+  // "sms" rows are texts riding the same table. Delivery and clicks are real for
+  // them; opens don't exist on SMS. deliverable/clickable are the denominators —
+  // only the sends that could have registered the thing being measured.
   channel?: "sms";
+  deliverable?: number;
+  clickable?: number;
+}
+/** Texts, 30-day: sends plus the two measurable subsets. */
+interface SmsRollup {
+  sent: number;
+  deliverable: number;
+  delivered: number;
+  clickable: number;
+  clicked: number;
 }
 interface RunRow {
   id: string;
@@ -82,6 +94,7 @@ interface DetailResponse {
   samplePreviewTypes: SamplePreviewType[];
   smsSent: number | null;
   smsQueued: number | null;
+  smsRollup: SmsRollup | null;
   runs: RunRow[];
   windowDays: number;
 }
@@ -152,9 +165,14 @@ interface RecipientRow {
   last_event_type: string | null;
   last_event_at: string | null;
 }
+/** A run's rollup carries both channels. `emailSent` is the open-rate
+ *  denominator, since texts belong to the run but can never open. */
+interface RunRollup extends Rollup {
+  emailSent: number;
+}
 interface RecipientsResponse {
   run: { id: string; started_at: string; finished_at: string | null; status: string; summary: Record<string, unknown> | null; triggered_by: string } | null;
-  rollup: Rollup;
+  rollup: RunRollup;
   columnMissing: boolean;
   pageSize: number;
   page: number;
@@ -204,6 +222,26 @@ function duration(start: string, end: string | null): string {
 }
 function pct(n: number, of: number): string {
   return of <= 0 ? "—" : `${Math.round((n / of) * 100)}%`;
+}
+/**
+ * A text's delivery/click cell, measured against only the sends that could have
+ * registered it (`den` — see SmsStat on the API side).
+ *
+ * A zero denominator renders as a dash, not 0%, because "no send yet carried the
+ * instrumentation" and "instrumented sends, nobody clicked" are opposite facts
+ * and a 0% would read as the latter. The raw fraction rides along underneath
+ * while the sample is small, so a single click can't masquerade as a headline
+ * rate — at these volumes "100%" and "1 of 1" say very different things to a
+ * reader deciding whether a rung works.
+ */
+function smsDen(n: number, den: number | undefined) {
+  if (!den) return <span title="No sends in this window carried the instrumentation yet, so there is nothing to measure. Not the same as zero engagement.">—</span>;
+  return (
+    <>
+      <span>{pct(n, den)}</span>
+      {den < 20 && <span className="block text-[10px] font-normal text-gray-400">{n} of {den}</span>}
+    </>
+  );
 }
 // ── Next-run forecast (display-only; derived entirely from data already loaded — no backend) ──
 // Parse one cron field into the set of allowed values, or null for `*` (matches anything).
@@ -683,7 +721,16 @@ export default function AutomationDetailPage() {
                         <StatCard
                           value={data.smsSent!.toLocaleString()}
                           label="Texts sent"
-                          sub={(data.smsQueued ?? 0) > 0 ? `${data.smsQueued} parked (quiet hours)` : "consent-gated"}
+                          // Clicks are the only engagement signal texts have, so they belong on the
+                          // tile rather than only inside the breakdown. Parked backlog still wins the
+                          // line when there is one — it's the more actionable fact.
+                          sub={
+                            (data.smsQueued ?? 0) > 0
+                              ? `${data.smsQueued} parked (quiet hours)`
+                              : data.smsRollup && data.smsRollup.clickable > 0
+                                ? `${data.smsRollup.clicked} of ${data.smsRollup.clickable} clicked`
+                                : "consent-gated"
+                          }
                           muted={data.smsSent === 0}
                         />
                       )}
@@ -691,7 +738,13 @@ export default function AutomationDetailPage() {
                       );
                     })()}
                     <p className="mt-2 text-xs text-gray-400">
-                      Open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal.
+                      Email open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal. Text clicks are counted server-side on arrival, so they carry no such inflation.
+                      {data.job.channels.includes("sms") && (
+                        <>
+                          {" "}
+                          <Link href="/admin/sms-click-test" className="text-teal-700 hover:underline">Check text click tracking →</Link>
+                        </>
+                      )}
                       {(() => {
                         // Cross-link to the Provider Comms Funnel on /admin/analytics
                         // pre-filtered to this automation's email-type bucket. If every
@@ -761,10 +814,12 @@ export default function AutomationDetailPage() {
                                     {v.sent === 0 && <span className="ml-2 text-[10px] font-normal uppercase tracking-wide text-gray-400">no sends yet</span>}
                                   </td>
                                   <td className="px-4 py-2 text-right tabular-nums">{v.sent.toLocaleString()}</td>
-                                  {/* Texts: Twilio owns delivery, and opens/clicks don't exist — dashes, not fake 0%. */}
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
-                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? "—" : v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
+                                  {/* Texts measure delivery (Twilio receipts) and clicks (link markers),
+                                      each against only the sends that could register it — see smsDen.
+                                      Opens don't exist on SMS, so that cell alone stays a permanent dash. */}
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? smsDen(v.delivered, v.deliverable) : v.sent > 0 ? pct(v.delivered, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? <span title="Texts have no open signal — no pixel, and a carrier receipt is not a read.">—</span> : v.sent > 0 ? pct(v.opened, v.sent) : "—"}</td>
+                                  <td className="px-4 py-2 text-right tabular-nums">{v.channel === "sms" ? smsDen(v.clicked, v.clickable) : v.sent > 0 ? pct(v.clicked, v.sent) : "—"}</td>
                                   {hasConversion && (
                                   <td className="px-4 py-2 text-right">
                                     {v.sent > 0 && v.delivered > 0 ? (
@@ -841,7 +896,21 @@ export default function AutomationDetailPage() {
                 <div className="rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-6 text-center text-sm text-gray-400">
                   {data.job.channels.includes("sms")
                     ? data.smsSent != null
-                      ? <><span className="font-semibold text-gray-600">{data.smsSent.toLocaleString()}</span> texts sent in the last {data.windowDays} days. Carrier delivery lives on the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link>; samples below.</>
+                      ? <>
+                          {/* Text-only automations have no email rollup to sit under, so their
+                              delivery and click numbers surface here instead of being deferred
+                              to Twilio. Each is measured against the sends that could register
+                              it, and reads "—" when none could yet. */}
+                          <span className="font-semibold text-gray-600">{data.smsSent.toLocaleString()}</span> texts sent in the last {data.windowDays} days.
+                          {data.smsRollup && (data.smsRollup.deliverable > 0 || data.smsRollup.clickable > 0) && (
+                            <>
+                              {" "}
+                              {data.smsRollup.deliverable > 0 && <><span className="font-semibold text-gray-600">{data.smsRollup.delivered} of {data.smsRollup.deliverable}</span> delivered.</>}
+                              {data.smsRollup.clickable > 0 && <> <span className="font-semibold text-gray-600">{data.smsRollup.clicked} of {data.smsRollup.clickable}</span> clicked the link.</>}
+                            </>
+                          )}
+                          {" "}Full carrier detail on the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link>; samples below.
+                        </>
                       : <>Text automation — sends aren&rsquo;t logged per-type, so Twilio (the <Link href="/admin/family-comms" className="text-teal-700 hover:underline">Family Comms SMS panel</Link>) is the delivery record. Samples below.</>
                     : data.job.isEmail
                       ? "Sends email via a helper whose email_type isn't mapped in the registry yet — no rollup."
@@ -1046,7 +1115,8 @@ export default function AutomationDetailPage() {
                           <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg bg-gray-50 px-3 py-2 text-sm">
                             <span><span className="font-semibold tabular-nums text-gray-900">{recipients.rollup.sent.toLocaleString()}</span> <span className="text-gray-500">in this run</span></span>
                             <span className="text-gray-600"><span className="tabular-nums">{pct(recipients.rollup.delivered, recipients.rollup.sent)}</span> delivered</span>
-                            <span className="text-gray-600"><span className="tabular-nums">{pct(recipients.rollup.opened, recipients.rollup.sent)}</span> opened</span>
+                            {/* Denominator is email rows only — texts are in this run but cannot open. */}
+                            <span className="text-gray-600"><span className="tabular-nums">{pct(recipients.rollup.opened, recipients.rollup.emailSent)}</span> opened</span>
                             <span className="text-gray-600"><span className="tabular-nums">{pct(recipients.rollup.clicked, recipients.rollup.sent)}</span> clicked</span>
                             {recipients.rollup.bounced > 0 && <span className="text-red-600">{recipients.rollup.bounced} bounced</span>}
                             {recipients.rollup.complained > 0 && <span className="text-red-600">{recipients.rollup.complained} complaints</span>}

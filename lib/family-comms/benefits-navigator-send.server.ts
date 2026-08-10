@@ -22,6 +22,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { sendSMS } from "@/lib/twilio";
 import { benefitsFirstStepSms } from "@/lib/sms/templates";
 import { quietHoursCheck } from "@/lib/sms/quiet-hours";
+import { withSmsSource } from "@/lib/sms/click-source";
 import { readBenefitsCascade } from "./benefits-cascade.server";
 import {
   readBenefitsNavigator,
@@ -147,7 +148,9 @@ export async function sendNavigatorLetter(
   // appended here so the model never writes compliance copy. Awaited: Vercel
   // kills pending promises after the response.
   if (smsEligible && profile.phone && navigator.pick) {
-    const smsPlanUrl = `${siteUrl}${planPath}`;
+    // Tagged so an arrival on the plan page can be attributed to THIS text
+    // rather than to the email carrying the same destination.
+    const smsPlanUrl = withSmsSource(`${siteUrl}${planPath}`, "benefits_first_step_sms");
     const editedSms =
       typeof opts.sms === "string" && opts.sms.trim().length >= 20
         ? opts.sms.trim().slice(0, 400)

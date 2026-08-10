@@ -2438,12 +2438,14 @@ function FollowUpProviderRow({
   const [faxNumberInput, setFaxNumberInput] = useState("");
   const [sendingFax, setSendingFax] = useState(false);
   const [pendingFaxSend, setPendingFaxSend] = useState(false);
+  const [faxNotFound, setFaxNotFound] = useState(false);
   // Inline direct mail editing state
   const [editingDirectMail, setEditingDirectMail] = useState(false);
   const [addressInput, setAddressInput] = useState("");
   const [sendingDirectMail, setSendingDirectMail] = useState(false);
   const [pendingDirectMailSend, setPendingDirectMailSend] = useState(false);
   const [findingAddress, setFindingAddress] = useState(false);
+  const [addressNotFound, setAddressNotFound] = useState(false);
   // Confirmation checkbox state
   const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
@@ -2462,11 +2464,13 @@ function FollowUpProviderRow({
       setFaxNumberInput("");
       setSendingFax(false);
       setPendingFaxSend(false);
+      setFaxNotFound(false);
       setEditingDirectMail(false);
       setAddressInput("");
       setSendingDirectMail(false);
       setPendingDirectMailSend(false);
       setFindingAddress(false);
+      setAddressNotFound(false);
       setConfirmedWithProvider(false);
     }
   }, [isExpanded]);
@@ -2487,6 +2491,7 @@ function FollowUpProviderRow({
   // Find fax number for this provider
   const handleFindFax = async () => {
     setFindingFax(true);
+    setFaxNotFound(false);
     setError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/find-fax", {
@@ -2500,6 +2505,8 @@ function FollowUpProviderRow({
         if (data.fax) {
           setFaxNumberInput(data.fax); // Populate input so Send button appears
           onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
+        } else if (isExpandedRef.current) {
+          setFaxNotFound(true); // Show "not found" message
         }
       } else if (isExpandedRef.current) {
         setError(data.error || "Failed to find fax");
@@ -2733,6 +2740,7 @@ function FollowUpProviderRow({
   // Find address for direct mail
   const handleFindAddress = async () => {
     setFindingAddress(true);
+    setAddressNotFound(false);
     setError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/find-address", {
@@ -2747,6 +2755,9 @@ function FollowUpProviderRow({
       const data = await res.json();
       if (res.ok && data.address) {
         setAddressInput(data.address);
+      } else if (res.ok) {
+        // API succeeded but no address found
+        setAddressNotFound(true);
       } else {
         setError(data.error || "Could not find a mailing address");
       }
@@ -3352,9 +3363,10 @@ function FollowUpProviderRow({
                 onClick={() => {
                   setEditingFax(true);
                   setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
+                  setFaxNotFound(false);
                   setError(null);
                   // Auto-find fax if none exists
-                  if (!provider.fax_number && !faxResult?.fax && provider.website && !findingFax) {
+                  if (!provider.fax_number && !faxResult?.fax && !findingFax) {
                     handleFindFax();
                   }
                 }}
@@ -3368,6 +3380,7 @@ function FollowUpProviderRow({
                 onClick={() => {
                   setEditingDirectMail(true);
                   setAddressInput(provider.mail_address || "");
+                  setAddressNotFound(false);
                   setError(null);
                   // Auto-find address if none exists
                   if (!provider.mail_address && !findingAddress) {
@@ -3403,13 +3416,16 @@ function FollowUpProviderRow({
                   <input
                     type="text"
                     value={faxNumberInput}
-                    onChange={(e) => setFaxNumberInput(e.target.value)}
+                    onChange={(e) => {
+                      setFaxNumberInput(e.target.value);
+                      setFaxNotFound(false); // Clear "not found" when typing
+                    }}
                     placeholder={findingFax ? "Finding fax number..." : "(555) 123-4567"}
                     className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                     disabled={findingFax}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  {!faxNumberInput && !findingFax && provider.website && (
+                  {!faxNumberInput && !findingFax && (
                     <button
                       onClick={handleFindFax}
                       className="px-3 py-2 text-sm font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100"
@@ -3423,6 +3439,11 @@ function FollowUpProviderRow({
                     </span>
                   )}
                 </div>
+                {faxNotFound && !faxNumberInput && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No fax number found. Please enter manually.
+                  </p>
+                )}
                 {faxNumberInput && (
                   <button
                     onClick={() => setPendingFaxSend(true)}
@@ -3455,7 +3476,10 @@ function FollowUpProviderRow({
                 <div className="flex gap-2">
                   <textarea
                     value={addressInput}
-                    onChange={(e) => setAddressInput(e.target.value)}
+                    onChange={(e) => {
+                      setAddressInput(e.target.value);
+                      setAddressNotFound(false); // Clear "not found" when typing
+                    }}
                     placeholder={findingAddress ? "Finding address..." : "123 Main St\nCity, State ZIP"}
                     rows={2}
                     className="flex-1 px-3 py-2 text-sm border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white resize-none"
@@ -3476,6 +3500,11 @@ function FollowUpProviderRow({
                     </span>
                   )}
                 </div>
+                {addressNotFound && !addressInput && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No address found. Please enter manually.
+                  </p>
+                )}
                 {addressInput && (
                   <button
                     onClick={() => setPendingDirectMailSend(true)}

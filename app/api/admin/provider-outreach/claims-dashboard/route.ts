@@ -147,12 +147,6 @@ export async function GET() {
       (claimedBps || []).map((bp) => bp.source_provider_id)
     );
 
-    // Build map of sequence start times for claimed providers (for time calculations)
-    const sequenceStartMap = new Map<string, Date>();
-    for (const row of trackingRows || []) {
-      sequenceStartMap.set(row.provider_id, new Date(row.sequence_started_at));
-    }
-
     // Build map of claimed_at times (for time calculations, where available)
     const claimedAtMap = new Map<string, Date>();
     for (const row of trackingRows || []) {

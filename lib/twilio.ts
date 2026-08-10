@@ -55,7 +55,11 @@ interface SendSMSOptions {
    * sends that should stay off the comms ledger.
    */
   emailType?: string;
-  recipientType?: "family" | "provider" | "caregiver";
+  // "admin" covers internal self-checks texting a teammate rather than a
+  // recipient. email_log.recipient_type already stores it on the email side, and
+  // logSms below takes a plain string — this union was just narrower than the
+  // column it feeds.
+  recipientType?: "family" | "provider" | "caregiver" | "admin";
   /** Provider/business_profiles id, when the recipient has one. */
   recipientLogProfileId?: string;
   metadata?: Record<string, unknown>;

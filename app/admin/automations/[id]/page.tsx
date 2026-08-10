@@ -739,6 +739,12 @@ export default function AutomationDetailPage() {
                     })()}
                     <p className="mt-2 text-xs text-gray-400">
                       Email open and click rates are inflated by Apple Mail Privacy Protection (it prefetches the tracking pixel and rewrites links) — the trend over time is the real signal. Text clicks are counted server-side on arrival, so they carry no such inflation.
+                      {data.job.channels.includes("sms") && (
+                        <>
+                          {" "}
+                          <Link href="/admin/sms-click-test" className="text-teal-700 hover:underline">Check text click tracking →</Link>
+                        </>
+                      )}
                       {(() => {
                         // Cross-link to the Provider Comms Funnel on /admin/analytics
                         // pre-filtered to this automation's email-type bucket. If every

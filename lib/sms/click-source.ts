@@ -28,7 +28,14 @@ const SOURCE_CODES: Record<string, string> = {
   benefits_first_step_sms: "f",
   benefits_check_in_sms: "c",
   benefits_concierge_reply_sms: "n",
+  // Self-check only (/admin/sms-click-test). Deliberately its own type so a
+  // verification click lands on a row nobody reports on: it belongs to no cron
+  // job's smsTypes, so it can never move a real automation's numbers. Proving
+  // the pipeline works must not corrupt the thing being proven.
+  sms_click_test: "t",
 };
+/** email_type reserved for the admin self-check. */
+export const SMS_CLICK_TEST_TYPE = "sms_click_test";
 
 const EMAIL_TYPE_BY_CODE: Record<string, string> = Object.fromEntries(
   Object.entries(SOURCE_CODES).map(([type, code]) => [code, type]),

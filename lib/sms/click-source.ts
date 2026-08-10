@@ -55,6 +55,31 @@ export function emailTypeForSmsSource(code: string | null | undefined): string |
   return EMAIL_TYPE_BY_CODE[code] ?? null;
 }
 
+/** Matches a link this module tagged: ?s= or &s= followed by a known code. */
+const TAGGED_LINK = new RegExp(
+  `[?&]${SMS_SOURCE_PARAM}=(?:${Object.keys(EMAIL_TYPE_BY_CODE).join("|")})(?:\\b|$)`,
+);
+
+/**
+ * Could a click on this message ever have been recorded?
+ *
+ * Reads the stored body (email_log.html_body) and asks whether its link carries
+ * a marker. This is the honest denominator for a click rate: texts sent before
+ * tagging shipped have untagged links and can never register a click, so
+ * dividing clicks by ALL sends would report a falling rate that is really just
+ * old sends diluting the pool. Dividing by tagged sends only reports what was
+ * actually measurable.
+ *
+ * Derived from the code table rather than hardcoded, so it stays in step if a
+ * rung is added. Self-healing too: as untagged sends age out of the reporting
+ * window, the denominator converges on the total with no dated cutoff to
+ * maintain.
+ */
+export function isClickTagged(body: string | null | undefined): boolean {
+  if (!body) return false;
+  return TAGGED_LINK.test(body);
+}
+
 /**
  * Stamp first_clicked_at on the send this arrival came from.
  *

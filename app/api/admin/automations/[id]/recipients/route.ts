@@ -73,19 +73,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   // Per-run rollup across every linked email (bounded by the run's send count).
-  const rollup = { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
+  // `opened` counts EMAIL rows only. Texts now carry a cron_run_id too (they are
+  // part of the run, and the recipient table should show them), but a text can
+  // never open — counting it in the denominator would drag a run's open rate
+  // down in proportion to how many texts it sent, which reads as a deliverability
+  // problem that isn't there. Sent/delivered/clicked stay whole-run: those are
+  // real on both channels.
+  const rollup = { sent: 0, emailSent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, complained: 0 };
   let columnMissing = false;
   try {
     const { data, error } = await db
       .from("email_log")
-      .select("delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at")
+      .select("channel, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at")
       .eq("cron_run_id", runId)
       .limit(100000);
     if (error) {
       columnMissing = true; // cron_run_id column not present yet
     } else {
-      for (const e of (data ?? []) as Array<Pick<RecipientRow, "delivered_at" | "first_opened_at" | "first_clicked_at" | "bounced_at" | "complained_at">>) {
+      for (const e of (data ?? []) as Array<Pick<RecipientRow, "delivered_at" | "first_opened_at" | "first_clicked_at" | "bounced_at" | "complained_at"> & { channel: string | null }>) {
         rollup.sent += 1;
+        if (e.channel !== "sms") rollup.emailSent += 1;
         if (e.delivered_at) rollup.delivered += 1;
         if (e.first_opened_at) rollup.opened += 1;
         if (e.first_clicked_at) rollup.clicked += 1;

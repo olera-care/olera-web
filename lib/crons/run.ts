@@ -127,9 +127,10 @@ async function finishRun(
 }
 
 /**
- * Link every email_log row this run produced back to the cron_runs row, so the
- * Console can show a per-recipient table for any run. We don't thread a run id
- * through sendEmail — instead, at run-end, we claim every email_log row whose
+ * Link every email_log row this run produced (emails AND texts) back to the
+ * cron_runs row, so the Console can show a per-recipient table for any run. We
+ * don't thread a run id through sendEmail/sendSMS — instead, at run-end, we
+ * claim every email_log row whose
  * email_type is one this job sends, created since the run started, not already
  * claimed. Two overlapping runs of the same job (rare — Vercel doesn't re-enter
  * a running cron; manual double-fires are the only realistic case) would race
@@ -140,13 +141,20 @@ async function finishRun(
 async function stampEmails(jobId: string, runId: string | null, startedAt: string): Promise<void> {
   if (!runId) return;
   const job = getCronJob(jobId);
-  if (!job || job.emailTypes.length === 0) return;
+  if (!job) return;
+  // Texts too. They ride email_log under their own email_type values, which live
+  // in smsTypes rather than emailTypes — so claiming only emailTypes left every
+  // SMS row unstamped, and the per-run recipient table (which keys on
+  // cron_run_id) could never show a text. A job that only texts is stamped now
+  // as well; the old emailTypes-empty guard returned before reaching them.
+  const types = Array.from(new Set([...job.emailTypes, ...(job.smsTypes ?? [])]));
+  if (types.length === 0) return;
   try {
     const db = getServiceClient();
     const { error } = await db
       .from("email_log")
       .update({ cron_run_id: runId })
-      .in("email_type", job.emailTypes)
+      .in("email_type", types)
       .gte("created_at", startedAt)
       .is("cron_run_id", null);
     if (error) console.error(`[cron:${jobId}] failed to stamp email_log rows for run ${runId}:`, error);

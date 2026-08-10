@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { generateBenefitsToken } from "@/lib/benefits-token";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { getSiteUrl } from "@/lib/site-url";
 import { withSmsSource, SMS_CLICK_TEST_TYPE } from "@/lib/sms/click-source";
 
 /**
@@ -30,23 +31,34 @@ import { withSmsSource, SMS_CLICK_TEST_TYPE } from "@/lib/sms/click-source";
 
 export const dynamic = "force-dynamic";
 
-/** The profile a test send is attributed to. Any real family would have their
- *  own stats polluted by our click, so the check needs a profile of its own. */
+/**
+ * The profile a test send is attributed to. A real family would have their own
+ * record polluted by our click, so the check needs a profile of its own.
+ *
+ * Deliberately narrow and deterministic, because a loose version of this is
+ * genuinely dangerous:
+ *
+ *   - `%test%` as a substring matches "Whitestar Home Health" ("Whi-test-ar"),
+ *     a real business. Anchoring to the START of the name plus type "family"
+ *     keeps real organizations out of the candidate pool entirely.
+ *   - Without ORDER BY, Postgres may return a different row each call. This
+ *     function runs independently in the open and status requests, so an
+ *     unstable pick meant status could read a different profile's sends and sit
+ *     amber forever while the click had in fact registered.
+ *
+ * No fallback to "any profile that looks like ours". Failing loudly with an
+ * instruction beats silently attributing a test to someone real.
+ */
 async function resolveTestProfile(db: ReturnType<typeof getServiceClient>) {
-  // Prefer an explicitly-named test profile; fall back to any profile owned by
-  // an olera address. Never picks an arbitrary real family.
   const { data } = await db
     .from("business_profiles")
     .select("*")
-    .ilike("display_name", "%test%")
-    .limit(1);
-  if (data?.[0]) return data[0] as { id: string; display_name: string | null };
-  const { data: mine } = await db
-    .from("business_profiles")
-    .select("*")
-    .ilike("email", "%tfalohun%")
-    .limit(1);
-  return (mine?.[0] as { id: string; display_name: string | null }) ?? null;
+    .eq("type", "family")
+    .ilike("display_name", "test%")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  return (data as { id: string; display_name: string | null } | null) ?? null;
 }
 
 /** Find or create a plan token for the test profile, so the link resolves to a
@@ -79,12 +91,12 @@ async function resolveTestToken(
   return token;
 }
 
-function siteUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://olera.care")
-  );
-}
+// Uses the shared helper, which prefers VERCEL_URL on preview/staging so a link
+// points at the deployment that generated it. A hand-rolled version preferring
+// NEXT_PUBLIC_SITE_URL sent the staging check to PRODUCTION, where the click
+// code isn't deployed yet — so the click would never record and the check would
+// report failure for a reason that has nothing to do with click tracking.
+
 
 export async function GET(req: Request) {
   const user = await getAuthUser();
@@ -99,7 +111,10 @@ export async function GET(req: Request) {
   const profile = await resolveTestProfile(db);
   if (!profile) {
     return NextResponse.json(
-      { error: "No test profile available. Create a profile with 'test' in the name first." },
+      {
+        error:
+          "No test profile found. This check needs a family profile whose name starts with \"Test\" — it will not borrow a real family's record. Create one, then run it again.",
+      },
       { status: 400 },
     );
   }
@@ -135,7 +150,7 @@ export async function GET(req: Request) {
   if (!token) {
     return NextResponse.json({ error: "Could not create a test plan token" }, { status: 500 });
   }
-  const tagged = withSmsSource(`${siteUrl()}/m/${token}`, SMS_CLICK_TEST_TYPE);
+  const tagged = withSmsSource(`${getSiteUrl()}/m/${token}`, SMS_CLICK_TEST_TYPE);
 
   // ── sms: the full chain, Twilio and handset included ──
   if (mode === "sms") {

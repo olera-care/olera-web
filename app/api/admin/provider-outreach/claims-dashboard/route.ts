@@ -5,7 +5,12 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * GET /api/admin/provider-outreach/claims-dashboard
  *
  * Returns claims-based metrics for the Email Performance section.
- * All data sourced from our database (100% accurate, no SmartLead dependency).
+ * All data sourced from provider_outreach_tracking (100% accurate).
+ *
+ * Data flow:
+ * 1. Provider enters sequence → sequence_started_at is set
+ * 2. Provider clicks magic link → business_profiles.account_id is set
+ * 3. Database trigger sets provider_outreach_tracking.claimed_at = now()
  *
  * Returns:
  *   - totals: { sequenced, claimed, conversion_rate, avg_time_to_claim_days }
@@ -42,49 +47,34 @@ export async function GET() {
 
     const db = getServiceClient();
 
-    // 1. Get all providers who entered the sequence (sequence_started_at is set)
-    const { data: sequencedRows, error: seqError } = await db
+    // Query provider_outreach_tracking for both sequenced and claimed data
+    // - sequence_started_at: when they entered the email sequence
+    // - claimed_at: when they clicked magic link and claimed (set by database trigger)
+    const { data: trackingRows, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, sequence_started_at")
+      .select("provider_id, sequence_started_at, claimed_at")
       .not("sequence_started_at", "is", null);
 
-    if (seqError) {
-      console.error("[claims-dashboard] Sequenced query error:", seqError);
+    if (trackingError) {
+      console.error("[claims-dashboard] Tracking query error:", trackingError);
       return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
 
-    const sequencedMap = new Map<string, Date>();
-    for (const row of sequencedRows || []) {
-      sequencedMap.set(row.provider_id, new Date(row.sequence_started_at));
-    }
+    // Calculate metrics from tracking data
+    const claimsFromSequence: Array<{ daysSinceSequence: number }> = [];
+    let sequencedCount = 0;
 
-    const sequencedCount = sequencedMap.size;
+    for (const row of trackingRows || []) {
+      sequencedCount++;
 
-    // 2. Get claimed providers (have account_id in business_profiles)
-    const { data: claimedBps, error: claimedError } = await db
-      .from("business_profiles")
-      .select("source_provider_id, created_at")
-      .not("source_provider_id", "is", null)
-      .not("account_id", "is", null);
-
-    if (claimedError) {
-      console.error("[claims-dashboard] Claimed query error:", claimedError);
-      return NextResponse.json({ error: "Database error" }, { status: 500 });
-    }
-
-    // 3. Calculate claims from sequence and time to claim
-    const claimsFromSequence: Array<{ providerId: string; claimedAt: Date; daysSinceSequence: number }> = [];
-
-    for (const bp of claimedBps || []) {
-      const sequenceStartedAt = sequencedMap.get(bp.source_provider_id);
-      if (sequenceStartedAt) {
-        const claimedAt = new Date(bp.created_at);
+      // Only count as claimed if claimed_at is set (trigger sets this on claim)
+      if (row.claimed_at) {
+        const sequenceStartedAt = new Date(row.sequence_started_at);
+        const claimedAt = new Date(row.claimed_at);
         const daysSinceSequence = Math.floor(
           (claimedAt.getTime() - sequenceStartedAt.getTime()) / (1000 * 60 * 60 * 24)
         );
         claimsFromSequence.push({
-          providerId: bp.source_provider_id,
-          claimedAt,
           daysSinceSequence: Math.max(0, daysSinceSequence), // Ensure non-negative
         });
       }
@@ -92,19 +82,19 @@ export async function GET() {
 
     const claimedCount = claimsFromSequence.length;
 
-    // 4. Calculate conversion rate
+    // Calculate conversion rate
     const conversionRate = sequencedCount > 0
       ? Math.round((claimedCount / sequencedCount) * 1000) / 10
       : 0;
 
-    // 5. Calculate average time to claim
+    // Calculate average time to claim
     let avgTimeToClaimDays: number | null = null;
     if (claimsFromSequence.length > 0) {
       const totalDays = claimsFromSequence.reduce((sum, c) => sum + c.daysSinceSequence, 0);
       avgTimeToClaimDays = Math.round((totalDays / claimsFromSequence.length) * 10) / 10;
     }
 
-    // 6. Calculate sequence day breakdown
+    // Calculate sequence day breakdown
     // Buckets: Day 0-2 (before Day 3 email), Day 3-4, Day 5-6, Day 7+
     const dayBuckets = [
       { label: "Day 0", day_min: 0, day_max: 2 },

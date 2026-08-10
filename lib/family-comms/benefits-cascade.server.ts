@@ -459,10 +459,26 @@ export async function selectFirstStepProgram(
     .order("id", { ascending: true });
 
   const ownAbbrev = opts.stateAbbrev ? opts.stateAbbrev.toUpperCase() : null;
-  const candidates: { pick: FirstStepPick; boost: number; rank: number; idx: number; sameState: boolean }[] = [];
+  const candidates: { pick: FirstStepPick; boost: number; rank: number; idx: number }[] = [];
   (saved || []).forEach((row, idx) => {
     if (!row.program_id || !row.state_id || excluded.has(row.program_id)) return;
     const abbrev = getStateAbbrev(row.state_id);
+    // Another state's program cannot be this family's first step. Saved programs
+    // accumulate across states — a family exploring care for a parent elsewhere
+    // ends up with several states in one list — and nothing here used to compare
+    // them against the family's OWN state, so a Texas program led the plan page
+    // for a family in North Dakota, carrying Texas's hotline and a checklist
+    // asking for proof of Texas residency. That is the Louisiana failure again:
+    // right-sounding program, wrong state's office.
+    //
+    // Dropped, not demoted. Demoting was the first attempt and it silently did
+    // nothing here: the family's own ND program is missing documentsNeeded, so
+    // toPick discarded it below and every surviving candidate was foreign, which
+    // let Texas win anyway. Ranking cannot protect a family when their own
+    // state's only saved entry never becomes a candidate. Step 3 already exists
+    // as the fallback and returns a real ND program, so removing foreign states
+    // here routes there instead of misdirecting.
+    if (ownAbbrev && abbrev.toUpperCase() !== ownAbbrev) return;
     const draft = draftFor(abbrev, row.program_id);
     if (!draft) return;
     const verdict = screen(draft, row.state_id);
@@ -474,23 +490,10 @@ export async function selectFirstStepProgram(
       boost: verdict.boost,
       rank: COMPLEXITY_RANK[draft.complexity] ?? 3,
       idx,
-      // Saved programs accumulate across states — a family exploring care for a
-      // parent elsewhere ends up with two states in one list. Nothing here used
-      // to compare them against the family's OWN state, so a Texas program
-      // could lead the plan page and the letter for a family in North Dakota,
-      // carrying Texas's phone number and Texas's residency paperwork. That is
-      // the Louisiana failure again: right program, wrong state's office.
-      sameState: ownAbbrev ? abbrev.toUpperCase() === ownAbbrev : true,
     });
   });
-  // Own state, then fit, then ease, then a stable tiebreak.
-  //
-  // State leads because a program in the wrong state is not a worse match, it
-  // is unusable: the number rings another state's agency and the paperwork asks
-  // for residency the family can't prove. Fit still decides among the programs
-  // they can actually apply to. A foreign-state program is demoted rather than
-  // dropped, so a family whose own state offers nothing still gets a real
-  // starting point instead of an empty plan.
+  // Fit, then ease, then a stable tiebreak. Every candidate is already in the
+  // family's own state, so state plays no part here.
   //
   // Fit beats ease, which was the previous fix here: complexity used to lead,
   // letting an easy program outrank a relevant one — a WV family saw a
@@ -498,13 +501,7 @@ export async function selectFirstStepProgram(
   // because it was `medium` and the waiver was `deep`. Families with no
   // eligibility facts have boost 0 across the board and fall straight through
   // to the complexity ordering.
-  candidates.sort(
-    (a, b) =>
-      Number(b.sameState) - Number(a.sameState) ||
-      b.boost - a.boost ||
-      a.rank - b.rank ||
-      a.idx - b.idx,
-  );
+  candidates.sort((a, b) => b.boost - a.boost || a.rank - b.rank || a.idx - b.idx);
   if (candidates[0]) return candidates[0].pick;
 
   // 3. State fallback: the pipeline's own "start here" list.

@@ -2433,15 +2433,19 @@ function FollowUpProviderRow({
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
   // Not interested reason state
   const [notInterestedReason, setNotInterestedReason] = useState<string>("");
-  // Inline fax send modal state
-  const [showFaxSendModal, setShowFaxSendModal] = useState(false);
+  // Inline fax editing state
+  const [editingFax, setEditingFax] = useState(false);
   const [faxNumberInput, setFaxNumberInput] = useState("");
   const [sendingFax, setSendingFax] = useState(false);
-  // Inline direct mail send modal state
-  const [showDirectMailModal, setShowDirectMailModal] = useState(false);
+  const [pendingFaxSend, setPendingFaxSend] = useState(false);
+  // Inline direct mail editing state
+  const [editingDirectMail, setEditingDirectMail] = useState(false);
   const [addressInput, setAddressInput] = useState("");
   const [sendingDirectMail, setSendingDirectMail] = useState(false);
+  const [pendingDirectMailSend, setPendingDirectMailSend] = useState(false);
   const [findingAddress, setFindingAddress] = useState(false);
+  // Confirmation checkbox state
+  const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -2454,13 +2458,16 @@ function FollowUpProviderRow({
       setEmailJustSaved(false);
       setError(null);
       setNotInterestedReason("");
-      setShowFaxSendModal(false);
+      setEditingFax(false);
       setFaxNumberInput("");
       setSendingFax(false);
-      setShowDirectMailModal(false);
+      setPendingFaxSend(false);
+      setEditingDirectMail(false);
       setAddressInput("");
       setSendingDirectMail(false);
+      setPendingDirectMailSend(false);
       setFindingAddress(false);
+      setConfirmedWithProvider(false);
     }
   }, [isExpanded]);
 
@@ -2703,10 +2710,12 @@ function FollowUpProviderRow({
         return; // Don't close modal or trigger refresh - let user handle manually
       }
 
-      // Success - close modal and refresh
+      // Success - close inline editing and refresh
       if (stillValid) {
-        setShowFaxSendModal(false);
+        setEditingFax(false);
+        setPendingFaxSend(false);
         setFaxNumberInput("");
+        setConfirmedWithProvider(false);
       }
       onOutcomeRecorded(true); // Stage changed, trigger refresh
     } catch {
@@ -2806,10 +2815,12 @@ function FollowUpProviderRow({
         return; // Don't close modal or trigger refresh - let user handle manually
       }
 
-      // Success - close modal and refresh
+      // Success - close inline editing and refresh
       if (stillValid) {
-        setShowDirectMailModal(false);
+        setEditingDirectMail(false);
+        setPendingDirectMailSend(false);
         setAddressInput("");
+        setConfirmedWithProvider(false);
       }
       onOutcomeRecorded(true); // Stage changed, trigger refresh
     } catch {
@@ -3338,11 +3349,15 @@ function FollowUpProviderRow({
 
               <button
                 onClick={() => {
-                  setShowFaxSendModal(true);
+                  setEditingFax(true);
                   setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
                   setError(null);
+                  // Auto-find fax if none exists
+                  if (!provider.fax_number && !faxResult?.fax && provider.website && !findingFax) {
+                    handleFindFax();
+                  }
                 }}
-                disabled={submitting !== null || sendingFax}
+                disabled={submitting !== null || editingFax || sendingFax}
                 className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Fax
@@ -3350,16 +3365,126 @@ function FollowUpProviderRow({
 
               <button
                 onClick={() => {
-                  setShowDirectMailModal(true);
+                  setEditingDirectMail(true);
                   setAddressInput(provider.mail_address || "");
                   setError(null);
+                  // Auto-find address if none exists
+                  if (!provider.mail_address && !findingAddress) {
+                    handleFindAddress();
+                  }
                 }}
-                disabled={submitting !== null || sendingDirectMail}
+                disabled={submitting !== null || editingDirectMail || sendingDirectMail}
                 className="px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Direct Mail
               </button>
             </div>
+
+            {/* Inline Fax editing */}
+            {editingFax && (
+              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-purple-700 uppercase tracking-wide">
+                    Fax Number
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingFax(false);
+                      setFaxNumberInput("");
+                      setError(null);
+                    }}
+                    className="text-xs text-purple-600 hover:text-purple-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={faxNumberInput}
+                    onChange={(e) => setFaxNumberInput(e.target.value)}
+                    placeholder={findingFax ? "Finding fax number..." : "(555) 123-4567"}
+                    className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    disabled={findingFax}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {!faxNumberInput && !findingFax && provider.website && (
+                    <button
+                      onClick={handleFindFax}
+                      className="px-3 py-2 text-sm font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100"
+                    >
+                      Find
+                    </button>
+                  )}
+                  {findingFax && (
+                    <span className="px-3 py-2 text-sm text-purple-600 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                </div>
+                {faxNumberInput && (
+                  <button
+                    onClick={() => setPendingFaxSend(true)}
+                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                  >
+                    Send Fax
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Inline Direct Mail editing */}
+            {editingDirectMail && (
+              <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-teal-700 uppercase tracking-wide">
+                    Mailing Address
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingDirectMail(false);
+                      setAddressInput("");
+                      setError(null);
+                    }}
+                    className="text-xs text-teal-600 hover:text-teal-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <textarea
+                    value={addressInput}
+                    onChange={(e) => setAddressInput(e.target.value)}
+                    placeholder={findingAddress ? "Finding address..." : "123 Main St\nCity, State ZIP"}
+                    rows={2}
+                    className="flex-1 px-3 py-2 text-sm border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white resize-none"
+                    disabled={findingAddress}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {!addressInput && !findingAddress && (
+                    <button
+                      onClick={handleFindAddress}
+                      className="px-3 py-2 text-sm font-medium text-teal-700 bg-white border border-teal-200 rounded-lg hover:bg-teal-100 self-start"
+                    >
+                      Find
+                    </button>
+                  )}
+                  {findingAddress && (
+                    <span className="px-3 py-2 text-sm text-teal-600 flex items-center gap-1 self-start">
+                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                </div>
+                {addressInput && (
+                  <button
+                    onClick={() => setPendingDirectMailSend(true)}
+                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors"
+                  >
+                    Send Postcard
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Cost warning */}
             <p className="mt-3 text-xs text-gray-400">
@@ -3378,6 +3503,7 @@ function FollowUpProviderRow({
             setPendingOutcome(null);
             setPendingStageMove(null);
             setNotInterestedReason("");
+            setConfirmedWithProvider(false);
           }}
         >
           <div
@@ -3409,6 +3535,21 @@ function FollowUpProviderRow({
                   ))}
                 </ul>
               </div>
+
+              {/* Confirmation checkbox for resend_link */}
+              {pendingOutcome === "resend_link" && (
+                <label className="flex items-start gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={confirmedWithProvider}
+                    onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                  />
+                  <span className="text-sm text-amber-900">
+                    I called the provider and confirmed they want to receive the claim link again
+                  </span>
+                </label>
+              )}
 
               {/* Reason dropdown for not_interested */}
               {pendingOutcome === "not_interested" && (
@@ -3449,6 +3590,7 @@ function FollowUpProviderRow({
                   setPendingOutcome(null);
                   setPendingStageMove(null);
                   setNotInterestedReason("");
+                  setConfirmedWithProvider(false);
                 }}
                 disabled={submitting !== null || stageChangeLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -3475,6 +3617,7 @@ function FollowUpProviderRow({
                 disabled={
                   submitting !== null ||
                   stageChangeLoading ||
+                  (pendingOutcome === "resend_link" && !confirmedWithProvider) ||
                   (pendingOutcome === "not_interested" && !notInterestedReason) ||
                   (pendingOutcome === "not_interested" && notInterestedReason === "other" && !notes.trim())
                 }
@@ -3494,16 +3637,15 @@ function FollowUpProviderRow({
         </div>
       )}
 
-      {/* Fax Send Modal - Inline send from Follow Up */}
-      {showFaxSendModal && (
+      {/* Fax Confirmation Modal */}
+      {pendingFaxSend && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
           onClick={(e) => {
             e.stopPropagation();
             if (!sendingFax) {
-              setShowFaxSendModal(false);
-              setFaxNumberInput("");
-              setError(null);
+              setPendingFaxSend(false);
+              setConfirmedWithProvider(false);
             }
           }}
         >
@@ -3512,7 +3654,7 @@ function FollowUpProviderRow({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Send Fax</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Fax</h3>
               <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
             </div>
 
@@ -3523,66 +3665,47 @@ function FollowUpProviderRow({
                 </div>
               )}
 
-              <p className="text-sm text-gray-700 mb-4">
-                Send a fax with claim link via Telnyx. Provider will move to Alternative Channels for delivery tracking.
-              </p>
-
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Fax Number <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={faxNumberInput}
-                    onChange={(e) => setFaxNumberInput(e.target.value)}
-                    placeholder="(555) 123-4567"
-                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    disabled={sendingFax}
-                  />
-                  {!faxNumberInput && !provider.fax_number && !faxResult?.fax && (
-                    <button
-                      type="button"
-                      onClick={handleFindFax}
-                      disabled={findingFax || sendingFax}
-                      className="px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 disabled:opacity-50"
-                    >
-                      {findingFax ? "Finding..." : "Find Fax"}
-                    </button>
-                  )}
-                </div>
-                {faxResult?.fax && !faxNumberInput && (
-                  <p className="mt-1.5 text-xs text-gray-500">
-                    Found: {faxResult.fax} ({faxResult.confidence})
-                  </p>
-                )}
+              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-sm font-medium text-purple-900">Fax Number:</p>
+                <p className="text-sm text-purple-700">{faxNumberInput}</p>
               </div>
 
-              <div className="bg-purple-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-purple-700 uppercase tracking-wide mb-2">What will happen:</p>
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
                 <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-purple-900">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    Fax with claim link sent immediately via Telnyx
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Fax with claim link sent immediately
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-purple-900">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    Provider moves to Alternative Channels for tracking
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-purple-900">
-                    <span className="text-purple-400 mt-0.5">•</span>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
                     Fax has per-page costs
                   </li>
                 </ul>
               </div>
+
+              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmedWithProvider}
+                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-amber-900">
+                  I called the provider and confirmed they want to receive information via fax
+                </span>
+              </label>
             </div>
 
             <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button
                 onClick={() => {
-                  setShowFaxSendModal(false);
-                  setFaxNumberInput("");
-                  setError(null);
+                  setPendingFaxSend(false);
+                  setConfirmedWithProvider(false);
                 }}
                 disabled={sendingFax}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -3591,7 +3714,7 @@ function FollowUpProviderRow({
               </button>
               <button
                 onClick={handleSendFaxInline}
-                disabled={sendingFax || (!faxNumberInput.trim() && !provider.fax_number && !faxResult?.fax)}
+                disabled={sendingFax || !confirmedWithProvider}
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingFax ? (
@@ -3608,16 +3731,15 @@ function FollowUpProviderRow({
         </div>
       )}
 
-      {/* Direct Mail Send Modal - Inline send from Follow Up */}
-      {showDirectMailModal && (
+      {/* Direct Mail Confirmation Modal */}
+      {pendingDirectMailSend && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
           onClick={(e) => {
             e.stopPropagation();
             if (!sendingDirectMail) {
-              setShowDirectMailModal(false);
-              setAddressInput("");
-              setError(null);
+              setPendingDirectMailSend(false);
+              setConfirmedWithProvider(false);
             }
           }}
         >
@@ -3626,7 +3748,7 @@ function FollowUpProviderRow({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Send Postcard</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Postcard</h3>
               <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
             </div>
 
@@ -3637,61 +3759,47 @@ function FollowUpProviderRow({
                 </div>
               )}
 
-              <p className="text-sm text-gray-700 mb-4">
-                Send a postcard with claim link via PostGrid. Provider will move to Alternative Channels for delivery tracking.
-              </p>
-
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Mailing Address <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <textarea
-                    value={addressInput}
-                    onChange={(e) => setAddressInput(e.target.value)}
-                    placeholder="123 Main St, City, ST 12345"
-                    rows={2}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
-                    disabled={sendingDirectMail}
-                  />
-                </div>
-                {!addressInput && !provider.mail_address && (
-                  <button
-                    type="button"
-                    onClick={handleFindAddress}
-                    disabled={findingAddress || sendingDirectMail}
-                    className="mt-2 px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 disabled:opacity-50"
-                  >
-                    {findingAddress ? "Finding..." : "Find Address"}
-                  </button>
-                )}
+              <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                <p className="text-sm font-medium text-teal-900">Mailing Address:</p>
+                <p className="text-sm text-teal-700 whitespace-pre-line">{addressInput}</p>
               </div>
 
-              <div className="bg-teal-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-teal-700 uppercase tracking-wide mb-2">What will happen:</p>
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
                 <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-teal-900">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
                     Postcard with claim link sent via PostGrid
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-teal-900">
-                    <span className="text-teal-400 mt-0.5">•</span>
-                    Provider moves to Alternative Channels for tracking
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels
                   </li>
-                  <li className="flex items-start gap-2 text-sm text-teal-900">
-                    <span className="text-teal-400 mt-0.5">•</span>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
                     Postcards have printing and mailing costs
                   </li>
                 </ul>
               </div>
+
+              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmedWithProvider}
+                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-amber-900">
+                  I called the provider and confirmed they want to receive information via mail
+                </span>
+              </label>
             </div>
 
             <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
               <button
                 onClick={() => {
-                  setShowDirectMailModal(false);
-                  setAddressInput("");
-                  setError(null);
+                  setPendingDirectMailSend(false);
+                  setConfirmedWithProvider(false);
                 }}
                 disabled={sendingDirectMail}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -3700,7 +3808,7 @@ function FollowUpProviderRow({
               </button>
               <button
                 onClick={handleSendDirectMailInline}
-                disabled={sendingDirectMail || (!addressInput.trim() && !provider.mail_address)}
+                disabled={sendingDirectMail || !confirmedWithProvider}
                 className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sendingDirectMail ? (

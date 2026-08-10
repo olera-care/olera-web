@@ -428,7 +428,7 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
  * Provider outreach journey — the claim funnel from enrollment through
  * follow-up channels to re-engagement cycles.
  *
- * DRIFT GUARD: mirrors the provider-outreach-send 4-email cadence (Day 0/3/7/14),
+ * DRIFT GUARD: mirrors the provider-outreach-send 4-email cadence (Day 0/3/5/7),
  * the provider-outreach-sequence-check stage transitions, and the follow-up channel
  * queue in /admin/provider-outreach. Channel progression and Cycle 2 are manual.
  */
@@ -439,7 +439,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
   audienceLabel: "Provider journey",
   description:
     "One outreach journey from enrollment to claim: provider-outreach-send fires the 4-email " +
-    "sequence (Day 0/3/7/14), the sequence check moves non-claimers to Follow Up, and manual " +
+    "sequence (Day 0/3/5/7), the sequence check moves non-claimers to Follow Up, and manual " +
     "channels (fax, direct mail) offer alternative touchpoints. LinkedIn discovery helps admins " +
     "find contact info. Admins can fix emails inline and send claim links at any stage.",
   steps: [
@@ -472,7 +472,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "demand_loss_email",
       phase: "Email Sequence",
       title: "Why It's Free email",
-      timing: "Day 7",
+      timing: "Day 5",
       description:
         "Explains the free model — no referral fees, no pay-per-lead, " +
         "direct family connections.",
@@ -484,7 +484,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "final_email",
       phase: "Email Sequence",
       title: "Get Verified email",
-      timing: "Day 14",
+      timing: "Day 7",
       description:
         "Final push focusing on the verified badge as a trust signal for families.",
       emailType: "provider_outreach_sequence",
@@ -496,7 +496,7 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "sequence_exhausted",
       phase: "Follow Up",
       title: "Provider enters Follow Up queue",
-      timing: "Day 14+ · No claim",
+      timing: "Day 7+ · No claim",
       description:
         "Sequence complete without a claim. Provider moves to needs_call stage " +
         "with reason: clicked_not_claimed (engaged) or sequence_exhausted (no engagement).",
@@ -506,14 +506,14 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "fax_attempt",
       phase: "Follow Up",
-      title: "Fax sent",
+      title: "Fax sent inline",
       timing: "Manual · When fax number available",
       description:
-        "Admin sends fax via ClickSend. Useful when emails aren't reaching " +
-        "the decision maker.",
-      ownerNote: "Triggered from Follow Up tab",
-      traits: ["Manual", "Conditional"],
-      gate: "Requires valid fax number (auto-discovered or manually added)",
+        "Admin clicks 'Fax' in Follow Up, enters/confirms fax number in modal, " +
+        "and fax is sent immediately via Telnyx. Provider then moves to Alternative Channels for tracking.",
+      ownerNote: "Inline send from Follow Up tab; tracked in Alternative Channels",
+      traits: ["Manual", "Conditional", "Has cost"],
+      gate: "Requires valid fax number (auto-discovered or manually entered)",
     },
     {
       key: "fix_email",
@@ -554,38 +554,28 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "directmail_attempt",
       phase: "Follow Up",
-      title: "Direct mail sent",
+      title: "Direct mail sent inline",
       timing: "Manual · When address available",
       description:
-        "Physical letter sent to provider. Last resort when digital " +
-        "channels aren't working.",
-      ownerNote: "Triggered from Follow Up tab",
-      traits: ["Manual", "Has cost"],
+        "Admin clicks 'Direct Mail' in Follow Up, enters/confirms mailing address in modal, " +
+        "and postcard is sent immediately via PostGrid. Provider then moves to Alternative Channels for tracking.",
+      ownerNote: "Inline send from Follow Up tab; tracked in Alternative Channels",
+      traits: ["Manual", "Conditional", "Has cost"],
       gate: "Requires valid mailing address",
     },
-    // ── Re-engagement ───────────────────────────────────────────────────
+    // ── Alternative Channels (End of Funnel) ────────────────────────────
     {
-      key: "re_engage_wait",
-      phase: "Re-engagement",
-      title: "Provider in Alternative Channels",
-      timing: "After Follow Up attempts",
+      key: "alternative_channels_tracking",
+      phase: "Alternative Channels",
+      title: "Tracking delivery status",
+      timing: "After fax/direct mail sent from Follow Up",
       description:
-        "Provider moved to re_engage stage with a selected channel (fax or direct mail). " +
-        "Admins can send claim links or manually restart the sequence when ready.",
-      ownerNote: "Manual admin decision from Follow Up tab",
-      traits: ["Manual"],
-    },
-    {
-      key: "cycle_2",
-      phase: "Re-engagement",
-      title: "Cycle 2 (manual)",
-      timing: "Admin decision",
-      description:
-        "Admin clicks 'Re-engage now' to restart the email sequence for Cycle 1 providers. " +
-        "Cycle 2 providers can be moved to not_interested or have claim links sent manually.",
-      ownerNote: "Triggered via 'Re-engage now' button in Alternative Channels tab",
-      traits: ["Manual"],
-      gate: "Admin decides when to restart; no automatic progression",
+        "Provider arrives here after fax or direct mail was sent from Follow Up. " +
+        "This tab is tracking-only: shows delivery status (queued → sent → delivered). " +
+        "Admin can Archive or mark Not Interested. This is the end of the outreach funnel.",
+      ownerNote: "Tracking-only tab; no further outreach actions",
+      traits: ["Tracking", "Terminal"],
+      gate: "End of funnel — provider either claims, is archived, or marked not interested",
     },
   ],
 };
@@ -608,7 +598,6 @@ const JOURNEYS_BY_CRON: Record<string, string[]> = {
   "provider-outreach-send": [PROVIDER_OUTREACH_JOURNEY.key],
   "provider-outreach-sequence-check": [PROVIDER_OUTREACH_JOURNEY.key],
   "provider-outreach-channel-lifecycle": [PROVIDER_OUTREACH_JOURNEY.key],
-  "provider-outreach-auto-re-engage": [PROVIDER_OUTREACH_JOURNEY.key],
 };
 
 export function journeysForCron(cronId: string): CommsJourney[] {

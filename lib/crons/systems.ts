@@ -58,7 +58,6 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
       "staffing-sequence-check",
       "provider-outreach-send",
       "provider-outreach-sequence-check",
-      "provider-outreach-auto-re-engage",
     ],
   },
   {

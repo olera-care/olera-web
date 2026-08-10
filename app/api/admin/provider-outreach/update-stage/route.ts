@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
 import { pauseLeadInCampaign, getLeadByEmail } from "@/lib/smartlead";
+import { NOT_INTERESTED_REASON_VALUES, type NotInterestedReason } from "@/lib/provider-outreach";
 
 /**
  * POST /api/admin/provider-outreach/update-stage
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_ids, stage, reason, notes } = body;
+    const { provider_ids, stage, reason, notes, not_interested_reason } = body;
 
     if (!provider_ids || !Array.isArray(provider_ids) || provider_ids.length === 0) {
       return NextResponse.json({ error: "provider_ids array is required" }, { status: 400 });
@@ -83,6 +84,16 @@ export async function POST(request: NextRequest) {
 
     if (!stage || !OUTREACH_STAGES.includes(stage)) {
       return NextResponse.json({ error: "Valid stage is required" }, { status: 400 });
+    }
+
+    // Validate not_interested_reason when moving to not_interested
+    if (stage === "not_interested") {
+      if (!not_interested_reason || !NOT_INTERESTED_REASON_VALUES.includes(not_interested_reason as NotInterestedReason)) {
+        return NextResponse.json(
+          { error: `not_interested_reason is required. Must be one of: ${NOT_INTERESTED_REASON_VALUES.join(", ")}` },
+          { status: 400 }
+        );
+      }
     }
 
     const db = getServiceClient();
@@ -478,6 +489,7 @@ export async function POST(request: NextRequest) {
           new_stage: stage,
           ...(reason && { reason }),
           ...(notes?.trim() && { notes: notes.trim() }),
+          ...(stage === "not_interested" && not_interested_reason && { not_interested_reason }),
         },
         admin_user_id: adminUser.id,
         created_at: nowIso,
@@ -496,6 +508,7 @@ export async function POST(request: NextRequest) {
             new_stage: stage,
             ...(reason && { reason }),
             ...(notes?.trim() && { notes: notes.trim() }),
+            ...(stage === "not_interested" && not_interested_reason && { not_interested_reason }),
           },
           admin_user_id: adminUser.id,
           created_at: nowIso,

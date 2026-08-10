@@ -3208,6 +3208,11 @@ function FollowUpProviderRow({
   const [showFaxSendModal, setShowFaxSendModal] = useState(false);
   const [faxNumberInput, setFaxNumberInput] = useState("");
   const [sendingFax, setSendingFax] = useState(false);
+  // Inline direct mail send modal state
+  const [showDirectMailModal, setShowDirectMailModal] = useState(false);
+  const [addressInput, setAddressInput] = useState("");
+  const [sendingDirectMail, setSendingDirectMail] = useState(false);
+  const [findingAddress, setFindingAddress] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -3223,6 +3228,10 @@ function FollowUpProviderRow({
       setShowFaxSendModal(false);
       setFaxNumberInput("");
       setSendingFax(false);
+      setShowDirectMailModal(false);
+      setAddressInput("");
+      setSendingDirectMail(false);
+      setFindingAddress(false);
     }
   }, [isExpanded]);
 
@@ -3484,6 +3493,109 @@ function FollowUpProviderRow({
     }
   };
 
+  // Find address for direct mail
+  const handleFindAddress = async () => {
+    setFindingAddress(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          city: provider.city,
+          state: provider.state,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.address) {
+        setAddressInput(data.address);
+      } else {
+        setError(data.error || "Could not find a mailing address");
+      }
+    } catch {
+      setError("Failed to search for address");
+    } finally {
+      setFindingAddress(false);
+    }
+  };
+
+  // Handle inline direct mail send from Follow Up
+  // Sends postcard via PostGrid, then moves provider to Alternative Channels
+  const handleSendDirectMailInline = async () => {
+    const addressToSend = addressInput.trim() || provider.mail_address;
+
+    if (!addressToSend) {
+      setError("Please enter a mailing address");
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setSendingDirectMail(true);
+    setError(null);
+
+    try {
+      // Step 1: Send postcard via PostGrid (API also saves the address)
+      const sendRes = await fetch("/api/admin/provider-outreach/send-mailer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          provider_name: provider.provider_name,
+          address: addressToSend,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!sendRes.ok) {
+        const errData = await sendRes.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to send postcard");
+        }
+        return;
+      }
+
+      // Update local state with saved address
+      onProviderUpdated({ mail_address: addressToSend });
+
+      // Step 2: Move provider to Alternative Channels (re_engage stage with direct_mail channel)
+      const moveRes = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_direct_mail",
+          notes: `Postcard sent to ${addressToSend}`,
+        }),
+      });
+
+      if (!moveRes.ok) {
+        // Postcard was sent but stage move failed - keep modal open with error
+        console.error("Postcard sent but failed to move provider:", await moveRes.json());
+        if (stillValid) {
+          setError("Postcard sent successfully, but failed to move provider to Alternative Channels. Please close this modal and refresh the page.");
+        }
+        return; // Don't close modal or trigger refresh - let user handle manually
+      }
+
+      // Success - close modal and refresh
+      if (stillValid) {
+        setShowDirectMailModal(false);
+        setAddressInput("");
+      }
+      onOutcomeRecorded(true); // Stage changed, trigger refresh
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error sending postcard");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSendingDirectMail(false);
+      }
+    }
+  };
+
   // Confirmation modal content for each outcome
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
@@ -3510,18 +3622,7 @@ function FollowUpProviderRow({
           confirmLabel: "Mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
-      // Note: "try_fax" removed - now uses dedicated fax send modal (showFaxSendModal)
-      case "try_direct_mail":
-        return {
-          title: "Move to Direct Mail",
-          description: "Move this provider to the Direct Mail channel.",
-          details: [
-            "Provider will be moved to Alternative Channels (Direct Mail)",
-            "Postcards have printing and mailing costs",
-          ],
-          confirmLabel: "Move to Direct Mail",
-          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
-        };
+      // Note: "try_fax" and "try_direct_mail" removed - now use dedicated send modals
       case "move_to_not_contacted":
         return {
           title: "Move to Ready",
@@ -4094,9 +4195,13 @@ function FollowUpProviderRow({
                 </button>
 
                 <button
-                  onClick={() => setPendingOutcome("try_direct_mail")}
-                  disabled={submitting !== null}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  onClick={() => {
+                    setShowDirectMailModal(true);
+                    setAddressInput(provider.mail_address || "");
+                    setError(null);
+                  }}
+                  disabled={submitting !== null || sendingDirectMail}
+                  className="px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Direct Mail
                 </button>
@@ -4343,6 +4448,115 @@ function FollowUpProviderRow({
                   </span>
                 ) : (
                   "Send Fax"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Direct Mail Send Modal - Inline send from Follow Up */}
+      {showDirectMailModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!sendingDirectMail) {
+              setShowDirectMailModal(false);
+              setAddressInput("");
+              setError(null);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Send Postcard</h3>
+              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
+            </div>
+
+            <div className="px-5 py-4">
+              {error && (
+                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <p className="text-sm text-gray-700 mb-4">
+                Send a postcard with claim link via PostGrid. Provider will move to Alternative Channels for delivery tracking.
+              </p>
+
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                  Mailing Address <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <textarea
+                    value={addressInput}
+                    onChange={(e) => setAddressInput(e.target.value)}
+                    placeholder="123 Main St, City, ST 12345"
+                    rows={2}
+                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+                    disabled={sendingDirectMail}
+                  />
+                </div>
+                {!addressInput && !provider.mail_address && (
+                  <button
+                    type="button"
+                    onClick={handleFindAddress}
+                    disabled={findingAddress || sendingDirectMail}
+                    className="mt-2 px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 disabled:opacity-50"
+                  >
+                    {findingAddress ? "Finding..." : "Find Address"}
+                  </button>
+                )}
+              </div>
+
+              <div className="bg-teal-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-teal-700 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-teal-900">
+                    <span className="text-teal-400 mt-0.5">•</span>
+                    Postcard with claim link sent via PostGrid
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-teal-900">
+                    <span className="text-teal-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels for tracking
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-teal-900">
+                    <span className="text-teal-400 mt-0.5">•</span>
+                    Postcards have printing and mailing costs
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDirectMailModal(false);
+                  setAddressInput("");
+                  setError(null);
+                }}
+                disabled={sendingDirectMail}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendDirectMailInline}
+                disabled={sendingDirectMail || (!addressInput.trim() && !provider.mail_address)}
+                className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingDirectMail ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  "Send Postcard"
                 )}
               </button>
             </div>

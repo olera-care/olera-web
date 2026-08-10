@@ -3496,6 +3496,15 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+**Ad Boost — added 2026-08-10, both campaigns live:**
+- 🔴 **Flip Rosemonte + HomeWell to `live` via the `/admin/ad-boost` UI, not the DB.** Both sit at `scheduled`. The UI transition fires the once-guarded "campaign is live" provider email; a DB flip silently skips it.
+- 🔴 **Aug 12 — read HomeWell's CTR** (`/aw/keywords/searchterms?campaignId=24052308622`). This is the one number that decides whether the 71 new negatives worked. Baseline is **3.03%** over flight 1. If it moved, leave the keywords alone. If it did not, rebuild the keyword set. Do not rebuild on a hunch, and do not change keywords and negatives in the same pass or the read is unattributable.
+- 🟡 **Aug 13 — Rosemonte's first search-terms harvest** (day 3 of a 14-day flight, `campaignId=24126008389`). Expect Phoenix assisted-living competitor brands and broker traffic (A Place for Mom, Caring.com); add local brands at campaign level, nationally reusable ones to the shared list. Note Google forecast avg CPC **$3.10 against our $2.50 cap**, so underspend is expected — that is the arithmetic, not a defect.
+- 🟡 **Decide the $2.50 cap for assisted living.** It was calibrated on home care. If Rosemonte's day-3 harvest shows the long-tail terms (`adult care home phoenix`, `altcs assisted living`) also failing to clear it, the cap is wrong for this category and needs a documented per-category exception. TJ has held at $2.50 for now.
+- ⏳ **Both flights end Aug 23.** Auto-end + wrap-up should fire; verify the outcome-capture email actually goes.
+- ⏳ **HomeWell has 4 dead `"near me"` keywords** left in place (zero impressions, so harmless). Clear them on the next keyword pass, not before the CTR read.
+- ⏳ **Flight 1/flight 2 metrics now blend** inside HomeWell's revived campaign. Flight 1's finals are recorded in `admin_note`; if per-flight reporting matters later, that is the only separation.
+
 **Benefits letters — reprioritised 2026-08-07, amended 2026-08-08 after the first STUCK reply:**
 - ✅ ~~Send the LA family her reply~~ — sent 08-08 09:16 CDT, delivered on both channels. ~~Apply migration 168~~ — applied and verified against prod.
 - 🔴 **Watch for her reply.** Profile `53ac7f4e`. Three questions are open: parish, whether $2,982/mo sounds above or below her husband, and whether he ever served. Replies land in `/admin/inbox`. **Parish is the only same-day actionable one** — it unlocks parish COA respite, the only piece that moves in weeks. If she answers on the VA question, a parish Veterans Service Officer files Aid & Attendance free.
@@ -3689,6 +3698,22 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-08-10 — Two Ad Boost campaigns live (Rosemonte new, HomeWell revived) + hardened the runbook
+
+Shipped both providers in the Requested queue. **Rosemonte Assisted Living – Phoenix** (new build, Google campaign `24126008389`) and **HomeWell East Tennessee – Oak Ridge** (flight 2, revived campaign `24052308622`). Only code change: `.claude/commands/ad-boost-setup.md`.
+
+**Rosemonte is assisted living, not home care** (`category=assisted_living`) — so it got a purpose-built 104-term campaign-level negative list, *not* the shared home-care list, which negates "assisted living" and would have blocked its core intent. Geo centered on **ZIP 85024 + 20mi**, not Phoenix city center: they sit ~14mi north of downtown and a city-center radius would have put them at the edge. **No rating claims in the copy** — the profile stores 5.0★ but that is a single cherry-picked review; Google Places has them at 3.6.
+
+**HomeWell: revive over rebuild** (TJ's call). Quality Score is per-campaign and QS/Ad Rank is what throttles these; a fresh build restarts learning. Extended end date Aug 3 → Aug 23, budget $50 → **$83 total** ($33.02 already spent ⇒ ~$50 fresh), retagged the Final URL to `homewell-oak-ridge-aug26`, negatives **20 → 92**.
+
+**The harvest is the real finding.** Flight 1 full-flight: 14 clicks, 462 impr, CTR **3.03%** (not the 1.04% in the SOP — it recovered), $33.02/$50, zero leads. But **all 4 named-term clicks ($9.23) were wasted** — every one competitor or wrong-category. Of 119 terms: ~55 local competitor brands, ~20 senior-living communities, ~15 wrong-category, 4 out-of-market cities. Two deliberate non-negations: bare `"home health"` (would kill the live `"home health aide oak ridge"` keyword — negated the specific variants instead) and `"homewell care services"` (their own brand, cheapest traffic they get).
+
+**Three costly browser lessons, all now in the runbook.** (1) The automation Dia process was **alive but windowless** — snapshot/evaluate/click all worked, so the session looked fine while TJ saw nothing; I papered over it with viewport emulation and only found out at the publish gate. This account runs the MCP in **attach mode**, so `/open-dia`'s kill-and-relaunch recipe does not apply; you must hand-launch with a URL arg. (2) The **`AD_FINAL_URL` re-auth silently rolls back the entire ads step** — Google's `Olera.care` prefill headline reappeared and all 13 headlines/4 descriptions/keywords/budget were gone, discovered only by checking field-by-field. It is triggered by the ad's destination URL, so it fires again on any later Final URL edit. (3) The **Review Overview lies** — it showed geo as "All countries" and AI Max "on" while the actual steps held the correct values, and it omits campaign dates entirely. I briefly reported those as lost before verifying on their own steps.
+
+Also: campaign-total budget **hard-blocked publish** on Rosemonte's draft (persistent "Add a budget", no Publish button) — fell back to $3.57/day × 14d. Draft-specific, not account-wide: HomeWell runs on campaign-total fine.
+
+**Both rows are still `scheduled`** — flip to `live` via the `/admin/ad-boost` UI (a DB flip skips the once-guarded "campaign is live" email). Auto-apply verified 0/7 + 0/14 three times.
 
 ### 2026-08-07 — Benefits fact-check round, then the tooling to make it cheap, then measured whether any of it matters
 

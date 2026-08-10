@@ -3125,19 +3125,64 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Provider Details Card */}
+          {/* Provider Details + Follow Up Card (Merged) */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Provider
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  {provider.slug ? (
+                    <Link
+                      href={`/admin/directory/${provider.slug}`}
+                      className="font-medium text-gray-900 hover:text-primary-600 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {provider.provider_name}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-gray-900">{provider.provider_name}</span>
+                  )}
+                  <div className="text-sm text-gray-500 mt-0.5">
+                    {[provider.provider_category, provider.city && `${provider.city}${provider.state ? `, ${provider.state}` : ""}`].filter(Boolean).join(" · ")}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Find LinkedIn button */}
+                  {!hasLinkedIn && !findingLinkedIn && provider.website && (
+                    <button
+                      onClick={handleFindLinkedIn}
+                      className="text-xs text-blue-600 hover:text-blue-700"
+                    >
+                      Find LinkedIn
+                    </button>
+                  )}
+                  {findingLinkedIn && (
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                  {/* Find Fax button */}
+                  {!hasFax && !findingFax && provider.website && (
+                    <button
+                      onClick={handleFindFax}
+                      className="text-xs text-teal-600 hover:text-teal-700"
+                    >
+                      Find fax
+                    </button>
+                  )}
+                  {findingFax && (
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Why in Follow Up - subtle inline */}
+              <div className="text-sm text-gray-600 mb-3 pb-3 border-b border-gray-100">
+                {getFollowUpReasonExplanation(provider)}
+                <span className="text-gray-400 ml-1">— Consider calling first.</span>
+              </div>
+
               <div className="space-y-2 text-sm">
-                <div className="font-medium text-gray-900">{provider.provider_name}</div>
-                {provider.provider_category && (
-                  <div className="text-gray-500">{provider.provider_category}</div>
-                )}
-                {provider.city && (
-                  <div className="text-gray-500">{provider.city}{provider.state ? `, ${provider.state}` : ""}</div>
-                )}
                 {/* Email display with inline edit capability */}
                 {editingEmail ? (
                   <div className="space-y-2">
@@ -3244,65 +3289,7 @@ function FollowUpProviderRow({
                     Address {hasAddress ? "✓" : "—"}
                   </span>
                 </div>
-                {provider.slug && (
-                  <Link
-                    href={`/admin/directory/${provider.slug}`}
-                    className="inline-block mt-2 text-xs text-gray-500 hover:text-gray-700"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View Profile →
-                  </Link>
-                )}
               </div>
-          </div>
-
-          {/* Why in Follow Up + Actions */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                Why in Follow Up
-              </div>
-              <div className="flex items-center gap-3">
-                {/* Find LinkedIn button */}
-                {!hasLinkedIn && !findingLinkedIn && provider.website && (
-                  <button
-                    onClick={handleFindLinkedIn}
-                    className="text-xs text-blue-600 hover:text-blue-700"
-                  >
-                    Find LinkedIn
-                  </button>
-                )}
-                {findingLinkedIn && (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-                    Finding LinkedIn...
-                  </span>
-                )}
-                {/* Find Fax button */}
-                {!hasFax && !findingFax && provider.website && (
-                  <button
-                    onClick={handleFindFax}
-                    className="text-xs text-teal-600 hover:text-teal-700"
-                  >
-                    Find fax number
-                  </button>
-                )}
-                {findingFax && (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                    Finding fax...
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Reason explanation */}
-            <p className="text-sm text-gray-700 mb-1">
-              {getFollowUpReasonExplanation(provider)}
-            </p>
-            <p className="text-sm text-gray-500 mb-4">
-              Consider calling the provider first to ask which channel they prefer.
-            </p>
 
             {/* Fax found indicator */}
             {(provider.fax_number || faxResult?.fax) && (

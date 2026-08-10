@@ -2498,6 +2498,7 @@ function FollowUpProviderRow({
       if (res.ok) {
         setFaxResult({ fax: data.fax, confidence: data.confidence, source_url: data.source_url });
         if (data.fax) {
+          setFaxNumberInput(data.fax); // Populate input so Send button appears
           onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
         }
       } else if (isExpandedRef.current) {

@@ -86,6 +86,32 @@ function findDraftMatch(stateAbbrev: string, programId: string): PipelineDraft |
 }
 
 /**
+ * Resolve a program id — from either catalog — to its pipeline draft.
+ *
+ * The two catalogs name the same programs differently: waiver-library (the
+ * hand-curated base) calls it `texas-medicare-savings-programs`, the pipeline
+ * calls it `medicaid-buy-in-qmb-slmb-qi`. `findDraftMatch` is the bridge, and
+ * every public surface already goes through it via `getEnrichedProgram`.
+ *
+ * Exported because the Care Navigator letter composer needs the same bridge:
+ * it looks families up by their SAVED id (waiver-library vocabulary) but can
+ * only write a letter from a draft. It was doing a bare exact-id match, which
+ * silently dropped 672 of 2,911 saved rows — programs we hold full content for
+ * and simply failed to find.
+ *
+ * Returns null rather than a guess. Callers must not fall back to fuzzy
+ * matching: a confident wrong match puts the right program name next to the
+ * wrong office's phone number, which is the failure this whole thread exists
+ * to prevent.
+ */
+export function findPipelineDraftFor(
+  stateAbbrev: string,
+  programId: string,
+): PipelineDraft | null {
+  return findDraftMatch(stateAbbrev, programId) ?? null;
+}
+
+/**
  * Get all program IDs for a state — both waiver-library and pipeline-only.
  * Used by generateStaticParams to create pages for all known programs.
  */

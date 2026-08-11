@@ -26,7 +26,7 @@ import {
   resolveSbfRow,
   type SbfEligibilityRow,
 } from "@/lib/benefits/eligibility.server";
-import { getStateAbbrev, getStateSlug } from "@/lib/program-data";
+import { findPipelineDraftFor, getStateAbbrev, getStateSlug } from "@/lib/program-data";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { benefitsResultsSms } from "@/lib/sms/templates";
 import { withSmsSource } from "@/lib/sms/click-source";
@@ -290,9 +290,20 @@ export interface FirstStepPick {
 
 const COMPLEXITY_RANK: Record<string, number> = { simple: 0, medium: 1, deep: 2 };
 
+/**
+ * Resolve a saved/startHere program id to its pipeline draft.
+ *
+ * Families save programs from the waiver-library catalog, which names the same
+ * program differently to the pipeline ("texas-medicare-savings-programs" vs
+ * "medicaid-buy-in-qmb-slmb-qi"). This used to be a bare exact-id match, so a
+ * saved program we hold full content for simply vanished from the ranking and
+ * the family's stated interest was dropped without trace. Every other consumer
+ * already went through the shared bridge; this was the one that did not.
+ */
 function draftFor(stateAbbrev: string, programId: string): PipelineDraft | null {
-  const programs = pipelineDrafts[stateAbbrev]?.programs;
-  return programs?.find((p) => p.id === programId) ?? null;
+  const exact = pipelineDrafts[stateAbbrev]?.programs?.find((p) => p.id === programId);
+  if (exact) return exact;
+  return findPipelineDraftFor(stateAbbrev, programId);
 }
 
 /** A draft can anchor a first-step email only when it carries the v3 content:

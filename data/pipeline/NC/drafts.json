@@ -750,6 +750,12 @@
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(866) 719-0141",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local DSS office and other services",
@@ -818,7 +824,7 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(919) 855-4800",
+      "phone": "(866) 719-0141",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

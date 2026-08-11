@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-08T08:53:53.096Z
+ * Last updated: 2026-08-11T01:23:05.726Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -946,16 +946,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Louisiana DCFS Customer Service (start here)",
+          "phone": "(888) 524-3578",
+          "description": "SNAP application status and general questions",
+          "hours": "Mon-Fri 8am-4:30pm CT"
+        },
+        {
           "label": "Louisiana 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your parish Council on Aging and DCFS office",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Louisiana DCFS Customer Service",
-          "phone": "(888) 524-3578",
-          "description": "SNAP application status and general questions",
-          "hours": "Mon-Fri 8am-4:30pm CT"
         }
       ],
       "applicationNotes": [

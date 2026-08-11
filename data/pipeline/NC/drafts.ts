@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.166Z
+ * Last updated: 2026-08-11T01:23:05.731Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -755,6 +755,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(866) 719-0141",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local DSS office and other services",
@@ -823,7 +829,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(919) 855-4800",
+      "phone": "(866) 719-0141",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

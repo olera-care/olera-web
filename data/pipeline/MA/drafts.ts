@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.707Z
+ * Last updated: 2026-08-11T01:23:05.726Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -726,16 +726,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "DTA Customer Service (start here)",
+          "phone": "(877) 382-2363",
+          "description": "Massachusetts Department of Transitional Assistance general line",
+          "hours": "Mon-Fri 8:15am-4:45pm EST"
+        },
+        {
           "label": "Massachusetts 2-1-1",
           "phone": "2-1-1",
           "description": "Free 24/7 helpline for SNAP and all social services",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "DTA Customer Service",
-          "phone": "(877) 382-2363",
-          "description": "Massachusetts Department of Transitional Assistance general line",
-          "hours": "Mon-Fri 8:15am-4:45pm EST"
         }
       ],
       "applicationNotes": [

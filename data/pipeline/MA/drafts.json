@@ -721,16 +721,16 @@
       ],
       "contacts": [
         {
+          "label": "DTA Customer Service (start here)",
+          "phone": "(877) 382-2363",
+          "description": "Massachusetts Department of Transitional Assistance general line",
+          "hours": "Mon-Fri 8:15am-4:45pm EST"
+        },
+        {
           "label": "Massachusetts 2-1-1",
           "phone": "2-1-1",
           "description": "Free 24/7 helpline for SNAP and all social services",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "DTA Customer Service",
-          "phone": "(877) 382-2363",
-          "description": "Massachusetts Department of Transitional Assistance general line",
-          "hours": "Mon-Fri 8:15am-4:45pm EST"
         }
       ],
       "applicationNotes": [

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.711Z
+ * Last updated: 2026-08-11T01:23:05.730Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -695,6 +695,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(800) 948-3050",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Mississippi 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and benefit programs",
@@ -755,7 +761,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "(800) 948-3050",
       "sourceUrl": "https://www.mdhs.ms.gov/help/snap/special/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

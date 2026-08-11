@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.725Z
+ * Last updated: 2026-08-11T01:23:05.744Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -816,16 +816,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "HHSC Customer Service (start here)",
+          "phone": "(877) 541-7905",
+          "description": "Questions about existing SNAP benefits and case status",
+          "hours": "Monday-Friday 8am-6pm CT"
+        },
+        {
           "label": "Texas 2-1-1",
           "phone": "2-1-1",
           "description": "Statewide helpline. Choose your language, then press 2 for SNAP staff, available Mon-Fri 8am-6pm CT. The general referral line answers 24/7.",
           "hours": "Mon-Fri 8am-6pm CT for benefits staff"
-        },
-        {
-          "label": "HHSC Customer Service",
-          "phone": "(877) 541-7905",
-          "description": "Questions about existing SNAP benefits and case status",
-          "hours": "Monday-Friday 8am-6pm CT"
         }
       ],
       "applicationNotes": [
@@ -875,7 +875,7 @@ export const drafts: PipelineStateDrafts = {
         "hasDocumentChecklist": true,
         "visualTone": "warm"
       },
-      "phone": "2-1-1",
+      "phone": "(877) 541-7905",
       "sourceUrl": "https://www.yourtexasbenefits.com",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",

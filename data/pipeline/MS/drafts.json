@@ -690,6 +690,12 @@
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(800) 948-3050",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Mississippi 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and benefit programs",
@@ -750,7 +756,7 @@
         "visualTone": "warm"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "(800) 948-3050",
       "sourceUrl": "https://www.mdhs.ms.gov/help/snap/special/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

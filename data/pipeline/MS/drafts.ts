@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:21:30.189Z
+ * Last updated: 2026-08-11T03:38:44.682Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -305,6 +305,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Mississippi Access to Care Center / Mississippi Medicaid Contact (start here)",
+          "phone": "(800) 421-2408",
+          "description": "Mississippi Access to Care Center / Mississippi Medicaid Contact Center — Elderly and Disabled Waiver application help",
+          "hours": null
+        },
+        {
           "label": "Mississippi Division of Medicaid",
           "phone": null,
           "description": "Primary agency administering the E&D Waiver program",
@@ -379,7 +385,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "(800) 421-2408",
       "sourceUrl": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -695,6 +701,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(800) 948-3050",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Mississippi 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and benefit programs",
@@ -755,7 +767,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "(800) 948-3050",
       "sourceUrl": "https://www.mdhs.ms.gov/help/snap/special/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -851,6 +863,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Mississippi Department of Human Services, Division of Community  (start here)",
+          "phone": "(800) 421-0762",
+          "description": "Mississippi Department of Human Services, Division of Community Services — statewide LIHEAP/Community Action Agency help line; local CAA completes the application",
+          "hours": null
+        },
+        {
           "label": "MDHS Community Services",
           "phone": null,
           "description": "Online application portal and county contact information",
@@ -919,7 +937,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "2-1-1",
+      "phone": "(800) 421-0762",
       "sourceUrl": "https://www.mdhs.ms.gov/community/liheap/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

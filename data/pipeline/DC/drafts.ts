@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.850Z
+ * Last updated: 2026-08-11T01:46:41.208Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -122,6 +122,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Aging and Disability Resource Center (start here)",
+          "phone": "(202) 724-5626",
+          "description": "DACL's enrollment unit coordinates EPD Waiver applications and links you to case management",
+          "hours": "Monday-Friday 8:15am-4:45pm"
+        },
+        {
           "label": "DACL Medicaid Services Enrollment Unit",
           "phone": null,
           "description": "Primary contact for EPD Waiver application assistance and coordination",
@@ -196,7 +202,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(202) 724-5626",
       "sourceUrl": "https://dacl.dc.gov/service/epd-waiver",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

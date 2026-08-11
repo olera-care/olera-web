@@ -23,7 +23,7 @@
         ]
       },
       "intro": "If your loved one is 65+ and paying high prescription costs, Wisconsin SeniorCare can reduce their drug bills to $5 for generics and $15 for brand-name medications. The program covers most FDA-approved drugs and coordinates with Medicare Part D to fill coverage gaps.\n\nSeniorCare works on income tiers, parents earning up to $25,536/year (single) or $34,624/year (couple) pay no deductible and get immediate $5/$15 copays. Higher income levels have deductibles from $500-$850 but still get the same low copays once met. The program has no asset limits and costs just $30/year to enroll.\n\nMost Wisconsin pharmacies accept the SeniorCare card, and coverage includes vaccines at no cost. Because SeniorCare coordinates as secondary insurance with Medicare, your loved one can often save significantly compared to Medicare Part D alone.",
-      "savingsRange": "$600 – $3,600/year",
+      "savingsRange": "$600 \u2013 $3,600/year",
       "savingsSource": "Estimated based on typical senior prescription usage with SeniorCare copay structure versus retail prices",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -127,7 +127,7 @@
             "tiers": [
               {
                 "name": "Level 1",
-                "income": "≤160% FPL (≤$25,536 single, ≤$34,624 couple)",
+                "income": "\u2264160% FPL (\u2264$25,536 single, \u2264$34,624 couple)",
                 "deductible": "$0",
                 "copays": "$5 generic, $15 brand-name",
                 "vaccines": "$0"
@@ -368,7 +368,7 @@
         "summary": [
           "Age 55+",
           "Unemployed",
-          "Family income ≤125% federal poverty level",
+          "Family income \u2264125% federal poverty level",
           "Wisconsin resident"
         ],
         "ageRequirement": "55+",
@@ -618,6 +618,12 @@
       ],
       "contacts": [
         {
+          "label": "Wisconsin Aging and Disability Resource Center statewide locator (start here)",
+          "phone": "(844) 947-2372",
+          "description": "Wisconsin Aging and Disability Resource Center statewide locator \u2014 connects callers to the local ADRC or Tribal ADRS that begins Family Care screening and enrollment",
+          "hours": null
+        },
+        {
           "label": "ADRC Locator",
           "phone": null,
           "description": "Find your local Aging and Disability Resource Center for screening and application assistance",
@@ -685,7 +691,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "(844) 947-2372",
       "sourceUrl": "https://www.dhs.wisconsin.gov/familycare/apply.htm",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -729,7 +735,7 @@
           "couple": null,
           "countedAssets": [],
           "exemptAssets": [
-            "Home if applicant lives there or intends to return (equity ≤$750,000)",
+            "Home if applicant lives there or intends to return (equity \u2264$750,000)",
             "Home if spouse lives there",
             "Home if minor child (<18) lives there",
             "Home if disabled child lives there"

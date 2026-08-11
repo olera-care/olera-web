@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.166Z
+ * Last updated: 2026-08-11T03:19:50.944Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -122,6 +122,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "NC LIFTSS (start here)",
+          "phone": "1-833-470-0597",
+          "description": "NC Medicaid's named door for learning how to apply for CAP/DA services",
+          "hours": "Monday-Friday 8am-5pm"
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for connecting to local DSS and waiver agencies",
@@ -217,7 +223,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "1-833-470-0597",
       "sourceUrl": "https://medicaid.ncdhhs.gov/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -755,6 +761,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(866) 719-0141",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local DSS office and other services",
@@ -823,7 +835,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(919) 855-4800",
+      "phone": "(866) 719-0141",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -1674,6 +1686,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "North Carolina Department of Health and Human Services (start here)",
+          "phone": "(919) 219-3101",
+          "description": "North Carolina Department of Health and Human Services — State SCSEP Coordinator",
+          "hours": null
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for referral to local SCSEP providers",
@@ -1754,7 +1772,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Briefcase",
-      "phone": "2-1-1",
+      "phone": "(919) 219-3101",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

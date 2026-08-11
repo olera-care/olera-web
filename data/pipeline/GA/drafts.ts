@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:21:30.178Z
+ * Last updated: 2026-08-11T03:38:44.673Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -307,6 +307,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Georgia Aging & Disability Resource Connection / Area Agency on  (start here)",
+          "phone": "(866) 552-4464",
+          "description": "Georgia Aging & Disability Resource Connection / Area Agency on Aging statewide intake",
+          "hours": null
+        },
+        {
           "label": "Georgia Department of Community Health",
           "phone": null,
           "description": "Primary state agency for HCBS program information",
@@ -375,7 +381,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "(866) 552-4464",
       "sourceUrl": "https://dch.georgia.gov/programs/hcbs",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",

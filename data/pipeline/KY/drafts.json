@@ -2375,10 +2375,16 @@
       ],
       "contacts": [
         {
-          "label": "Kentucky Transitions Team",
+          "label": "Kentucky Transitions (Money Follows the Person) team (start here)",
           "phone": "(877) 564-0330",
           "description": "Call to ask about Kentucky Transitions and start a prescreening. Also (502) 564-0330.",
           "hours": "Monday-Friday, business hours (Eastern time)"
+        },
+        {
+          "label": "Kentucky Department for Medicaid Services",
+          "phone": null,
+          "description": "Main program administration - use website to find local contact agency",
+          "hours": "Business hours"
         },
         {
           "label": "Kentucky 2-1-1",
@@ -2435,7 +2441,7 @@
         "visualTone": "warm"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(877) 564-0330",
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",

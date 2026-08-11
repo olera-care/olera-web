@@ -609,7 +609,7 @@
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles with Medicare premiums or medical bills, Missouri's Medicare Savings Program can reduce their costs by $200–500+ per month. The program has three tiers based on income: QMB covers all Medicare premiums plus deductibles and copays, while SLMB and QI cover the $202.90 monthly Part B premium.\n\nYour loved one must be enrolled in Medicare Part A and meet income limits that range from $1,325/month (QMB) to $1,781/month (QI) for single people in 2026. Because the program counts less than half of employment income, working individuals with disabilities may qualify despite higher total income. Asset limits are $9,660 for singles and $14,470 for married couples.",
+      "intro": "If your loved one struggles with Medicare premiums or medical bills, Missouri's Medicare Savings Program can reduce their costs by $200\u2013500+ per month. The program has three tiers based on income: QMB covers all Medicare premiums plus deductibles and copays, while SLMB and QI cover the $202.90 monthly Part B premium.\n\nYour loved one must be enrolled in Medicare Part A and meet income limits that range from $1,325/month (QMB) to $1,781/month (QI) for single people in 2026. Because the program counts less than half of employment income, working individuals with disabilities may qualify despite higher total income. Asset limits are $9,660 for singles and $14,470 for married couples.",
       "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
       "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
@@ -846,7 +846,7 @@
         "stateVariation": true
       },
       "intro": "If your loved one is on a fixed income in Missouri, SNAP can provide monthly assistance with grocery bills. A typical 2-person elderly household with $1,200 monthly income receives $415/month in food benefits loaded onto an EBT card that works like a debit card at most grocery stores.\n\nElderly households (60+) have easier qualification rules than younger families. Because seniors bypass the gross income test and only need to meet net income limits, many qualify even if their total monthly income seems too high. They also get higher asset limits ($4,500 instead of $3,000) and longer certification periods, meaning less paperwork once approved.\n\nAbout half of eligible seniors don't apply for SNAP, often because they don't realize they qualify. Social Security, veterans' benefits, and disability payments all count as income, but retirement savings and home ownership typically don't disqualify applicants.",
-      "savingsRange": "$100 – $415/month in 2025",
+      "savingsRange": "$100 \u2013 $415/month in 2025",
       "savingsSource": "Example benefit amounts for elderly households from Missouri DSS",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -951,6 +951,12 @@
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(855) 373-4636",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Missouri Department of Social Services",
           "phone": null,
           "description": "Local office finder and SNAP information",
@@ -1010,7 +1016,7 @@
         "visualTone": "warm"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/food-assistance/apply-for-snap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -1033,7 +1039,7 @@
         ]
       },
       "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, LIHEAP provides direct payments to their energy company. The program pays $153 to $495 toward regular heating costs, plus up to $800 for winter emergencies and $300 for summer cooling crises.\n\nYour loved one qualifies if their gross monthly income is below $2,839 for a single person or $3,713 for a couple (2025 limits), and they have $3,000 or less in countable assets like bank accounts and investments. Because priority goes to households with someone age 60+ or disabled, older adults get earlier application windows starting October 1.\n\nBecause funding is limited and distributed first-come, first-served within priority groups, applying early in the season maximizes your loved one's chances of receiving assistance before funds run out.",
-      "savingsRange": "$153 – $800/year in 2025",
+      "savingsRange": "$153 \u2013 $800/year in 2025",
       "savingsSource": "Regular heating assistance ranges $153-$495; crisis assistance up to $800 winter, $300 summer",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -2482,15 +2488,15 @@
         ]
       },
       "intro": "If your loved one is 65+ and struggles with property taxes or rent in Missouri, the Property Tax Credit (Circuit Breaker) provides up to $1,100 for homeowners or $750 for renters back on their taxes. Because this is a refundable credit, your loved one gets money back even if they don't owe taxes, the state sends a check.\n\nThe credit phases down as income increases, with the full amount only available to those earning $14,300 or less annually. Income limits are $30,000 for single homeowners and $27,200 for single renters (slightly higher for married couples). Income includes Social Security, pensions, wages, and most other sources.\n\nYour loved one applies by filing Form MO-PTC with the Missouri Department of Revenue or attaching Form MO-PTS to their regular tax return. No asset limits apply, only age, residency, and income matter.",
-      "savingsRange": "$750 – $1,100/year in 2026",
+      "savingsRange": "$750 \u2013 $1,100/year in 2026",
       "savingsSource": "Tax credit up to $750 for renters/part-year owners; up to $1,100 for full-year homeowners",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 65+",
           "Missouri resident all year",
-          "Single homeowner income ≤ $30,000",
-          "Single renter income ≤ $27,200",
+          "Single homeowner income \u2264 $30,000",
+          "Single renter income \u2264 $27,200",
           "No asset limits"
         ],
         "ageRequirement": "65+",
@@ -2746,6 +2752,12 @@
       ],
       "contacts": [
         {
+          "label": "Missouri Department of Health and Senior Services, Division of S (start here)",
+          "phone": "(866) 835-3505",
+          "description": "Missouri Department of Health and Senior Services, Division of Senior and Disability Services \u2014 HCBS Intake and Person-Centered Care Planning",
+          "hours": null
+        },
+        {
           "label": "Missouri Department of Social Services",
           "phone": null,
           "description": "Primary agency administering ADW - check website for local office numbers",
@@ -2814,7 +2826,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(866) 835-3505",
       "sourceUrl": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

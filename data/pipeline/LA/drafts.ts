@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:21:30.185Z
+ * Last updated: 2026-08-11T03:38:44.679Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -729,6 +729,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Louisiana Medicaid Customer Service / Medicaid Application Offic (start here)",
+          "phone": "(888) 342-6207",
+          "description": "Louisiana Medicaid Customer Service / Medicaid Application Office — Medicare Savings Program application help",
+          "hours": null
+        },
+        {
           "label": "Louisiana Department of Health Medicaid",
           "phone": null,
           "description": "Find local office numbers and locations",
@@ -822,7 +828,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "CurrencyDollar",
-      "phone": null,
+      "phone": "(888) 342-6207",
       "sourceUrl": "https://ldh.la.gov/medicaid/medicare-savings-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
@@ -953,16 +959,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Louisiana DCFS Customer Service (start here)",
+          "phone": "(888) 524-3578",
+          "description": "SNAP application status and general questions",
+          "hours": "Mon-Fri 8am-4:30pm CT"
+        },
+        {
           "label": "Louisiana 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your parish Council on Aging and DCFS office",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Louisiana DCFS Customer Service",
-          "phone": "(888) 524-3578",
-          "description": "SNAP application status and general questions",
-          "hours": "Mon-Fri 8am-4:30pm CT"
         }
       ],
       "applicationNotes": [

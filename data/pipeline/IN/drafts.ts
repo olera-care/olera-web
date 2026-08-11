@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.703Z
+ * Last updated: 2026-08-11T03:19:50.937Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -493,6 +493,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Indiana PathWays for Aging Enrollment Broker helpline (start here)",
+          "phone": "(877) 284-9294",
+          "description": "Apply or ask how to start",
+          "hours": null
+        },
+        {
           "label": "PathWays Information",
           "phone": null,
           "description": "Visit in.gov/pathways for enrollment details and managed care entity selection",
@@ -566,7 +572,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Signpost",
-      "phone": "2-1-1",
+      "phone": "(877) 284-9294",
       "sourceUrl": "https://www.in.gov/pathways/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:21:30.184Z
+ * Last updated: 2026-08-11T03:38:44.678Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2374,10 +2374,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Kentucky Transitions Team",
+          "label": "Kentucky Transitions (Money Follows the Person) team (start here)",
           "phone": "(877) 564-0330",
           "description": "Call to ask about Kentucky Transitions and start a prescreening. Also (502) 564-0330.",
           "hours": "Monday-Friday, business hours (Eastern time)"
+        },
+        {
+          "label": "Kentucky Department for Medicaid Services",
+          "phone": null,
+          "description": "Main program administration - use website to find local contact agency",
+          "hours": "Business hours"
         },
         {
           "label": "Kentucky 2-1-1",
@@ -2434,7 +2440,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(877) 564-0330",
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",

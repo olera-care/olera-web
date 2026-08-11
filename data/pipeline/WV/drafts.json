@@ -577,7 +577,7 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, SNAP provides monthly benefits loaded onto an EBT card for food purchases. West Virginia offers more flexible rules for older adults, your loved one may qualify even if their Social Security or pension puts them over standard income limits.\n\nBenefit amounts depend on household size and net income, but many seniors receive $100-300+ monthly. Because West Virginia has no asset limits under state rules, your loved one's savings account or car value won't disqualify them. The certification period lasts 24 months for households with someone 60+, meaning less frequent renewals than younger applicants face.\n\nWork requirements don't apply to anyone 60 or older. Your loved one can use SNAP benefits at most grocery stores and farmers markets, but not for alcohol, tobacco, or prepared hot foods.",
-      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsRange": "$1,200 \u2013 $3,600/year in 2026",
       "savingsSource": "Monthly EBT benefits of $100-300+ based on household size and income",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -1517,6 +1517,12 @@
       ],
       "contacts": [
         {
+          "label": "West Virginia Bureau of Senior Services toll-free line (start here)",
+          "phone": "(877) 987-3646",
+          "description": "West Virginia Bureau of Senior Services toll-free line \u2014 statewide routing to the local Area Agency on Aging/family caregiver support provider",
+          "hours": null
+        },
+        {
           "label": "West Virginia Bureau for Senior Services",
           "phone": null,
           "description": "Main state office for connecting to local Area Agencies on Aging",
@@ -1575,7 +1581,7 @@
         "visualTone": "warm"
       },
       "icon": "HandHeart",
-      "phone": "2-1-1",
+      "phone": "(877) 987-3646",
       "sourceUrl": "https://acl.gov/programs/support-caregivers/national-family-caregiver-support-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -2167,7 +2173,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ with permanent vision loss and not currently working, West Virginia's VISIONS program provides free one-on-one training in their home to help them live independently. The program covers everything from safe cooking and navigation techniques to using adaptive technology and audio devices, whatever your loved one needs most.\n\nA specially trained rehabilitation counselor works with your loved one for 3–9 months, customizing the training to their specific vision level and daily challenges. Because services come to your loved one's home, they learn skills in their actual environment where they'll use them. The program includes travel training, computer access technology, braille instruction if desired, and coping strategies for adjusting to vision loss.",
+      "intro": "If your loved one is 55+ with permanent vision loss and not currently working, West Virginia's VISIONS program provides free one-on-one training in their home to help them live independently. The program covers everything from safe cooking and navigation techniques to using adaptive technology and audio devices, whatever your loved one needs most.\n\nA specially trained rehabilitation counselor works with your loved one for 3\u20139 months, customizing the training to their specific vision level and daily challenges. Because services come to your loved one's home, they learn skills in their actual environment where they'll use them. The program includes travel training, computer access technology, braille instruction if desired, and coping strategies for adjusting to vision loss.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2205,7 +2211,7 @@
           {
             "step": 3,
             "title": "Begin services",
-            "description": "Training begins in your loved one's home and continues for 3–9 months based on their progress and needs."
+            "description": "Training begins in your loved one's home and continues for 3\u20139 months based on their progress and needs."
           }
         ],
         "processingTime": null,

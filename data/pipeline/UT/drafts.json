@@ -46,11 +46,11 @@
             "Cash value life insurance over $1,500"
           ],
           "exemptAssets": [
-            "Primary home (equity ≤$730,000 with intent to return)",
+            "Primary home (equity \u2264$730,000 with intent to return)",
             "One vehicle",
             "Personal belongings and household items",
-            "Burial plots and irrevocable burial trusts ≤$7,000",
-            "Life insurance with face value ≤$1,500"
+            "Burial plots and irrevocable burial trusts \u2264$7,000",
+            "Life insurance with face value \u2264$1,500"
           ],
           "homeEquityCap": 730000
         },
@@ -365,7 +365,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with Medicare premiums and medical bills, three programs can help based on their income level. The Qualified Medicare Beneficiary (QMB) program covers all Medicare costs for individuals earning $1,350/month or less. The Specified Low-income Medicare Beneficiary (SLMB) program covers Part B premiums for those earning $1,351–$1,620/month. The Qualifying Individual (QI) program also covers Part B premiums for those earning $1,621–$1,823/month.\n\nBecause these programs work through Utah Medicaid, your loved one gets immediate relief from Medicare costs once approved. QMB recipients receive a Medicaid card marked \"MEDICARE COST-SHARING ONLY\" that prevents providers from billing them for covered services. SLMB and QI recipients don't get a card because Utah pays Medicare directly for their premiums.\n\nThe QI program has limited federal funding that can run out mid-year, blocking new applicants until the following year. QMB and SLMB are guaranteed for all who qualify.",
+      "intro": "If your loved one struggles with Medicare premiums and medical bills, three programs can help based on their income level. The Qualified Medicare Beneficiary (QMB) program covers all Medicare costs for individuals earning $1,350/month or less. The Specified Low-income Medicare Beneficiary (SLMB) program covers Part B premiums for those earning $1,351\u2013$1,620/month. The Qualifying Individual (QI) program also covers Part B premiums for those earning $1,621\u2013$1,823/month.\n\nBecause these programs work through Utah Medicaid, your loved one gets immediate relief from Medicare costs once approved. QMB recipients receive a Medicaid card marked \"MEDICARE COST-SHARING ONLY\" that prevents providers from billing them for covered services. SLMB and QI recipients don't get a card because Utah pays Medicare directly for their premiums.\n\nThe QI program has limited federal funding that can run out mid-year, blocking new applicants until the following year. QMB and SLMB are guaranteed for all who qualify.",
       "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
       "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
@@ -488,6 +488,12 @@
       ],
       "contacts": [
         {
+          "label": "Utah Department of Workforce Services (start here)",
+          "phone": "(866) 435-7414",
+          "description": "Utah Department of Workforce Services \u2014 medical assistance application line",
+          "hours": null
+        },
+        {
           "label": "Utah Medicaid Information",
           "phone": null,
           "description": "Find your local Medicaid office and phone number",
@@ -526,14 +532,14 @@
             },
             {
               "tier": "SLMB (Specified Low-income Medicare Beneficiary)",
-              "income": "$1,351–$1,620/month (single), $1,825–$2,189/month (couple)",
+              "income": "$1,351\u2013$1,620/month (single), $1,825\u2013$2,189/month (couple)",
               "covers": "Medicare Part B premiums only",
               "card": "No card issued, premium paid directly",
               "notes": "Must be enrolled in Medicare Part A and Part B"
             },
             {
               "tier": "QI (Qualifying Individual)",
-              "income": "$1,621–$1,823/month (single), $2,190–$2,462/month (couple)",
+              "income": "$1,621\u2013$1,823/month (single), $2,190\u2013$2,462/month (couple)",
               "covers": "Medicare Part B premiums only",
               "card": "No card issued, premium paid directly",
               "notes": "Limited funding, may close to new applicants"
@@ -584,7 +590,7 @@
         "visualTone": "editorial"
       },
       "icon": "Money",
-      "phone": "2-1-1",
+      "phone": "(866) 435-7414",
       "sourceUrl": "https://medicaid.utah.gov/medicare-cost-sharing-programs/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
@@ -608,7 +614,7 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs in Utah, they may qualify for monthly SNAP benefits loaded onto an EBT card. Because Utah has simplified rules for seniors, your loved one doesn't need to pass the gross income test, only net income after deductions for medical expenses over $35/month and high shelter costs.\n\nBecause households with seniors get higher asset limits ($4,500 instead of $3,000), your loved one can keep their home, car, and retirement savings and still qualify. A typical 2-person elderly household might receive $415/month after calculations, though the exact amount depends on net income and allowable deductions.\n\nUtah offers ESAP (Elderly Simplified Application Project) for seniors, which means one interview and approval for 3 years instead of frequent recertifications. Despite these benefits, only about half of eligible seniors currently apply for SNAP in Utah.",
-      "savingsRange": "$1,200 – $4,980/year in 2026",
+      "savingsRange": "$1,200 \u2013 $4,980/year in 2026",
       "savingsSource": "Based on monthly EBT benefits calculated from net income and household size",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -817,7 +823,7 @@
         ]
       },
       "intro": "If your loved one is struggling with utility bills on a fixed income, Utah's HEAT program (Home Energy Assistance Target) can provide $190 to $850 toward annual heating and cooling costs. Crisis assistance goes up to $2,000 for households facing disconnection or out of fuel.\n\nYour loved one qualifies if their household income is at or below 150% of federal poverty level, that's $1,956/month for a single person or $2,644/month for a two-person household in 2026. The program runs October through September each year, but funds are limited and distributed first-come, first-served.\n\nIf your loved one is 60 or older, disabled, or lives with a child under 6, they get priority access starting October 1. Everyone else can apply starting November 1. The money goes directly to the utility company, not to your loved one.",
-      "savingsRange": "$190 – $850/year in 2026",
+      "savingsRange": "$190 \u2013 $850/year in 2026",
       "savingsSource": "Utah Jobs and Family Services heating/cooling assistance amounts, plus crisis assistance up to $2,000",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -1553,7 +1559,7 @@
         ]
       },
       "intro": "If you're caring for an aging loved one who needs help with daily activities like bathing or dressing, Utah's Caregiver Support Program provides up to $1,500 in services each year to help you manage. The program covers respite care, personal care aides, adult day care, overnight respite, case management, caregiver support groups, counseling, and training, services that typically cost $15-25/hour out of pocket.\n\nBecause this program has no income limits but requires you to demonstrate caregiver stress through a formal assessment, eligibility depends on your caregiving burden rather than your financial situation. Your loved one must be 60+ (or any age with Alzheimer's or dementia) and need help with at least two daily activities.\n\nThe program operates through county Area Agencies on Aging and often maintains a waiting list. Caregivers 55+ and those with the highest stress scores get priority.",
-      "savingsRange": "$500 – $1,500/year",
+      "savingsRange": "$500 \u2013 $1,500/year",
       "savingsSource": "Service value based on $15-25/hour typical cost for respite and personal care services",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -2191,7 +2197,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or managing medications, Utah Aging Waiver can provide personal care, home modifications, respite care, and other services to help them stay home instead of moving to a nursing facility. The program covers case management, adult day care, specialized medical equipment, non-medical transportation, and personal emergency response systems, all tailored to your loved one's specific needs through a care plan.\n\nTo qualify, your loved one must be 65+ with income below $1,305/month (effective March 2025–February 2026) and countable assets under $2,000. They must also meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs significant physical assistance with at least 2 daily activities like bathing or dressing, has poor orientation requiring nursing facility care, or has a medical condition that cannot be safely managed without waiver services). The program is available statewide through your county's Aging & Adult Services office.",
+      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or managing medications, Utah Aging Waiver can provide personal care, home modifications, respite care, and other services to help them stay home instead of moving to a nursing facility. The program covers case management, adult day care, specialized medical equipment, non-medical transportation, and personal emergency response systems, all tailored to your loved one's specific needs through a care plan.\n\nTo qualify, your loved one must be 65+ with income below $1,305/month (effective March 2025\u2013February 2026) and countable assets under $2,000. They must also meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs significant physical assistance with at least 2 daily activities like bathing or dressing, has poor orientation requiring nursing facility care, or has a medical condition that cannot be safely managed without waiver services). The program is available statewide through your county's Aging & Adult Services office.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,

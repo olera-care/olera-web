@@ -1007,6 +1007,12 @@
       ],
       "contacts": [
         {
+          "label": "South Dakota Department of Social Services, Office of Energy Ass (start here)",
+          "phone": "(800) 233-8503",
+          "description": "South Dakota Department of Social Services, Office of Energy Assistance \u2014 application request, status, and emergency line",
+          "hours": null
+        },
+        {
           "label": "DSS Office of Energy Assistance",
           "phone": null,
           "description": "Mail applications to 700 Governors Drive, Pierre, SD 57501 or email DSSHeat@state.sd.us",
@@ -1067,7 +1073,7 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": null,
+      "phone": "(800) 233-8503",
       "sourceUrl": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -1432,7 +1438,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and has trouble cooking or shopping for themselves, Meals on Wheels delivers one hot, nutritious meal to their home Monday through Friday. The suggested donation is $4.25–$5.25 per meal, but no one is denied for inability to pay.\n\nBecause South Dakota operates Meals on Wheels through local providers rather than one statewide system, you'll need to contact the specific organization serving your loved one's community. The key requirement is that your loved one must be homebound, unable to cook or shop independently, not just age alone. Coverage varies by area, with some communities offering private pay options at around $15 per meal if donation-based slots are full.\n\nIf your loved one is under 60, they cannot access standard Meals on Wheels but may qualify for similar services through Dakota at Home, which requires a separate eligibility assessment for disability or other qualifying conditions.",
+      "intro": "If your loved one is 60+ and has trouble cooking or shopping for themselves, Meals on Wheels delivers one hot, nutritious meal to their home Monday through Friday. The suggested donation is $4.25\u2013$5.25 per meal, but no one is denied for inability to pay.\n\nBecause South Dakota operates Meals on Wheels through local providers rather than one statewide system, you'll need to contact the specific organization serving your loved one's community. The key requirement is that your loved one must be homebound, unable to cook or shop independently, not just age alone. Coverage varies by area, with some communities offering private pay options at around $15 per meal if donation-based slots are full.\n\nIf your loved one is under 60, they cannot access standard Meals on Wheels but may qualify for similar services through Dakota at Home, which requires a separate eligibility assessment for disability or other qualifying conditions.",
       "savingsRange": "",
       "savingsSource": "Free service with suggested donations",
       "savingsVerified": false,
@@ -1519,7 +1525,7 @@
         },
         {
           "question": "Can my loved one get meals if they can't afford the suggested donation?",
-          "answer": "Yes. Programs specifically state that no one is denied meals for inability to pay suggested donations of $4.25–$5.25. However, Medicaid/SSI recipients are often prioritized for donation-based slots."
+          "answer": "Yes. Programs specifically state that no one is denied meals for inability to pay suggested donations of $4.25\u2013$5.25. However, Medicaid/SSI recipients are often prioritized for donation-based slots."
         },
         {
           "question": "What happens if my 58-year-old loved one is disabled and homebound?",
@@ -1592,7 +1598,7 @@
             "Accessible investments and resources"
           ],
           "exemptAssets": [
-            "Primary home (if intent to return and equity ≤$730,000)",
+            "Primary home (if intent to return and equity \u2264$730,000)",
             "Home where spouse, minor child, or disabled child lives",
             "Pre-need burial contracts"
           ],
@@ -1756,7 +1762,7 @@
         ]
       },
       "intro": "If your loved one is 55+, unemployed, and has very low income (under $19,563/year for a single person in 2023), SCSEP provides part-time community service work averaging 20 hours per week at minimum wage. Because the program includes job training and placement assistance, your loved one gains work experience while earning income and building skills for permanent employment.\n\nSCSEP is only available in three regions of South Dakota: West River, East River, and Central areas (check the coverage map on the DLR website first). Veterans, those 65+, disabled individuals, and rural residents get priority enrollment. The program provides free annual physical exams and supports independence through structured work and social activities.",
-      "savingsRange": "$3,100 – $4,200/year",
+      "savingsRange": "$3,100 \u2013 $4,200/year",
       "savingsSource": "Part-time minimum wage work averaging 20 hours/week",
       "savingsVerified": true,
       "structuredEligibility": {

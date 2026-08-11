@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:21:30.200Z
+ * Last updated: 2026-08-11T03:38:44.692Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1012,6 +1012,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "South Dakota Department of Social Services, Office of Energy Ass (start here)",
+          "phone": "(800) 233-8503",
+          "description": "South Dakota Department of Social Services, Office of Energy Assistance — application request, status, and emergency line",
+          "hours": null
+        },
+        {
           "label": "DSS Office of Energy Assistance",
           "phone": null,
           "description": "Mail applications to 700 Governors Drive, Pierre, SD 57501 or email DSSHeat@state.sd.us",
@@ -1072,7 +1078,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": null,
+      "phone": "(800) 233-8503",
       "sourceUrl": "https://dss.sd.gov/economicassistance/energy_weatherization_assistance.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

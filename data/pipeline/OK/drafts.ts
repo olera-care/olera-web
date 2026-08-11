@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T06:38:44.307Z
+ * Last updated: 2026-08-11T08:22:00.770Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1921,34 +1921,47 @@ export const drafts: PipelineStateDrafts = {
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Call your county OKDHS office for assessment, both medical and financial evaluations are required.",
+        "method": "online",
+        "summary": "Choose your providers first, then apply online. The phone line is the backup if you cannot use the online form.",
         "processingTime": "Processing time not specified; annual redetermination required",
         "waitlist": "Limited slots available; if program is full, placed on statewide waitlist until a slot opens",
         "tip": "Gather all financial documents before calling, income verification and asset documentation will be needed for the interview",
         "steps": [
           {
             "step": 1,
-            "title": "Contact your local county OKDHS office",
-            "description": "Call to request ADvantage Waiver assessment. Both medical and financial evaluations are required."
+            "title": "Choose your providers first",
+            "description": "Use the state provider search to pick a Home Care provider and a Case Management provider for your county. Oklahoma asks for both during the medical assessment, and most families do not know to choose them first."
           },
           {
             "step": 2,
-            "title": "Complete financial interview",
-            "description": "OKDHS social worker will conduct phone interview to determine SoonerCare Medicaid eligibility based on income and assets."
+            "title": "Complete the online application",
+            "description": "Oklahoma asks you to apply online for in-home assistance. This is the route the state lists first."
           },
           {
             "step": 3,
-            "title": "Medical assessment",
-            "description": "OKDHS nurse will use UCAT III assessment tool to determine if you meet Nursing Facility Level of Care requirements."
+            "title": "Or call to apply by phone",
+            "description": "If you cannot complete the online application, call the Medicaid Services Unit at 1-800-435-4711 to set up an appointment to apply by phone."
           },
           {
             "step": 4,
-            "title": "Wait for decision",
-            "description": "If eligible but no slots available, you'll be placed on statewide waitlist. If slot is available, case manager will develop individualized service plan."
+            "title": "Medical eligibility assessment",
+            "description": "A nurse uses the UCAT assessment to decide whether your loved one meets nursing facility level of care. You will be asked which providers you chose."
+          },
+          {
+            "step": 5,
+            "title": "Decision, and possibly a wait",
+            "description": "ADvantage has a limited number of slots. If your loved one qualifies but no slot is open, they go on a statewide waiting list."
           }
         ],
         "urls": [
+          {
+            "label": "Apply online for in-home assistance",
+            "url": "https://hssokprod.wellsky.com/assessments/?WebIntake=3362FCB4-94E7-4E51-BCF6-DC9FBB0A70EB"
+          },
+          {
+            "label": "Provider Search tool (choose providers first)",
+            "url": "https://oklahoma.gov/okdhs/services/cap/providersearch.html"
+          },
           {
             "label": "Oklahoma Human Services ADvantage Page",
             "url": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html"
@@ -1956,6 +1969,9 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
+        "The Home Care and Case Management providers you want, picked from the state provider search for your county. Oklahoma asks for these at the assessment.",
+        "A rough idea of your loved one's monthly income and savings, since SoonerCare financial eligibility is part of this.",
+        "A list of the daily tasks they need help with, such as bathing, dressing, and moving around the house.",
         "Social Security cards for applicant and spouse",
         "Birth certificate or other proof of age",
         "Proof of Oklahoma residency (utility bill, lease, or state-issued document)",

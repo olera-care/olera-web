@@ -8,6 +8,7 @@ GA4 + Search Console + Olera product events
        shared TypeScript collector
                     ↓
       growth_metric_snapshots (Supabase)
+             + growth_page_metrics
              ↓              ↘
   Organic Growth page      /metrics maintenance
 ```
@@ -27,6 +28,18 @@ One `growth_metric_snapshots` row represents one completed Sunday-Saturday week 
 
 The dedicated `/admin/organic-growth` page is the routine reporting surface and reads this table through an authenticated admin-only API. Its calendar-style range picker defaults to the latest 12 completed weeks and can expand to six months, one year, all 180 stored weeks, or a custom range. Product experimentation and operational signals remain on `/admin/analytics`. The `/metrics` command is the maintenance hatch for backfills, intentional corrections, source debugging, and Claude interpretation. There are no generated weekly files to reconcile.
 
+### Page-level growth drivers
+
+`growth_page_metrics` preserves the decision-relevant page evidence behind each live weekly snapshot. Every GA4 Organic Search landing and Search Console page is normalized to a path, classified into one of Olera's three canonical organic drivers, and retained when it has at least two organic users, two search clicks, or fifty search impressions in the week. The small materiality floor prevents thousands of one-off provider URLs from creating storage noise while preserving every page substantial enough to affect the ranked and opportunity views:
+
+- **Provider:** public `/provider/{slug}` detail pages, excluding provider application routes.
+- **Benefits:** `/benefits`, its state/program tree, and the surviving `/senior-benefits` hub.
+- **Editorial:** `/caregiver-support` and its article tree.
+
+The admin Growth drivers workspace aggregates those rows over the selected reporting range, compares them with the immediately preceding equivalent period, and offers Top, Rising, Falling, and Opportunities views. “Nearly there” and “CTR opportunity” are deterministic investigation prompts based on Search Console position, impressions, and CTR; they are not causal claims or automatic SEO recommendations.
+
+The shared route classifier lives in `lib/analytics/content-pages.ts`. Update it when a canonical public route family changes rather than adding path guesses in the collector or UI.
+
 ## Cadence
 
 Vercel calls `/api/cron/growth-metrics` every Tuesday at 14:00 UTC, after the usual Search Console delay. The collector chooses the latest completed Sunday-Saturday week and safely skips it if already present.
@@ -38,6 +51,7 @@ npm run metrics
 npm run metrics -- --week-start 2026-08-02 --week-end 2026-08-08
 npm run metrics -- --dry-run
 npm run metrics -- --backfill --from 2024-08-04
+npm run metrics:backfill-pages -- --force
 ```
 
 An isolated worktree can reuse an existing local configuration without copying it:
@@ -47,6 +61,8 @@ npm run metrics -- --env-file /path/to/olera-web/.env.local --credentials /path/
 ```
 
 The first backfill requires `--from`. Backfill scans the whole requested range, skips stored weeks, and fills gaps even when a newer live week already exists. Collection stops on the first source failure rather than writing misleading partial history.
+
+After applying migration 173, run `metrics:backfill-pages -- --force` once to add page intelligence to the existing `google_supabase` weeks. It deliberately ignores Airtable-only weeks because that export contains no page-level observations. Optional `--from`, `--to`, `--dry-run`, and `--ga4-only` flags are available. Normal Tuesday collection writes both the weekly snapshot and its page rows automatically; a retry repairs missing page rows for an already-saved week.
 
 ## Credentials
 

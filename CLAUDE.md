@@ -60,6 +60,7 @@ feature branch → PR to staging → QA → PR to main → production
 
 - Run `/metrics` for the canonical weekly acquisition and SEO report.
 - The command writes one immutable Supabase snapshot per completed week; `/admin/organic-growth` reads the same row.
+- Live weeks also write categorized `growth_page_metrics` rows so Growth drivers can rank Provider, Benefits, and Editorial pages over any selected range.
 - `docs/growth/README.md` defines every metric, the Tuesday reporting cadence, and credential setup.
 - Do not depend on Olera-HQ or Airtable for this workflow. Olera Web is the source of truth.
 - `/product-led-growth` remains the product-engagement workflow; `/metrics` measures acquisition, search visibility, and organic inquiries.

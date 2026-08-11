@@ -8,6 +8,7 @@ import DateRangePopover, {
   type DateRangePresetOption,
   type DateRangeValue,
 } from "@/components/admin/DateRangePopover";
+import GrowthDrivers from "@/components/admin/GrowthDrivers";
 
 interface GrowthWeek {
   week_start: string;
@@ -165,7 +166,7 @@ export default function GrowthOverview() {
   }, []);
 
   const metric = METRICS.find((item) => item.key === selected) || METRICS[0];
-  const allWeeks = data?.weeks || [];
+  const allWeeks = useMemo(() => data?.weeks || [], [data]);
   const weeks = useMemo(() => weeksInRange(allWeeks, range), [allWeeks, range]);
   const latest = weeks.at(-1) || null;
   const prior = weeks.at(-2) || null;
@@ -316,6 +317,8 @@ export default function GrowthOverview() {
         </div>
       </div>
 
+      <GrowthDrivers from={weeks[0].week_start} to={latest.week_end} />
+
       <OrganicAcquisition latest={latest} prior={prior} />
     </section>
   );
@@ -358,7 +361,6 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
   }
 
   const sources = (organic?.sources || []).filter((row) => row.users > 0).slice(0, 6);
-  const landings = (organic?.landing_pages || []).filter((row) => row.users > 0).slice(0, 6);
   const queries = (search?.top_queries || []).filter((row) => row.label).slice(0, 6);
   const maxSource = Math.max(...sources.map((row) => row.users), 1);
   const mix = search?.query_mix;
@@ -401,7 +403,7 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 lg:divide-x lg:divide-gray-100">
+      <div className="grid lg:grid-cols-2 lg:divide-x lg:divide-gray-100">
         <div className="px-5 py-5 sm:px-7">
           <PanelHeading title="Search sources" detail="GA4 users" />
           {sources.length ? (
@@ -452,20 +454,6 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
           ) : <EmptyBreakdown />}
         </div>
 
-        <div className="border-t border-gray-100 px-5 py-5 sm:px-7 lg:border-t-0">
-          <PanelHeading title="Where they landed" detail="Organic GA4 users" />
-          {landings.length ? (
-            <ol className="mt-3 divide-y divide-gray-50">
-              {landings.map((row, index) => (
-                <li key={`${row.path}-${index}`} className="flex items-center gap-3 py-2.5">
-                  <span className="w-4 shrink-0 text-[10px] tabular-nums text-gray-300">{index + 1}</span>
-                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-gray-700" title={row.path}>{landingLabel(row.path)}</span>
-                  <span className="shrink-0 text-[11px] tabular-nums text-gray-400">{row.users.toLocaleString()} users</span>
-                </li>
-              ))}
-            </ol>
-          ) : <EmptyBreakdown />}
-        </div>
       </div>
     </div>
   );
@@ -503,22 +491,13 @@ function sourceLabel(value: string) {
   return source.charAt(0).toUpperCase() + source.slice(1);
 }
 
-function landingLabel(value: string) {
-  try {
-    if (value.startsWith("http")) return new URL(value).pathname || "/";
-  } catch {
-    return value;
-  }
-  return value || "/";
-}
-
 function organicStory(organicMovement: number | null, clickMovement: number | null) {
   if (organicMovement == null && clickMovement == null) {
     return "The first complete week is now the baseline. Next Tuesday will add the first week-over-week organic comparison.";
   }
   const organic = movementStory("Organic users", organicMovement);
   const clicks = movementStory("search clicks", clickMovement);
-  return `${organic}, while ${clicks}. Use the source, query, and landing-page lists below to locate the movement.`;
+  return `${organic}, while ${clicks}. Use Growth drivers above to locate the pages creating the movement, then use source and query detail here to understand demand.`;
 }
 
 function movementStory(label: string, movement: number | null) {

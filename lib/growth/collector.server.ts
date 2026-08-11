@@ -2,6 +2,7 @@ import { createSign } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { classifyOrganicPage, normalizeOrganicPagePath } from "@/lib/analytics/content-pages";
 import { reportingWindowUtc, validateCompleteWeek } from "./dates";
 import {
   GA4_PROPERTY_ID,
@@ -12,6 +13,7 @@ import {
   type GrowthGa4Metrics,
   type GrowthGscMetrics,
   type GrowthMarketplaceMetrics,
+  type GrowthPageMetric,
   type GrowthSearchRow,
   type GrowthSnapshot,
 } from "./types";
@@ -115,7 +117,18 @@ type Ga4Report = {
   }>;
 };
 
-async function pullGa4(token: string, weekStart: string, weekEnd: string): Promise<GrowthGa4Metrics> {
+type Ga4LandingMetric = {
+  path: string;
+  users: number;
+  sessions: number;
+};
+
+type PulledGa4 = {
+  metrics: GrowthGa4Metrics;
+  categorizedLandings: Ga4LandingMetric[];
+};
+
+async function pullGa4(token: string, weekStart: string, weekEnd: string): Promise<PulledGa4> {
   const url = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}:runReport`;
   const dateRanges = [{ startDate: weekStart, endDate: weekEnd }];
   const overview = await googlePost<Ga4Report>(url, token, {
@@ -153,7 +166,7 @@ async function pullGa4(token: string, weekStart: string, weekEnd: string): Promi
       dimensions: [{ name: "landingPage" }],
       metrics: [{ name: "totalUsers" }, { name: "sessions" }],
       orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
-      limit: 25,
+      limit: 10_000,
     }),
   ]);
   const allChannels = Object.fromEntries(
@@ -168,29 +181,33 @@ async function pullGa4(token: string, weekStart: string, weekEnd: string): Promi
     users: Number(row.metricValues?.[0]?.value || 0),
     sessions: Number(row.metricValues?.[1]?.value || 0),
   }));
-  const organicLandings = (organicLandingsReport.rows || [])
+  const allOrganicLandings = (organicLandingsReport.rows || [])
     .map((row) => ({
       path: row.dimensionValues?.[0]?.value || "Unknown",
       users: Number(row.metricValues?.[0]?.value || 0),
       sessions: Number(row.metricValues?.[1]?.value || 0),
     }))
-    .filter((row) => row.path !== "(not set)")
-    .slice(0, 15);
+    .filter((row) => row.path !== "(not set)");
+  const organicLandings = allOrganicLandings.slice(0, 15);
+  const categorizedLandings = allOrganicLandings.filter((row) => classifyOrganicPage(row.path));
 
   return {
-    overview: {
-      total_users: values[0],
-      new_users: values[1],
-      sessions: values[2],
-      average_session_duration_seconds: values[3],
-      engagement_rate: values[4],
-      page_views: values[5],
+    metrics: {
+      overview: {
+        total_users: values[0],
+        new_users: values[1],
+        sessions: values[2],
+        average_session_duration_seconds: values[3],
+        engagement_rate: values[4],
+        page_views: values[5],
+      },
+      channels,
+      organic: {
+        sources: organicSources,
+        landing_pages: organicLandings,
+      },
     },
-    channels,
-    organic: {
-      sources: organicSources,
-      landing_pages: organicLandings,
-    },
+    categorizedLandings,
   };
 }
 
@@ -208,7 +225,12 @@ function normalizeSearchRow(row: NonNullable<GscResponse["rows"]>[number]): Grow
   };
 }
 
-async function pullGsc(token: string, weekStart: string, weekEnd: string): Promise<GrowthGscMetrics> {
+type PulledGsc = {
+  metrics: GrowthGscMetrics;
+  pages: GrowthSearchRow[];
+};
+
+async function pullGsc(token: string, weekStart: string, weekEnd: string): Promise<PulledGsc> {
   const url = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE_URL)}/searchAnalytics/query`;
   const query = (dimensions?: string[], rowLimit = 25) => googlePost<GscResponse>(url, token, {
     startDate: weekStart,
@@ -220,7 +242,7 @@ async function pullGsc(token: string, weekStart: string, weekEnd: string): Promi
   const [overview, queries, pages] = await Promise.all([
     query(undefined, 1),
     query(["query"], 1_000),
-    query(["page"], 15),
+    query(["page"], 25_000),
   ]);
   const performance = normalizeSearchRow(overview.rows?.[0] || {});
   const normalizedQueries = (queries.rows || []).map(normalizeSearchRow);
@@ -239,21 +261,80 @@ async function pullGsc(token: string, weekStart: string, weekEnd: string): Promi
     },
   );
   const classifiedClicks = queryMix.branded_clicks + queryMix.non_branded_clicks;
+  const normalizedPages = (pages.rows || []).map(normalizeSearchRow);
   return {
-    performance: {
-      clicks: performance.clicks,
-      impressions: performance.impressions,
-      ctr: performance.ctr,
-      position: performance.position,
+    metrics: {
+      performance: {
+        clicks: performance.clicks,
+        impressions: performance.impressions,
+        ctr: performance.ctr,
+        position: performance.position,
+      },
+      top_queries: normalizedQueries.slice(0, 15),
+      top_pages: normalizedPages.slice(0, 15),
+      query_mix: {
+        ...queryMix,
+        classified_click_coverage: performance.clicks > 0 ? Math.min(1, classifiedClicks / performance.clicks) : null,
+      },
+      data_state: "final",
     },
-    top_queries: normalizedQueries.slice(0, 15),
-    top_pages: (pages.rows || []).map(normalizeSearchRow),
-    query_mix: {
-      ...queryMix,
-      classified_click_coverage: performance.clicks > 0 ? Math.min(1, classifiedClicks / performance.clicks) : null,
-    },
-    data_state: "final",
+    pages: normalizedPages,
   };
+}
+
+function mergePageMetrics(
+  weekStart: string,
+  ga4Pages: Ga4LandingMetric[],
+  gscPages: GrowthSearchRow[],
+): GrowthPageMetric[] {
+  type Accumulator = Omit<GrowthPageMetric, "search_ctr" | "search_position"> & {
+    weighted_position: number;
+  };
+  const collectedAt = new Date().toISOString();
+  const pages = new Map<string, Accumulator>();
+
+  const rowFor = (rawPath: string) => {
+    const pagePath = normalizeOrganicPagePath(rawPath);
+    const pageCategory = pagePath ? classifyOrganicPage(pagePath) : null;
+    if (!pagePath || !pageCategory) return null;
+    const existing = pages.get(pagePath);
+    if (existing) return existing;
+    const created: Accumulator = {
+      week_start: weekStart,
+      page_path: pagePath,
+      page_category: pageCategory,
+      organic_users: 0,
+      organic_sessions: 0,
+      search_clicks: 0,
+      search_impressions: 0,
+      weighted_position: 0,
+      collected_at: collectedAt,
+    };
+    pages.set(pagePath, created);
+    return created;
+  };
+
+  for (const metric of ga4Pages) {
+    const page = rowFor(metric.path);
+    if (!page) continue;
+    page.organic_users += metric.users;
+    page.organic_sessions += metric.sessions;
+  }
+  for (const metric of gscPages) {
+    const page = rowFor(metric.label);
+    if (!page) continue;
+    page.search_clicks += metric.clicks;
+    page.search_impressions += metric.impressions;
+    page.weighted_position += metric.position * metric.impressions;
+  }
+
+  return Array.from(pages.values())
+    .filter((page) => page.organic_users >= 2 || page.search_clicks >= 2 || page.search_impressions >= 50)
+    .map(({ weighted_position, ...page }) => ({
+      ...page,
+      search_ctr: page.search_impressions > 0 ? page.search_clicks / page.search_impressions : 0,
+      search_position: page.search_impressions > 0 ? weighted_position / page.search_impressions : null,
+    }));
 }
 
 async function exactCount(query: PromiseLike<{ count: number | null; error: { message: string } | null }>, label: string) {
@@ -286,25 +367,58 @@ async function pullMarketplace(
   };
 }
 
-export async function collectGrowthSnapshot(options: CollectOptions): Promise<GrowthSnapshot> {
-  validateCompleteWeek(options.weekStart, options.weekEnd);
-  const token = await getGoogleAccessToken();
-  const ga4 = await pullGa4(token, options.weekStart, options.weekEnd);
-  const [gsc, marketplace] = await Promise.all([
-    options.ga4Only ? Promise.resolve(null) : pullGsc(token, options.weekStart, options.weekEnd),
-    pullMarketplace(options.db, options.weekStart, options.weekEnd, ga4.channels["Organic Search"] || 0),
+export interface GrowthCollection {
+  snapshot: GrowthSnapshot;
+  page_metrics: GrowthPageMetric[];
+}
+
+async function pullGoogleGrowth(token: string, weekStart: string, weekEnd: string, ga4Only = false) {
+  const [ga4Result, gscResult] = await Promise.all([
+    pullGa4(token, weekStart, weekEnd),
+    ga4Only ? Promise.resolve(null) : pullGsc(token, weekStart, weekEnd),
   ]);
   return {
-    week_start: options.weekStart,
-    week_end: options.weekEnd,
-    reporting_timezone: GROWTH_TIMEZONE,
-    source: "google_supabase",
-    definition_version: GROWTH_DEFINITION_VERSION,
-    ga4,
-    gsc,
-    marketplace,
-    source_status: { ga4: "available", gsc: gsc ? "available" : "skipped", supabase: "available" },
-    anomalies: [],
-    collected_at: new Date().toISOString(),
+    ga4: ga4Result.metrics,
+    gsc: gscResult?.metrics ?? null,
+    pageMetrics: mergePageMetrics(weekStart, ga4Result.categorizedLandings, gscResult?.pages || []),
   };
+}
+
+export async function collectGrowthWeek(options: CollectOptions): Promise<GrowthCollection> {
+  validateCompleteWeek(options.weekStart, options.weekEnd);
+  const token = await getGoogleAccessToken();
+  const google = await pullGoogleGrowth(token, options.weekStart, options.weekEnd, options.ga4Only);
+  const marketplace = await pullMarketplace(
+    options.db,
+    options.weekStart,
+    options.weekEnd,
+    google.ga4.channels["Organic Search"] || 0,
+  );
+  return {
+    snapshot: {
+      week_start: options.weekStart,
+      week_end: options.weekEnd,
+      reporting_timezone: GROWTH_TIMEZONE,
+      source: "google_supabase",
+      definition_version: GROWTH_DEFINITION_VERSION,
+      ga4: google.ga4,
+      gsc: google.gsc,
+      marketplace,
+      source_status: { ga4: "available", gsc: google.gsc ? "available" : "skipped", supabase: "available" },
+      anomalies: [],
+      collected_at: new Date().toISOString(),
+    },
+    page_metrics: google.pageMetrics,
+  };
+}
+
+/** Recollect page intelligence for an already-saved historical week. */
+export async function collectGrowthPageMetrics(
+  weekStart: string,
+  weekEnd: string,
+  ga4Only = false,
+): Promise<GrowthPageMetric[]> {
+  validateCompleteWeek(weekStart, weekEnd);
+  const token = await getGoogleAccessToken();
+  return (await pullGoogleGrowth(token, weekStart, weekEnd, ga4Only)).pageMetrics;
 }

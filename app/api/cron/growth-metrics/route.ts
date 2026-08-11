@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getServiceClient, isAdmin } from "@/lib/admin";
 import { mostRecentCompleteWeek } from "@/lib/growth/dates";
-import { collectGrowthSnapshot } from "@/lib/growth/collector.server";
-import { saveGrowthSnapshot } from "@/lib/growth/store.server";
+import { collectGrowthPageMetrics, collectGrowthWeek } from "@/lib/growth/collector.server";
+import { saveGrowthPageMetrics, saveGrowthSnapshot } from "@/lib/growth/store.server";
 import { withCronRun } from "@/lib/crons/run";
 
 export const maxDuration = 60;
@@ -29,10 +29,27 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
     if (existingError) throw new Error(`Could not check growth history: ${existingError.message}`);
     if (existing) {
-      return { ok: true, skipped: "already_collected", week_start: weekStart, collected_at: existing.collected_at };
+      const { count, error: pageError } = await db
+        .from("growth_page_metrics")
+        .select("id", { count: "exact", head: true })
+        .eq("week_start", weekStart);
+      if (pageError) throw new Error(`Could not check page intelligence: ${pageError.message}. Apply migration 173.`);
+      if ((count || 0) > 0) {
+        return { ok: true, skipped: "already_collected", week_start: weekStart, collected_at: existing.collected_at };
+      }
+      const pageMetrics = await collectGrowthPageMetrics(weekStart, weekEnd);
+      await saveGrowthPageMetrics(db, pageMetrics);
+      return {
+        ok: true,
+        repaired: "page_metrics",
+        week_start: weekStart,
+        pages: pageMetrics.length,
+        collected_at: existing.collected_at,
+      };
     }
-    const snapshot = await collectGrowthSnapshot({ weekStart, weekEnd, db });
-    const saved = await saveGrowthSnapshot(db, snapshot);
+    const collection = await collectGrowthWeek({ weekStart, weekEnd, db });
+    const saved = await saveGrowthSnapshot(db, collection.snapshot);
+    await saveGrowthPageMetrics(db, collection.page_metrics);
     return {
       ok: true,
       week_start: saved.week_start,
@@ -41,6 +58,7 @@ export async function GET(request: NextRequest) {
       organic_users: saved.ga4.channels["Organic Search"] || 0,
       search_clicks: saved.gsc?.performance.clicks ?? null,
       inquiries: saved.marketplace.inquiries,
+      pages: collection.page_metrics.length,
       anomalies: saved.anomalies,
     };
   }, { triggeredBy });

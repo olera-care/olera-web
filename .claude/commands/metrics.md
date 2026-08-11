@@ -35,6 +35,7 @@ Optional `$ARGUMENTS`:
    - Whether that reach became inquiries, questions, benefits completions, or provider responses.
    - Any anomaly worth investigating. Separate measured evidence from inferred cause.
    - The saved week and whether all three sources were available.
+   - When page metrics are present, which of Provider, Benefits, or Editorial drove the movement and which individual pages deserve attention.
 
 ## Guardrails
 
@@ -49,7 +50,7 @@ Optional `$ARGUMENTS`:
 
 ## Setup failure handling
 
-If the database table is missing, apply `supabase/migrations/172_growth_metric_snapshots.sql` in the Supabase SQL editor.
+If the weekly snapshot table is missing, apply `supabase/migrations/172_growth_metric_snapshots.sql` in the Supabase SQL editor. If Growth drivers reports that page intelligence is not connected, apply `supabase/migrations/173_growth_page_metrics.sql`, then run `npm run metrics:backfill-pages -- --force` once. Do not attempt a page backfill for Airtable-only weeks; the source data does not contain page-level observations.
 
 For local collection, place the existing read-only credential at `secrets/ga4-service-account.json` or set `GOOGLE_APPLICATION_CREDENTIALS`.
 

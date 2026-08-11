@@ -45,6 +45,21 @@ export interface GrowthSearchRow {
   position: number;
 }
 
+export type GrowthPageCategory = "provider" | "benefit" | "editorial";
+
+export interface GrowthPageMetric {
+  week_start: string;
+  page_path: string;
+  page_category: GrowthPageCategory;
+  organic_users: number;
+  organic_sessions: number;
+  search_clicks: number;
+  search_impressions: number;
+  search_ctr: number;
+  search_position: number | null;
+  collected_at: string;
+}
+
 export interface GrowthGscMetrics {
   performance: {
     clicks: number;

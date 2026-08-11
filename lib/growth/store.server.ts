@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GrowthAnomaly, GrowthSnapshot } from "./types";
+import type { GrowthAnomaly, GrowthPageMetric, GrowthSnapshot } from "./types";
 
 function percentChange(current: number | null | undefined, previous: number | null | undefined) {
   if (current == null || previous == null || previous === 0) return null;
@@ -44,4 +44,26 @@ export async function saveGrowthSnapshot(db: SupabaseClient, snapshot: GrowthSna
     throw new Error(`Could not save growth week: ${error.message}`);
   }
   return data as GrowthSnapshot;
+}
+
+export async function saveGrowthPageMetrics(
+  db: SupabaseClient,
+  metrics: GrowthPageMetric[],
+  force = false,
+) {
+  if (!metrics.length) return [];
+  const weekStart = metrics[0].week_start;
+  if (metrics.some((row) => row.week_start !== weekStart)) {
+    throw new Error("Page metrics must contain exactly one reporting week.");
+  }
+  if (force) {
+    const { error } = await db.from("growth_page_metrics").delete().eq("week_start", weekStart);
+    if (error) throw new Error(`Could not replace page metrics for ${weekStart}: ${error.message}`);
+  }
+
+  // One insert statement keeps the page set all-or-nothing. The materiality
+  // floor in the collector keeps the weekly payload comfortably bounded.
+  const { error } = await db.from("growth_page_metrics").insert(metrics);
+  if (error) throw new Error(`Could not save page metrics for ${weekStart}: ${error.message}`);
+  return metrics;
 }

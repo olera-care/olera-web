@@ -3,8 +3,8 @@
 import { config } from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { addDays, mostRecentCompleteWeek, validateCompleteWeek } from "../../lib/growth/dates";
-import { collectGrowthSnapshot } from "../../lib/growth/collector.server";
-import { saveGrowthSnapshot } from "../../lib/growth/store.server";
+import { collectGrowthWeek } from "../../lib/growth/collector.server";
+import { saveGrowthPageMetrics, saveGrowthSnapshot } from "../../lib/growth/store.server";
 import type { GrowthSnapshot } from "../../lib/growth/types";
 
 function arg(name: string): string | null {
@@ -77,9 +77,11 @@ function report(current: GrowthSnapshot, previous: GrowthSnapshot | null): strin
 async function collectOne(db: ReturnType<typeof database>, weekStart: string, weekEnd: string) {
   validateCompleteWeek(weekStart, weekEnd);
   process.stderr.write(`Collecting ${weekStart} to ${weekEnd}...\n`);
-  const snapshot = await collectGrowthSnapshot({ weekStart, weekEnd, ga4Only: has("--ga4-only"), db });
-  if (has("--dry-run")) return snapshot;
-  return saveGrowthSnapshot(db, snapshot, has("--force"));
+  const collection = await collectGrowthWeek({ weekStart, weekEnd, ga4Only: has("--ga4-only"), db });
+  if (has("--dry-run")) return collection.snapshot;
+  const saved = await saveGrowthSnapshot(db, collection.snapshot, has("--force"));
+  await saveGrowthPageMetrics(db, collection.page_metrics, has("--force"));
+  return saved;
 }
 
 async function main() {

@@ -481,7 +481,7 @@
         "Birth certificate or other proof of age",
         "Proof of Oklahoma residency in PACE service area",
         "Social Security cards for participant and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
@@ -699,7 +699,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both parts)",
+        "Medicare card",
         "Social Security cards for all household members",
         "Most recent Social Security award letter or pension statements",
         "Pay stubs from the last 30 days (if still working)",

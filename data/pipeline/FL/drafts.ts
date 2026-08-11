@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:25:51.477Z
+ * Last updated: 2026-08-11T04:24:05.509Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1804,7 +1804,7 @@ export const drafts: PipelineStateDrafts = {
         "Medical diagnosis of Alzheimer's disease or related dementia from a physician",
         "Proof of age for your loved one (birth certificate, passport, or driver's license)",
         "Social Security award letter or other proof of income for sliding-scale co-payment",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "List of current medications and dosages",
         "Medical records showing functional impairment or care needs",
         "Proof of Florida residency (utility bill, lease, or state-issued document)",

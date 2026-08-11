@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:38:44.695Z
+ * Last updated: 2026-08-11T04:24:05.535Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -304,7 +304,7 @@ export const drafts: PipelineStateDrafts = {
         "Property deeds or tax assessments for any real estate",
         "Vehicle titles and registration",
         "Birth certificate or proof of age documentation",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Proof of Vermont residency (utility bill, lease agreement, or state-issued document)",
         "Medical records documenting disability (if under 65)",
         "Documentation of functional limitations for long-term care (physician assessments, therapy notes)",
@@ -461,7 +461,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if applicable",
         "Complete list of current medications with dosages",
         "Medical records from primary care doctor",
@@ -652,7 +652,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or other proof of Social Security income",
         "Pension or retirement income statements",
         "Pay stubs if still working (last 4 weeks)",

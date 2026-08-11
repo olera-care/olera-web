@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:38:44.690Z
+ * Last updated: 2026-08-11T04:24:05.529Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -122,7 +122,7 @@ export const drafts: PipelineStateDrafts = {
         "Medical records documenting functional limitations",
         "Documentation of disability (if ages 18-59)",
         "Proof of any other income sources",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Current health insurance information"
       ],
       "contacts": [
@@ -277,7 +277,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Valid government-issued photo ID or birth certificate",
         "Proof of residency in PACE service area (utility bill, lease, or mail within last 30 days)",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if applicable",
         "Complete medical records for nursing facility level assessment",
         "Current medication list with dosages and prescribing doctors",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.719Z
+ * Last updated: 2026-08-11T04:24:05.529Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -486,7 +486,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Proof of Oklahoma residency in PACE service area",
         "Social Security cards for participant and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
@@ -698,7 +698,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both parts)",
+        "Medicare card",
         "Social Security cards for all household members",
         "Most recent Social Security award letter or pension statements",
         "Pay stubs from the last 30 days (if still working)",

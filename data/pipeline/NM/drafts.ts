@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NM/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:21:30.194Z
+ * Last updated: 2026-08-11T04:24:05.525Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -90,7 +90,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Medicaid card or approval letter",
-        "Medicare card (both parts) if applicable",
+        "Medicare card if you have one",
         "Social Security award letter",
         "Proof of New Mexico residency (utility bill or state ID)",
         "Current medication list from doctor or pharmacy",
@@ -256,7 +256,7 @@ export const drafts: PipelineStateDrafts = {
         "urls": []
       },
       "documentsNeeded": [
-        "Medicare card (both parts if applicable)",
+        "Medicare card if you have one",
         "Medicaid card (if applicable)",
         "Valid government-issued photo ID",
         "Social Security card",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:38:44.673Z
+ * Last updated: 2026-08-11T04:24:05.510Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -516,7 +516,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (showing Parts A and B)",
+        "Medicare card",
         "Social Security award letter or SSI award letter",
         "Pay stubs from last 3 months (if working)",
         "Bank statements for all accounts (last 3 months)",

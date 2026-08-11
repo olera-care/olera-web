@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.174Z
+ * Last updated: 2026-08-11T04:24:05.528Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -288,7 +288,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if already enrolled",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
@@ -479,7 +479,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card (if applicable)",
         "Complete medical records from all current doctors",
         "Current medication list with dosages",
@@ -698,7 +698,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security cards for all household members",
         "Proof of income from last 3 months (Social Security award letter, pension statements, pay stubs)",
         "Bank statements for all accounts (last 3 months)",

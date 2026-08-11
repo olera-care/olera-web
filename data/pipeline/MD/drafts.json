@@ -447,7 +447,7 @@
         "urls": []
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if already enrolled",
         "Social Security card",
         "Birth certificate or other proof of age",
@@ -663,7 +663,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or SSI determination letter",
         "Most recent pay stubs if still working",
         "Bank statements for all accounts (last 3 months)",
@@ -1450,7 +1450,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (Parts A and B)",
+        "Medicare card",
         "Current Medicare Advantage or Part D plan information",
         "List of current medications with dosages",
         "Recent Medicare Summary Notices or billing statements",
@@ -2798,7 +2798,7 @@
         "Vehicle titles and registration",
         "Physician certification of disability or need for ADL assistance",
         "Medical documentation supporting need for daily living assistance",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Any other health insurance cards",
         "Documentation of current medical expenses",
         "Legal documents if someone else is applying on behalf of your loved one"

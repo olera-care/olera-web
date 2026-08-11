@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.173Z
+ * Last updated: 2026-08-11T04:24:05.527Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -637,7 +637,7 @@ export const drafts: PipelineStateDrafts = {
         "urls": []
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B if enrolled)",
+        "Medicare card if you have one",
         "Social Security award letter or most recent SSI statement",
         "Pay stubs from the last 4 weeks (if working)",
         "Most recent tax return",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-07-31T08:08:11.780Z
+ * Last updated: 2026-08-11T04:24:05.517Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -452,7 +452,7 @@ export const drafts: PipelineStateDrafts = {
         "urls": []
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if already enrolled",
         "Social Security card",
         "Birth certificate or other proof of age",
@@ -668,7 +668,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or SSI determination letter",
         "Most recent pay stubs if still working",
         "Bank statements for all accounts (last 3 months)",
@@ -1455,7 +1455,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (Parts A and B)",
+        "Medicare card",
         "Current Medicare Advantage or Part D plan information",
         "List of current medications with dosages",
         "Recent Medicare Summary Notices or billing statements",
@@ -2803,7 +2803,7 @@ export const drafts: PipelineStateDrafts = {
         "Vehicle titles and registration",
         "Physician certification of disability or need for ADL assistance",
         "Medical documentation supporting need for daily living assistance",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Any other health insurance cards",
         "Documentation of current medical expenses",
         "Legal documents if someone else is applying on behalf of your loved one"

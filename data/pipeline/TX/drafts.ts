@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:23:05.744Z
+ * Last updated: 2026-08-11T04:24:05.533Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -387,7 +387,7 @@ export const drafts: PipelineStateDrafts = {
         "Pre-need burial contracts or irrevocable burial trusts",
         "Medical records documenting need for daily assistance",
         "Physician certification for nursing facility level of care",
-        "Medicare card (both parts) if applicable",
+        "Medicare card if you have one",
         "Investment documents (stocks, bonds, annuities)",
         "Disability determination letters if under 65"
       ],
@@ -588,7 +588,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Valid government-issued photo ID or birth certificate for age verification",
         "Proof of residency in PACE service area (utility bill, lease agreement, or voter registration)",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if already enrolled",
         "Complete medical records from primary care physician",
         "Hospital discharge summaries from recent admissions",

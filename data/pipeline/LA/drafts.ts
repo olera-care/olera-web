@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:38:44.679Z
+ * Last updated: 2026-08-11T04:24:05.516Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -516,7 +516,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card (if applicable)",
         "Social Security award letters for all income sources",
         "Bank statements for all accounts (last 3 months)",

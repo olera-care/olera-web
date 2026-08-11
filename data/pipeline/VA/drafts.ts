@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T08:54:06.306Z
+ * Last updated: 2026-08-11T04:24:05.534Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -432,7 +432,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Current Medicare card (both Part A and Part B)",
+        "Current Medicare card",
         "Current Medicare plan information and premium statements",
         "List of all current medications with dosages",
         "Preferred pharmacy name and location",

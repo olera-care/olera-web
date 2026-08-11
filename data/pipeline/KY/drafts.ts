@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:38:44.678Z
+ * Last updated: 2026-08-11T04:24:05.515Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -407,7 +407,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card or verification letter if applicable",
         "Social Security card",
         "Valid government-issued photo ID",
@@ -596,7 +596,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B if enrolled)",
+        "Medicare card if you have one",
         "Social Security award letter or most recent statement",
         "Pay stubs from last 30 days (if still working)",
         "Bank statements for all accounts (last 3 months)",
@@ -2197,7 +2197,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Birth certificate or proof of age",
         "Kentucky residency documentation",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Proof of any other income (pensions, retirement accounts)",

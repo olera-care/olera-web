@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.696Z
+ * Last updated: 2026-08-11T04:24:05.507Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -504,7 +504,7 @@ export const drafts: PipelineStateDrafts = {
         "Medical history documentation and current physician records",
         "Proof of age (birth certificate, passport, or driver's license)",
         "Proof of Colorado residency in PACE service area (utility bill, lease, or state-issued document)",
-        "Medicare card (both Part A and Part B if applicable)",
+        "Medicare card if you have one",
         "Medicaid card or documentation if already enrolled",
         "Social Security award letter or pension income statements",
         "Bank statements for all accounts (last 3 months)",

@@ -37,6 +37,13 @@ function change(value: number | null) {
 }
 
 function report(current: GrowthSnapshot, previous: GrowthSnapshot | null): string {
+  const topOrganicSources = (current.ga4.organic?.sources || [])
+    .slice(0, 5)
+    .map((row) => `${row.source_medium} (${row.users.toLocaleString()})`)
+    .join(", ");
+  const mix = current.gsc?.query_mix;
+  const classifiedClicks = (mix?.branded_clicks || 0) + (mix?.non_branded_clicks || 0);
+  const nonBrandedShare = classifiedClicks > 0 ? (mix?.non_branded_clicks || 0) / classifiedClicks : null;
   const lines = [
     `# Olera growth: ${current.week_start} to ${current.week_end}`,
     "",
@@ -57,6 +64,10 @@ function report(current: GrowthSnapshot, previous: GrowthSnapshot | null): strin
       ? "Organic users to inquiry: unavailable"
       : `Organic users to inquiry (directional): ${(current.marketplace.organic_users_to_inquiry_rate_directional * 100).toFixed(2)}%`,
   ];
+  if (topOrganicSources) lines.push(`Top organic sources: ${topOrganicSources}`);
+  if (nonBrandedShare != null) {
+    lines.push(`Non-branded share of classified search clicks: ${(nonBrandedShare * 100).toFixed(1)}%`);
+  }
   if (current.anomalies.length) {
     lines.push("", "## Investigation prompts", "", ...current.anomalies.map((item) => `- ${item.label}: ${change(item.change)} week over week.`));
   }

@@ -1,8 +1,8 @@
 # /metrics -- Collect and Interpret Olera Growth
 
-Collect Olera's latest completed growth week, save it to the canonical Supabase history, and brief the operator on what changed.
+Maintenance and analysis interface for Olera's passive weekly growth pipeline. The Tuesday Vercel cron normally collects the latest completed week and the admin Growth dashboard is the routine reporting surface; use this command for backfills, corrections, source debugging, or a Claude interpretation on demand.
 
-This command is designed for Claude Code first. Codex and humans call the same deterministic script, so the admin dashboard and the written interpretation cannot disagree.
+Claude Code, Codex, the cron, and the admin dashboard use the same deterministic collector and Supabase rows, so the surfaces cannot drift.
 
 Optional `$ARGUMENTS`:
 
@@ -45,6 +45,7 @@ Optional `$ARGUMENTS`:
 - A Search Console failure is not silently converted to zero. Use `ga4-only` to make the omission explicit.
 - The organic-users-to-inquiry rate is directional, not attributed: its numerator is all Olera inquiries and its denominator is GA4 Organic Search users.
 - `/metrics` is the acquisition-to-marketplace weekly view. `/product-led-growth` remains available for deeper product engagement analysis.
+- Do not tell the operator to run `/metrics` every week. The scheduled collector and admin dashboard own the normal workflow.
 
 ## Setup failure handling
 

@@ -8,8 +8,8 @@ GA4 + Search Console + Olera product events
        shared TypeScript collector
                     ↓
       growth_metric_snapshots (Supabase)
-             ↙              ↘
-   Admin Growth view       Claude /metrics
+             ↓              ↘
+   Admin Growth view       /metrics maintenance
 ```
 
 ## Canonical weekly record
@@ -19,18 +19,19 @@ One `growth_metric_snapshots` row represents one completed Sunday-Saturday week 
 | Question | Source | Measures |
 |---|---|---|
 | Are we reaching more people? | GA4 | Users, new users, sessions, page views, engagement, and users by channel |
-| Is search visibility improving? | Search Console | Clicks, impressions, CTR, position, top queries, and top pages |
+| Where does organic traffic come from? | GA4 | Organic source/medium and organic landing pages |
+| Is search visibility improving? | Search Console | Clicks, impressions, CTR, position, top queries/pages, and branded versus non-branded query mix |
 | Is reach becoming useful activity? | Supabase | Inquiries, questions, benefits completions, and distinct providers answering questions |
 
 `organic_users_to_inquiry_rate_directional` divides all inquiries by GA4 Organic Search users. It is useful as a directional blended signal, but it is not session-level attribution and must never be presented as such.
 
-The admin Analytics page reads this table through an authenticated admin-only API. The `/metrics` command calls the same collector and writes the same row. There are no generated weekly files to reconcile.
+The admin Analytics page is the routine reporting surface and reads this table through an authenticated admin-only API. The `/metrics` command is the maintenance hatch for backfills, intentional corrections, source debugging, and Claude interpretation. There are no generated weekly files to reconcile.
 
 ## Cadence
 
 Vercel calls `/api/cron/growth-metrics` every Tuesday at 14:00 UTC, after the usual Search Console delay. The collector chooses the latest completed Sunday-Saturday week and safely skips it if already present.
 
-Run manually from Claude Code with `/metrics`, or directly:
+Normal operation is passive; nobody needs to run a weekly command. For maintenance, use `/metrics` from Claude Code or call the collector directly:
 
 ```bash
 npm run metrics
@@ -75,6 +76,16 @@ The saved row flags these week-over-week movements for investigation:
 - Inquiries: 25% or more, only when both weeks have at least 10
 
 These are prompts, not explanations. Check releases, campaigns, tracking changes, bot traffic, and source availability before asserting a cause.
+
+## Organic acquisition breakdown
+
+Definition version 2 adds three weekly breakdowns to the same atomic row:
+
+- GA4 organic users and sessions by `sessionSourceMedium`.
+- GA4 organic users and sessions by `landingPagePlusQueryString`.
+- Search Console branded versus non-branded query clicks and impressions, with “branded” defined as a query containing `olera`.
+
+Search Console omits some low-volume queries for privacy, so the branded mix includes `classified_click_coverage`. The admin labels the mix as a share of classified clicks rather than pretending it covers every search click. Landing-page outcomes are not attributed yet; the dashboard presents destinations and overall directional inquiry conversion separately.
 
 ## Historical Airtable data
 

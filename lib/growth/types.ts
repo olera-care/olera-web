@@ -1,4 +1,4 @@
-export const GROWTH_DEFINITION_VERSION = 1;
+export const GROWTH_DEFINITION_VERSION = 2;
 export const GROWTH_TIMEZONE = "America/Chicago";
 export const GA4_PROPERTY_ID = process.env.GA4_PROPERTY_ID || "357593677";
 export const GSC_SITE_URL = process.env.GSC_SITE_URL || "https://olera.care/";
@@ -23,6 +23,18 @@ export interface GrowthGa4Metrics {
     page_views: number;
   };
   channels: Record<string, number>;
+  organic: {
+    sources: Array<{
+      source_medium: string;
+      users: number;
+      sessions: number;
+    }>;
+    landing_pages: Array<{
+      path: string;
+      users: number;
+      sessions: number;
+    }>;
+  };
 }
 
 export interface GrowthSearchRow {
@@ -42,6 +54,13 @@ export interface GrowthGscMetrics {
   };
   top_queries: GrowthSearchRow[];
   top_pages: GrowthSearchRow[];
+  query_mix: {
+    branded_clicks: number;
+    non_branded_clicks: number;
+    branded_impressions: number;
+    non_branded_impressions: number;
+    classified_click_coverage: number | null;
+  };
   data_state: "final";
 }
 

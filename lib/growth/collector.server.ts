@@ -125,13 +125,37 @@ async function pullGa4(token: string, weekStart: string, weekEnd: string): Promi
   const values = overview.rows?.[0]?.metricValues?.map((metric) => Number(metric.value || 0));
   if (!values || values.length < 6) throw new Error("GA4 returned no overview row for the reporting week.");
 
-  const channelReport = await googlePost<Ga4Report>(url, token, {
-    dateRanges,
-    dimensions: [{ name: "sessionDefaultChannelGroup" }],
-    metrics: [{ name: "totalUsers" }],
-    orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
-    limit: 30,
-  });
+  const organicFilter = {
+    filter: {
+      fieldName: "sessionDefaultChannelGroup",
+      stringFilter: { matchType: "EXACT", value: "Organic Search", caseSensitive: false },
+    },
+  };
+  const [channelReport, organicSourcesReport, organicLandingsReport] = await Promise.all([
+    googlePost<Ga4Report>(url, token, {
+      dateRanges,
+      dimensions: [{ name: "sessionDefaultChannelGroup" }],
+      metrics: [{ name: "totalUsers" }],
+      orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
+      limit: 30,
+    }),
+    googlePost<Ga4Report>(url, token, {
+      dateRanges,
+      dimensionFilter: organicFilter,
+      dimensions: [{ name: "sessionSourceMedium" }],
+      metrics: [{ name: "totalUsers" }, { name: "sessions" }],
+      orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
+      limit: 15,
+    }),
+    googlePost<Ga4Report>(url, token, {
+      dateRanges,
+      dimensionFilter: organicFilter,
+      dimensions: [{ name: "landingPagePlusQueryString" }],
+      metrics: [{ name: "totalUsers" }, { name: "sessions" }],
+      orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
+      limit: 25,
+    }),
+  ]);
   const allChannels = Object.fromEntries(
     (channelReport.rows || []).map((row) => [
       row.dimensionValues?.[0]?.value || "Unknown",
@@ -139,6 +163,19 @@ async function pullGa4(token: string, weekStart: string, weekEnd: string): Promi
     ]),
   );
   const channels = Object.fromEntries(GROWTH_CHANNELS.map((name) => [name, allChannels[name] || 0]));
+  const organicSources = (organicSourcesReport.rows || []).map((row) => ({
+    source_medium: row.dimensionValues?.[0]?.value || "Unknown",
+    users: Number(row.metricValues?.[0]?.value || 0),
+    sessions: Number(row.metricValues?.[1]?.value || 0),
+  }));
+  const organicLandings = (organicLandingsReport.rows || [])
+    .map((row) => ({
+      path: row.dimensionValues?.[0]?.value || "Unknown",
+      users: Number(row.metricValues?.[0]?.value || 0),
+      sessions: Number(row.metricValues?.[1]?.value || 0),
+    }))
+    .filter((row) => row.path !== "(not set)")
+    .slice(0, 15);
 
   return {
     overview: {
@@ -150,6 +187,10 @@ async function pullGa4(token: string, weekStart: string, weekEnd: string): Promi
       page_views: values[5],
     },
     channels,
+    organic: {
+      sources: organicSources,
+      landing_pages: organicLandings,
+    },
   };
 }
 
@@ -178,10 +219,26 @@ async function pullGsc(token: string, weekStart: string, weekEnd: string): Promi
   });
   const [overview, queries, pages] = await Promise.all([
     query(undefined, 1),
-    query(["query"], 15),
+    query(["query"], 1_000),
     query(["page"], 15),
   ]);
   const performance = normalizeSearchRow(overview.rows?.[0] || {});
+  const normalizedQueries = (queries.rows || []).map(normalizeSearchRow);
+  const queryMix = normalizedQueries.reduce(
+    (mix, row) => {
+      const key = /olera/i.test(row.label) ? "branded" : "non_branded";
+      mix[`${key}_clicks`] += row.clicks;
+      mix[`${key}_impressions`] += row.impressions;
+      return mix;
+    },
+    {
+      branded_clicks: 0,
+      non_branded_clicks: 0,
+      branded_impressions: 0,
+      non_branded_impressions: 0,
+    },
+  );
+  const classifiedClicks = queryMix.branded_clicks + queryMix.non_branded_clicks;
   return {
     performance: {
       clicks: performance.clicks,
@@ -189,8 +246,12 @@ async function pullGsc(token: string, weekStart: string, weekEnd: string): Promi
       ctr: performance.ctr,
       position: performance.position,
     },
-    top_queries: (queries.rows || []).map(normalizeSearchRow),
+    top_queries: normalizedQueries.slice(0, 15),
     top_pages: (pages.rows || []).map(normalizeSearchRow),
+    query_mix: {
+      ...queryMix,
+      classified_click_coverage: performance.clicks > 0 ? classifiedClicks / performance.clicks : null,
+    },
     data_state: "final",
   };
 }

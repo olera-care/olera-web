@@ -33,22 +33,62 @@
  *   node scripts/benefits-draft-lint.js --json
  *   node scripts/benefits-draft-lint.js --fail-on-high  # exit 1 if high findings
  *
- * Reads the pipeline from this checkout, so run it from the branch carrying the
- * corrections. Needs .env.local for Supabase credentials.
+ * IMPORTANT: it compares drafts against the pipeline data in whatever checkout
+ * it reads, so point it at the branch that holds the corrections. A git worktree
+ * has neither node_modules nor .env.local, so run the script from a checkout
+ * that does and point --pipeline at the worktree:
+ *
+ *   node scripts/benefits-draft-lint.js \
+ *     --pipeline=~/.claude-worktrees/olera-web/<name>/data/pipeline
+ *
+ * Get this wrong and every corrected program reports snapshot-drift, because you
+ * are diffing new drafts against old data.
  */
 'use strict';
 
-require('dotenv').config({ path: '.env.local' });
 const fs = require('fs');
 const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
 
-const ROOT = path.resolve(__dirname, '..', 'data', 'pipeline');
 const args = process.argv.slice(2);
-const flag = (name, fallback) => {
+const argFlag = (name, fallback) => {
   const hit = args.find((a) => a.startsWith(`--${name}=`));
   return hit ? hit.slice(name.length + 3) : fallback;
 };
+
+// A git worktree carries neither node_modules nor .env.local (both are ignored),
+// so this cannot be run from the branch that holds the corrections. Run it from a
+// checkout that has both and point --pipeline at the worktree's data. Without
+// this you are linting drafts against whatever branch the runnable checkout
+// happens to be on, and every corrected program looks like it drifted.
+require('dotenv').config({ path: argFlag('env', path.resolve(__dirname, '..', '.env.local')) });
+const { createClient } = require('@supabase/supabase-js');
+
+const ROOT = path.resolve(argFlag('pipeline', path.resolve(__dirname, '..', 'data', 'pipeline')));
+if (!fs.existsSync(ROOT)) {
+  console.error(`No pipeline directory at ${ROOT}. Pass --pipeline=<path to data/pipeline>.`);
+  process.exit(1);
+}
+
+/** Which checkout, and which branch, the pipeline is being read from.
+ *
+ *  Every snapshot-drift finding is relative to this. Reading a branch that
+ *  predates the corrections turns every corrected program into a false high,
+ *  and the failure is otherwise invisible: the output looks like real findings.
+ *  So the provenance is printed, never inferred silently. */
+function pipelineProvenance() {
+  try {
+    const { execFileSync } = require('child_process');
+    const cwd = path.resolve(ROOT, '..', '..');
+    const run = (a) => execFileSync('git', a, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const branch = run(['rev-parse', '--abbrev-ref', 'HEAD']);
+    const sha = run(['rev-parse', '--short', 'HEAD']);
+    const dirty = run(['status', '--porcelain', '--', 'data/pipeline']).length > 0;
+    return `${branch} @ ${sha}${dirty ? ' (uncommitted pipeline changes)' : ''}`;
+  } catch {
+    return 'not a git checkout';
+  }
+}
+const flag = argFlag;
 const has = (name) => args.includes(`--${name}`);
 
 const ONLY_STATES = (flag('state', '') || '').split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
@@ -56,6 +96,7 @@ const ONLY_CHECKS = (flag('check', '') || '').split(',').map((s) => s.trim()).fi
 const HIGH_ONLY = has('high');
 const AS_JSON = has('json');
 const FAIL_ON_HIGH = has('fail-on-high');
+const PROFILE_LIMIT = Number(flag('limit', '5000'));
 
 const findings = [];
 function report(f) {
@@ -383,8 +424,13 @@ const CHECKS = [
     .from('business_profiles')
     .select('id,metadata')
     .not('metadata->benefits_navigator', 'is', null)
-    .limit(5000);
+    .limit(PROFILE_LIMIT);
   if (error) { console.error(error.message); process.exit(1); }
+  // No silent caps: a truncated scan that reports "nothing flagged" is worse
+  // than no scan, because it reads as a clean bill of health.
+  if ((data || []).length >= PROFILE_LIMIT) {
+    console.error(`WARNING: hit the ${PROFILE_LIMIT}-row fetch cap, so some drafts were not scanned. Raise --limit.`);
+  }
 
   let scanned = 0;
   for (const row of data || []) {
@@ -408,10 +454,12 @@ const CHECKS = [
   }
 
   if (AS_JSON) {
-    console.log(JSON.stringify({ scanned, findings }, null, 2));
+    console.log(JSON.stringify({ pipeline: ROOT, branch: pipelineProvenance(), scanned, findings }, null, 2));
   } else {
     const by = { high: 0, medium: 0, low: 0 };
     findings.forEach((f) => { by[f.severity] = (by[f.severity] || 0) + 1; });
+    console.log(`\nPipeline: ${ROOT}`);
+    console.log(`Branch:   ${pipelineProvenance()}`);
     console.log(`\nScanned ${scanned} pending drafts.`);
     console.log(`Findings: ${by.high} high, ${by.medium} medium, ${by.low} low\n`);
     const groups = {};

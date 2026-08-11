@@ -15,7 +15,7 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one is 65+ and needs help with daily activities like bathing, dressing, or medication management, Kentucky Medicaid can cover the full cost of nursing home care or home-based services. This isn't regular Medicaid, it's specifically for long-term care when your loved one needs significant daily assistance.\n\nKentucky Medicaid covers nursing home costs entirely, or provides home-based services like personal care, adult day care, meal delivery, and home modifications through waiver programs. Your loved one can have income up to $2,982/month and assets up to $2,000 (with spousal protections allowing the community spouse to keep $31,584\u2013$162,660 in assets).\n\nThe key requirement is proving Nursing Facility Level of Care, that your loved one needs help with at least 3 activities of daily living or has cognitive issues like dementia. Home-based waiver services may have waitlists, but nursing home coverage is available immediately if a bed is open.",
+      "intro": "If your loved one is 65+ and needs help with daily activities like bathing, dressing, or medication management, Kentucky Medicaid can cover the full cost of nursing home care or home-based services. This isn't regular Medicaid, it's specifically for long-term care when your loved one needs significant daily assistance.\n\nKentucky Medicaid covers nursing home costs entirely, or provides home-based services like personal care, adult day care, meal delivery, and home modifications through waiver programs. Your loved one can have income up to $2,982/month and assets up to $2,000 (with spousal protections allowing the community spouse to keep $31,584–$162,660 in assets).\n\nThe key requirement is proving Nursing Facility Level of Care, that your loved one needs help with at least 3 activities of daily living or has cognitive issues like dementia. Home-based waiver services may have waitlists, but nursing home coverage is available immediately if a bed is open.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -490,7 +490,7 @@
         "type": "state"
       },
       "intro": "If your Medicare-enrolled loved one struggles with monthly premiums, deductibles, and copays, Kentucky's Medicare Savings Programs can eliminate these costs entirely. The three programs, QMB, SLMB, and QI, cover different portions of Medicare expenses based on your loved one's income level, with potential savings of hundreds to thousands of dollars per year.\n\nThe most comprehensive program, QMB (Qualified Medicare Beneficiary), covers all Medicare premiums, deductibles, and copayments for people with incomes up to $1,325/month for singles or $1,783/month for couples. SLMB and QI programs have higher income limits but only cover Medicare Part B premiums. Because QMB operates like a free Medicare Supplement policy, it provides the greatest financial relief for families dealing with high medical costs.\n\nAll three programs require assets below $9,660 for individuals or $14,470 for couples. Income limits change every April 1st, and the QI program has finite funding that can run out during the year, so applying early matters.",
-      "savingsRange": "$100 \u2013 $3,000+/year in 2026",
+      "savingsRange": "$100 – $3,000+/year in 2026",
       "savingsSource": "Medicare premium and cost-sharing elimination based on program tier",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -1379,7 +1379,7 @@
         "type": "state"
       },
       "intro": "If your loved one is 60+ and struggling to prepare meals due to illness, disability, or homebound status, Kentucky Meals on Wheels delivers one nutritionally balanced meal to their door Monday through Friday. Some providers deliver two meals daily for $30 per week ($6 per day).\n\nThis isn't a single statewide program, each region operates independently with different costs, service areas, and requirements. Your loved one's spouse of any age and disabled dependents may also qualify. Because providers focus on homebound seniors, your loved one typically can't own a car or easily leave home to qualify.\n\nMost programs require a home visit assessment to determine eligibility and may re-evaluate every 6 months. Income isn't always a factor, though some providers adjust fees based on ability to pay.",
-      "savingsRange": "$1,560 \u2013 $3,120/year in 2026",
+      "savingsRange": "$1,560 – $3,120/year in 2026",
       "savingsSource": "Based on $30/week cost reported by Lexington provider for two meals daily",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -1686,7 +1686,7 @@
         "type": "state"
       },
       "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides part-time paid training positions (15-20 hours per week) at nonprofit organizations and government agencies. Your loved one earns minimum wage while learning job skills, getting resume help, and working toward permanent employment.\n\nTo qualify, your loved one's household income must be at or below 125% of federal poverty guidelines (exact amounts vary by household size and are updated annually). The program prioritizes veterans, those over 65, people with disabilities, and rural residents, but others can apply if slots are available.\n\nKentucky's program is managed by regional providers, so availability depends on where your loved one lives. Some areas have waitlists due to limited funding slots.",
-      "savingsRange": "$3,100 \u2013 $6,200/year in 2026",
+      "savingsRange": "$3,100 – $6,200/year in 2026",
       "savingsSource": "15-20 hours/week at federal minimum wage ($7.25/hour)",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -2366,7 +2366,7 @@
       "documentsNeeded": [
         "Proof of Kentucky Medicaid enrollment",
         "Documentation showing 60+ consecutive days in nursing home or intermediate care facility",
-        "Evidence of Nursing Facility Level of Care determination",
+        "The name of the nursing facility, the date your loved one moved in, and their Medicaid ID number",
         "Income verification for Medicaid (Social Security award letter, pension statements)",
         "Bank statements for all accounts (last 3 months)",
         "Asset documentation (property deeds, vehicle titles, investment statements)",
@@ -2377,8 +2377,8 @@
         {
           "label": "Kentucky Transitions (Money Follows the Person) team (start here)",
           "phone": "(877) 564-0330",
-          "description": "Apply or ask how to start",
-          "hours": null
+          "description": "Call to ask about Kentucky Transitions and start a prescreening. Also (502) 564-0330.",
+          "hours": "Monday-Friday, business hours (Eastern time)"
         },
         {
           "label": "Kentucky Department for Medicaid Services",
@@ -2444,7 +2444,8 @@
       "phone": "(877) 564-0330",
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "senior-meals-program",

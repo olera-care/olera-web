@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.957Z
+ * Last updated: 2026-08-11T03:38:44.695Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1240,10 +1240,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "BROC Community Action",
-          "phone": "(802) 775-0878",
+          "label": "BROC Weatherization (Southwestern Vermont)",
+          "phone": "(802) 665-1748",
           "description": "Serves Rutland and surrounding counties",
-          "hours": "Mon-Fri 8am-4:30pm"
+          "hours": null
         },
         {
           "label": "Capstone Community Action",
@@ -1335,7 +1335,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(802) 863-2345",
       "sourceUrl": "https://outside.vermont.gov/dept/DCF/Shared%20Documents/Benefits/Weatherization-Income-Guidelines.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "ship-medicare-counseling",

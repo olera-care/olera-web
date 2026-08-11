@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.954Z
+ * Last updated: 2026-08-11T03:38:44.692Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1495,31 +1495,21 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid photo ID or driver's license",
-        "Proof of age (birth certificate if ID doesn't show age)",
-        "Doctor's note describing mobility or health limitations if under 60",
-        "Contact information for emergency contact or family member",
-        "List of dietary restrictions or food allergies",
-        "Proof of income if applying for reduced suggested donations"
+        "The age and date of birth of the person who needs meals",
+        "The home address, including the town, so they know which local provider delivers there",
+        "A short description of why the person cannot easily leave home or cook",
+        "Whether a spouse or dependent adult also lives in the home, since they may qualify too"
       ],
       "contacts": [
         {
-          "label": "Active Generations",
-          "phone": "(605) 333-3305",
-          "description": "Meals on Wheels for Sioux Falls and surrounding areas",
-          "hours": "Mon-Fri 8am-5pm CT"
-        },
-        {
-          "label": "Active Generations Toll-Free",
+          "label": "Dakota at Home (South Dakota statewide aging and disability resource line)",
           "phone": "(833) 663-9673",
-          "description": "Alternate number for Active Generations service area",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
-          "label": "Dakota at Home",
-          "phone": "(800) 305-9681",
-          "description": "Statewide referral service to find local providers",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "label": "Active Generations (Sioux Falls and Sioux Empire area only)",
+          "phone": "(605) 333-3305",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         }
       ],
       "applicationNotes": [
@@ -1571,7 +1561,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(605) 333-3305",
       "sourceUrl": "https://dakotaathome.sd.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "hope-waiver-respite-care",

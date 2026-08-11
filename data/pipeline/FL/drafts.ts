@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.698Z
+ * Last updated: 2026-08-11T03:25:51.477Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -12,8 +12,8 @@ export const drafts: PipelineStateDrafts = {
   "programs": [
     {
       "id": "smmc-ltc-hcbs-waivers",
-      "name": "Statewide Medicaid Managed Care Long-Term Care Program (SMMC-LTC) HCBS Waivers",
-      "shortName": "SMMC-LTC Waivers",
+      "name": "Statewide Medicaid Managed Care (SMMC) Long-Term Care Program",
+      "shortName": "SMMC Long-Term Care",
       "tagline": "Medicaid-covered home care services to keep your loved one out of nursing home placement",
       "programType": "benefit",
       "complexity": "deep",
@@ -119,28 +119,17 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for applicant",
-        "Medicare card (both parts)",
-        "Birth certificate or passport for proof of age",
-        "Proof of Florida residency (utility bill, lease, or state-issued document)",
-        "Most recent Social Security award letter",
-        "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
-        "Investment documents (stocks, bonds, annuities, trust agreements)",
-        "Property documents (deeds, tax statements)",
-        "Life insurance policies with face values",
-        "Vehicle titles and registration",
-        "Pre-need burial contracts or irrevocable burial trusts",
-        "AHCA Form 5000-3008 (Medical Certification for Medicaid Long-Term Care Services)",
-        "Medical records documenting need for assistance with daily activities",
-        "Documentation of cognitive or behavioral issues if applicable"
+        "Their Medicaid number, if they already have one. The screener also asks for a Social Security number, but the form says giving it is voluntary.",
+        "Monthly income and roughly how much is in savings, for your loved one and their spouse if married. You can decline to answer.",
+        "A list of daily tasks they need help with, such as bathing, dressing, eating, using the bathroom, and walking. Also any memory loss or dementia diagnosis, and who helps now.",
+        "Nothing needs to be mailed or shown. The whole first step is a phone conversation that takes about 45 minutes to an hour."
       ],
       "contacts": [
         {
           "label": "Elder Helpline (start here)",
           "phone": "1-800-963-5337",
           "description": "Statewide entry point (1-800-96-ELDER). Routes to your local ADRC for the waitlist screening. Email Medwaiver@elderaffairs.org for general program questions.",
-          "hours": "Business hours"
+          "hours": "Monday-Friday, 8am-5pm local time"
         },
         {
           "label": "DCF ACCESS Florida (financial side)",
@@ -287,7 +276,7 @@ export const drafts: PipelineStateDrafts = {
       "draftedAt": "2026-04-13",
       "reviewedBy": "TJ",
       "reviewedAt": "2026-04-20",
-      "lastVerifiedDate": "2026-04-20"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "pace-comprehensive-care",
@@ -1654,28 +1643,17 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID or birth certificate (proof of age)",
-        "Proof of Florida residency (utility bill, lease agreement, or state-issued document)",
-        "Medical documentation or doctor's note verifying homebound status or inability to prepare meals",
-        "Medicaid or Medicare cards if applicable",
-        "Proof of income from last 30 days (Social Security award letter, pay stubs, pension statements) if required by local program",
-        "Bank statements for all accounts (last 3 months) if income verification required",
-        "Emergency contact information and phone numbers",
-        "List of dietary restrictions, food allergies, and special diet requirements",
-        "Delivery address verification and access instructions for delivery drivers"
+        "The age or date of birth of the person who needs meals, and the delivery address. The county decides which local office handles the call.",
+        "A plain description of why leaving home or cooking is hard. Recent hospital stay, trouble walking, memory loss, or no one at home to cook all count.",
+        "Who else lives in the home, and whether anyone gets SNAP or Medicaid. A spouse of an eligible person can qualify regardless of age.",
+        "Any special diet, such as diabetic, renal, or pureed. A provider order is only needed later if a therapeutic diet is set up."
       ],
       "contacts": [
         {
           "label": "Florida Elder Helpline",
           "phone": "1-800-96-ELDER",
           "description": "Statewide helpline to find your local ADRC and Meals on Wheels program",
-          "hours": "Mon-Fri 8am-5pm ET"
-        },
-        {
-          "label": "Feeding South Florida",
-          "phone": "(954) 518-1818",
-          "description": "Serves Broward, Miami-Dade, Monroe, and Palm Beach counties",
-          "hours": "Mon-Fri 9am-5pm ET"
+          "hours": "Mon-Fri 8am-5pm local time"
         }
       ],
       "applicationNotes": [
@@ -1741,7 +1719,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-96-ELDER",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/food-assistance/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "adi-respite-services",

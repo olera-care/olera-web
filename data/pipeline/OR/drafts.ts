@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:23:05.739Z
+ * Last updated: 2026-08-11T03:38:44.690Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2196,30 +2196,22 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Social Security card or proof of Social Security number",
-        "Proof of income from last 30 days (pay stubs, Social Security award letter, pension statements)",
-        "Bank statements for all accounts (last 3 months)",
-        "Documentation of zero income if applicable (self-attestation accepted)",
-        "Proof of Oregon residency (utility bill, lease agreement, or mail)",
-        "Documentation of homeless or unstably housed status (eviction notice, shelter records, or case worker verification)",
-        "Birth certificate or other proof of age",
-        "Immigration documents if applicable (citizenship not required)",
-        "Self-employment income records if applicable",
-        "Unemployment benefits documentation if applicable"
+        "Your county and household size (the local agency uses these to check the income limit)",
+        "A rough monthly household income figure for everyone in the home",
+        "Anything showing the housing situation (late rent notice, eviction notice, or a note on where you are staying now)",
+        "Proof of age for the household member who is 58 or older",
+        "The local community action agency will tell you which income documents it accepts. Oregon does not set one statewide list."
       ],
       "contacts": [
         {
-          "label": "Oregon Housing and Community Services",
-          "phone": "(503) 986-2000",
-          "description": "Main OHCS line for program information and local provider referrals",
-          "hours": "Mon-Fri 8am-5pm PT"
+          "label": "Oregon 211 (locator - connects you to the local agency that takes ERA applications)",
+          "phone": "2-1-1",
+          "hours": "Mon-Fri 8am-6pm PT"
         },
         {
-          "label": "Oregon 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free 24/7 helpline connecting to local housing and social services",
-          "hours": "24 hours, 7 days a week"
+          "label": "Oregon 211 direct line (if your phone cannot dial 211)",
+          "phone": "(866) 698-6155",
+          "hours": "Mon-Fri 8am-6pm PT"
         }
       ],
       "applicationNotes": [
@@ -2281,7 +2273,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(503) 986-2000",
       "sourceUrl": "https://secure.sos.state.or.us/oard/displayDivisionRules.action?selectedDivision=3636",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "senior-tuition-audit",

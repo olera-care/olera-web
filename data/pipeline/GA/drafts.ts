@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.934Z
+ * Last updated: 2026-08-11T03:38:44.673Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -762,10 +762,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Senior SNAP Application Line",
-          "phone": "(404) 370-6236",
+          "label": "DFCS Customer Contact Center (Senior SNAP)",
+          "phone": "(877) 423-4746",
           "description": "Request Senior SNAP application by mail",
-          "hours": "Business hours"
+          "hours": "Mon-Fri, Eastern Time"
         },
         {
           "label": "Georgia 2-1-1",
@@ -825,7 +825,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(404) 370-6236",
       "sourceUrl": "https://dfcs.georgia.gov/services/snap/senior-snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "liheap-energy-assistance",

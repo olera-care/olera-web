@@ -78,6 +78,28 @@ Only after all three fail should you use WebSearch, and then you must name the d
    - **Sanity-check counts after editing.** Removing a document from a letter that says "have three things nearby" leaves it listing two. Grep the patched body for number words.
    - **Run DB scripts from a checkout that has `node_modules`.** Worktrees usually don't.
 
+   **Patch all four text fields, not just the body.** A draft carries `subject`, `body`, and `sms`, plus `edited_subject` / `edited_body` / `edited_sms` when TJ has edited it in the drawer. Prefer the edited variant when present and write back to the same key. On 2026-08-11 this step said only "the letter body", so a Georgia letter was corrected to "Elderly and Disabled Waiver Program" while its SMS still said "CCSP", the name Georgia retired. The SMS was skipped through compliance, not carelessness. **A body change and its SMS change move together, always.**
+
+6b. **Gate on `scripts/benefits-draft-lint.js` before you report anything.** It reads pending drafts from the database and checks them against pipeline data. Because a worktree has no `node_modules` and no `.env.local`, run it from a checkout that does and point `--pipeline` at the worktree holding the corrections:
+
+   ```
+   cd ~/Desktop/olera-web && node scripts/benefits-draft-lint.js \
+     --pipeline=~/.claude-worktrees/olera-web/<name>/data/pipeline
+   ```
+
+   **Check the `Branch:` line it prints before believing any finding.** Every `snapshot-drift` result is relative to the pipeline it loaded; aim it at a branch that predates your corrections and every corrected program reports as drifted. The same command produced 15 highs and 0 highs minutes apart during development purely because the worktree had moved.
+
+   Fix until `--high` is empty, then read the `low` findings, which are deliberately advisory rather than automatic:
+
+   - `snapshot-drift` — the frozen `pick` disagrees with live data. This is the ghost that kept re-surfacing corrected programs in later review exports.
+   - `stale-phone-in-text` / `cross-field-drift` — a number or retired program name printed in one field and not the others. This is the class the body-only patch created.
+   - `sms-assembly` — simulates what is actually transmitted, since the send path appends the STOP and CALLED lines at send time. Catches doubled suffixes, a missing `{link}`, and punctuation flush against `{link}` (some clients pull it into the tapped URL and the link 404s).
+   - `banned-phrase` — voice-spec violations, especially speed promises. "It's one phone call" is the banned "just one call" with the qualifier removed.
+   - `count-word` — a patched letter that states a count. Prose lists are not reliably parseable, so this asks you to read the list rather than asserting a miscount. Read it.
+   - `non-dialable-anchor` — prose or an email sitting where the phone number goes, which renders as "Call X at Contact information not specified in available sources."
+
+   **A clean run is not verification.** The lint catches inconsistency, not wrongness. A draft whose phone is wrong but consistent everywhere passes. That is the 2026-08-11 SoonerCare case: a real, staffed, official number that could not take the caller's application. Only reading the operator's own page catches that.
+
 7. **Report to TJ:** corrections applied (with the one-line-each summary), disputes flagged, pick-fit/voice observations from the report worth a composer-rail change, and the recompose-after-deploy checklist.
 
 ## What the reviewer is actually looking at (read before trusting a verdict)

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T06:07:44.875Z
+ * Last updated: 2026-08-11T09:02:41.403Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -102,7 +102,15 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Apply even if there's a waitlist, slots can open unexpectedly when other enrollees move to nursing facilities or pass away.",
         "urls": [
           {
-            "label": "SC Community Choices Waiver Application",
+            "label": "Refer online instead of calling",
+            "url": "https://phoenix.scdhhs.gov/cltc_referrals/new"
+          },
+          {
+            "label": "CLTC brochure with county office phone numbers",
+            "url": "https://www.scdhhs.gov/sites/dhhs/files/CLTC%20Brochure%20May%202023%20v2.pdf"
+          },
+          {
+            "label": "Community Choices Waiver page",
             "url": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver"
           }
         ]

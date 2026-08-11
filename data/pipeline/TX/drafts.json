@@ -751,33 +751,28 @@
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online at YourTexasBenefits.com or call 2-1-1 for assistance, processing typically takes 30 days.",
+        "method": "online",
+        "summary": "Texas lists YourTexasBenefits.com first. The phone line can mail you a form but cannot take an application.",
         "steps": [
           {
             "step": 1,
-            "title": "Start your application",
-            "description": "Apply online at YourTexasBenefits.com or call 2-1-1 to request a paper application be mailed to you."
+            "title": "Apply online at YourTexasBenefits.com",
+            "description": "This is the only route on the state SNAP page and it files the same day."
           },
           {
             "step": 2,
-            "title": "Gather required documents",
-            "description": "Collect proof of income (Social Security award letter, pension statements), bank statements, rent/mortgage documents, and medical expense receipts over $35/month."
+            "title": "Or get a paper form",
+            "description": "Pick one up at a benefits office, or call 2-1-1 and choose option 2 to have one mailed. Mail or fax it back. The phone line cannot take the application itself."
           },
           {
             "step": 3,
-            "title": "Submit application and documents",
-            "description": "Upload documents online, mail to your local HHSC office, or drop off in person. Call 2-1-1 to find your local office."
+            "title": "Ask about TSAP if everyone is 60 or older",
+            "description": "Households where every member is 60 or older or gets disability payments, with no earned income, can use the shorter TSAP form. It certifies for three years instead of six months and skips the renewal interview."
           },
           {
             "step": 4,
-            "title": "Complete interview",
-            "description": "HHSC will schedule a phone interview to review your application, typically within 7-10 days of submission."
-          },
-          {
-            "step": 5,
-            "title": "Receive decision",
-            "description": "You'll get approval or denial within 30 days. If approved, your EBT card arrives by mail within 7-10 business days."
+            "title": "Do the interview",
+            "description": "Texas mails an appointment after you file. The interview is required and Texas sets whether it is by phone or in person."
           }
         ],
         "processingTime": "30 days standard, 7 days expedited if income under $150/month and assets under $100",
@@ -785,20 +780,27 @@
         "tip": "Seniors get expedited processing if facing immediate food insecurity, mention this during your interview if applicable.",
         "urls": [
           {
-            "label": "Apply Online",
-            "url": "https://www.yourtexasbenefits.com"
+            "label": "Apply online (YourTexasBenefits)",
+            "url": "https://yourtexasbenefits.com/Apply/GettingStartedApp?lang=en_US"
           },
           {
-            "label": "Get help applying (Feeding Texas)",
-            "url": "https://www.feedingtexas.org/"
+            "label": "Senior and disability track (TSAP)",
+            "url": "https://www.hhs.texas.gov/services/food/snap-food-benefits/texas-simplified-application-project-tsap-snap-food-benefits"
           },
           {
-            "label": "Other senior programs (Texas HHS Aging)",
-            "url": "https://www.hhs.texas.gov/services/aging"
+            "label": "Get a paper form (H1010 or TSAP H0011)",
+            "url": "https://yourtexasbenefits.com/Learn/GetPaperForm?lang=en_US"
+          },
+          {
+            "label": "Find a local benefits office",
+            "url": "https://yourtexasbenefits.com/Screener/FindanOffice"
           }
         ]
       },
       "documentsNeeded": [
+        "A current driver's license or Texas state ID for proof of who you are.",
+        "Award letters for Social Security, pension, or disability income, plus current bank statements.",
+        "Recent medical bills or pharmacy statements. Medical costs can raise the benefit for someone 60 or older, so do not leave them out.",
         "Valid photo ID (driver's license or state ID)",
         "Social Security card",
         "Social Security award letter or benefits statement",
@@ -874,7 +876,7 @@
       "sourceUrl": "https://www.yourtexasbenefits.com",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "liheap-energy-assistance",

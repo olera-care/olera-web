@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NM/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.525Z
+ * Last updated: 2026-08-11T09:02:41.396Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -619,28 +619,23 @@ export const drafts: PipelineStateDrafts = {
         "povertyLevelReference": "185% FPL"
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online starting mid-February or call (505) 469-0548, benefits issued in July on first-come, first-served basis.",
+        "method": "online",
+        "summary": "New Mexico lists the online application first. The phone number is a help line, not the way to apply.",
         "steps": [
           {
             "step": 1,
-            "title": "Apply early in application season",
-            "description": "Applications typically open mid-February (February 15 for 2024). Apply immediately as funding is limited and distributed first-come, first-served."
+            "title": "Apply online",
+            "description": "The program lists the online application first, at shopper.soliportal.com."
           },
           {
             "step": 2,
-            "title": "Choose application method",
-            "description": "Apply online at shopper.soliportal.com, call (505) 469-0548 or (505) 487-0904, email doh.fmnp@doh.nm.gov, or visit any NM DOH WIC office, senior center, or AAA/AARP location."
+            "title": "Or use a paper form",
+            "description": "Pick one up at a senior center, a Commodity Supplemental Food site, or a Public Health WIC clinic. Return it in person, by mail, or by email. It cannot be given over the phone."
           },
           {
             "step": 3,
-            "title": "Provide eligibility documentation",
-            "description": "Submit proof of age, income (or SNAP/TEFAP/CSFP participation), and household size. Specific document requirements vary by application method."
-          },
-          {
-            "step": 4,
-            "title": "Receive electronic benefit card",
-            "description": "If approved, benefits are issued in July via electronic shopper card that works at participating New Mexico farmers markets and roadside stands."
+            "title": "Call only if you get stuck",
+            "description": "Call (505) 469-0548 or email doh.fmnp@doh.nm.gov for help with the form."
           }
         ],
         "processingTime": "Benefits issued within July for approved applicants",
@@ -648,19 +643,23 @@ export const drafts: PipelineStateDrafts = {
         "tip": "If your loved one already receives SNAP, TEFAP, or CSFP benefits, they may qualify automatically without separate income verification.",
         "urls": [
           {
-            "label": "Online Application",
-            "url": "https://shopper.soliportal.com"
+            "label": "Apply online",
+            "url": "https://shopper.soliportal.com/auth/sign-up/nm"
           },
           {
-            "label": "Program Information",
+            "label": "Program page",
             "url": "https://www.nmwic.org/fmnp/"
+          },
+          {
+            "label": "Paper application",
+            "url": "https://www.nmwic.org/wp-content/uploads/2025/02/Appendix-V-FY2025-Updated-Senior-Application-English.pdf"
           }
         ]
       },
       "documentsNeeded": [
-        "Date of birth and your New Mexico mailing address, city, ZIP, and county. No ID or birth certificate copy is required, you certify your age on the form.",
-        "Number of people in your household and your total gross monthly household income. No pay stubs or award letters are required, you report the amount yourself.",
-        "Whether anyone in the household gets SNAP, FDPIR, or CSFP, plus the EDG number if you have one, and last year's Senior Shopper Card number if you still have the card.",
+        "Date of birth, phone number, mailing address, and county. The phone number is required on the form.",
+        "How many people live with you and your total monthly household income before taxes.",
+        "Whether anyone in the home gets SNAP, FDPIR, or CSFP, plus the EDG number if you have one. You sign the form yourself and send no documents.",
         "A signature and the date. Two eligible seniors in one household can use the same form."
       ],
       "contacts": [

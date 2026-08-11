@@ -81,13 +81,14 @@ export async function GET(request: NextRequest) {
   const priorTo = addDays(from, -1);
   const priorFrom = addDays(priorTo, -(days - 1));
   const db = getServiceClient();
-  const [currentResult, priorResult, trendResult, earliestResult] = await Promise.all([
+  const [currentResult, priorResult, trendResult, priorTrendResult, earliestResult] = await Promise.all([
     db.rpc("get_growth_page_performance", { p_from: from, p_to: to, p_limit: 60 }),
     db.rpc("get_growth_page_performance", { p_from: priorFrom, p_to: priorTo, p_limit: 60 }),
     db.rpc("get_growth_category_trend", { p_from: from, p_to: to }),
+    db.rpc("get_growth_category_trend", { p_from: priorFrom, p_to: priorTo }),
     db.from("growth_page_metrics").select("week_start").order("week_start", { ascending: true }).limit(1).maybeSingle(),
   ]);
-  const error = currentResult.error || priorResult.error || trendResult.error || earliestResult.error;
+  const error = currentResult.error || priorResult.error || trendResult.error || priorTrendResult.error || earliestResult.error;
   if (error) {
     console.error("[organic-growth/pages]", error);
     return NextResponse.json({ error: "Page intelligence is not connected yet. Apply migration 173." }, { status: 503 });
@@ -95,6 +96,14 @@ export async function GET(request: NextRequest) {
 
   const current = ((currentResult.data || []) as PerformanceRow[]).map(normalize);
   const previous = ((priorResult.data || []) as PerformanceRow[]).map(normalize);
+  const currentTrend = (trendResult.data || []) as TrendRow[];
+  const priorTrend = (priorTrendResult.data || []) as TrendRow[];
+  const currentWeeks = new Set(currentTrend.map((row) => row.week_start)).size;
+  const priorWeeks = new Set(priorTrend.map((row) => row.week_start)).size;
+  // Sparse historical backfills are useful baselines, but not valid equivalent-
+  // period comparisons. Require matching weekly coverage before presenting
+  // movement, Rising, Falling, or new-entrant signals.
+  const hasPriorData = previous.length > 0 && currentWeeks > 0 && priorWeeks === currentWeeks;
   const previousByPage = new Map(previous.map((row) => [`${row.page_category}:${row.page_path}`, row]));
   const currentKeys = new Set(current.map((row) => `${row.page_category}:${row.page_path}`));
   const categories = (["provider", "benefit", "editorial"] as GrowthPageCategory[]).map((category) => {
@@ -115,7 +124,8 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     range: { from, to, prior_from: priorFrom, prior_to: priorTo },
     available_from: earliestResult.data?.week_start || null,
-    has_prior_data: previous.length > 0,
+    has_prior_data: hasPriorData,
+    coverage: { current_weeks: currentWeeks, prior_weeks: priorWeeks },
     categories,
     pages: [
       ...current.map((row) => {
@@ -144,7 +154,7 @@ export async function GET(request: NextRequest) {
           previous_search_impressions: row.search_impressions,
         })),
     ],
-    trend: ((trendResult.data || []) as TrendRow[]).map((row) => ({
+    trend: currentTrend.map((row) => ({
       week_start: row.week_start,
       page_category: row.page_category,
       organic_users: numeric(row.organic_users) || 0,

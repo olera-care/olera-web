@@ -8,6 +8,7 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
+import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -646,741 +647,6 @@ function ChannelTracking({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Fax Preview Sidebar — full fax preview with QR code and send button
-// ─────────────────────────────────────────────────────────────────────────────
-
-function FaxPreviewSidebar({
-  provider,
-  onClose,
-  onFaxSent,
-  faxNumberOverride,
-}: {
-  provider: OutreachProvider;
-  onClose: () => void;
-  onFaxSent?: (providerId: string) => void;
-  faxNumberOverride?: string | null;
-}) {
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [qrVerified, setQrVerified] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-
-  // Use override if provided, otherwise fall back to provider.fax_number
-  const faxNumber = faxNumberOverride || provider.fax_number;
-
-  const providerUrl = provider.slug
-    ? `https://olera.care/provider/${provider.slug}?utm_source=fax&utm_medium=qr&utm_campaign=re_engage`
-    : "https://olera.care";
-
-  // Generate QR code on mount
-  useEffect(() => {
-    async function generateQr() {
-      try {
-        const QRCode = (await import("qrcode")).default;
-        const dataUrl = await QRCode.toDataURL(providerUrl, {
-          width: 140,
-          margin: 1,
-          color: { dark: "#000000", light: "#ffffff" },
-        });
-        setQrDataUrl(dataUrl);
-      } catch {
-        // QR generation failed silently
-      }
-    }
-    generateQr();
-  }, [providerUrl]);
-
-  async function handleSendFax() {
-    setSending(true);
-    setSendError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/send-fax", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          fax_number: faxNumber,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSent(true);
-        onFaxSent?.(provider.provider_id);
-      } else {
-        setSendError(data.error || "Failed to send fax");
-      }
-    } catch {
-      setSendError("Network error");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/20 z-40 transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Sidebar */}
-      <div className={`fixed right-0 top-0 h-full bg-white shadow-2xl z-50 flex flex-col transition-all duration-300 ${
-        expanded ? "w-full" : "w-[520px]"
-      }`}>
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between shrink-0">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{provider.provider_name}</h2>
-            <p className="text-sm text-gray-500">
-              Fax to {faxNumber}
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-              title={expanded ? "Collapse" : "Expand full screen"}
-            >
-              {expanded ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9L4 4m0 0v4m0-4h4m6 6l5 5m0 0v-4m0 4h-4" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Fax Preview - scrollable */}
-        <div className={`flex-1 overflow-y-auto py-5 ${expanded ? "px-8 flex flex-col items-center" : "px-6"}`}>
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 w-full">FAX PREVIEW</h3>
-
-          {/* Fax document */}
-          <div className={`border border-gray-200 rounded-lg bg-white shadow-sm ${
-            expanded ? "w-full max-w-[680px]" : ""
-          }`} style={expanded ? { aspectRatio: "8.5 / 11", maxHeight: "calc(100vh - 200px)" } : undefined}>
-            <div className={`${expanded ? "px-12 py-12" : "px-8 py-8"} h-full flex flex-col`}>
-
-              {/* Logo + Olera info at very top */}
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-300">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/olera-logo.png"
-                  alt="Olera"
-                  className="h-8 object-contain grayscale"
-                />
-                <div className="text-[10px] text-gray-500 leading-tight">
-                  <p className="font-medium text-gray-700">Olera Care</p>
-                  <p>(833) 653-7200 · olera.care</p>
-                </div>
-              </div>
-
-              {/* Fax cover fields + QR Code inline */}
-              <div className="flex items-center justify-between mb-1">
-                <div className="grid grid-cols-2 gap-x-6 gap-y-0 text-[9px] text-gray-600 leading-relaxed">
-                  <p><span className="font-semibold text-gray-800">To:</span> {provider.provider_name}</p>
-                  <p><span className="font-semibold text-gray-800">From:</span> Dr. Logan DuBose, Olera</p>
-                  <p><span className="font-semibold text-gray-800">Subject:</span> Your free Olera profile</p>
-                  <p><span className="font-semibold text-gray-800">Attn:</span> Administrator / Executive Director</p>
-                  <p><span className="font-semibold text-gray-800">Date:</span> {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
-                </div>
-                <div className="flex flex-col items-center gap-0.5 shrink-0">
-                  {qrDataUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={qrDataUrl}
-                      alt="QR Code"
-                      className="w-20 h-20 border border-gray-200 rounded"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
-                      <span className="text-xs text-gray-400">QR CODE</span>
-                    </div>
-                  )}
-                  <p className="text-[8px] font-medium text-gray-600 text-center">Scan to manage your page</p>
-                </div>
-              </div>
-
-              {/* Opt-out notice */}
-              <div className="mb-3 px-3 py-1.5 border border-gray-300 bg-gray-50 rounded text-[8px] leading-snug text-gray-600">
-                <p className="font-semibold text-gray-700 mb-0.5">OPT-OUT NOTICE</p>
-                <p>
-                  To stop receiving faxes from Olera, call <span className="font-medium text-gray-800">(833) 653-7200</span> or
-                  send a fax to <span className="font-medium text-gray-800">(833) 653-7201</span> at any time, any day of the week.
-                  Requests are accepted 24 hours a day at no cost to you.
-                </p>
-              </div>
-
-              {/* Letter body */}
-              <div className="space-y-4 text-[12px] leading-relaxed text-gray-800">
-                <p>Dear {provider.provider_name},</p>
-
-                <p>
-                  I&apos;m Dr. Logan DuBose, a physician and co-founder of Olera.
-                </p>
-
-                <p>
-                  We created Olera, a free referral platform that helps families find trusted senior care. We&apos;re proud to be supported by NIH as we build a better solution for families and providers to connect.
-                </p>
-
-                <p>
-                  We&apos;ve already created a profile for {provider.provider_name} using publicly available information, and it&apos;s ready for your team to manage.
-                </p>
-
-                <p>
-                  Get started in less than two minutes and you&apos;ll be able to:
-                </p>
-
-                <ul className="space-y-1.5 pl-1">
-                  <li className="flex items-start gap-2">
-                    <span className="shrink-0 font-bold">&#10003;</span>
-                    <span>Have families contact you directly</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="shrink-0 font-bold">&#10003;</span>
-                    <span>Never pay referral fees or per-lead charges</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="shrink-0 font-bold">&#10003;</span>
-                    <span>Improve your online visibility</span>
-                  </li>
-                </ul>
-
-                <p>
-                  Scan the QR code above to take ownership of your page.
-                </p>
-
-                <p>
-                  If you have any questions or would like to schedule a quick call, I&apos;d be happy to help.
-                </p>
-
-                {/* Signature */}
-                <div className="mt-4 flex items-start gap-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/for-providers/team/logan.jpg"
-                    alt="Dr. Logan DuBose"
-                    className="w-16 h-16 rounded-full object-cover shrink-0 grayscale"
-                  />
-                  <div className="space-y-0.5">
-                    <p className="text-[12px] text-gray-500 italic">With care,</p>
-                    <p className="text-sm font-bold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
-                    <p className="text-[11px] text-gray-600">Chief Research Officer (CRO), Olera</p>
-                    <p className="text-[10px] text-gray-500">Researcher funded by the NIH Small Business Innovation Research (SBIR) Program</p>
-                    <p className="text-[10px] text-gray-500">Texas A&amp;M College of Medicine, Class of 2022</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Page footer with sender info */}
-              <div className="mt-auto pt-3 border-t border-gray-200 text-[8px] text-gray-400 space-y-0.5">
-                <p>Olera Care, Inc. · (833) 653-7200 · olera.care</p>
-                <p>
-                  To stop receiving faxes, call (833) 653-7200 or fax (833) 653-7201 at any time, any day. Requests accepted 24/7 at no cost.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer: Send button OR analytics after sent */}
-        <div className="border-t border-gray-200 bg-gray-50 shrink-0">
-          {sent ? (
-            <div className="px-6 py-4">
-              {/* Sent confirmation */}
-              <div className="flex items-center gap-2 mb-4">
-                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-sm font-medium text-emerald-600">Fax Sent</span>
-                <span className="text-xs text-gray-400 ml-auto">
-                  {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                </span>
-              </div>
-
-              {/* Resend */}
-              <button
-                type="button"
-                onClick={() => setSent(false)}
-                className="w-full py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-              >
-                Resend Fax
-              </button>
-            </div>
-          ) : (
-            <div className="px-6 py-4">
-              {/* QR verification step */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Verify QR destination</p>
-                <a
-                  href={providerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline break-all"
-                >
-                  {providerUrl.replace(/^https?:\/\//, "")}
-                </a>
-                <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={qrVerified}
-                    onChange={(e) => setQrVerified(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                  />
-                  <span className="text-xs text-gray-700">I confirm this QR links to the correct provider page</span>
-                </label>
-              </div>
-
-              {sendError && (
-                <p className="text-xs text-amber-600 mb-2">{sendError}</p>
-              )}
-              <button
-                type="button"
-                onClick={handleSendFax}
-                disabled={sending || !qrVerified}
-                className="w-full py-2.5 px-4 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {sending ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Sending...
-                  </>
-                ) : (
-                  "Send Fax"
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Postcard Preview Sidebar — full postcard preview with QR code and send button
-// ─────────────────────────────────────────────────────────────────────────────
-
-function PostcardPreviewSidebar({
-  provider,
-  onClose,
-  onMailSent,
-}: {
-  provider: OutreachProvider;
-  onClose: () => void;
-  onMailSent?: (providerId: string) => void;
-}) {
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
-  const [qrVerified, setQrVerified] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [address, setAddress] = useState<string>(provider.mail_address || "");
-  const [findingAddress, setFindingAddress] = useState(false);
-  const [addressError, setAddressError] = useState<string | null>(null);
-
-  const profileUrl = provider.slug
-    ? `https://olera.care/provider/${provider.slug}?utm_source=direct_mail&utm_medium=postcard&utm_campaign=re_engage`
-    : "https://olera.care";
-
-  // Generate QR code
-  useEffect(() => {
-    (async () => {
-      try {
-        const QRCode = (await import("qrcode")).default;
-        const url = await QRCode.toDataURL(profileUrl, { width: 120, margin: 1 });
-        setQrDataUrl(url);
-      } catch {
-        // QR generation failed
-      }
-    })();
-  }, [profileUrl]);
-
-  async function handleFindAddress() {
-    setFindingAddress(true);
-    setAddressError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-address", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          city: provider.city,
-          state: provider.state,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.address) {
-        setAddress(data.address);
-        setAddressError(null);
-      } else {
-        setAddressError("Could not find a mailing address");
-      }
-    } catch {
-      setAddressError("Failed to search for address");
-    } finally {
-      setFindingAddress(false);
-    }
-  }
-
-  async function handleSendPostcard() {
-    setSending(true);
-    setSendError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/send-mailer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          provider_name: provider.provider_name,
-          address: address,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSent(true);
-        onMailSent?.(provider.provider_id);
-      } else {
-        setSendError(data.error || "Failed to send postcard");
-      }
-    } catch {
-      setSendError("Network error");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
-
-      {/* Sidebar */}
-      <div className={`fixed right-0 top-0 h-full bg-white shadow-2xl z-50 overflow-y-auto border-l border-gray-200 transition-all duration-300 ${
-        expanded ? "w-full" : "w-[520px]"
-      }`}>
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Postcard Preview</h3>
-            <p className="text-xs text-gray-500">{provider.provider_name}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded)}
-              className="p-1.5 text-gray-400 hover:text-gray-600 transition rounded hover:bg-gray-100"
-              title={expanded ? "Collapse" : "Expand"}
-            >
-              {expanded ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9l-5-5m0 0v4m0-4h4m6 6l5 5m0 0v-4m0 4h-4" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6m0 0v6m0-6l-7 7M9 21H3m0 0v-6m0 6l7-7" />
-                </svg>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 transition"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Postcard content — centered with max width */}
-        <div className={`${expanded ? "max-w-[560px] mx-auto" : ""}`}>
-
-        {/* Postcard Front — 6x4 aspect ratio */}
-        <div className="px-6 pt-5">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Front</p>
-          <div
-            className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white"
-            style={{ aspectRatio: "6 / 4" }}
-          >
-            {/* Content */}
-            <div className="relative h-full flex flex-col p-4 bg-white">
-              {/* Top: Logo + slogan */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-1.5">
-                  <img src="/images/olera-logo.png" alt="Olera" className="h-5 w-5 object-contain" />
-                  <div>
-                    <span className="text-[#2A7C7C] text-base font-bold tracking-tight block leading-none">Olera</span>
-                    <span className="text-gray-400 text-[7px] block leading-none mt-0.5 pl-[1px]">olera.care</span>
-                  </div>
-                </div>
-                <p className="text-gray-900 text-[9px] font-semibold text-right uppercase tracking-[0.12em] leading-snug">Helping Families Find<br />Trusted Senior Care.</p>
-              </div>
-
-              {/* Headline */}
-              <div className="mt-8">
-                <h2 className="text-gray-900 text-[28px] font-bold leading-[1.1] font-serif">Your Next Referral<br /><span className="text-[#2A7C7C] relative inline-block">Starts Here.<svg className="absolute -bottom-1 left-0 w-full" height="7" viewBox="0 0 200 7" fill="none" preserveAspectRatio="none"><path d="M2 5C40 2 100 1 198 3.5" stroke="#2A7C7C" strokeWidth="2.5" strokeLinecap="round" /></svg></span></h2>
-                <p className="text-gray-700 text-[12px] font-medium mt-1">
-                  Help more families find <span className="font-bold text-gray-900">{provider.provider_name}</span>.
-                </p>
-                <div className="w-full h-[1px] mt-2 bg-gray-200" />
-
-                {/* Features */}
-                <div className="space-y-1.5 mt-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#EDF7F6" }}>
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                        <circle cx="9" cy="7" r="3" stroke="#2A7C7C" strokeWidth="1.5" />
-                        <circle cx="16" cy="8" r="2.5" stroke="#2A7C7C" strokeWidth="1.5" />
-                        <path d="M2 20c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="#2A7C7C" strokeWidth="1.5" strokeLinecap="round" />
-                        <path d="M16 14c2.761 0 5 1.79 5 4" stroke="#2A7C7C" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                    <p className="text-gray-900 text-[11px] leading-snug">A free referral platform that connects<br />families with trusted senior care providers.</p>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#EDF7F6" }}>
-                      <span className="text-[#2A7C7C] text-[10px] font-bold">$</span>
-                    </div>
-                    <p className="text-gray-900 text-[11px] font-bold">No referral fees &middot; No cost per lead</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* QR — absolute positioned right side */}
-              <div className="absolute right-6 bottom-[12%] text-center">
-                <div className="flex justify-center mb-1">
-                  {qrDataUrl && (
-                    <div className="rounded-lg p-1.5 border shrink-0" style={{ borderColor: "#2A7C7C" }}>
-                      <img src={qrDataUrl} alt="QR Code" className="w-16 h-16" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-gray-900 font-bold text-[10px]">Manage your free profile</p>
-                <p className="text-gray-500 text-[8px]">Scan the QR code to get started.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Postcard Back */}
-        <div className="px-6 pt-4">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Back</p>
-          <div
-            className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white"
-            style={{ aspectRatio: "6 / 4" }}
-          >
-            <div className="h-full flex">
-              {/* Left side: letter */}
-              <div className="w-[58%] p-3 pt-8 flex flex-col justify-between border-r border-gray-200">
-                <div>
-                  <p className="text-[8.5px] text-gray-700 leading-[1.6]">
-                    Dear {provider.provider_name},
-                  </p>
-                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
-                    I&#39;m Dr. Logan DuBose, a physician and co-founder of Olera.
-                  </p>
-                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
-                    We created Olera, a free referral platform that helps families find trusted senior care. We&#39;re proud to be supported by NIH as we build a better way for families and providers to connect.
-                  </p>
-                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
-                    We&#39;ve already created a free profile for <span className="font-semibold">{provider.provider_name}</span>. It&#39;s ready for your team to manage.
-                  </p>
-                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
-                    Get started in under two minutes to:
-                  </p>
-                  <ul className="mt-1 space-y-0.5 text-[8.5px] text-gray-700 leading-[1.5]">
-                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Have families contact you directly</li>
-                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Never pay referral or per-lead fees</li>
-                    <li className="flex items-start gap-1"><span className="font-bold">&#10003;</span> Improve your online visibility</li>
-                  </ul>
-                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
-                    Scan the QR code to get started.
-                  </p>
-                  <p className="text-[8.5px] text-gray-700 mt-1.5 leading-[1.6]">
-                    Questions? Give us a call at (979) 243-9801.
-                  </p>
-                </div>
-                <div className="mt-1.5 flex items-start gap-2">
-                  <img
-                    src="/images/for-providers/team/logan.jpg"
-                    alt="Dr. Logan DuBose"
-                    className="w-10 h-10 rounded-full object-cover shrink-0"
-                  />
-                  <div className="space-y-0">
-                    <p className="text-[7px] text-gray-500 italic">With care,</p>
-                    <p className="text-[8.5px] font-bold text-gray-900">Dr. Logan DuBose, MD, MBA</p>
-                    <p className="text-[7px] text-gray-600">Chief Research Officer (CRO), Olera</p>
-                    <p className="text-[6.5px] text-gray-500">Researcher funded by the NIH SBIR Program</p>
-                    <p className="text-[6.5px] text-gray-500">Texas A&amp;M College of Medicine, Class of 2022</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right side: address block */}
-              <div className="w-[42%] p-4 flex flex-col justify-between">
-                {/* Stamp + return address */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-[8px] text-gray-400">Olera Care Inc.</p>
-                    <p className="text-[8px] text-gray-400">Dallas, TX</p>
-                  </div>
-                  <div className="w-11 h-13 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
-                    <span className="text-[7px] text-gray-400 text-center leading-tight">POSTAGE</span>
-                  </div>
-                </div>
-
-                {/* Mailing address — centered vertically */}
-                <div className="my-auto">
-                  <p className="text-xs font-semibold text-gray-900">{provider.provider_name}</p>
-                  <p className={`text-[11px] mt-0.5 ${address ? "text-gray-700" : "text-amber-500 italic"}`}>
-                    {address || "Address required"}
-                  </p>
-                </div>
-
-                {/* Barcode placeholder */}
-                <div className="border-t border-gray-100 pt-2">
-                  <div className="h-2 bg-gradient-to-r from-gray-900 via-gray-400 to-gray-900 opacity-20 rounded-sm" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mailing address section */}
-        <div className="px-6 pt-4">
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Mailing to</p>
-            {address ? (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-900">{address}</p>
-                <button
-                  type="button"
-                  onClick={() => setAddress("")}
-                  className="text-xs text-gray-400 hover:text-gray-600"
-                >
-                  Clear
-                </button>
-              </div>
-            ) : (
-              <div>
-                <p className="text-sm text-amber-600 mb-2">No mailing address found</p>
-                {addressError && (
-                  <p className="text-xs text-red-500 mb-2">{addressError}</p>
-                )}
-                <button
-                  type="button"
-                  onClick={handleFindAddress}
-                  disabled={findingAddress}
-                  className="px-3 py-1.5 text-xs font-medium text-white bg-gray-800 hover:bg-gray-900 rounded-lg transition disabled:opacity-50"
-                >
-                  {findingAddress ? "Finding..." : "Find Address"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Cost notice */}
-        <div className="px-6 pt-3">
-          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-            <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.27 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <p className="text-xs text-amber-800">Estimated cost: <span className="font-semibold">$1.30</span> per postcard via PostGrid</p>
-          </div>
-        </div>
-
-        {/* Send button or sent analytics */}
-        {sent ? (
-          <div className="px-6 pt-4 pb-6">
-            <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
-                <span className="text-sm font-semibold text-teal-800">Postcard queued for printing</span>
-              </div>
-              <div className="divide-y divide-teal-100">
-                <div className="flex items-center justify-between py-1.5">
-                  <span className="text-sm text-gray-700">Status</span>
-                  <span className="text-xs font-medium text-teal-600">Queued</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5">
-                  <span className="text-sm text-gray-700">Est. delivery</span>
-                  <span className="text-xs text-gray-500">3-5 business days</span>
-                </div>
-                <div className="flex items-center justify-between py-1.5">
-                  <span className="text-sm text-gray-700">QR scanned</span>
-                  <span className="text-xs text-gray-400">Waiting</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="px-6 py-4">
-            {/* QR verification step */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Verify QR destination</p>
-              <a
-                href={profileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:underline break-all"
-              >
-                {profileUrl.replace(/^https?:\/\//, "")}
-              </a>
-              <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={qrVerified}
-                  onChange={(e) => setQrVerified(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <span className="text-xs text-gray-700">I confirm this QR links to the correct provider page</span>
-              </label>
-            </div>
-
-            {sendError && (
-              <p className="text-xs text-amber-600 mb-2">{sendError}</p>
-            )}
-            <button
-              type="button"
-              onClick={handleSendPostcard}
-              disabled={sending || !qrVerified || !address}
-              className="w-full py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {sending ? "Sending..." : "Send Postcard via PostGrid"}
-            </button>
-            <p className="text-[10px] text-gray-400 text-center mt-2">
-              PostGrid will print, stamp, and mail via USPS. Tracking updates will appear here.
-            </p>
-          </div>
-        )}
-
-        </div>{/* end centered wrapper */}
-      </div>
-    </>
-  );
-}
 
 function TierSelector({
   tier,
@@ -3094,64 +2360,29 @@ function formatDueDateBadge(dateStr: string | null): { text: string; className: 
   }
 }
 
-// Intelligence layer: Recommend action based on engagement and needs_call_reason
-function getRecommendedAction(provider: OutreachProvider): {
-  action: string;
-  outcome: string;
-  rationale: string;
-  isPrimary: boolean;
-} | null {
+// Get human-readable explanation for why provider is in Follow Up
+function getFollowUpReasonExplanation(provider: OutreachProvider): string {
   const reason = provider.needs_call_reason;
   const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
 
-  // Priority order based on the plan's recommendation logic
   switch (reason) {
     case "replied":
-      // Hottest lead - they responded, call them
-      return {
-        action: "Call Provider",
-        outcome: "", // No automatic outcome, just recommendation
-        rationale: "Provider replied to an email. Call them now - this is a hot lead.",
-        isPrimary: true,
-      };
+      return "Provider replied to an email — this is a hot lead.";
     case "clicked_not_claimed":
-      // Engaged but stuck - try personal touch via phone
-      return {
-        action: "Call Provider",
-        outcome: "", // No automatic outcome, just recommendation
-        rationale: `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim. A personal call may help close the deal.`,
-        isPrimary: true,
-      };
+      return `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim.`;
     case "sequence_exhausted":
     case "sequence_completed":
-      // Check if they opened emails but didn't act
       if (engagement.opens > 0) {
-        return {
-          action: "Fax",
-          outcome: "try_fax",
-          rationale: `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click. Try a different channel.`,
-          isPrimary: true,
-        };
+        return `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click.`;
       } else {
-        // No opens - email not reaching them
-        return {
-          action: "Direct Mail",
-          outcome: "try_direct_mail",
-          rationale: "No email engagement detected. Try direct mail to reach them.",
-          isPrimary: true,
-        };
+        return "No email engagement detected.";
       }
     case "email_bounced":
-      return {
-        action: "Fix Email",
-        outcome: "fix_email", // Special: triggers inline editing, not a modal
-        rationale: "Email bounced. Update contact info and resend.",
-        isPrimary: true,
-      };
+      return "Email bounced — contact info needs to be updated.";
     case "manual":
+      return "Manually added to follow-up queue.";
     default:
-      // No strong recommendation for manual additions
-      return null;
+      return "Ready for follow-up.";
   }
 }
 
@@ -3183,7 +2414,6 @@ function FollowUpProviderRow({
   const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
-  const [showAllOptions, setShowAllOptions] = useState(false);
   const [stageChangeLoading, setStageChangeLoading] = useState(false);
   const actionMenuRef = useRef<HTMLDivElement>(null);
   // Track expansion state for async operation guards
@@ -3201,6 +2431,27 @@ function FollowUpProviderRow({
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailJustSaved, setEmailJustSaved] = useState(false);
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  // Inline phone editing state
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [savingPhone, setSavingPhone] = useState(false);
+  // Not interested reason state
+  const [notInterestedReason, setNotInterestedReason] = useState<string>("");
+  // Inline fax editing state
+  const [editingFax, setEditingFax] = useState(false);
+  const [faxNumberInput, setFaxNumberInput] = useState("");
+  const [sendingFax, setSendingFax] = useState(false);
+  const [pendingFaxSend, setPendingFaxSend] = useState(false);
+  const [faxNotFound, setFaxNotFound] = useState(false);
+  // Inline direct mail editing state
+  const [editingDirectMail, setEditingDirectMail] = useState(false);
+  const [addressInput, setAddressInput] = useState("");
+  const [sendingDirectMail, setSendingDirectMail] = useState(false);
+  const [pendingDirectMailSend, setPendingDirectMailSend] = useState(false);
+  const [findingAddress, setFindingAddress] = useState(false);
+  const [addressNotFound, setAddressNotFound] = useState(false);
+  // Confirmation checkbox state
+  const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -3211,28 +2462,37 @@ function FollowUpProviderRow({
       setEditingEmail(false);
       setNewEmail("");
       setEmailJustSaved(false);
+      setEditingPhone(false);
+      setNewPhone("");
       setError(null);
+      setNotInterestedReason("");
+      setEditingFax(false);
+      setFaxNumberInput("");
+      setSendingFax(false);
+      setPendingFaxSend(false);
+      setFaxNotFound(false);
+      setEditingDirectMail(false);
+      setAddressInput("");
+      setSendingDirectMail(false);
+      setPendingDirectMailSend(false);
+      setFindingAddress(false);
+      setAddressNotFound(false);
+      setConfirmedWithProvider(false);
     }
   }, [isExpanded]);
 
   const dueBadge = formatDueDateBadge(provider.due_date);
   const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
-  const recommendation = getRecommendedAction(provider);
-  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
 
-  // Channel availability
-  const hasFax = !!provider.fax_number || !!faxResult?.fax;
-  // Note: linkedin_url can be "not_found" sentinel value - filter it out
-  const validLinkedInUrl = provider.linkedin_url && provider.linkedin_url !== "not_found"
+  // LinkedIn URL (filter out "not_found" sentinel value)
+  const linkedInUrl = (provider.linkedin_url && provider.linkedin_url !== "not_found")
     ? provider.linkedin_url
     : linkedInResult?.linkedin_url;
-  const hasLinkedIn = !!validLinkedInUrl;
-  const linkedInUrl = validLinkedInUrl;
-  const hasAddress = !!provider.mail_address;
 
   // Find fax number for this provider
   const handleFindFax = async () => {
     setFindingFax(true);
+    setFaxNotFound(false);
     setError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/find-fax", {
@@ -3244,7 +2504,10 @@ function FollowUpProviderRow({
       if (res.ok) {
         setFaxResult({ fax: data.fax, confidence: data.confidence, source_url: data.source_url });
         if (data.fax) {
+          setFaxNumberInput(data.fax); // Populate input so Send button appears
           onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
+        } else if (isExpandedRef.current) {
+          setFaxNotFound(true); // Show "not found" message
         }
       } else if (isExpandedRef.current) {
         setError(data.error || "Failed to find fax");
@@ -3338,6 +2601,44 @@ function FollowUpProviderRow({
     }
   };
 
+  // Handle saving updated phone number
+  const handleSavePhone = async () => {
+    const trimmedPhone = newPhone.trim();
+    // Allow empty to clear phone, or validate format
+    const sessionAtStart = editingSessionRef.current;
+    setSavingPhone(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-phone", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, phone: trimmedPhone || null }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        onProviderUpdated({ phone: trimmedPhone || null });
+        if (stillValid) {
+          setEditingPhone(false);
+          setNewPhone("");
+        }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to save phone");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error saving phone");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingPhone(false);
+      }
+    }
+  };
+
   // Handle sending claim link after email is fixed
   const handleSendClaimLink = async () => {
     const sessionAtStart = editingSessionRef.current;
@@ -3376,6 +2677,214 @@ function FollowUpProviderRow({
     }
   };
 
+  // Handle inline fax send from Follow Up
+  // Sends fax via Telnyx, then moves provider to Alternative Channels
+  const handleSendFaxInline = async () => {
+    const manualInput = faxNumberInput.trim();
+    const existingFax = provider.fax_number || faxResult?.fax;
+    const faxToSend = manualInput || existingFax;
+
+    if (!faxToSend) {
+      setError("Please enter a fax number");
+      return;
+    }
+
+    // Check if this is a manually entered number (different from existing)
+    const isManualEntry = manualInput && manualInput !== existingFax;
+
+    const sessionAtStart = editingSessionRef.current;
+    setSendingFax(true);
+    setError(null);
+
+    try {
+      // Step 1: If manually entered, save fax number to provider record first
+      if (isManualEntry) {
+        const saveRes = await fetch("/api/admin/provider-outreach/find-fax", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            manual_fax: manualInput,
+          }),
+        });
+
+        if (!saveRes.ok) {
+          // Non-fatal: log but continue with send
+          console.warn("Failed to save manual fax number:", await saveRes.json());
+        } else {
+          // Update local state so UI reflects saved number
+          onProviderUpdated({ fax_number: manualInput, fax_confidence: "high" });
+        }
+      }
+
+      // Step 2: Send fax via Telnyx
+      const sendRes = await fetch("/api/admin/provider-outreach/send-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          fax_number: faxToSend,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!sendRes.ok) {
+        const errData = await sendRes.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to send fax");
+        }
+        return;
+      }
+
+      // Step 3: Move provider to Alternative Channels (re_engage stage with fax channel)
+      const moveRes = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_fax",
+          notes: `Fax sent to ${faxToSend}`,
+        }),
+      });
+
+      if (!moveRes.ok) {
+        // Fax was sent but stage move failed - keep modal open with error
+        console.error("Fax sent but failed to move provider:", await moveRes.json());
+        if (stillValid) {
+          setError("Fax sent successfully, but failed to move provider to Alternative Channels. Please close this modal and refresh the page.");
+        }
+        return; // Don't close modal or trigger refresh - let user handle manually
+      }
+
+      // Success - close inline editing and refresh
+      if (stillValid) {
+        setEditingFax(false);
+        setPendingFaxSend(false);
+        setFaxNumberInput("");
+        setConfirmedWithProvider(false);
+      }
+      onOutcomeRecorded(true); // Stage changed, trigger refresh
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error sending fax");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSendingFax(false);
+      }
+    }
+  };
+
+  // Find address for direct mail
+  const handleFindAddress = async () => {
+    setFindingAddress(true);
+    setAddressNotFound(false);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          city: provider.city,
+          state: provider.state,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.address) {
+        setAddressInput(data.address);
+      } else if (res.ok) {
+        // API succeeded but no address found
+        setAddressNotFound(true);
+      } else {
+        setError(data.error || "Could not find a mailing address");
+      }
+    } catch {
+      setError("Failed to search for address");
+    } finally {
+      setFindingAddress(false);
+    }
+  };
+
+  // Handle inline direct mail send from Follow Up
+  // Sends postcard via PostGrid, then moves provider to Alternative Channels
+  const handleSendDirectMailInline = async () => {
+    const addressToSend = addressInput.trim() || provider.mail_address;
+
+    if (!addressToSend) {
+      setError("Please enter a mailing address");
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setSendingDirectMail(true);
+    setError(null);
+
+    try {
+      // Step 1: Send postcard via PostGrid (API also saves the address)
+      const sendRes = await fetch("/api/admin/provider-outreach/send-mailer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          provider_name: provider.provider_name,
+          address: addressToSend,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!sendRes.ok) {
+        const errData = await sendRes.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to send postcard");
+        }
+        return;
+      }
+
+      // Update local state with saved address
+      onProviderUpdated({ mail_address: addressToSend });
+
+      // Step 2: Move provider to Alternative Channels (re_engage stage with direct_mail channel)
+      const moveRes = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_direct_mail",
+          notes: `Postcard sent to ${addressToSend}`,
+        }),
+      });
+
+      if (!moveRes.ok) {
+        // Postcard was sent but stage move failed - keep modal open with error
+        console.error("Postcard sent but failed to move provider:", await moveRes.json());
+        if (stillValid) {
+          setError("Postcard sent successfully, but failed to move provider to Alternative Channels. Please close this modal and refresh the page.");
+        }
+        return; // Don't close modal or trigger refresh - let user handle manually
+      }
+
+      // Success - close inline editing and refresh
+      if (stillValid) {
+        setEditingDirectMail(false);
+        setPendingDirectMailSend(false);
+        setAddressInput("");
+        setConfirmedWithProvider(false);
+      }
+      onOutcomeRecorded(true); // Stage changed, trigger refresh
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error sending postcard");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSendingDirectMail(false);
+      }
+    }
+  };
+
   // Confirmation modal content for each outcome
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
@@ -3402,28 +2911,7 @@ function FollowUpProviderRow({
           confirmLabel: "Mark as not interested",
           confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
         };
-      case "try_fax":
-        return {
-          title: "Move to Fax Channel",
-          description: "Move this provider to the Fax channel for follow-up.",
-          details: [
-            "Provider will be moved to Alternative Channels (Fax)",
-            "Fax has per-page costs - consider calling first",
-          ],
-          confirmLabel: "Move to Fax",
-          confirmClass: "bg-purple-600 hover:bg-purple-700 text-white",
-        };
-      case "try_direct_mail":
-        return {
-          title: "Move to Direct Mail",
-          description: "Move this provider to the Direct Mail channel.",
-          details: [
-            "Provider will be moved to Alternative Channels (Direct Mail)",
-            "Postcards have printing and mailing costs",
-          ],
-          confirmLabel: "Move to Direct Mail",
-          confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
-        };
+      // Note: "try_fax" and "try_direct_mail" removed - now use dedicated send modals
       case "move_to_not_contacted":
         return {
           title: "Move to Ready",
@@ -3452,6 +2940,10 @@ function FollowUpProviderRow({
       if (notes.trim()) {
         body.notes = notes.trim();
       }
+      // Include reason for not_interested outcome
+      if (outcome === "not_interested" && notInterestedReason) {
+        body.not_interested_reason = notInterestedReason;
+      }
 
       const res = await fetch("/api/admin/provider-outreach/record-outcome", {
         method: "POST",
@@ -3466,6 +2958,7 @@ function FollowUpProviderRow({
           setError(`Email failed: ${data.email_error}. Provider was still moved.`);
         }
         setNotes("");
+        setNotInterestedReason(""); // Reset reason
       } else {
         const errData = await res.json();
         setError(errData.error || "Failed to record outcome");
@@ -3671,113 +3164,23 @@ function FollowUpProviderRow({
             </div>
           )}
 
-          {/* Recommended Action Card */}
-          {recommendation && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Recommended Action
-              </div>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900 mb-1">{recommendation.action}</div>
-                  <p className="text-sm text-gray-500">{recommendation.rationale}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {recommendation.outcome && (
-                    <button
-                      onClick={() => {
-                        if (recommendation.outcome === "fix_email") {
-                          // Special case: trigger inline editing instead of modal
-                          setEditingEmail(true);
-                          setNewEmail(provider.email || "");
-                          setEmailJustSaved(false);
-                        } else {
-                          setPendingOutcome(recommendation.outcome);
-                        }
-                      }}
-                      disabled={submitting !== null || (recommendation.outcome === "fix_email" && editingEmail)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {recommendation.action}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowAllOptions(!showAllOptions)}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {showAllOptions ? "Hide options" : "Show all options"}
-                  </button>
-                </div>
-              </div>
+          {/* Follow Up Action Card */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+            {/* Reason for follow-up */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-700">{getFollowUpReasonExplanation(provider)}</p>
+              <p className="text-sm text-gray-500 mt-1">Consider calling to ask which channel they prefer.</p>
             </div>
-          )}
 
-          {/* Two-column layout: Provider Details + Outreach History */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Provider Details Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Provider
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="font-medium text-gray-900">{provider.provider_name}</div>
-                {provider.provider_category && (
-                  <div className="text-gray-500">{provider.provider_category}</div>
-                )}
-                {provider.city && (
-                  <div className="text-gray-500">{provider.city}{provider.state ? `, ${provider.state}` : ""}</div>
-                )}
-                {/* Email display with inline edit capability */}
-                {editingEmail ? (
-                  <div className="space-y-2">
-                    <label className="block text-xs font-medium text-gray-500">Email</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="email"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                        placeholder="Enter new email"
-                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleSaveEmail();
-                          } else if (e.key === "Escape") {
-                            setEditingEmail(false);
-                            setNewEmail("");
-                          }
-                        }}
-                        autoFocus
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSaveEmail();
-                        }}
-                        disabled={savingEmail || !newEmail.trim()}
-                        className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {savingEmail ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingEmail(false);
-                          setNewEmail("");
-                        }}
-                        disabled={savingEmail}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : emailJustSaved ? (
-                  <div className="space-y-2">
+            {/* Contact boxes - Email & Phone side by side */}
+            <div className="mb-4 flex gap-3">
+              {/* Email box */}
+              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                {emailJustSaved ? (
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-emerald-600">✓</span>
-                      <span className="text-sm text-gray-700">{newEmail || provider.email}</span>
+                      <span className="text-sm text-gray-700 truncate">{newEmail || provider.email}</span>
                       <span className="text-xs text-emerald-600 font-medium">Saved</span>
                     </div>
                     <button
@@ -3788,219 +3191,382 @@ function FollowUpProviderRow({
                       disabled={sendingClaimLink}
                       className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {sendingClaimLink ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Sending...
-                        </span>
-                      ) : (
-                        "Send Claim Link"
-                      )}
+                      {sendingClaimLink ? "Sending..." : "Send Claim Link"}
                     </button>
                   </div>
-                ) : provider.email ? (
-                  <a href={`mailto:${provider.email}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                    {provider.email}
-                  </a>
-                ) : (
-                  <span className="text-gray-400 italic">No email</span>
-                )}
-                {provider.phone && (
-                  <a href={`tel:${provider.phone.replace(/\D/g, "")}`} className="block text-primary-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                    {formatPhone(provider.phone)}
-                  </a>
-                )}
-                {/* Channel availability indicators */}
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 mt-3">
-                  <span className="text-xs text-gray-400">Channels:</span>
-                  <span className={`text-xs ${hasFax ? "text-emerald-600" : "text-gray-300"}`}>
-                    Fax {hasFax ? "✓" : "—"}
-                  </span>
-                  {hasLinkedIn && linkedInUrl ? (
-                    <a
-                      href={linkedInUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                ) : editingEmail ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="Enter email"
+                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
                       onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSaveEmail();
+                        } else if (e.key === "Escape") {
+                          setEditingEmail(false);
+                          setNewEmail("");
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSaveEmail();
+                      }}
+                      disabled={savingEmail || !newEmail.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      LinkedIn ✓
-                    </a>
-                  ) : (
-                    <span className="text-xs text-gray-300">LinkedIn —</span>
-                  )}
-                  <span className={`text-xs ${hasAddress ? "text-emerald-600" : "text-gray-300"}`}>
-                    Address {hasAddress ? "✓" : "—"}
-                  </span>
-                </div>
-                {provider.slug && (
-                  <Link
-                    href={`/admin/directory/${provider.slug}`}
-                    className="inline-block mt-2 text-xs text-gray-500 hover:text-gray-700"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View Profile →
-                  </Link>
+                      {savingEmail ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingEmail(false);
+                        setNewEmail("");
+                      }}
+                      disabled={savingEmail}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      {provider.email ? (
+                        <a
+                          href={`mailto:${provider.email}`}
+                          className="text-sm text-primary-600 hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {provider.email}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">No email</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingEmail(true);
+                        setNewEmail(provider.email || "");
+                        setEmailJustSaved(false);
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Phone box */}
+              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                {editingPhone ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      placeholder="(555) 123-4567"
+                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSavePhone();
+                        } else if (e.key === "Escape") {
+                          setEditingPhone(false);
+                          setNewPhone("");
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSavePhone();
+                      }}
+                      disabled={savingPhone}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {savingPhone ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingPhone(false);
+                        setNewPhone("");
+                      }}
+                      disabled={savingPhone}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      {provider.phone ? (
+                        <a
+                          href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                          className="text-sm text-primary-600 hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {formatPhone(provider.phone)}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400 italic">No phone</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingPhone(true);
+                        setNewPhone(provider.phone || "");
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Outreach History Card */}
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Outreach History
-              </div>
-              <div className="space-y-2 text-sm">
-                {/* Email sequence stats */}
-                <div className="flex items-center gap-2">
-                  <span className={engagement.emails_sent > 0 ? "text-emerald-600" : "text-gray-400"}>
-                    {engagement.emails_sent > 0 ? "✓" : "○"}
+            {/* Found contact info (fax/LinkedIn) + Find LinkedIn option */}
+            {((provider.fax_number || faxResult?.fax) || linkedInUrl || (provider.website && !findingLinkedIn)) && (
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+                {(provider.fax_number || faxResult?.fax) && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded">
+                    Fax: {provider.fax_number || faxResult?.fax}
                   </span>
-                  <span className="text-gray-700">
-                    Email sequence ({engagement.emails_sent} sent{engagement.opens > 0 ? `, ${engagement.opens} opens` : ""}{engagement.clicks > 0 ? `, ${engagement.clicks} clicks` : ""})
-                  </span>
-                </div>
-                {/* Resend stats */}
-                {engagement.resends > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-600">✓</span>
-                    <span className="text-gray-700">Resend link ({engagement.resends}x)</span>
-                  </div>
                 )}
-                {/* Available channels */}
-                <div className="border-t border-gray-100 pt-2 mt-2 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">Fax — {hasFax ? "ready" : "available"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400">○</span>
-                    <span className="text-gray-500">Direct mail — {hasAddress ? "ready" : "available"}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* All Options Section (collapsible, collapsed by default) */}
-          {(showAllOptions || !recommendation) && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                  All Options
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Find LinkedIn button */}
-                  {!hasLinkedIn && !findingLinkedIn && provider.website && (
-                    <button
-                      onClick={handleFindLinkedIn}
-                      className="text-xs text-blue-600 hover:text-blue-700"
-                    >
-                      Find LinkedIn
-                    </button>
-                  )}
-                  {findingLinkedIn && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-                      Finding LinkedIn...
-                    </span>
-                  )}
-                  {/* Find Fax button */}
-                  {!hasFax && !findingFax && provider.website && (
-                    <button
-                      onClick={handleFindFax}
-                      className="text-xs text-teal-600 hover:text-teal-700"
-                    >
-                      Find fax number
-                    </button>
-                  )}
-                  {findingFax && (
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                      Finding fax...
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Fax found indicator */}
-              {(provider.fax_number || faxResult?.fax) && (
-                <div className="mb-3 p-2 bg-emerald-50 border border-emerald-100 rounded text-sm text-emerald-700">
-                  Fax: {provider.fax_number || faxResult?.fax}
-                  {(provider.fax_confidence || faxResult?.confidence) && (
-                    <span className="ml-2 text-xs opacity-75">({provider.fax_confidence || faxResult?.confidence} confidence)</span>
-                  )}
-                </div>
-              )}
-
-              {/* LinkedIn found indicator */}
-              {linkedInUrl && (
-                <div className="mb-3 p-2 bg-blue-50 border border-blue-100 rounded text-sm text-blue-700">
+                {linkedInUrl ? (
                   <a
                     href={linkedInUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:underline flex items-center gap-1"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
                     </svg>
-                    {linkedInUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                    LinkedIn
                   </a>
-                </div>
-              )}
-
-              {/* Action buttons - shortened labels */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setPendingOutcome("resend_link")}
-                  disabled={submitting !== null || resendDisabled}
-                  title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
-                    resendDisabled
-                      ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                      : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
-                  }`}
-                >
-                  Resend Link{resendDisabled ? " (max)" : ""}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setEditingEmail(true);
-                    setNewEmail(provider.email || "");
-                    setEmailJustSaved(false);
-                  }}
-                  disabled={submitting !== null || editingEmail}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Fix Email
-                </button>
-
-                <button
-                  onClick={() => setPendingOutcome("try_fax")}
-                  disabled={submitting !== null}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Fax
-                </button>
-
-                <button
-                  onClick={() => setPendingOutcome("try_direct_mail")}
-                  disabled={submitting !== null}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Direct Mail
-                </button>
+                ) : provider.website && !findingLinkedIn ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFindLinkedIn();
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    Find LinkedIn
+                  </button>
+                ) : null}
+                {findingLinkedIn && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 text-blue-500">
+                    <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                    Finding...
+                  </span>
+                )}
               </div>
+            )}
 
-              {/* Cost warning */}
-              <p className="mt-3 text-xs text-gray-400">
-                Note: Fax and Direct Mail have costs. Consider calling the provider first.
-              </p>
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setPendingOutcome("resend_link")}
+                disabled={submitting !== null || resendDisabled}
+                title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
+                  resendDisabled
+                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                    : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
+                }`}
+              >
+                Resend Claim Link{resendDisabled ? " (max)" : ""}
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingFax(true);
+                  setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
+                  setFaxNotFound(false);
+                  setError(null);
+                  // Auto-find fax if none exists
+                  if (!provider.fax_number && !faxResult?.fax && !findingFax) {
+                    handleFindFax();
+                  }
+                }}
+                disabled={submitting !== null || editingFax || sendingFax}
+                className="px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Send Fax
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingDirectMail(true);
+                  setAddressInput(provider.mail_address || "");
+                  setAddressNotFound(false);
+                  setError(null);
+                  // Auto-find address if none exists
+                  if (!provider.mail_address && !findingAddress) {
+                    handleFindAddress();
+                  }
+                }}
+                disabled={submitting !== null || editingDirectMail || sendingDirectMail}
+                className="px-4 py-2 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Send Postcard
+              </button>
             </div>
-          )}
+
+            {/* Inline Fax editing */}
+            {editingFax && (
+              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-purple-700 uppercase tracking-wide">
+                    Fax Number
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingFax(false);
+                      setFaxNumberInput("");
+                      setError(null);
+                    }}
+                    className="text-xs text-purple-600 hover:text-purple-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={faxNumberInput}
+                    onChange={(e) => {
+                      setFaxNumberInput(e.target.value);
+                      setFaxNotFound(false); // Clear "not found" when typing
+                    }}
+                    placeholder={findingFax ? "Finding fax number..." : "(555) 123-4567"}
+                    className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    disabled={findingFax}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {!faxNumberInput && !findingFax && (
+                    <button
+                      onClick={handleFindFax}
+                      className="px-3 py-2 text-sm font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100"
+                    >
+                      Find
+                    </button>
+                  )}
+                  {findingFax && (
+                    <span className="px-3 py-2 text-sm text-purple-600 flex items-center gap-1">
+                      <span className="w-3 h-3 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                </div>
+                {faxNotFound && !faxNumberInput && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No fax number found. Please enter manually.
+                  </p>
+                )}
+                {faxNumberInput && (
+                  <button
+                    onClick={() => setPendingFaxSend(true)}
+                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                  >
+                    Send Fax
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Inline Direct Mail editing */}
+            {editingDirectMail && (
+              <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-teal-700 uppercase tracking-wide">
+                    Mailing Address
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingDirectMail(false);
+                      setAddressInput("");
+                      setError(null);
+                    }}
+                    className="text-xs text-teal-600 hover:text-teal-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <textarea
+                    value={addressInput}
+                    onChange={(e) => {
+                      setAddressInput(e.target.value);
+                      setAddressNotFound(false); // Clear "not found" when typing
+                    }}
+                    placeholder={findingAddress ? "Finding address..." : "123 Main St\nCity, State ZIP"}
+                    rows={2}
+                    className="flex-1 px-3 py-2 text-sm border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white resize-none"
+                    disabled={findingAddress}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  {!addressInput && !findingAddress && (
+                    <button
+                      onClick={handleFindAddress}
+                      className="px-3 py-2 text-sm font-medium text-teal-700 bg-white border border-teal-200 rounded-lg hover:bg-teal-100 self-start"
+                    >
+                      Find
+                    </button>
+                  )}
+                  {findingAddress && (
+                    <span className="px-3 py-2 text-sm text-teal-600 flex items-center gap-1 self-start">
+                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
+                    </span>
+                  )}
+                </div>
+                {addressNotFound && !addressInput && (
+                  <p className="mt-2 text-xs text-amber-600">
+                    No address found. Please enter manually.
+                  </p>
+                )}
+                {addressInput && (
+                  <button
+                    onClick={() => setPendingDirectMailSend(true)}
+                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors"
+                  >
+                    Send Postcard
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Cost note */}
+            <p className="mt-4 text-xs text-gray-400">
+              Fax and postcard have per-send costs.
+            </p>
+          </div>
         </div>
       )}
 
@@ -4012,6 +3578,8 @@ function FollowUpProviderRow({
             e.stopPropagation();
             setPendingOutcome(null);
             setPendingStageMove(null);
+            setNotInterestedReason("");
+            setConfirmedWithProvider(false);
           }}
         >
           <div
@@ -4044,14 +3612,48 @@ function FollowUpProviderRow({
                 </ul>
               </div>
 
+              {/* Confirmation checkbox for resend_link */}
+              {pendingOutcome === "resend_link" && (
+                <label className="flex items-start gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={confirmedWithProvider}
+                    onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                  />
+                  <span className="text-sm text-amber-900">
+                    I called the provider and confirmed they want to receive the claim link again
+                  </span>
+                </label>
+              )}
+
+              {/* Reason dropdown for not_interested */}
+              {pendingOutcome === "not_interested" && (
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                    Reason <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={notInterestedReason}
+                    onChange={(e) => setNotInterestedReason(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                  >
+                    <option value="">Select a reason...</option>
+                    {NOT_INTERESTED_REASONS.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Notes (optional)
+                  Notes {pendingOutcome === "not_interested" && notInterestedReason === "other" ? <span className="text-red-500">*</span> : "(optional)"}
                 </label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add context or reason..."
+                  placeholder={pendingOutcome === "not_interested" && notInterestedReason === "other" ? "Please explain..." : "Add context or reason..."}
                   rows={2}
                   className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
@@ -4063,6 +3665,8 @@ function FollowUpProviderRow({
                 onClick={() => {
                   setPendingOutcome(null);
                   setPendingStageMove(null);
+                  setNotInterestedReason("");
+                  setConfirmedWithProvider(false);
                 }}
                 disabled={submitting !== null || stageChangeLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -4086,7 +3690,13 @@ function FollowUpProviderRow({
                     }
                   }
                 }}
-                disabled={submitting !== null || stageChangeLoading}
+                disabled={
+                  submitting !== null ||
+                  stageChangeLoading ||
+                  (pendingOutcome === "resend_link" && !confirmedWithProvider) ||
+                  (pendingOutcome === "not_interested" && !notInterestedReason) ||
+                  (pendingOutcome === "not_interested" && notInterestedReason === "other" && !notes.trim())
+                }
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
               >
                 {submitting || stageChangeLoading ? (
@@ -4096,6 +3706,194 @@ function FollowUpProviderRow({
                   </span>
                 ) : (
                   confirmationContent.confirmLabel
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fax Confirmation Modal */}
+      {pendingFaxSend && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!sendingFax) {
+              setPendingFaxSend(false);
+              setConfirmedWithProvider(false);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Fax</h3>
+              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
+            </div>
+
+            <div className="px-5 py-4">
+              {error && (
+                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-sm font-medium text-purple-900">Fax Number:</p>
+                <p className="text-sm text-purple-700">{faxNumberInput}</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Fax with claim link sent immediately
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Fax has per-page costs
+                  </li>
+                </ul>
+              </div>
+
+              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmedWithProvider}
+                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-amber-900">
+                  I called the provider and confirmed they want to receive information via fax
+                </span>
+              </label>
+            </div>
+
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setPendingFaxSend(false);
+                  setConfirmedWithProvider(false);
+                }}
+                disabled={sendingFax}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendFaxInline}
+                disabled={sendingFax || !confirmedWithProvider}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingFax ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  "Send Fax"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Direct Mail Confirmation Modal */}
+      {pendingDirectMailSend && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!sendingDirectMail) {
+              setPendingDirectMailSend(false);
+              setConfirmedWithProvider(false);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Postcard</h3>
+              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
+            </div>
+
+            <div className="px-5 py-4">
+              {error && (
+                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
+                <p className="text-sm font-medium text-teal-900">Mailing Address:</p>
+                <p className="text-sm text-teal-700 whitespace-pre-line">{addressInput}</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Postcard with claim link sent via PostGrid
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Provider moves to Alternative Channels
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Postcards have printing and mailing costs
+                  </li>
+                </ul>
+              </div>
+
+              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={confirmedWithProvider}
+                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-amber-900">
+                  I called the provider and confirmed they want to receive information via mail
+                </span>
+              </label>
+            </div>
+
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setPendingDirectMailSend(false);
+                  setConfirmedWithProvider(false);
+                }}
+                disabled={sendingDirectMail}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendDirectMailInline}
+                disabled={sendingDirectMail || !confirmedWithProvider}
+                className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sendingDirectMail ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  "Send Postcard"
                 )}
               </button>
             </div>
@@ -4265,95 +4063,20 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Move Channel Dropdown
-// ─────────────────────────────────────────────────────────────────────────────
-
-const CHANNEL_OPTIONS: { value: string; label: string; color: string }[] = [
-  { value: "fax", label: "Fax", color: "text-purple-700" },
-  { value: "direct_mail", label: "Direct Mail", color: "text-teal-700" },
-];
-
-function MoveChannelDropdown({
-  currentChannel,
-  onMove,
-  disabled,
-}: {
-  currentChannel: string | null;
-  onMove: (channel: string) => void;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    if (open) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  // Filter out current channel from options
-  const options = CHANNEL_OPTIONS.filter((ch) => ch.value !== currentChannel);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (!disabled) setOpen(!open);
-        }}
-        disabled={disabled}
-        className="px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-      >
-        Move
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
-          {options.map((ch) => (
-            <button
-              key={ch.value}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMove(ch.value);
-                setOpen(false);
-              }}
-              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors ${ch.color}`}
-            >
-              {ch.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Re-Engage Queue Component
+// Alternative Channels Queue Component (Tracking Only)
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface ReEngageQueueProps {
   providers: OutreachProvider[];
   loading: boolean;
-  onReEngageAction: (providerId: string, result: { action: string; new_stage: string }) => void;
   onArchive: (provider: OutreachProvider) => void;
   adminNameLookup: Map<string, string>;
-  onRefresh?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Lifecycle Constants and Helpers
+// Tracking Constants and Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CHANNEL_WAIT_DAYS = 5; // Days to wait before progressing to next channel
 const DIRECT_MAIL_EXPIRY_DAYS = 18; // Days in direct_mail before prompting action
 
 // Helper: calculate days since a date
@@ -4365,91 +4088,8 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-// Helper: days remaining in the wait period before next channel
-function daysRemaining(dateString: string | null): number {
-  if (!dateString) return CHANNEL_WAIT_DAYS;
-  return Math.max(0, CHANNEL_WAIT_DAYS - daysSince(dateString));
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Lifecycle Tag — shows countdown or next step based on channel
-// ─────────────────────────────────────────────────────────────────────────────
-
-function LifecycleTag({
-  channel,
-  faxSentAt,
-  linkedinMessagedAt,
-  mailSentAt,
-}: {
-  channel: string | null;
-  faxSentAt?: string | null;
-  linkedinMessagedAt?: string | null;
-  mailSentAt?: string | null;
-}) {
-  // Fax channel: show countdown to LinkedIn
-  if (channel === "fax" && faxSentAt) {
-    const remaining = daysRemaining(faxSentAt);
-    if (remaining > 0) {
-      return (
-        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          LinkedIn in {remaining}d
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
-        Ready for LinkedIn
-      </span>
-    );
-  }
-
-  // LinkedIn channel: show countdown to Direct Mail
-  if (channel === "linkedin" && linkedinMessagedAt) {
-    const remaining = daysRemaining(linkedinMessagedAt);
-    if (remaining > 0) {
-      return (
-        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Direct Mail in {remaining}d
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded px-1.5 py-0.5">
-        Ready for Direct Mail
-      </span>
-    );
-  }
-
-  // Direct Mail channel: show final outreach status
-  if (channel === "direct_mail" && mailSentAt) {
-    const days = daysSince(mailSentAt);
-    if (days >= DIRECT_MAIL_EXPIRY_DAYS) {
-      return (
-        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
-          Action needed
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5">
-        Final outreach sent
-      </span>
-    );
-  }
-
-  return null;
-}
-
-function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminNameLookup, onRefresh }: ReEngageQueueProps) {
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [pendingAction, setPendingAction] = useState<{ provider: OutreachProvider; type: "re_engage" | "cycle2_archive" } | null>(null);
-  const [actionNotes, setActionNotes] = useState("");
+function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEngageQueueProps) {
+  // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
 
   // Send Claim Link state
   const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
@@ -4487,7 +4127,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     });
   }, []);
 
-  // LinkedIn tracking (session-only)
+  // LinkedIn tracking (session-only, for backward compat with existing linkedin channel providers)
   const [linkedInUrlMap, setLinkedInUrlMap] = useState<Map<string, string>>(new Map());
   const [linkedInContactsMap, setLinkedInContactsMap] = useState<Map<string, LinkedInContact[]>>(new Map());
   const [expandedLinkedIn, setExpandedLinkedIn] = useState<Set<string>>(new Set());
@@ -4519,126 +4159,6 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       return next;
     });
   }, []);
-
-  // Fax preview state
-  const [faxPreviewProvider, setFaxPreviewProvider] = useState<OutreachProvider | null>(null);
-  // Track which providers have had fax sent (session-only, complements DB data)
-  const [faxSentSet, setFaxSentSet] = useState<Set<string>>(new Set());
-
-  const handleFaxSent = useCallback((providerId: string) => {
-    setFaxSentSet((prev) => {
-      const next = new Set(prev);
-      next.add(providerId);
-      return next;
-    });
-  }, []);
-
-  // Postcard preview state
-  const [postcardPreviewProvider, setPostcardPreviewProvider] = useState<OutreachProvider | null>(null);
-  // Track which providers have had postcard sent (session-only, complements DB data)
-  const [mailSentSet, setMailSentSet] = useState<Set<string>>(new Set());
-
-  const handleMailSent = useCallback((providerId: string) => {
-    setMailSentSet((prev) => {
-      const next = new Set(prev);
-      next.add(providerId);
-      return next;
-    });
-  }, []);
-
-  // Find Fax state for Alternative Channels
-  const [findingFaxId, setFindingFaxId] = useState<string | null>(null);
-  const [faxResultsMap, setFaxResultsMap] = useState<Map<string, { fax: string | null; confidence: string | null; source_url: string | null; searched: boolean }>>(new Map());
-
-  // Manual fax input state
-  const [faxInputExpandedId, setFaxInputExpandedId] = useState<string | null>(null);
-  const [faxInputValue, setFaxInputValue] = useState("");
-  const [savingFaxId, setSavingFaxId] = useState<string | null>(null);
-  const [faxSaveError, setFaxSaveError] = useState<string | null>(null);
-
-  const handleSaveManualFax = useCallback(async (providerId: string) => {
-    if (!faxInputValue.trim()) return;
-    setSavingFaxId(providerId);
-    setFaxSaveError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-fax", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: providerId,
-          manual_fax: faxInputValue.trim(),
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setFaxResultsMap((prev) => {
-          const next = new Map(prev);
-          next.set(providerId, { fax: data.fax || faxInputValue.trim(), confidence: "manual", source_url: null, searched: true });
-          return next;
-        });
-        setFaxInputExpandedId(null);
-        setFaxInputValue("");
-      } else {
-        setFaxSaveError("Failed to save");
-      }
-    } catch {
-      setFaxSaveError("Failed to save");
-    } finally {
-      setSavingFaxId(null);
-    }
-  }, [faxInputValue]);
-
-  const handleFindFax = useCallback(async (provider: OutreachProvider) => {
-    setFindingFaxId(provider.provider_id);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-fax", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setFaxResultsMap((prev) => {
-          const next = new Map(prev);
-          next.set(provider.provider_id, { fax: data.fax, confidence: data.confidence, source_url: data.source_url || null, searched: true });
-          return next;
-        });
-      } else {
-        // Mark as searched but no fax found
-        setFaxResultsMap((prev) => {
-          const next = new Map(prev);
-          next.set(provider.provider_id, { fax: null, confidence: null, source_url: null, searched: true });
-          return next;
-        });
-      }
-    } catch {
-      // Mark as searched but failed
-      setFaxResultsMap((prev) => {
-        const next = new Map(prev);
-        next.set(provider.provider_id, { fax: null, confidence: null, source_url: null, searched: true });
-        return next;
-      });
-    } finally {
-      setFindingFaxId(null);
-    }
-  }, []);
-
-  // Move channel state
-  const handleMoveChannel = useCallback(async (providerId: string, newChannel: string) => {
-    try {
-      const res = await fetch("/api/admin/provider-outreach/move-channel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId, channel: newChannel }),
-      });
-      if (res.ok) {
-        // Refresh providers to reflect the change
-        onRefresh?.();
-      }
-    } catch {
-      // Ignore errors
-    }
-  }, [onRefresh]);
 
   // Fax/Mail analytics tracking (fetched from re-engage-list API)
   const [faxAnalyticsMap, setFaxAnalyticsMap] = useState<Map<string, FaxAnalytics>>(new Map());
@@ -4733,40 +4253,6 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
     fetchAnalytics();
   }, [providers.length, analyticsLoaded]);
 
-  const handleReEngage = async (provider: OutreachProvider, notes?: string) => {
-    setActionLoading(provider.provider_id);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/re-engage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          notes: notes?.trim() || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to process re-engage action");
-      }
-
-      const result = await res.json();
-      onReEngageAction(provider.provider_id, result);
-    } catch (err) {
-      console.error("Re-engage error:", err);
-      alert(err instanceof Error ? err.message : "Failed to process re-engage action");
-    } finally {
-      setActionLoading(null);
-      setPendingAction(null);
-      setActionNotes("");
-    }
-  };
-
-  const confirmAction = async () => {
-    if (!pendingAction) return;
-    await handleReEngage(pendingAction.provider, actionNotes);
-  };
-
   // Filter to only show providers actually in re_engage stage
   // This prevents ghost data from appearing during tab switches (React state sync issue)
   const reEngageProviders = providers.filter(p => p.stage === "re_engage");
@@ -4808,7 +4294,6 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       {/* Provider rows */}
       {sorted.map((provider) => {
         const waitDays = daysSince(provider.re_engage_entered_at);
-        const isLoading = actionLoading === provider.provider_id;
         const isCycle2 = provider.cycle_number === 2;
 
         // Check if direct_mail has expired (18+ days without claim)
@@ -4824,30 +4309,15 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
             {mailExpired && (
               <div className="mx-5 mt-3 flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                 <span className="text-xs text-amber-800 font-medium flex-1">
-                  No response after {daysSince(mailSentAt)} days. All channels exhausted.
+                  No response after {daysSince(mailSentAt)} days.
                 </span>
-                {/* Only show Reactivate for Cycle 1 - Cycle 2 should only archive */}
-                {!isCycle2 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPendingAction({ provider, type: "re_engage" });
-                    }}
-                    disabled={isLoading}
-                    className="px-3 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-md transition disabled:opacity-50"
-                  >
-                    Reactivate Sequence
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onArchive(provider);
                   }}
-                  disabled={isLoading}
-                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition"
                 >
                   Archive
                 </button>
@@ -4870,8 +4340,8 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                   >
                     Cycle {provider.cycle_number}
                   </span>
-                  <span className={`text-sm ${waitDays >= 30 ? "text-emerald-600 font-medium" : "text-gray-600"}`}>
-                    {waitDays}d{waitDays >= 30 && " (Ready)"}
+                  <span className="text-sm text-gray-600">
+                    {waitDays}d
                   </span>
                 </div>
               </div>
@@ -4900,13 +4370,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                      provider.re_engage_channel}
                   </span>
                 )}
-                <LifecycleTag
-                  channel={provider.re_engage_channel}
-                  faxSentAt={faxAnalyticsMap.get(provider.provider_id)?.sent_at}
-                  linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
-                  mailSentAt={mailAnalyticsMap.get(provider.provider_id)?.sent_at}
-                />
-                {enrichmentNotFoundMap.get(provider.provider_id)?.fax && !provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && (
+                {enrichmentNotFoundMap.get(provider.provider_id)?.fax && !provider.fax_number && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
                     No Fax
                   </span>
@@ -4935,51 +4399,25 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
 
               {/* Row 4: Channel tracking analytics */}
               <ChannelTracking
-                faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at || faxSentSet.has(provider.provider_id)}
+                faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at}
                 faxAnalytics={faxAnalyticsMap.get(provider.provider_id)}
                 faxNumber={provider.fax_number}
                 linkedinMessaged={linkedInContactsMap.get(provider.provider_id)?.some(c => c.messaged)}
                 linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
                 linkedinUrl={linkedInUrlMap.get(provider.provider_id)}
                 providerLinkedinUrl={providerLinkedInUrlMap.get(provider.provider_id)}
-                mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at || mailSentSet.has(provider.provider_id)}
+                mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at}
                 mailAnalytics={mailAnalyticsMap.get(provider.provider_id)}
                 claimed={claimedMap.get(provider.provider_id)?.claimed}
                 claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
               />
 
-              {/* Row 5: Actions */}
+              {/* Row 5: Actions - Tracking only (Archive opens modal with stage options, Send Claim Link) */}
               <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
               <button
                 type="button"
-                onClick={() => setPendingAction({
-                  provider,
-                  type: isCycle2 ? "cycle2_archive" : "re_engage"
-                })}
-                disabled={isLoading}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isCycle2
-                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    : "bg-primary-600 text-white hover:bg-primary-700"
-                }`}
-              >
-                {isLoading ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Processing...
-                  </span>
-                ) : isCycle2 ? (
-                  "Archive (2 cycles done)"
-                ) : (
-                  "Re-engage now"
-                )}
-              </button>
-
-              <button
-                type="button"
                 onClick={() => onArchive(provider)}
-                disabled={isLoading}
-                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
               >
                 Archive
               </button>
@@ -5009,131 +4447,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
                 </button>
               )}
 
-              {/* Find Fax / Manual Input for fax channel without fax number */}
-              {!provider.fax_number && !faxResultsMap.get(provider.provider_id)?.fax && provider.re_engage_channel === "fax" && (
-                faxInputExpandedId === provider.provider_id ? (
-                  // Manual fax input expanded
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="text"
-                      value={faxInputValue}
-                      onChange={(e) => { setFaxInputValue(e.target.value); setFaxSaveError(null); }}
-                      placeholder="(555) 123-4567"
-                      className={`w-28 px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-purple-500 ${faxSaveError ? "border-red-300" : "border-gray-300"}`}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSaveManualFax(provider.provider_id);
-                        if (e.key === "Escape") { setFaxInputExpandedId(null); setFaxInputValue(""); setFaxSaveError(null); }
-                      }}
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleSaveManualFax(provider.provider_id)}
-                      disabled={!faxInputValue.trim() || savingFaxId === provider.provider_id}
-                      className="px-2 py-1 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded disabled:opacity-50"
-                    >
-                      {savingFaxId === provider.provider_id ? "..." : "Save"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setFaxInputExpandedId(null); setFaxInputValue(""); setFaxSaveError(null); }}
-                      className="px-1.5 py-1 text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      ✕
-                    </button>
-                    {faxSaveError && <span className="text-[10px] text-red-500">{faxSaveError}</span>}
-                  </div>
-                ) : (
-                  // Find Fax buttons
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => handleFindFax(provider)}
-                      disabled={findingFaxId === provider.provider_id}
-                      className="px-2 py-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
-                    >
-                      {findingFaxId === provider.provider_id ? "Finding..." :
-                       faxResultsMap.get(provider.provider_id)?.searched ? "Try Again" : "Find Fax"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setFaxInputExpandedId(provider.provider_id); setFaxInputValue(""); }}
-                      className="px-2 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                      title="Enter fax number manually"
-                    >
-                      Manual
-                    </button>
-                    {faxResultsMap.get(provider.provider_id)?.searched && !faxResultsMap.get(provider.provider_id)?.fax && (
-                      <span className="text-[10px] text-gray-400">Not found</span>
-                    )}
-                  </>
-                )
-              )}
-
-              {/* Fax info + Send Fax button for fax channel with fax number */}
-              {(provider.fax_number || faxResultsMap.get(provider.provider_id)?.fax) && provider.re_engage_channel === "fax" && (
-                <>
-                  {/* Fax number display */}
-                  <span className="text-xs font-mono text-gray-700">
-                    {provider.fax_number || faxResultsMap.get(provider.provider_id)?.fax}
-                  </span>
-                  {/* Confidence badge */}
-                  {(provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                      (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "high"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "manual"
-                        ? "bg-gray-50 text-gray-600 border border-gray-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
-                    }`}>
-                      {(provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "high" ? "High" :
-                       (provider.fax_confidence || faxResultsMap.get(provider.provider_id)?.confidence) === "manual" ? "Manual" : "Unsure"}
-                    </span>
-                  )}
-                  {/* Source URL link */}
-                  {(provider.fax_source_url || faxResultsMap.get(provider.provider_id)?.source_url) && (
-                    <a
-                      href={provider.fax_source_url || faxResultsMap.get(provider.provider_id)?.source_url || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-0.5"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Source
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setFaxPreviewProvider(provider)}
-                    className="px-2 py-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded transition-colors"
-                  >
-                    Send Fax
-                  </button>
-                </>
-              )}
-
-              {/* Send Postcard button for direct_mail channel */}
-              {provider.re_engage_channel === "direct_mail" && (
-                <button
-                  type="button"
-                  onClick={() => setPostcardPreviewProvider(provider)}
-                  className="px-2 py-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors"
-                >
-                  Send Postcard
-                </button>
-              )}
-
-              {/* Move Channel dropdown */}
-              <MoveChannelDropdown
-                currentChannel={provider.re_engage_channel}
-                onMove={(channel) => handleMoveChannel(provider.provider_id, channel)}
-                disabled={isLoading}
-              />
-
-              {/* LinkedIn expand toggle */}
+              {/* LinkedIn expand toggle (for backward compat with existing linkedin channel providers) */}
               {provider.re_engage_channel === "linkedin" && (
                 <button
                   type="button"
@@ -5163,148 +4477,7 @@ function ReEngageQueue({ providers, loading, onReEngageAction, onArchive, adminN
       {/* Summary footer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
         {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Alternative Channels
-        {" • "}
-        {reEngageProviders.filter(p => daysSince(p.re_engage_entered_at) >= 30).length} ready for action (30+ days)
       </div>
-
-      {/* Confirmation Modal */}
-      {pendingAction && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={() => {
-            setPendingAction(null);
-            setActionNotes("");
-          }}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {pendingAction.type === "re_engage" ? "Start Cycle 2" : "Archive Provider"}
-              </h3>
-              <p className="text-sm text-gray-500 mt-1">{pendingAction.provider.provider_name}</p>
-            </div>
-
-            {/* Content */}
-            <div className="px-5 py-4">
-              <div className={`p-3 rounded-lg border mb-4 ${
-                pendingAction.type === "re_engage"
-                  ? "bg-blue-50 border-blue-200"
-                  : "bg-gray-50 border-gray-200"
-              }`}>
-                <p className="text-sm text-gray-700 mb-2">
-                  {pendingAction.type === "re_engage"
-                    ? "This will prepare the provider for their second and final email sequence."
-                    : "This provider has completed 2 cycles without claiming. They will be archived."}
-                </p>
-                <ul className="space-y-1.5">
-                  {pendingAction.type === "re_engage" ? (
-                    <>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Provider will move to Ready tab (cycle 2)
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Launch the sequence from the Ready tab
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        This is their final outreach cycle
-                      </li>
-                    </>
-                  ) : (
-                    <>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Provider will be moved to Not Interested
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        No more outreach emails will be sent
-                      </li>
-                      <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-gray-400 mt-0.5">•</span>
-                        Questions and connections can still flow to them
-                      </li>
-                    </>
-                  )}
-                </ul>
-              </div>
-
-              {/* Notes field */}
-              <div>
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Notes (optional)
-                </label>
-                <textarea
-                  value={actionNotes}
-                  onChange={(e) => setActionNotes(e.target.value)}
-                  placeholder="Add context or reason..."
-                  rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setPendingAction(null);
-                  setActionNotes("");
-                }}
-                disabled={actionLoading !== null}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmAction}
-                disabled={actionLoading !== null}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  pendingAction.type === "re_engage"
-                    ? "bg-primary-600 hover:bg-primary-700"
-                    : "bg-gray-800 hover:bg-gray-900"
-                }`}
-              >
-                {actionLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
-                  </span>
-                ) : pendingAction.type === "re_engage" ? (
-                  "Yes, start Cycle 2"
-                ) : (
-                  "Yes, archive provider"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fax Preview Sidebar */}
-      {faxPreviewProvider && (
-        <FaxPreviewSidebar
-          provider={faxPreviewProvider}
-          onClose={() => setFaxPreviewProvider(null)}
-          onFaxSent={handleFaxSent}
-          faxNumberOverride={faxResultsMap.get(faxPreviewProvider.provider_id)?.fax}
-        />
-      )}
-
-      {/* Postcard Preview Sidebar */}
-      {postcardPreviewProvider && (
-        <PostcardPreviewSidebar
-          provider={postcardPreviewProvider}
-          onClose={() => setPostcardPreviewProvider(null)}
-          onMailSent={handleMailSent}
-        />
-      )}
     </div>
   );
 }
@@ -5441,30 +4614,32 @@ export default function ProviderOutreachPage() {
   // Stats section expanded state
   const [statsExpanded, setStatsExpanded] = useState(false);
 
-  // Email performance stats section
+  // Email performance / claims dashboard section
   const [emailStatsExpanded, setEmailStatsExpanded] = useState(false);
-  const [emailStats, setEmailStats] = useState<{
-    templates: Array<{
-      template_key: string;
-      name: string;
-      sequence_step: number | null;
-      sent: number;
-      opened: number;
-      open_rate: number;
-      clicked: number;
-      click_rate: number;
-    }>;
+  const [claimsDashboard, setClaimsDashboard] = useState<{
     totals: {
-      sent: number;
+      sequenced: number;
+      claimed: number;
+      conversion_rate: number;
+      avg_time_to_claim_days: number | null;
+    };
+    sequence_day_breakdown: Array<{
+      label: string;
+      day_min: number;
+      day_max: number | null;
+      count: number;
+      percentage: number;
+    }>;
+    engagement: {
+      contacted: number;
       opened: number;
       open_rate: number;
       clicked: number;
       click_rate: number;
-    };
-    period_days: number;
+    } | null;
   } | null>(null);
-  const [emailStatsLoading, setEmailStatsLoading] = useState(false);
-  const [emailStatsError, setEmailStatsError] = useState(false);
+  const [claimsDashboardLoading, setClaimsDashboardLoading] = useState(false);
+  const [claimsDashboardError, setClaimsDashboardError] = useState(false);
 
   // Sequence conversion stats section
   const [conversionExpanded, setConversionExpanded] = useState(false);
@@ -5488,9 +4663,6 @@ export default function ProviderOutreachPage() {
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  // Preview engine for template preview section (separate from sequence preview)
-  const [templatePreviewEngine, setTemplatePreviewEngine] = useState<"smartlead" | "resend">("smartlead");
-  const [templatePreviewSmartleadConfigured, setTemplatePreviewSmartleadConfigured] = useState(false);
 
   // Global claimed count (fetched separately, not derived from active states)
   const [globalClaimedCount, setGlobalClaimedCount] = useState<number | null>(null);
@@ -5547,6 +4719,8 @@ export default function ProviderOutreachPage() {
   const [unarchivePreviewConfirmed, setUnarchivePreviewConfirmed] = useState(false);
   // Pending stage move confirmation (for Move to Stage buttons)
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
+  // Not interested reason for action modal stage move
+  const [actionNotInterestedReason, setActionNotInterestedReason] = useState("");
 
   // Send Claim Link state (for action modal)
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
@@ -5694,6 +4868,7 @@ export default function ProviderOutreachPage() {
     setUnarchivePreviewConfirmed(false);
     setPendingStageMove(null);
     setClaimLinkSent(false);
+    setActionNotInterestedReason("");
   };
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
@@ -6084,30 +5259,30 @@ export default function ProviderOutreachPage() {
     fetchSequenceConversion();
   }, []);
 
-  // Effect: fetch email performance stats when section is expanded
+  // Effect: fetch claims dashboard when section is expanded
   useEffect(() => {
-    if (!emailStatsExpanded || emailStats) return; // Only fetch once when first expanded
+    if (!emailStatsExpanded || claimsDashboard) return; // Only fetch once when first expanded
 
-    const fetchEmailStats = async () => {
-      setEmailStatsLoading(true);
-      setEmailStatsError(false);
+    const fetchClaimsDashboard = async () => {
+      setClaimsDashboardLoading(true);
+      setClaimsDashboardError(false);
       try {
-        const res = await fetch("/api/admin/provider-outreach/email-stats?days=30");
+        const res = await fetch("/api/admin/provider-outreach/claims-dashboard");
         if (res.ok) {
           const data = await res.json();
-          setEmailStats(data);
+          setClaimsDashboard(data);
         } else {
-          setEmailStatsError(true);
+          setClaimsDashboardError(true);
         }
       } catch (err) {
-        console.error("Failed to fetch email stats:", err);
-        setEmailStatsError(true);
+        console.error("Failed to fetch claims dashboard:", err);
+        setClaimsDashboardError(true);
       } finally {
-        setEmailStatsLoading(false);
+        setClaimsDashboardLoading(false);
       }
     };
-    fetchEmailStats();
-  }, [emailStatsExpanded, emailStats]);
+    fetchClaimsDashboard();
+  }, [emailStatsExpanded, claimsDashboard]);
 
   // Effect: fetch sequence conversion stats when section is expanded
   useEffect(() => {
@@ -6150,11 +5325,11 @@ export default function ProviderOutreachPage() {
       setPreviewLoading(true);
       setPreviewHtml(null); // Clear old preview while loading new one
       try {
-        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=${templatePreviewEngine}`);
+        // Always use smartlead engine (the templates actually sent)
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=smartlead`);
         if (res.ok) {
           const data = await res.json();
           setPreviewHtml(data.html);
-          setTemplatePreviewSmartleadConfigured(data.smartlead_configured ?? false);
         }
       } catch (err) {
         console.error("Failed to fetch template preview:", err);
@@ -6163,7 +5338,7 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchPreview();
-  }, [previewTemplate, templatePreviewEngine]);
+  }, [previewTemplate]);
 
   // Effect: fetch provider counts when Add State modal opens
   useEffect(() => {
@@ -7044,65 +6219,96 @@ export default function ProviderOutreachPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
           <span>Email Performance</span>
-          <span className="text-xs text-gray-400">(Last 30 days)</span>
+          {claimsDashboard && (
+            <span className="text-xs text-gray-400">
+              ({claimsDashboard.totals.claimed} claims · {claimsDashboard.totals.conversion_rate}% rate)
+            </span>
+          )}
         </button>
 
         {emailStatsExpanded && (
           <div className="mt-4 space-y-6">
-            {/* Stats Table */}
-            {emailStatsLoading ? (
-              <div className="text-sm text-gray-500">Loading email stats...</div>
-            ) : emailStatsError ? (
+            {/* Claims Dashboard */}
+            {claimsDashboardLoading ? (
+              <div className="text-sm text-gray-500">Loading claims data...</div>
+            ) : claimsDashboardError ? (
               <div className="flex items-center gap-3 text-sm">
-                <span className="text-red-600">Failed to load email stats</span>
+                <span className="text-red-600">Failed to load claims data</span>
                 <button
                   type="button"
                   onClick={() => {
-                    setEmailStats(null);
-                    setEmailStatsError(false);
+                    setClaimsDashboard(null);
+                    setClaimsDashboardError(false);
                   }}
                   className="text-teal-700 hover:underline"
                 >
                   Retry
                 </button>
               </div>
-            ) : emailStats ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 pr-4 font-medium text-gray-600">Template</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Sent</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Opened</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Open %</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Clicked</th>
-                      <th className="text-right py-2 pl-3 font-medium text-gray-600">Click %</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {emailStats.templates.map((t) => (
-                      <tr key={t.template_key} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 text-gray-900">{t.name}</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.sent.toLocaleString()}</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.opened.toLocaleString()}</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.open_rate}%</td>
-                        <td className="py-2 px-3 text-right text-gray-700">{t.clicked.toLocaleString()}</td>
-                        <td className="py-2 pl-3 text-right text-gray-700">{t.click_rate}%</td>
-                      </tr>
+            ) : claimsDashboard ? (
+              <div className="space-y-6">
+                {/* Email engagement line (aggregate from SmartLead) */}
+                {claimsDashboard.engagement && (
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Email Engagement:</span>{" "}
+                    <span>{claimsDashboard.engagement.opened.toLocaleString()} of {claimsDashboard.engagement.contacted.toLocaleString()} opened</span>
+                    <span className="text-gray-400"> ({claimsDashboard.engagement.open_rate}%)</span>
+                    <span className="mx-2 text-gray-300">·</span>
+                    <span>{claimsDashboard.engagement.clicked.toLocaleString()} clicked</span>
+                    <span className="text-gray-400"> ({claimsDashboard.engagement.click_rate}%)</span>
+                  </div>
+                )}
+
+                {/* 4-stat grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {claimsDashboard.totals.sequenced.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Sequenced</div>
+                    <div className="text-xs text-gray-400">entered seq</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-emerald-600">
+                      {claimsDashboard.totals.claimed.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Claimed</div>
+                    <div className="text-xs text-gray-400">from sequence</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {claimsDashboard.totals.conversion_rate}%
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Conversion</div>
+                    <div className="text-xs text-gray-400">seq→claimed</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {claimsDashboard.totals.avg_time_to_claim_days !== null
+                        ? `${claimsDashboard.totals.avg_time_to_claim_days} days`
+                        : "—"}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Avg Time to Claim</div>
+                    <div className="text-xs text-gray-400">first email</div>
+                  </div>
+                </div>
+
+                {/* When Providers Claim breakdown */}
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">When Providers Claim</div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {claimsDashboard.sequence_day_breakdown.map((bucket) => (
+                      <div key={bucket.label} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                        <div className="text-xs text-gray-500 mb-1">{bucket.label}</div>
+                        <div className="text-lg font-semibold text-gray-900">{bucket.count}</div>
+                        <div className="text-xs text-gray-400">{bucket.percentage}%</div>
+                      </div>
                     ))}
-                    <tr className="font-medium bg-gray-50">
-                      <td className="py-2 pr-4 text-gray-900">Total</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.sent.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.opened.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.open_rate}%</td>
-                      <td className="py-2 px-3 text-right text-gray-900">{emailStats.totals.clicked.toLocaleString()}</td>
-                      <td className="py-2 pl-3 text-right text-gray-900">{emailStats.totals.click_rate}%</td>
-                    </tr>
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="text-sm text-gray-500">No email data available</div>
+              <div className="text-sm text-gray-500">No claims data available</div>
             )}
 
             {/* Template Preview */}
@@ -7135,34 +6341,6 @@ export default function ProviderOutreachPage() {
 
               {previewTemplate && (
                 <div className="rounded-xl border border-gray-200 overflow-hidden">
-                  {/* Preview engine toggle - show when SmartLead is configured */}
-                  {templatePreviewSmartleadConfigured && (
-                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">Preview rendering:</span>
-                      <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-md p-0.5">
-                        <button
-                          onClick={() => setTemplatePreviewEngine("smartlead")}
-                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                            templatePreviewEngine === "smartlead"
-                              ? "bg-blue-100 text-blue-700"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          SmartLead
-                        </button>
-                        <button
-                          onClick={() => setTemplatePreviewEngine("resend")}
-                          className={`px-2 py-0.5 text-xs font-medium rounded transition-colors ${
-                            templatePreviewEngine === "resend"
-                              ? "bg-gray-200 text-gray-700"
-                              : "text-gray-500 hover:text-gray-700"
-                          }`}
-                        >
-                          Resend
-                        </button>
-                      </div>
-                    </div>
-                  )}
                   {previewLoading ? (
                     <div className="px-4 py-8 text-center text-sm text-gray-400">Loading preview...</div>
                   ) : previewHtml ? (
@@ -7604,28 +6782,11 @@ export default function ProviderOutreachPage() {
                     : providers.filter((p) => p.re_engage_channel === selectedChannelFilter)
               }
               loading={loadingProviders}
-            onReEngageAction={(providerId, result) => {
-              // Mark as recently moved to filter from stale API responses
-              markAsRecentlyMoved(providerId);
-              // Provider moved out of re_engage - remove from local state
-              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-              // Update stage counts
-              setStageCounts((prev) => ({
-                ...prev,
-                re_engage: Math.max(0, prev.re_engage - 1),
-                ...(result.new_stage === "not_contacted" && { ready: prev.ready + 1 }),
-                ...(result.new_stage === "not_interested" && { not_interested: prev.not_interested + 1 }),
-                ...(result.new_stage === "archived" && { archived: prev.archived + 1 }),
-              }));
-              // Refresh to sync
-              fetchProviders();
-            }}
-            onArchive={(provider) => {
-              setActionModalProvider(provider);
-            }}
-            adminNameLookup={adminNameLookup}
-            onRefresh={fetchProviders}
-          />
+              onArchive={(provider) => {
+                setActionModalProvider(provider);
+              }}
+              adminNameLookup={adminNameLookup}
+            />
           </>
         ) : (
           // Normal city-grouped view
@@ -8079,7 +7240,10 @@ export default function ProviderOutreachPage() {
               <div className="p-4 space-y-4">
                 {/* Back button */}
                 <button
-                  onClick={() => setPendingStageMove(null)}
+                  onClick={() => {
+                    setPendingStageMove(null);
+                    setActionNotInterestedReason("");
+                  }}
                   className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -8165,15 +7329,34 @@ export default function ProviderOutreachPage() {
                   </ul>
                 </div>
 
+                {/* Reason dropdown for not_interested */}
+                {pendingStageMove === "not_interested" && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                      Reason <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={actionNotInterestedReason}
+                      onChange={(e) => setActionNotInterestedReason(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                    >
+                      <option value="">Select a reason...</option>
+                      {NOT_INTERESTED_REASONS.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* Notes field */}
                 <div className="mt-3">
                   <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                    Notes (optional)
+                    Notes {pendingStageMove === "not_interested" && actionNotInterestedReason === "other" ? <span className="text-red-500">*</span> : "(optional)"}
                   </label>
                   <textarea
                     value={actionNotes}
                     onChange={(e) => setActionNotes(e.target.value)}
-                    placeholder="Add context or reason..."
+                    placeholder={pendingStageMove === "not_interested" && actionNotInterestedReason === "other" ? "Please explain..." : "Add context or reason..."}
                     rows={2}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                   />
@@ -8185,6 +7368,7 @@ export default function ProviderOutreachPage() {
                     onClick={() => {
                       setPendingStageMove(null);
                       setActionNotes("");
+                      setActionNotInterestedReason("");
                     }}
                     disabled={actionLoading}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -8202,6 +7386,10 @@ export default function ProviderOutreachPage() {
                             provider_ids: [actionModalProvider.provider_id],
                             stage: pendingStageMove,
                             notes: actionNotes.trim() || undefined,
+                            // Include reason for not_interested
+                            ...(pendingStageMove === "not_interested" && actionNotInterestedReason && {
+                              not_interested_reason: actionNotInterestedReason,
+                            }),
                           }),
                         });
                         if (res.ok) {
@@ -8250,7 +7438,11 @@ export default function ProviderOutreachPage() {
                         setActionLoading(false);
                       }
                     }}
-                    disabled={actionLoading}
+                    disabled={
+                      actionLoading ||
+                      (pendingStageMove === "not_interested" && !actionNotInterestedReason) ||
+                      (pendingStageMove === "not_interested" && actionNotInterestedReason === "other" && !actionNotes.trim())
+                    }
                     className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       pendingStageMove === "not_contacted" ? "bg-gray-600 hover:bg-gray-700" :
                       pendingStageMove === "in_sequence" ? "bg-blue-600 hover:bg-blue-700" :

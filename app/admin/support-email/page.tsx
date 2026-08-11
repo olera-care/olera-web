@@ -2,8 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  ArrowDownUp,
+  ArrowLeft,
+  Check,
+  Download,
+  Filter,
+  Paperclip,
+  Phone,
+  Search,
+} from "lucide-react";
 
 type View = "needs_reply" | "all" | "handled" | "noise" | "escalated" | "snoozed";
+type DateWindow = "all" | "today" | "7d" | "30d" | "90d";
+type Sort = "newest" | "oldest";
 
 interface Mailbox {
   id: string;
@@ -56,7 +68,7 @@ interface Message {
   snippet: string;
   internal_date: string;
   has_attachments: boolean;
-  attachments: Array<{ filename: string; mimeType: string; size: number }>;
+  attachments: Array<{ attachmentId: string | null; filename: string; mimeType: string; size: number }>;
   list_unsubscribe: string[];
   list_unsubscribe_post: boolean;
 }
@@ -102,6 +114,19 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+const CATEGORY_OPTIONS = [
+  "all", "voicemail", "care_seeker", "provider", "partner", "marketing",
+  "automated", "legal", "security", "billing", "internal", "other",
+];
+
+const DATE_LABELS: Record<DateWindow, string> = {
+  all: "Any date",
+  today: "Past 24 hours",
+  "7d": "Last 7 days",
+  "30d": "Last 30 days",
+  "90d": "Last 90 days",
+};
+
 function relative(iso: string): string {
   const diff = Math.max(0, Date.now() - new Date(iso).getTime());
   const minutes = Math.floor(diff / 60_000);
@@ -132,10 +157,38 @@ function confidence(value: number | null): string | null {
   return `${Math.round(value * 100)}% confidence`;
 }
 
+function formatBytes(value: number): string {
+  if (!value) return "";
+  if (value < 1_024) return `${value} B`;
+  if (value < 1_048_576) return `${Math.round(value / 1_024)} KB`;
+  return `${(value / 1_048_576).toFixed(1)} MB`;
+}
+
+function isAudioAttachment(attachment: Message["attachments"][number]): boolean {
+  return attachment.mimeType.startsWith("audio/") || /\.(?:mp3|m4a|wav|ogg)$/i.test(attachment.filename);
+}
+
+function callbackNumber(detail: Detail | null): string | null {
+  if (!detail) return null;
+  const inbound = [...detail.messages].reverse().find((message) => message.direction === "in");
+  const text = [detail.thread.subject, inbound?.body_text ?? ""].join("\n");
+  const match = text.match(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/);
+  return match?.[0]?.trim() ?? null;
+}
+
+function attachmentUrl(threadId: string, messageId: string, attachmentId: string, download = false): string {
+  const base = `/api/admin/support-email/${encodeURIComponent(threadId)}/attachments/${encodeURIComponent(messageId)}/${encodeURIComponent(attachmentId)}`;
+  return download ? `${base}?download=1` : base;
+}
+
 export default function SupportEmailPage() {
   const [view, setView] = useState<View>("needs_reply");
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
+  const [dateWindow, setDateWindow] = useState<DateWindow>("all");
+  const [sort, setSort] = useState<Sort>("newest");
+  const [total, setTotal] = useState(0);
   const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -174,18 +227,23 @@ export default function SupportEmailPage() {
       setError(null);
       const params = new URLSearchParams({ view });
       if (query) params.set("q", query);
+      if (category !== "all") params.set("category", category);
+      if (dateWindow !== "all") params.set("date", dateWindow);
+      if (sort === "oldest") params.set("sort", "oldest");
       const res = await fetch(`/api/admin/support-email?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not load support email");
       if (requestId !== listRequestRef.current) return;
       setMailboxes(data.mailboxes ?? []);
       setThreads(data.threads ?? []);
+      setTotal(data.total ?? 0);
     } catch (err) {
       if (requestId !== listRequestRef.current) return;
       setThreads([]);
+      setTotal(0);
       setError(err instanceof Error ? err.message : "Could not load support email");
     }
-  }, [query, view]);
+  }, [category, dateWindow, query, sort, view]);
 
   useEffect(() => { void loadList(); }, [loadList]);
 
@@ -284,22 +342,23 @@ export default function SupportEmailPage() {
     [detail],
   );
   const mailbox = mailboxes[0] ?? null;
+  const phone = callbackNumber(detail);
+  const isVoicemail = detail?.thread.category === "voicemail";
+  const activeFilterCount = Number(category !== "all") + Number(dateWindow !== "all");
 
   return (
-    <div className="space-y-5 pb-20 md:pb-0">
+    <div className="space-y-4 pb-20 md:pb-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-semibold text-gray-900">Support Email</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Support Email</h1>
             {mailbox && (
               <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${mailbox.sync_status === "error" ? "bg-rose-50 text-rose-700" : mailbox.full_sync_complete ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
                 {mailbox.sync_status === "error" ? "Needs attention" : mailbox.full_sync_complete ? "Live" : "Importing history"}
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-500">
-            Olera&apos;s support copilot separates signal from noise and recommends the next move.
-          </p>
+          <p className="mt-1 text-sm text-gray-500">One queue for every support conversation and its next move.</p>
         </div>
         <div className="flex items-center gap-2">
           {mailbox ? (
@@ -315,9 +374,9 @@ export default function SupportEmailPage() {
       </div>
 
       {mailbox && !mailbox.full_sync_complete && (
-        <div className="flex flex-col gap-1 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
-          <span><strong>{mailbox.full_sync_messages_imported.toLocaleString()}</strong> messages imported. The worker continues backwards until Gmail has no history left.</span>
-          <span className="text-xs text-amber-700">New mail is synchronized first.</span>
+        <div className="flex flex-col gap-1 rounded-lg border border-amber-100 bg-amber-50/50 px-3 py-2 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+          <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /><strong>{mailbox.full_sync_messages_imported.toLocaleString()}</strong> imported · History is still syncing</span>
+          <span className="text-amber-700">New mail always arrives first</span>
         </div>
       )}
       {mailbox?.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailbox.last_error}</div>}
@@ -332,9 +391,9 @@ export default function SupportEmailPage() {
           <Link prefetch={false} href="/api/admin/support-email/connect" className="mt-5 inline-flex rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800">Connect Gmail</Link>
         </div>
       ) : mailbox && (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.04)]">
           <div className="grid min-h-[680px] lg:grid-cols-[330px_minmax(0,1fr)]">
-            <section className="border-b border-gray-200 lg:border-b-0 lg:border-r">
+            <section className={`${selected ? "hidden lg:block" : "block"} border-b border-gray-200 lg:border-b-0 lg:border-r`}>
               <div className="border-b border-gray-100 p-3">
                 <div className="flex gap-1 overflow-x-auto pb-2">
                   {VIEWS.map((item) => (
@@ -343,7 +402,35 @@ export default function SupportEmailPage() {
                     </button>
                   ))}
                 </div>
-                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search subject, sender, message…" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none placeholder:text-gray-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+                <div className="flex items-center gap-2">
+                  <label className="relative min-w-0 flex-1">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                    <input aria-label="Search support email" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mail…" className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm outline-none placeholder:text-gray-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+                  </label>
+                  <button
+                    onClick={() => setSort((current) => current === "newest" ? "oldest" : "newest")}
+                    aria-label={sort === "newest" ? "Sort oldest first" : "Sort newest first"}
+                    title={sort === "newest" ? "Newest first" : "Oldest first"}
+                    className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    <ArrowDownUp className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <label className="relative">
+                    <Filter className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                    <select aria-label="Filter by email type" value={category} onChange={(e) => setCategory(e.target.value)} className="h-8 w-full appearance-none rounded-lg border border-gray-200 bg-white pl-8 pr-2 text-xs font-medium text-gray-600 outline-none hover:border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+                      {CATEGORY_OPTIONS.map((value) => <option key={value} value={value}>{value === "all" ? "All types" : CATEGORY_LABELS[value]}</option>)}
+                    </select>
+                  </label>
+                  <select aria-label="Filter by date" value={dateWindow} onChange={(e) => setDateWindow(e.target.value as DateWindow)} className="h-8 w-full appearance-none rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 outline-none hover:border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-100">
+                    {(Object.keys(DATE_LABELS) as DateWindow[]).map((value) => <option key={value} value={value}>{DATE_LABELS[value]}</option>)}
+                  </select>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
+                  <span>{threads == null ? "Loading conversations…" : `${threads.length}${total > threads.length ? ` of ${total}` : ""} conversation${total === 1 ? "" : "s"}`}</span>
+                  <span>{sort === "newest" ? "Newest first" : "Oldest first"}{activeFilterCount ? ` · ${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"}` : ""}</span>
+                </div>
               </div>
               <div className="max-h-[640px] overflow-y-auto">
                 {threads == null ? (
@@ -354,14 +441,18 @@ export default function SupportEmailPage() {
                     <p className="mt-1 text-xs text-gray-400">This view is caught up.</p>
                   </div>
                 ) : threads.map((thread) => (
-                  <button key={thread.id} onClick={() => selectThread(thread.id)} className={`block w-full border-b border-gray-100 px-4 py-3.5 text-left transition-colors ${selected === thread.id ? "bg-teal-50/60" : "hover:bg-gray-50"}`}>
+                  <button key={thread.id} onClick={() => selectThread(thread.id)} className={`relative block w-full border-b border-gray-100 px-4 py-3 text-left transition-colors duration-150 ${selected === thread.id ? "bg-teal-50/70" : "hover:bg-gray-50"}`}>
+                    {selected === thread.id && <span className="absolute inset-y-0 left-0 w-0.5 bg-teal-600" />}
                     <div className="flex items-start justify-between gap-3">
-                      <p className={`truncate text-sm ${thread.unread || thread.state === "needs_reply" ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>{sender(thread)}</p>
+                      <div className="flex min-w-0 items-center gap-2">
+                        {thread.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-teal-600" aria-label="Unread" />}
+                        <p className={`truncate text-sm ${thread.unread || thread.state === "needs_reply" ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>{sender(thread)}</p>
+                      </div>
                       <span className="shrink-0 text-[11px] text-gray-400">{relative(thread.last_message_at)}</span>
                     </div>
                     <p className="mt-0.5 truncate text-[13px] font-medium text-gray-700">{thread.subject}</p>
-                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">{thread.agent_summary || thread.snippet}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <p className="mt-1 line-clamp-2 text-xs leading-[18px] text-gray-500">{thread.agent_summary || thread.snippet}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${thread.category === "marketing" || thread.category === "automated" ? "bg-gray-100 text-gray-500" : thread.priority === "urgent" ? "bg-rose-100 text-rose-700" : thread.priority === "high" ? "bg-amber-100 text-amber-700" : "bg-teal-50 text-teal-700"}`}>
                         {CATEGORY_LABELS[thread.category] || thread.category}
                       </span>
@@ -373,7 +464,7 @@ export default function SupportEmailPage() {
               </div>
             </section>
 
-            <section className="min-w-0">
+            <section className={`${selected ? "block" : "hidden lg:block"} min-w-0`}>
               {!selected ? (
                 <div className="flex min-h-[680px] items-center justify-center px-8 text-center">
                   <div><p className="text-sm font-medium text-gray-700">Select a conversation</p><p className="mt-1 text-sm text-gray-400">Read the thread, review the agent&apos;s reasoning, and take the next action.</p></div>
@@ -384,7 +475,11 @@ export default function SupportEmailPage() {
                 <div className="flex min-h-[680px] flex-col">
                   <header className="border-b border-gray-100 px-5 py-4">
                     <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <button onClick={() => setSelected(null)} aria-label="Back to inbox" className="mt-0.5 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 lg:hidden">
+                          <ArrowLeft className="h-4 w-4" />
+                        </button>
+                        <div className="min-w-0">
                         <h2 className="truncate text-lg font-semibold text-gray-900">{detail.thread.subject}</h2>
                         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
                           <span>{sender(detail.thread)}</span><span>•</span><span>{detail.messages.length} message{detail.messages.length === 1 ? "" : "s"}</span>
@@ -399,34 +494,64 @@ export default function SupportEmailPage() {
                             </>
                           )}
                         </div>
+                        </div>
                       </div>
                       <button onClick={() => void act("mark_handled")} disabled={!!acting} className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">Mark handled</button>
                     </div>
                   </header>
 
                   {detail.thread.agent_summary && (
-                    <div className="m-5 mb-0 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-teal-700">Olera Support Copilot</p>
-                          <p className="mt-1.5 text-sm font-medium leading-6 text-gray-900">{detail.thread.agent_summary}</p>
+                    <div className="m-5 mb-0 overflow-hidden rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/70 via-white to-white">
+                      <div className="p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-teal-700">{isVoicemail ? "Callback brief" : "Olera support copilot"}</p>
+                            <p className="mt-1.5 text-[15px] font-semibold leading-6 text-gray-950">{detail.thread.agent_summary}</p>
+                          </div>
+                          <span className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-medium text-gray-500 ring-1 ring-gray-100">{confidence(detail.thread.agent_confidence)}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-white px-2 py-1 text-[10px] font-medium text-gray-500 ring-1 ring-gray-100">{confidence(detail.thread.agent_confidence)}</span>
-                          <button onClick={() => void act("feedback", { feedback: "correct" })} disabled={!!acting} title="Good recommendation" className="rounded-md bg-white px-2 py-1 text-xs text-gray-500 ring-1 ring-gray-100 hover:text-emerald-700">👍</button>
-                          <button onClick={() => void act("feedback", { feedback: "incorrect" })} disabled={!!acting} title="Wrong recommendation" className="rounded-md bg-white px-2 py-1 text-xs text-gray-500 ring-1 ring-gray-100 hover:text-rose-700">👎</button>
+
+                        <div className="mt-3 grid gap-3 border-t border-teal-100/70 pt-3 sm:grid-cols-[minmax(0,1fr)_190px]">
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{isVoicemail ? "What we heard" : "Why this matters"}</p>
+                            <p className="mt-1 text-xs leading-5 text-gray-600">{detail.thread.agent_reason}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Next move</p>
+                            <p className="mt-1 text-sm font-semibold text-gray-900">{ACTION_LABELS[detail.thread.suggested_action || ""] || "Review manually"}</p>
+                            {isVoicemail && phone && <p className="mt-0.5 text-xs text-gray-500">{phone}</p>}
+                          </div>
                         </div>
-                      </div>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <div><p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Recommended next action</p><p className="mt-1 text-sm font-semibold text-teal-800">{ACTION_LABELS[detail.thread.suggested_action || ""] || "Review manually"}</p></div>
-                        <div><p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Why</p><p className="mt-1 text-xs leading-5 text-gray-600">{detail.thread.agent_reason}</p></div>
-                      </div>
-                      {detail.thread.agent_risk_flags?.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{detail.thread.agent_risk_flags.map((flag) => <span key={flag} className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700">{flag.replaceAll("_", " ")}</span>)}</div>}
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {detail.thread.suggested_action === "unsubscribe" && latestInbound?.list_unsubscribe_post && <button onClick={() => void act("unsubscribe")} disabled={!!acting} className="rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50">Unsubscribe and archive</button>}
-                        {detail.thread.suggested_action === "provider_removal" && <button onClick={() => void act("do_not_contact")} disabled={!!acting} className="rounded-lg bg-rose-700 px-3 py-2 text-xs font-medium text-white hover:bg-rose-800 disabled:opacity-50">Add to Do Not Contact</button>}
-                        <button onClick={() => void act("escalate")} disabled={!!acting} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Escalate</button>
-                        <button onClick={() => void act("mark_noise")} disabled={!!acting} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Mark noise</button>
+
+                        {isVoicemail && latestInbound?.attachments.some(isAudioAttachment) && (
+                          <div className="mt-3 space-y-2 border-t border-teal-100/70 pt-3">
+                            {latestInbound.attachments.filter(isAudioAttachment).map((attachment, index) => attachment.attachmentId && (
+                              <div key={`${attachment.attachmentId}-${index}`} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                <audio controls preload="metadata" className="h-9 min-w-0 flex-1" src={attachmentUrl(detail.thread.id, latestInbound.id, attachment.attachmentId)}>
+                                  Your browser does not support audio playback.
+                                </audio>
+                                <a href={attachmentUrl(detail.thread.id, latestInbound.id, attachment.attachmentId, true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900">
+                                  <Download className="h-3.5 w-3.5" /> Download
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {detail.thread.agent_risk_flags?.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{detail.thread.agent_risk_flags.map((flag) => <span key={flag} className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${flag === "transcript_unavailable" || flag === "voice_message" ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-700"}`}>{flag.replaceAll("_", " ")}</span>)}</div>}
+
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                          {isVoicemail && phone && <a href={`tel:${phone.replace(/[^+\d]/g, "")}`} className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-teal-800"><Phone className="h-3.5 w-3.5" />Call back</a>}
+                          {detail.thread.suggested_action === "unsubscribe" && latestInbound?.list_unsubscribe_post && <button onClick={() => void act("unsubscribe")} disabled={!!acting} className="rounded-lg bg-gray-900 px-3 py-2 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50">Unsubscribe and archive</button>}
+                          {detail.thread.suggested_action === "provider_removal" && <button onClick={() => void act("do_not_contact")} disabled={!!acting} className="rounded-lg bg-rose-700 px-3 py-2 text-xs font-medium text-white hover:bg-rose-800 disabled:opacity-50">Add to Do Not Contact</button>}
+                          <button onClick={() => void act("escalate")} disabled={!!acting} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">Escalate</button>
+                          <button onClick={() => void act("mark_noise")} disabled={!!acting} className="rounded-lg border border-transparent px-2 py-2 text-xs font-medium text-gray-500 hover:bg-white hover:text-gray-800 disabled:opacity-50">Mark noise</button>
+                          <div className="ml-auto flex items-center gap-1 text-[11px] text-gray-400">
+                            <span className="mr-1">Useful?</span>
+                            <button onClick={() => void act("feedback", { feedback: "correct" })} disabled={!!acting} title="Good recommendation" className="rounded-md p-1.5 hover:bg-white hover:text-emerald-700"><Check className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => void act("feedback", { feedback: "incorrect" })} disabled={!!acting} className="rounded-md px-1.5 py-1 hover:bg-white hover:text-rose-700">Not quite</button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -439,12 +564,32 @@ export default function SupportEmailPage() {
                           <time className="shrink-0 text-[11px] text-gray-400">{formatDate(message.internal_date)}</time>
                         </div>
                         <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-gray-700">{message.body_text || message.snippet || "(No text body)"}</div>
-                        {message.has_attachments && <div className="mt-3 flex flex-wrap gap-2">{message.attachments.map((attachment, i) => <span key={`${attachment.filename}-${i}`} className="rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] text-gray-500">📎 {attachment.filename}</span>)}</div>}
+                        {message.has_attachments && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {message.attachments.map((attachment, i) => attachment.attachmentId ? (
+                              <a
+                                key={`${attachment.filename}-${i}`}
+                                href={attachmentUrl(detail.thread.id, message.id, attachment.attachmentId)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex max-w-full items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 text-[11px] text-gray-600 transition-colors hover:border-gray-300 hover:bg-white hover:text-gray-900"
+                              >
+                                <Paperclip className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate font-medium">{attachment.filename}</span>
+                                {attachment.size > 0 && <span className="shrink-0 text-gray-400">{formatBytes(attachment.size)}</span>}
+                              </a>
+                            ) : (
+                              <span key={`${attachment.filename}-${i}`} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 text-[11px] text-gray-500">
+                                <Paperclip className="h-3.5 w-3.5" /> {attachment.filename}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </article>
                     ))}
                   </div>
 
-                  <div className="border-t border-gray-100 bg-gray-50/50 p-4">
+                  <div id="support-reply" className="border-t border-gray-100 bg-gray-50/50 p-4">
                     <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={6} maxLength={20_000} placeholder="Write a reply, or edit the copilot draft…" className="w-full resize-y rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-6 outline-none placeholder:text-gray-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-2 text-[11px] text-gray-400">

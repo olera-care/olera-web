@@ -343,7 +343,7 @@ export async function POST(request: NextRequest) {
     const postcardId = pgData?.id || null;
     const postcardStatus = pgData?.status || "draft";
 
-    // Write send record to tracking table
+    // Write send record to tracking table (also save the address used)
     const { error: updateError } = await db
       .from("provider_outreach_tracking")
       .update({
@@ -351,6 +351,7 @@ export async function POST(request: NextRequest) {
         mail_postgrid_id: postcardId,
         mail_status: postcardStatus,
         mail_sent_by: user.id,
+        mail_address: rawAddress, // Save the address used for this send
       })
       .eq("provider_id", providerId);
 

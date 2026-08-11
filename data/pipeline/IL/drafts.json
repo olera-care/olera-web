@@ -345,7 +345,7 @@
         "Age exceptions exist for HIV/AIDS and traumatic brain injury waivers, these allow applications at any age with different eligibility criteria",
         "You must score exactly 29 or higher on the DON assessment, this is done in person with a HSP counselor and cannot be estimated beforehand",
         "Asset limits are strict on non-exempt assets, work with a counselor to understand what counts toward the $17,500 limit",
-        "Family members can be paid caregivers except spouses, parents of minor children, or minor children of the recipient"
+        "Most relatives can be paid as Personal Assistants. The excluded group is legally responsible family members: the customer's spouse, a parent or legal guardian of a customer under 18, and the customer's own minor child"
       ],
       "relatedPrograms": [
         "Illinois Medicaid",
@@ -373,7 +373,7 @@
         },
         {
           "question": "Can I be paid as my adult child's caregiver through this program?",
-          "answer": "Possibly, but not if you're their spouse, the loved one of a minor child, or a minor child yourself. Other family members can be paid caregivers if they're approved through the service planning process."
+          "answer": "Often yes. Illinois lets a customer hire most relatives as a paid Personal Assistant, so adult children, siblings and other family members generally qualify. The exceptions are the people the state treats as legally responsible: the customer's spouse, the parent or legal guardian of a customer under 18, and the customer's own minor child. If you are your adult child's parent and they are over 18, you are not excluded by that rule. Your HSP counselor confirms who can be hired as part of the service planning process."
         },
         {
           "question": "What if the services my family member needs cost more than nursing home care?",
@@ -1580,7 +1580,7 @@
         "otherRequirements": [
           "U.S. citizen or eligible non-citizen",
           "Illinois resident",
-          "If hiring family as paid aide: family member cannot have power of attorney over participant or joint bank accounts"
+          "Family members, including a spouse, may be paid to provide care, but must pass a background check, complete 24 hours of pre-service training, and be hired and supervised by an In-Home Services agency"
         ],
         "povertyLevelReference": null
       },
@@ -1664,7 +1664,7 @@
         },
         {
           "question": "Can I hire my sister as mom's paid caregiver through this program?",
-          "answer": "Only if your sister doesn't have power of attorney over your mom and they don't share any bank accounts or other finances. The program specifically prohibits family members with financial control from being hired as paid caregivers."
+          "answer": "Yes, most likely. The Community Care Program lets your mom's family members be paid to provide her in-home care, including a spouse. Unlike the Medicaid waivers that bar a legally responsible individual from being hired, holding power of attorney or being her legal guardian does not rule someone out here. Your sister would need to meet the caregiver qualifications, pass a background check, complete 24 hours of pre-service training, and be hired and supervised by an In-Home Services agency rather than paid directly. Your Care Coordination Unit can point you to an agency that does this."
         },
         {
           "question": "Will this affect my loved one's other benefits like Social Security or Medicare?",

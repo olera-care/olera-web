@@ -20,7 +20,6 @@ export {
   type CadenceStep,
   PROVIDER_OUTREACH_CADENCE,
   DAYS_AFTER_FINAL_TO_NEEDS_CALL,
-  RE_ENGAGE_WAITING_PERIOD_DAYS,
   getCadenceDays,
   getCadenceStepByDay,
   getTemplateKeyForDay,
@@ -51,14 +50,6 @@ export {
   PROVIDER_OUTREACH_REPLY_TO,
 } from "./email-utils";
 
-// Auto re-engage (NOT YET ACTIVATED - see file header for activation instructions)
-export {
-  type AutoReEngageResult,
-  findEligibleReEngageProviders,
-  processEligibleReEngageProviders,
-  dryRunAutoReEngage,
-} from "./auto-re-engage";
-
 // Auto-send executor (used by cron job)
 export {
   type ExecuteResult,
@@ -73,6 +64,13 @@ export {
   getAdminColor,
   getAdminColorClasses,
 } from "./admin-colors";
+
+// Constants (shared between frontend and backend)
+export {
+  NOT_INTERESTED_REASONS,
+  NOT_INTERESTED_REASON_VALUES,
+  type NotInterestedReason,
+} from "./constants";
 
 // SmartLead bridge (provider outreach via SmartLead instead of Resend)
 export {

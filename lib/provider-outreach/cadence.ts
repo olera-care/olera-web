@@ -64,20 +64,6 @@ export const PROVIDER_OUTREACH_CADENCE: CadenceStep[] = [
 export const DAYS_AFTER_FINAL_TO_NEEDS_CALL = 0;
 
 /**
- * Number of days a provider must wait in the re_engage stage before
- * being eligible for another outreach cycle.
- *
- * After this period:
- *   - Cycle 1 providers: automatically move to "in_sequence" and start Cycle 2
- *     (email tasks are created automatically - no manual re-launch needed)
- *   - Cycle 2 providers: move to "not_interested" (soft terminal)
- *
- * This constant is the single source of truth for the waiting period.
- * Change this value to adjust the re-engagement timing system-wide.
- */
-export const RE_ENGAGE_WAITING_PERIOD_DAYS = 30;
-
-/**
  * Get all cadence days as an array.
  * Useful for scheduling all tasks at once.
  */

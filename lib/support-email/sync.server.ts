@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptGmailToken } from "./crypto.server";
 import {
   GmailApiError,
+  getGmailAttachment,
   getGmailMessage,
   getGmailProfile,
   gmailAccessToken,
@@ -32,6 +33,41 @@ export interface SupportMailboxRow {
 // finish last and overwrite the aggregate produced by a newer one. Different
 // Gmail threads still import concurrently.
 const threadImports = new Map<string, Promise<unknown>>();
+const MAX_TRANSCRIPT_BYTES = 500_000;
+
+function isTranscriptAttachment(attachment: NormalizedGmailMessage["attachments"][number]): boolean {
+  return /\.(?:srt|txt|vtt)$/i.test(attachment.filename) ||
+    ["application/x-subrip", "text/plain", "text/vtt"].includes(attachment.mimeType);
+}
+
+async function appendRemoteVoicemailTranscripts(
+  accessToken: string,
+  message: NormalizedGmailMessage,
+): Promise<NormalizedGmailMessage> {
+  if (!/voicemail|voice message|missed call/i.test(message.subject)) return message;
+  const transcripts = message.attachments.filter((attachment) =>
+    attachment.attachmentId && attachment.size <= MAX_TRANSCRIPT_BYTES && isTranscriptAttachment(attachment),
+  );
+  if (!transcripts.length) return message;
+
+  const bodies = await Promise.all(transcripts.map(async (attachment) => {
+    try {
+      const response = await getGmailAttachment(accessToken, message.gmailMessageId, String(attachment.attachmentId));
+      const bytes = Buffer.from(response.data, "base64url");
+      if (bytes.byteLength > MAX_TRANSCRIPT_BYTES) return null;
+      const text = bytes.toString("utf8").trim();
+      return text ? `[Attached transcript: ${attachment.filename}]\n${text}` : null;
+    } catch (err) {
+      console.error(`[support-email] could not read transcript attachment ${attachment.filename}:`, err);
+      return null;
+    }
+  }));
+  const additions = bodies.filter((value): value is string => Boolean(value));
+  if (!additions.length) return message;
+  // Put the transcript first so it remains in the classifier's bounded
+  // conversation window even when the notification carries a long footer.
+  return { ...message, bodyText: [...additions, message.bodyText].filter(Boolean).join("\n\n").slice(0, 500_000) };
+}
 
 async function serializeThreadImport<T>(key: string, task: () => Promise<T>): Promise<T> {
   const previous = threadImports.get(key) ?? Promise.resolve();
@@ -199,7 +235,9 @@ async function refreshThread(db: SupabaseClient, mailbox: SupportMailboxRow, thr
     updated_at: new Date().toISOString(),
   };
 
-  if (latestChanged && latest.direction === "in" && inActiveInbox) {
+  const staleVoicemailAnalysis = current.category === "voicemail" &&
+    current.agent_reason === "The subject identifies this as a voice-channel message.";
+  if ((latestChanged || staleVoicemailAnalysis) && latest.direction === "in" && inActiveInbox) {
     const recommendation = await classifySupportThread({ messages, identity });
     Object.assign(baseUpdate, {
       category: recommendation.category,
@@ -239,6 +277,32 @@ async function refreshThread(db: SupabaseClient, mailbox: SupportMailboxRow, thr
   if (updateError) throw updateError;
 }
 
+async function refreshStaleVoicemails(
+  db: SupabaseClient,
+  mailbox: SupportMailboxRow,
+  accessToken: string,
+  limit = 5,
+): Promise<number> {
+  const { data, error } = await db
+    .from("support_email_threads")
+    .select("id, analysis_message_id")
+    .eq("mailbox_id", mailbox.id)
+    .eq("category", "voicemail")
+    .eq("agent_reason", "The subject identifies this as a voice-channel message.")
+    .in("state", ["needs_reply", "escalated"])
+    .order("last_message_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  await inBatches(data ?? [], 2, async (thread) => {
+    if (thread.analysis_message_id) {
+      await importGmailMessage(db, mailbox, accessToken, String(thread.analysis_message_id));
+    } else {
+      await refreshThread(db, mailbox, String(thread.id));
+    }
+  });
+  return data?.length ?? 0;
+}
+
 export async function importGmailMessage(db: SupabaseClient, mailbox: SupportMailboxRow, accessToken: string, gmailMessageId: string): Promise<string | null> {
   let raw;
   try {
@@ -253,7 +317,7 @@ export async function importGmailMessage(db: SupabaseClient, mailbox: SupportMai
   // tracks its Gmail draft ID on the thread and imports the canonical SENT
   // message only after a human sends it.
   if (raw.labelIds?.includes("DRAFT")) return null;
-  const normalized = normalizeGmailMessage(raw, mailbox.email);
+  const normalized = await appendRemoteVoicemailTranscripts(accessToken, normalizeGmailMessage(raw, mailbox.email));
   return serializeThreadImport(`${mailbox.id}:${normalized.gmailThreadId}`, async () => {
     const threadId = await ensureThread(db, mailbox, normalized);
     const { error } = await db
@@ -412,6 +476,11 @@ export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMai
       }
     : mailbox;
   const backfill = await backfillMailboxPage(db, backfillMailbox, accessToken);
+  // Earlier releases intentionally recognized voicemails with a fast subject
+  // rule, which left the operating brief generic. Revisit a small bounded batch
+  // on each worker run so existing history becomes transcript-aware without a
+  // costly one-shot mailbox reclassification.
+  const refreshedVoicemails = await refreshStaleVoicemails(db, mailbox, accessToken);
   const expirationMs = mailbox.watch_expiration ? new Date(mailbox.watch_expiration).getTime() : 0;
   const topic = process.env.GMAIL_PUBSUB_TOPIC;
   let watchRenewed = false;
@@ -431,5 +500,5 @@ export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMai
     updated_at: new Date().toISOString(),
   }).eq("id", mailbox.id);
   if (finalError) throw finalError;
-  return { history, backfill, watchRenewed };
+  return { history, backfill, refreshedVoicemails, watchRenewed };
 }

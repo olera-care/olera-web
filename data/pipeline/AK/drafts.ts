@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.844Z
+ * Last updated: 2026-08-10T10:39:40.149Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1826,7 +1826,7 @@ export const drafts: PipelineStateDrafts = {
       ],
       "applicationNotes": [
         "Two separate programs with different eligibility: income-tested Alzheimer's-specific track versus broader age-based track without financial limits",
-        "Spouses and legal guardians may be ineligible as paid caregivers in related programs, verify your unpaid caregiver status",
+        "This program supports unpaid caregivers and does not pay you to provide care. If being paid is what you need, ask the Division of Senior and Disabilities Services which Medicaid waiver options allow it, since the rules on paying a relative differ from program to program",
         "Services vary by community and local grantee, ask about specific respite options and supplemental services available in your area",
         "Don't confuse this with Alaska's ALI Waiver program, which has waitlists and different Medicaid-based eligibility requirements"
       ],
@@ -1856,7 +1856,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I get paid as a family caregiver through this program?",
-          "answer": "This program specifically requires unpaid caregiving. If you're looking for paid family caregiver opportunities, ask about Alaska's Medicaid waiver programs or other state programs that may offer stipends."
+          "answer": "No. This program is built for unpaid caregivers, and spouses are not paid to provide care through it. What it does give you is respite, counseling and training at no cost. If being paid is what you need, ask the Division of Senior and Disabilities Services which Alaska Medicaid waiver options allow a family caregiver to be hired, since those rules differ from program to program."
         },
         {
           "question": "How do I find services if I live in rural Alaska?",

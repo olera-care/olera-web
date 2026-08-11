@@ -22,7 +22,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but can't afford long-term care, ALTCS may cover the full cost. Because ALTCS is Arizona's Medicaid long-term care program, it pays for nursing homes, assisted living, memory care, and home care services, allowing your loved one to receive care in their preferred setting rather than being forced into a facility.\n\nTo qualify, your loved one must be 65+ (or disabled at any age), have assets under $2,000 ($4,000 for couples), and pass a clinical assessment proving they need nursing facility level care. ALTCS also allows family members to be paid as caregivers through the Difficulty of Care program, turning unpaid family caregiving into compensated work.\n\nUnlike traditional Medicaid, ALTCS coordinates all long-term care under one program, so your loved one won't juggle multiple providers or authorization systems. One team manages everything from medical care to daily assistance.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but can't afford long-term care, ALTCS may cover the full cost. Because ALTCS is Arizona's Medicaid long-term care program, it pays for nursing homes, assisted living, memory care, and home care services, allowing your loved one to receive care in their preferred setting rather than being forced into a facility.\n\nTo qualify, your loved one must be 65+ (or disabled at any age), have assets under $2,000 ($4,000 for couples), and pass a clinical assessment proving they need nursing facility level care. ALTCS also lets family members be paid to provide care, though they have to be hired through an approved agency rather than paid directly by your loved one. A spouse can be paid as well, but only under a separate option with tighter conditions.\n\nUnlike traditional Medicaid, ALTCS coordinates all long-term care under one program, so your loved one won't juggle multiple providers or authorization systems. One team manages everything from medical care to daily assistance.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -136,9 +136,9 @@
       ],
       "applicationNotes": [
         "If only one spouse applies, both spouses' combined assets are counted, but community spouse protections may allow keeping $32,532-$162,660",
-        "Income earned by family members providing Difficulty of Care to an ALTCS member is excluded from income calculations",
         "Transfer penalties vary by region: $8,666.72/month in Maricopa, Pima, Pinal Counties vs $8,132.22/month elsewhere",
-        "Medical diagnosis alone doesn't qualify, you must pass functional assessment proving need for nursing facility level care"
+        "Medical diagnosis alone doesn't qualify, you must pass functional assessment proving need for nursing facility level care",
+        "A spouse can only be paid through the Spouse as Paid Caregiver option, which requires the care to qualify as extraordinary care, employment through a direct care worker agency, and a cap of 40 hours per seven-day period. Spouses are excluded from Self-Directed Attendant Care entirely"
       ],
       "relatedPrograms": [
         "AHCCCS Traditional Medicaid",
@@ -158,7 +158,7 @@
         },
         {
           "question": "Can I get paid to care for my loved one through ALTCS?",
-          "answer": "Yes, ALTCS allows family members to be paid as caregivers through Medicaid's Difficulty of Care program. Income earned this way is also excluded from eligibility calculations if other family members apply for ALTCS."
+          "answer": "Often yes, though it depends on your relationship. Adult children, siblings, grandchildren and in-laws can be paid to provide attendant care once they are hired and supervised by an approved direct care agency. A spouse is treated differently. Arizona pays a spouse only under its Spouse as Paid Caregiver option, the care has to go beyond what a spouse would ordinarily do (the state calls this extraordinary care), and personal care beyond 40 hours in a seven-day period will not be authorized. A spouse cannot be paid at all under Self-Directed Attendant Care. Ask your ALTCS case manager which arrangement fits your household before you count on the income."
         },
         {
           "question": "What's the difference between needing help and qualifying medically?",
@@ -212,7 +212,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, cooking, or managing medications but wants to stay home instead of moving to a nursing facility, Arizona's ALTCS HCBS Waiver may cover up to 40 hours per week of in-home personal care. This program is designed for people 65+ who qualify for nursing home-level care but choose to receive services at home or in the community.\n\nThe program covers personal care attendants who can help with activities of daily living like bathing, dressing, grooming, toileting, transferring, and mobility assistance. It also includes help with cooking, medication management, basic life skills, and transportation to medical appointments. Family members, including spouses and adult children, can be paid caregivers if hired through an approved provider.\n\nBecause ALTCS uses strict income limits ($2,982/month for individuals in 2026) and asset limits ($2,000 total), plus requires a clinical assessment proving your loved one needs nursing facility-level care, most applicants need help navigating the qualification process. The program operates statewide through managed care providers, but availability and wait times vary by region.",
+      "intro": "If your loved one needs daily help with bathing, dressing, cooking, or managing medications but wants to stay home instead of moving to a nursing facility, Arizona's ALTCS HCBS Waiver may cover up to 40 hours per week of in-home personal care. This program is designed for people 65+ who qualify for nursing home-level care but choose to receive services at home or in the community.\n\nThe program covers personal care attendants who can help with activities of daily living like bathing, dressing, grooming, toileting, transferring, and mobility assistance. It also includes help with cooking, medication management, basic life skills, and transportation to medical appointments. Family members can be paid caregivers if they are hired through an approved provider. Adult children, siblings and other relatives qualify most straightforwardly. A spouse can be paid under a separate Spouse as Paid Caregiver option that carries extra conditions.\n\nBecause ALTCS uses strict income limits ($2,982/month for individuals in 2026) and asset limits ($2,000 total), plus requires a clinical assessment proving your loved one needs nursing facility-level care, most applicants need help navigating the qualification process. The program operates statewide through managed care providers, but availability and wait times vary by region.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -327,7 +327,7 @@
       "applicationNotes": [
         "Both spouses must apply together if married, income and assets are combined for eligibility determination",
         "The 60-month Look-Back Rule applies, any asset transfers below fair market value in the past 5 years create penalty periods",
-        "Family caregivers can be paid, but must be hired by the approved provider, not directly by you",
+        "Family caregivers can be paid, but must be hired by the approved provider, not directly by you. A spouse is paid only under the Spouse as Paid Caregiver option: the care must qualify as extraordinary care, the spouse must be employed through a direct care worker agency, and personal care beyond 40 hours in a seven-day period will not be authorized",
         "Dementia diagnosis alone doesn't guarantee approval, you must prove need for daily physical assistance through the clinical assessment"
       ],
       "relatedPrograms": [
@@ -344,7 +344,7 @@
         },
         {
           "question": "Can I be paid to take care of my loved one through this program?",
-          "answer": "Yes, family members including spouses and adult children can be paid caregivers, but you must be hired by the approved managed care provider, not paid directly by your loved one or the state. The provider handles payroll, taxes, and ensures you meet any training requirements."
+          "answer": "Often yes. Adult children, siblings, grandchildren and in-laws can be paid, but you have to be hired by the approved managed care provider rather than paid directly by your loved one, and the provider handles payroll, taxes and training requirements. If you are the spouse, the rules are narrower. Arizona pays a spouse only under the Spouse as Paid Caregiver option, the work must qualify as extraordinary care (beyond what a spouse would normally do in the household), you must be employed through a direct care worker agency, and personal care beyond 40 hours in a seven-day period will not be authorized. Spouses cannot be paid under Self-Directed Attendant Care, and a legal guardian cannot be the paid worker under that option either."
         },
         {
           "question": "What if my loved one's income is $3,000/month, just over the limit?",

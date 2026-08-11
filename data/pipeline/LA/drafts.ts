@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.516Z
+ * Last updated: 2026-08-11T06:07:44.862Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1586,7 +1586,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Louisiana's Community Choices Waiver can pay you to provide that care at home. Because this program allows family members who live with the care recipient to become paid caregivers, you can receive compensation while helping your loved one avoid nursing home placement.\n\nYour loved one must qualify for Louisiana's Long-Term Care Medicaid (monthly income typically under $2,982 for individuals in 2026) and meet Nursing Facility Level of Care through a clinical assessment. The program provides home and community-based services including personal care, homemaker services, and respite care through individualized care plans.\n\nPriority goes to specific groups including those with ALS diagnosis, abuse/neglect referrals, and nursing home residents, while other applicants are served first-come, first-served. You must live with your loved one and be at least 18 years old to serve as their paid caregiver. If you are the care recipient's spouse, different rules apply. Louisiana treats a spouse as a legally responsible individual, so a spouse can be paid only after meeting the state's Extraordinary Care standard and receiving written approval from the Office of Aging and Adult Services. Ask about that review on your first call.\n\nA note on names: some Louisiana parish Councils on Aging run a separate, locally funded Caregiver Voucher Program for family caregivers. That is a different program from this one. If you want the parish voucher, call your parish Council on Aging directly.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, Louisiana's Community Choices Waiver can pay you to provide that care at home. Because this program allows family members who live with the care recipient to become paid caregivers, you can receive compensation while helping your loved one avoid nursing home placement.\n\nYour loved one must qualify for Louisiana's Long-Term Care Medicaid (monthly income typically under $2,982 for individuals in 2026) and meet Nursing Facility Level of Care through a clinical assessment. The program provides home and community-based services including personal care, homemaker services, and respite care through individualized care plans.\n\nPriority goes to specific groups including those with ALS diagnosis, abuse/neglect referrals, and nursing home residents, while other applicants are served first-come, first-served. You must live with your loved one and be at least 18 years old to serve as their paid caregiver. If you are the care recipient's spouse, different rules apply. Louisiana treats a spouse as a legally responsible individual, so a spouse can be paid only after meeting the state's Extraordinary Care standard and receiving written approval from the Office of Aging and Adult Services. Ask about that review on your first call.\n\nA note on names: some Louisiana parish Councils on Aging run separate caregiver support and respite services, which some parishes call a caregiver voucher. That is a different program from this one. If you want the parish voucher, call your parish Council on Aging directly.",
       "savingsRange": "",
       "savingsSource": "Paid caregiving service",
       "savingsVerified": false,
@@ -1648,7 +1648,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Enroll family caregiver",
-            "description": "Once approved for waiver services, work with a Supports for Caregivers provider like Entyre Care or Careforth to enroll as a paid family caregiver."
+            "description": "Once approved for waiver services, ask your support coordinator which Supports for Caregivers providers serve your parish, then enroll as a paid family caregiver through one of them."
           }
         ],
         "processingTime": "Not specified, involves assessment and care plan approval",
@@ -1689,7 +1689,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Louisiana Options in Long-Term Care",
           "phone": "(877) 456-1146",
-          "description": "Statewide screening line for Louisiana OAAS long-term care services: waivers, personal care, PACE, and nursing facility services. Ask them to screen you for caregiver respite through your parish Council on Aging. If the hold time is long, submit the same request online at ldh.la.gov/form/15 and staff will call you back.",
+          "description": "Statewide screening line for Louisiana OAAS long-term care services: waivers, personal care, PACE, and nursing facility services. If the hold time is long, submit the same request online at ldh.la.gov/form/15 and staff will call you back.",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
@@ -1765,7 +1765,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-11"
     }
   ],
   "stateOverview": {

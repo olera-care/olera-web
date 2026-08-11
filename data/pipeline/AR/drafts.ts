@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.505Z
+ * Last updated: 2026-08-11T06:07:44.851Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -811,7 +811,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
-      "tagline": "Help your loved one pay heating and cooling bills with up to $475 per season, plus emergency assistance up to $500.",
+      "tagline": "Help your loved one pay heating and cooling bills with up to $570 per season, plus emergency assistance up to $600.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -825,15 +825,16 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one struggles to pay heating or cooling bills, LIHEAP provides direct payments to utility companies to reduce their energy burden. The program pays between $50-$475 for regular seasonal assistance (heating in winter, cooling in summer), plus up to $500 in crisis situations when utilities face disconnection or fuel runs out.\n\nBecause LIHEAP is administered through local community organizations across Arkansas, income limits and benefit amounts vary slightly by county, but most single-person households earning under $2,251 per month qualify. The program covers electricity, gas, propane, wood, and pellets, making payments directly to energy providers so your loved one never handles the money directly.\n\nFunding is limited each season, so programs often close early when money runs out. Heating assistance typically runs January through March, cooling assistance July through August, and crisis assistance is available during both periods for emergency situations.",
-      "savingsRange": "Up to $475 for heating or up to $287 for cooling, plus up to $500 in a crisis",
-      "savingsSource": "Arkansas LIHEAP: regular heating assistance up to $475, cooling assistance up to $287, and crisis assistance up to $500 per season. Households generally receive one regular benefit per season, so these do not add together.",
+      "savingsRange": "Up to $570 for heating or up to $344 for cooling, plus up to $600 in a crisis",
+      "savingsSource": "Arkansas FFY2026 benefit matrix: heating $60 minimum to $570 maximum, cooling $60 minimum to $344 maximum, and crisis assistance up to $600. These are maximums. The cooling maximum is reached only by a household of five or more at the lowest income step; a one or two person household tops out at $242. Households generally receive one regular benefit per season, so these do not add together.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Income under $2,251/month (1 person) or $2,944/month (2 people)",
+          "Income under $2,347/month (1 person) or $3,070/month (2 people), based on 60% of state median income",
           "Responsible for paying home energy bills",
           "U.S. citizen or legal resident",
-          "Apply through local community organization"
+          "Apply through local community organization",
+          "No automatic qualification. Getting SNAP, SSI or TANF does not by itself qualify you, and SSI counts as income"
         ],
         "ageRequirement": null,
         "incomeTable": [
@@ -906,8 +907,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Varies by local organization and application volume, some CBOs report longer processing times due to high demand",
-        "waitlist": "Funding is limited each season, applications may close early when funds are exhausted, typically heating season January-March and cooling season July-August",
-        "tip": "Apply as early as possible when each season opens, as funding runs out quickly and programs close until the next season.",
+        "waitlist": "Funding is limited and applications close when funds run out. Cooling applications opened July 6, 2026 and the regular cooling benefit closes August 31, 2026. Summer crisis help runs through September 30, 2026. Winter heating opens the first Monday after New Year, with earlier priority intake for households age 60 and over.",
+        "tip": "Apply as soon as a season opens. Funding runs out before the window closes most years.",
         "urls": [
           {
             "label": "Arkansas LIHEAP County Directory",
@@ -926,16 +927,22 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Arkansas 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline for referrals to local LIHEAP offices",
-          "hours": "24 hours, 7 days a week"
+          "label": "Arkansas LIHEAP information line",
+          "phone": "(888) 233-0326",
+          "description": "They tell you which local agency serves your county. They do not take applications. Applications go to the local agency only.",
+          "hours": null
         },
         {
-          "label": "Arkansas Department of Energy & Environment",
+          "label": "Arkansas Energy Office",
           "phone": "(501) 682-0744",
-          "description": "State LIHEAP program information",
-          "hours": "Mon-Fri 8am-4:30pm CT"
+          "description": "State program information. Does not process applications.",
+          "hours": null
+        },
+        {
+          "label": "Arkansas 2-1-1 (locator)",
+          "phone": "2-1-1",
+          "description": "General referral line. Can help you find your county agency.",
+          "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
@@ -998,7 +1005,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "weatherization-assistance-program",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.507Z
+ * Last updated: 2026-08-11T06:07:44.853Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1769,15 +1769,15 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling on a fixed income in Colorado, Old Age Pension provides monthly cash payments to help cover basic living expenses. The program pays up to $952/month statewide (some counties like Boulder and Douglas pay up to $1,032), reduced dollar-for-dollar by other income sources like Social Security.\n\nBecause OAP requires you to apply for all other available benefits first, including Social Security, SSI, and SSDI, this program typically serves as a last-resort safety net for seniors who don't qualify for federal programs or are waiting for them to be approved. You must have assets under $2,000 ($3,000 for couples) and meet strict income limits that vary by county.",
-      "savingsRange": "Up to $12,384/year in 2026",
-      "savingsSource": "CDHS 2026 grant standard is $1,032/month; countable income (Social Security, SSI, wages) reduces the payment",
+      "intro": "If your loved one is 60+ and struggling on a fixed income in Colorado, Old Age Pension provides monthly cash payments to help cover basic living expenses. The state grant standard is $1,032 a month, the same in every county. That is a target, not a check. Colorado subtracts the income your loved one already has and pays the difference, so most people receive well under $1,032.\n\nBecause OAP requires you to apply for all other available benefits first, including Social Security, SSI, and SSDI, this program typically serves as a last-resort safety net for seniors who don't qualify for federal programs or are waiting for them to be approved. You must have assets under $2,000 ($3,000 for couples) and meet strict income limits that vary by county.",
+      "savingsRange": "Up to $1,032/month, minus any income your loved one already has",
+      "savingsSource": "Colorado sets one statewide OAP grant standard, $1,032 a month effective January 1, 2026 (CDHS). It is a top-up target rather than a payment: countable income is subtracted and OAP pays the remainder, with a payment floor of $189. A person whose income is already near $1,032 receives a few dollars, not $1,032.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
           "Colorado resident",
-          "Income below county limits ($952-$1,032/month)",
+          "Income below $1,032/month, the statewide grant standard",
           "Assets under $2,000 individual/$3,000 couple",
           "Must apply for other benefits first"
         ],
@@ -1867,7 +1867,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Each county has different maximum benefit amounts, Boulder and Douglas Counties pay up to $1,032/month while Grand County pays up to $750/month",
+        "The grant standard is set by the state and is the same in every county. Counties decide eligibility and process the application, but they do not set the amount.",
         "Your loved one's spouse's income counts fully toward the income limit, reducing benefits dollar-for-dollar",
         "If your loved one becomes eligible for Social Security at 62 or Medicare at 65, they must reapply for those programs and OAP benefits may change"
       ],
@@ -1885,11 +1885,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one is already receiving Social Security, can they still get OAP?",
-          "answer": "Yes, but Social Security income reduces OAP benefits dollar-for-dollar. If your loved one receives $800 in Social Security and lives in a county with a $952 maximum, they would only get $152 from OAP."
+          "answer": "Yes, but Social Security income reduces OAP benefits dollar-for-dollar. If your loved one receives $800 in Social Security, they would get about $232 from OAP. If the math comes out under $189, Colorado tops the payment up to $189."
         },
         {
           "question": "Does my loved one need to be disabled to qualify for OAP?",
-          "answer": "Not if they're 65+ (OAP-A). For ages 60-64 (OAP-B), they typically need to meet disability criteria such as prior State Aid to Needy Disabled, medical records showing disability, or no employment in the last 5 years."
+          "answer": "No. Old Age Pension starts at age 60. That is the point of it. SSI does not count age alone until 65, so ages 60 to 64 are often the years when OAP is the only cash program available."
         },
         {
           "question": "Can I apply for OAP on behalf of my elderly loved one?",
@@ -1898,10 +1898,6 @@ export const drafts: PipelineStateDrafts = {
         {
           "question": "What happens if my loved one's income changes after they're approved?",
           "answer": "OAP benefits are recalculated based on current income, so benefits may increase or decrease. Your loved one must report income changes and complete annual redetermination to continue receiving benefits."
-        },
-        {
-          "question": "Why do some counties pay different amounts for OAP?",
-          "answer": "Colorado allows counties to set their own grant standards above the statewide minimum. Boulder and Douglas Counties pay up to $1,032/month while the statewide standard is $952/month and Grand County pays $750/month."
         }
       ],
       "layoutIntent": {
@@ -1917,7 +1913,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.sos.state.co.us/CCR/GenerateRulePdf.do?ruleVersionId=5243&fileName=9+CCR+2503-3",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "home-care-allowance-hca",

@@ -231,7 +231,7 @@
           "couple": null,
           "countedAssets": [],
           "exemptAssets": [
-            "Primary home if home equity ≤ $752,000 and applicant lives there or intends to return"
+            "Primary home if home equity \u2264 $752,000 and applicant lives there or intends to return"
           ],
           "homeEquityCap": 752000
         },
@@ -299,6 +299,12 @@
         "Documentation of current home care services or supports"
       ],
       "contacts": [
+        {
+          "label": "Mississippi Access to Care Center / Mississippi Medicaid Contact (start here)",
+          "phone": "(800) 421-2408",
+          "description": "Mississippi Access to Care Center / Mississippi Medicaid Contact Center \u2014 Elderly and Disabled Waiver application help",
+          "hours": null
+        },
         {
           "label": "Mississippi Division of Medicaid",
           "phone": null,
@@ -374,7 +380,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "(800) 421-2408",
       "sourceUrl": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -584,7 +590,7 @@
         "stateVariation": true
       },
       "intro": "If your loved one is struggling to afford groceries on a fixed income, SNAP provides monthly benefits to help cover food costs. In Mississippi, seniors age 60 and older get special advantages, no gross income limits and higher asset allowances, plus a simplified application process if they have no earned income.\n\nBecause Mississippi offers the Elderly Simplified Application Project (ESAP), eligible seniors can skip much of the paperwork that makes regular SNAP applications complex. Your loved one's primary home and one vehicle don't count toward asset limits, and if they're 60 or older, only their net income (after deductions) matters for qualification.\n\nThe monthly benefit amount varies based on household size and income, but many seniors qualify for $100-300 per month. About half of eligible seniors don't apply despite qualifying, often because they don't know the program exists or assume their income is too high.",
-      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsRange": "$1,200 \u2013 $3,600/year in 2026",
       "savingsSource": "Estimated based on typical SNAP benefit amounts for seniors",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -778,7 +784,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to pay electric or gas bills, LIHEAP makes payments directly to energy companies to help cover home energy costs. Because Mississippi uses 60% of the state median income as the threshold (not federal poverty levels like other states), more middle-income seniors may qualify than you expect.\n\nThe program operates year-round for crisis situations, with seasonal components for heating assistance (October–April) and cooling assistance (May–September). Vulnerable households, including elderly adults, people with disabilities, and families with children age 5 or younger, get priority processing, but anyone meeting income requirements can apply.\n\nFunding is limited and distributed first-come, first-served through Community Action Agencies in each of Mississippi's 82 counties. The exact benefit amount varies based on your loved one's current energy bill and available funds.",
+      "intro": "If your loved one struggles to pay electric or gas bills, LIHEAP makes payments directly to energy companies to help cover home energy costs. Because Mississippi uses 60% of the state median income as the threshold (not federal poverty levels like other states), more middle-income seniors may qualify than you expect.\n\nThe program operates year-round for crisis situations, with seasonal components for heating assistance (October\u2013April) and cooling assistance (May\u2013September). Vulnerable households, including elderly adults, people with disabilities, and families with children age 5 or younger, get priority processing, but anyone meeting income requirements can apply.\n\nFunding is limited and distributed first-come, first-served through Community Action Agencies in each of Mississippi's 82 counties. The exact benefit amount varies based on your loved one's current energy bill and available funds.",
       "savingsRange": "",
       "savingsSource": "Payment assistance varies by energy bill amount and available funds",
       "savingsVerified": false,
@@ -852,6 +858,12 @@
       ],
       "contacts": [
         {
+          "label": "Mississippi Department of Human Services, Division of Community  (start here)",
+          "phone": "(800) 421-0762",
+          "description": "Mississippi Department of Human Services, Division of Community Services \u2014 statewide LIHEAP/Community Action Agency help line; local CAA completes the application",
+          "hours": null
+        },
+        {
           "label": "MDHS Community Services",
           "phone": null,
           "description": "Online application portal and county contact information",
@@ -920,7 +932,7 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "2-1-1",
+      "phone": "(800) 421-0762",
       "sourceUrl": "https://www.mdhs.ms.gov/community/liheap/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -1309,7 +1321,7 @@
         }
       ],
       "applicationNotes": [
-        "Mississippi's aging services have waitlists in many areas — ask about assessment, priority, and expected timing",
+        "Mississippi's aging services have waitlists in many areas \u2014 ask about assessment, priority, and expected timing",
         "Even if your loved one can occasionally leave home, they may still qualify if they cannot safely shop for groceries or prepare nutritious meals independently",
         "Car ownership doesn't automatically disqualify, the assessment focuses on actual ability to shop and cook safely",
         "Some providers offer emergency shelf-stable meals for immediate need while waiting for regular delivery slots"
@@ -1558,7 +1570,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid part-time work at community organizations while they build job skills for permanent employment. Your loved one would earn minimum wage (currently $7.25/hour in Mississippi) for about 20 hours per week at nonprofit sites like schools, hospitals, or senior centers, potentially $600–800/month while gaining work experience and training.\n\nBecause SCSEP combines immediate income with job placement services, participants get both financial support and career development. Veterans, people over 65, and those with disabilities get enrollment priority. The program operates through regional partners across Mississippi, so availability depends on your loved one's county and local funding levels.\n\nThis isn't permanent employment, it's designed as a bridge to unsubsidized jobs in the community. Participants receive on-the-job training and employment assistance through American Job Centers to help them transition to regular employment.",
+      "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid part-time work at community organizations while they build job skills for permanent employment. Your loved one would earn minimum wage (currently $7.25/hour in Mississippi) for about 20 hours per week at nonprofit sites like schools, hospitals, or senior centers, potentially $600\u2013800/month while gaining work experience and training.\n\nBecause SCSEP combines immediate income with job placement services, participants get both financial support and career development. Veterans, people over 65, and those with disabilities get enrollment priority. The program operates through regional partners across Mississippi, so availability depends on your loved one's county and local funding levels.\n\nThis isn't permanent employment, it's designed as a bridge to unsubsidized jobs in the community. Participants receive on-the-job training and employment assistance through American Job Centers to help them transition to regular employment.",
       "savingsRange": "",
       "savingsSource": "Paid employment opportunity",
       "savingsVerified": false,
@@ -1991,7 +2003,7 @@
         ]
       },
       "intro": "If you're caring for a loved one or family member with a significant disability or chronic illness requiring 24-hour care, Mississippi's Respite Voucher Program can help pay for temporary replacement care. You'll get a $300 voucher to hire an in-home care agency, use an adult day center, or pay a private caregiver while you take time for yourself.\n\nThis program has no income or asset limits, if you're providing unpaid care for someone needing round-the-clock assistance, you qualify. After using your initial $300 voucher, you can reapply for additional $290 vouchers approximately every six months. Emergency respite is also available for crisis situations.",
-      "savingsRange": "$300 – $590/year",
+      "savingsRange": "$300 \u2013 $590/year",
       "savingsSource": "Initial $300 voucher plus $290 repeat voucher available after 6 months",
       "savingsVerified": true,
       "structuredEligibility": {

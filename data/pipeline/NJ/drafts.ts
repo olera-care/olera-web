@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.715Z
+ * Last updated: 2026-08-11T03:19:50.948Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1099,6 +1099,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "New Jersey Aging and Disability Resource Connection (start here)",
+          "phone": "(877) 222-3737",
+          "description": "New Jersey Aging and Disability Resource Connection — statewide participating-center locator; the selected Alzheimer's Adult Day Services center completes the application",
+          "hours": null
+        },
+        {
           "label": "Division of Aging Services",
           "phone": null,
           "description": "Single point of access for program information and applications",
@@ -1159,7 +1165,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "HandHeart",
-      "phone": null,
+      "phone": "(877) 222-3737",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/documents/Adult%20Day%20Services%20Program%20Brochure%20(Web-English).pdf",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

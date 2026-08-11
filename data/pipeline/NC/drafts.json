@@ -387,7 +387,7 @@
         },
         {
           "question": "How much does PACE cost if my loved one has neither Medicare nor Medicaid?",
-          "answer": "Private pay costs approximately $4,000–$5,000 per month. This covers all medical care, medications, transportation, and support services normally covered by Medicare and Medicaid."
+          "answer": "Private pay costs approximately $4,000\u2013$5,000 per month. This covers all medical care, medications, transportation, and support services normally covered by Medicare and Medicaid."
         },
         {
           "question": "Can I apply for PACE while my loved one is in the hospital?",
@@ -426,7 +426,7 @@
         ]
       },
       "intro": "If your loved one struggles to pay Medicare premiums, deductibles, and copays, North Carolina's Medicare Savings Programs can provide immediate relief. These programs pay some or all Medicare costs for people with income below $1,816/month (single) or $2,455/month (couple), plus assets under $9,950/$14,910.\n\nThere are three tiers: QMB covers all Medicare costs including the $202.90 monthly Part B premium, deductibles, and copays. SLMB and QI cover just the Part B premium ($2,435 yearly savings). All three automatically qualify your loved one for Extra Help with prescription drug costs. Because QI has limited federal funding, it operates first-come, first-served and may run out each year, apply early if your loved one's income is in the highest bracket.",
-      "savingsRange": "$2,400 – $8,000/year in 2026",
+      "savingsRange": "$2,400 \u2013 $8,000/year in 2026",
       "savingsSource": "Medicare Part B premiums, deductibles, copays, and Extra Help prescription savings",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -644,8 +644,8 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, they may qualify for $100–300/month in food benefits through North Carolina's SNAP program. The money comes on an EBT card that works like a debit card at grocery stores, farmers markets, and most food retailers, no cash required, no stigma at checkout.\n\nFor seniors, North Carolina has relaxed income rules (no gross income test, just net income after deductions) and higher asset limits ($4,500 instead of $3,000). Medical expenses over $35/month count as deductions, which often helps seniors qualify who wouldn't otherwise. If your loved one receives SSI and is 65+, they may automatically qualify for Simplified SNAP with 3-year certification periods.\n\nBecause SNAP is federally funded but state-administered, you apply through your local county Department of Social Services office. Processing takes 30 days standard, or 7 days if your loved one has very low income and urgent food needs.",
-      "savingsRange": "$1,400 – $3,400/year in 2026",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, they may qualify for $100\u2013300/month in food benefits through North Carolina's SNAP program. The money comes on an EBT card that works like a debit card at grocery stores, farmers markets, and most food retailers, no cash required, no stigma at checkout.\n\nFor seniors, North Carolina has relaxed income rules (no gross income test, just net income after deductions) and higher asset limits ($4,500 instead of $3,000). Medical expenses over $35/month count as deductions, which often helps seniors qualify who wouldn't otherwise. If your loved one receives SSI and is 65+, they may automatically qualify for Simplified SNAP with 3-year certification periods.\n\nBecause SNAP is federally funded but state-administered, you apply through your local county Department of Social Services office. Processing takes 30 days standard, or 7 days if your loved one has very low income and urgent food needs.",
+      "savingsRange": "$1,400 \u2013 $3,400/year in 2026",
       "savingsSource": "Monthly benefits of $188 average for seniors, up to $281 maximum for single-person household",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -839,15 +839,15 @@
       "id": "liheap-energy-assistance",
       "name": "NC Low-Income Energy Assistance Program (LIHEAP)",
       "shortName": "NC Energy Assistance",
-      "tagline": "One-time payment of $300–500 sent directly to your loved one's heating bill if they're on a fixed income.",
+      "tagline": "One-time payment of $300\u2013500 sent directly to your loved one's heating bill if they're on a fixed income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one is 60+ and struggles to pay heating bills, NC LIHEAP provides a one-time payment of $300, $400, or $500 sent directly to their energy company. The exact amount depends on their household size and primary heating source. Last year, the program helped over 134,000 North Carolina households with approximately $48 million in assistance.\n\nPriority households (age 60+ or disabled receiving services through NC Division of Aging) can apply December 1–31 only. All other eligible households can apply January 1–March 31 or until funds run out. Because this operates on a first-come, first-served basis with limited federal funding, timing your application is critical.\n\nYour loved one doesn't need to be behind on their energy bills to qualify. The payment goes directly to their heating vendor, they cannot redirect the funds. This is a one-time benefit per funding cycle, not ongoing monthly assistance.",
-      "savingsRange": "$300 – $500 in 2026",
+      "intro": "If your loved one is 60+ and struggles to pay heating bills, NC LIHEAP provides a one-time payment of $300, $400, or $500 sent directly to their energy company. The exact amount depends on their household size and primary heating source. Last year, the program helped over 134,000 North Carolina households with approximately $48 million in assistance.\n\nPriority households (age 60+ or disabled receiving services through NC Division of Aging) can apply December 1\u201331 only. All other eligible households can apply January 1\u2013March 31 or until funds run out. Because this operates on a first-come, first-served basis with limited federal funding, timing your application is critical.\n\nYour loved one doesn't need to be behind on their energy bills to qualify. The payment goes directly to their heating vendor, they cannot redirect the funds. This is a one-time benefit per funding cycle, not ongoing monthly assistance.",
+      "savingsRange": "$300 \u2013 $500 in 2026",
       "savingsSource": "One-time vendor payment based on NC DHHS program data",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -898,12 +898,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through your county social services or call your local Department of Social Services, priority households (60+) must apply in December, all others January–March.",
+        "summary": "Apply online through your county social services or call your local Department of Social Services, priority households (60+) must apply in December, all others January\u2013March.",
         "steps": [
           {
             "step": 1,
             "title": "Check your application window",
-            "description": "Priority households (age 60+ or disabled receiving NC Division of Aging services): December 1–31 only. All other households: January 1–March 31 or until funds exhausted."
+            "description": "Priority households (age 60+ or disabled receiving NC Division of Aging services): December 1\u201331 only. All other households: January 1\u2013March 31 or until funds exhausted."
           },
           {
             "step": 2,
@@ -918,7 +918,7 @@
           {
             "step": 4,
             "title": "Wait for vendor payment",
-            "description": "If approved, the $300–500 payment goes directly to your loved one's heating vendor. Processing times vary by county and application volume."
+            "description": "If approved, the $300\u2013500 payment goes directly to your loved one's heating vendor. Processing times vary by county and application volume."
           }
         ],
         "processingTime": "Varies by county; payments made until funds are exhausted",
@@ -976,7 +976,7 @@
         },
         {
           "question": "Can I apply in January if my loved one is 65 but missed the December priority window?",
-          "answer": "No. Priority households (60+) can only apply December 1–31. If they miss this window, they must wait until the next funding cycle. There are no exceptions to this rule."
+          "answer": "No. Priority households (60+) can only apply December 1\u201331. If they miss this window, they must wait until the next funding cycle. There are no exceptions to this rule."
         },
         {
           "question": "What if my loved one received LIHEAP last year, do they need to reapply?",
@@ -996,7 +996,7 @@
         },
         {
           "question": "How long does the money last once my loved one gets approved?",
-          "answer": "This is a one-time payment sent directly to the energy company, not ongoing monthly assistance. The $300–500 payment is applied to their account as a credit, which will reduce future bills until used up."
+          "answer": "This is a one-time payment sent directly to the energy company, not ongoing monthly assistance. The $300\u2013500 payment is applied to their account as a credit, which will reduce future bills until used up."
         },
         {
           "question": "What happens if the program runs out of money while my loved one is waiting?",
@@ -1035,7 +1035,7 @@
         ]
       },
       "intro": "If your loved one's utility bills are straining their budget, North Carolina's Weatherization Assistance Program provides free home energy improvements worth an average of $2,500. The program installs insulation, seals air leaks, and upgrades heating and cooling systems at no cost to eligible households.\n\nYour loved one may qualify if their household income is at or below 200% of federal poverty guidelines, that's $31,300/year for a single person or $42,300 for a couple in 2025. Households receiving SSI, TANF, or similar assistance automatically qualify. The program serves homeowners and renters (with landlord permission).\n\nBecause funding is limited and distributed first-come, first-served, elderly residents get priority when funds run low. The improvements typically save households $215-$372 annually on energy bills, with some seeing even greater savings depending on their home's condition.",
-      "savingsRange": "$215 – $372/year",
+      "savingsRange": "$215 \u2013 $372/year",
       "savingsSource": "Average annual energy bill savings from NC DEQ Energy Office",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -1588,7 +1588,7 @@
         ]
       },
       "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides part-time paid job training (about 20 hours/week) at minimum wage while building skills for permanent employment. Your loved one works at community host sites like schools, hospitals, or senior centers in roles such as teacher's aide, customer service, or maintenance worker while receiving training and job placement assistance.\n\nThis is a bridge program, typically lasting 6 months, designed to help participants transition to unsubsidized employment. Your loved one earns a paycheck during training while developing marketable skills like computer literacy, customer service, or specialized job training. Veterans and their spouses get priority placement, followed by those over 65, with disabilities, or facing barriers to employment.",
-      "savingsRange": "$2,320 – $3,480 in training wages",
+      "savingsRange": "$2,320 \u2013 $3,480 in training wages",
       "savingsSource": "Based on 6 months of 20 hours/week at minimum wage ($7.25/hour federal minimum)",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -1681,6 +1681,12 @@
       ],
       "contacts": [
         {
+          "label": "North Carolina Department of Health and Human Services (start here)",
+          "phone": "(919) 219-3101",
+          "description": "North Carolina Department of Health and Human Services \u2014 State SCSEP Coordinator",
+          "hours": null
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for referral to local SCSEP providers",
@@ -1761,7 +1767,7 @@
         "visualTone": "editorial"
       },
       "icon": "Briefcase",
-      "phone": "2-1-1",
+      "phone": "(919) 219-3101",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -1812,7 +1818,7 @@
           {
             "step": 1,
             "title": "Call during intake hours",
-            "description": "Phone 1-877-579-7562 Monday through Friday, 9:00 AM–11:00 AM or 1:00 PM–3:00 PM. Outside these hours, you'll reach voicemail."
+            "description": "Phone 1-877-579-7562 Monday through Friday, 9:00 AM\u201311:00 AM or 1:00 PM\u20133:00 PM. Outside these hours, you'll reach voicemail."
           },
           {
             "step": 2,
@@ -2037,7 +2043,7 @@
         ]
       },
       "intro": "If your loved one is 65+ and owns their North Carolina home, they may qualify to exclude a significant portion of their property value from taxation. The Elderly and Disabled Homestead Exclusion removes either $25,000 or 50% of the home's appraised value from their tax bill, whichever is greater. For a $100,000 home, this means paying taxes on only $50,000 of value.\n\nTo qualify, your loved one's total income from the previous year must be below $38,800 (2025 limit), and they must own and live in the home as their permanent residence. Because this is a one-time application with a June 1 deadline, missing the window means waiting until the next tax year. The savings can be substantial, often $500 to $2,000+ annually depending on local tax rates and property values.\n\nThis program is separate from North Carolina's bankruptcy homestead exemption and cannot be combined with other property tax relief programs. Each county administers applications locally, so you'll work directly with your loved one's county tax assessor's office.",
-      "savingsRange": "$500 – $2,000+/year",
+      "savingsRange": "$500 \u2013 $2,000+/year",
       "savingsSource": "Property tax reduction based on exclusion of $25,000 or 50% of appraised value, whichever is greater",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -2200,14 +2206,14 @@
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, North Carolina Long-Term Care Medicaid can cover the full cost of nursing home care, assisted living, or home-based services. Your loved one pays most of their income toward care costs (keeping only $70/month for personal needs), and Medicaid covers the remainder, which can be $8,000–$11,000/month for nursing home care depending on the facility.\n\nTo qualify, your loved one must have less than $2,000 in countable assets (singles) or $3,000 (married couples both needing care), plus income below the regional nursing home pay rate (estimated $7,898–$11,218/month in 2026). They can keep their home if equity is under $730,000 and they intend to return, or if a spouse or disabled child lives there. Because this program requires a clinical assessment proving need for daily care, the application takes 45–90 days including the functional evaluation.",
-      "savingsRange": "$8,000 – $11,000/month in 2026",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management, North Carolina Long-Term Care Medicaid can cover the full cost of nursing home care, assisted living, or home-based services. Your loved one pays most of their income toward care costs (keeping only $70/month for personal needs), and Medicaid covers the remainder, which can be $8,000\u2013$11,000/month for nursing home care depending on the facility.\n\nTo qualify, your loved one must have less than $2,000 in countable assets (singles) or $3,000 (married couples both needing care), plus income below the regional nursing home pay rate (estimated $7,898\u2013$11,218/month in 2026). They can keep their home if equity is under $730,000 and they intend to return, or if a spouse or disabled child lives there. Because this program requires a clinical assessment proving need for daily care, the application takes 45\u201390 days including the functional evaluation.",
+      "savingsRange": "$8,000 \u2013 $11,000/month in 2026",
       "savingsSource": "Regional nursing home pay rates covered by Medicaid minus patient liability",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 65+",
-          "Income below regional facility rate ($7,898–$11,218/month)",
+          "Income below regional facility rate ($7,898\u2013$11,218/month)",
           "Assets under $2,000 (singles)",
           "Need daily care assistance",
           "NC resident"
@@ -2242,7 +2248,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at epass.nc.gov or call your local county DSS office, processing takes 45–90 days including the required clinical assessment.",
+        "summary": "Apply online at epass.nc.gov or call your local county DSS office, processing takes 45\u201390 days including the required clinical assessment.",
         "steps": [
           {
             "step": 1,
@@ -2265,7 +2271,7 @@
             "description": "If approved, decide between nursing home care (usually no waitlist) or home/community-based services through HCBS waivers (may have waitlists)."
           }
         ],
-        "processingTime": "45–90 days for full determination, including NFLOC assessment",
+        "processingTime": "45\u201390 days for full determination, including NFLOC assessment",
         "waitlist": "HCBS waivers have waitlists; nursing home Medicaid generally no waitlist but bed availability varies by facility",
         "tip": "Start the application while your loved one is still in the hospital, discharge planners can often initiate the process and help coordinate the required assessments.",
         "urls": [

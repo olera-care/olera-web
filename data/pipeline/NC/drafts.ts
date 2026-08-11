@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:46:41.219Z
+ * Last updated: 2026-08-11T03:19:50.944Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1686,6 +1686,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "North Carolina Department of Health and Human Services (start here)",
+          "phone": "(919) 219-3101",
+          "description": "North Carolina Department of Health and Human Services — State SCSEP Coordinator",
+          "hours": null
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for referral to local SCSEP providers",
@@ -1766,7 +1772,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Briefcase",
-      "phone": "2-1-1",
+      "phone": "(919) 219-3101",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/aging/senior-community-services-employment-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

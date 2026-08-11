@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:23:05.729Z
+ * Last updated: 2026-08-11T03:19:50.942Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2751,6 +2751,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Missouri Department of Health and Senior Services, Division of S (start here)",
+          "phone": "(866) 835-3505",
+          "description": "Missouri Department of Health and Senior Services, Division of Senior and Disability Services — HCBS Intake and Person-Centered Care Planning",
+          "hours": null
+        },
+        {
           "label": "Missouri Department of Social Services",
           "phone": null,
           "description": "Primary agency administering ADW - check website for local office numbers",
@@ -2819,7 +2825,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(866) 835-3505",
       "sourceUrl": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

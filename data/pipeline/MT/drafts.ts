@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.711Z
+ * Last updated: 2026-08-11T03:19:50.944Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -320,6 +320,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Montana DPHHS utilization review contractor, Mountain Pacific (start here)",
+          "phone": "(800) 219-7035",
+          "description": "Montana DPHHS utilization review contractor, Mountain Pacific — Community First Choice/Personal Care Services assessment scheduling",
+          "hours": null
+        },
+        {
           "label": "Montana Medicaid Information",
           "phone": null,
           "description": "Visit medicaid.mt.gov for local office contact information",
@@ -394,7 +400,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(800) 219-7035",
       "sourceUrl": "https://medicaidprovider.mt.gov/12",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -672,6 +678,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Montana DPHHS Public Assistance Helpline (start here)",
+          "phone": "(888) 706-1535",
+          "description": "Montana DPHHS Public Assistance Helpline — Medicaid application and eligibility",
+          "hours": null
+        },
+        {
           "label": "Montana 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and benefit programs",
@@ -740,7 +752,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Stethoscope",
-      "phone": "2-1-1",
+      "phone": "(888) 706-1535",
       "sourceUrl": "https://dphhs.mt.gov/SLTC/eligible",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

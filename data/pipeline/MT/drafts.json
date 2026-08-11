@@ -315,6 +315,12 @@
       ],
       "contacts": [
         {
+          "label": "Montana DPHHS utilization review contractor, Mountain Pacific (start here)",
+          "phone": "(800) 219-7035",
+          "description": "Montana DPHHS utilization review contractor, Mountain Pacific \u2014 Community First Choice/Personal Care Services assessment scheduling",
+          "hours": null
+        },
+        {
           "label": "Montana Medicaid Information",
           "phone": null,
           "description": "Visit medicaid.mt.gov for local office contact information",
@@ -389,7 +395,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(800) 219-7035",
       "sourceUrl": "https://medicaidprovider.mt.gov/12",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -667,6 +673,12 @@
       ],
       "contacts": [
         {
+          "label": "Montana DPHHS Public Assistance Helpline (start here)",
+          "phone": "(888) 706-1535",
+          "description": "Montana DPHHS Public Assistance Helpline \u2014 Medicaid application and eligibility",
+          "hours": null
+        },
+        {
           "label": "Montana 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and benefit programs",
@@ -735,7 +747,7 @@
         "visualTone": "editorial"
       },
       "icon": "Stethoscope",
-      "phone": "2-1-1",
+      "phone": "(888) 706-1535",
       "sourceUrl": "https://dphhs.mt.gov/SLTC/eligible",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -757,7 +769,7 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or copays, Montana's Medicare Savings Programs can eliminate these costs entirely. Because these programs pay Medicare expenses directly to providers, your loved one gets full Medicare coverage without the financial stress, QMB covers all Medicare out-of-pocket costs, while SLMB and QI cover at least the monthly Part B premium ($185 in 2026).\n\nThe programs have three tiers based on income: QMB for those earning up to $1,305/month, SLMB for $1,305–$1,565/month, and QI for $1,565–$1,761/month. Because all three tiers automatically qualify your loved one for Extra Help with prescription drug costs, they'll also pay minimal amounts for medications. Asset limits apply ($9,950 for individuals, $14,910 for couples), but the primary home and one car don't count toward this limit.",
+      "intro": "If your loved one struggles to afford Medicare premiums, deductibles, or copays, Montana's Medicare Savings Programs can eliminate these costs entirely. Because these programs pay Medicare expenses directly to providers, your loved one gets full Medicare coverage without the financial stress, QMB covers all Medicare out-of-pocket costs, while SLMB and QI cover at least the monthly Part B premium ($185 in 2026).\n\nThe programs have three tiers based on income: QMB for those earning up to $1,305/month, SLMB for $1,305\u2013$1,565/month, and QI for $1,565\u2013$1,761/month. Because all three tiers automatically qualify your loved one for Extra Help with prescription drug costs, they'll also pay minimal amounts for medications. Asset limits apply ($9,950 for individuals, $14,910 for couples), but the primary home and one car don't count toward this limit.",
       "savingsRange": "$2,435/year in 2026, plus Medicare cost-sharing for QMB enrollees",
       "savingsSource": "CMS: the 2026 standard Part B premium is $202.90/month ($2,434.80/year), which every Medicare Savings Program covers. QMB also pays Part A and B deductibles and coinsurance; that amount depends on the care used and is not quantified here.",
       "savingsVerified": true,
@@ -909,12 +921,12 @@
             },
             {
               "tier": "SLMB (Specified Low-Income Medicare Beneficiary)",
-              "income": "$1,305–$1,565/month (single)",
+              "income": "$1,305\u2013$1,565/month (single)",
               "benefits": "Pays Medicare Part B premiums only ($185/month in 2026). You're still responsible for deductibles and coinsurance."
             },
             {
               "tier": "QI (Qualifying Individual)",
-              "income": "$1,565–$1,761/month (single)",
+              "income": "$1,565\u2013$1,761/month (single)",
               "benefits": "Pays Medicare Part B premiums only ($185/month in 2026). You're still responsible for deductibles and coinsurance."
             }
           ]
@@ -992,7 +1004,7 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card that works like a debit card at most grocery stores. Montana has expanded eligibility for seniors, households with someone 60+ can qualify with gross monthly income up to $2,608 for one person or $3,526 for two people (2026 limits).\n\nBenefit amounts vary based on net income after deductions, but many seniors qualify for $100-300+ monthly. Because Montana allows higher income limits for elderly households and doesn't count retirement accounts or your home as assets, many seniors who think they won't qualify actually do. Medical expenses over $35/month can be deducted from income, which often makes the difference for qualification.\n\nThe program covers most grocery items including fresh produce, meat, dairy, and pantry staples. You cannot use SNAP for alcohol, tobacco, hot prepared foods, or non-food items like soap or vitamins.",
-      "savingsRange": "$100 – $300/month in 2026",
+      "savingsRange": "$100 \u2013 $300/month in 2026",
       "savingsSource": "Estimated based on typical benefit amounts for senior households",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -1725,7 +1737,7 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggles to prepare meals due to health issues, mobility problems, or recovery from hospitalization, Meals on Wheels delivers hot, nutritious meals directly to their door. Each meal meets half of daily nutritional requirements and follows low-salt, low-fat guidelines.\n\nMeals are delivered Monday through Friday between 10am and 12:30pm by volunteer drivers who provide an informal safety check during each visit. The suggested donation is around $4.50 per meal, but your loved one can pay what they're able, income is not a barrier to receiving services. Because delivery is limited to specific service areas, you'll need to confirm your loved one lives within a local provider's delivery zone.",
-      "savingsRange": "$1,170 – $1,950/year in 2026",
+      "savingsRange": "$1,170 \u2013 $1,950/year in 2026",
       "savingsSource": "Based on suggested donation of $4.50/meal for 5 meals/week over 52 weeks",
       "savingsVerified": true,
       "structuredEligibility": {

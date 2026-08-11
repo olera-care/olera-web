@@ -17,7 +17,7 @@
         "stateVariation": false
       },
       "intro": "If your loved one is 65+ and owns their New Jersey home, they can get 50% of their property taxes back, up to $6,500 per year. This means if they pay $10,000 in property taxes, they'll receive $5,000 back.\n\nStay NJ is designed for older homeowners with annual income below $500,000 who have lived in their home for the full previous year. Because one application (PAS-1) covers multiple New Jersey tax relief programs, the state automatically determines which benefits your loved one qualifies for, they may receive Stay NJ plus additional programs like ANCHOR or Senior Freeze for even more savings.",
-      "savingsRange": "$1,000 – $6,500/year in 2026",
+      "savingsRange": "$1,000 \u2013 $6,500/year in 2026",
       "savingsSource": "50% reimbursement of property taxes up to maximum $6,500 benefit",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -312,7 +312,7 @@
         ]
       },
       "intro": "If your loved one needs daily help with bathing, dressing, or medication management but earns too much for Medicaid, JACC provides up to $1,156 monthly in home care services. This New Jersey program serves people 60+ who need nursing facility level care but want to stay in their own homes.\n\nJACC covers personal care, homemaking, and care management through a personalized Plan of Care. Because the program includes Participant-Employed Provider (PEP) options, your loved one can hire family members or friends as their caregivers. You'll pay a sliding-scale co-pay based on income, but the program covers the majority of costs.\n\nThe catch: JACC is specifically for people who don't qualify for Medicaid waiver services like MLTSS. Income limit is 365% of Federal Poverty Level (around $3,300/month for individuals), and assets must be under $40,000 for individuals or $60,000 for couples.",
-      "savingsRange": "$900 – $1,156/month in 2026",
+      "savingsRange": "$900 \u2013 $1,156/month in 2026",
       "savingsSource": "Monthly service cap minus sliding-scale co-pay based on income",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -499,7 +499,7 @@
         ]
       },
       "intro": "If your loved one is 65+ or disabled and lives in New Jersey, PAAD can dramatically reduce their prescription costs. Instead of paying full price for medications, they'll pay just $5 per generic drug and $7 per brand-name drug, PAAD covers the rest. This applies to all FDA-approved prescription medications, insulin, and insulin supplies.\n\nIncome limit for 2026: $54,943 or less if single, $62,390 or less if married. Because there are no asset limits, your loved one can qualify even if they own their home or have savings. The catch: if they're Medicare-eligible, they must enroll in a Medicare Part D prescription drug plan, and PAAD will pay the premium for qualifying low-cost plans.\n\nBecause PAAD works alongside Medicare Part D rather than replacing it, your loved one gets the broad coverage of Medicare's formulary with the low copays of a state assistance program. One team at the state level manages both the prescription benefits and Part D premium payments.",
-      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsRange": "$1,200 \u2013 $3,600/year in 2026",
       "savingsSource": "Estimated based on $5-7 copays versus typical Medicare Part D copays of $15-50+ per prescription for common medications",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -1103,6 +1103,12 @@
       ],
       "contacts": [
         {
+          "label": "New Jersey Aging and Disability Resource Connection (start here)",
+          "phone": "(877) 222-3737",
+          "description": "New Jersey Aging and Disability Resource Connection \u2014 statewide participating-center locator; the selected Alzheimer's Adult Day Services center completes the application",
+          "hours": null
+        },
+        {
           "label": "Division of Aging Services",
           "phone": null,
           "description": "Single point of access for program information and applications",
@@ -1163,7 +1169,7 @@
         "visualTone": "editorial"
       },
       "icon": "HandHeart",
-      "phone": null,
+      "phone": "(877) 222-3737",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/documents/Adult%20Day%20Services%20Program%20Brochure%20(Web-English).pdf",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

@@ -132,7 +132,7 @@
         }
       ],
       "applicationNotes": [
-        "This program was formerly called the Community Care Services Program (CCSP) — some agencies still use the old name",
+        "This program was formerly called the Community Care Services Program (CCSP) \u2014 some agencies still use the old name",
         "You may be potentially Medicaid eligible only after CCSP admission, the functional assessment comes before financial eligibility",
         "The home may be subject to Medicaid Estate Recovery after your loved one's death, even though it's exempt during benefits",
         "Regional variations exist in providers and waitlist times, some Area Agencies have more immediate availability than others",
@@ -234,7 +234,7 @@
             "Property other than primary home"
           ],
           "exemptAssets": [
-            "Primary home (if equity ≤ $752,000)",
+            "Primary home (if equity \u2264 $752,000)",
             "One vehicle",
             "Household furnishings and appliances",
             "Personal effects"
@@ -301,6 +301,12 @@
         "Documentation of existing home care services"
       ],
       "contacts": [
+        {
+          "label": "Georgia Aging & Disability Resource Connection / Area Agency on  (start here)",
+          "phone": "(866) 552-4464",
+          "description": "Georgia Aging & Disability Resource Connection / Area Agency on Aging statewide intake",
+          "hours": null
+        },
         {
           "label": "Georgia Department of Community Health",
           "phone": null,
@@ -370,7 +376,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "(866) 552-4464",
       "sourceUrl": "https://dch.georgia.gov/programs/hcbs",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",

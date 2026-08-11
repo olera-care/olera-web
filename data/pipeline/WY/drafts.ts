@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.880Z
+ * Last updated: 2026-08-11T03:19:50.959Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -413,6 +413,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Wyoming Department of Revenue (start here)",
+          "phone": "(307) 777-7320",
+          "description": "Wyoming Department of Revenue — Property Tax Refund Program (current statewide successor to the old elderly/disabled listing)",
+          "hours": null
+        },
+        {
           "label": "Wyoming Department of Health",
           "phone": null,
           "description": "Administers the Tax Refund for Elderly & Disabled program statewide",
@@ -473,7 +479,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "CurrencyDollar",
-      "phone": null,
+      "phone": "(307) 777-7320",
       "sourceUrl": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

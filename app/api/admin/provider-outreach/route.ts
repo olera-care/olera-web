@@ -103,8 +103,7 @@ interface TrackingRow {
   resend_count: number;
   no_answer_count: number;
   needs_call_reason: string | null;
-  // Re-engage cycle fields
-  cycle_number: number;
+  // Re-engage fields
   re_engage_entered_at: string | null;
   re_engage_channel: string | null;
   // Enrichment fields for alternative channels
@@ -142,8 +141,7 @@ export interface OutreachProvider {
   resend_count: number;
   no_answer_count: number;
   needs_call_reason: string | null;
-  // Re-engage cycle fields
-  cycle_number: number;
+  // Re-engage fields
   re_engage_entered_at: string | null;
   re_engage_channel: string | null;
   // Enrichment fields for alternative channels
@@ -549,8 +547,7 @@ export async function GET(request: NextRequest) {
           resend_count: t.resend_count ?? 0,
           no_answer_count: t.no_answer_count ?? 0,
           needs_call_reason: t.needs_call_reason ?? null,
-          // Re-engage cycle fields
-          cycle_number: t.cycle_number ?? 1,
+          // Re-engage fields
           re_engage_entered_at: t.re_engage_entered_at ?? null,
           re_engage_channel: t.re_engage_channel ?? null,
           // Enrichment fields for alternative channels
@@ -712,8 +709,7 @@ async function getNotContactedProviders(
         resend_count: 0,
         no_answer_count: 0,
         needs_call_reason: null,
-        // Re-engage cycle fields
-        cycle_number: 1,
+        // Re-engage fields
         re_engage_entered_at: null,
         re_engage_channel: null,
         fax_number: null,
@@ -840,8 +836,7 @@ async function getClaimedProviders(
         resend_count: 0,
         no_answer_count: 0,
         needs_call_reason: null,
-        // Re-engage cycle fields
-        cycle_number: 1,
+        // Re-engage fields
         re_engage_entered_at: null,
         re_engage_channel: null,
         fax_number: null,
@@ -948,7 +943,6 @@ async function getHiddenProviders(
         resend_count: t.resend_count ?? 0,
         no_answer_count: t.no_answer_count ?? 0,
         needs_call_reason: t.needs_call_reason ?? null,
-        cycle_number: t.cycle_number ?? 1,
         re_engage_entered_at: t.re_engage_entered_at ?? null,
         re_engage_channel: t.re_engage_channel ?? null,
         fax_number: t.fax_number ?? null,
@@ -1042,8 +1036,7 @@ async function getArchivedProviders(
         resend_count: 0,
         no_answer_count: 0,
         needs_call_reason: null,
-        // Re-engage cycle fields
-        cycle_number: t.cycle_number ?? 1,
+        // Re-engage fields
         re_engage_entered_at: t.re_engage_entered_at ?? null,
         re_engage_channel: t.re_engage_channel ?? null,
         fax_number: t.fax_number ?? null,
@@ -1142,8 +1135,7 @@ async function getArchivedProviders(
           resend_count: 0,
           no_answer_count: 0,
           needs_call_reason: null,
-          // Re-engage cycle fields
-          cycle_number: 1,
+          // Re-engage fields
           re_engage_entered_at: null,
           re_engage_channel: null,
           fax_number: null,
@@ -1368,8 +1360,7 @@ async function searchProviders(
       resend_count: tracking?.resend_count ?? 0,
       no_answer_count: tracking?.no_answer_count ?? 0,
       needs_call_reason: tracking?.needs_call_reason ?? null,
-      // Re-engage cycle fields
-      cycle_number: tracking?.cycle_number ?? 1,
+      // Re-engage fields
       re_engage_entered_at: tracking?.re_engage_entered_at ?? null,
       re_engage_channel: tracking?.re_engage_channel ?? null,
       fax_number: tracking?.fax_number ?? null,

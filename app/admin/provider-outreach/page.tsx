@@ -832,8 +832,7 @@ interface OutreachProvider {
   resend_count: number;
   no_answer_count: number;
   needs_call_reason: string | null;
-  // Re-engage cycle fields
-  cycle_number: number;
+  // Re-engage fields
   re_engage_entered_at: string | null;
   re_engage_channel: string | null;
   // Enrichment fields for alternative channels
@@ -2045,9 +2044,6 @@ function CityRow({
                                     : "bg-blue-100 text-blue-700"
                                 }`}>
                                   {provider.emails_sent}/4
-                                  {provider.cycle_number >= 2 && (
-                                    <span className="ml-0.5 text-gray-400">·C{provider.cycle_number}</span>
-                                  )}
                                 </span>
                                 {/* Sequence sublabel (recency or failure) */}
                                 {(() => {
@@ -4078,6 +4074,7 @@ interface ReEngageQueueProps {
   providers: OutreachProvider[];
   loading: boolean;
   onArchive: (provider: OutreachProvider) => void;
+  onNotInterested: (provider: OutreachProvider) => void;
   adminNameLookup: Map<string, string>;
 }
 
@@ -4096,7 +4093,7 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEngageQueueProps) {
+function ReEngageQueue({ providers, loading, onArchive, onNotInterested, adminNameLookup }: ReEngageQueueProps) {
   // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
 
   // Send Claim Link state
@@ -4302,7 +4299,6 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
       {/* Provider rows */}
       {sorted.map((provider) => {
         const waitDays = daysSince(provider.re_engage_entered_at);
-        const isCycle2 = provider.cycle_number === 2;
 
         // Check if direct_mail has expired (18+ days without claim)
         const mailSentAt = mailAnalyticsMap.get(provider.provider_id)?.sent_at;
@@ -4333,25 +4329,14 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
             )}
             {/* Main row - restructured for better readability */}
             <div className="px-5 py-3 hover:bg-gray-50 transition-colors">
-              {/* Row 1: Provider name (full width) + Cycle badge + Wait time */}
+              {/* Row 1: Provider name + Wait time */}
               <div className="flex items-center justify-between gap-4 mb-1">
                 <span className="font-medium text-gray-900 text-sm">
                   {provider.provider_name}
                 </span>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                      isCycle2
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    Cycle {provider.cycle_number}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {waitDays}d
-                  </span>
-                </div>
+                <span className="text-sm text-gray-600 shrink-0">
+                  {waitDays}d in stage
+                </span>
               </div>
 
               {/* Row 2: Category, location, email + channel badges */}
@@ -4420,8 +4405,15 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
                 claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
               />
 
-              {/* Row 5: Actions - Tracking only (Archive opens modal with stage options, Send Claim Link) */}
+              {/* Row 5: Actions - Archive, Not Interested, Send Claim Link */}
               <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => onNotInterested(provider)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
+              >
+                Not Interested
+              </button>
               <button
                 type="button"
                 onClick={() => onArchive(provider)}
@@ -5718,10 +5710,11 @@ export default function ProviderOutreachPage() {
   // If requiresReasonValidation is true, reason is required (archive/unarchive actions)
   const handleQuickAction = async (
     providerId: string,
-    action: "not_contacted" | "archived",
+    action: "not_contacted" | "archived" | "not_interested",
     reason?: string | null,
     notes?: string | null,
-    requiresReasonValidation?: boolean
+    requiresReasonValidation?: boolean,
+    notInterestedReason?: string
   ) => {
     setActionLoading(true);
     try {
@@ -5733,11 +5726,13 @@ export default function ProviderOutreachPage() {
           stage: action,
           reason: requiresReasonValidation ? reason : undefined,
           notes: notes || undefined,
+          // not_interested_reason is required when moving to not_interested
+          not_interested_reason: action === "not_interested" ? (notInterestedReason || "no_response_exhausted") : undefined,
         }),
       });
 
       if (res.ok) {
-        const actionLabel = action === "not_contacted" ? "Restored" : "Archived";
+        const actionLabel = action === "not_contacted" ? "Restored" : action === "not_interested" ? "Not Interested" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
         // Mark as recently moved to filter from stale API responses
         markAsRecentlyMoved(providerId);
@@ -6610,9 +6605,6 @@ export default function ProviderOutreachPage() {
                                 {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
                                   <span className={`ml-1 ${provider.sequence_status?.failed_step !== undefined ? "text-red-600" : "text-blue-500"}`}>
                                     ({provider.emails_sent}/4)
-                                    {provider.cycle_number >= 2 && (
-                                      <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
-                                    )}
                                   </span>
                                 )}
                               </span>
@@ -6809,6 +6801,9 @@ export default function ProviderOutreachPage() {
               loading={loadingProviders}
               onArchive={(provider) => {
                 setActionModalProvider(provider);
+              }}
+              onNotInterested={(provider) => {
+                handleQuickAction(provider.provider_id, "not_interested");
               }}
               adminNameLookup={adminNameLookup}
             />

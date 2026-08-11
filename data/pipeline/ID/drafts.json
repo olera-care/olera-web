@@ -211,7 +211,7 @@
             "Property other than primary home"
           ],
           "exemptAssets": [
-            "Primary home (if equity ≤ $752,000)",
+            "Primary home (if equity \u2264 $752,000)",
             "Household furnishings and personal effects",
             "One vehicle",
             "Pre-need burial contracts"
@@ -278,6 +278,12 @@
         "Healthcare provider contact information"
       ],
       "contacts": [
+        {
+          "label": "Idaho Department of Health and Welfare (start here)",
+          "phone": "(877) 456-1233",
+          "description": "Idaho Department of Health and Welfare \u2014 Self-Reliance Medicaid application interview line",
+          "hours": null
+        },
         {
           "label": "Idaho Department of Health and Welfare",
           "phone": null,
@@ -347,7 +353,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(877) 456-1233",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -542,7 +548,7 @@
       "id": "medicare-savings-programs",
       "name": "Medicare Savings Programs (Qualified Medicare Beneficiary - QMB, Specified Low-Income Medicare Beneficiary - SLMB, Qualifying Individual - QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Your loved one could save $200–1,800/year on Medicare premiums, deductibles, and copays if their income is under $1,816/month.",
+      "tagline": "Your loved one could save $200\u20131,800/year on Medicare premiums, deductibles, and copays if their income is under $1,816/month.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -556,13 +562,13 @@
         ]
       },
       "intro": "If your loved one struggles with Medicare costs, Idaho's Medicare Savings Programs can pay their premiums and out-of-pocket expenses. The Qualified Medicare Beneficiary (QMB) program covers all Medicare premiums, deductibles, and copays for individuals earning up to $1,350/month. The other two programs, SLMB and QI, pay Medicare Part B premiums for those earning up to $1,816/month.\n\nAll three programs automatically qualify your loved one for Extra Help with prescription drug costs, reducing copays to $12.65 or less per medication. Because these programs have different income limits and benefits, your loved one may qualify for one even if their income is too high for others. QI funding is limited and distributed first-come, first-served, so apply early in the year.",
-      "savingsRange": "$200 – $1,800/year",
+      "savingsRange": "$200 \u2013 $1,800/year",
       "savingsSource": "Medicare Part B premium savings ($174.70/month in 2026) plus potential deductible and copay coverage",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Must have Medicare Part A",
-          "Income under $1,350–$1,816/month",
+          "Income under $1,350\u2013$1,816/month",
           "Assets under $9,950 (individual)",
           "U.S. citizen or qualified immigrant"
         ],
@@ -773,7 +779,7 @@
         ]
       },
       "intro": "If your loved one is 60 or older and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card they can use at most grocery stores. Because Idaho removes the gross income limit for households with seniors, your loved one may qualify even if their Social Security or pension seemed too high under other states' rules.\n\nBenefits vary by household size and net income after deductions, typically $100-300+ monthly for seniors. Because the program allows significant deductions for medical expenses over $35 monthly and high shelter costs, many seniors on fixed incomes qualify even when they don't expect to. Your loved one can even use SNAP benefits to pay for Meals on Wheels deliveries.\n\nWith 64% of eligible Idaho seniors not enrolled, this is one of the most underutilized programs that could immediately reduce your family's grocery expenses.",
-      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsRange": "$1,200 \u2013 $3,600/year in 2026",
       "savingsSource": "Monthly EBT benefits typically $100-300+ for seniors based on household size and net income",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -875,6 +881,12 @@
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(877) 456-1233",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Idaho 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and SNAP information",
@@ -949,7 +961,7 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "2-1-1",
+      "phone": "(877) 456-1233",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/food-assistance",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -958,15 +970,15 @@
       "id": "energy-assistance-liheap",
       "name": "Idaho Energy Assistance (LIHEAP)",
       "shortName": "Energy Assistance",
-      "tagline": "Get $400–$1,800 per year to help cover your loved one's heating bills if they're on a fixed income.",
+      "tagline": "Get $400\u2013$1,800 per year to help cover your loved one's heating bills if they're on a fixed income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles with heating bills on a fixed income, Idaho Energy Assistance can provide $400–$1,800 per year toward heating costs. The program covers part of heating bills based on household income, location within Idaho, and heating expenses, with higher benefits for households with lower incomes and higher energy costs.\n\nFunding is extremely limited and distributed first-come, first-serve. Families with children under six, elderly members, or disabled members can apply starting in October, while all other families must wait until November. Applications may close early if funds run out, making timing critical. The program only covers heating assistance, cooling assistance is not available in Idaho.",
-      "savingsRange": "$400 – $1,800/year in 2026",
+      "intro": "If your loved one struggles with heating bills on a fixed income, Idaho Energy Assistance can provide $400\u2013$1,800 per year toward heating costs. The program covers part of heating bills based on household income, location within Idaho, and heating expenses, with higher benefits for households with lower incomes and higher energy costs.\n\nFunding is extremely limited and distributed first-come, first-serve. Families with children under six, elderly members, or disabled members can apply starting in October, while all other families must wait until November. Applications may close early if funds run out, making timing critical. The program only covers heating assistance, cooling assistance is not available in Idaho.",
+      "savingsRange": "$400 \u2013 $1,800/year in 2026",
       "savingsSource": "Idaho Department of Health and Welfare benefit amounts",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -990,7 +1002,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online, by phone, or in-person through your local Community Action Agency, processing takes 7–30 days.",
+        "summary": "Apply online, by phone, or in-person through your local Community Action Agency, processing takes 7\u201330 days.",
         "steps": [
           {
             "step": 1,
@@ -1010,10 +1022,10 @@
           {
             "step": 4,
             "title": "Wait for processing",
-            "description": "Applications are processed in 7–30 days. Crisis cases with disconnection notices may receive expedited processing."
+            "description": "Applications are processed in 7\u201330 days. Crisis cases with disconnection notices may receive expedited processing."
           }
         ],
-        "processingTime": "7–30 days",
+        "processingTime": "7\u201330 days",
         "waitlist": "No formal waitlist, but funding is limited and distributed first-come, first-serve. Applications may close early if funds are exhausted.",
         "tip": "Apply as early as possible when your application window opens, funds often run out before the season ends.",
         "urls": [
@@ -1071,7 +1083,7 @@
         },
         {
           "question": "How much will my loved one actually receive for heating assistance?",
-          "answer": "Benefits range from $400–$1,800 per year depending on household income, location within Idaho, household size, and heating costs. Lower-income households with higher energy burdens typically receive larger benefits."
+          "answer": "Benefits range from $400\u2013$1,800 per year depending on household income, location within Idaho, household size, and heating costs. Lower-income households with higher energy burdens typically receive larger benefits."
         },
         {
           "question": "Can my loved one get both regular heating assistance and crisis assistance in the same year?",
@@ -1805,7 +1817,7 @@
         ]
       },
       "intro": "If your loved one is 55+ and unemployed with low income, SCSEP provides paid part-time community service work at $7.25/hour (Idaho minimum wage) for an average 20 hours/week, that's $580/month while they get job training and placement assistance. The program places participants at nonprofits and public agencies for 6-12 months to build skills leading to unsubsidized employment.\n\nBecause SCSEP includes resume help, interview skills training, and computer literacy courses alongside the paid work experience, your loved one gets both immediate income and long-term employment preparation. Income limit: approximately $19,000/year for a single person or $25,500 for a two-person household (125% of federal poverty level for 2025).",
-      "savingsRange": "$3,480 – $6,960/year in 2026",
+      "savingsRange": "$3,480 \u2013 $6,960/year in 2026",
       "savingsSource": "Based on 20 hours/week at $7.25/hour Idaho minimum wage for 6-12 month program duration",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -2270,7 +2282,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "If you're helping an aging loved one in Idaho, 13 state and federal programs can provide financial relief, health coverage, and free support, potentially saving thousands per year. These range from monthly grocery assistance (up to $300+) and energy bill help ($400–$1,800/year) to comprehensive health coverage and home care services that prevent nursing home placement. Most programs have income limits around $1,000–$2,000/month for a single person, but several valuable resources are free regardless of income. Start by checking if your loved one qualifies for Idaho Medicaid, which opens doors to multiple other programs including home care services.",
+    "intro": "If you're helping an aging loved one in Idaho, 13 state and federal programs can provide financial relief, health coverage, and free support, potentially saving thousands per year. These range from monthly grocery assistance (up to $300+) and energy bill help ($400\u2013$1,800/year) to comprehensive health coverage and home care services that prevent nursing home placement. Most programs have income limits around $1,000\u2013$2,000/month for a single person, but several valuable resources are free regardless of income. Start by checking if your loved one qualifies for Idaho Medicaid, which opens doors to multiple other programs including home care services.",
     "startHere": [
       {
         "name": "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
@@ -2280,7 +2292,7 @@
       {
         "name": "Medicare Savings Programs",
         "programId": "medicare-savings-programs",
-        "why": "Can save $200–$1,800/year on Medicare costs with income limits up to $1,816/month."
+        "why": "Can save $200\u2013$1,800/year on Medicare costs with income limits up to $1,816/month."
       },
       {
         "name": "SNAP",
@@ -2345,7 +2357,7 @@
       }
     ],
     "quickFacts": [
-      "Most financial programs require income below $1,047–$2,152/month for a single person",
+      "Most financial programs require income below $1,047\u2013$2,152/month for a single person",
       "Idaho has no gross income limit for SNAP, making more seniors eligible than in other states",
       "Several programs like SHIBA and the Ombudsman are free regardless of income"
     ],

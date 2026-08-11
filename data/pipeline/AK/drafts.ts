@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.149Z
+ * Last updated: 2026-08-11T03:19:50.926Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -330,6 +330,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Alaska Division of Senior & Disabilities Services (start here)",
+          "phone": "(907) 269-3463",
+          "description": "Alaska Division of Senior & Disabilities Services — Central Applications Processing Supervisor",
+          "hours": null
+        },
+        {
           "label": "Alaska 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and program information",
@@ -404,7 +410,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(907) 269-3463",
       "sourceUrl": "https://health.alaska.gov/en/services/hcbs-waivers/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

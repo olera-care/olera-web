@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.715Z
+ * Last updated: 2026-08-11T03:19:50.947Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1528,6 +1528,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "New Hampshire ServiceLink Aging and Disability Resource Center (start here)",
+          "phone": "(866) 634-9412",
+          "description": "New Hampshire ServiceLink Aging and Disability Resource Center — routes callers to the local home-delivered meals provider",
+          "hours": null
+        },
+        {
           "label": "Meals on Wheels New Hampshire",
           "phone": null,
           "description": "Statewide coalition to find local providers",
@@ -1595,7 +1601,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "2-1-1",
+      "phone": "(866) 634-9412",
       "sourceUrl": "https://mealsonwheelsnh.org",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
@@ -2281,6 +2287,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "New Hampshire ServiceLink Aging and Disability Resource Center (start here)",
+          "phone": "(866) 634-9412",
+          "description": "New Hampshire ServiceLink Aging and Disability Resource Center — statewide CFI application assistance and local service connection",
+          "hours": null
+        },
+        {
           "label": "NH DHHS Medicaid",
           "phone": null,
           "description": "Apply for Medicaid eligibility required for adult day services",
@@ -2348,7 +2360,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Hospital",
-      "phone": null,
+      "phone": "(866) 634-9412",
       "sourceUrl": "https://www.dhhs.nh.gov/programs-services/medicaid",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -2893,6 +2905,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Monadnock at Home (start here)",
+          "phone": "(603) 371-0809",
+          "description": "Monadnock at Home — membership and services line",
+          "hours": null
+        },
+        {
           "label": "Catholic Charities NH",
           "phone": null,
           "description": "Monadnock at Home program administration",
@@ -2951,7 +2969,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(603) 371-0809",
       "sourceUrl": "https://www.cc-nh.org/services/senior-support-services/monadnock-at-home/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

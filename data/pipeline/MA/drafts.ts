@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.707Z
+ * Last updated: 2026-08-11T01:39:38.162Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -303,6 +303,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "MassOptions (start here)",
+          "phone": "(800) 243-4636",
+          "description": "Ask for a referral to your local ASAP, which does the clinical assessment that enrolls you in the Frail Elder Waiver",
+          "hours": "Monday-Friday 9am-5pm"
+        },
+        {
           "label": "Find Your Local ASAP",
           "phone": null,
           "description": "Regional Aging Services Access Points handle FEW applications and assessments",
@@ -370,7 +376,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(800) 841-2900",
+      "phone": "(800) 243-4636",
       "sourceUrl": "https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
@@ -726,16 +732,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "DTA Customer Service (start here)",
+          "phone": "(877) 382-2363",
+          "description": "Massachusetts Department of Transitional Assistance general line",
+          "hours": "Mon-Fri 8:15am-4:45pm EST"
+        },
+        {
           "label": "Massachusetts 2-1-1",
           "phone": "2-1-1",
           "description": "Free 24/7 helpline for SNAP and all social services",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "DTA Customer Service",
-          "phone": "(877) 382-2363",
-          "description": "Massachusetts Department of Transitional Assistance general line",
-          "hours": "Mon-Fri 8:15am-4:45pm EST"
         }
       ],
       "applicationNotes": [

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.698Z
+ * Last updated: 2026-08-11T01:23:05.717Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -865,6 +865,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(800) 372-2022",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Delaware 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and SNAP information",
@@ -939,7 +945,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(302) 255-9500",
+      "phone": "(800) 372-2022",
       "sourceUrl": "https://dhss.delaware.gov/dss/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

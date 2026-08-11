@@ -82,8 +82,8 @@ These are prompts, not explanations. Check releases, campaigns, tracking changes
 Definition version 2 adds three weekly breakdowns to the same atomic row:
 
 - GA4 organic users and sessions by `sessionSourceMedium`.
-- GA4 organic users and sessions by `landingPagePlusQueryString`.
-- Search Console branded versus non-branded query clicks and impressions, with “branded” defined as a query containing `olera`.
+- GA4 organic users and sessions by `landingPage`, which excludes query strings.
+- Search Console branded versus non-branded query clicks and impressions, with “branded” defined as the standalone word `olera`.
 
 Search Console omits some low-volume queries for privacy, so the branded mix includes `classified_click_coverage`. The admin labels the mix as a share of classified clicks rather than pretending it covers every search click. Landing-page outcomes are not attributed yet; the dashboard presents destinations and overall directional inquiry conversion separately.
 

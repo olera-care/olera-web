@@ -150,7 +150,7 @@ async function pullGa4(token: string, weekStart: string, weekEnd: string): Promi
     googlePost<Ga4Report>(url, token, {
       dateRanges,
       dimensionFilter: organicFilter,
-      dimensions: [{ name: "landingPagePlusQueryString" }],
+      dimensions: [{ name: "landingPage" }],
       metrics: [{ name: "totalUsers" }, { name: "sessions" }],
       orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
       limit: 25,
@@ -226,7 +226,7 @@ async function pullGsc(token: string, weekStart: string, weekEnd: string): Promi
   const normalizedQueries = (queries.rows || []).map(normalizeSearchRow);
   const queryMix = normalizedQueries.reduce(
     (mix, row) => {
-      const key = /olera/i.test(row.label) ? "branded" : "non_branded";
+      const key = /\bolera\b/i.test(row.label) ? "branded" : "non_branded";
       mix[`${key}_clicks`] += row.clicks;
       mix[`${key}_impressions`] += row.impressions;
       return mix;
@@ -250,7 +250,7 @@ async function pullGsc(token: string, weekStart: string, weekEnd: string): Promi
     top_pages: (pages.rows || []).map(normalizeSearchRow),
     query_mix: {
       ...queryMix,
-      classified_click_coverage: performance.clicks > 0 ? classifiedClicks / performance.clicks : null,
+      classified_click_coverage: performance.clicks > 0 ? Math.min(1, classifiedClicks / performance.clicks) : null,
     },
     data_state: "final",
   };

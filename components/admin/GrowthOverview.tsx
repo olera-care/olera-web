@@ -140,6 +140,10 @@ export default function GrowthOverview() {
   const selectedValue = metric.value(latest);
   const selectedDelta = delta(selectedValue, prior ? metric.value(prior) : null);
   const latestAnomaly = latest.anomalies?.[0];
+  const allSourcesLive = latest.source === "google_supabase"
+    && latest.source_status.ga4 === "available"
+    && latest.source_status.gsc === "available"
+    && latest.source_status.supabase === "available";
 
   return (
     <section className="mb-12">
@@ -147,8 +151,9 @@ export default function GrowthOverview() {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Growth</h1>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live sources
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${allSourcesLive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${allSourcesLive ? "bg-emerald-500" : "bg-amber-500"}`} />
+              {allSourcesLive ? "Live sources" : "Source gap"}
             </span>
           </div>
           <p className="mt-1 text-sm text-gray-500">Reach, intent, and marketplace response in one weekly view.</p>
@@ -188,7 +193,7 @@ export default function GrowthOverview() {
                 <span className="font-semibold">Worth a look:</span> {latestAnomaly.label} moved {Math.abs(Math.round(latestAnomaly.change * 100))}% this week.
               </p>
             ) : (
-              <p className="text-xs text-gray-400">12 completed weeks · Sunday through Saturday</p>
+              <p className="text-xs text-gray-400">{series.length} completed {series.length === 1 ? "week" : "weeks"} · Sunday through Saturday</p>
             )}
           </div>
 
@@ -198,7 +203,7 @@ export default function GrowthOverview() {
         </div>
 
         <div className="grid grid-cols-2 divide-x divide-y divide-gray-100 lg:grid-cols-4 lg:divide-y-0">
-          <Signal label="Organic search" value={latest.ga4.channels["Organic Search"] || 0} prior={prior?.ga4.channels["Organic Search"] ?? null} source="GA4" />
+          <Signal label="Organic search" value={latest.ga4.channels["Organic Search"] ?? null} prior={prior?.ga4.channels["Organic Search"] ?? null} source="GA4" />
           <Signal label="Search clicks" value={latest.gsc?.performance.clicks ?? null} prior={prior?.gsc?.performance.clicks ?? null} source="Search Console" />
           <Signal label="Inquiries" value={latest.marketplace.inquiries} prior={prior?.marketplace.inquiries ?? null} source="Olera" />
           <Signal label="Providers answering" value={latest.marketplace.providers_answering_questions} prior={prior?.marketplace.providers_answering_questions ?? null} source="Olera" />
@@ -401,11 +406,14 @@ function organicStory(organicMovement: number | null, clickMovement: number | nu
   if (organicMovement == null && clickMovement == null) {
     return "The first complete week is now the baseline. Next Tuesday will add the first week-over-week organic comparison.";
   }
-  const organic = organicMovement == null
-    ? "Organic users have no clean prior comparison"
-    : `Organic users ${organicMovement >= 0 ? "grew" : "fell"} ${Math.abs(Math.round(organicMovement))}%`;
-  const clicks = clickMovement == null
-    ? "search clicks have no clean prior comparison"
-    : `search clicks ${clickMovement >= 0 ? "grew" : "fell"} ${Math.abs(Math.round(clickMovement))}%`;
+  const organic = movementStory("Organic users", organicMovement);
+  const clicks = movementStory("search clicks", clickMovement);
   return `${organic}, while ${clicks}. Use the source, query, and landing-page lists below to locate the movement.`;
+}
+
+function movementStory(label: string, movement: number | null) {
+  if (movement == null) return `${label} have no clean prior comparison`;
+  const rounded = Math.round(movement);
+  if (rounded === 0) return `${label} were flat`;
+  return `${label} ${rounded > 0 ? "grew" : "fell"} ${Math.abs(rounded)}%`;
 }

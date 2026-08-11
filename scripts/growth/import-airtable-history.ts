@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { config } from "dotenv";
 import { parse } from "csv-parse/sync";
 import { createClient } from "@supabase/supabase-js";
-import { addDays } from "../../lib/growth/dates";
+import { addDays, validateCompleteWeek } from "../../lib/growth/dates";
 
 config({ path: ".env.local", quiet: true });
 
@@ -66,6 +66,13 @@ async function main() {
     const totalUsers = numeric(row, ["total website visitors", "total visitors", "website visitors"]);
     if (!weekStart || !weekEnd || totalUsers == null) {
       process.stderr.write("Skipping an Airtable row without a usable start date, end date, or total visitors.\n");
+      skipped += 1;
+      continue;
+    }
+    try {
+      validateCompleteWeek(weekStart, weekEnd);
+    } catch (error) {
+      process.stderr.write(`Skipping invalid Airtable week ${weekStart} to ${weekEnd}: ${error instanceof Error ? error.message : String(error)}\n`);
       skipped += 1;
       continue;
     }

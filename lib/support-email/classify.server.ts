@@ -19,6 +19,36 @@ function fixed(input: Omit<SupportRecommendation, "model">): SupportRecommendati
   return { ...input, model: "olera-rules-v1" };
 }
 
+function isVoicemail(message: NormalizedGmailMessage): boolean {
+  return /voicemail|voice message|missed call/i.test(message.subject);
+}
+
+function voicemailFallback(message: NormalizedGmailMessage): SupportRecommendation {
+  const caller = message.subject
+    .replace(/^(?:new\s+)?(?:voicemail|voice message|missed call)\s*(?:from)?\s*/i, "")
+    .trim();
+  const hasRecording = message.attachments.some((attachment) =>
+    attachment.mimeType.startsWith("audio/") || /\.(?:mp3|m4a|wav|ogg)$/i.test(attachment.filename),
+  );
+  return fixed({
+    category: "voicemail",
+    priority: "high",
+    summary: caller
+      ? `Voicemail from ${caller}. Review the message and decide who should call back.`
+      : "A new voicemail needs review and a callback decision.",
+    reason: hasRecording
+      ? "An audio recording is attached, but the notification did not include a usable written transcript."
+      : "The notification did not include a usable written transcript or recording.",
+    confidence: 0.9,
+    suggestedAction: "call_back",
+    suggestedOwner: "Support",
+    suggestedDraft: null,
+    riskFlags: hasRecording
+      ? ["voice_message", "transcript_unavailable"]
+      : ["voice_message", "transcript_unavailable", "recording_unavailable"],
+  });
+}
+
 function obviousRecommendation(message: NormalizedGmailMessage, identity: MatchedSupportIdentity): SupportRecommendation | null {
   const subject = message.subject.toLowerCase();
   const body = message.bodyText.slice(0, 4_000).toLowerCase();
@@ -32,17 +62,10 @@ function obviousRecommendation(message: NormalizedGmailMessage, identity: Matche
       suggestedAction: "archive", suggestedOwner: null, suggestedDraft: null, riskFlags: [],
     });
   }
-  // Voicemail notifications are commonly machine-generated and carry an
-  // Auto-Submitted header. Detect the actionable channel before the generic
-  // automation shortcut or real callbacks will be mislabeled as low-priority.
-  if (/voicemail|voice message|missed call/.test(subject)) {
-    return fixed({
-      category: "voicemail", priority: "high", summary: "A voicemail or missed-call notification needs review and a callback decision.",
-      reason: "The subject identifies this as a voice-channel message.", confidence: 0.98,
-      suggestedAction: "call_back", suggestedOwner: "Support", suggestedDraft: null, riskFlags: ["voice_message"],
-    });
-  }
-  if (message.autoSubmitted && message.autoSubmitted.toLowerCase() !== "no") {
+  // Voice notifications are often Auto-Submitted, but unlike generic machine
+  // mail they are actionable. Let the model read the transcript/body instead
+  // of short-circuiting on the subject or downgrading the call as automation.
+  if (!isVoicemail(message) && message.autoSubmitted && message.autoSubmitted.toLowerCase() !== "no") {
     return fixed({
       category: "automated", priority: "low", summary: "Automated notification that does not need a reply.",
       reason: `Auto-Submitted header is ${message.autoSubmitted}.`, confidence: 0.99,
@@ -79,6 +102,7 @@ Rules:
 - A real family asking for care, benefits, account, or connection help should receive a warm concise draft. Never invent provider availability, benefits eligibility, prices, medical guidance, or completed actions.
 - Provider claims, lead questions, listing corrections, and profile help are provider messages.
 - Removal, privacy, legal threats, safety, fraud, security, angry opt-outs, and data-deletion requests require human review. Do not write definitive legal promises.
+- For voicemail or missed-call notifications, use category voicemail and suggestedAction call_back. Summarize the caller, callback number, and reason for calling from the written transcript or notification body. The reason must describe actual evidence, never merely say that the subject identifies a voicemail. If no usable transcript or purpose is present, say that plainly, add transcript_unavailable to riskFlags, and mention whether an audio recording is attached.
 - If an Olera identity match is provided, use it, but do not assume the sender is authorized beyond that match.
 - Drafts should sound human, direct, and kind. Do not mention AI. Do not send anything.
 - Urgent means immediate safety/security/legal or an actively blocked family. High means same business day. Normal means ordinary support. Low means noise/no action.`;
@@ -122,6 +146,8 @@ export async function classifySupportThread(opts: {
   const context = [
     `Matched Olera identity: ${opts.identity.profileType ?? "none"}`,
     `Matched name: ${opts.identity.profileName ?? "none"}`,
+    `Likely voicemail notification: ${isVoicemail(latest) ? "yes" : "no"}`,
+    `Audio recording attached: ${latest.attachments.some((attachment) => attachment.mimeType.startsWith("audio/")) ? "yes" : "no"}`,
     `Standards-based unsubscribe available: ${latest.listUnsubscribe.length > 0 ? "yes" : "no"}`,
     `One-click unsubscribe available: ${latest.listUnsubscribePost ? "yes" : "no"}`,
   ].join("\n");
@@ -143,6 +169,7 @@ export async function classifySupportThread(opts: {
     throw new Error("support_agent_invalid_json");
   } catch (err) {
     console.error("[support-email] classification failed:", err);
+    if (isVoicemail(latest)) return voicemailFallback(latest);
     return fixed({
       category: opts.identity.profileType === "family" ? "care_seeker" : opts.identity.profileType === "provider" ? "provider" : "other",
       priority: "normal",

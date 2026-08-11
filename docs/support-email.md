@@ -24,7 +24,9 @@ If `support@olera.care` is an alias, connect the underlying mailbox and set `GMA
 - Pub/Sub provides the prompt notification. The 5-minute cron is also the mandatory recovery poll for missed notifications.
 - Gmail is the transport source of truth. Supabase owns assignment, triage, Olera identity links, agent recommendations, and audit history.
 - Agent output is advisory. Sends, archives, unsubscribes, escalations, and Do Not Contact writes require an explicit admin action.
-- Message HTML is converted to plain text. Remote images never load and attachments remain metadata-only in the first release.
+- Message HTML is converted to plain text and remote images never load. Attachments stay in Gmail and are fetched through an authenticated admin-only route when an operator opens or downloads one; Olera does not create a second permanent file copy.
+- The queue can be filtered by support category and recent date window, and sorted newest- or oldest-first.
+- Voicemail notifications bypass the generic automation rule. Written transcripts in the email body or a small `.txt`, `.vtt`, or `.srt` attachment are summarized into a callback brief; audio-only messages expose the Gmail recording and clearly note that no written transcript was available.
 
 ## Required checks after connection
 

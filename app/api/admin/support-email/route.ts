@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { syncSupportMailbox, type SupportMailboxRow } from "@/lib/support-email/sync.server";
 
+const CATEGORIES = new Set([
+  "care_seeker", "provider", "partner", "marketing", "automated",
+  "legal", "security", "billing", "voicemail", "internal", "other",
+]);
+const DATE_WINDOWS: Record<string, number> = {
+  today: 1,
+  "7d": 7,
+  "30d": 30,
+  "90d": 90,
+};
+
 async function adminOrResponse() {
   const user = await getAuthUser();
   if (!user) return { response: NextResponse.json({ error: "Not authenticated" }, { status: 401 }) };
@@ -30,20 +41,28 @@ export async function GET(request: NextRequest) {
 
     const view = request.nextUrl.searchParams.get("view") ?? "needs_reply";
     const search = request.nextUrl.searchParams.get("q")?.trim();
+    const category = request.nextUrl.searchParams.get("category") ?? "all";
+    const dateWindow = request.nextUrl.searchParams.get("date") ?? "all";
+    const oldestFirst = request.nextUrl.searchParams.get("sort") === "oldest";
     let query = db
       .from("support_email_threads")
-      .select("id, gmail_thread_id, subject, snippet, participants, last_message_at, message_count, unread, state, category, priority, matched_profile_id, matched_profile_type, matched_profile_name, matched_provider_id, agent_summary, agent_reason, agent_confidence, suggested_action, suggested_owner, suggested_draft, agent_risk_flags, gmail_draft_id, draft_body, snoozed_until")
-      .order("last_message_at", { ascending: false })
+      .select("id, gmail_thread_id, subject, snippet, participants, last_message_at, message_count, unread, state, category, priority, matched_profile_id, matched_profile_type, matched_profile_name, matched_provider_id, agent_summary, agent_reason, agent_confidence, suggested_action, suggested_owner, suggested_draft, agent_risk_flags, gmail_draft_id, draft_body, snoozed_until", { count: "exact" })
+      .order("last_message_at", { ascending: oldestFirst })
       .limit(250);
     if (view === "needs_reply") query = query.in("state", ["needs_reply", "escalated"]);
     else if (["handled", "noise", "escalated", "snoozed"].includes(view)) query = query.eq("state", view);
+    if (CATEGORIES.has(category)) query = query.eq("category", category);
+    if (DATE_WINDOWS[dateWindow]) {
+      const since = new Date(Date.now() - DATE_WINDOWS[dateWindow] * 24 * 60 * 60 * 1_000);
+      query = query.gte("last_message_at", since.toISOString());
+    }
     if (search) {
       const safe = search.replace(/[%_,()]/g, " ");
       query = query.or(`subject.ilike.%${safe}%,snippet.ilike.%${safe}%,matched_profile_name.ilike.%${safe}%`);
     }
-    const { data: threads, error } = await query;
+    const { data: threads, error, count } = await query;
     if (error) throw error;
-    return NextResponse.json({ mailboxes: mailboxes ?? [], threads: threads ?? [] });
+    return NextResponse.json({ mailboxes: mailboxes ?? [], threads: threads ?? [], total: count ?? 0 });
   } catch (err) {
     console.error("[support-email] list failed:", err);
     const message = err instanceof Error ? err.message : "Could not load support email";

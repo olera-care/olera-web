@@ -121,10 +121,9 @@ export async function POST(request: NextRequest) {
     const providerMap = new Map(providers.map((p) => [p.provider_id, p]));
 
     // Check which providers already have tracking rows
-    // Include cycle_number for re_engage → not_contacted cycle handling
     const { data: existingTracking } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, id, stage, smartlead_data, cycle_number")
+      .select("provider_id, id, stage, smartlead_data")
       .in("provider_id", provider_ids);
 
     const existingMap = new Map((existingTracking || []).map((t) => [t.provider_id, t]));
@@ -205,8 +204,8 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Identify providers moving FROM re_engage TO not_contacted ──
-    // These need cycle increment + counter resets in an atomic update
-    const providersLeavingReEngage: Array<{ id: string; provider_id: string; cycle_number: number }> = [];
+    // These need counter resets in an atomic update
+    const providersLeavingReEngage: Array<{ id: string; provider_id: string }> = [];
     if (stage === "not_contacted") {
       for (const pid of provider_ids) {
         const existing = existingMap.get(pid);
@@ -214,12 +213,11 @@ export async function POST(request: NextRequest) {
           providersLeavingReEngage.push({
             id: existing.id,
             provider_id: pid,
-            cycle_number: (existing.cycle_number as number) ?? 1,
           });
         }
       }
     }
-    // Set of IDs to exclude from bulk update (handled individually with cycle logic)
+    // Set of IDs to exclude from bulk update (handled individually)
     const reEngageIds = new Set(providersLeavingReEngage.map((p) => p.id));
 
     // Detect archive/unarchive scenarios
@@ -375,16 +373,14 @@ export async function POST(request: NextRequest) {
         baseUpdateData.needs_call_reason = "manual";
       }
 
-      // ── Handle re_engage → not_contacted with atomic cycle updates ──
-      // These providers need cycle_number increment + counter resets IN THE SAME update as stage change
+      // ── Handle re_engage → not_contacted with counter resets ──
+      // These providers need counter resets IN THE SAME update as stage change
       if (providersLeavingReEngage.length > 0) {
         for (const item of providersLeavingReEngage) {
-          const newCycle = item.cycle_number + 1;
           const providerDetails = providerMap.get(item.provider_id);
 
           const reEngageUpdateData = {
             ...baseUpdateData,
-            cycle_number: newCycle,
             resend_count: 0,
             re_engage_entered_at: null,
             ...(providerDetails && { city: providerDetails.city, state: providerDetails.state }),
@@ -399,7 +395,7 @@ export async function POST(request: NextRequest) {
             console.error(`[update-stage] Re-engage update error for ${item.provider_id}:`, reEngageError);
             return NextResponse.json({ error: "Failed to update re-engage provider" }, { status: 500 });
           }
-          console.log(`[update-stage] Atomically updated ${item.provider_id}: stage=not_contacted, cycle=${newCycle}`);
+          console.log(`[update-stage] Updated ${item.provider_id}: stage=not_contacted, reset counters`);
         }
       }
 
@@ -459,23 +455,6 @@ export async function POST(request: NextRequest) {
       admin_user_id: string;
       created_at: string;
     }> = [];
-
-    // Log cycle_started touchpoints for providers moving from re_engage to not_contacted
-    for (const item of providersLeavingReEngage) {
-      touchpointRows.push({
-        provider_id: item.provider_id,
-        touchpoint_type: "cycle_started",
-        details: {
-          cycle: item.cycle_number + 1,
-          previous_stage: "re_engage",
-          new_stage: "not_contacted",
-          trigger: "manual_stage_move",
-          ...(notes?.trim() && { notes: notes.trim() }),
-        },
-        admin_user_id: adminUser.id,
-        created_at: nowIso,
-      });
-    }
 
     // Providers that had existing tracking rows (stage change from old to new)
     for (const item of toUpdate) {

@@ -36,6 +36,7 @@ export {
   type ProviderGapData,
   bodyToHtml,
   renderEmail,
+  renderVariantEmail,
   previewEmail,
   buildContextFromProvider,
   validateProviderForOutreach,
@@ -93,3 +94,23 @@ export {
   generateCampaignName,
   resolveProviderMailboxPool,
 } from "./smartlead-bridge";
+
+// Variant testing (A/B testing for Day 0 email)
+export {
+  type VariantRow,
+  type VariantAssignment,
+  type VariantStats,
+  isVariantTestingActive,
+  getActiveVariants,
+  selectVariantForProvider,
+  selectVariantsForProviders,
+  getVariantTemplate,
+  renderVariantTemplate,
+  getDay0Template,
+  shouldUseVariant,
+  getVariantStats,
+  getAllVariants,
+  createVariant,
+  updateVariant,
+  deleteVariant,
+} from "./variant-testing";

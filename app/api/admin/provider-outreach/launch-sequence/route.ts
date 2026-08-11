@@ -21,6 +21,11 @@ import {
   buildProviderSmartleadPreview,
   resolveProviderMailboxPool,
 } from "@/lib/provider-outreach/smartlead-bridge";
+import {
+  isVariantTestingActive,
+  selectVariantsForProviders,
+  type VariantAssignment,
+} from "@/lib/provider-outreach/variant-testing";
 import { isSmartleadConfigured } from "@/lib/smartlead";
 
 /**
@@ -393,10 +398,20 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Check if variant testing is active and get variant assignments
+      const variantTestingActive = await isVariantTestingActive();
+      let variantAssignments = new Map<string, VariantAssignment>();
+
+      if (variantTestingActive) {
+        const providerIdsForVariants = validPreviews.map((p) => p.provider_id);
+        variantAssignments = await selectVariantsForProviders(providerIdsForVariants);
+        console.log(`[launch-sequence] Variant testing active, assigned ${variantAssignments.size} providers to variants`);
+      }
+
       // 1. Get or create tracking records and move to in_sequence
       const launchedProviders: string[] = [];
       const failedProviders: Array<{ provider_id: string; error: string }> = [];
-      const trackingRecords: Map<string, { trackingId: string; preview: typeof validPreviews[0] }> = new Map();
+      const trackingRecords: Map<string, { trackingId: string; preview: typeof validPreviews[0]; variantAssignment?: VariantAssignment }> = new Map();
 
       for (const preview of validPreviews) {
         try {
@@ -444,32 +459,61 @@ export async function POST(request: NextRequest) {
             // This preserves manual assignments while still inheriting city owner for unassigned
             const newAssignedTo = existingTracking.assigned_to || effectiveAssignedTo;
 
+            // Get variant assignment for this provider
+            const variantAssignment = variantAssignments.get(preview.provider_id);
+
             // Update to in_sequence with fresh sequence_started_at
             // Clear smartlead_data for fresh enrollment
+            const updateFields: Record<string, unknown> = {
+              stage: "in_sequence",
+              sequence_started_at: new Date().toISOString(),
+              assigned_to: newAssignedTo,
+              smartlead_data: null, // Clear for fresh SmartLead enrollment
+            };
+
+            // Add variant fields if testing is active, clear if not
+            if (variantAssignment) {
+              updateFields.variant_id = variantAssignment.variant_id;
+              updateFields.variant_key = variantAssignment.variant_key;
+              updateFields.variant_enrolled_at = new Date().toISOString();
+            } else {
+              // Clear any previous variant assignment when testing is inactive
+              updateFields.variant_id = null;
+              updateFields.variant_key = null;
+              updateFields.variant_enrolled_at = null;
+            }
+
             const { error: updateError } = await db
               .from("provider_outreach_tracking")
-              .update({
-                stage: "in_sequence",
-                sequence_started_at: new Date().toISOString(),
-                assigned_to: newAssignedTo,
-                smartlead_data: null, // Clear for fresh SmartLead enrollment
-              })
+              .update(updateFields)
               .eq("id", existingTracking.id);
 
             if (updateError) throw updateError;
             trackingId = existingTracking.id;
           } else {
+            // Get variant assignment for this provider
+            const variantAssignment = variantAssignments.get(preview.provider_id);
+
             // Create new tracking record in in_sequence stage
+            const insertFields: Record<string, unknown> = {
+              provider_id: preview.provider_id,
+              stage: "in_sequence",
+              city: preview.city,
+              state: preview.state,
+              sequence_started_at: new Date().toISOString(),
+              assigned_to: effectiveAssignedTo,
+            };
+
+            // Add variant fields if testing is active
+            if (variantAssignment) {
+              insertFields.variant_id = variantAssignment.variant_id;
+              insertFields.variant_key = variantAssignment.variant_key;
+              insertFields.variant_enrolled_at = new Date().toISOString();
+            }
+
             const { data: newTracking, error: insertError } = await db
               .from("provider_outreach_tracking")
-              .insert({
-                provider_id: preview.provider_id,
-                stage: "in_sequence",
-                city: preview.city,
-                state: preview.state,
-                sequence_started_at: new Date().toISOString(),
-                assigned_to: effectiveAssignedTo,
-              })
+              .insert(insertFields)
               .select("id")
               .single();
 
@@ -477,7 +521,9 @@ export async function POST(request: NextRequest) {
             trackingId = newTracking.id;
           }
 
-          trackingRecords.set(preview.provider_id, { trackingId, preview });
+          // Store variant assignment with tracking record for later use
+          const variantAssignment = variantAssignments.get(preview.provider_id);
+          trackingRecords.set(preview.provider_id, { trackingId, preview, variantAssignment });
         } catch (err) {
           console.error(`Failed to create tracking for ${preview.provider_id}:`, err);
           failedProviders.push({
@@ -686,24 +732,34 @@ export async function POST(request: NextRequest) {
       }
 
       // Legacy: Create tasks for each cadence step (when SmartLead not configured)
-      for (const [providerId, { trackingId, preview }] of trackingRecords) {
+      for (const [providerId, { trackingId, preview, variantAssignment }] of trackingRecords) {
         try {
-          const taskRows = schedule.map((step) => ({
-            tracking_id: trackingId,
-            provider_id: providerId,
-            task_type: "outreach_email_send",
-            cadence_day: step.day,
-            template_key: step.templateKey,
-            due_at: step.dueAt.toISOString(),
-            status: "pending",
-            payload: {
+          const taskRows = schedule.map((step) => {
+            const payload: Record<string, unknown> = {
               recipient_email: preview.email,
               provider_name: preview.provider_name,
               city: preview.city,
               state: preview.state,
               category: preview.category,
-            },
-          }));
+            };
+
+            // Include variant_id in Day 0 task payload for auto-send executor
+            if (step.templateKey === "intro" && variantAssignment) {
+              payload.variant_id = variantAssignment.variant_id;
+              payload.variant_key = variantAssignment.variant_key;
+            }
+
+            return {
+              tracking_id: trackingId,
+              provider_id: providerId,
+              task_type: "outreach_email_send",
+              cadence_day: step.day,
+              template_key: step.templateKey,
+              due_at: step.dueAt.toISOString(),
+              status: "pending",
+              payload,
+            };
+          });
 
           const { error: tasksError } = await db
             .from("provider_outreach_tasks")
@@ -712,15 +768,23 @@ export async function POST(request: NextRequest) {
           if (tasksError) throw tasksError;
 
           // Log touchpoint (non-fatal - don't fail the sequence if touchpoint fails)
+          const touchpointDetails: Record<string, unknown> = {
+            email_count: taskRows.length,
+            first_due_at: schedule[0].dueAt.toISOString(),
+            last_due_at: schedule[schedule.length - 1].dueAt.toISOString(),
+          };
+
+          // Include variant info in touchpoint if assigned
+          if (variantAssignment) {
+            touchpointDetails.variant_id = variantAssignment.variant_id;
+            touchpointDetails.variant_key = variantAssignment.variant_key;
+          }
+
           const { error: touchpointError } = await db.from("provider_outreach_touchpoints").insert({
             provider_id: providerId,
             touchpoint_type: "sequence_launched",
             admin_user_id: adminUser.id,
-            details: {
-              email_count: taskRows.length,
-              first_due_at: schedule[0].dueAt.toISOString(),
-              last_due_at: schedule[schedule.length - 1].dueAt.toISOString(),
-            },
+            details: touchpointDetails,
           });
 
           if (touchpointError) {

@@ -46,6 +46,7 @@ interface TrendPoint {
 
 interface DriversResponse {
   available_from: string | null;
+  has_prior_data: boolean;
   categories: CategoryPerformance[];
   pages: PagePerformance[];
   trend: TrendPoint[];
@@ -101,7 +102,8 @@ function change(current: number, previous: number) {
   return ((current - previous) / previous) * 100;
 }
 
-function Change({ current, previous }: { current: number; previous: number }) {
+function Change({ current, previous, hasPriorData }: { current: number; previous: number; hasPriorData: boolean }) {
+  if (!hasPriorData) return <span className="text-gray-400">Baseline</span>;
   const movement = change(current, previous);
   if (movement == null) {
     return current > 0 ? <span className="text-teal-700">New</span> : <span className="text-gray-400">—</span>;
@@ -114,7 +116,7 @@ function Change({ current, previous }: { current: number; previous: number }) {
   );
 }
 
-function opportunityFor(page: PagePerformance) {
+function opportunityFor(page: PagePerformance, hasPriorData: boolean) {
   const movement = change(page.organic_users, page.previous_organic_users);
   if (
     page.search_impressions >= 100 &&
@@ -128,13 +130,13 @@ function opportunityFor(page: PagePerformance) {
     page.search_position > 4 &&
     page.search_position <= 15
   ) return { label: "Nearly there", tone: "sky" as const, priority: 4 };
-  if (movement != null && movement <= -20 && page.previous_organic_users >= 5) {
+  if (hasPriorData && movement != null && movement <= -20 && page.previous_organic_users >= 5) {
     return { label: "Losing momentum", tone: "rose" as const, priority: 3 };
   }
-  if (page.previous_organic_users === 0 && page.organic_users >= 10) {
+  if (hasPriorData && page.previous_organic_users === 0 && page.organic_users >= 10) {
     return { label: "New entrant", tone: "violet" as const, priority: 2 };
   }
-  if (movement != null && movement >= 25 && page.organic_users >= 10) {
+  if (hasPriorData && movement != null && movement >= 25 && page.organic_users >= 10) {
     return { label: "Rising quickly", tone: "emerald" as const, priority: 1 };
   }
   return null;
@@ -212,11 +214,13 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
     return [...(data?.categories || [])].sort((a, b) => b.organic_users - a.organic_users)[0]?.category || "provider";
   }, [data]);
   const activeCategory = selected || leadingCategory;
+  const hasPriorData = data?.has_prior_data ?? false;
   const categories = data?.categories || [];
   const trackedUsers = categories.reduce((sum, item) => sum + item.organic_users, 0);
   const pages = useMemo(() => {
     const matching = (data?.pages || []).filter((page) => page.page_category === activeCategory);
     if (view === "rising") {
+      if (!hasPriorData) return [];
       return matching
         .filter((page) =>
           (change(page.organic_users, page.previous_organic_users) || 0) > 0 ||
@@ -225,17 +229,18 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
         .sort((a, b) => (b.organic_users - b.previous_organic_users) - (a.organic_users - a.previous_organic_users));
     }
     if (view === "falling") {
+      if (!hasPriorData) return [];
       return matching
         .filter((page) => (change(page.organic_users, page.previous_organic_users) || 0) < 0)
         .sort((a, b) => (a.organic_users - a.previous_organic_users) - (b.organic_users - b.previous_organic_users));
     }
     if (view === "opportunities") {
       return matching
-        .filter((page) => opportunityFor(page))
-        .sort((a, b) => (opportunityFor(b)?.priority || 0) - (opportunityFor(a)?.priority || 0));
+        .filter((page) => opportunityFor(page, hasPriorData))
+        .sort((a, b) => (opportunityFor(b, hasPriorData)?.priority || 0) - (opportunityFor(a, hasPriorData)?.priority || 0));
     }
     return matching.sort((a, b) => b.organic_users - a.organic_users || b.search_clicks - a.search_clicks);
-  }, [activeCategory, data, view]);
+  }, [activeCategory, data, hasPriorData, view]);
   const visiblePages = expanded ? pages : pages.slice(0, 6);
   const lead = categories.find((item) => item.category === leadingCategory);
   const leadShare = lead && trackedUsers > 0 ? Math.round((lead.organic_users / trackedUsers) * 100) : 0;
@@ -330,7 +335,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
                     <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-gray-950">{category.organic_users.toLocaleString()}</p>
                     <p className="mt-0.5 text-[11px] text-gray-400">Organic users · {share}% of tracked</p>
                   </div>
-                  <span className="pb-0.5 text-xs font-semibold tabular-nums"><Change current={category.organic_users} previous={category.previous_organic_users} /></span>
+                  <span className="pb-0.5 text-xs font-semibold tabular-nums"><Change current={category.organic_users} previous={category.previous_organic_users} hasPriorData={hasPriorData} /></span>
                 </div>
               </button>
             );
@@ -371,7 +376,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
         {visiblePages.length ? (
           <ol className="divide-y divide-gray-50">
             {visiblePages.map((page, index) => {
-              const opportunity = opportunityFor(page);
+              const opportunity = opportunityFor(page, hasPriorData);
               return (
                 <li key={page.page_path} className="group grid gap-3 px-2 py-4 md:grid-cols-[minmax(0,1fr)_90px_78px_86px_64px] md:items-center md:gap-4">
                   <div className="flex min-w-0 items-start gap-3">
@@ -396,7 +401,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
                     </div>
                   </div>
                   <MetricCell label="Organic users" value={page.organic_users.toLocaleString()} />
-                  <div className="flex items-center justify-between text-xs font-semibold md:justify-end"><span className="text-[10px] font-medium uppercase text-gray-400 md:hidden">Change</span><Change current={page.organic_users} previous={page.previous_organic_users} /></div>
+                  <div className="flex items-center justify-between text-xs font-semibold md:justify-end"><span className="text-[10px] font-medium uppercase text-gray-400 md:hidden">Change</span><Change current={page.organic_users} previous={page.previous_organic_users} hasPriorData={hasPriorData} /></div>
                   <MetricCell label="Search clicks" value={`${page.search_clicks.toLocaleString()} clicks`} />
                   <MetricCell label="Position" value={page.search_position == null ? "—" : page.search_position.toFixed(1)} />
                 </li>

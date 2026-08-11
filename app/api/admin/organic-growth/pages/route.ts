@@ -115,6 +115,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     range: { from, to, prior_from: priorFrom, prior_to: priorTo },
     available_from: earliestResult.data?.week_start || null,
+    has_prior_data: previous.length > 0,
     categories,
     pages: [
       ...current.map((row) => {

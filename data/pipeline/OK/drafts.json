@@ -85,7 +85,7 @@
             "description": "Applications can take weeks to months. Call 1-800-987-7767 to check status and provide any additional documentation requested."
           }
         ],
-        "processingTime": "Weeks to months depending on documentation review and assessments needed",
+        "processingTime": "Usually about 30 to 45 days after applying. Oklahoma publishes 30 days for aged and 60 days for blind or disabled, and its FAQ says up to 45 days.",
         "waitlist": "HCBS waivers have waitlists due to limited slots, basic ABD Medicaid does not have waitlists",
         "tip": "Apply even if your loved one's income is slightly over the limits, there may be spend-down options or other pathways to qualification.",
         "urls": [
@@ -101,8 +101,8 @@
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Birth certificate or other proof of age",
-        "Proof of Oklahoma residency (utility bill, lease, or state-issued document)",
+        "Something that shows Oklahoma residency, like a utility bill or a lease",
+        "Income and account information, since the interviewer will ask about both",
         "Social Security award letter or SSI determination",
         "Bank statements for all accounts (last 3 months)",
         "Property deeds or tax statements",
@@ -117,16 +117,16 @@
       ],
       "contacts": [
         {
-          "label": "SoonerCare Application Line",
-          "phone": "(800) 987-7767",
-          "description": "Apply for SoonerCare or check application status",
-          "hours": "Mon-Fri business hours"
+          "label": "Oklahoma Human Services (apply here if 65 or older, blind, or disabled)",
+          "phone": "(405) 522-5050",
+          "description": "They help you apply. Oklahoma prefers you apply online at okdhslive.org. Expect a call to set up an interview afterward.",
+          "hours": null
         },
         {
-          "label": "Oklahoma Health Care Authority",
-          "phone": null,
-          "description": "Main agency administering SoonerCare",
-          "hours": "Visit oklahoma.gov/ohca for contact information"
+          "label": "SoonerCare Helpline (general questions)",
+          "phone": "(800) 987-7767",
+          "description": "Answers general SoonerCare questions. Does not take the application for people 65 or older, blind, or disabled.",
+          "hours": "Mon-Fri business hours"
         }
       ],
       "applicationNotes": [
@@ -188,7 +188,8 @@
       "phone": "(800) 987-7767",
       "sourceUrl": "https://oklahoma.gov/ohca",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "advantage-waiver-hcbs",

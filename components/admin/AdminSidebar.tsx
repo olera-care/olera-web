@@ -74,6 +74,7 @@ const navSections: NavSection[] = [
     key: "operations",
     defaultOpen: true,
     items: [
+      { label: "Organic Growth", href: "/admin/organic-growth" },
       { label: "Analytics", href: "/admin/analytics" },
       { label: "Ad Boost", href: "/admin/ad-boost" },
       { label: "Automations", href: "/admin/automations" },

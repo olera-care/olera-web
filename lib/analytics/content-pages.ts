@@ -13,6 +13,27 @@
  */
 export type ContentPageClass = "benefit" | "guide";
 
+/** The public surfaces that make up Olera's organic growth engine. */
+export type OrganicPageCategory = "provider" | "benefit" | "editorial";
+
+const PROVIDER_APP_ROUTES = new Set([
+  "boost",
+  "campaign-outcome",
+  "caregivers",
+  "connections",
+  "growth",
+  "inbox",
+  "lead-outcome",
+  "matches",
+  "medjobs",
+  "onboarding",
+  "outreach",
+  "pro",
+  "profile",
+  "qna",
+  "reviews",
+]);
+
 /**
  * PostgREST `or=` filter selecting every page in a class. Values contain no
  * commas, so they are safe to join into the comma-separated or() syntax.
@@ -40,5 +61,52 @@ export function classifyContentPage(page: string): ContentPageClass | null {
   if (page === "/caregiver-support" || page.startsWith("/caregiver-support/")) {
     return "guide";
   }
+  return null;
+}
+
+/**
+ * Normalize GA4 paths and absolute Search Console URLs into one canonical key.
+ * Query strings and fragments are intentionally discarded because this is a
+ * content-performance view, not a campaign-attribution report.
+ */
+export function normalizeOrganicPagePath(value: string): string | null {
+  if (!value || value === "(not set)" || value === "Unknown") return null;
+  let path = value.trim();
+  try {
+    if (/^https?:\/\//i.test(path)) path = new URL(path).pathname;
+  } catch {
+    return null;
+  }
+  path = path.split(/[?#]/, 1)[0] || "/";
+  if (!path.startsWith("/")) path = `/${path}`;
+  try {
+    path = decodeURI(path);
+  } catch {
+    // A malformed escape should not prevent the remaining weekly collection.
+  }
+  if (path.length > 1) path = path.replace(/\/+$/, "");
+  return path;
+}
+
+/** Classify only canonical, public organic destinations. */
+export function classifyOrganicPage(value: string): OrganicPageCategory | null {
+  const page = normalizeOrganicPagePath(value);
+  if (!page) return null;
+
+  const provider = page.match(/^\/provider\/([^/]+)$/);
+  if (provider && !PROVIDER_APP_ROUTES.has(provider[1].toLowerCase())) return "provider";
+
+  if (
+    page === "/benefits" ||
+    page.startsWith("/benefits/") ||
+    page === "/senior-benefits"
+  ) {
+    return "benefit";
+  }
+
+  if (page === "/caregiver-support" || page.startsWith("/caregiver-support/")) {
+    return "editorial";
+  }
+
   return null;
 }

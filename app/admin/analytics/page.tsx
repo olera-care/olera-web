@@ -401,8 +401,8 @@ export default function AdminAnalyticsPage() {
   return (
     <div>
       <PulseHeader
-        title="Analytics"
-        kpiSuffix="page views"
+        title="Product signals"
+        kpiSuffix="provider profile views"
         statsPath="/api/admin/analytics/views/stats"
         range={range}
         onRangeChange={setRange}
@@ -485,7 +485,7 @@ export default function AdminAnalyticsPage() {
         <CollapsibleSection
           title="Ad Boost Purchase Funnel"
           storageKey="managedAdsFunnel"
-          defaultCollapsed={false}
+          defaultCollapsed={true}
           forceOpen={searchParams.get("ad_boost_funnel") === "1"}
           loading={loading && !!summary}
         >

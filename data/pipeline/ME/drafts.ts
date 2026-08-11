@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ME/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-04-20T23:39:07.860Z
+ * Last updated: 2026-08-11T01:23:05.728Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -327,6 +327,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "SNAP Hotline (start here)",
+          "phone": "(800) 442-6003",
+          "description": "Specific questions about SNAP eligibility and benefits",
+          "hours": "Mon-Fri 8am-4:30pm ET"
+        },
+        {
           "label": "Maine 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and SNAP information",
@@ -337,12 +343,6 @@ export const drafts: PipelineStateDrafts = {
           "phone": "(855) 797-4357",
           "description": "General assistance with Maine benefit programs",
           "hours": "Mon-Fri 8am-5pm ET"
-        },
-        {
-          "label": "SNAP Hotline",
-          "phone": "(800) 442-6003",
-          "description": "Specific questions about SNAP eligibility and benefits",
-          "hours": "Mon-Fri 8am-4:30pm ET"
         }
       ],
       "applicationNotes": [
@@ -401,7 +401,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(855) 797-4357",
+      "phone": "(800) 442-6003",
       "sourceUrl": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

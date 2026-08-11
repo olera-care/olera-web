@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.182Z
+ * Last updated: 2026-08-11T03:19:50.958Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -623,6 +623,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Wisconsin Aging and Disability Resource Center statewide locator (start here)",
+          "phone": "(844) 947-2372",
+          "description": "Wisconsin Aging and Disability Resource Center statewide locator — connects callers to the local ADRC or Tribal ADRS that begins Family Care screening and enrollment",
+          "hours": null
+        },
+        {
           "label": "ADRC Locator",
           "phone": null,
           "description": "Find your local Aging and Disability Resource Center for screening and application assistance",
@@ -690,7 +696,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "(844) 947-2372",
       "sourceUrl": "https://www.dhs.wisconsin.gov/familycare/apply.htm",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

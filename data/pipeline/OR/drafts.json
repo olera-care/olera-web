@@ -695,6 +695,12 @@
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(800) 723-3638",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Oregon 2-1-1",
           "phone": "2-1-1",
           "description": "Free 24/7 helpline for SNAP and other social services",
@@ -763,7 +769,7 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "1-855-503-FOOD",
+      "phone": "(800) 723-3638",
       "sourceUrl": "https://www.oregon.gov/odhs/food/pages/snap.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

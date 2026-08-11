@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.697Z
+ * Last updated: 2026-08-11T01:23:05.717Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -751,6 +751,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "DSS Customer Service (start here)",
+          "phone": "(855) 626-6632",
+          "description": "General benefits questions and account issues",
+          "hours": "Monday-Friday 8am-4:30pm"
+        },
+        {
           "label": "Connecticut 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for SNAP applications and all social services",
@@ -760,12 +766,6 @@ export const drafts: PipelineStateDrafts = {
           "label": "CT SNAP Hotline",
           "phone": "(877) 423-4746",
           "description": "SNAP-specific questions and application assistance",
-          "hours": "Monday-Friday 8am-4:30pm"
-        },
-        {
-          "label": "DSS Customer Service",
-          "phone": "(855) 626-6632",
-          "description": "General benefits questions and account issues",
           "hours": "Monday-Friday 8am-4:30pm"
         }
       ],
@@ -825,7 +825,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "2-1-1",
+      "phone": "(855) 626-6632",
       "sourceUrl": "https://portal.ct.gov/dss/snap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ID/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.702Z
+ * Last updated: 2026-08-11T03:19:50.936Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -284,6 +284,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Idaho Department of Health and Welfare (start here)",
+          "phone": "(877) 456-1233",
+          "description": "Idaho Department of Health and Welfare — Self-Reliance Medicaid application interview line",
+          "hours": null
+        },
+        {
           "label": "Idaho Department of Health and Welfare",
           "phone": null,
           "description": "Medicaid applications and waiver services",
@@ -352,7 +358,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(877) 456-1233",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -874,6 +880,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(877) 456-1233",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Idaho 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and SNAP information",
@@ -948,7 +960,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "2-1-1",
+      "phone": "(877) 456-1233",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/food-assistance",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.726Z
+ * Last updated: 2026-08-11T03:19:50.957Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -858,6 +858,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Vermont Department for Children and Families, Economic Services  (start here)",
+          "phone": "(800) 479-6151",
+          "description": "Vermont Department for Children and Families, Economic Services Division — Benefits Service Center",
+          "hours": null
+        },
+        {
           "label": "Vermont Economic Services Department",
           "phone": null,
           "description": "Statewide administration of 3SquaresVT benefits",
@@ -918,7 +924,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "(800) 479-6151",
       "sourceUrl": "https://dcf.vermont.gov/benefits/3SquaresVT/SNAP",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

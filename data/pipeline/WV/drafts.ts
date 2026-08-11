@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.728Z
+ * Last updated: 2026-08-11T03:19:50.958Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1522,6 +1522,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "West Virginia Bureau of Senior Services toll-free line (start here)",
+          "phone": "(877) 987-3646",
+          "description": "West Virginia Bureau of Senior Services toll-free line — statewide routing to the local Area Agency on Aging/family caregiver support provider",
+          "hours": null
+        },
+        {
           "label": "West Virginia Bureau for Senior Services",
           "phone": null,
           "description": "Main state office for connecting to local Area Agencies on Aging",
@@ -1580,7 +1586,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "HandHeart",
-      "phone": "2-1-1",
+      "phone": "(877) 987-3646",
       "sourceUrl": "https://acl.gov/programs/support-caregivers/national-family-caregiver-support-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

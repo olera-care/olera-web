@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.710Z
+ * Last updated: 2026-08-11T03:19:50.942Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -950,6 +950,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "State SNAP agency (start here)",
+          "phone": "(855) 373-4636",
+          "description": "Apply for SNAP and ask about your application",
+          "hours": null
+        },
+        {
           "label": "Missouri Department of Social Services",
           "phone": null,
           "description": "Local office finder and SNAP information",
@@ -1009,7 +1015,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "BowlFood",
-      "phone": null,
+      "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/food-assistance/apply-for-snap",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
@@ -2745,6 +2751,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Missouri Department of Health and Senior Services, Division of S (start here)",
+          "phone": "(866) 835-3505",
+          "description": "Missouri Department of Health and Senior Services, Division of Senior and Disability Services — HCBS Intake and Person-Centered Care Planning",
+          "hours": null
+        },
+        {
           "label": "Missouri Department of Social Services",
           "phone": null,
           "description": "Primary agency administering ADW - check website for local office numbers",
@@ -2813,7 +2825,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(866) 835-3505",
       "sourceUrl": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

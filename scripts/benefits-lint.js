@@ -10,6 +10,7 @@
  *
  * The checks encode findings from the 2026-08-07 round:
  *   medicare-not-required  34 Medicaid/PACE programs demanded a Medicare card
+ *   medicare-card-parts    "both parts" implies a second card that never existed
  *   self-contradiction     CT's savingsRange disagreed with its own tagline/FAQ
  *   null-lead-phone        WV VISIONS fell through to 2-1-1 silently
  *   generic-anchor         CO SNAP pointed at the EBT lost-card line
@@ -346,8 +347,38 @@ function checkNoTimeline(st, p) {
   });
 }
 
+/**
+ * Medicare issues ONE card, showing Part A and/or Part B. "Both parts A and B"
+ * implies a second card that does not exist, or that both enrollments are a
+ * prerequisite. Neither is true, and a family who cannot find their "Part B
+ * card" may not make the call at all.
+ *
+ * Distinct from medicare-not-required, which asks whether a Medicare card
+ * belongs in this program's list at all. This check assumes it does and only
+ * objects to the count. It therefore stays quiet when the more severe check
+ * already fires, and it deliberately catches the "(both parts)" phrasing that
+ * medicare-not-required's /parts a and b/ pattern misses -- that gap is how
+ * AL medicare-savings-programs shipped a pending letter on 2026-08-11.
+ */
+function checkMedicareCardParts(st, p) {
+  const docs = (p.documentsNeeded || []).slice(0, VISIBLE_DOCS);
+  docs.forEach((d, i) => {
+    if (!/\bboth\s+parts?\b|parts?\s+a\s+and\s+b/i.test(d)) return;
+    if (!/medicare/i.test(d)) return;
+    // Defer to medicare-not-required, which reports the same document as high.
+    if (/parts?\s+a\s+and\s+b/i.test(d) && !isMedicareProgram(p) && isMedicaidOrPace(p)) return;
+    report({
+      state: st, programId: p.id, program: p.name, check: 'medicare-card-parts', severity: 'low',
+      detail: `documentsNeeded[${i}] describes the Medicare card as having two parts. Medicare issues one card that lists Part A and/or Part B.`,
+      value: d,
+      fix: 'Say "Medicare card". Drop the parts wording entirely rather than explaining it, since the letter has no room to teach Medicare structure.',
+    });
+  });
+}
+
 const CHECKS = [
   checkMedicareNotRequired,
+  checkMedicareCardParts,
   checkSelfContradiction,
   checkNullLeadPhone,
   checkGenericAnchor,

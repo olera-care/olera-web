@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.709Z
+ * Last updated: 2026-08-11T04:24:05.519Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -113,7 +113,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or passport for age verification",
         "Proof of Minnesota residency (utility bill, lease agreement, or bank statement)",
         "Most recent Social Security award letter",
@@ -698,7 +698,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or SSI statement",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -1389,7 +1389,7 @@ export const drafts: PipelineStateDrafts = {
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Pension or retirement income statements",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Current medication list from doctor or pharmacy",
         "Recent medical records showing functional limitations",
         "Property tax statements or lease agreement",
@@ -2047,7 +2047,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Minnesota residency (utility bill, lease agreement, or state-issued document)",
         "Proof of income from last 30 days (Social Security award letter, pension statements, or pay stubs)",
         "Bank statements for all accounts (last 3 months)",
-        "Medicare card if applicable (Parts A and B)"
+        "Medicare card"
       ],
       "contacts": [
         {

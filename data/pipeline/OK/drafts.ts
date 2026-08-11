@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.719Z
+ * Last updated: 2026-08-11T06:38:44.307Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -90,7 +90,7 @@ export const drafts: PipelineStateDrafts = {
             "description": "Applications can take weeks to months. Call 1-800-987-7767 to check status and provide any additional documentation requested."
           }
         ],
-        "processingTime": "Weeks to months depending on documentation review and assessments needed",
+        "processingTime": "Usually about 30 to 45 days after applying. Oklahoma publishes 30 days for aged and 60 days for blind or disabled, and its FAQ says up to 45 days.",
         "waitlist": "HCBS waivers have waitlists due to limited slots, basic ABD Medicaid does not have waitlists",
         "tip": "Apply even if your loved one's income is slightly over the limits, there may be spend-down options or other pathways to qualification.",
         "urls": [
@@ -106,8 +106,8 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Birth certificate or other proof of age",
-        "Proof of Oklahoma residency (utility bill, lease, or state-issued document)",
+        "Something that shows Oklahoma residency, like a utility bill or a lease",
+        "Income and account information, since the interviewer will ask about both",
         "Social Security award letter or SSI determination",
         "Bank statements for all accounts (last 3 months)",
         "Property deeds or tax statements",
@@ -122,16 +122,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "SoonerCare Application Line",
-          "phone": "(800) 987-7767",
-          "description": "Apply for SoonerCare or check application status",
-          "hours": "Mon-Fri business hours"
+          "label": "Oklahoma Human Services (apply here if 65 or older, blind, or disabled)",
+          "phone": "(405) 522-5050",
+          "description": "They help you apply. Oklahoma prefers you apply online at okdhslive.org. Expect a call to set up an interview afterward.",
+          "hours": null
         },
         {
-          "label": "Oklahoma Health Care Authority",
-          "phone": null,
-          "description": "Main agency administering SoonerCare",
-          "hours": "Visit oklahoma.gov/ohca for contact information"
+          "label": "SoonerCare Helpline (general questions)",
+          "phone": "(800) 987-7767",
+          "description": "Answers general SoonerCare questions. Does not take the application for people 65 or older, blind, or disabled.",
+          "hours": "Mon-Fri business hours"
         }
       ],
       "applicationNotes": [
@@ -193,7 +193,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 987-7767",
       "sourceUrl": "https://oklahoma.gov/ohca",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "advantage-waiver-hcbs",
@@ -486,7 +487,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Proof of Oklahoma residency in PACE service area",
         "Social Security cards for participant and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
@@ -698,7 +699,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both parts)",
+        "Medicare card",
         "Social Security cards for all household members",
         "Most recent Social Security award letter or pension statements",
         "Pay stubs from the last 30 days (if still working)",
@@ -714,7 +715,7 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "OKDHS Main Line",
-          "phone": "(405) 521-3646",
+          "phone": "(405) 522-5050",
           "description": "Find your nearest Human Services Center",
           "hours": "Mon-Fri 8am-5pm CT"
         },
@@ -1973,10 +1974,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Oklahoma Human Services",
-          "phone": "(405) 521-3646",
-          "description": "Main line for ADvantage Waiver information and county office referrals",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "label": "ADvantage CareLine",
+          "phone": "(800) 435-4711",
+          "description": "The ADvantage program intake line. Call to start an application or to set up the phone assessment. Also (918) 933-4900.",
+          "hours": null
         },
         {
           "label": "Oklahoma 2-1-1",
@@ -2045,7 +2046,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "chore-services-title-iii",

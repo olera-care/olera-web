@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:23:05.736Z
+ * Last updated: 2026-08-11T04:24:05.526Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -121,7 +121,7 @@ export const drafts: PipelineStateDrafts = {
         "Property deeds or tax statements",
         "Life insurance policies with cash values",
         "Pre-need burial contracts or irrevocable burial trusts",
-        "Medicare cards (both parts if dual eligible)",
+        "Medicare cards",
         "Medical records documenting functional limitations",
         "Documentation of current care needs or services",
         "Power of attorney documents if someone else is applying"
@@ -467,7 +467,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Birth certificate or other proof of age",
         "Proof of Nevada residency (utility bill, lease agreement, or state-issued ID)",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card (if currently enrolled)",
         "Social Security award letter",
         "Current medication list from doctor or pharmacy",
@@ -671,7 +671,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or SSI award letter",
         "Pay stubs from last 30 days (if still working)",
         "Pension or retirement income statements",

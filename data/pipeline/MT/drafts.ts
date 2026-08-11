@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.944Z
+ * Last updated: 2026-08-11T04:24:05.521Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -106,7 +106,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Proof of Montana residency (utility bill, lease agreement, or state-issued document)",
         "Birth certificate or other proof of age",
         "Most recent Social Security award letter",
@@ -304,7 +304,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Proof of Montana residency (utility bill or state-issued document)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",

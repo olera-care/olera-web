@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.159Z
+ * Last updated: 2026-08-11T04:24:05.513Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1254,7 +1254,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (Parts A and B)",
+        "Medicare card",
         "Current Medicare Supplement or Medicare Advantage policy documents",
         "List of current prescription medications with dosages",
         "Recent Medicare Summary Notices or Explanation of Benefits",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/RI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.721Z
+ * Last updated: 2026-08-11T04:24:05.531Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Rhode Island residency (utility bill or lease)",
         "Birth certificate or passport for age verification",
         "Proof of citizenship or immigration status",
-        "Medicare card (both parts A and B)"
+        "Medicare card"
       ],
       "contacts": [
         {
@@ -463,7 +463,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if your loved one has coverage",
         "Social Security card",
         "Photo identification (driver's license or state ID)",
@@ -656,7 +656,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Parts A and B if applicable)",
+        "Medicare card if you have one",
         "Social Security award letter or statement",
         "Bank statements for all accounts (last 3 months)",
         "Investment statements (stocks, bonds, annuities)",
@@ -2513,7 +2513,7 @@ export const drafts: PipelineStateDrafts = {
         "Documentation of any other income sources",
         "Proof of dementia diagnosis (if applying under age 65)",
         "Documentation showing Medicaid ineligibility or denial letter",
-        "Medicare card (both parts)",
+        "Medicare card",
         "List of current medications and medical conditions"
       ],
       "contacts": [
@@ -2838,7 +2838,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card for your loved one",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Proof of Rhode Island residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",

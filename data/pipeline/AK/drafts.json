@@ -109,7 +109,7 @@
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or passport for proof of age",
         "Proof of Alaska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or disability determination",
@@ -311,7 +311,7 @@
         "Proof of Alaska residency (utility bill, lease agreement, or state-issued document)",
         "Social Security cards for all household members",
         "Social Security award letters or disability determination letters",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, property tax statements)",
@@ -327,7 +327,7 @@
         {
           "label": "Alaska Division of Senior & Disabilities Services (start here)",
           "phone": "(907) 269-3463",
-          "description": "Alaska Division of Senior & Disabilities Services \u2014 Central Applications Processing Supervisor",
+          "description": "Alaska Division of Senior & Disabilities Services — Central Applications Processing Supervisor",
           "hours": null
         },
         {
@@ -580,7 +580,7 @@
         ]
       },
       "intro": "If your loved one struggles to pay Medicare premiums, deductibles, or copays, three Medicare Savings Programs can help. QMB (Qualified Medicare Beneficiary) covers all Medicare out-of-pocket costs for individuals earning up to $1,663/month. SLMB and QI programs cover Medicare Part B premiums ($202.90/month in 2026) for those with slightly higher incomes up to $2,245/month.\n\nAlaska residents get higher income limits than the lower 48 states because of the higher cost of living. All three programs automatically qualify your loved one for Extra Help with prescription drug costs, paying no more than $12.65 per medication in 2026. Because these programs coordinate all Medicare payments, your loved one won't receive separate bills for covered services.\n\nQI has limited annual funding and fills up on a first-come, first-served basis. Your loved one must already be enrolled in Medicare Part A to apply.",
-      "savingsRange": "$2,435 \u2013 $4,870/year in 2026",
+      "savingsRange": "$2,435 – $4,870/year in 2026",
       "savingsSource": "Part B premiums plus potential deductibles and copays coverage",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -801,7 +801,7 @@
         ]
       },
       "intro": "If your loved one is on a fixed income, SNAP can provide monthly grocery money loaded onto an EBT card that works like a debit card at most stores and farmers markets. Because Alaska has expanded beyond federal rules, seniors and disabled adults can qualify with higher incomes than other states, up to $3,258/month for a single person.\n\nThe benefit amount depends on your loved one's net income after deductions for medical expenses over $35/month and housing costs. Households with all adults 60+ or disabled get simplified rules: higher asset limits ($4,500 instead of $3,000), longer certification periods (36 months), and no recertification interviews unless there's a problem.\n\nBecause this is a federal program, your loved one keeps SNAP benefits if they move between states. Alaska administers the program through local Division of Public Assistance offices statewide.",
-      "savingsRange": "$100 \u2013 $300/month in 2026",
+      "savingsRange": "$100 – $300/month in 2026",
       "savingsSource": "Monthly EBT benefits vary by household size and net income",
       "savingsVerified": false,
       "structuredEligibility": {

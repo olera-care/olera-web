@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.926Z
+ * Last updated: 2026-08-11T04:24:05.502Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -114,7 +114,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for applicant and spouse",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or passport for proof of age",
         "Proof of Alaska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or disability determination",
@@ -316,7 +316,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Alaska residency (utility bill, lease agreement, or state-issued document)",
         "Social Security cards for all household members",
         "Social Security award letters or disability determination letters",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, property tax statements)",

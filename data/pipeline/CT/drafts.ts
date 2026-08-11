@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:23:05.717Z
+ * Last updated: 2026-08-11T04:24:05.508Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -122,7 +122,7 @@ export const drafts: PipelineStateDrafts = {
         "Vehicle titles and registration",
         "Life insurance policies showing cash values",
         "Pension or retirement income statements",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Proof of citizenship or legal immigration status",
         "Pre-need burial contracts if applicable",
         "Medical records documenting disability (if under 65)",
@@ -350,7 +350,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card for applicant",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or passport for age verification",
         "Proof of Connecticut residency (utility bill, lease, or driver's license)",
         "Most recent Social Security award letter",
@@ -521,7 +521,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card (if enrolled)",
         "Social Security card",
         "Valid government-issued photo ID or driver's license",

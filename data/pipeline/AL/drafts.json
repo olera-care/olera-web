@@ -118,7 +118,7 @@
         "Proof of Alabama residency (utility bill, lease, or state-issued document)",
         "Documentation of any asset transfers in the last 60 months",
         "Pre-need burial contracts or irrevocable burial trusts",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Property tax statements for all real estate owned"
       ],
       "contacts": [
@@ -494,7 +494,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both parts)",
+        "Medicare card",
         "Social Security award letter or SSI statement",
         "Pay stubs from last 30 days (if working)",
         "Pension or retirement income statements",

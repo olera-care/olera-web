@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.956Z
+ * Last updated: 2026-08-11T04:24:05.534Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -109,7 +109,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Birth certificate or passport for proof of age",
         "Proof of Utah residency (utility bill, lease agreement, or state-issued document)",
         "Most recent Social Security award letter",
@@ -471,7 +471,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or most recent statement",
         "Pay stubs from last 30 days (if working)",
         "Bank statements for all accounts (last 3 months)",

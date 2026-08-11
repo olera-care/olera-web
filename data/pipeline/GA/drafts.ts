@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.934Z
+ * Last updated: 2026-08-11T06:07:44.856Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,7 +27,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, CCSP provides home care services as an alternative to nursing home placement. The program covers personal care, meal preparation, light housekeeping, respite care, and home-delivered meals, all while your loved one stays in their own home.\n\nBecause CCSP is a Medicaid waiver program, it follows nursing home financial eligibility rules. Your loved one must qualify for intermediate nursing facility level of care (a clinical assessment of whether they need daily assistance with basic activities). Services are limited to the average annual cost of Medicaid nursing facility care in Georgia.\n\nThe program operates through 12 regional Area Agencies on Aging statewide, but waitlists are common because the program prioritizes those with the greatest need.",
+      "intro": "If your loved one is 65+ and needs daily help with bathing, dressing, or medication management, EDWP provides home care services as an alternative to nursing home placement. The program covers personal care, meal preparation, light housekeeping, respite care, and home-delivered meals, all while your loved one stays in their own home.\n\nBecause EDWP is a Medicaid waiver program, it follows nursing home financial eligibility rules. Your loved one must qualify for intermediate nursing facility level of care (a clinical assessment of whether they need daily assistance with basic activities). Services are limited to the average annual cost of Medicaid nursing facility care in Georgia.\n\nThe program operates through 12 regional Area Agencies on Aging statewide, but waitlists are common because the program prioritizes those with the greatest need.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -68,7 +68,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional Area Agency on Aging for functional assessment, Medicaid application comes after CCSP evaluation.",
+        "summary": "Call your regional Area Agency on Aging for functional assessment, Medicaid application comes after EDWP evaluation.",
         "steps": [
           {
             "step": 1,
@@ -88,7 +88,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Apply for Medicaid",
-            "description": "After CCSP assessment, apply for Medicaid through your county Department of Family and Children Services office."
+            "description": "After EDWP assessment, apply for Medicaid through your county Department of Family and Children Services office."
           },
           {
             "step": 5,
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Georgia Area Agencies on Aging",
           "phone": "(866) 552-4464",
-          "description": "Primary contact for CCSP assessment and intake",
+          "description": "Front door for the waiver assessment. Press option 2 for an ADRC counselor. Other options go to different programs.",
           "hours": "Business hours vary by region"
         },
         {
@@ -137,11 +137,11 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "This program was formerly called the Community Care Services Program (CCSP) — some agencies still use the old name",
-        "You may be potentially Medicaid eligible only after CCSP admission, the functional assessment comes before financial eligibility",
+        "This program was formerly called the Community Care Services Program (CCSP). Some agencies still use the old name.",
+        "You may be potentially Medicaid eligible only after EDWP admission, the functional assessment comes before financial eligibility",
         "The home may be subject to Medicaid Estate Recovery after your loved one's death, even though it's exempt during benefits",
         "Regional variations exist in providers and waitlist times, some Area Agencies have more immediate availability than others",
-        "Your loved one must choose between CCSP and other waiver programs, they cannot participate in multiple waivers simultaneously"
+        "Your loved one must choose between EDWP and other waiver programs, they cannot participate in multiple waivers simultaneously"
       ],
       "relatedPrograms": [
         "Georgia Medicaid",
@@ -156,8 +156,8 @@ export const drafts: PipelineStateDrafts = {
           "answer": "No, if your loved one lives in the home or intends to return, home equity cannot exceed $752,000 in 2026. However, the home is completely exempt if a spouse, dependent child, or certain relatives live there regardless of value."
         },
         {
-          "question": "What happens if my loved one needs more care than CCSP provides?",
-          "answer": "CCSP services are capped at the average annual cost of nursing facility care in Georgia. If your loved one's needs exceed this limit, they may need to transition to nursing home care or supplement with private-pay services."
+          "question": "What happens if my loved one needs more care than EDWP provides?",
+          "answer": "EDWP services are capped at the average annual cost of nursing facility care in Georgia. If your loved one's needs exceed this limit, they may need to transition to nursing home care or supplement with private-pay services."
         },
         {
           "question": "How long is the waitlist really?",
@@ -168,16 +168,16 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes, adult children can initiate the application process. However, your loved one must participate in the functional assessment, and you may need power of attorney or guardianship to complete financial portions of the Medicaid application."
         },
         {
-          "question": "Can my loved one get CCSP and other Medicaid waiver services at the same time?",
-          "answer": "No, your loved one can only participate in one waiver program at a time. They must choose between CCSP and other Georgia Medicaid waivers like the Comprehensive Supports Waiver."
+          "question": "Can my loved one get EDWP and other Medicaid waiver services at the same time?",
+          "answer": "No, your loved one can only participate in one waiver program at a time. They must choose between EDWP and other Georgia Medicaid waivers like the Comprehensive Supports Waiver."
         },
         {
           "question": "What if my loved one's income is slightly over the Medicaid limit?",
           "answer": "SSI recipients automatically qualify financially. For others, Georgia follows complex Medicaid nursing facility income rules. Contact your county Department of Family and Children Services to determine eligibility based on your loved one's specific situation."
         },
         {
-          "question": "Does CCSP cover 24-hour care?",
-          "answer": "No, CCSP provides intermittent services like personal care visits, meal delivery, and respite care. If your loved one needs 24-hour supervision, they may not be appropriate for community-based care and might need nursing facility placement."
+          "question": "Does EDWP cover 24-hour care?",
+          "answer": "No, EDWP provides intermittent services like personal care visits, meal delivery, and respite care. If your loved one needs 24-hour supervision, they may not be appropriate for community-based care and might need nursing facility placement."
         },
         {
           "question": "What happens to my loved one's estate after they die?",
@@ -197,7 +197,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://aging.georgia.gov",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "home-community-based-services",
@@ -516,7 +516,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (showing Parts A and B)",
+        "Medicare card",
         "Social Security award letter or SSI award letter",
         "Pay stubs from last 3 months (if working)",
         "Bank statements for all accounts (last 3 months)",
@@ -762,10 +762,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Senior SNAP Application Line",
-          "phone": "(404) 370-6236",
+          "label": "DFCS Customer Contact Center (Senior SNAP)",
+          "phone": "(877) 423-4746",
           "description": "Request Senior SNAP application by mail",
-          "hours": "Business hours"
+          "hours": "Mon-Fri, Eastern Time"
         },
         {
           "label": "Georgia 2-1-1",
@@ -825,7 +825,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(404) 370-6236",
       "sourceUrl": "https://dfcs.georgia.gov/services/snap/senior-snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "liheap-energy-assistance",

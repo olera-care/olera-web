@@ -473,7 +473,7 @@
       "documentsNeeded": [
         "Current Indiana Medicaid card",
         "Social Security card",
-        "Medicare card (both parts if applicable)",
+        "Medicare card if you have one",
         "Proof of Indiana residency (utility bill or state-issued document)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
@@ -590,7 +590,7 @@
         ]
       },
       "intro": "If your loved one has Medicare and struggles to pay premiums, deductibles, or copays, Indiana's Medicare Savings Programs can help. These programs pay Medicare costs for people with income up to $2,433/month (single) or $3,281/month (married couple), higher limits than most states offer.\n\nThere are three tiers: QMB pays all Medicare costs including premiums, deductibles, and copays. SLMB and QI pay only the Medicare Part B premium (about $185/month in 2026). Because QMB covers the most costs, your loved one cannot be balance-billed by providers, they handle Medicare costs completely.\n\nIncome limits update each April. Asset limits are $9,950 for a single person or $14,910 for a married couple, not counting the home, one car, or burial funds up to $1,500.",
-      "savingsRange": "$185 \u2013 $3,000/year in 2026",
+      "savingsRange": "$185 – $3,000/year in 2026",
       "savingsSource": "Medicare Part B premium plus potential deductibles and copays",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -700,7 +700,7 @@
       },
       "documentsNeeded": [
         "Social Security award letter (SSA-1099)",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or driver's license for identification",
         "Proof of Indiana residency (utility bill or lease)",
         "Bank statements for all accounts (last 3 months)",
@@ -792,7 +792,7 @@
       "id": "snap-food-benefits",
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "If your loved one is 60+ and on a fixed income, they may qualify for $100\u2013400/month toward groceries.",
+      "tagline": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400/month toward groceries.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -805,8 +805,8 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to afford nutritious food on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card to buy groceries at most stores. Benefits range from $100\u2013400+ per month depending on income and household size, a 2-person elderly household with $1,200 in monthly income might receive $415/month.\n\nBecause your loved one is 60+, they skip the gross income test and work requirements that apply to younger people. Indiana focuses on net income after subtracting medical expenses over $35/month and high shelter costs. Social Security, pensions, and VA benefits count as income, but the primary home and household goods don't count toward asset limits.\n\nAsset limits are $4,500 for households with someone 60+ or disabled. Bank accounts, non-primary real estate, and vehicles count, but retirement accounts and life insurance are exempt. You apply through your loved one's county Division of Family Resources office, and benefits typically start within 30 days.",
-      "savingsRange": "$1,200 \u2013 $4,800/year",
+      "intro": "If your loved one struggles to afford nutritious food on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card to buy groceries at most stores. Benefits range from $100–400+ per month depending on income and household size, a 2-person elderly household with $1,200 in monthly income might receive $415/month.\n\nBecause your loved one is 60+, they skip the gross income test and work requirements that apply to younger people. Indiana focuses on net income after subtracting medical expenses over $35/month and high shelter costs. Social Security, pensions, and VA benefits count as income, but the primary home and household goods don't count toward asset limits.\n\nAsset limits are $4,500 for households with someone 60+ or disabled. Bank accounts, non-primary real estate, and vehicles count, but retirement accounts and life insurance are exempt. You apply through your loved one's county Division of Family Resources office, and benefits typically start within 30 days.",
+      "savingsRange": "$1,200 – $4,800/year",
       "savingsSource": "Based on typical monthly SNAP benefits of $100-400 for elderly households",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -1700,8 +1700,8 @@
         ]
       },
       "intro": "If your loved one is 55+ and unemployed with limited income, SCSEP provides paid job training in community service roles like child care aide, customer service, or health care worker. Your loved one earns minimum wage for about 20 hours per week while developing job-ready skills, with the goal of transitioning to permanent employment within 6 months.\n\nBecause this program combines income, training, and work experience, it helps older adults rebuild confidence and skills while earning money. Indiana has 1,059 available positions across multiple providers, but slots are limited and waitlists are common. Priority goes to veterans, adults 65+, those with disabilities, and rural residents.",
-      "savingsRange": "$2,900 \u2013 $3,770/year in 2026",
-      "savingsSource": "Federal minimum wage ($7.25/hour) \u00d7 20 hours/week \u00d7 52 weeks",
+      "savingsRange": "$2,900 – $3,770/year in 2026",
+      "savingsSource": "Federal minimum wage ($7.25/hour) × 20 hours/week × 52 weeks",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1927,7 +1927,7 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call 800-869-0212 for Senior Law Project intake, Monday\u2013Friday 8:30am\u20135pm, or complete online screening at indianalegalservices.org.",
+        "summary": "Call 800-869-0212 for Senior Law Project intake, Monday–Friday 8:30am–5pm, or complete online screening at indianalegalservices.org.",
         "steps": [
           {
             "step": 1,
@@ -2133,7 +2133,7 @@
     }
   ],
   "stateOverview": {
-    "intro": "Indiana offers 12 programs to help your aging loved one, 8 direct benefits they can qualify for plus 3 free resources available to all seniors. These range from $100\u2013400/month for groceries through SNAP to comprehensive medical care through Hoosier Care Connect, plus home weatherization worth thousands in energy savings. Most benefits require income verification, but resources like Indiana SHIP Medicare counseling and Senior Legal Aid are free regardless of income.\n\nStart by checking if your loved one qualifies for the PathWays for Aging programs if they need daily care help, or Medicare Savings Programs if they're struggling with Medicare costs. Then explore the free resources, even high-income families can use Indiana SHIP for Medicare guidance and the Ombudsman Program for nursing home advocacy.",
+    "intro": "Indiana offers 12 programs to help your aging loved one, 8 direct benefits they can qualify for plus 3 free resources available to all seniors. These range from $100–400/month for groceries through SNAP to comprehensive medical care through Hoosier Care Connect, plus home weatherization worth thousands in energy savings. Most benefits require income verification, but resources like Indiana SHIP Medicare counseling and Senior Legal Aid are free regardless of income.\n\nStart by checking if your loved one qualifies for the PathWays for Aging programs if they need daily care help, or Medicare Savings Programs if they're struggling with Medicare costs. Then explore the free resources, even high-income families can use Indiana SHIP for Medicare guidance and the Ombudsman Program for nursing home advocacy.",
     "startHere": [
       {
         "name": "Indiana PathWays for Aging Waiver",
@@ -2148,7 +2148,7 @@
       {
         "name": "SNAP",
         "programId": "indiana-snap",
-        "why": "Provides $100\u2013400/month for groceries with no asset limits for seniors 60+."
+        "why": "Provides $100–400/month for groceries with no asset limits for seniors 60+."
       },
       {
         "name": "Indiana SHIP",

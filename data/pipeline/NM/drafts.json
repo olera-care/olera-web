@@ -85,7 +85,7 @@
       },
       "documentsNeeded": [
         "Medicaid card or approval letter",
-        "Medicare card (both parts) if applicable",
+        "Medicare card if you have one",
         "Social Security award letter",
         "Proof of New Mexico residency (utility bill or state ID)",
         "Current medication list from doctor or pharmacy",
@@ -251,7 +251,7 @@
         "urls": []
       },
       "documentsNeeded": [
-        "Medicare card (both parts if applicable)",
+        "Medicare card if you have one",
         "Medicaid card (if applicable)",
         "Valid government-issued photo ID",
         "Social Security card",
@@ -575,8 +575,8 @@
         ]
       },
       "intro": "If your loved one is struggling to afford fresh fruits and vegetables on a fixed income, New Mexico's Senior Farmers' Market Nutrition Program provides up to $100 per year (2024) on an electronic card to shop at local farmers markets and roadside stands. The program targets seniors with household income at or below 185% of federal poverty level, $2,739/month for a single person in 2024.\n\nBecause this program operates on a first-come, first-served basis and typically opens applications in mid-February, timing matters. Your loved one must be 60+ (or 55+ if Native American) and reapply annually even if they participated before. The electronic card works only for locally grown fresh fruits, vegetables, herbs, and honey at authorized New Mexico farmers and markets.\n\nBecause funding is limited each year, the program may close once allocations are exhausted. Benefits are distributed in July to approved applicants, so early application in February-March gives your loved one the best chance of receiving assistance.",
-      "savingsRange": "Up to $100/year in 2024",
-      "savingsSource": "Annual electronic benefit card for fresh produce at farmers markets",
+      "savingsRange": "Up to $50 per eligible senior for the 2026 season (state funds, when available, can raise this to up to $100)",
+      "savingsSource": "New Mexico WIC publishes federal benefits of up to $50.00 per eligible senior or elder, plus state benefits of up to $100.00 per farmers market season \"upon availability.\" These are maximums, not typical awards. NMDOH's 2026 announcement describes $30 to $50 in benefits, so $50 is the amount actually being issued unless state funds are released. Benefits load onto a Senior Shopper Card for fresh fruits, vegetables, herbs, and honey at participating farmers markets and roadside stands.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -653,19 +653,17 @@
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID or birth certificate for age verification",
-        "Social Security award letter or other proof of income from all sources",
-        "SNAP, TEFAP, or CSFP participation letter (if applicable for automatic qualification)",
-        "Proof of New Mexico residency (utility bill, lease agreement, or state-issued document)",
-        "Documentation showing household size and composition",
-        "Most recent bank statements if self-employed or have irregular income"
+        "Date of birth and your New Mexico mailing address, city, ZIP, and county. No ID or birth certificate copy is required, you certify your age on the form.",
+        "Number of people in your household and your total gross monthly household income. No pay stubs or award letters are required, you report the amount yourself.",
+        "Whether anyone in the household gets SNAP, FDPIR, or CSFP, plus the EDG number if you have one, and last year's Senior Shopper Card number if you still have the card.",
+        "A signature and the date. Two eligible seniors in one household can use the same form."
       ],
       "contacts": [
         {
           "label": "NM SFMNP Main Line",
           "phone": "(505) 469-0548",
           "description": "Primary application and program information line",
-          "hours": "Business hours, Mon-Fri"
+          "hours": null
         },
         {
           "label": "NM SFMNP Secondary",
@@ -678,6 +676,12 @@
           "phone": "(575) 528-5197",
           "description": "Local office line with mobile support",
           "hours": "Business hours, mobile: (575) 649-0754"
+        },
+        {
+          "label": "New Mexico WIC State Office (toll-free backup)",
+          "phone": "(866) 867-3124",
+          "description": "Also reachable at doh.fmnp@doh.nm.gov, the shared program mailbox.",
+          "hours": "Mon-Fri 8am-5pm MT"
         }
       ],
       "applicationNotes": [
@@ -739,7 +743,8 @@
       "phone": "(505) 469-0548",
       "sourceUrl": "https://www.nmwic.org/fmnp/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "senior-employment-training-program",

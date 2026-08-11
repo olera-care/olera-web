@@ -298,6 +298,12 @@
       ],
       "contacts": [
         {
+          "label": "MassOptions (start here)",
+          "phone": "(800) 243-4636",
+          "description": "Ask for a referral to your local ASAP, which does the clinical assessment that enrolls you in the Frail Elder Waiver",
+          "hours": "Monday-Friday 9am-5pm"
+        },
+        {
           "label": "Find Your Local ASAP",
           "phone": null,
           "description": "Regional Aging Services Access Points handle FEW applications and assessments",
@@ -365,7 +371,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(800) 841-2900",
+      "phone": "(800) 243-4636",
       "sourceUrl": "https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",

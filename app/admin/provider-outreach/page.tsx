@@ -8,6 +8,7 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
+import { VariantTestingPanel } from "@/components/admin/provider-outreach/VariantTestingPanel";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,7 +30,8 @@ type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
 // "hidden" is a special tab for viewing admin-hidden providers
-type UITab = "needs_email" | "ready" | "hidden" | Exclude<OutreachStage, "not_contacted">;
+// "email_testing" is for variant A/B testing
+type UITab = "needs_email" | "ready" | "hidden" | "email_testing" | Exclude<OutreachStage, "not_contacted">;
 
 const UI_TABS: UITab[] = [
   "needs_email",
@@ -41,6 +43,7 @@ const UI_TABS: UITab[] = [
   "claimed",
   "archived",  // Hard terminal
   "hidden",  // Admin-hidden providers (for recovery)
+  "email_testing",  // Variant A/B testing
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -53,6 +56,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   claimed: "Claimed",
   archived: "Archived",
   hidden: "Hidden",
+  email_testing: "Email Testing",
 };
 
 // Database stage labels (for search results showing provider's actual stage)
@@ -6518,7 +6522,13 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
-      {/* Content - Search results (flat list) or City-grouped view */}
+      {/* Content - Email Testing tab has its own panel */}
+      {activeTab === "email_testing" ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <VariantTestingPanel />
+        </div>
+      ) : (
+      /* Content - Search results (flat list) or City-grouped view */
       <div className="bg-white rounded-xl border border-gray-200">
         {!selectedState ? (
           // No state selected - prompt user to select a state from the header
@@ -6931,6 +6941,7 @@ export default function ProviderOutreachPage() {
           </>
         )}
       </div>
+      )}
 
       {/* Summary */}
       {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (

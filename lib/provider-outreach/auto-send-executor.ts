@@ -22,6 +22,8 @@ import {
   PROVIDER_OUTREACH_REPLY_TO,
   type ProviderOutreachTemplateKey,
 } from "./index";
+import { getDay0Template, shouldUseVariant } from "./variant-testing";
+import { renderVariantEmail } from "./email-utils";
 
 type DB = ReturnType<typeof getServiceClient>;
 
@@ -261,7 +263,18 @@ export async function executeProviderOutreachTask(taskId: string): Promise<Execu
       }
     );
 
-    const rendered = renderEmail(template_key, context);
+    // Check if this is a Day 0 email with variant assigned
+    const variantId = payload.variant_id as string | undefined;
+    let rendered: { subject: string; html: string };
+
+    if (shouldUseVariant(template_key) && variantId) {
+      // Use variant template for Day 0 email with full layout
+      const variantDraft = await getDay0Template(context, variantId);
+      rendered = renderVariantEmail(variantDraft, context);
+    } else {
+      // Use standard template
+      rendered = renderEmail(template_key, context);
+    }
 
     // 6. Send via Resend
     const { success, error: sendError, emailLogId } = await sendEmail({
@@ -289,12 +302,20 @@ export async function executeProviderOutreachTask(taskId: string): Promise<Execu
       sent_at: new Date().toISOString(),
     });
 
-    await logTouchpoint(db, provider_id, "email_sent", {
+    const touchpointDetails: Record<string, unknown> = {
       template_key,
       cadence_day,
       email: recipientEmail,
       email_log_id: emailLogId,
-    });
+    };
+
+    // Include variant info if this was a variant email
+    if (variantId) {
+      touchpointDetails.variant_id = variantId;
+      touchpointDetails.variant_key = payload.variant_key;
+    }
+
+    await logTouchpoint(db, provider_id, "email_sent", touchpointDetails);
 
     return { task_id: taskId, outcome: "sent" };
   } catch (err) {

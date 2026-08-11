@@ -334,6 +334,42 @@ export function renderEmail(
 }
 
 /**
+ * Render a variant email with full HTML layout.
+ *
+ * Used by auto-send-executor when sending Day 0 variant emails.
+ * Takes pre-substituted subject/body and wraps with proper Olera branding.
+ *
+ * @param variantDraft - Already-substituted subject and body
+ * @param context - Provider context for footer links
+ * @returns Rendered email with full HTML layout
+ */
+export function renderVariantEmail(
+  variantDraft: { subject: string; body: string },
+  context: TemplateContext
+): RenderedEmail {
+  // Build substitution variables for footer
+  const vars = buildVars(context);
+
+  // Convert body markdown to polished HTML
+  const bodyHtml = bodyToPolishedHtml(variantDraft.body);
+  const footerHtml = composePolishedFooterHtml(vars);
+
+  // Wrap in polished layout with Day 0 category label
+  const html = polishedLayout(bodyHtml, footerHtml, {
+    categoryLabel: getCategoryLabel("intro"),
+  });
+
+  // Build plain text version
+  const text = variantDraft.body + composePolishedFooterPlainText(vars);
+
+  return {
+    subject: variantDraft.subject,
+    html,
+    text,
+  };
+}
+
+/**
  * Preview an email without sending.
  * Returns the rendered email plus metadata for admin review.
  *

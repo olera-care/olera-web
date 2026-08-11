@@ -1,0 +1,249 @@
+import { createSign } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { reportingWindowUtc, validateCompleteWeek } from "./dates";
+import {
+  GA4_PROPERTY_ID,
+  GROWTH_CHANNELS,
+  GROWTH_DEFINITION_VERSION,
+  GROWTH_TIMEZONE,
+  GSC_SITE_URL,
+  type GrowthGa4Metrics,
+  type GrowthGscMetrics,
+  type GrowthMarketplaceMetrics,
+  type GrowthSearchRow,
+  type GrowthSnapshot,
+} from "./types";
+
+interface GoogleServiceAccount {
+  client_email: string;
+  private_key: string;
+  token_uri?: string;
+}
+
+interface CollectOptions {
+  weekStart: string;
+  weekEnd: string;
+  ga4Only?: boolean;
+  db: SupabaseClient;
+}
+
+function base64url(value: string | Buffer): string {
+  return Buffer.from(value).toString("base64url");
+}
+
+function readServiceAccount(): GoogleServiceAccount {
+  const inline = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  const encoded = process.env.GOOGLE_SERVICE_ACCOUNT_JSON_BASE64;
+  let raw: string | null = null;
+
+  if (inline) raw = inline;
+  else if (encoded) raw = Buffer.from(encoded, "base64").toString("utf8");
+  else {
+    const configured = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    const candidate = resolve(configured || "secrets/ga4-service-account.json");
+    if (existsSync(candidate)) raw = readFileSync(candidate, "utf8");
+  }
+
+  if (!raw) {
+    throw new Error(
+      "Google credentials are missing. Set GOOGLE_SERVICE_ACCOUNT_JSON in Vercel or place the read-only credential at secrets/ga4-service-account.json locally.",
+    );
+  }
+
+  let parsed: GoogleServiceAccount;
+  try {
+    parsed = JSON.parse(raw) as GoogleServiceAccount;
+  } catch {
+    throw new Error("Google service-account credentials are not valid JSON.");
+  }
+  if (!parsed.client_email || !parsed.private_key) {
+    throw new Error("Google service-account credentials need client_email and private_key.");
+  }
+  return { ...parsed, private_key: parsed.private_key.replace(/\\n/g, "\n") };
+}
+
+async function getGoogleAccessToken(): Promise<string> {
+  const credentials = readServiceAccount();
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+  const claim = base64url(
+    JSON.stringify({
+      iss: credentials.client_email,
+      scope: [
+        "https://www.googleapis.com/auth/analytics.readonly",
+        "https://www.googleapis.com/auth/webmasters.readonly",
+      ].join(" "),
+      aud: credentials.token_uri || "https://oauth2.googleapis.com/token",
+      iat: now,
+      exp: now + 3600,
+    }),
+  );
+  const unsigned = `${header}.${claim}`;
+  const signature = createSign("RSA-SHA256").update(unsigned).sign(credentials.private_key);
+  const assertion = `${unsigned}.${base64url(signature)}`;
+
+  const response = await fetch(credentials.token_uri || "https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion,
+    }),
+  });
+  if (!response.ok) throw new Error(`Google token exchange failed (${response.status}): ${await response.text()}`);
+  const payload = (await response.json()) as { access_token?: string };
+  if (!payload.access_token) throw new Error("Google token exchange returned no access token.");
+  return payload.access_token;
+}
+
+async function googlePost<T>(url: string, token: string, body: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`Google API request failed (${response.status}): ${await response.text()}`);
+  return (await response.json()) as T;
+}
+
+type Ga4Report = {
+  rows?: Array<{
+    dimensionValues?: Array<{ value?: string }>;
+    metricValues?: Array<{ value?: string }>;
+  }>;
+};
+
+async function pullGa4(token: string, weekStart: string, weekEnd: string): Promise<GrowthGa4Metrics> {
+  const url = `https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY_ID}:runReport`;
+  const dateRanges = [{ startDate: weekStart, endDate: weekEnd }];
+  const overview = await googlePost<Ga4Report>(url, token, {
+    dateRanges,
+    metrics: ["totalUsers", "newUsers", "sessions", "averageSessionDuration", "engagementRate", "screenPageViews"].map((name) => ({ name })),
+  });
+  const values = overview.rows?.[0]?.metricValues?.map((metric) => Number(metric.value || 0));
+  if (!values || values.length < 6) throw new Error("GA4 returned no overview row for the reporting week.");
+
+  const channelReport = await googlePost<Ga4Report>(url, token, {
+    dateRanges,
+    dimensions: [{ name: "sessionDefaultChannelGroup" }],
+    metrics: [{ name: "totalUsers" }],
+    orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
+    limit: 30,
+  });
+  const allChannels = Object.fromEntries(
+    (channelReport.rows || []).map((row) => [
+      row.dimensionValues?.[0]?.value || "Unknown",
+      Number(row.metricValues?.[0]?.value || 0),
+    ]),
+  );
+  const channels = Object.fromEntries(GROWTH_CHANNELS.map((name) => [name, allChannels[name] || 0]));
+
+  return {
+    overview: {
+      total_users: values[0],
+      new_users: values[1],
+      sessions: values[2],
+      average_session_duration_seconds: values[3],
+      engagement_rate: values[4],
+      page_views: values[5],
+    },
+    channels,
+  };
+}
+
+type GscResponse = {
+  rows?: Array<{ keys?: string[]; clicks?: number; impressions?: number; ctr?: number; position?: number }>;
+};
+
+function normalizeSearchRow(row: NonNullable<GscResponse["rows"]>[number]): GrowthSearchRow {
+  return {
+    label: row.keys?.[0] || "",
+    clicks: Math.round(row.clicks || 0),
+    impressions: Math.round(row.impressions || 0),
+    ctr: row.ctr || 0,
+    position: row.position || 0,
+  };
+}
+
+async function pullGsc(token: string, weekStart: string, weekEnd: string): Promise<GrowthGscMetrics> {
+  const url = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(GSC_SITE_URL)}/searchAnalytics/query`;
+  const query = (dimensions?: string[], rowLimit = 25) => googlePost<GscResponse>(url, token, {
+    startDate: weekStart,
+    endDate: weekEnd,
+    dataState: "final",
+    rowLimit,
+    ...(dimensions ? { dimensions } : {}),
+  });
+  const [overview, queries, pages] = await Promise.all([
+    query(undefined, 1),
+    query(["query"], 15),
+    query(["page"], 15),
+  ]);
+  const performance = normalizeSearchRow(overview.rows?.[0] || {});
+  return {
+    performance: {
+      clicks: performance.clicks,
+      impressions: performance.impressions,
+      ctr: performance.ctr,
+      position: performance.position,
+    },
+    top_queries: (queries.rows || []).map(normalizeSearchRow),
+    top_pages: (pages.rows || []).map(normalizeSearchRow),
+    data_state: "final",
+  };
+}
+
+async function exactCount(query: PromiseLike<{ count: number | null; error: { message: string } | null }>, label: string) {
+  const result = await query;
+  if (result.error) throw new Error(`${label} query failed: ${result.error.message}`);
+  return result.count || 0;
+}
+
+async function pullMarketplace(
+  db: SupabaseClient,
+  weekStart: string,
+  weekEnd: string,
+  organicUsers: number,
+): Promise<GrowthMarketplaceMetrics> {
+  const { from, to } = reportingWindowUtc(weekStart, weekEnd);
+  const [inquiries, questions, benefits, answerRows] = await Promise.all([
+    exactCount(db.from("connections").select("id", { count: "exact", head: true }).eq("type", "inquiry").gte("created_at", from).lt("created_at", to), "Inquiries"),
+    exactCount(db.from("provider_activity").select("id", { count: "exact", head: true }).eq("event_type", "question_received").gte("created_at", from).lt("created_at", to), "Questions"),
+    exactCount(db.from("seeker_activity").select("id", { count: "exact", head: true }).eq("event_type", "benefits_completed").gte("created_at", from).lt("created_at", to), "Benefits completions"),
+    db.from("provider_activity").select("provider_id").eq("event_type", "question_responded").gte("created_at", from).lt("created_at", to).limit(50_000),
+  ]);
+  if (answerRows.error) throw new Error(`Provider responses query failed: ${answerRows.error.message}`);
+  const providersAnswering = new Set((answerRows.data || []).map((row) => row.provider_id).filter(Boolean)).size;
+  return {
+    inquiries,
+    questions_asked: questions,
+    benefits_completed: benefits,
+    providers_answering_questions: providersAnswering,
+    organic_users_to_inquiry_rate_directional: organicUsers > 0 ? inquiries / organicUsers : null,
+  };
+}
+
+export async function collectGrowthSnapshot(options: CollectOptions): Promise<GrowthSnapshot> {
+  validateCompleteWeek(options.weekStart, options.weekEnd);
+  const token = await getGoogleAccessToken();
+  const ga4 = await pullGa4(token, options.weekStart, options.weekEnd);
+  const [gsc, marketplace] = await Promise.all([
+    options.ga4Only ? Promise.resolve(null) : pullGsc(token, options.weekStart, options.weekEnd),
+    pullMarketplace(options.db, options.weekStart, options.weekEnd, ga4.channels["Organic Search"] || 0),
+  ]);
+  return {
+    week_start: options.weekStart,
+    week_end: options.weekEnd,
+    reporting_timezone: GROWTH_TIMEZONE,
+    source: "google_supabase",
+    definition_version: GROWTH_DEFINITION_VERSION,
+    ga4,
+    gsc,
+    marketplace,
+    source_status: { ga4: "available", gsc: gsc ? "available" : "skipped", supabase: "available" },
+    anomalies: [],
+    collected_at: new Date().toISOString(),
+  };
+}

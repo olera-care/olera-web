@@ -167,6 +167,13 @@ export function getGmailMessage(accessToken: string, messageId: string) {
   return gmailRequest<GmailMessage>(accessToken, `/messages/${encodeURIComponent(messageId)}?format=full`);
 }
 
+export function getGmailAttachment(accessToken: string, messageId: string, attachmentId: string) {
+  return gmailRequest<{ data: string; size?: number }>(
+    accessToken,
+    `/messages/${encodeURIComponent(messageId)}/attachments/${encodeURIComponent(attachmentId)}`,
+  );
+}
+
 export function listGmailHistory(accessToken: string, startHistoryId: string, pageToken?: string | null) {
   // Do not filter to messageAdded. A Gmail-side archive/read/spam action is a
   // label change, and Olera must see it or the two inboxes drift apart.
@@ -236,7 +243,13 @@ function htmlToText(html: string): string {
     .trim();
 }
 
-function collectBodies(part: GmailPart | undefined, plain: string[], html: string[], attachments: NormalizedGmailMessage["attachments"]) {
+function collectBodies(
+  part: GmailPart | undefined,
+  plain: string[],
+  html: string[],
+  attachments: NormalizedGmailMessage["attachments"],
+  includeTranscriptAttachments: boolean,
+) {
   if (!part) return;
   const filename = part.filename?.trim() ?? "";
   if (filename || part.body?.attachmentId) {
@@ -246,12 +259,17 @@ function collectBodies(part: GmailPart | undefined, plain: string[], html: strin
       mimeType: part.mimeType ?? "application/octet-stream",
       size: part.body?.size ?? 0,
     });
+    const transcriptLike = /\.(?:srt|txt|vtt)$/i.test(filename) ||
+      ["application/x-subrip", "text/plain", "text/vtt"].includes(part.mimeType ?? "");
+    if (includeTranscriptAttachments && transcriptLike && part.body?.data && (part.body.size ?? 0) <= 500_000) {
+      plain.push(`[Attached transcript: ${filename || "transcript"}]\n${decodeBase64Url(part.body.data)}`);
+    }
   } else if (part.body?.data) {
     const decoded = decodeBase64Url(part.body.data);
     if (part.mimeType === "text/plain") plain.push(decoded);
     else if (part.mimeType === "text/html") html.push(decoded);
   }
-  for (const child of part.parts ?? []) collectBodies(child, plain, html, attachments);
+  for (const child of part.parts ?? []) collectBodies(child, plain, html, attachments, includeTranscriptAttachments);
 }
 
 function emailsFromHeader(value: string | undefined): string[] {
@@ -272,7 +290,8 @@ export function normalizeGmailMessage(message: GmailMessage, mailboxEmail: strin
   const plain: string[] = [];
   const html: string[] = [];
   const attachments: NormalizedGmailMessage["attachments"] = [];
-  collectBodies(message.payload, plain, html, attachments);
+  const voicemail = /voicemail|voice message|missed call/i.test(headers.subject ?? "");
+  collectBodies(message.payload, plain, html, attachments, voicemail);
   const sender = senderFromHeader(headers.from);
   const unsubscribe = (headers["list-unsubscribe"] ?? "")
     .split(",")

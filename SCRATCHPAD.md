@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-11 — Support email actionability + voicemail UX (`codex/support-email-ux`)
+
+Made `/admin/support-email` faster to triage with category/date filters, newest/oldest sorting, clearer unread and selected states, denser message rows, responsive list/detail navigation, and a quieter visual hierarchy. Voicemails now open into a callback brief with the caller, transcript-grounded summary, what was heard, recommended next move, phone action, inline audio, and attachment downloads. Gmail remains the attachment source: files are fetched through a guarded admin route instead of duplicated in Supabase, while small `.txt`/`.vtt`/`.srt` transcript attachments are ingested for classification. Audio-only messages explicitly say a transcript is unavailable rather than inventing content; five stale subject-only voicemail analyses are refreshed per sync.
+
+**Files:** support-email page/API, classifier, Gmail importer, sync pipeline, authenticated attachment route, and support-email docs. **Validation:** TypeScript, targeted ESLint, cron registry, and diff checks pass; local visual QA is blocked at the expected admin/Supabase auth gate in this worktree. **PR:** pending creation against `staging`. **Next:** preview-QA filters and sorting, transcript and audio-only voicemail states, audio/download actions, and mobile navigation. Do not merge without TJ.
+
 ### 2026-08-10 — Gmail support inbox + Olera Support Copilot (`codex/gmail-support-inbox`)
 
 Built `/admin/support-email` as a Gmail-backed operations inbox for `support@olera.care`: resumable full-history/incremental sync, thread state and audit trail, reply drafts/sends, noise-vs-customer classification, suggested next actions, internal escalation, unsubscribe guidance, and guarded agent recommendations. Added OAuth/admin APIs, the `support-email-sync` recovery cron, migration `171_support_email_inbox.sql`, the minimal `gmail-webhook` Edge Function, documentation, environment contracts, and Admin sidebar entry.

@@ -80,7 +80,16 @@ Only after all three fail should you use WebSearch, and then you must name the d
 
    **Patch all four text fields, not just the body.** A draft carries `subject`, `body`, and `sms`, plus `edited_subject` / `edited_body` / `edited_sms` when TJ has edited it in the drawer. Prefer the edited variant when present and write back to the same key. On 2026-08-11 this step said only "the letter body", so a Georgia letter was corrected to "Elderly and Disabled Waiver Program" while its SMS still said "CCSP", the name Georgia retired. The SMS was skipped through compliance, not carelessness. **A body change and its SMS change move together, always.**
 
-6b. **Gate on `node scripts/benefits-draft-lint.js` before you report anything.** It reads the pending drafts out of the database and checks them against the pipeline data in your current checkout, so run it from the branch carrying the corrections or every program will look like it drifted. Fix until `--high` is empty, then read the `low` findings, which are deliberately advisory rather than automatic:
+6b. **Gate on `scripts/benefits-draft-lint.js` before you report anything.** It reads pending drafts from the database and checks them against pipeline data. Because a worktree has no `node_modules` and no `.env.local`, run it from a checkout that does and point `--pipeline` at the worktree holding the corrections:
+
+   ```
+   cd ~/Desktop/olera-web && node scripts/benefits-draft-lint.js \
+     --pipeline=~/.claude-worktrees/olera-web/<name>/data/pipeline
+   ```
+
+   **Check the `Branch:` line it prints before believing any finding.** Every `snapshot-drift` result is relative to the pipeline it loaded; aim it at a branch that predates your corrections and every corrected program reports as drifted. The same command produced 15 highs and 0 highs minutes apart during development purely because the worktree had moved.
+
+   Fix until `--high` is empty, then read the `low` findings, which are deliberately advisory rather than automatic:
 
    - `snapshot-drift` — the frozen `pick` disagrees with live data. This is the ghost that kept re-surfacing corrected programs in later review exports.
    - `stale-phone-in-text` / `cross-field-drift` — a number or retired program name printed in one field and not the others. This is the class the body-only patch created.

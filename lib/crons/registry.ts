@@ -606,7 +606,7 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "growth-metrics-weekly",
     name: "Weekly growth metrics",
-    description: "Collects the most recent complete Sunday-Saturday week from GA4 and Search Console, joins the same window to Olera marketplace outcomes, and stores one immutable growth snapshot for the admin Growth view and /metrics.",
+    description: "Collects the most recent complete Sunday-Saturday week from GA4 and Search Console, joins the same window to Olera marketplace outcomes, and stores one immutable growth snapshot for Organic Growth and /metrics.",
     recipientCohort: "(No recipients -- a read-only Google and Supabase data collection job.)",
     audience: "Data & maintenance",
     fn: "refresh",
@@ -614,7 +614,7 @@ export const CRON_REGISTRY: CronJob[] = [
     humanSchedule: "Tuesdays, 14:00 UTC (~9 AM CT), after Search Console's normal reporting lag",
     path: "/api/cron/growth-metrics",
     emailTypes: [],
-    relatedAdminPath: "/admin/analytics",
+    relatedAdminPath: "/admin/organic-growth",
   },
   {
     id: "google-reviews",

@@ -86,7 +86,7 @@ export default function GrowthOverview() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/admin/analytics/growth?weeks=26", { cache: "no-store" })
+    fetch("/api/admin/organic-growth?weeks=26", { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error("Growth history unavailable");
         return response.json() as Promise<GrowthResponse>;
@@ -150,7 +150,7 @@ export default function GrowthOverview() {
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Growth</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Organic Growth</h1>
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${allSourcesLive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${allSourcesLive ? "bg-emerald-500" : "bg-amber-500"}`} />
               {allSourcesLive ? "Live sources" : "Source gap"}

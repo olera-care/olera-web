@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     .limit(weeks);
 
   if (error) {
-    console.error("[growth-analytics]", error);
+    console.error("[organic-growth]", error);
     return NextResponse.json({ error: "Growth history is unavailable." }, { status: 500 });
   }
 

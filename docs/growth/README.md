@@ -9,7 +9,7 @@ GA4 + Search Console + Olera product events
                     ↓
       growth_metric_snapshots (Supabase)
              ↓              ↘
-   Admin Growth view       /metrics maintenance
+  Organic Growth page      /metrics maintenance
 ```
 
 ## Canonical weekly record
@@ -25,7 +25,7 @@ One `growth_metric_snapshots` row represents one completed Sunday-Saturday week 
 
 `organic_users_to_inquiry_rate_directional` divides all inquiries by GA4 Organic Search users. It is useful as a directional blended signal, but it is not session-level attribution and must never be presented as such.
 
-The admin Analytics page is the routine reporting surface and reads this table through an authenticated admin-only API. The `/metrics` command is the maintenance hatch for backfills, intentional corrections, source debugging, and Claude interpretation. There are no generated weekly files to reconcile.
+The dedicated `/admin/organic-growth` page is the routine reporting surface and reads this table through an authenticated admin-only API. Product experimentation and operational signals remain on `/admin/analytics`. The `/metrics` command is the maintenance hatch for backfills, intentional corrections, source debugging, and Claude interpretation. There are no generated weekly files to reconcile.
 
 ## Cadence
 

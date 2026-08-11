@@ -40,7 +40,6 @@ import {
   PROVIDER_EMAIL_FUNNEL_ORDER,
 } from "@/lib/analytics/provider-email-funnels";
 import { HeroCard, buildBannerPreviews } from "@/components/provider-dashboard/v2/DashboardHero";
-import GrowthOverview from "@/components/admin/GrowthOverview";
 
 // Pitch Touchpoints — ad pitch surface engagement tracking
 interface TouchpointData {
@@ -401,8 +400,6 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div>
-      <GrowthOverview />
-
       <PulseHeader
         title="Product signals"
         kpiSuffix="provider profile views"

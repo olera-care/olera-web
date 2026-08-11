@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.520Z
+ * Last updated: 2026-08-11T09:02:41.392Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1169,13 +1169,19 @@ export const drafts: PipelineStateDrafts = {
         "tip": "During Medicare Open Enrollment (October 15 - December 7), appointment availability may be limited due to high demand, call early.",
         "urls": [
           {
-            "label": "Mississippi Department of Human Services SHIP page",
-            "url": "https://www.mdhs.ms.gov/post/navigating-medicare-made-easy-with-ship/"
+            "label": "Mississippi SHIP",
+            "url": "https://www.mdhs.ms.gov/aging/finding-services-for-older-adults/"
+          },
+          {
+            "label": "Find Medicare help near you",
+            "url": "https://www.shiphelp.org/ships/mississippi/"
           }
         ]
       },
       "documentsNeeded": [
-        "Medicare card",
+        "The Medicare card.",
+        "A rough idea of monthly income and savings. SHIP can also help apply for programs that lower Medicare costs, and those are based on income and savings.",
+        "A list of all prescriptions with dosages, and the pharmacy you use.",
         "Current health insurance cards and policy information",
         "Complete list of prescription medications with dosages",
         "Recent Medicare Summary Notices or Explanation of Benefits",
@@ -1187,7 +1193,13 @@ export const drafts: PipelineStateDrafts = {
           "label": "Mississippi SHIP Helpline",
           "phone": "1-844-822-4622",
           "description": "Primary line for Medicare counseling appointments and questions",
-          "hours": "Monday-Friday 8am-5pm"
+          "hours": "Monday-Friday 8am-5pm CT"
+        },
+        {
+          "label": "Mississippi SHIP direct line",
+          "phone": "(601) 709-0624",
+          "description": "Goes straight to SHIP rather than the general aging and disability helpline.",
+          "hours": "Monday-Friday 8am-5pm CT"
         },
         {
           "label": "Mississippi SHIP Local Line",

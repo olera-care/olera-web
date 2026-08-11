@@ -91,16 +91,19 @@
         "tip": "Gather all financial and medical documentation before applying, Louisiana's strict income and asset limits mean missing paperwork can delay approval.",
         "urls": [
           {
-            "label": "LT-PCS Program Information",
-            "url": "https://ldh.la.gov/office-of-aging-and-adult-services/LTPCS"
+            "label": "Office of Aging and Adult Services",
+            "url": "https://ldh.la.gov/office-of-aging-and-adult-services"
           },
           {
-            "label": "Louisiana Medicaid Long-Term Care",
-            "url": "https://ldh.la.gov/medicaid/long-term-care"
+            "label": "Request services online instead of calling",
+            "url": "https://ldh.la.gov/form/15"
           }
         ]
       },
       "documentsNeeded": [
+        "Nothing, if you are calling for yourself. This first call just adds a name to the Request for Services Registry.",
+        "If you are calling for someone else, their name, home address, and Medicaid number if they have one.",
+        "Social Security cards, proof of age, and proof of Louisiana residency come later, for the financial application after an offer is made.",
         "Social Security cards for your loved one and spouse (if married)",
         "Birth certificate or other proof of age",
         "Proof of Louisiana residency (utility bill, lease, or driver's license)",
@@ -1649,7 +1652,12 @@
           {
             "step": 4,
             "title": "Enroll family caregiver",
-            "description": "Once approved for waiver services, ask your support coordinator which Supports for Caregivers providers serve your parish, then enroll as a paid family caregiver through one of them."
+            "description": "Once approved for waiver services, your support coordinator offers a choice of providers. That provider can then hire a family member as a direct service worker."
+          },
+          {
+            "step": 5,
+            "title": "If the caregiver is the spouse, the state must approve it",
+            "description": "A spouse can only be paid if the Office of Aging and Adult Services approves it under its Extraordinary Care rule. That review can be denied, and if it is, the provider has to find a different worker."
           }
         ],
         "processingTime": "Not specified, involves assessment and care plan approval",
@@ -1671,9 +1679,9 @@
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Proof of Louisiana residency (utility bill, lease, or state-issued document)",
-        "Social Security cards for all household members",
+        "Nothing for the first call. It just adds a name to the Community Choices Waiver registry.",
+        "If you are calling for someone else, their name, home address, and Medicaid number if they have one.",
+        "Being paid as a family caregiver comes later, after the waiver is approved and a provider is chosen.",
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days or pension statements",
         "Bank statements for all accounts (last 3 months)",

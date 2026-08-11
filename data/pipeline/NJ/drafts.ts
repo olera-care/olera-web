@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.948Z
+ * Last updated: 2026-08-11T09:02:41.396Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1101,7 +1101,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "New Jersey Aging and Disability Resource Connection (start here)",
           "phone": "(877) 222-3737",
-          "description": "New Jersey Aging and Disability Resource Connection — statewide participating-center locator; the selected Alzheimer's Adult Day Services center completes the application",
+          "description": "New Jersey Aging and Disability Resource Connection . statewide participating-center locator; the selected Alzheimer's Adult Day Services center completes the application",
           "hours": null
         },
         {
@@ -1217,49 +1217,57 @@ export const drafts: PipelineStateDrafts = {
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online at seniordiscount.njta.gov with your NJ E-ZPass account number and driver's license; processing time not specified.",
+        "method": "online",
+        "summary": "Apply online or by mail. The NJTA phone line answers questions but cannot enroll you.",
         "steps": [
           {
             "step": 1,
-            "title": "Get a New Jersey E-ZPass account",
-            "description": "If you don't have one, apply at www.ezpassnj.com or call 1-888-288-6865. You need a NJ account specifically, out-of-state E-ZPass won't work."
+            "title": "Have a New Jersey E-ZPass account first",
+            "description": "Accounts from other states do not qualify. Open one at ezpassnj.com or by calling 1-888-288-6865. You do not have to live in New Jersey."
           },
           {
             "step": 2,
-            "title": "Gather required documents",
-            "description": "You'll need your driver's license, vehicle registration, NJ E-ZPass account number (13 digits), and E-ZPass tag number (11 digits)."
+            "title": "Find the 11-digit number on the tag",
+            "description": "The discount is tied to one specific tag. The number is printed on the transponder and begins with 003, 009, 022, 025, or 029. One tag per senior."
           },
           {
             "step": 3,
-            "title": "Apply for NJTA Senior Discount",
-            "description": "Go to https://seniordiscount.njta.gov to apply online, or call 732-750-5300 to enroll by phone."
+            "title": "Apply online",
+            "description": "Use seniordiscount.njta.gov and upload a copy of the driver's license and the vehicle registration."
           },
           {
             "step": 4,
-            "title": "Apply for DRPA bridge discount separately",
-            "description": "If you use Benjamin Franklin, Walt Whitman, Betsy Ross, or Commodore Barry bridges, call 856-968-2000 press 5 or 215-218-3750 press 5 for the separate DRPA Senior Plan."
+            "title": "Or mail the form",
+            "description": "Print the form from njta.gov and mail it with the copies to New Jersey Turnpike Authority, Customer Service, P.O. Box 5042, Woodbridge, NJ 07095. There is no email or fax option."
+          },
+          {
+            "step": 5,
+            "title": "Allow 6 to 8 weeks",
+            "description": "Then check the account at ezpassnj.com under Plans, or call 1-888-288-6865."
           }
         ],
-        "processingTime": "Not specified in official sources",
+        "processingTime": "Allow 6 to 8 weeks for processing.",
         "waitlist": null,
         "tip": "You need separate applications for the Turnpike/Parkway discount and the bridge discount, they're run by different authorities.",
         "urls": [
           {
-            "label": "NJTA Senior Discount Application",
-            "url": "https://seniordiscount.njta.gov"
+            "label": "Apply online",
+            "url": "https://seniordiscount.njta.gov/"
           },
           {
-            "label": "New NJ E-ZPass Account",
-            "url": "https://www.ezpassnj.com"
+            "label": "Mail-in application form",
+            "url": "https://www.njta.gov/document/senior-citizen-discount-program-application/"
+          },
+          {
+            "label": "Open a New Jersey E-ZPass account",
+            "url": "https://www.ezpassnj.com/"
           }
         ]
       },
       "documentsNeeded": [
-        "Copy of valid driver's license (to prove age 65+, no other ID accepted)",
-        "Copy of passenger vehicle registration in your name or spouse's name",
-        "NJ E-ZPass account number (13 digits)",
-        "E-ZPass tag/transponder number (11 digits)",
+        "A copy of the valid driver's license, which is what New Jersey uses to prove age 65 or older.",
+        "A copy of the passenger vehicle registration in your name or your spouse's name. If the car is leased, send the top portion of the lease.",
+        "The 13-digit New Jersey E-ZPass account number and the 11-digit number printed on the tag itself. Applications missing documents are returned.",
         "Top portion of lease agreement if vehicle is leased (showing you as lessee)"
       ],
       "contacts": [
@@ -1332,7 +1340,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(732) 750-5300",
       "sourceUrl": "https://seniordiscount.njta.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     }
   ],
   "stateOverview": {

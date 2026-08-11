@@ -96,12 +96,12 @@
         "tip": "Start with the functional assessment even if you're not sure about Medicaid eligibility, the evaluation determines if your loved one qualifies medically before financial review.",
         "urls": [
           {
-            "label": "Georgia Division of Aging Services",
-            "url": "https://aging.georgia.gov"
+            "label": "Apply for the Elderly and Disabled Waiver Program",
+            "url": "https://georgia.gov/apply-elderly-and-disabled-waiver-program"
           },
           {
-            "label": "Apply for Elderly and Disabled Waiver",
-            "url": "https://georgia.gov/apply-elderly-and-disabled-waiver-program"
+            "label": "Georgia Medicaid policy for this waiver",
+            "url": "https://pamms.dhs.ga.gov/dfcs/medicaid/2131/"
           }
         ]
       },
@@ -115,7 +115,7 @@
         {
           "label": "Georgia Area Agencies on Aging",
           "phone": "(866) 552-4464",
-          "description": "Front door for the waiver assessment. Press option 2 for an ADRC counselor. Other options go to different programs.",
+          "description": "Front door for the waiver screening. Ask for the Aging and Disability Resource Connection.",
           "hours": "Business hours vary by region"
         },
         {
@@ -723,34 +723,56 @@
         "povertyLevelReference": "130% FPL"
       },
       "applicationGuide": {
-        "method": "phone",
-        "summary": "Call to request an application by mail, no office visits or face-to-face interviews required.",
+        "method": "multiple",
+        "summary": "Georgia leads with the Senior SNAP paper form, then online through Gateway, then by phone.",
         "steps": [
           {
             "step": 1,
-            "title": "Request application",
-            "description": "Call (404) 370-6236 to request a Senior SNAP application be mailed to you, or email seniorsnap@dhr.state.ga.us"
+            "title": "Use the Senior SNAP form, or apply another way",
+            "description": "Form 298 is the Senior SNAP application. Mail or fax it to Georgia Senior SNAP, P.O. Box 450149, Atlanta, GA 31145-0149, fax 678-717-5585. You can also apply online or by phone."
           },
           {
             "step": 2,
-            "title": "Complete and return",
-            "description": "Fill out the mailed application and return it to Georgia DFCS at the address provided with your application packet"
+            "title": "Online through Georgia Gateway",
+            "description": "You have to create a Gateway account before you can start. The site is open Monday to Friday, 5 a.m. to midnight."
           },
           {
             "step": 3,
-            "title": "Provide documents",
-            "description": "Submit required verification documents, fixed income is often auto-verified through computer matches, so minimal paperwork may be needed"
+            "title": "Or by phone",
+            "description": "Call the DFCS Customer Contact Center at (877) 423-4746 to submit an application by telephone."
+          },
+          {
+            "step": 4,
+            "title": "Do the phone interview",
+            "description": "After the application is filed, someone in the household must complete a phone interview. You then have up to 10 days to send anything they ask for."
           }
         ],
         "processingTime": null,
         "waitlist": null,
         "tip": "Because this is for seniors on fixed income, the verification process is streamlined, Social Security and other benefits are often verified automatically without needing additional paperwork.",
-        "urls": []
+        "urls": [
+          {
+            "label": "Senior SNAP application (Form 298)",
+            "url": "https://dfcs.georgia.gov/media/16446/download"
+          },
+          {
+            "label": "Apply online at Georgia Gateway",
+            "url": "https://gateway.ga.gov/access/"
+          },
+          {
+            "label": "Senior SNAP program page",
+            "url": "https://dfcs.georgia.gov/services/snap/senior-snap"
+          },
+          {
+            "label": "Find a DFCS office",
+            "url": "https://dfcs.georgia.gov/find-location"
+          }
+        ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Social Security card",
-        "Proof of citizenship or qualified non-citizen status",
+        "The ages of everyone in the home and your total monthly income.",
+        "Receipts, statements, or bills for medical costs. Costs over $35 a month can raise the benefit, but they have to be verified.",
+        "Proof of who you are and your Social Security number, plus rent or mortgage and utility amounts.",
         "Social Security award letter (if not auto-verified)",
         "SSI award letter (if applicable)",
         "Retirement or pension income statements",

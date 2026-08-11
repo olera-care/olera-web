@@ -1806,41 +1806,57 @@
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "in-person",
-        "summary": "Apply through your county human services department, call your county office to schedule an interview after submitting your application.",
+        "method": "online",
+        "summary": "Apply online through Colorado PEAK, or send a paper form to your county human services office. You must also apply to Social Security and prove it, or the payment cannot be approved.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact your county office",
-            "description": "Call your county human services department to request an Application for Assistance form. For example: Douglas County at 303-688-4825."
+            "title": "Apply on Colorado PEAK",
+            "description": "Colorado lists PEAK first. You can also ask your county human services office for a paper form and return it by mail, fax, or in person."
           },
           {
             "step": 2,
-            "title": "Apply for other benefits first",
-            "description": "Before OAP approval, you must apply for Social Security, SSI, or SSDI if potentially eligible. Gather proof of these applications."
+            "title": "Apply to Social Security too, and keep the proof",
+            "description": "Old Age Pension pays only after other income is pursued. If your loved one is 62 or older, apply for early Social Security retirement. If they do not qualify, get a letter from Social Security saying so."
           },
           {
             "step": 3,
-            "title": "Submit completed application",
-            "description": "Return the Application for Assistance with all required documents to your county office in person or by mail."
+            "title": "Give the county that proof within 11 days",
+            "description": "The county asks for verification that you applied to Social Security, and it must arrive within 11 calendar days. Payments are not approved before that proof is received."
           },
           {
             "step": 4,
-            "title": "Attend eligibility interview",
-            "description": "Your county will schedule an interview after receiving your application to verify information and determine eligibility."
+            "title": "Do one interview",
+            "description": "The county sets up a single interview. You can do it in person or by phone, and they give at least 4 days notice."
           },
           {
             "step": 5,
-            "title": "Receive decision and benefits",
-            "description": "If approved, benefits are paid via direct deposit or EBT debit card. You must reapply annually and when circumstances change."
+            "title": "Wait for the decision",
+            "description": "The county decides within 45 calendar days of the application date."
           }
         ],
-        "processingTime": "Interview scheduled after application receipt; timeline varies by county",
+        "processingTime": "45 calendar days from the date the county receives the application.",
         "waitlist": null,
         "tip": "Apply for Social Security or SSI first if you think your loved one might qualify, OAP requires proof you've pursued all other available benefits.",
-        "urls": []
+        "urls": [
+          {
+            "label": "Apply online at Colorado PEAK",
+            "url": "https://colorado.gov/peak"
+          },
+          {
+            "label": "Find your county human services office",
+            "url": "https://cdhs.colorado.gov/contact-your-county"
+          },
+          {
+            "label": "Old Age Pension program page",
+            "url": "https://cdhs.colorado.gov/adult-financial-programs"
+          }
+        ]
       },
       "documentsNeeded": [
+        "Proof that you applied to Social Security or SSI, which the county needs within 11 days. Without it the payment cannot be approved.",
+        "Proof of age and identity, such as a birth certificate or driver's license, plus the Social Security card.",
+        "Every source of income with paperwork, and current balances for bank accounts, burial policies, and any second property.",
         "Birth certificate, driver's license, or passport for proof of age",
         "Utility bill, lease agreement, or voter registration for Colorado residency",
         "Social Security statements or award letters",

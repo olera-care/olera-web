@@ -23,8 +23,8 @@
         ]
       },
       "intro": "If your loved one has Medicare and limited income, California's Medicare Savings Programs can eliminate their monthly Medicare costs entirely. The highest tier (QMB) covers all Medicare Part A and Part B premiums, deductibles, and copays for people earning under $1,330/month. Mid-tier programs (SLMB and QI) cover Part B premiums for those earning up to $1,796/month.\n\nUnlike federal programs, California allows up to $130,000 in assets for singles ($195,000 for couples), so your loved one's home and savings likely won't disqualify them. Because this works like automatic Medigap coverage, your loved one won't get surprise medical bills, providers cannot legally charge QMB recipients for Medicare cost-sharing.\n\nThe program is administered county-by-county through local social services agencies. QI funding comes from a limited federal block grant, so it may have waitlists or temporary closures when funds run out.",
-      "savingsRange": "$2,435+/year in 2026",
-      "savingsSource": "Standard 2026 Part B premium is $202.90/month ($2,434.80/year); QMB-level coverage can also pay Medicare cost sharing",
+      "savingsRange": "About $2,434 a year in 2026",
+      "savingsSource": "All three Medicare Savings Programs pay the Medicare Part B premium, which is $202.90 a month in 2026, or about $2,434 a year. QMB also covers Medicare deductibles and copays. Someone already on full-scope Medi-Cal may already have the premium paid, so this is not always additional.",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -69,34 +69,51 @@
         "povertyLevelReference": "100-135% FPL"
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply through your county social services office using form MC 14A, processing time varies by county.",
+        "method": "online",
+        "summary": "California lists BenefitsCal first. You can also mail the MC 14A form to your county.",
         "steps": [
           {
             "step": 1,
-            "title": "Get form MC 14A",
-            "description": "Download Form MC 14A from the DHCS website or your county's portal. If your loved one also needs help with in-home care or food costs, it is better to submit a full Medi-Cal application at BenefitsCal.org."
+            "title": "Be signed up for Medicare Part B first",
+            "description": "If not, apply at Social Security. If you already get SSI, you do not need to apply at all, because California enrolls you automatically."
           },
           {
             "step": 2,
-            "title": "Gather required documents",
-            "description": "Collect Medicare cards, income proof, asset statements, and ID. Must show enrollment in Medicare Part B."
+            "title": "Apply online at BenefitsCal",
+            "description": "This is the route California lists first."
           },
           {
             "step": 3,
-            "title": "Submit to your county",
-            "description": "Mail, deliver in person, or apply online through your county's Medi-Cal office. Find your county office through the DHCS directory."
+            "title": "Or mail Form MC 14A",
+            "description": "If you only want a Medicare Savings Program, mail the MC 14A to the Medicare Savings Program contact at your county social services office."
           },
           {
             "step": 4,
-            "title": "Follow up on processing",
-            "description": "The county should process the application within 45 days. QMB benefits typically begin the first of the month after approval. SLMB and QI coverage can be backdated up to 3 months prior to the application date."
+            "title": "Your county decides",
+            "description": "Counties determine eligibility for all four routes."
           }
         ],
         "processingTime": "Varies by county, contact local office for current timelines",
         "waitlist": "QI program may have waitlists when federal block grant funds are exhausted",
         "tip": "Apply even if you're already on Medi-Cal, this program pays Medicare premiums that regular Medi-Cal may not cover.",
-        "urls": []
+        "urls": [
+          {
+            "label": "Apply online at BenefitsCal",
+            "url": "https://benefitscal.com/"
+          },
+          {
+            "label": "Form MC 14A, Medicare Savings Programs only",
+            "url": "https://www.dhcs.ca.gov/file/mc14a-eng-2-pdf/"
+          },
+          {
+            "label": "County Medicare Savings Program contacts",
+            "url": "https://www.dhcs.ca.gov/file/mc14a-countylist-pdf/"
+          },
+          {
+            "label": "Medicare Savings Programs in California",
+            "url": "https://www.dhcs.ca.gov/individuals/medicare-savings-programs-in-california/"
+          }
+        ]
       },
       "documentsNeeded": [
         "Medicare card",
@@ -114,16 +131,16 @@
       ],
       "contacts": [
         {
-          "label": "HICAP (free Medicare counseling)",
-          "phone": "1-800-434-0222",
-          "description": "California's free statewide Medicare counseling program. They screen for Medicare Savings Programs and help you apply through your county Medi-Cal office.",
-          "hours": "Mon-Fri business hours"
+          "label": "Apply through your county (start here)",
+          "phone": "(800) 541-5555",
+          "description": "The Medi-Cal helpline for questions about these programs. Your county decides eligibility, not a helpline. The fastest route is applying online at benefitscal.com.",
+          "hours": null
         },
         {
-          "label": "Your county social services",
-          "phone": null,
-          "description": "Find your local Medi-Cal office through county website or DHCS directory",
-          "hours": "Varies by county"
+          "label": "HICAP, free Medicare counseling",
+          "phone": "1-800-434-0222",
+          "description": "A locator line that connects you to a counselor in your county. They explain options and help you fill in the form, but they cannot decide or submit an application.",
+          "hours": null
         }
       ],
       "applicationNotes": [
@@ -209,7 +226,7 @@
       "sourceUrl": "https://www.dhcs.ca.gov/individuals/Pages/Medicare-Savings-Programs-in-California.aspx",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-01"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "mssp-waiver",

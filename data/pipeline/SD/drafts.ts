@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.532Z
+ * Last updated: 2026-08-11T09:02:41.404Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1465,23 +1465,23 @@ export const drafts: PipelineStateDrafts = {
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "phone",
-        "summary": "Call your local Meals on Wheels provider directly, enrollment can often begin immediately if meals are available in your area.",
+        "method": "multiple",
+        "summary": "Call Dakota at Home to find the local program, then enroll with that program directly.",
         "steps": [
           {
             "step": 1,
-            "title": "Find your local provider",
-            "description": "Call Active Generations at (605) 333-3305 or 1-833-663-9673 for Sioux Falls area, or visit dakotaathome.sd.gov to find providers in other communities."
+            "title": "Call Dakota at Home and press option 1",
+            "description": "They cover all of South Dakota and will tell you which meal program serves your town."
           },
           {
             "step": 2,
-            "title": "Complete intake assessment",
-            "description": "Provider will assess your loved one's ability to cook and shop independently, dietary needs, and delivery logistics."
+            "title": "Sign up with that local program",
+            "description": "This is a separate step. Some take it over the phone and some have you enroll online, so ask which they use."
           },
           {
             "step": 3,
-            "title": "Schedule delivery",
-            "description": "Meals typically begin within days if slots available. Provider will arrange delivery schedule and discuss suggested donation amounts."
+            "title": "Fill in the enrollment form",
+            "description": "Most use the NAPIS form, a short confidential form you complete once a year."
           }
         ],
         "processingTime": "Immediate enrollment encouraged where available",
@@ -1489,22 +1489,31 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Call early in the day Monday through Friday for fastest response from local providers.",
         "urls": [
           {
-            "label": "Dakota at Home Referral Portal",
+            "label": "Find your local program (Dakota at Home)",
             "url": "https://dakotaathome.sd.gov/"
+          },
+          {
+            "label": "Sioux Falls area Meals on Wheels",
+            "url": "https://activegenerations.org/nutrition/meals-on-wheels/"
+          },
+          {
+            "label": "Sioux Falls area enrollment form",
+            "url": "https://activegenerations.org/nutrition/meals-on-wheels/napis-form/"
           }
         ]
       },
       "documentsNeeded": [
-        "The age and date of birth of the person who needs meals",
-        "The home address, including the town, so they know which local provider delivers there",
-        "A short description of why the person cannot easily leave home or cook",
+        "The age and date of birth of the person who needs meals, and the last four digits of their Social Security number.",
+        "The home address including the town, since that decides which program delivers there.",
+        "The name of their doctor and preferred hospital, plus a short description of why they cannot easily leave home or cook.",
         "Whether a spouse or dependent adult also lives in the home, since they may qualify too"
       ],
       "contacts": [
         {
           "label": "Dakota at Home (South Dakota statewide aging and disability resource line)",
           "phone": "(833) 663-9673",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "hours": "Mon-Fri 8am-5pm CT",
+          "description": "Statewide line. Press option 1. They tell you which local program delivers to your town. You then sign up with that program, not with Dakota at Home."
         },
         {
           "label": "Active Generations (Sioux Falls and Sioux Empire area only)",

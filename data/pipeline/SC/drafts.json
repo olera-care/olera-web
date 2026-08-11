@@ -97,7 +97,15 @@
         "tip": "Apply even if there's a waitlist, slots can open unexpectedly when other enrollees move to nursing facilities or pass away.",
         "urls": [
           {
-            "label": "SC Community Choices Waiver Application",
+            "label": "Refer online instead of calling",
+            "url": "https://phoenix.scdhhs.gov/cltc_referrals/new"
+          },
+          {
+            "label": "CLTC brochure with county office phone numbers",
+            "url": "https://www.scdhhs.gov/sites/dhhs/files/CLTC%20Brochure%20May%202023%20v2.pdf"
+          },
+          {
+            "label": "Community Choices Waiver page",
             "url": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver"
           }
         ]

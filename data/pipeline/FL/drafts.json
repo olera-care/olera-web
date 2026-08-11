@@ -96,20 +96,20 @@
           }
         ],
         "processingTime": "Highly variable, depending on waitlist position and priority score. Higher-scoring applicants move through faster.",
-        "waitlist": "Yes. Priority score from 1 to 7 determines release order; 4+ or 'imminent risk' 7 are typically enrolled first.",
+        "waitlist": "The screening gives a priority score. A score of 30 or higher goes on the wait list. A score under 30 is not placed on the wait list at all, and Florida mails information about other community programs instead. Releases happen monthly by score and frailty, not by how long someone has waited. After release there is a medical form that must be returned within 30 days.",
         "tip": "Apply early even if services aren't needed immediately. The waitlist uses a priority score system, so being in the queue matters even before urgent need hits.",
         "urls": [
           {
-            "label": "FL Elder Affairs, SMMC-LTC Program",
-            "url": "https://elderaffairs.org/programs-and-services/statewide-medicaid-managed-care-long-term-care-program/"
+            "label": "Long-Term Care program",
+            "url": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program.html"
           },
           {
-            "label": "Florida Medicaid Choice Counseling (plan selection)",
-            "url": "https://www.flmedicaidmanagedcare.com"
+            "label": "How the screening works",
+            "url": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program/statewide-medicaid-managed-care-long-term-care-program-screening.html"
           },
           {
-            "label": "DCF ACCESS Florida (financial application)",
-            "url": "https://www.myflfamilies.com/services/access"
+            "label": "Find your local ADRC",
+            "url": "https://elderaffairs.org/resource-directory/aging-and-disability-resource-centers-adrcs/"
           }
         ]
       },
@@ -1632,15 +1632,19 @@
         "tip": "If your loved one has Medicaid, check with their health plan first, they may offer meal delivery benefits with shorter wait times than community programs.",
         "urls": [
           {
-            "label": "Florida Elder Helpline",
-            "url": "https://elderaffairs.org/programs-and-services/food-assistance/"
+            "label": "How to apply and find your local ADRC",
+            "url": "https://elderaffairs.org/aging-and-disability-resource-centers-adrcs/"
+          },
+          {
+            "label": "Nutrition programs",
+            "url": "https://elderaffairs.org/programs-services/nutrition-programs/"
           }
         ]
       },
       "documentsNeeded": [
-        "The age or date of birth of the person who needs meals, and the delivery address. The county decides which local office handles the call.",
-        "A plain description of why leaving home or cooking is hard. Recent hospital stay, trouble walking, memory loss, or no one at home to cook all count.",
-        "Who else lives in the home, and whether anyone gets SNAP or Medicaid. A spouse of an eligible person can qualify regardless of age.",
+        "The age of the person who needs meals and the delivery address.",
+        "A plain answer to why they cannot get to a group meal site. That is the question that decides it, not whether cooking is hard.",
+        "Who else lives in the home. The spouse of someone who qualifies can get a meal too, at any age.",
         "Any special diet, such as diabetic, renal, or pureed. A provider order is only needed later if a therapeutic diet is set up."
       ],
       "contacts": [

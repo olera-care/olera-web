@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.535Z
+ * Last updated: 2026-08-11T09:02:41.407Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1194,41 +1194,61 @@ export const drafts: PipelineStateDrafts = {
         "povertyLevelReference": null
       },
       "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact your regional community action agency directly, no forms to mail, and they'll handle the assessment.",
+        "method": "mail",
+        "summary": "Vermont runs this on paper. Download BROC's application, add a Form 407 for each job, sign it in both places, and mail it in.",
         "steps": [
           {
             "step": 1,
-            "title": "Find your regional agency",
-            "description": "Vermont has 5 agencies: BROC, Capstone, CVOEO, NETO, and SEVCA. Contact the one serving your loved one's county."
+            "title": "Download BROC's application",
+            "description": "Vermont uses a different form for each agency. BROC serves southwest Vermont, including Rutland and Bennington."
           },
           {
             "step": 2,
-            "title": "Call for initial screening",
-            "description": "The agency will verify income eligibility and check if the property has been weatherized in the past 15 years."
+            "title": "Add a Form 407 for every job",
+            "description": "If anyone in the home earned wages in the past 12 months, fill in the employee section of a separate Form 407 for each job and sign it."
           },
           {
             "step": 3,
-            "title": "Schedule home assessment",
-            "description": "If eligible, a technician visits to evaluate what improvements the home needs and can support."
+            "title": "Sign in both places",
+            "description": "There is a signature on the fuel records page and another on the certification page. Unsigned applications are returned."
           },
           {
             "step": 4,
-            "title": "Get landlord consent if renting",
-            "description": "For rental properties, both tenant and landlord must sign participation agreements before work begins."
+            "title": "Mail it to BROC",
+            "description": "BROC Weatherization Office, 45 Union Street, Rutland, VT 05701."
           },
           {
             "step": 5,
-            "title": "Coordinate installation",
-            "description": "The agency schedules all work, which typically includes insulation, air sealing, and heating system improvements."
+            "title": "Call first if the building has a second living area",
+            "description": "A duplex, basement apartment, or in-law suite needs extra forms. Call before you mail."
           }
         ],
         "processingTime": null,
         "waitlist": null,
         "tip": "If your loved one receives SSI, Reach Up, or fuel assistance, mention this immediately, it may speed up eligibility verification.",
-        "urls": []
+        "urls": [
+          {
+            "label": "BROC weatherization application",
+            "url": "https://outside.vermont.gov/dept/DCF/Shared%20Documents/Benefits/WAP-Application-BROC.pdf"
+          },
+          {
+            "label": "Form 407, one per job",
+            "url": "https://outside.vermont.gov/dept/DCF/Shared%20Documents/Benefits/WAP-407-BROC.pdf"
+          },
+          {
+            "label": "Vermont weatherization how to apply",
+            "url": "https://dcf.vermont.gov/benefits/weatherization"
+          },
+          {
+            "label": "Income limits",
+            "url": "https://outside.vermont.gov/dept/DCF/Shared%20Documents/Benefits/Weatherization-Income-Guidelines.pdf"
+          }
+        ]
       },
       "documentsNeeded": [
+        "BROC's application form, signed in both places. Unsigned applications are returned.",
+        "A Form 407 for each job anyone in the home held in the past 12 months, with the employee section filled in and signed.",
+        "If you rent, the owner's name and phone number, since BROC needs the owner's permission before any work starts. If you own, a copy of the deed or a tax bill.",
         "Proof of gross household income for the past 12 months (pay stubs, Social Security letters, pension statements)",
         "SSI award letter if receiving Supplemental Security Income",
         "Reach Up benefits letter if receiving TANF assistance",

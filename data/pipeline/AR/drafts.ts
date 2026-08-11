@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T06:07:44.851Z
+ * Last updated: 2026-08-11T09:02:41.378Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -878,40 +878,43 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Contact the Community-Based Organization serving your county to schedule an appointment, processing times vary due to high demand.",
+        "summary": "Find the community agency serving your county, then apply with that agency. The state office does not take applications.",
         "steps": [
           {
             "step": 1,
-            "title": "Find your county's Community-Based Organization",
-            "description": "Visit adeq.state.ar.us/energy/assistance/liheap.aspx to find the CBO serving your county, or call Arkansas 2-1-1 for referral."
+            "title": "Check the income limits",
+            "description": "Compare your household income to the current chart before you start."
           },
           {
             "step": 2,
-            "title": "Call your local CBO to schedule an appointment",
-            "description": "Each CBO has different procedures, some accept walk-ins, others require appointments, and some accept applications by mail."
+            "title": "Find your county agency",
+            "description": "Click your county on the map at adeq.state.ar.us/energy/assistance/caad.aspx, or look it up in the LIHEAP brochure, which lists every agency with its address and phone."
           },
           {
             "step": 3,
-            "title": "Gather required documents",
-            "description": "You'll need photo ID, Social Security cards, recent utility bills, and income proof for all adult household members from the previous month."
+            "title": "Call that agency for an application",
+            "description": "Each agency has its own form and its own instructions for sending it back. Some take email, some fax, some in person."
           },
           {
             "step": 4,
-            "title": "Submit application with all household members",
-            "description": "Everyone living under the same roof and utility meter must apply together as one household, even roommates who don't share expenses."
-          },
-          {
-            "step": 5,
-            "title": "Wait for benefit determination",
-            "description": "If approved, LIHEAP pays your energy provider directly, you won't receive cash. Crisis applications for shut-offs may process faster."
+            "title": "Send it in with your documents",
+            "description": "Photo ID, Social Security cards for adults, your most recent utility bills, proof of income, and proof of where you live."
           }
         ],
         "processingTime": "Varies by local organization and application volume, some CBOs report longer processing times due to high demand",
-        "waitlist": "Funding is limited and applications close when funds run out. Cooling applications opened July 6, 2026 and the regular cooling benefit closes August 31, 2026. Summer crisis help runs through September 30, 2026. Winter heating opens the first Monday after New Year, with earlier priority intake for households age 60 and over.",
+        "waitlist": "Funding is limited and applications close when funds run out. Cooling applications opened July 6, 2026. The regular cooling benefit closes August 31, 2026, but crisis help for a shutoff runs through September 30, 2026. Winter heating opens the first Monday after New Year, with earlier priority intake for households age 60 and over.",
         "tip": "Apply as soon as a season opens. Funding runs out before the window closes most years.",
         "urls": [
           {
-            "label": "Arkansas LIHEAP County Directory",
+            "label": "Find the agency for your county",
+            "url": "https://www.adeq.state.ar.us/energy/assistance/caad.aspx"
+          },
+          {
+            "label": "LIHEAP brochure with every county agency",
+            "url": "https://www.adeq.state.ar.us/energy/assistance/pdfs/LIHEAP_Brochure_2026.pdf"
+          },
+          {
+            "label": "Arkansas LIHEAP program page",
             "url": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx"
           }
         ]
@@ -927,15 +930,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Arkansas LIHEAP information line",
-          "phone": "(888) 233-0326",
-          "description": "They tell you which local agency serves your county. They do not take applications. Applications go to the local agency only.",
-          "hours": null
-        },
-        {
-          "label": "Arkansas Energy Office",
+          "label": "Find the agency for your county (start here)",
           "phone": "(501) 682-0744",
-          "description": "State program information. Does not process applications.",
+          "description": "Arkansas takes applications only at the community agency for your county. Use the county map at adeq.state.ar.us/energy/assistance/caad.aspx to find yours, then call that agency. The state office does not process applications.",
           "hours": null
         },
         {

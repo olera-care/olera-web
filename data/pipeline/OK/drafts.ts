@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.529Z
+ * Last updated: 2026-08-11T06:07:44.873Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -714,7 +714,7 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "OKDHS Main Line",
-          "phone": "(405) 521-3646",
+          "phone": "(405) 522-5050",
           "description": "Find your nearest Human Services Center",
           "hours": "Mon-Fri 8am-5pm CT"
         },
@@ -1973,10 +1973,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Oklahoma Human Services",
-          "phone": "(405) 521-3646",
-          "description": "Main line for ADvantage Waiver information and county office referrals",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "label": "ADvantage CareLine",
+          "phone": "(800) 435-4711",
+          "description": "The ADvantage program intake line. Call to start an application or to set up the phone assessment. Also (918) 933-4900.",
+          "hours": null
         },
         {
           "label": "Oklahoma 2-1-1",
@@ -2045,7 +2045,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "chore-services-title-iii",

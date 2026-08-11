@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.531Z
+ * Last updated: 2026-08-11T06:07:44.875Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -126,9 +126,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "SC Department of Health and Human Services",
+          "label": "CLTC Centralized Intake",
+          "phone": "(888) 971-1637",
+          "description": "Call here to ask for Community Choices services. You can also refer online at phoenix.scdhhs.gov/cltc_referrals/new.",
+          "hours": null
+        },
+        {
+          "label": "SC Healthy Connections (Medicaid)",
           "phone": "(888) 549-0820",
-          "description": "Main SCDHHS line for Medicaid and waiver information",
+          "description": "For the Medicaid application and existing coverage questions. This line does not take service requests.",
           "hours": "Mon-Fri 8am-6pm ET"
         },
         {
@@ -197,7 +203,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.scdhhs.gov/resources/waivers/community-choices-cc-waiver",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "medicare-savings-programs",

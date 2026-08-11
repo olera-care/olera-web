@@ -891,7 +891,8 @@ interface ActiveState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Map UI tab to API parameters (stage + optional email_filter)
-function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
+// Returns null for tabs that don't need provider fetching (like email_testing)
+function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } | null {
   if (tab === "needs_email") {
     return { stage: "not_contacted", emailFilter: "needs_email" };
   }
@@ -900,6 +901,9 @@ function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emai
   }
   if (tab === "hidden") {
     return { stage: "hidden" };
+  }
+  if (tab === "email_testing") {
+    return null; // Email testing tab has its own panel, no provider fetch needed
   }
   return { stage: tab as OutreachStage };
 }
@@ -5121,11 +5125,19 @@ export default function ProviderOutreachPage() {
   // Fetch providers for current tab/state (or search)
   const fetchProviders = useCallback(async (city?: string, searchTerm?: string) => {
     if (!selectedState) return;
+
+    // Some tabs don't need provider fetching (e.g., email_testing has its own panel)
+    const apiParams = getApiParamsForTab(activeTab);
+    if (!apiParams) {
+      setLoadingProviders(false);
+      return;
+    }
+
     setLoadingProviders(true);
 
     try {
       // Map UI tab to API parameters
-      const { stage, emailFilter } = getApiParamsForTab(activeTab);
+      const { stage, emailFilter } = apiParams;
       const params = new URLSearchParams({
         state: selectedState,
         stage,

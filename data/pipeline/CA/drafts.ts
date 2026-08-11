@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-01T08:54:06.256Z
+ * Last updated: 2026-08-11T04:24:05.506Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -104,7 +104,7 @@ export const drafts: PipelineStateDrafts = {
         "urls": []
       },
       "documentsNeeded": [
-        "Medicare card showing Parts A and B enrollment",
+        "Medicare card",
         "Social Security award letter or most recent statement",
         "Bank statements for all accounts (last 3 months)",
         "Investment account statements (stocks, bonds, retirement accounts)",
@@ -308,7 +308,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID",
         "Proof of California residency (utility bill or lease)",
         "Social Security award letter",
-        "Medicare card (both parts if applicable)",
+        "Medicare card if you have one",
         "Current medication list and dosages",
         "Recent medical records documenting functional limitations",
         "Bank statements for all accounts (last 3 months)",

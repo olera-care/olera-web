@@ -292,7 +292,7 @@
         "Life insurance policies with cash values",
         "Medical records documenting functional limitations",
         "Physician statement about need for personal care assistance",
-        "Medicare card (both parts A and B)"
+        "Medicare card"
       ],
       "contacts": [
         {
@@ -472,7 +472,7 @@
         "Property documents (deed, tax statements)",
         "Vehicle title and registration",
         "Life insurance policies",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Proof of citizenship or immigration status",
         "Medical records documenting need for daily care assistance",
         "Information about available unpaid caregiver (name, age, relationship)",
@@ -833,7 +833,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or most recent benefits statement",
         "Pension or retirement income statements",
         "Pay stubs if still working (last 30 days)",

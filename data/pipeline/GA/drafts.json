@@ -132,7 +132,7 @@
         }
       ],
       "applicationNotes": [
-        "This program was formerly called the Community Care Services Program (CCSP) \u2014 some agencies still use the old name",
+        "This program was formerly called the Community Care Services Program (CCSP) — some agencies still use the old name",
         "You may be potentially Medicaid eligible only after CCSP admission, the functional assessment comes before financial eligibility",
         "The home may be subject to Medicaid Estate Recovery after your loved one's death, even though it's exempt during benefits",
         "Regional variations exist in providers and waitlist times, some Area Agencies have more immediate availability than others",
@@ -234,7 +234,7 @@
             "Property other than primary home"
           ],
           "exemptAssets": [
-            "Primary home (if equity \u2264 $752,000)",
+            "Primary home (if equity ≤ $752,000)",
             "One vehicle",
             "Household furnishings and appliances",
             "Personal effects"
@@ -517,7 +517,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (showing Parts A and B)",
+        "Medicare card",
         "Social Security award letter or SSI award letter",
         "Pay stubs from last 3 months (if working)",
         "Bank statements for all accounts (last 3 months)",

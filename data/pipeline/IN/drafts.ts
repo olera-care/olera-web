@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.937Z
+ * Last updated: 2026-08-11T04:24:05.514Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -478,7 +478,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Current Indiana Medicaid card",
         "Social Security card",
-        "Medicare card (both parts if applicable)",
+        "Medicare card if you have one",
         "Proof of Indiana residency (utility bill or state-issued document)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
@@ -705,7 +705,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter (SSA-1099)",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or driver's license for identification",
         "Proof of Indiana residency (utility bill or lease)",
         "Bank statements for all accounts (last 3 months)",

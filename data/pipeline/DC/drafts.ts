@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:46:41.208Z
+ * Last updated: 2026-08-11T04:24:05.508Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -496,7 +496,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or passport for age verification",
         "Social Security card",
         "Most recent Social Security award letter",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Bank statements for all accounts (last 3 months)",
         "Investment account statements (stocks, bonds, annuities)",
         "Life insurance policies showing cash value",

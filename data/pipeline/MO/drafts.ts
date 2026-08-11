@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.942Z
+ * Last updated: 2026-08-11T04:24:05.519Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -115,7 +115,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card (both parts) if applicable",
+        "Medicare card if you have one",
         "Birth certificate or other proof of age",
         "Proof of Missouri residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or other income statements",
@@ -2392,7 +2392,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Missouri driver's license or state ID",
         "Proof of Missouri residency (utility bill or lease agreement)",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Medicare Part D plan enrollment card",
         "Social Security award letters for all household members",
         "Bank statements for all accounts (last 3 months)",

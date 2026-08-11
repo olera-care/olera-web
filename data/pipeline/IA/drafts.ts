@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.701Z
+ * Last updated: 2026-08-11T04:24:05.512Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -478,7 +478,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or passport for proof of age",
         "Proof of Iowa residency (utility bill, lease, or state-issued document)",
         "Social Security card",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Medicaid card if already enrolled",
         "Complete medical records documenting functional limitations",
         "List of current medications and dosages",

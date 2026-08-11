@@ -2006,7 +2006,7 @@
       },
       "documentsNeeded": [
         "Proof of Massachusetts residency (utility bill, lease agreement, or state-issued document)",
-        "Medicare card (both parts) if Medicare eligible",
+        "Medicare card if you have one",
         "Social Security award letter or other proof of income",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -2410,7 +2410,7 @@
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse (if applicable)",
-        "MassHealth card or Medicare card (both parts)",
+        "MassHealth card or Medicare card",
         "Proof of Massachusetts residency (utility bill, lease, or bank statement)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
@@ -2818,7 +2818,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card showing Parts A and B coverage",
+        "Medicare card",
         "MassHealth Standard eligibility documentation",
         "Social Security award letter",
         "Bank statements for all accounts (last 3 months)",

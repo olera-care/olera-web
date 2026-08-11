@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.181Z
+ * Last updated: 2026-08-11T04:24:05.535Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -297,7 +297,7 @@ export const drafts: PipelineStateDrafts = {
         "Life insurance policies with cash values",
         "Medical records documenting functional limitations",
         "Physician statement about need for personal care assistance",
-        "Medicare card (both parts A and B)"
+        "Medicare card"
       ],
       "contacts": [
         {
@@ -477,7 +477,7 @@ export const drafts: PipelineStateDrafts = {
         "Property documents (deed, tax statements)",
         "Vehicle title and registration",
         "Life insurance policies",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Proof of citizenship or immigration status",
         "Medical records documenting need for daily care assistance",
         "Information about available unpaid caregiver (name, age, relationship)",
@@ -838,7 +838,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or most recent benefits statement",
         "Pension or retirement income statements",
         "Pay stubs if still working (last 30 days)",

@@ -428,7 +428,7 @@
           }
         ]
       },
-      "intro": "If your loved one needs nursing facility-level care but wants to stay home, PACE provides everything under one program: all medical care, prescription drugs, transportation, home care, adult day programs, and social services. Because PACE covers all services through one coordinated team, your loved one won't need to juggle multiple doctors, insurance approvals, or care providers, one interdisciplinary team manages everything.\n\nPACE is only available in four Louisiana regions: Greater New Orleans, Baton Rouge, Lafayette, and Alexandria. Your loved one must be 55+ and meet nursing facility level of care (needing extensive daily help with bathing, dressing, toileting, walking, transferring, or eating). If your loved one qualifies for Medicaid, services are free. Medicare-only participants pay a monthly premium (Medicare covers part, participant pays remainder). Private-pay participants pay approximately $4,000\u2013$5,000 per month.\n\nThe program is designed for high-need seniors with multiple complex conditions, the average participant is 76 years old and 90% are dually eligible for Medicare and Medicaid. Your loved one must be able to live safely in the community with PACE support services.",
+      "intro": "If your loved one needs nursing facility-level care but wants to stay home, PACE provides everything under one program: all medical care, prescription drugs, transportation, home care, adult day programs, and social services. Because PACE covers all services through one coordinated team, your loved one won't need to juggle multiple doctors, insurance approvals, or care providers, one interdisciplinary team manages everything.\n\nPACE is only available in four Louisiana regions: Greater New Orleans, Baton Rouge, Lafayette, and Alexandria. Your loved one must be 55+ and meet nursing facility level of care (needing extensive daily help with bathing, dressing, toileting, walking, transferring, or eating). If your loved one qualifies for Medicaid, services are free. Medicare-only participants pay a monthly premium (Medicare covers part, participant pays remainder). Private-pay participants pay approximately $4,000–$5,000 per month.\n\nThe program is designed for high-need seniors with multiple complex conditions, the average participant is 76 years old and 90% are dually eligible for Medicare and Medicaid. Your loved one must be able to live safely in the community with PACE support services.",
       "savingsRange": "",
       "savingsSource": "Free service for Medicaid-eligible participants",
       "savingsVerified": true,
@@ -511,7 +511,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card (if applicable)",
         "Social Security award letters for all income sources",
         "Bank statements for all accounts (last 3 months)",
@@ -554,7 +554,7 @@
         "You must live within specific zip codes in the four service areas, PACE is not available statewide regardless of eligibility",
         "The program requires you to switch from all current medical providers to the PACE team, you cannot keep your existing doctors",
         "If you have Medicare Advantage (Part C) or prescription drug plans, you must disenroll before joining PACE",
-        "Approximately 90% of participants are dually eligible for Medicare and Medicaid, private pay at $4,000\u2013$5,000/month is less common"
+        "Approximately 90% of participants are dually eligible for Medicare and Medicaid, private pay at $4,000–$5,000/month is less common"
       ],
       "relatedPrograms": [
         "Louisiana Medicaid Waiver Programs",
@@ -574,7 +574,7 @@
         },
         {
           "question": "How much will my loved one pay if they only have Medicare but not Medicaid?",
-          "answer": "Medicare pays a portion of the monthly PACE rate, and your loved one pays the remainder. The exact amount varies by program, but private-pay participants typically pay $4,000\u2013$5,000 per month for comprehensive services including medical care, prescriptions, and support services."
+          "answer": "Medicare pays a portion of the monthly PACE rate, and your loved one pays the remainder. The exact amount varies by program, but private-pay participants typically pay $4,000–$5,000 per month for comprehensive services including medical care, prescriptions, and support services."
         },
         {
           "question": "Can I apply for PACE if my loved one has Medicare Advantage?",
@@ -732,7 +732,7 @@
         {
           "label": "Louisiana Medicaid Customer Service / Medicaid Application Offic (start here)",
           "phone": "(888) 342-6207",
-          "description": "Louisiana Medicaid Customer Service / Medicaid Application Office \u2014 Medicare Savings Program application help",
+          "description": "Louisiana Medicaid Customer Service / Medicaid Application Office — Medicare Savings Program application help",
           "hours": null
         },
         {
@@ -839,7 +839,7 @@
       "id": "snap-food-benefits",
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
-      "tagline": "Monthly grocery benefits of $100\u2013400 for Louisiana seniors on fixed incomes",
+      "tagline": "Monthly grocery benefits of $100–400 for Louisiana seniors on fixed incomes",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -857,7 +857,7 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits that load onto an EBT card like a debit card for food purchases. A typical 2-person elderly household with $1,200 monthly income receives $415 in monthly SNAP benefits. Because Louisiana has expanded eligibility beyond federal rules, many Louisiana seniors qualify even if they were denied elsewhere or think their income is too high.\n\nHouseholds with someone 60+ get significantly easier qualification rules: they only need to meet the net income test (100% of Federal Poverty Level) rather than the stricter gross income limits that apply to younger households. There are no asset limits in Louisiana for elderly households, your loved one can own their home, car, and have savings while still qualifying. About half of eligible seniors don't receive SNAP despite qualifying, often because they don't realize the rules are more generous for older adults.",
-      "savingsRange": "$1,200 \u2013 $4,980/year in 2026",
+      "savingsRange": "$1,200 – $4,980/year in 2026",
       "savingsSource": "Based on typical elderly household benefit amounts from Louisiana DCFS",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -1053,7 +1053,7 @@
             "type": "service-area"
           },
           {
-            "name": "Catholic Charities \u2013 Archdiocese of New Orleans (holds CSFP contract)",
+            "name": "Catholic Charities – Archdiocese of New Orleans (holds CSFP contract)",
             "type": "service-area"
           },
           {

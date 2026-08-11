@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.944Z
+ * Last updated: 2026-08-11T04:24:05.522Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -524,7 +524,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security cards for your loved one and spouse",
         "Birth certificate or other proof of age",
         "Proof of North Carolina residency (utility bill, lease, or state-issued document)",

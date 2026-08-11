@@ -597,7 +597,7 @@
         "Bank statements for all accounts (last 3 months)",
         "Investment account statements (stocks, bonds, retirement accounts)",
         "Real estate documents (property deeds, tax assessments)",
-        "Medicare card showing Parts A and B eligibility",
+        "Medicare card",
         "Valid government-issued photo ID",
         "Proof of New Hampshire residency (utility bill, lease agreement, or state-issued document)",
         "Vehicle registration and titles",
@@ -703,7 +703,7 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs on a fixed income, SNAP provides monthly benefits loaded onto an EBT card to buy food. Because New Hampshire expanded eligibility beyond federal minimums, your loved one may qualify even with income up to $2,608/month for a single person, higher than most states.\n\nBecause many seniors don't realize they qualify, only about 40% of eligible elderly participate. Your loved one can use SNAP benefits at grocery stores for most food items, but not hot prepared foods, alcohol, or tobacco. Medical expenses over $35/month count as deductions for seniors, which can significantly boost eligibility.\n\nBecause New Hampshire eliminated asset limits for most households, your loved one's savings or home value won't disqualify them unless their income exceeds 200% of federal poverty guidelines and they have more than $4,500 in countable assets.",
-      "savingsRange": "$100 \u2013 $400+/month in 2026",
+      "savingsRange": "$100 – $400+/month in 2026",
       "savingsSource": "Monthly EBT benefits based on household size and net income",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -935,7 +935,7 @@
         ]
       },
       "intro": "If your loved one struggles to pay heating bills on a fixed income, LIHEAP can provide $94 to $2,177 toward their annual heating costs. Because this program pays vendors directly, your loved one never handles the money, payments go straight to their oil, gas, or electric company. The program prioritizes seniors, disabled adults, and households with young children under 6.\n\nIncome limits are higher than many programs: $3,967/month for a single person, $5,187 for two people (2025). Because LIHEAP includes everyone at the address on the same utility bill as one household, roommate situations can affect eligibility even if your loved one doesn't share expenses with them.\n\nApplications open July 30, 2025 for the heating season, but priority groups (elderly and disabled) can submit pre-applications starting July 1. Because funding runs out each year, apply as early as possible through your regional Community Action Agency.",
-      "savingsRange": "$94 \u2013 $2,177/year in 2025",
+      "savingsRange": "$94 – $2,177/year in 2025",
       "savingsSource": "Direct heating assistance payments to energy vendors",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -1525,7 +1525,7 @@
         {
           "label": "New Hampshire ServiceLink Aging and Disability Resource Center (start here)",
           "phone": "(866) 634-9412",
-          "description": "New Hampshire ServiceLink Aging and Disability Resource Center \u2014 routes callers to the local home-delivered meals provider",
+          "description": "New Hampshire ServiceLink Aging and Disability Resource Center — routes callers to the local home-delivered meals provider",
           "hours": null
         },
         {
@@ -2284,7 +2284,7 @@
         {
           "label": "New Hampshire ServiceLink Aging and Disability Resource Center (start here)",
           "phone": "(866) 634-9412",
-          "description": "New Hampshire ServiceLink Aging and Disability Resource Center \u2014 statewide CFI application assistance and local service connection",
+          "description": "New Hampshire ServiceLink Aging and Disability Resource Center — statewide CFI application assistance and local service connection",
           "hours": null
         },
         {
@@ -2698,7 +2698,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 55+ and earns less than $25,760/year (single) or $34,840/year (couple), they can join New Hampshire's AmeriCorps Senior Companion Program. Because this combines volunteer work with income support, your loved one earns $3/hour tax-free while providing companionship to homebound adults, plus mileage reimbursement, accident insurance, and paid holidays.\n\nYour loved one would visit isolated seniors Monday through Friday, 8:30am\u20134:30pm, providing conversation and friendship (not housekeeping or personal care). Because companions must commit to at least 10 hours per week, this works best for parents who want structured social interaction and modest supplemental income. The program operates in 7 New Hampshire counties with 70 current volunteers statewide.",
+      "intro": "If your loved one is 55+ and earns less than $25,760/year (single) or $34,840/year (couple), they can join New Hampshire's AmeriCorps Senior Companion Program. Because this combines volunteer work with income support, your loved one earns $3/hour tax-free while providing companionship to homebound adults, plus mileage reimbursement, accident insurance, and paid holidays.\n\nYour loved one would visit isolated seniors Monday through Friday, 8:30am–4:30pm, providing conversation and friendship (not housekeeping or personal care). Because companions must commit to at least 10 hours per week, this works best for parents who want structured social interaction and modest supplemental income. The program operates in 7 New Hampshire counties with 70 current volunteers statewide.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2796,7 +2796,7 @@
         },
         {
           "question": "Can my loved one choose which days and hours to volunteer?",
-          "answer": "Visits are only available Monday through Friday, 8:30am\u20134:30pm, with a minimum 10-hour weekly commitment. The Program Coordinator will work with your loved one to arrange a schedule that fits within these parameters and matches them with compatible clients."
+          "answer": "Visits are only available Monday through Friday, 8:30am–4:30pm, with a minimum 10-hour weekly commitment. The Program Coordinator will work with your loved one to arrange a schedule that fits within these parameters and matches them with compatible clients."
         },
         {
           "question": "What counties does this program cover in New Hampshire?",
@@ -2902,7 +2902,7 @@
         {
           "label": "Monadnock at Home (start here)",
           "phone": "(603) 371-0809",
-          "description": "Monadnock at Home \u2014 membership and services line",
+          "description": "Monadnock at Home — membership and services line",
           "hours": null
         },
         {

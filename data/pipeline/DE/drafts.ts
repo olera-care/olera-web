@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:23:05.717Z
+ * Last updated: 2026-08-11T04:24:05.509Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -280,7 +280,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Proof of Delaware residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
@@ -469,7 +469,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Photo identification to verify age 55 or older",
         "Proof of residency in PACE service area (utility bill, lease, or state-issued document)",
-        "Medicare card (both parts if applicable)",
+        "Medicare card if you have one",
         "Medicaid card or proof of Medicaid eligibility (if applicable)",
         "Complete medical records (PACE will request via Release of Medical Records Form)",
         "List of all current medications and prescriptions",
@@ -1419,7 +1419,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicare Summary Notices (MSNs) for billing questions",
         "Explanation of Benefits (EOB) statements from Medicare",
         "Any suspicious bills or statements you want reviewed",

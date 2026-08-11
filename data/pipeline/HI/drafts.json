@@ -442,7 +442,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Current Medicare plan documents or summary of benefits",
         "Recent Medicare Summary Notices or Explanation of Benefits",
         "List of current medications with dosages",
@@ -650,7 +650,7 @@
         "Most recent tax return",
         "Bank statements for all accounts (last 3 months)",
         "Investment account statements (stocks, bonds, annuities)",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or passport",
         "Hawaii driver's license or state ID",
         "Proof of Hawaii residency (utility bill or lease)",
@@ -2863,7 +2863,7 @@
         "Pre-need burial contracts or irrevocable burial trusts",
         "Medical records documenting functional limitations",
         "Documentation of current care needs and assistance required",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Proof of health insurance premiums paid"
       ],
       "contacts": [

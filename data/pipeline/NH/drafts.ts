@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.947Z
+ * Last updated: 2026-08-11T04:24:05.524Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -602,7 +602,7 @@ export const drafts: PipelineStateDrafts = {
         "Bank statements for all accounts (last 3 months)",
         "Investment account statements (stocks, bonds, retirement accounts)",
         "Real estate documents (property deeds, tax assessments)",
-        "Medicare card showing Parts A and B eligibility",
+        "Medicare card",
         "Valid government-issued photo ID",
         "Proof of New Hampshire residency (utility bill, lease agreement, or state-issued document)",
         "Vehicle registration and titles",

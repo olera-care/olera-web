@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:38:44.692Z
+ * Last updated: 2026-08-11T04:24:05.532Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -618,7 +618,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card",
-        "Medicare card (Parts A and B)",
+        "Medicare card",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Pay stubs or other proof of income (last 30 days)",
@@ -1660,7 +1660,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
         "Proof of South Dakota residency (utility bill or lease)",

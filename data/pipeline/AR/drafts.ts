@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.694Z
+ * Last updated: 2026-08-11T04:24:05.505Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1285,7 +1285,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Recent Medicare statements or Explanation of Benefits (EOB) if addressing a specific issue",
         "Personal identification (driver's license or state ID)",
         "Current Medicare plan information (if enrolled in Medicare Advantage or Part D)",

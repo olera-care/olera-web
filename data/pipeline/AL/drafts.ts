@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:29:01.955Z
+ * Last updated: 2026-08-11T04:24:05.504Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -123,7 +123,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Alabama residency (utility bill, lease, or state-issued document)",
         "Documentation of any asset transfers in the last 60 months",
         "Pre-need burial contracts or irrevocable burial trusts",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Property tax statements for all real estate owned"
       ],
       "contacts": [

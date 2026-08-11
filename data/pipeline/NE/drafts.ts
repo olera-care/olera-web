@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.714Z
+ * Last updated: 2026-08-11T04:24:05.523Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -110,7 +110,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid photo ID",
         "Proof of Nebraska residency (utility bill, lease agreement, or state-issued document)",
         "Social Security card",
-        "Medicare card (both parts)",
+        "Medicare card",
         "Nebraska Medicaid card",
         "Medical records documenting need for assistance with Activities of Daily Living",
         "Physician documentation of current health conditions",
@@ -506,7 +506,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card (Parts A and B)",
+        "Medicare card",
         "Social Security award letter or most recent Social Security statement",
         "Bank statements for all accounts (last 3 months)",
         "Investment account statements (stocks, bonds, CDs)",

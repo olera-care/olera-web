@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:38:44.682Z
+ * Last updated: 2026-08-11T04:24:05.520Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -290,7 +290,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security card",
-        "Medicare card (both parts if enrolled)",
+        "Medicare card if you have one",
         "Proof of age (birth certificate or state-issued ID)",
         "Proof of Mississippi residency (utility bill, lease agreement, or state-issued document)",
         "Social Security award letter or other income statements",
@@ -478,7 +478,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card showing Parts A and B",
+        "Medicare card",
         "Social Security award letter or most recent statement",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",

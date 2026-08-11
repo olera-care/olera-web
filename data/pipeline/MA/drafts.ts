@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:39:38.162Z
+ * Last updated: 2026-08-11T04:24:05.516Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2011,7 +2011,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Proof of Massachusetts residency (utility bill, lease agreement, or state-issued document)",
-        "Medicare card (both parts) if Medicare eligible",
+        "Medicare card if you have one",
         "Social Security award letter or other proof of income",
         "Pension or retirement income statements",
         "Bank statements for all accounts (last 3 months)",
@@ -2415,7 +2415,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security cards for your loved one and spouse (if applicable)",
-        "MassHealth card or Medicare card (both parts)",
+        "MassHealth card or Medicare card",
         "Proof of Massachusetts residency (utility bill, lease, or bank statement)",
         "Most recent Social Security award letter",
         "Bank statements for all accounts (last 3 months)",
@@ -2823,7 +2823,7 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Medicare card showing Parts A and B coverage",
+        "Medicare card",
         "MassHealth Standard eligibility documentation",
         "Social Security award letter",
         "Bank statements for all accounts (last 3 months)",

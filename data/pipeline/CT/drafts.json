@@ -117,7 +117,7 @@
         "Vehicle titles and registration",
         "Life insurance policies showing cash values",
         "Pension or retirement income statements",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Proof of citizenship or legal immigration status",
         "Pre-need burial contracts if applicable",
         "Medical records documenting disability (if under 65)",
@@ -345,7 +345,7 @@
       },
       "documentsNeeded": [
         "Social Security card for applicant",
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Birth certificate or passport for age verification",
         "Proof of Connecticut residency (utility bill, lease, or driver's license)",
         "Most recent Social Security award letter",
@@ -516,7 +516,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card (if enrolled)",
         "Social Security card",
         "Valid government-issued photo ID or driver's license",

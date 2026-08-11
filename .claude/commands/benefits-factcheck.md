@@ -8,6 +8,8 @@ The external reviewer is a lead generator, not an authority. It was right about 
 
 **Open question on the round trip itself (raised 2026-08-07, undecided).** On that round the reviewer produced 14 usable leads out of 18, every one of which had to be re-verified from scratch, and two were overruled. It is a lead generator whose leads we re-derive — a lot of human latency for TJ (copy, paste, wait, paste back) on a mechanical step. The independence is still worth something: a different model catches what a Claude-only pipeline would systematically miss, which is a real argument against dropping it. Two reshapes are on the table, TJ's call and not yours: keep it but shrink the prompt via the `lastVerifiedDate` gate and the offline lint, or invert it so Claude subagents generate leads and the external model is used only as an adversarial check on disputed and high-severity items. **Until TJ decides, run it as written.**
 
+**2026-08-11 datapoint for that decision.** 12 corrections offered, 11 survived verification — a good hit rate. But the parallel subagents re-derived every one from scratch and independently turned up roughly eight things the reviewer missed or got wrong: SD's service-area list (5 towns vs the operator's 20) and its statewide-scope problem, GA's fourth eligibility gate, LA (its single highest-impact finding, filed as a "pick fit" aside rather than a correction), FL meals' dead citation, the NM `$100` provenance, two unsourced phone numbers, and KY's level-of-care claim. Two of its citations 404'd. The reviewer's durable value was **targeting** — naming which programs to open — which the `lastVerifiedDate` gate plus the lint could do offline for free. The independence argument still stands on its own merits; this is one round's evidence, not a verdict.
+
 ## Speed budget (added 2026-08-07)
 
 The 2026-08-07 round took over two hours. Much of that was one-time discovery now written down below, but the recurring cost was real. **Target for a steady-state round: 15–20 minutes of Claude time, a couple of minutes of TJ's.** If you are exceeding that, you are probably re-verifying something already verified, or fetching serially.
@@ -29,16 +31,26 @@ Each is a pure data check over `data/pipeline/*/drafts.json`. All produced real 
 - **Unsourced savings.** `savingsRange` set with a vague or missing `savingsSource`, or a maximum phrased as a typical range.
 - **Stale.** `lastVerifiedDate` null or older than ~6 months.
 
-### Known 403 walls — skip the fetch, go straight to search
+### Known 403 walls — do not burn a fetch, and do NOT drop to search
 
-These blocked WebFetch on 2026-08-07 and will again. Do not burn a failed fetch on them: `des.az.gov`, `cdhs.colorado.gov`, `ldh.la.gov`, `cms.gov`, `hhs.texas.gov` (PDFs), `dhhs.nh.gov`, `medicare.gov`. Use WebSearch and read which domain the answer actually comes from. These fetched fine: `wvdrs.org`, `portal.ct.gov`, `hfs.illinois.gov`, `fhb.hhs.texas.gov`, `goea.la.gov`, and parish/county `.gov` sites.
+Confirmed blocking: `des.az.gov`, `cdhs.colorado.gov`, `ldh.la.gov`, `cms.gov`, `hhs.texas.gov` (PDFs), `dhhs.nh.gov`, `medicare.gov`, `chfs.ky.gov` (403s WebFetch *and* curl-with-browser-UA), `ahca.myflorida.com` (WAF 403s even its own PDFs), `goea.la.gov` / `goea.louisiana.gov`. **The last one was listed as working through 2026-08-07 and is not — verify rather than trusting this list, and correct it when it drifts.**
 
-### Code dependencies (not built as of 2026-08-07)
+Fetched fine: `wvdrs.org`, `portal.ct.gov`, `hfs.illinois.gov`, `fhb.hhs.texas.gov`, `elderaffairs.org` (PDFs via curl), `flrules.org` (cleanest route to Florida rule text), `broc.org`, `dcf.vermont.gov`, `nmwic.org`, `dfcs.georgia.gov`, `activegenerations.org`, `oregon.gov`, and parish/county `.gov` sites.
 
-Two items belong in code, not this file. Until they exist, do their job by hand and say so in the report:
+**When a primary source blocks, get its bytes another way before you settle for a search summary.** In order of preference:
 
-- **`lastVerifiedDate` gate in the export** — `lib/benefits/navigator-review-prompt.ts` should omit programs verified within N days so the prompt, TJ's wait, and the verification all shrink together.
-- **`scripts/benefits-lint.js`** — the offline checks above as a real script. As prose they get re-derived ad hoc every round, which is the inefficiency this section exists to remove.
+1. **Wayback** — `curl 'https://web.archive.org/web/2026/<url>'` returns full page bytes including PDFs. This is how KY (chfs.ky.gov) and LA (ldh.la.gov) were verified on 2026-08-11 with no aggregator involved. The availability JSON API rate-limits (429); the `/web/<year>/` redirect path and the CDX endpoint both work.
+2. **Text proxy** — `r.jina.ai` got past Florida's WAF for `ahca.myflorida.com`.
+3. **Fetch the PDF and extract locally** — WebFetch's summarizer silently fails on compressed text layers. Download it and run `pdftotext -layout`. Oregon's ERA factsheet reads as empty via WebFetch and verbatim via pdftotext.
+
+Only after all three fail should you use WebSearch, and then you must name the domain the answer actually came from and mark routing/process claims UNVERIFIED.
+
+**Beware our own footprint.** `olera.care` pages rank for these programs and surfaced as a top result during OR verification. Our own errors can come back as "corroboration." Weight nothing from that direction.
+
+### Code dependencies
+
+- **`scripts/benefits-lint.js` — BUILT (2026-08-07), use it.** Every check in the section above is implemented. Run `node scripts/benefits-lint.js --state=<states>` before touching the report, and `--json` when you want to filter to the report's programs. It confirmed KY's null-lead-phone on 2026-08-11 before a single web call. When a round turns up a recurring pattern the script does not catch, add the check rather than describing it here — `medicare-card-parts` was added on 2026-08-11 for exactly that reason, after `medicare-not-required`'s `/parts a and b/` pattern missed the `(both parts)` phrasing and let a wrong Alabama letter reach the pending queue.
+- **`lastVerifiedDate` gate in the export — still not built.** `lib/benefits/navigator-review-prompt.ts` should omit programs verified within N days so the prompt, TJ's wait, and the verification all shrink together. Until it exists, drop fresh programs by hand and say so in the report.
 
 ## Procedure
 
@@ -83,4 +95,8 @@ Corollary for phones: `toPick` takes the first contact with a non-null `phone`. 
 - Recurring report themes worth watching: 2-1-1 given as an application door; "families that qualify often save $X" phrasing on figures that are maximums; entry-source inferred as the family's need ("paying for care" ≠ energy bills).
 - **Savings fields drift from their own record.** CT Respite's `savingsRange` read "$1,500 – $6,000/year" while the same program's tagline, intro, `savingsSource`, and FAQ all said $7,500. Before web-verifying a savings claim, grep the whole record for the figure — an internal contradiction settles it faster than a source does, and it tells you which field is the outlier.
 - **A call anchor can be a real number for the wrong thing.** CO SNAP pointed at (888) 328-2656, which is genuinely the EBT customer service line and genuinely answers, but it handles lost cards and cannot take an application. "The number works" is not the test; "the number does the thing the letter says" is. Found 2026-08-07.
+- **Never leave `documentsNeeded` empty.** `toPick()` returns null when the list is empty, so a program with no documents silently drops out of letters entirely. When the finding is "this operator publishes no document packet" (OR ERA, SD, FL meals, NM SFMNP on 2026-08-11), rewrite the entries as *what to have ready* — the facts the phone screen actually asks for. That is more useful than a document list anyway, and it is what the family will be asked.
+- **Pin the anchor with a `(start here)` label, not array order.** `toPick()` prefers the first contact whose label matches `/start here/i` before falling back to the first with a phone. A label is stable; an array index is not.
+- **Check collisions at the PROGRAM level, not the file level.** On 2026-08-11 the merge with staging's #1546 reported 14 conflicting files; only one program had actually collided. Diff base/staging/branch per program id before concluding anything about a conflict. And never resolve `drafts.ts` by picking a side — it is generated. Resolve the JSON, then `--regen-index`.
+- **Two independent efforts landing on the same number is the strongest evidence there is.** #1546 and the 2026-08-11 round both reached (877) 564-0330 for KY Transitions by different routes. When that happens, reconcile as a union and keep the better structure from each side rather than choosing a winner.
 - **Seasonality**: LIHEAP-class programs have application windows (IA: Nov 1–Apr 30, October for 60+; TN: fall portal opening). A letter composed off-season sends a family to call about a program that isn't taking applications — check the window and add a timing sentence, or question the pick. Found 2026-08-01.

@@ -299,7 +299,7 @@
         "Property deeds or tax assessments for any real estate",
         "Vehicle titles and registration",
         "Birth certificate or proof of age documentation",
-        "Medicare card (both parts A and B)",
+        "Medicare card",
         "Proof of Vermont residency (utility bill, lease agreement, or state-issued document)",
         "Medical records documenting disability (if under 65)",
         "Documentation of functional limitations for long-term care (physician assessments, therapy notes)",
@@ -456,7 +456,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Medicaid card if applicable",
         "Complete list of current medications with dosages",
         "Medical records from primary care doctor",
@@ -653,7 +653,7 @@
         ]
       },
       "documentsNeeded": [
-        "Medicare card (both Part A and Part B)",
+        "Medicare card",
         "Social Security award letter or other proof of Social Security income",
         "Pension or retirement income statements",
         "Pay stubs if still working (last 4 weeks)",
@@ -861,7 +861,7 @@
         {
           "label": "Vermont Department for Children and Families, Economic Services  (start here)",
           "phone": "(800) 479-6151",
-          "description": "Vermont Department for Children and Families, Economic Services Division \u2014 Benefits Service Center",
+          "description": "Vermont Department for Children and Families, Economic Services Division — Benefits Service Center",
           "hours": null
         },
         {
@@ -1504,7 +1504,7 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to prepare meals due to physical, mental, or cognitive challenges, Meals on Wheels Vermont delivers hot, nutritious meals directly to their home Monday through Friday. Each meal includes protein, vegetables, milk, juice, bread, and fruit that meets federal nutrition guidelines. Frozen meals are provided for weekends and holidays when kitchens are closed.\n\nThere are no income limits, your loved one qualifies regardless of their financial situation. The suggested donation is $5\u20136 per meal depending on your provider, but no one is turned away for inability to pay. Because Vermont operates through regional providers rather than one statewide program, you must first identify which organization serves your county, then contact them directly for enrollment.",
+      "intro": "If your loved one is 60+ and struggles to prepare meals due to physical, mental, or cognitive challenges, Meals on Wheels Vermont delivers hot, nutritious meals directly to their home Monday through Friday. Each meal includes protein, vegetables, milk, juice, bread, and fruit that meets federal nutrition guidelines. Frozen meals are provided for weekends and holidays when kitchens are closed.\n\nThere are no income limits, your loved one qualifies regardless of their financial situation. The suggested donation is $5–6 per meal depending on your provider, but no one is turned away for inability to pay. Because Vermont operates through regional providers rather than one statewide program, you must first identify which organization serves your county, then contact them directly for enrollment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1596,7 +1596,7 @@
       "applicationNotes": [
         "Service is NOT statewide, availability depends entirely on which provider serves your county and their current volunteer capacity",
         "Under-60 eligibility is highly restricted and requires either disability plus residence with eligible senior, disability plus senior housing, or referral through Vermont Center for Independent Living",
-        "Frozen meals for weekends and holidays are included, but hot meal delivery is Monday\u2013Friday only in most areas",
+        "Frozen meals for weekends and holidays are included, but hot meal delivery is Monday–Friday only in most areas",
         "Vermont Center for Independent Living operates a separate program for under-60 individuals with three tiers: Emergency (up to 60 meals), Short-term (up to 90 meals per year), and Long-term (up to five meals per week for one year)"
       ],
       "relatedPrograms": [
@@ -1615,7 +1615,7 @@
       "faqs": [
         {
           "question": "What if my loved one can afford to pay for meals but physically can't shop or cook?",
-          "answer": "Your loved one still qualifies. Vermont Meals on Wheels has no income limits, so ability to pay doesn't affect eligibility. The suggested donation is $5\u20136 per meal, but payment ability doesn't determine whether someone receives service."
+          "answer": "Your loved one still qualifies. Vermont Meals on Wheels has no income limits, so ability to pay doesn't affect eligibility. The suggested donation is $5–6 per meal, but payment ability doesn't determine whether someone receives service."
         },
         {
           "question": "How do I know which provider serves my loved one's town?",

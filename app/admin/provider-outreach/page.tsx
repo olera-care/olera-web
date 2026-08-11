@@ -4568,11 +4568,12 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes needs_email, ready, and hidden for UI tabs)
+  // Stage counts (includes needs_email, ready, hidden, and email_testing for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     needs_email: number;
     ready: number;
     hidden: number;
+    email_testing: number;
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
@@ -4585,6 +4586,7 @@ export default function ProviderOutreachPage() {
     needs_email: 0,
     ready: 0,
     hidden: 0,
+    email_testing: 0,
   });
 
   // Follow-ups due today with admin breakdown
@@ -5442,6 +5444,7 @@ export default function ProviderOutreachPage() {
         needs_email: 0,
         ready: 0,
         hidden: 0,
+        email_testing: 0,
       });
       prevStateRef.current = selectedState;
     }

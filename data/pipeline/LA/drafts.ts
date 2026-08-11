@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-08T08:53:53.096Z
+ * Last updated: 2026-08-11T03:21:30.185Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -124,10 +124,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Louisiana Medicaid Long-Term Care",
+          "label": "Louisiana Options in Long-Term Care",
+          "phone": "(877) 456-1146",
+          "description": "Call here first to request home and community-based services and get on the Request for Services Registry.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "Louisiana Medicaid Long-Term Care (financial application)",
           "phone": "(800) 230-0690",
-          "description": "Questions about long-term care Medicaid eligibility and the application. Married couples should ask about spousal impoverishment rules, where only the applicant's own income is counted.",
-          "hours": "Mon-Fri business hours"
+          "description": "For questions about the Medicaid long-term care application, after a waiver or services offer.",
+          "hours": "Mon-Fri"
         },
         {
           "label": "Louisiana 2-1-1",
@@ -195,7 +201,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://ldh.la.gov/medicaid/long-term-care",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "community-choices-waiver",

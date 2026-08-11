@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.704Z
+ * Last updated: 2026-08-11T03:21:30.184Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2365,7 +2365,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of Kentucky Medicaid enrollment",
         "Documentation showing 60+ consecutive days in nursing home or intermediate care facility",
-        "Evidence of Nursing Facility Level of Care determination",
+        "The name of the nursing facility, the date your loved one moved in, and their Medicaid ID number",
         "Income verification for Medicaid (Social Security award letter, pension statements)",
         "Bank statements for all accounts (last 3 months)",
         "Asset documentation (property deeds, vehicle titles, investment statements)",
@@ -2374,10 +2374,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Kentucky Department for Medicaid Services",
-          "phone": null,
-          "description": "Main program administration - use website to find local contact agency",
-          "hours": "Business hours"
+          "label": "Kentucky Transitions Team",
+          "phone": "(877) 564-0330",
+          "description": "Call to ask about Kentucky Transitions and start a prescreening. Also (502) 564-0330.",
+          "hours": "Monday-Friday, business hours (Eastern time)"
         },
         {
           "label": "Kentucky 2-1-1",
@@ -2437,7 +2437,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/Pages/kytransitions.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-11"
     },
     {
       "id": "senior-meals-program",

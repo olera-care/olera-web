@@ -25,7 +25,7 @@ One `growth_metric_snapshots` row represents one completed Sunday-Saturday week 
 
 `organic_users_to_inquiry_rate_directional` divides all inquiries by GA4 Organic Search users. It is useful as a directional blended signal, but it is not session-level attribution and must never be presented as such.
 
-The dedicated `/admin/organic-growth` page is the routine reporting surface and reads this table through an authenticated admin-only API. Product experimentation and operational signals remain on `/admin/analytics`. The `/metrics` command is the maintenance hatch for backfills, intentional corrections, source debugging, and Claude interpretation. There are no generated weekly files to reconcile.
+The dedicated `/admin/organic-growth` page is the routine reporting surface and reads this table through an authenticated admin-only API. Its calendar-style range picker defaults to the latest 12 completed weeks and can expand to six months, one year, all 180 stored weeks, or a custom range. Product experimentation and operational signals remain on `/admin/analytics`. The `/metrics` command is the maintenance hatch for backfills, intentional corrections, source debugging, and Claude interpretation. There are no generated weekly files to reconcile.
 
 ## Cadence
 

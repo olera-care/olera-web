@@ -8,10 +8,10 @@ export async function GET(request: NextRequest) {
   if (!(await getAdminUser(user.id))) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
   const requested = Number(request.nextUrl.searchParams.get("weeks") || 26);
-  const weeks = Math.max(4, Math.min(104, Number.isFinite(requested) ? requested : 26));
+  const weeks = Math.max(4, Math.min(260, Number.isFinite(requested) ? requested : 26));
   const { data, error } = await getServiceClient()
     .from("growth_metric_snapshots")
-    .select("*")
+    .select("week_start, week_end, source, definition_version, collected_at, ga4, gsc, marketplace, source_status, anomalies")
     .order("week_start", { ascending: false })
     .limit(weeks);
 

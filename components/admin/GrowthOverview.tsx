@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MetricTrendChart } from "@/components/admin/PulseHeader";
+import DateRangePopover, {
+  dateRangeFromSearchParams,
+  type DateRangePresetOption,
+  type DateRangeValue,
+} from "@/components/admin/DateRangePopover";
 
 interface GrowthWeek {
   week_start: string;
@@ -46,6 +52,19 @@ interface GrowthResponse {
 
 type MetricKey = "total_users" | "organic_users" | "search_clicks" | "inquiries";
 
+const GROWTH_RANGE_PRESETS: DateRangePresetOption[] = [
+  { label: "All time", value: "all" },
+  { label: "Last 12 weeks", value: "12w" },
+  { label: "Last 6 months", value: "6m" },
+  { label: "Last 12 months", value: "1y" },
+];
+
+const DEFAULT_GROWTH_RANGE: DateRangeValue = {
+  preset: "12w",
+  customFrom: "",
+  customTo: "",
+};
+
 const METRICS: Array<{
   key: MetricKey;
   label: string;
@@ -78,15 +97,57 @@ function formatWeek(value: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`));
 }
 
+function weeksInRange(allWeeks: GrowthWeek[], range: DateRangeValue) {
+  if (range.preset === "custom") {
+    if (!range.customFrom) return allWeeks;
+    const to = range.customTo || range.customFrom;
+    return allWeeks.filter((week) => week.week_end >= range.customFrom && week.week_start <= to);
+  }
+  if (range.preset === "all") return allWeeks;
+  const count = range.preset === "12w" ? 12 : range.preset === "6m" ? 26 : 52;
+  return allWeeks.slice(-count);
+}
+
+function continuousSeries(weeks: GrowthWeek[], value: (week: GrowthWeek) => number | null) {
+  const points: Array<{ date: string; count: number }> = [];
+  for (let index = weeks.length - 1; index >= 0; index -= 1) {
+    const count = value(weeks[index]);
+    if (count == null) break;
+    points.unshift({ date: weeks[index].week_start, count });
+  }
+  return points;
+}
+
 export default function GrowthOverview() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<GrowthResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState<MetricKey>("total_users");
+  const range = useMemo(
+    () => dateRangeFromSearchParams(searchParams, DEFAULT_GROWTH_RANGE, GROWTH_RANGE_PRESETS),
+    [searchParams],
+  );
+
+  const setRange = useCallback((next: DateRangeValue) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("from");
+    params.delete("to");
+    if (next.preset === DEFAULT_GROWTH_RANGE.preset) params.delete("range");
+    else params.set("range", next.preset);
+    if (next.preset === "custom") {
+      params.set("range", "custom");
+      if (next.customFrom) params.set("from", next.customFrom);
+      if (next.customTo) params.set("to", next.customTo);
+    }
+    const query = params.toString();
+    router.replace(query ? `/admin/organic-growth?${query}` : "/admin/organic-growth", { scroll: false });
+  }, [router, searchParams]);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/admin/organic-growth?weeks=26", { cache: "no-store" })
+    fetch("/api/admin/organic-growth?weeks=260", { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error("Growth history unavailable");
         return response.json() as Promise<GrowthResponse>;
@@ -104,14 +165,12 @@ export default function GrowthOverview() {
   }, []);
 
   const metric = METRICS.find((item) => item.key === selected) || METRICS[0];
-  const weeks = data?.weeks || [];
+  const allWeeks = data?.weeks || [];
+  const weeks = useMemo(() => weeksInRange(allWeeks, range), [allWeeks, range]);
   const latest = weeks.at(-1) || null;
   const prior = weeks.at(-2) || null;
   const series = useMemo(
-    () => weeks
-      .slice(-12)
-      .map((week) => ({ date: week.week_start, count: metric.value(week) }))
-      .filter((point): point is { date: string; count: number } => point.count != null),
+    () => continuousSeries(weeks, metric.value),
     [metric, weeks],
   );
 
@@ -123,7 +182,37 @@ export default function GrowthOverview() {
     return (
       <section className="mb-10 rounded-3xl border border-amber-200 bg-amber-50/50 px-6 py-5">
         <p className="font-medium text-gray-900">Growth history is not connected yet</p>
-        <p className="mt-1 text-sm text-gray-600">Apply migration 172 and run the first weekly collection. Product analytics below remains available.</p>
+        <p className="mt-1 text-sm text-gray-600">Apply migration 172 and run the first weekly collection.</p>
+      </section>
+    );
+  }
+
+  if (!latest && allWeeks.length > 0) {
+    return (
+      <section className="mb-12">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Organic Growth</h1>
+            <p className="mt-1 text-sm text-gray-500">Reach, intent, and marketplace response in one weekly view.</p>
+          </div>
+          <DateRangePopover
+            value={range}
+            onChange={setRange}
+            presets={GROWTH_RANGE_PRESETS}
+            ariaLabel="Growth reporting range"
+          />
+        </div>
+        <div className="rounded-3xl border border-gray-100 bg-white px-6 py-10 text-center">
+          <p className="font-medium text-gray-900">No completed weeks in this range</p>
+          <p className="mt-1 text-sm text-gray-500">Choose a wider reporting window or include dates from February 2023 onward.</p>
+          <button
+            type="button"
+            onClick={() => setRange(DEFAULT_GROWTH_RANGE)}
+            className="mt-4 rounded-full bg-gray-950 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-black"
+          >
+            Show the latest 12 weeks
+          </button>
+        </div>
       </section>
     );
   }
@@ -144,6 +233,11 @@ export default function GrowthOverview() {
     && latest.source_status.ga4 === "available"
     && latest.source_status.gsc === "available"
     && latest.source_status.supabase === "available";
+  const sourceBadge = latest.source === "airtable_legacy"
+    ? { label: "Legacy history", classes: "bg-gray-100 text-gray-600", dot: "bg-gray-400" }
+    : allSourcesLive
+      ? { label: "Live sources", classes: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" }
+      : { label: "Source gap", classes: "bg-amber-50 text-amber-700", dot: "bg-amber-500" };
 
   return (
     <section className="mb-12">
@@ -151,16 +245,24 @@ export default function GrowthOverview() {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Organic Growth</h1>
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${allSourcesLive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${allSourcesLive ? "bg-emerald-500" : "bg-amber-500"}`} />
-              {allSourcesLive ? "Live sources" : "Source gap"}
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${sourceBadge.classes}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${sourceBadge.dot}`} />
+              {sourceBadge.label}
             </span>
           </div>
           <p className="mt-1 text-sm text-gray-500">Reach, intent, and marketplace response in one weekly view.</p>
         </div>
-        <p className="text-xs text-gray-400">
-          Week ending {formatWeek(latest.week_end)} · refreshed {new Date(latest.collected_at).toLocaleDateString()}
-        </p>
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <DateRangePopover
+            value={range}
+            onChange={setRange}
+            presets={GROWTH_RANGE_PRESETS}
+            ariaLabel="Growth reporting range"
+          />
+          <p className="text-xs text-gray-400">
+            Week ending {formatWeek(latest.week_end)} · refreshed {new Date(latest.collected_at).toLocaleDateString()}
+          </p>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
@@ -188,13 +290,17 @@ export default function GrowthOverview() {
               <p className="mt-2 text-4xl font-semibold tracking-tight tabular-nums text-gray-950">{selectedValue == null ? "—" : selectedValue.toLocaleString()}</p>
               <p className="mt-1.5 text-xs font-medium"><Delta value={selectedDelta} /></p>
             </div>
-            {latestAnomaly ? (
-              <p className="max-w-sm rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs leading-relaxed text-amber-900">
-                <span className="font-semibold">Worth a look:</span> {latestAnomaly.label} moved {Math.abs(Math.round(latestAnomaly.change * 100))}% this week.
+            <div className="max-w-sm sm:text-right">
+              {latestAnomaly && (
+                <p className="rounded-xl bg-amber-50 px-3.5 py-2.5 text-left text-xs leading-relaxed text-amber-900">
+                  <span className="font-semibold">Worth a look:</span> {latestAnomaly.label} moved {Math.abs(Math.round(latestAnomaly.change * 100))}% this week.
+                </p>
+              )}
+              <p className={`${latestAnomaly ? "mt-2" : ""} text-xs text-gray-400`}>
+                {weeks.length} completed {weeks.length === 1 ? "week" : "weeks"} · Sunday through Saturday
+                {series.length < weeks.length ? ` · ${series.length} recent with ${metric.source} data` : ""}
               </p>
-            ) : (
-              <p className="text-xs text-gray-400">{series.length} completed {series.length === 1 ? "week" : "weeks"} · Sunday through Saturday</p>
-            )}
+            </div>
           </div>
 
           <div className="mt-5">
@@ -242,7 +348,11 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
     return (
       <div className="mt-6 rounded-3xl border border-gray-100 bg-white px-6 py-5">
         <p className="text-sm font-medium text-gray-900">Organic acquisition</p>
-        <p className="mt-1 text-sm text-gray-500">Detailed sources, search intent, and landing pages will appear with the next weekly collection.</p>
+        <p className="mt-1 text-sm text-gray-500">
+          {latest.source === "airtable_legacy"
+            ? "This legacy week preserves Airtable headlines but predates detailed source, query, and landing-page collection."
+            : "Detailed sources, search intent, and landing pages will appear with the next weekly collection."}
+        </p>
       </div>
     );
   }

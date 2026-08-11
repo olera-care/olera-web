@@ -117,6 +117,12 @@
       ],
       "contacts": [
         {
+          "label": "NC LIFTSS (start here)",
+          "phone": "1-833-470-0597",
+          "description": "NC Medicaid's named door for learning how to apply for CAP/DA services",
+          "hours": "Monday-Friday 8am-5pm"
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for connecting to local DSS and waiver agencies",
@@ -212,7 +218,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "1-833-470-0597",
       "sourceUrl": "https://medicaid.ncdhhs.gov/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

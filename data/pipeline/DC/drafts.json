@@ -117,6 +117,12 @@
       ],
       "contacts": [
         {
+          "label": "Aging and Disability Resource Center (start here)",
+          "phone": "(202) 724-5626",
+          "description": "DACL's enrollment unit coordinates EPD Waiver applications and links you to case management",
+          "hours": "Monday-Friday 8:15am-4:45pm"
+        },
+        {
           "label": "DACL Medicaid Services Enrollment Unit",
           "phone": null,
           "description": "Primary contact for EPD Waiver application assistance and coordination",
@@ -191,7 +197,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(202) 724-5626",
       "sourceUrl": "https://dacl.dc.gov/service/epd-waiver",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T01:23:05.731Z
+ * Last updated: 2026-08-11T01:46:41.219Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -122,6 +122,12 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "NC LIFTSS (start here)",
+          "phone": "1-833-470-0597",
+          "description": "NC Medicaid's named door for learning how to apply for CAP/DA services",
+          "hours": "Monday-Friday 8am-5pm"
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for connecting to local DSS and waiver agencies",
@@ -217,7 +223,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "1-833-470-0597",
       "sourceUrl": "https://medicaid.ncdhhs.gov/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"

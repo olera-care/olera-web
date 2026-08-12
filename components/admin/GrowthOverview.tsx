@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronRight } from "lucide-react";
 import { MetricTrendChart } from "@/components/admin/PulseHeader";
 import DateRangePopover, {
   dateRangeFromSearchParams,
@@ -52,6 +53,9 @@ interface GrowthResponse {
 }
 
 type MetricKey = "total_users" | "organic_users" | "search_clicks" | "inquiries";
+type GrowthSectionKey = "performance" | "drivers" | "acquisition";
+
+const GROWTH_SECTIONS: GrowthSectionKey[] = ["performance", "drivers", "acquisition"];
 
 const GROWTH_RANGE_PRESETS: DateRangePresetOption[] = [
   { label: "All time", value: "all" },
@@ -126,6 +130,7 @@ export default function GrowthOverview() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState<MetricKey>("total_users");
+  const [collapsedSections, setCollapsedSections] = useState<Set<GrowthSectionKey>>(() => new Set());
   const range = useMemo(
     () => dateRangeFromSearchParams(searchParams, DEFAULT_GROWTH_RANGE, GROWTH_RANGE_PRESETS),
     [searchParams],
@@ -240,6 +245,15 @@ export default function GrowthOverview() {
       ? { label: "Live sources", classes: "bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" }
       : { label: "Source gap", classes: "bg-amber-50 text-amber-700", dot: "bg-amber-500" };
 
+  const toggleSection = (section: GrowthSectionKey) => {
+    setCollapsedSections((current) => {
+      const next = new Set(current);
+      if (next.has(section)) next.delete(section);
+      else next.add(section);
+      return next;
+    });
+  };
+
   return (
     <section className="mb-12">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -266,7 +280,38 @@ export default function GrowthOverview() {
         </div>
       </div>
 
+      <div className="mb-3 flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => setCollapsedSections(new Set())}
+          className="text-[11px] font-medium text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+        >
+          Expand all
+        </button>
+        <button
+          type="button"
+          onClick={() => setCollapsedSections(new Set(GROWTH_SECTIONS))}
+          className="text-[11px] font-medium text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+        >
+          Collapse all
+        </button>
+      </div>
+
       <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
+        <button
+          type="button"
+          onClick={() => toggleSection("performance")}
+          aria-expanded={!collapsedSections.has("performance")}
+          className={`flex w-full items-start gap-3 px-5 py-5 text-left transition-colors hover:bg-gray-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 sm:px-7 ${collapsedSections.has("performance") ? "" : "border-b border-gray-100"}`}
+        >
+          <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${collapsedSections.has("performance") ? "" : "rotate-90"}`} />
+          <span>
+            <span className="block text-base font-semibold tracking-tight text-gray-950">Weekly performance</span>
+            <span className="mt-1 block text-sm text-gray-500">Traffic, search demand, and marketplace response.</span>
+          </span>
+        </button>
+
+        {!collapsedSections.has("performance") && <>
         <div className="border-b border-gray-100 px-5 py-5 sm:px-7">
           <div className="flex flex-wrap gap-2">
             {METRICS.map((item) => (
@@ -315,11 +360,22 @@ export default function GrowthOverview() {
           <Signal label="Inquiries" value={latest.marketplace.inquiries} prior={prior?.marketplace.inquiries ?? null} source="Olera" />
           <Signal label="Providers answering" value={latest.marketplace.providers_answering_questions} prior={prior?.marketplace.providers_answering_questions ?? null} source="Olera" />
         </div>
+        </>}
       </div>
 
-      <GrowthDrivers from={weeks[0].week_start} to={latest.week_end} />
+      <GrowthDrivers
+        from={weeks[0].week_start}
+        to={latest.week_end}
+        collapsed={collapsedSections.has("drivers")}
+        onToggle={() => toggleSection("drivers")}
+      />
 
-      <OrganicAcquisition latest={latest} prior={prior} />
+      <OrganicAcquisition
+        latest={latest}
+        prior={prior}
+        collapsed={collapsedSections.has("acquisition")}
+        onToggle={() => toggleSection("acquisition")}
+      />
     </section>
   );
 }
@@ -344,18 +400,33 @@ function Signal({ label, value, prior, source }: { label: string; value: number 
   );
 }
 
-function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: GrowthWeek | null }) {
+function OrganicAcquisition({
+  latest,
+  prior,
+  collapsed,
+  onToggle,
+}: {
+  latest: GrowthWeek;
+  prior: GrowthWeek | null;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   const organic = latest.ga4.organic;
   const search = latest.gsc;
   if (!organic && !search?.top_queries?.length) {
     return (
-      <div className="mt-6 rounded-3xl border border-gray-100 bg-white px-6 py-5">
-        <p className="text-sm font-medium text-gray-900">Organic acquisition</p>
-        <p className="mt-1 text-sm text-gray-500">
+      <div className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white">
+        <SectionHeader
+          title="Organic acquisition"
+          description="Where search traffic starts, what people need, and where they enter Olera."
+          collapsed={collapsed}
+          onToggle={onToggle}
+        />
+        {!collapsed && <p className="border-t border-gray-100 px-6 py-5 text-sm text-gray-500">
           {latest.source === "airtable_legacy"
             ? "This legacy week preserves Airtable headlines but predates detailed source, query, and landing-page collection."
             : "Detailed sources, search intent, and landing pages will appear with the next weekly collection."}
-        </p>
+        </p>}
       </div>
     );
   }
@@ -373,18 +444,17 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
 
   return (
     <div className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
-      <div className="border-b border-gray-100 px-5 py-5 sm:px-7">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-base font-semibold tracking-tight text-gray-950">Organic acquisition</h2>
-              <span className="rounded-full bg-teal-50 px-2 py-1 text-[10px] font-medium text-teal-700">Updated weekly</span>
-            </div>
-            <p className="mt-1 text-sm text-gray-500">Where search traffic starts, what people need, and where they enter Olera.</p>
-          </div>
-        </div>
+      <SectionHeader
+        title="Organic acquisition"
+        description="Where search traffic starts, what people need, and where they enter Olera."
+        badge="Updated weekly"
+        collapsed={collapsed}
+        onToggle={onToggle}
+      />
 
-        <p className="mt-5 rounded-2xl bg-teal-50/60 px-4 py-3 text-sm leading-relaxed text-gray-700">
+      {!collapsed && <>
+      <div className="border-t border-b border-gray-100 px-5 py-5 sm:px-7">
+        <p className="rounded-2xl bg-teal-50/60 px-4 py-3 text-sm leading-relaxed text-gray-700">
           {organicStory(organicMovement, clickMovement)}
         </p>
 
@@ -448,7 +518,40 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
         </div>
 
       </div>
+      </>}
     </div>
+  );
+}
+
+function SectionHeader({
+  title,
+  description,
+  badge,
+  collapsed,
+  onToggle,
+}: {
+  title: string;
+  description: string;
+  badge?: string;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={!collapsed}
+      className="flex w-full items-start gap-3 px-5 py-5 text-left transition-colors hover:bg-gray-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 sm:px-7"
+    >
+      <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${collapsed ? "" : "rotate-90"}`} />
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-2.5">
+          <span className="text-base font-semibold tracking-tight text-gray-950">{title}</span>
+          {badge && <span className="rounded-full bg-teal-50 px-2 py-1 text-[10px] font-medium text-teal-700">{badge}</span>}
+        </span>
+        <span className="mt-1 block text-sm text-gray-500">{description}</span>
+      </span>
+    </button>
   );
 }
 

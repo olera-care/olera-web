@@ -7,9 +7,9 @@
 
 ## Current Focus
 
-### 2026-08-12 — Organic Growth page-detail controls (`codex/organic-growth-collapse-all`)
+### 2026-08-12 — Organic Growth page-level controls (`codex/organic-growth-collapse-all`)
 
-Added compact **Expand all / Collapse all** controls above the Organic Growth page table, matching the Analytics interaction language. Page funnels can now stay open independently; bulk expand applies to the currently visible rows, bulk collapse clears them, and changing category, view, or date range resets the details. The intentionally duplicated pinned sidebar link remains unchanged. **File:** `components/admin/GrowthDrivers.tsx`. **Validation:** production build (including TypeScript) and 32-cron registry pass; diff check clean. **Next:** preview the PR against `staging`, then merge only after TJ approval.
+Added compact **Expand all / Collapse all** controls at the top of Organic Growth, matching the Analytics page hierarchy. The controls govern all three major sections—Weekly performance, Growth drivers, and Organic acquisition—and each section can still be toggled independently from its own header. Page funnels remain a separate one-at-a-time drill-down. The intentionally duplicated pinned sidebar link remains unchanged. Pre-test normalized Growth drivers so bulk collapse also works during loading and in empty/error states. **Files:** `components/admin/GrowthOverview.tsx`, `components/admin/GrowthDrivers.tsx`. **Validation:** production build (including TypeScript) and 32-cron registry pass; targeted ESLint and diff checks clean. **PR:** #1565 against `staging`. **Next:** preview the corrected hierarchy, then merge only after TJ approval.
 
 ### 2026-08-12 — Support inbox: "handled" was the one state the system could not remember (PR #1561, `support-email-handled-gmail-sync`)
 

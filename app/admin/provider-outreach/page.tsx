@@ -8,7 +8,6 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
-import { VariantTestingPanel } from "@/components/admin/provider-outreach/VariantTestingPanel";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,8 +29,7 @@ type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
 // "hidden" is a special tab for viewing admin-hidden providers
-// "email_testing" is for variant A/B testing
-type UITab = "needs_email" | "ready" | "hidden" | "email_testing" | Exclude<OutreachStage, "not_contacted">;
+type UITab = "needs_email" | "ready" | "hidden" | Exclude<OutreachStage, "not_contacted">;
 
 const UI_TABS: UITab[] = [
   "needs_email",
@@ -43,7 +41,6 @@ const UI_TABS: UITab[] = [
   "claimed",
   "archived",  // Hard terminal
   "hidden",  // Admin-hidden providers (for recovery)
-  "email_testing",  // Variant A/B testing
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -56,7 +53,6 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   claimed: "Claimed",
   archived: "Archived",
   hidden: "Hidden",
-  email_testing: "Email Testing",
 };
 
 // Database stage labels (for search results showing provider's actual stage)
@@ -877,8 +873,7 @@ interface ActiveState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Map UI tab to API parameters (stage + optional email_filter)
-// Returns null for tabs that don't need provider fetching (like email_testing)
-function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } | null {
+function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
   if (tab === "needs_email") {
     return { stage: "not_contacted", emailFilter: "needs_email" };
   }
@@ -887,9 +882,6 @@ function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emai
   }
   if (tab === "hidden") {
     return { stage: "hidden" };
-  }
-  if (tab === "email_testing") {
-    return null; // Email testing tab has its own panel, no provider fetch needed
   }
   return { stage: tab as OutreachStage };
 }
@@ -4708,12 +4700,11 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes needs_email, ready, hidden, and email_testing for UI tabs)
+  // Stage counts (includes needs_email, ready, hidden for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     needs_email: number;
     ready: number;
     hidden: number;
-    email_testing: number;
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
@@ -4726,7 +4717,6 @@ export default function ProviderOutreachPage() {
     needs_email: 0,
     ready: 0,
     hidden: 0,
-    email_testing: 0,
   });
 
   // Follow-ups due today with admin breakdown
@@ -5262,7 +5252,7 @@ export default function ProviderOutreachPage() {
   const fetchProviders = useCallback(async (city?: string, searchTerm?: string) => {
     if (!selectedState) return;
 
-    // Some tabs don't need provider fetching (e.g., email_testing has its own panel)
+    // Some tabs may not need provider fetching
     const apiParams = getApiParamsForTab(activeTab);
     if (!apiParams) {
       setLoadingProviders(false);
@@ -5592,7 +5582,6 @@ export default function ProviderOutreachPage() {
         needs_email: 0,
         ready: 0,
         hidden: 0,
-        email_testing: 0,
       });
       prevStateRef.current = selectedState;
     }
@@ -6676,13 +6665,7 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
-      {/* Content - Email Testing tab has its own panel */}
-      {activeTab === "email_testing" ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <VariantTestingPanel />
-        </div>
-      ) : (
-      /* Content - Search results (flat list) or City-grouped view */
+      {/* Content - Search results (flat list) or City-grouped view */}
       <div className="bg-white rounded-xl border border-gray-200">
         {!selectedState ? (
           // No state selected - prompt user to select a state from the header
@@ -7103,7 +7086,6 @@ export default function ProviderOutreachPage() {
           </>
         )}
       </div>
-      )}
 
       {/* Summary */}
       {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (
@@ -7307,9 +7289,9 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Send Claim Link - show for not_interested stage with email */}
+                {/* Send Claim Link - show for not_interested stage or Ready tab with email */}
                 {/* Note: re_engage providers use the inline button in ReEngageQueue instead */}
-                {actionModalProvider.stage === "not_interested" && actionModalProvider.email && (
+                {(actionModalProvider.stage === "not_interested" || activeTab === "ready") && actionModalProvider.email && (
                   <button
                     onClick={async () => {
                       setSendingClaimLink(true);

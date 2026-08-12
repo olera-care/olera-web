@@ -33,6 +33,33 @@ const MIN_CONFIDENCE = 0.95;
 const VOICEMAIL_PATTERNS = ["%voicemail%", "%voice message%", "%missed call%"];
 const SUPABASE_IN_CHUNK = 200;
 
+// A person telling Olera to stop must never be silently buried: the reply is
+// both the opt-out record and the trigger for a do_not_contact write. The
+// classifier does not model this, so it is enforced on the message body here.
+//
+// Deliberately NOT matching bare "unsubscribe" or "opt out" -- that boilerplate
+// appears in nearly every legitimate marketing footer and would exclude the
+// whole cohort. These are first-person requests only. "done" is anchored to the
+// start of the reply because it is the literal instruction in Olera's outreach.
+const OPT_OUT_PATTERNS: RegExp[] = [
+  /^\s*(?:>+\s*)?done\b/i,
+  /\bremove me\b/i,
+  /\btake me off\b/i,
+  /\bstop emailing\b/i,
+  /\bstop contacting\b/i,
+  /\bunsubscribe me\b/i,
+  /\bleave me alone\b/i,
+  /\bdo ?n[o']?t (?:contact|email|call) me\b/i,
+  /\bi (?:did ?n[o']?t|never) (?:sign ?up|signed ?up)\b/i,
+  /\bdid ?n[o']?t authorize\b/i,
+  /\b(?:i am|we are|this is) not a (?:group home|nursing home|care home|facility|provider)\b/i,
+  /\btake (?:my|our|this) (?:listing|page|profile) down\b/i,
+];
+
+function looksLikeOptOut(bodyText: string): boolean {
+  return OPT_OUT_PATTERNS.some((pattern) => pattern.test(bodyText));
+}
+
 function cohortQuery(db: ReturnType<typeof getServiceClient>, category: string, select: string, count?: "exact") {
   let query = db
     .from("support_email_threads")
@@ -94,7 +121,7 @@ export async function GET(request: NextRequest) {
       agent_confidence: number | null;
       last_message_at: string;
     }>;
-    const total = count ?? 0;
+    const matchedBySql = count ?? 0;
     const filter = {
       category,
       state: ["needs_reply", "escalated"],
@@ -102,22 +129,59 @@ export async function GET(request: NextRequest) {
       noOleraIdentityMatch: true,
       singleMessageThreadsOnly: true,
       voicemailExcluded: true,
+      optOutLanguageExcluded: true,
     };
+
+    // The opt-out check reads message bodies, so it has to run before the dry
+    // run reports a count -- otherwise the confirm token would not match what
+    // execution actually processes.
+    // message_count = 1 guarantees one inbound message per thread, which is
+    // also exactly what batchModify wants.
+    const pageIds = threads.map((t) => t.id);
+    const messageRows = (await chunked(pageIds, SUPABASE_IN_CHUNK, async (chunk) => {
+      const { data, error: messageError } = await db
+        .from("support_email_messages")
+        .select("thread_id, gmail_message_id, body_text")
+        .in("thread_id", chunk)
+        .eq("direction", "in");
+      if (messageError) throw messageError;
+      return data ?? [];
+    })).flat();
+
+    const messageByThread = new Map<string, { gmailMessageId: string; optOut: boolean }>();
+    for (const m of messageRows) {
+      messageByThread.set(String(m.thread_id), {
+        gmailMessageId: String(m.gmail_message_id),
+        // Replies land at the top; 4k is plenty and keeps the scan cheap.
+        optOut: looksLikeOptOut(String(m.body_text ?? "").slice(0, 4_000)),
+      });
+    }
+
+    const eligible = threads.filter((t) => messageByThread.get(t.id) && !messageByThread.get(t.id)!.optOut);
+    const optedOut = threads.filter((t) => messageByThread.get(t.id)?.optOut);
+    const total = eligible.length;
 
     if (!confirm) {
       return NextResponse.json({
         dryRun: true,
         filter,
         matching: total,
-        wouldProcessNow: threads.length,
-        note: total > threads.length
+        matchedBeforeOptOutExclusion: threads.length,
+        excludedForOptOutLanguage: optedOut.length,
+        note: matchedBySql > threads.length
           ? `Gmail batchModify caps at ${GMAIL_BATCH_MODIFY_LIMIT} per run. Re-run to continue.`
           : "One run covers the whole cohort.",
         confirmUrl: `/api/admin/support-email/bulk-handle?category=${category}&confirm=${total}`,
-        sample: threads.slice(0, 15).map((t) => ({
+        sample: eligible.slice(0, 15).map((t) => ({
           subject: t.subject,
           summary: t.agent_summary,
           confidence: t.agent_confidence,
+        })),
+        // Surfaced, not hidden: these need a do_not_contact decision, which is
+        // exactly why they must not be swept.
+        heldForOptOutReview: optedOut.slice(0, 25).map((t) => ({
+          subject: t.subject,
+          summary: t.agent_summary,
         })),
       });
     }
@@ -129,21 +193,10 @@ export async function GET(request: NextRequest) {
         received: Number(confirm),
       }, { status: 409 });
     }
-    if (!threads.length) return NextResponse.json({ ok: true, processed: 0, note: "Nothing to do." });
+    if (!eligible.length) return NextResponse.json({ ok: true, processed: 0, note: "Nothing to do." });
 
-    const threadIds = threads.map((t) => t.id);
-    // message_count = 1 guarantees one inbound message per thread, which is
-    // exactly what batchModify wants.
-    const messageChunks = await chunked(threadIds, SUPABASE_IN_CHUNK, async (chunk) => {
-      const { data, error: messageError } = await db
-        .from("support_email_messages")
-        .select("gmail_message_id")
-        .in("thread_id", chunk)
-        .eq("direction", "in");
-      if (messageError) throw messageError;
-      return (data ?? []).map((m) => String(m.gmail_message_id));
-    });
-    const gmailMessageIds = messageChunks.flat();
+    const threadIds = eligible.map((t) => t.id);
+    const gmailMessageIds = threadIds.map((id) => messageByThread.get(id)!.gmailMessageId);
     if (!gmailMessageIds.length) throw new Error("No inbound Gmail messages found for the cohort.");
 
     const { data: mailboxes, error: mailboxError } = await db
@@ -199,11 +252,15 @@ export async function GET(request: NextRequest) {
       details: { filter, processed: threadIds.length, gmailMessages: gmailMessageIds.length },
     });
 
-    const remaining = total - threadIds.length;
+    // Anything beyond the per-run page cap is still queued. Threads held back
+    // for opt-out language are NOT remaining work for this endpoint -- they are
+    // deliberately excluded and need a human do_not_contact decision.
+    const remaining = Math.max(0, matchedBySql - threads.length);
     return NextResponse.json({
       ok: true,
       processed: threadIds.length,
       gmailMessagesMarkedRead: gmailMessageIds.length,
+      heldForOptOutReview: optedOut.length,
       remaining,
       note: remaining > 0
         ? `Re-run the dry run and confirm again to process the remaining ${remaining}.`

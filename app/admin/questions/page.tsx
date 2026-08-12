@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import PulseHeader from "@/components/admin/PulseHeader";
+import WorkloadPatterns from "@/components/admin/WorkloadPatterns";
 import { resolveRange, type DateRangeValue } from "@/components/admin/DateRangePopover";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
 import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
@@ -1110,6 +1111,9 @@ export default function AdminQuestionsPage() {
           </div>
         )}
       </div>
+
+      {/* Workload Patterns - bandwidth planning section */}
+      <WorkloadPatterns />
 
       {/* Search bar + Export button */}
       <div className="mb-6 flex gap-3">

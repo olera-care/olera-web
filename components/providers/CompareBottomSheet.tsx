@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
@@ -101,6 +101,7 @@ export default function CompareBottomSheet({
     email: string;
     providers: { id: string; slug: string; name: string }[];
     sessionId: string;
+    visitId: string;
   } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -297,6 +298,7 @@ export default function CompareBottomSheet({
             name: p.name,
           })),
           sessionId: getOrCreateSessionId(),
+          visitId: getOrCreateVisitId(),
           isLoggedIn: true,
         }),
       });
@@ -355,6 +357,7 @@ export default function CompareBottomSheet({
         name: p.name,
       })),
       sessionId: getOrCreateSessionId(),
+      visitId: getOrCreateVisitId(),
     };
     setPendingSaveData(saveData);
     setFooterState("enrichment"); // Show enrichment immediately - no waiting!
@@ -1130,4 +1133,3 @@ function CompareCard({ provider, isCurrentProvider, isSelected, onToggle, showTo
     </div>
   );
 }
-

@@ -370,7 +370,6 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
   const priorOrganicUsers = prior?.ga4.channels["Organic Search"] ?? null;
   const organicMovement = delta(organicUsers, priorOrganicUsers);
   const clickMovement = delta(search?.performance.clicks ?? null, prior?.gsc?.performance.clicks ?? null);
-  const conversion = latest.marketplace.organic_users_to_inquiry_rate_directional;
 
   return (
     <div className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
@@ -383,12 +382,6 @@ function OrganicAcquisition({ latest, prior }: { latest: GrowthWeek; prior: Grow
             </div>
             <p className="mt-1 text-sm text-gray-500">Where search traffic starts, what people need, and where they enter Olera.</p>
           </div>
-          {conversion != null && (
-            <div className="rounded-xl bg-gray-50 px-3.5 py-2.5 sm:text-right">
-              <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-gray-400">Directional outcome</p>
-              <p className="mt-1 text-sm font-semibold text-gray-900">{(conversion * 100).toFixed(2)}% organic users → inquiry</p>
-            </div>
-          )}
         </div>
 
         <p className="mt-5 rounded-2xl bg-teal-50/60 px-4 py-3 text-sm leading-relaxed text-gray-700">

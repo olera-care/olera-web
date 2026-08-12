@@ -39,7 +39,7 @@ import {
   User,
   UsersFour,
 } from "@phosphor-icons/react";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { trackBenefitsEvent, type BenefitsStepEvent } from "@/lib/analytics/track-step";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { type BenefitsVariant } from "@/lib/analytics/variant";
@@ -419,6 +419,7 @@ export default function BenefitsDiscoveryModule({
           providerSlug: providerSlug || undefined,
           entrySource: entrySource || undefined,
           sessionId: sessionId || undefined,
+          visitId: getOrCreateVisitId(),
           utmSource,
           utmCampaign,
           matchedPrograms: matchingPrograms.map((p) => ({

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { trackGrowthEvent } from "@/lib/analytics/growth-attribution";
 
 interface ViewTrackerProps {
   providerId: string;
@@ -25,6 +26,11 @@ export function ViewTracker({ providerId }: ViewTrackerProps) {
     const session_id = getOrCreateSessionId();
     const referrer = typeof document !== "undefined" ? document.referrer : "";
     const path = typeof window !== "undefined" ? window.location.pathname : "";
+
+    // First-party conversion denominator. Kept alongside the legacy
+    // provider_activity page_view until the existing provider analytics cards
+    // are intentionally migrated.
+    trackGrowthEvent({ eventType: "page_landed", pagePath: path });
 
     // Landing UTM (paid/campaign traffic) — lets admin separate ad-driven
     // sessions from organic per campaign. Same metadata keys the lead_received
@@ -55,6 +61,26 @@ export function ViewTracker({ providerId }: ViewTrackerProps) {
       // Silent. Never block the page on analytics.
     });
   }, [providerId]);
+
+  useEffect(() => {
+    function handleContactClick(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const link = target.closest("a");
+      if (!(link instanceof HTMLAnchorElement)) return;
+      const href = link.getAttribute("href") || "";
+      if (!href.startsWith("tel:") && !href.startsWith("mailto:")) return;
+      trackGrowthEvent({
+        eventType: "contact_intent",
+        pagePath: window.location.pathname,
+        ctaId: href.startsWith("tel:") ? "contact_phone" : "contact_email",
+        ctaSurface: "provider",
+        metadata: { contact_kind: href.startsWith("tel:") ? "phone" : "email" },
+      });
+    }
+    document.addEventListener("click", handleContactClick, { capture: true });
+    return () => document.removeEventListener("click", handleContactClick, { capture: true });
+  }, []);
 
   return null;
 }

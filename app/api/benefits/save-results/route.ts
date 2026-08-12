@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { classifyOrganicPage } from "@/lib/analytics/content-pages";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient as createSSRServerClient } from "@supabase/ssr";
@@ -152,6 +153,8 @@ interface SaveResultsPayload {
    *  accounts.session_id so the admin Family Intake drill-in can join an
    *  account back to its impression / started events on provider_activity. */
   sessionId?: string;
+  /** Thirty-minute visit id used for same-visit conversion rates. */
+  visitId?: string;
   /** UTM attribution from a managed-ads landing link
    *  (`utm_source=olera_managed&utm_campaign=<tag>`). Persisted to the
    *  benefits_completed event metadata so families delivered by a paid Ad Boost
@@ -191,6 +194,7 @@ export async function POST(req: Request) {
     relationship,
     entrySource,
     sessionId,
+    visitId,
     utmSource,
     utmCampaign,
     matchedPrograms,
@@ -675,7 +679,7 @@ export async function POST(req: Request) {
   // family invisible there (2 of 220 completions were lost this way —
   // discovered 2026-08-01 when two composed navigator drafts had no queue
   // row to send them from).
-  await db.from("seeker_activity").insert({
+  const { data: completionActivity, error: completionError } = await db.from("seeker_activity").insert({
     profile_id: familyProfileId,
     event_type: "benefits_completed",
     metadata: {
@@ -691,15 +695,39 @@ export async function POST(req: Request) {
       // the page that produced them (program page, article, provider page).
       entry_source: entrySource || null,
       provider_slug: providerSlug || null,
+      session_id: sessionId || null,
+      visit_id: visitId || sessionId || null,
       // Managed-ads attribution: which paid campaign (if any) drove this family.
       utm_source: utmSource || null,
       utm_campaign: utmCampaign || null,
     },
-  }).then(({ error }: { error: { message: string } | null }) => {
-    if (error) console.error("[seeker_activity] benefits_completed insert failed:", error);
-  }, (err: unknown) => {
-    console.error("[seeker_activity] benefits_completed insert threw:", err);
-  });
+  }).select("id").single();
+  if (completionError) {
+    console.error("[seeker_activity] benefits_completed insert failed:", completionError);
+  }
+
+  const conversionPage = entrySource || (providerSlug ? `/provider/${providerSlug}` : null);
+  const conversionCategory = conversionPage ? classifyOrganicPage(conversionPage) : null;
+  if (completionActivity?.id && sessionId && conversionPage && conversionCategory) {
+    const { error: growthError } = await db.from("growth_attribution_events").upsert({
+      anonymous_id: sessionId,
+      visit_id: visitId || sessionId,
+      subject_id: familyProfileId,
+      event_type: "lead_created",
+      page_path: conversionPage,
+      page_category: conversionCategory,
+      cta_id: "benefits_intake",
+      conversion_type: "benefits_intake",
+      conversion_id: completionActivity.id,
+      metadata: {
+        entry_source: entrySource || null,
+        provider_slug: providerSlug || null,
+        state: stateAbbrev,
+        match_count: matchCount,
+      },
+    }, { onConflict: "conversion_type,conversion_id", ignoreDuplicates: true });
+    if (growthError) console.error("[save-results] Growth conversion mirror failed:", growthError);
+  }
 
   // Fire Slack alert for real-time visibility
   if (matchCount > 0) {

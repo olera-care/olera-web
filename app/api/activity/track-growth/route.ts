@@ -1,0 +1,94 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { isBotRequest, incrementBotReject } from "@/lib/analytics/bot-filter";
+import { classifyOrganicPage, normalizeOrganicPagePath } from "@/lib/analytics/content-pages";
+import { classifyReferrer, sanitizeReferrer } from "@/lib/analytics/referrer";
+import { classifyUserAgent } from "@/lib/analytics/user-agent";
+
+const CLIENT_EVENTS = new Set([
+  "page_landed",
+  "cta_visible",
+  "cta_engaged",
+  "lead_started",
+  "contact_intent",
+]);
+
+function getServiceDb() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return url && key ? createClient(url, key) : null;
+}
+
+function trafficChannel(metadata: Record<string, unknown>) {
+  const medium = typeof metadata.utm_medium === "string" ? metadata.utm_medium.toLowerCase() : "";
+  if (metadata.gclid === true || ["cpc", "ppc", "paid", "paid_search"].includes(medium)) return "paid_search";
+  const referrerClass = classifyReferrer(typeof metadata.referrer === "string" ? metadata.referrer : null);
+  if (referrerClass === "search") return "organic_search";
+  if (referrerClass === "social") return "social";
+  if (referrerClass === "ai_chat") return "ai_chat";
+  if (referrerClass === "olera_internal") return "olera_internal";
+  if (referrerClass === "direct") return "direct";
+  return "referral";
+}
+
+function shortText(value: unknown, max = 160) {
+  return typeof value === "string" ? value.slice(0, max) : null;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const userAgent = request.headers.get("user-agent");
+    if (isBotRequest(userAgent)) {
+      incrementBotReject();
+      return new NextResponse(null, { status: 204 });
+    }
+    const body = await request.json() as Record<string, unknown>;
+    const eventType = typeof body.event_type === "string" ? body.event_type : "";
+    const anonymousId = typeof body.anonymous_id === "string" ? body.anonymous_id : "";
+    const visitId = typeof body.visit_id === "string" ? body.visit_id : "";
+    const pagePath = normalizeOrganicPagePath(typeof body.page_path === "string" ? body.page_path : "");
+    const category = pagePath ? classifyOrganicPage(pagePath) : null;
+    if (
+      !CLIENT_EVENTS.has(eventType) || !anonymousId || !visitId || !pagePath || !category
+      || anonymousId.length > 128 || visitId.length > 128 || pagePath.length > 1_000
+    ) {
+      return NextResponse.json({ error: "Invalid growth event" }, { status: 400 });
+    }
+    const metadata = body.metadata && typeof body.metadata === "object"
+      ? body.metadata as Record<string, unknown>
+      : {};
+    const db = getServiceDb();
+    if (!db) return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+    const referrer = shortText(metadata.referrer, 2_000);
+    const safeMetadata = {
+      referrer: sanitizeReferrer(referrer),
+      referrer_class: classifyReferrer(referrer),
+      utm_source: shortText(metadata.utm_source),
+      utm_medium: shortText(metadata.utm_medium),
+      utm_campaign: shortText(metadata.utm_campaign, 300),
+      gclid: metadata.gclid === true,
+      contact_kind: shortText(metadata.contact_kind, 80),
+      ua_class: classifyUserAgent(userAgent),
+    };
+    const { error } = await db.from("growth_attribution_events").insert({
+      anonymous_id: anonymousId,
+      visit_id: visitId,
+      event_type: eventType,
+      page_path: pagePath,
+      page_category: category,
+      cta_id: shortText(body.cta_id, 120),
+      cta_surface: shortText(body.cta_surface, 120),
+      traffic_channel: eventType === "page_landed" ? trafficChannel(metadata) : null,
+      metadata: safeMetadata,
+    });
+    if (error) {
+      // A deploy can precede the dashboard migration by a few minutes. Keep
+      // the public UX healthy and make the activation state visible in admin.
+      console.error("[track-growth] insert failed:", error);
+      return new NextResponse(null, { status: 204 });
+    }
+    return new NextResponse(null, { status: 204 });
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+}

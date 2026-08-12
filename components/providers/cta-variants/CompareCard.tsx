@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { getPricingConfig } from "@/lib/pricing-config";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -113,6 +113,7 @@ export default function CompareCard({
     email: string;
     providers: { id: string; slug: string; name: string }[];
     sessionId: string;
+    visitId: string;
     ctaVariant: string;
   } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -193,6 +194,8 @@ export default function CompareCard({
             surface: "desktop",
             action: "compare_clicked",
             provider_count: allProviders.length,
+            visit_id: getOrCreateVisitId(),
+            page_path: `/provider/${providerSlug}`,
           },
         }),
       }).catch(() => {});
@@ -257,6 +260,7 @@ export default function CompareCard({
         name: p.name,
       })),
       sessionId: getOrCreateSessionId(),
+      visitId: getOrCreateVisitId(),
       ctaVariant: ctaVariant || "compare",
     };
     setPendingSaveData(saveData);

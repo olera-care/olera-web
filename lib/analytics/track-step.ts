@@ -5,6 +5,7 @@
 // Errors are swallowed — analytics must never block the UX.
 
 import { isPreviewMode } from "./preview-mode";
+import { getOrCreateVisitId } from "./session";
 
 export type BenefitsStepEvent =
   | "benefits_entry_viewed"
@@ -41,7 +42,7 @@ export function trackBenefitsEvent(payload: TrackBenefitsEventPayload): void {
     fetch("/api/benefits/track-step", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, visitId: getOrCreateVisitId() }),
       keepalive: true,
     }).catch((err) => {
       console.error("[trackBenefitsEvent] fetch failed:", err);

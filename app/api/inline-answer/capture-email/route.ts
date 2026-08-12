@@ -13,6 +13,7 @@ import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { readManagedUtmFromRequest, managedUtmMetadata } from "@/lib/ad-boost/managed-utm";
 import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
+import { createHash } from "crypto";
 
 /**
  * POST /api/inline-answer/capture-email
@@ -31,6 +32,7 @@ interface CaptureEmailPayload {
   providerName?: string;
   questionText?: string;
   sessionId?: string;
+  visitId?: string;
   /** For multi_provider variants: IDs of all providers contacted */
   sentProviderIds?: string[];
   /** For multi_provider variants: total number of providers contacted */
@@ -58,7 +60,7 @@ export async function POST(req: Request) {
   // this same-origin fetch). See lib/ad-boost/managed-utm.
   const managedUtm = readManagedUtmFromRequest(req);
 
-  const { email, providerId, providerName, questionText, sessionId, sentProviderIds, sentCount, variant } = payload;
+  const { email, providerId, providerName, questionText, sessionId, visitId, sentProviderIds, sentCount, variant } = payload;
   // Default to multi_provider for backwards compatibility
   const resolvedVariant = variant || "multi_provider";
 
@@ -377,6 +379,10 @@ export async function POST(req: Request) {
   // CTA and Lead Capture conversions. The variant (multi_provider / multi_provider_v2)
   // is stored as entry_point for attribution.
   await markAdsLeadConversion();
+  const qaLeadId = `qa_${createHash("sha256")
+    .update(`${normalizedEmail}:${providerId}:${questionText || "question"}`)
+    .digest("hex")
+    .slice(0, 24)}`;
   void recordProviderEvent({
     provider_id: providerId,
     event_type: "lead_received",
@@ -385,6 +391,9 @@ export async function POST(req: Request) {
       email: normalizedEmail,
       guest: !currentUser,
       session_id: sessionId || null,
+      visit_id: visitId || sessionId || null,
+      subject_id: familyProfileId,
+      connection_id: qaLeadId,
       // Store variant as entry_point for Q&A conversion attribution
       // This matches how Lead Capture uses entry_point
       entry_point: resolvedVariant.startsWith("multi_provider") ? `qa_${resolvedVariant}` : `qa_${resolvedVariant}`,

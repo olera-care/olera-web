@@ -32,6 +32,7 @@ interface RequestBody {
   email: string;
   providers: CompareProvider[];
   sessionId?: string;
+  visitId?: string;
 }
 
 function getAdminClient() {
@@ -44,7 +45,7 @@ function getAdminClient() {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RequestBody;
-    const { email, providers, sessionId } = body;
+    const { email, providers, sessionId, visitId } = body;
     // Managed-ads attribution from the provider-page-load cookie (rides along on
     // this same-origin fetch). See lib/ad-boost/managed-utm.
     const managedUtm = readManagedUtmFromRequest(request);
@@ -601,6 +602,8 @@ export async function POST(request: Request) {
           guest: true,
           raw_provider_id: provider.id,
           session_id: sessionId || null,
+          visit_id: visitId || sessionId || null,
+          subject_id: fromProfileId,
           cta_variant: "compare",
           source: "compare_save",
           ...managedUtmMetadata(managedUtm),

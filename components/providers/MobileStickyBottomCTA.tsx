@@ -17,7 +17,7 @@ import {
   RECIPIENT_LABELS,
   URGENCY_LABELS,
 } from "@/components/providers/connection-card/constants";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 
 // ── Mobile email form for new CTA (email-only, no intent questions) ──
 function MobileEmailForm({
@@ -320,6 +320,8 @@ export default function MobileStickyBottomCTA({
             surface: "mobile",
             action: "direct_request",
             logged_in: true,
+            visit_id: getOrCreateVisitId(),
+            page_path: `/provider/${providerSlug}`,
           },
         }),
       }).catch(() => {});
@@ -339,6 +341,7 @@ export default function MobileStickyBottomCTA({
             urgency: null,
           },
           session_id: getOrCreateSessionId(),
+          visit_id: getOrCreateVisitId(),
           cta_variant: ctaVariant || "legacy",
         }),
       });
@@ -444,6 +447,8 @@ export default function MobileStickyBottomCTA({
           variant: ctaVariant,
           surface: "mobile",
           action: "sheet_opened",
+          visit_id: getOrCreateVisitId(),
+          page_path: `/provider/${providerSlug}`,
         },
       }),
     }).catch(() => {});

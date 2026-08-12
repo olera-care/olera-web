@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { trackGrowthEvent } from "@/lib/analytics/growth-attribution";
 
 interface ContentViewTrackerProps {
   /**
@@ -36,6 +37,7 @@ export function ContentViewTracker({ page }: ContentViewTrackerProps) {
 
     const session_id = getOrCreateSessionId();
     const referrer = typeof document !== "undefined" ? document.referrer : "";
+    trackGrowthEvent({ eventType: "page_landed", pagePath: page });
 
     // Landing UTM, same keys the provider ViewTracker stamps — lets one query
     // read campaign-driven traffic across provider pages and content pages.
@@ -62,6 +64,42 @@ export function ContentViewTracker({ page }: ContentViewTrackerProps) {
     }).catch(() => {
       // Silent. Never block the page on analytics.
     });
+  }, [page]);
+
+  // Capture the contact actions that can happen without an Olera form. A
+  // phone/mail click is intent—not a confirmed lead—and is deliberately kept
+  // in its own metric. Other links opt in with data-growth-contact or
+  // data-growth-cta so ordinary citations do not inflate the funnel.
+  useEffect(() => {
+    function handleClick(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const link = target.closest("a");
+      if (!(link instanceof HTMLAnchorElement)) return;
+      const href = link.getAttribute("href") || "";
+      const contactKind = link.dataset.growthContact
+        || (href.startsWith("tel:") ? "phone" : href.startsWith("mailto:") ? "email" : null);
+      if (contactKind) {
+        trackGrowthEvent({
+          eventType: "contact_intent",
+          pagePath: page,
+          ctaId: link.dataset.growthCta || `contact_${contactKind}`,
+          ctaSurface: link.dataset.growthSurface || "content",
+          metadata: { contact_kind: contactKind },
+        });
+        return;
+      }
+      if (link.dataset.growthCta) {
+        trackGrowthEvent({
+          eventType: "cta_engaged",
+          pagePath: page,
+          ctaId: link.dataset.growthCta,
+          ctaSurface: link.dataset.growthSurface || "content",
+        });
+      }
+    }
+    document.addEventListener("click", handleClick, { capture: true });
+    return () => document.removeEventListener("click", handleClick, { capture: true });
   }, [page]);
 
   return null;

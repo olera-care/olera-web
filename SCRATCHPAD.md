@@ -7,6 +7,24 @@
 
 ## Current Focus
 
+### 2026-08-12 — Support inbox: "handled" was the one state the system could not remember (PR #1561, `support-email-handled-gmail-sync`)
+
+Started as an orientation pass over `/admin/support-email` and turned into a real bug. TJ asked a simple question: **does Mark handled mark the message read in our actual Gmail?** It did not. `mark_handled` sat in the Supabase-only `simpleStates` map in `app/api/admin/support-email/[threadId]/route.ts` and returned before the code ever minted a Gmail access token. Archive and Mark noise both call `modifyGmailThread(removeLabelIds: ["INBOX","UNREAD"])`; handled was the one action that touched nothing.
+
+**Two consequences, and the second is the real one.** The unread dot never cleared, because `unread` is recomputed from the Gmail label on every `refreshThread`. Worse: thread state is *derived* from Gmail labels, so anyone merely **reading** the mail in Gmail produced a `labelsChanged` and recomputed the thread straight back to `needs_reply`. A handled decision was undone by a passive act. The same branch also downgraded `escalated` threads and yanked `snoozed` ones back early. **Handled was the only state with no Gmail label backing it, so it was the only decision the system could not remember.**
+
+**Fixes.** Mark handled now clears `UNREAD` in Gmail and locally, deliberately leaving `INBOX` alone (archive stays the action that files a thread away). In `lib/support-email/sync.server.ts`, `refreshThread` now guards the reopen branch on a `settled` set (`handled | noise | snoozed | escalated`). The two are coupled and had to ship together: clearing `UNREAD` is *itself* a label change, so fix 1 without fix 2 would have flipped every handled thread back on the next sync.
+
+**Decision — UNREAD is asymmetric.** The `/pre-test` pass caught that my own guard removed the only way to undo a mis-click: the admin UI has no reopen control (the `needs_reply` action exists in the API but nothing calls it), and marking-unread-in-Gmail had been the de-facto escape hatch. So the guard distinguishes direction: **losing** `UNREAD` means the mail was read and must never reopen a settled thread; **gaining** it is a deliberate "bring this back" gesture and still reopens. Verified this survives the mark-handled flow itself — we clear `UNREAD` in Gmail but leave the stored `gmail_label_ids` alone, so the next sync sees no `UNREAD` in the new labels, `gainedUnread` is false, and handled holds.
+
+**Validated against prod, not just traced:** `needs_reply 2704 | handled 27628 | noise 513 | escalated 0 | snoozed 0`, and **8 threads sitting in `handled + unread`** — one of them `state=handled, unread=true, labels=[UNREAD, CATEGORY_UPDATES, INBOX]`, marked handled by TJ, one label change from resurrecting. Those 8 will not self-heal; re-clicking Mark handled clears them. Also confirmed backfill is unaffected: the schema defaults `state` to `handled`, but `analysis_message_id` is null on insert so `latestChanged` is true and new threads still land in `needs_reply`.
+
+**Left on the floor deliberately (pre-existing, not in this PR):** `Mark noise` sets `state='noise'` **and** removes `INBOX`, so the next sync's `!inActiveInbox` branch overwrites it to `handled` and the classification is lost — roughly 4 threads. The 507 auto-classified noise threads keep `INBOX` and are unaffected, and are now also protected from being flipped to `needs_reply`. One-line fix (`state = state === "noise" ? "noise" : "handled"`) awaiting TJ's call.
+
+**Files:** `app/api/admin/support-email/[threadId]/route.ts`, `lib/support-email/sync.server.ts`. **Validation:** tsc 0 errors, ESLint clean, cron registry OK (32 crons). **Next:** manual QA per the PR test plan (mark handled → verify read-but-not-archived in Gmail → sync → confirm no resurrection → mark unread in Gmail → confirm it reopens). Do not merge without TJ.
+
+**Orientation findings still open** (raised, not built): the **2704 badge is a backfill artifact** — every never-archived email in Gmail history becomes "Needs attention", and the badge counts it unbounded; the **list is capped at `.limit(250)` with no pagination**, so 2,454 of them are unreachable; **marketing auto-noise needs `confidence >= 0.98`**, which only the rule-based paths hit, so 1,089 marketing threads sit in Needs attention; **Snooze is fully built but has no UI button**, so that tab is permanently empty; **search ignores `body_text`** (subject/snippet/matched name only); and the **"Useful?" feedback writes to `support_email_recommendations.feedback` with nothing reading it.**
+
 ### 2026-08-11 — Benefits letters: the route axis nobody was checking (PRs #1547–#1555, all in prod)
 
 Started as `/benefits-factcheck` on a Codex review of 14 letters. Ended four rounds later having found that **the thing we were measuring was not the thing that was wrong.**

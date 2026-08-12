@@ -40,7 +40,10 @@ const threadImports = new Map<string, Promise<unknown>>();
 const MAX_TRANSCRIPT_BYTES = 500_000;
 const SYNC_LEASE_MS = 4 * 60 * 1_000;
 const ACTIVE_SYNC_LEASE = "__olera_support_sync_active__";
-const HISTORY_PAGE_SIZE = 50;
+// The limit is the number of Gmail history *records*, not changed messages. A
+// single batch archive can put 1,000+ message label changes in one record, so a
+// page must contain exactly one atomic record to keep every worker bounded.
+const HISTORY_PAGE_SIZE = 1;
 
 function isTranscriptAttachment(attachment: NormalizedGmailMessage["attachments"][number]): boolean {
   return /\.(?:srt|txt|vtt)$/i.test(attachment.filename) ||
@@ -427,31 +430,48 @@ async function applyGmailLabelChanges(
   }
   const threadsById = new Map(threadRows.map((thread) => [thread.id, thread]));
   const latestLabels = new Map<string, { labels: string[]; direction: "in" | "out" }>();
-  await inBatches(rows, 25, async (row) => {
+  const messageUpdates = new Map<string, { labels: string[]; ids: string[] }>();
+  for (const row of rows) {
     const delta = deltas.get(row.gmail_message_id);
-    if (!delta) return;
+    if (!delta) continue;
     const labels = new Set(row.gmail_label_ids ?? []);
     delta.added.forEach((label) => labels.add(label));
     delta.removed.forEach((label) => labels.delete(label));
     const nextLabels = [...labels];
     if (JSON.stringify([...row.gmail_label_ids].sort()) !== JSON.stringify([...nextLabels].sort())) {
-      const { error } = await db.from("support_email_messages").update({
-        gmail_label_ids: nextLabels,
-        updated_at: new Date().toISOString(),
-      }).eq("id", row.id);
-      if (error) throw error;
+      // Bulk Gmail actions commonly put hundreds of identical label changes
+      // into one history record. Group identical resulting label sets so one
+      // cleanup does not become one database request per message.
+      const key = JSON.stringify([...nextLabels].sort());
+      const group = messageUpdates.get(key);
+      if (group) group.ids.push(row.id);
+      else messageUpdates.set(key, { labels: nextLabels, ids: [row.id] });
     }
     const thread = threadsById.get(row.thread_id);
     if (thread && new Date(row.internal_date).getTime() === new Date(thread.last_message_at).getTime()) {
       latestLabels.set(row.thread_id, { labels: nextLabels, direction: row.direction });
     }
-  });
+  }
+  const changedAt = new Date().toISOString();
+  for (const { labels, ids: rowIds } of messageUpdates.values()) {
+    for (let i = 0; i < rowIds.length; i += 200) {
+      const { error } = await db.from("support_email_messages").update({
+        gmail_label_ids: labels,
+        updated_at: changedAt,
+      }).in("id", rowIds.slice(i, i + 200));
+      if (error) throw error;
+    }
+  }
   await inBatches(ids.filter((id) => !found.has(id)), 10, async (id) => {
     await importGmailMessage(db, mailbox, accessToken, id);
   });
-  await inBatches([...latestLabels], 25, async ([threadId, latest]) => {
+  const threadUpdates = new Map<string, {
+    payload: { gmail_label_ids: string[]; unread: boolean; state: string; updated_at: string };
+    ids: string[];
+  }>();
+  for (const [threadId, latest] of latestLabels) {
     const thread = threadsById.get(threadId);
-    if (!thread) return;
+    if (!thread) continue;
     const inActiveInbox = latest.labels.includes("INBOX") &&
       !latest.labels.includes("SPAM") && !latest.labels.includes("TRASH");
     const settled = ["handled", "noise", "snoozed", "escalated"].includes(thread.state);
@@ -461,14 +481,24 @@ async function applyGmailLabelChanges(
     else if (latest.direction === "out") state = "handled";
     else if (!inActiveInbox) state = state === "noise" ? "noise" : "handled";
     else if (gainedUnread || !settled) state = "needs_reply";
-    const { error } = await db.from("support_email_threads").update({
+    const payload = {
       gmail_label_ids: latest.labels,
       unread: latest.labels.includes("UNREAD"),
       state,
-      updated_at: new Date().toISOString(),
-    }).eq("id", threadId);
-    if (error) throw error;
-  });
+      updated_at: changedAt,
+    };
+    const key = JSON.stringify(payload);
+    const group = threadUpdates.get(key);
+    if (group) group.ids.push(threadId);
+    else threadUpdates.set(key, { payload, ids: [threadId] });
+  }
+  for (const { payload, ids: affectedThreadIds } of threadUpdates.values()) {
+    for (let i = 0; i < affectedThreadIds.length; i += 200) {
+      const { error } = await db.from("support_email_threads").update(payload)
+        .in("id", affectedThreadIds.slice(i, i + 200));
+      if (error) throw error;
+    }
+  }
   return rows.length;
 }
 

@@ -200,6 +200,26 @@ export function modifyGmailThread(accessToken: string, gmailThreadId: string, op
   });
 }
 
+// Gmail caps batchModify at 1000 message IDs and charges 50 quota units for
+// the whole call, versus 5 per single-message modify. Bulk triage would other-
+// wise be a thousand serial round trips and blow the serverless budget.
+export const GMAIL_BATCH_MODIFY_LIMIT = 1000;
+
+export function batchModifyGmailMessages(
+  accessToken: string,
+  gmailMessageIds: string[],
+  opts: { addLabelIds?: string[]; removeLabelIds?: string[] },
+) {
+  if (gmailMessageIds.length > GMAIL_BATCH_MODIFY_LIMIT) {
+    throw new Error(`batchModify accepts at most ${GMAIL_BATCH_MODIFY_LIMIT} message IDs`);
+  }
+  // Returns 204 with an empty body on success.
+  return gmailRequest(accessToken, "/messages/batchModify", {
+    method: "POST",
+    body: JSON.stringify({ ids: gmailMessageIds, ...opts }),
+  });
+}
+
 export function createGmailDraft(accessToken: string, raw: string, threadId: string) {
   return gmailRequest<{ id: string; message: GmailMessage }>(accessToken, "/drafts", {
     method: "POST",

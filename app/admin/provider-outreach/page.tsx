@@ -8,6 +8,7 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
+import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1705,6 +1706,7 @@ interface CityRowProps {
   onEmailSaved: (providerId: string, newEmail: string) => void;
   onPhoneSaved: (providerId: string, newPhone: string | null) => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
+  onOpenNotesModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
   // City assignment
   cityOwnerId: string | null;
@@ -1730,6 +1732,7 @@ function CityRow({
   onEmailSaved,
   onPhoneSaved,
   onOpenActionModal,
+  onOpenNotesModal,
   onRemoveProvider,
   cityOwnerId,
   cityOwnerName,
@@ -2095,6 +2098,20 @@ function CityRow({
                           </div>
                           {/* Hover actions */}
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            {/* Notes button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenNotesModal(provider);
+                              }}
+                              className="p-1 text-gray-300 hover:text-amber-500"
+                              title="Notes"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                              </svg>
+                            </button>
                             {activeTab !== "claimed" && (
                               <button
                                 type="button"
@@ -2308,6 +2325,7 @@ interface FollowUpQueueProps {
   onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: (provider: OutreachProvider) => void;
   onArchive: (provider: OutreachProvider) => void;
+  onOpenNotesModal: (provider: OutreachProvider) => void;
   adminNameLookup: Map<string, string>;
 }
 
@@ -2387,6 +2405,7 @@ function FollowUpProviderRow({
   onStageChange,
   onRemoveProvider,
   onArchive,
+  onOpenNotesModal,
   adminNameLookup,
 }: {
   provider: OutreachProvider;
@@ -2397,6 +2416,7 @@ function FollowUpProviderRow({
   onStageChange: (newStage: OutreachStage) => Promise<void>;
   onRemoveProvider: () => void;
   onArchive: () => void;
+  onOpenNotesModal: () => void;
   adminNameLookup: Map<string, string>;
 }) {
   const [submitting, setSubmitting] = useState<string | null>(null);
@@ -3077,8 +3097,22 @@ function FollowUpProviderRow({
                 />
               </div>
 
-              {/* Hover actions (three dots + trash) */}
+              {/* Hover actions (notes + three dots + trash) */}
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Notes button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenNotesModal();
+                  }}
+                  className="p-1 text-gray-300 hover:text-amber-500"
+                  title="Notes"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                  </svg>
+                </button>
                 <div className="relative" ref={actionMenuRef}>
                   <button
                     type="button"
@@ -3903,7 +3937,7 @@ function FollowUpProviderRow({
   );
 }
 
-function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive, adminNameLookup }: FollowUpQueueProps) {
+function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive, onOpenNotesModal, adminNameLookup }: FollowUpQueueProps) {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
   // Filter to only show providers actually in needs_call stage
@@ -4015,6 +4049,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
             }}
             onRemoveProvider={() => onRemoveProvider(provider)}
             onArchive={() => onArchive(provider)}
+            onOpenNotesModal={() => onOpenNotesModal(provider)}
             adminNameLookup={adminNameLookup}
           />
         ))}
@@ -4064,6 +4099,7 @@ interface ReEngageQueueProps {
   loading: boolean;
   onArchive: (provider: OutreachProvider) => void;
   onNotInterested: (provider: OutreachProvider, reason: string) => void;
+  onOpenNotesModal: (provider: OutreachProvider) => void;
   adminNameLookup: Map<string, string>;
 }
 
@@ -4082,7 +4118,7 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onArchive, onNotInterested, adminNameLookup }: ReEngageQueueProps) {
+function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenNotesModal, adminNameLookup }: ReEngageQueueProps) {
   // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
 
   // Send Claim Link state
@@ -4405,8 +4441,18 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, adminNa
                 claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
               />
 
-              {/* Row 5: Actions - Archive, Not Interested, Send Claim Link */}
+              {/* Row 5: Actions - Notes, Archive, Not Interested, Send Claim Link */}
               <div className="flex items-center justify-end gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => onOpenNotesModal(provider)}
+                className="px-3 py-1.5 text-sm font-medium text-amber-600 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 hover:border-amber-400 transition-colors"
+                title="Notes"
+              >
+                <svg className="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </button>
               <button
                 type="button"
                 onClick={() => setConfirmingNotInterested(provider)}
@@ -4929,6 +4975,9 @@ export default function ProviderOutreachPage() {
   const [previewDay, setPreviewDay] = useState<number>(0);
   // Toggle between Resend and SmartLead preview modes
   const [previewEngine, setPreviewEngine] = useState<"resend" | "smartlead">("smartlead");
+
+  // Notes modal state
+  const [notesModalProvider, setNotesModalProvider] = useState<{ id: string; name: string } | null>(null);
 
   // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
@@ -6744,6 +6793,23 @@ export default function ProviderOutreachPage() {
                             </div>
                             {/* Hover actions */}
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {/* Notes button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setNotesModalProvider({
+                                    id: provider.provider_id,
+                                    name: provider.provider_name,
+                                  });
+                                }}
+                                className="p-1 text-gray-300 hover:text-amber-500"
+                                title="Notes"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                </svg>
+                              </button>
                               {!["claimed"].includes(provider.stage) && (
                                 <button
                                   type="button"
@@ -6887,6 +6953,12 @@ export default function ProviderOutreachPage() {
             onArchive={(provider) => {
               setActionModalProvider(provider);
             }}
+            onOpenNotesModal={(provider) => {
+              setNotesModalProvider({
+                id: provider.provider_id,
+                name: provider.provider_name,
+              });
+            }}
             adminNameLookup={adminNameLookup}
           />
         ) : activeTab === "re_engage" ? (
@@ -6936,6 +7008,12 @@ export default function ProviderOutreachPage() {
               }}
               onNotInterested={(provider, reason) => {
                 handleQuickAction(provider.provider_id, "not_interested", null, null, false, reason);
+              }}
+              onOpenNotesModal={(provider) => {
+                setNotesModalProvider({
+                  id: provider.provider_id,
+                  name: provider.provider_name,
+                });
               }}
               adminNameLookup={adminNameLookup}
             />
@@ -7052,6 +7130,12 @@ export default function ProviderOutreachPage() {
                         );
                       }}
                       onOpenActionModal={setActionModalProvider}
+                      onOpenNotesModal={(provider) => {
+                        setNotesModalProvider({
+                          id: provider.provider_id,
+                          name: provider.provider_name,
+                        });
+                      }}
                       onRemoveProvider={(provider) => {
                         setPendingRemoval({
                           providerId: provider.provider_id,
@@ -8587,6 +8671,15 @@ export default function ProviderOutreachPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Notes Modal */}
+      {notesModalProvider && (
+        <NotesModal
+          providerId={notesModalProvider.id}
+          providerName={notesModalProvider.name}
+          onClose={() => setNotesModalProvider(null)}
+        />
       )}
     </div>
   );

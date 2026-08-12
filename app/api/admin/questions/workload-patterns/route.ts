@@ -44,8 +44,10 @@ export async function GET() {
     const weeklyMap = new Map<string, { questions: number; providers: Set<string> }>();
 
     // Initialize all 12 weeks (even if empty)
-    for (let i = 11; i >= 0; i--) {
-      const weekStart = getWeekStart(new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000));
+    // Use 12 iterations starting from the Monday of 12 weeks ago
+    const startOfTwelveWeeksAgo = getWeekStart(twelveWeeksAgo);
+    for (let i = 0; i < 12; i++) {
+      const weekStart = new Date(startOfTwelveWeeksAgo.getTime() + i * 7 * 24 * 60 * 60 * 1000);
       const weekKey = weekStart.toISOString().split("T")[0];
       weeklyMap.set(weekKey, { questions: 0, providers: new Set() });
     }
@@ -53,7 +55,6 @@ export async function GET() {
     // Build day-of-week totals
     // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
     const dayOfWeekTotals = [0, 0, 0, 0, 0, 0, 0];
-    const dayOfWeekDays = new Set<string>();
 
     for (const row of rows) {
       const date = new Date(row.created_at);
@@ -70,7 +71,6 @@ export async function GET() {
       // Day-of-week aggregation
       const dayOfWeek = date.getUTCDay();
       dayOfWeekTotals[dayOfWeek]++;
-      dayOfWeekDays.add(date.toISOString().split("T")[0]);
     }
 
     // Convert weekly map to sorted array

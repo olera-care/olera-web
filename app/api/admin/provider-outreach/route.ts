@@ -178,6 +178,9 @@ export interface OutreachProvider {
   // Confirmation state (Ready tab)
   confirmed_at?: string | null;
   confirmed_by?: string | null;
+  // Questions and leads context
+  questions_count?: number;
+  leads_count?: number;
 }
 
 /**
@@ -216,6 +219,87 @@ async function enrichWithEmailVerification(
       ...p,
       email_verification_status: emailKey ? statusMap.get(emailKey) ?? null : null,
       is_email_overridden: emailKey ? overrideSet.has(emailKey) : false,
+    };
+  });
+}
+
+/**
+ * Enrich providers with questions count and leads count.
+ * Questions: linked by slug in provider_questions.provider_id
+ * Leads: linked via business_profiles.id -> connections.to_profile_id
+ */
+async function enrichWithQuestionsAndLeads(
+  db: ReturnType<typeof getServiceClient>,
+  providers: OutreachProvider[]
+): Promise<OutreachProvider[]> {
+  if (providers.length === 0) return providers;
+
+  // Get slugs for question lookup
+  const slugs = providers
+    .map((p) => p.slug)
+    .filter((s): s is string => !!s);
+
+  // Get provider_ids for business_profile lookup (to get leads)
+  const providerIds = providers.map((p) => p.provider_id).filter(Boolean);
+
+  // Parallel queries: questions by slug, business_profiles by source_provider_id
+  const [questionsResult, bpResult] = await Promise.all([
+    slugs.length > 0
+      ? db
+          .from("provider_questions")
+          .select("provider_id")
+          .in("provider_id", slugs)
+      : Promise.resolve({ data: [] }),
+    providerIds.length > 0
+      ? db
+          .from("business_profiles")
+          .select("id, source_provider_id")
+          .in("source_provider_id", providerIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  // Count questions per slug
+  const questionCounts = new Map<string, number>();
+  for (const q of questionsResult.data || []) {
+    const slug = q.provider_id;
+    questionCounts.set(slug, (questionCounts.get(slug) || 0) + 1);
+  }
+
+  // Map provider_id -> business_profile.id
+  const bpIdByProviderId = new Map<string, string>();
+  for (const bp of bpResult.data || []) {
+    if (bp.source_provider_id && bp.id) {
+      bpIdByProviderId.set(bp.source_provider_id, bp.id);
+    }
+  }
+
+  // Get business profile IDs that exist
+  const bpIds = [...bpIdByProviderId.values()];
+
+  // Query leads (connections with type = 'inquiry')
+  let leadCounts = new Map<string, number>();
+  if (bpIds.length > 0) {
+    const { data: connections } = await db
+      .from("connections")
+      .select("to_profile_id")
+      .in("to_profile_id", bpIds)
+      .eq("type", "inquiry");
+
+    for (const c of connections || []) {
+      const bpId = c.to_profile_id;
+      leadCounts.set(bpId, (leadCounts.get(bpId) || 0) + 1);
+    }
+  }
+
+  // Enrich providers
+  return providers.map((p) => {
+    const qCount = p.slug ? questionCounts.get(p.slug) || 0 : 0;
+    const bpId = bpIdByProviderId.get(p.provider_id);
+    const lCount = bpId ? leadCounts.get(bpId) || 0 : 0;
+    return {
+      ...p,
+      questions_count: qCount,
+      leads_count: lCount,
     };
   });
 }
@@ -297,7 +381,8 @@ export async function GET(request: NextRequest) {
     // If search is provided, search across ALL stages and return flat results
     if (search) {
       const searchResults = await searchProviders(db, state, search);
-      const enriched = await enrichWithEmailVerification(db, searchResults);
+      const withEmail = await enrichWithEmailVerification(db, searchResults);
+      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats, is_search: true });
     }
 
@@ -305,7 +390,8 @@ export async function GET(request: NextRequest) {
       // Special case: providers NOT in tracking OR with stage = not_contacted
       // email_filter allows splitting into "Needs Email" and "Ready" tabs
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
-      const enriched = await enrichWithEmailVerification(db, providers);
+      const withEmail = await enrichWithEmailVerification(db, providers);
+      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
       // Compute admin counts from the providers list (includes display_name for filter chips)
       const computedAdminCounts = await computeAdminCountsFromProviders(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts, follow_ups_today: followUpsTodayStats });
@@ -314,7 +400,8 @@ export async function GET(request: NextRequest) {
     if (stage === "claimed") {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
-      const enriched = await enrichWithEmailVerification(db, providers);
+      const withEmail = await enrichWithEmailVerification(db, providers);
+      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -331,14 +418,16 @@ export async function GET(request: NextRequest) {
     // When querying "hidden", show admin_hidden providers for recovery
     if (stage === "hidden") {
       const providers = await getHiddenProviders(db, state, city);
-      const enriched = await enrichWithEmailVerification(db, providers);
+      const withEmail = await enrichWithEmailVerification(db, providers);
+      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     // When querying "archived", use special function that merges tracking + system-wide archived
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
-      const enriched = await enrichWithEmailVerification(db, providers);
+      const withEmail = await enrichWithEmailVerification(db, providers);
+      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -570,7 +659,8 @@ export async function GET(request: NextRequest) {
       .filter((p): p is OutreachProvider => p !== null)
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
-    const enriched = await enrichWithEmailVerification(db, providers);
+    const withEmail = await enrichWithEmailVerification(db, providers);
+    const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
     return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);

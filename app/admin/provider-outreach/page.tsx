@@ -2210,6 +2210,14 @@ function CityRow({
                               )}
                             </>
                           )}
+                          {/* Questions and leads context pills */}
+                          <span>·</span>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.questions_count ?? 0} Q
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.leads_count ?? 0} Leads
+                          </span>
                         </div>
 
                         {/* Row 3: Assignment + Claimed-specific badges */}
@@ -3052,6 +3060,14 @@ function FollowUpProviderRow({
                   {formatPhone(provider.phone)}
                 </a>
               )}
+              {/* Questions and leads context pills */}
+              <span>·</span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                {provider.questions_count ?? 0} Q
+              </span>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                {provider.leads_count ?? 0} Leads
+              </span>
             </div>
 
             {/* Row 3: Admin assignment (subtle) */}
@@ -4364,6 +4380,14 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, adminNa
                     No LinkedIn
                   </span>
                 )}
+                {/* Questions and leads context pills */}
+                <span>·</span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                  {provider.questions_count ?? 0} Q
+                </span>
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                  {provider.leads_count ?? 0} Leads
+                </span>
               </div>
 
               {/* Row 3: Assignment */}
@@ -6782,6 +6806,14 @@ export default function ProviderOutreachPage() {
                           {provider.city && <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>}
                           {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
                           {provider.email && <span>{provider.email}</span>}
+                          {/* Questions and leads context pills */}
+                          <span>·</span>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.questions_count ?? 0} Q
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.leads_count ?? 0} Leads
+                          </span>
                         </div>
 
                         {/* Row 3: Assignment */}

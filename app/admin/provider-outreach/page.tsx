@@ -4855,6 +4855,7 @@ export default function ProviderOutreachPage() {
   // Send Claim Link state (for action modal)
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
   const [claimLinkSent, setClaimLinkSent] = useState(false);
+  const [pendingClaimLink, setPendingClaimLink] = useState(false); // Confirmation modal
 
   // Remove from outreach confirmation state
   const [pendingRemoval, setPendingRemoval] = useState<{
@@ -4998,6 +4999,7 @@ export default function ProviderOutreachPage() {
     setUnarchivePreviewConfirmed(false);
     setPendingStageMove(null);
     setClaimLinkSent(false);
+    setPendingClaimLink(false);
     setActionNotInterestedReason("");
   };
 
@@ -5463,8 +5465,9 @@ export default function ProviderOutreachPage() {
       setPreviewLoading(true);
       setPreviewHtml(null); // Clear old preview while loading new one
       try {
-        // Always use smartlead engine (the templates actually sent)
-        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=smartlead`);
+        // Use correct engine: nudge is sent via Resend, sequence emails via SmartLead
+        const engine = previewTemplate === "nudge" ? "resend" : "smartlead";
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=${engine}`);
         if (res.ok) {
           const data = await res.json();
           setPreviewHtml(data.html);
@@ -7279,26 +7282,7 @@ export default function ProviderOutreachPage() {
                 {/* Only blocked for claimed/archived (API enforces this too) */}
                 {!["claimed", "archived"].includes(actionModalProvider.stage) && actionModalProvider.email && (
                   <button
-                    onClick={async () => {
-                      setSendingClaimLink(true);
-                      try {
-                        const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ provider_id: actionModalProvider.provider_id }),
-                        });
-                        if (res.ok) {
-                          setClaimLinkSent(true);
-                        } else {
-                          const err = await res.json();
-                          alert(err.error || "Failed to send claim link");
-                        }
-                      } catch {
-                        alert("Failed to send claim link");
-                      } finally {
-                        setSendingClaimLink(false);
-                      }
-                    }}
+                    onClick={() => setPendingClaimLink(true)}
                     disabled={sendingClaimLink || claimLinkSent}
                     className={`w-full text-left px-4 py-3 rounded-lg border transition-colors disabled:opacity-50 ${
                       claimLinkSent
@@ -7334,6 +7318,77 @@ export default function ProviderOutreachPage() {
                       </div>
                     </div>
                   </button>
+                )}
+
+                {/* Send Claim Link Confirmation Modal */}
+                {pendingClaimLink && (
+                  <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Send Claim Link</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        This will send an activation email to <span className="font-medium">{actionModalProvider.email}</span> with their claim link.
+                      </p>
+                      <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                        <p className="text-xs text-gray-500 mb-1">Provider</p>
+                        <p className="text-sm font-medium text-gray-900">{actionModalProvider.provider_name}</p>
+                        <p className="text-xs text-gray-500 mt-2 mb-1">Current Stage</p>
+                        <p className="text-sm text-gray-700">
+                          {actionModalProvider.stage === "not_contacted" ? "Not Contacted" :
+                           actionModalProvider.stage === "in_sequence" ? "In Sequence" :
+                           actionModalProvider.stage === "needs_call" ? "Follow Up" :
+                           actionModalProvider.stage === "re_engage" ? "Alternative Channels" :
+                           actionModalProvider.stage === "not_interested" ? "Not Interested" :
+                           actionModalProvider.stage}
+                        </p>
+                        <p className="text-xs text-amber-600 mt-2">
+                          Note: This will not change the provider&apos;s stage.
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setPendingClaimLink(false)}
+                          disabled={sendingClaimLink}
+                          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setSendingClaimLink(true);
+                            try {
+                              const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ provider_id: actionModalProvider.provider_id }),
+                              });
+                              if (res.ok) {
+                                setClaimLinkSent(true);
+                                setPendingClaimLink(false);
+                              } else {
+                                const err = await res.json();
+                                alert(err.error || "Failed to send claim link");
+                              }
+                            } catch {
+                              alert("Failed to send claim link");
+                            } finally {
+                              setSendingClaimLink(false);
+                            }
+                          }}
+                          disabled={sendingClaimLink}
+                          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                        >
+                          {sendingClaimLink ? (
+                            <span className="inline-flex items-center justify-center gap-1.5">
+                              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Sending...
+                            </span>
+                          ) : (
+                            "Send Email"
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {/* Move to Stage Section - hide for claimed, archived, and when viewing hidden tab */}

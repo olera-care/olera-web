@@ -17,6 +17,7 @@
 - For TypeScript/code changes, run `npx --no-install tsc --noEmit` when dependencies are installed.
 - Run `npm run check:crons` when cron or automation code changes.
 - If `npm run lint` fails because `next lint` is treated as a directory, report that repo tooling blocker and use targeted checks instead.
+- When the user asks to pull or update growth metrics, follow `.claude/commands/metrics.md`; it is shared with Claude Code and writes the canonical weekly row to Supabase.
 
 ## Existing Context
 

@@ -56,7 +56,6 @@ interface TrackingRow {
   resend_count: number;
   no_answer_count: number;
   needs_call_reason: string | null;
-  cycle_number: number;
   re_engage_entered_at: string | null;
   assigned_to: string | null;
   admin_hidden: boolean | null;
@@ -82,7 +81,6 @@ interface ExportProvider {
   resend_count?: number;
   no_answer_count?: number;
   needs_call_reason?: string | null;
-  cycle_number?: number;
   re_engage_entered_at?: string | null;
   verification_state?: string | null;
   profile_completeness?: number;
@@ -326,7 +324,6 @@ async function getProvidersForExport(
       resend_count: tab === "needs_call" ? t.resend_count : undefined,
       no_answer_count: tab === "needs_call" ? t.no_answer_count : undefined,
       needs_call_reason: tab === "needs_call" ? t.needs_call_reason : undefined,
-      cycle_number: tab === "re_engage" ? t.cycle_number : undefined,
       re_engage_entered_at: tab === "re_engage" ? t.re_engage_entered_at : undefined,
       // Email fields
       email_verification_status: emailKey ? verificationMap.get(emailKey) : null,
@@ -850,7 +847,7 @@ function buildProviderCsv(providers: ExportProvider[], tab: UITab): string {
   } else if (tab === "needs_call") {
     tabHeaders = ["Due Date", "Resend Count", "No Answer Count", "Needs Call Reason"];
   } else if (tab === "re_engage") {
-    tabHeaders = ["Cycle Number", "Re-engage Entered At"];
+    tabHeaders = ["Re-engage Entered At"];
   } else if (tab === "claimed") {
     tabHeaders = ["Verification State", "Profile Completeness"];
   }
@@ -890,7 +887,6 @@ function buildProviderCsv(providers: ExportProvider[], tab: UITab): string {
       ];
     } else if (tab === "re_engage") {
       tabValues = [
-        String(p.cycle_number ?? 1),
         p.re_engage_entered_at || "",
       ];
     } else if (tab === "claimed") {

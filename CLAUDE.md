@@ -56,6 +56,15 @@ feature branch → PR to staging → QA → PR to main → production
 - `SCRATCHPAD.md` — Living context doc (read this for session history)
 - `CONTRIBUTING.md` — Team workflow and branch strategy
 
+## Growth Metrics
+
+- Run `/metrics` for the canonical weekly acquisition and SEO report.
+- The command writes one immutable Supabase snapshot per completed week; `/admin/organic-growth` reads the same row.
+- Live weeks also write categorized `growth_page_metrics` rows so Growth drivers can rank Provider, Benefits, and Editorial pages over any selected range.
+- `docs/growth/README.md` defines every metric, the Tuesday reporting cadence, and credential setup.
+- Do not depend on Olera-HQ or Airtable for this workflow. Olera Web is the source of truth.
+- `/product-led-growth` remains the product-engagement workflow; `/metrics` measures acquisition, search visibility, and organic inquiries.
+
 ## MedJobs Strategic Context
 
 For MedJobs / student-outreach work, **read `docs/medjobs/OPERATIONAL_BRIEF.md` first.** It is the canonical engineering reference covering the funnel architecture, conversion routing, state machine, discipline rules (G1–G10), the deferred items registry (D1–D25), the outcomes map, and the canonical vocabulary. Do not invent new backend enum values or actions in `route.ts` without checking the discipline rules first.

@@ -361,8 +361,16 @@ function toSmartleadHtml(body: string, _templateKey: ProviderOutreachTemplateKey
  *   - Day 7 → delay 2 (from Day 5)
  *
  * One sequence covers all leads: merge tags handle per-provider personalization.
+ *
+ * @param variantOverride - Optional variant to use for Day 0 (subject/body).
+ *   NOTE: SmartLead uses a shared sequence for all leads in a campaign, so
+ *   variant testing with SmartLead would require separate campaigns per variant.
+ *   Currently, variant testing is only fully supported with the Resend path.
+ *   This parameter is provided for future extensibility.
  */
-export function buildProviderEmailSequence(): SmartleadSequenceStep[] {
+export function buildProviderEmailSequence(
+  variantOverride?: { subject: string; body: string }
+): SmartleadSequenceStep[] {
   const steps: SmartleadSequenceStep[] = [];
   let prevDay = 0;
 
@@ -389,7 +397,16 @@ export function buildProviderEmailSequence(): SmartleadSequenceStep[] {
       city_views: 5
     };
 
-    const draft = getTemplate(cadenceStep.templateKey, placeholderContext);
+    // Use variant override for Day 0 if provided
+    let draft;
+    if (cadenceStep.templateKey === "intro" && variantOverride) {
+      draft = {
+        subject: variantOverride.subject,
+        body: variantOverride.body,
+      };
+    } else {
+      draft = getTemplate(cadenceStep.templateKey, placeholderContext);
+    }
 
     // Calculate relative delay
     const delay = i === 0 ? 0 : cadenceStep.day - prevDay;

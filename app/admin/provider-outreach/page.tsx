@@ -8,6 +8,7 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
+import { VariantTestingPanel } from "@/components/admin/provider-outreach/VariantTestingPanel";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,7 +30,8 @@ type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
 // "hidden" is a special tab for viewing admin-hidden providers
-type UITab = "needs_email" | "ready" | "hidden" | Exclude<OutreachStage, "not_contacted">;
+// "email_testing" is for variant A/B testing
+type UITab = "needs_email" | "ready" | "hidden" | "email_testing" | Exclude<OutreachStage, "not_contacted">;
 
 const UI_TABS: UITab[] = [
   "needs_email",
@@ -41,6 +43,7 @@ const UI_TABS: UITab[] = [
   "claimed",
   "archived",  // Hard terminal
   "hidden",  // Admin-hidden providers (for recovery)
+  "email_testing",  // Variant A/B testing
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -53,6 +56,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   claimed: "Claimed",
   archived: "Archived",
   hidden: "Hidden",
+  email_testing: "Email Testing",
 };
 
 // Database stage labels (for search results showing provider's actual stage)
@@ -417,14 +421,6 @@ function ChannelTracking({
         : "Sent",
       hasDetails: !!faxAnalytics,
     });
-  } else if (faxNumber) {
-    channels.push({
-      key: "fax",
-      label: "Fax",
-      color: "bg-gray-300",
-      summary: "Ready",
-      hasDetails: false, // No details to show for "Ready" state
-    });
   }
 
   // LinkedIn channel
@@ -437,14 +433,6 @@ function ChannelTracking({
         ? `Messaged ${new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
         : "Messaged",
       hasDetails: true,
-    });
-  } else if (resolvedLinkedinUrl) {
-    channels.push({
-      key: "linkedin",
-      label: "LinkedIn",
-      color: "bg-gray-300",
-      summary: "Ready",
-      hasDetails: false, // No details to show for "Ready" state
     });
   }
 
@@ -828,8 +816,7 @@ interface OutreachProvider {
   resend_count: number;
   no_answer_count: number;
   needs_call_reason: string | null;
-  // Re-engage cycle fields
-  cycle_number: number;
+  // Re-engage fields
   re_engage_entered_at: string | null;
   re_engage_channel: string | null;
   // Enrichment fields for alternative channels
@@ -887,7 +874,8 @@ interface ActiveState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Map UI tab to API parameters (stage + optional email_filter)
-function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
+// Returns null for tabs that don't need provider fetching (like email_testing)
+function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } | null {
   if (tab === "needs_email") {
     return { stage: "not_contacted", emailFilter: "needs_email" };
   }
@@ -896,6 +884,9 @@ function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emai
   }
   if (tab === "hidden") {
     return { stage: "hidden" };
+  }
+  if (tab === "email_testing") {
+    return null; // Email testing tab has its own panel, no provider fetch needed
   }
   return { stage: tab as OutreachStage };
 }
@@ -2037,9 +2028,6 @@ function CityRow({
                                     : "bg-blue-100 text-blue-700"
                                 }`}>
                                   {provider.emails_sent}/4
-                                  {provider.cycle_number >= 2 && (
-                                    <span className="ml-0.5 text-gray-400">·C{provider.cycle_number}</span>
-                                  )}
                                 </span>
                                 {/* Sequence sublabel (recency or failure) */}
                                 {(() => {
@@ -4070,6 +4058,7 @@ interface ReEngageQueueProps {
   providers: OutreachProvider[];
   loading: boolean;
   onArchive: (provider: OutreachProvider) => void;
+  onNotInterested: (provider: OutreachProvider, reason: string) => void;
   adminNameLookup: Map<string, string>;
 }
 
@@ -4088,15 +4077,21 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEngageQueueProps) {
+function ReEngageQueue({ providers, loading, onArchive, onNotInterested, adminNameLookup }: ReEngageQueueProps) {
   // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
 
   // Send Claim Link state
   const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
   const [claimLinkSentIds, setClaimLinkSentIds] = useState<Set<string>>(new Set());
 
+  // Confirmation modal states
+  const [confirmingNotInterested, setConfirmingNotInterested] = useState<OutreachProvider | null>(null);
+  const [confirmingSendLink, setConfirmingSendLink] = useState<OutreachProvider | null>(null);
+  const [notInterestedReason, setNotInterestedReason] = useState<string>("");
+
   const handleSendClaimLink = useCallback(async (providerId: string) => {
     setSendingClaimLinkId(providerId);
+    setConfirmingSendLink(null); // Close confirmation modal
     try {
       const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
         method: "POST",
@@ -4116,15 +4111,16 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
     }
   }, []);
 
-  // Provider tier tracking (session-only, not persisted)
-  const [tierMap, setTierMap] = useState<Map<string, ProviderTier>>(new Map());
+  const handleConfirmNotInterested = useCallback((provider: OutreachProvider, reason: string) => {
+    setConfirmingNotInterested(null);
+    setNotInterestedReason("");
+    onNotInterested(provider, reason);
+  }, [onNotInterested]);
 
-  const setProviderTier = useCallback((providerId: string, tier: ProviderTier) => {
-    setTierMap((prev) => {
-      const next = new Map(prev);
-      next.set(providerId, tier);
-      return next;
-    });
+  // Unused tier tracking removed - was session-only noise
+  const tierMap = new Map<string, ProviderTier>();
+  const setProviderTier = useCallback((_providerId: string, _tier: ProviderTier) => {
+    // No-op - tier selector removed
   }, []);
 
   // LinkedIn tracking (session-only, for backward compat with existing linkedin channel providers)
@@ -4294,7 +4290,6 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
       {/* Provider rows */}
       {sorted.map((provider) => {
         const waitDays = daysSince(provider.re_engage_entered_at);
-        const isCycle2 = provider.cycle_number === 2;
 
         // Check if direct_mail has expired (18+ days without claim)
         const mailSentAt = mailAnalyticsMap.get(provider.provider_id)?.sent_at;
@@ -4325,25 +4320,14 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
             )}
             {/* Main row - restructured for better readability */}
             <div className="px-5 py-3 hover:bg-gray-50 transition-colors">
-              {/* Row 1: Provider name (full width) + Cycle badge + Wait time */}
+              {/* Row 1: Provider name + Wait time */}
               <div className="flex items-center justify-between gap-4 mb-1">
                 <span className="font-medium text-gray-900 text-sm">
                   {provider.provider_name}
                 </span>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                      isCycle2
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    Cycle {provider.cycle_number}
-                  </span>
-                  <span className="text-sm text-gray-600">
-                    {waitDays}d
-                  </span>
-                </div>
+                <span className="text-sm text-gray-600 shrink-0">
+                  {waitDays}d in stage
+                </span>
               </div>
 
               {/* Row 2: Category, location, email + channel badges */}
@@ -4382,7 +4366,7 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
                 )}
               </div>
 
-              {/* Row 3: Assignment + Tier selector */}
+              {/* Row 3: Assignment */}
               <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
                 <span>Assigned:</span>
                 <AdminChip
@@ -4390,10 +4374,6 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
                   adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
                   size="sm"
                   showUnassigned={true}
-                />
-                <TierSelector
-                  tier={tierMap.get(provider.provider_id)}
-                  onTierChange={(tier) => setProviderTier(provider.provider_id, tier)}
                 />
               </div>
 
@@ -4412,8 +4392,15 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
                 claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
               />
 
-              {/* Row 5: Actions - Tracking only (Archive opens modal with stage options, Send Claim Link) */}
-              <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-100">
+              {/* Row 5: Actions - Archive, Not Interested, Send Claim Link */}
+              <div className="flex items-center justify-end gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmingNotInterested(provider)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
+              >
+                Not Interested
+              </button>
               <button
                 type="button"
                 onClick={() => onArchive(provider)}
@@ -4426,7 +4413,7 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
               {provider.email && (
                 <button
                   type="button"
-                  onClick={() => handleSendClaimLink(provider.provider_id)}
+                  onClick={() => setConfirmingSendLink(provider)}
                   disabled={sendingClaimLinkId === provider.provider_id || claimLinkSentIds.has(provider.provider_id)}
                   className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     claimLinkSentIds.has(provider.provider_id)
@@ -4478,6 +4465,136 @@ function ReEngageQueue({ providers, loading, onArchive, adminNameLookup }: ReEng
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
         {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Alternative Channels
       </div>
+
+      {/* Not Interested Confirmation Modal */}
+      {confirmingNotInterested && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => {
+            setConfirmingNotInterested(null);
+            setNotInterestedReason("");
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Mark as Not Interested</h3>
+              <p className="text-sm text-gray-500 mt-1">{confirmingNotInterested.provider_name}</p>
+            </div>
+
+            <div className="px-5 py-4">
+              <p className="text-sm text-gray-700 mb-4">
+                Mark this provider as not interested in claiming their profile.
+              </p>
+
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Provider will be moved to Not Interested (soft terminal)
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    No more outreach emails, but questions/connections still flow
+                  </li>
+                </ul>
+              </div>
+
+              {/* Reason dropdown */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                  Reason <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={notInterestedReason}
+                  onChange={(e) => setNotInterestedReason(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                >
+                  <option value="">Select a reason...</option>
+                  {NOT_INTERESTED_REASONS.map((r) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setConfirmingNotInterested(null);
+                  setNotInterestedReason("");
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleConfirmNotInterested(confirmingNotInterested, notInterestedReason)}
+                disabled={!notInterestedReason}
+                className="px-4 py-2 text-sm font-medium bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Mark as Not Interested
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Claim Link Confirmation Modal */}
+      {confirmingSendLink && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => setConfirmingSendLink(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Send Claim Link</h3>
+              <p className="text-sm text-gray-500 mt-1">{confirmingSendLink.provider_name}</p>
+            </div>
+
+            <div className="px-5 py-4">
+              <p className="text-sm text-gray-700 mb-4">
+                Send a short email with just the claim link to the provider.
+              </p>
+
+              <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Email will be sent immediately with the claim link
+                  </li>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-400 mt-0.5">•</span>
+                    Sent to: {confirmingSendLink.email}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmingSendLink(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSendClaimLink(confirmingSendLink.provider_id)}
+                className="px-4 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              >
+                Send Claim Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -4564,11 +4681,12 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes needs_email, ready, and hidden for UI tabs)
+  // Stage counts (includes needs_email, ready, hidden, and email_testing for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     needs_email: number;
     ready: number;
     hidden: number;
+    email_testing: number;
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
@@ -4581,6 +4699,7 @@ export default function ProviderOutreachPage() {
     needs_email: 0,
     ready: 0,
     hidden: 0,
+    email_testing: 0,
   });
 
   // Follow-ups due today with admin breakdown
@@ -5115,11 +5234,19 @@ export default function ProviderOutreachPage() {
   // Fetch providers for current tab/state (or search)
   const fetchProviders = useCallback(async (city?: string, searchTerm?: string) => {
     if (!selectedState) return;
+
+    // Some tabs don't need provider fetching (e.g., email_testing has its own panel)
+    const apiParams = getApiParamsForTab(activeTab);
+    if (!apiParams) {
+      setLoadingProviders(false);
+      return;
+    }
+
     setLoadingProviders(true);
 
     try {
       // Map UI tab to API parameters
-      const { stage, emailFilter } = getApiParamsForTab(activeTab);
+      const { stage, emailFilter } = apiParams;
       const params = new URLSearchParams({
         state: selectedState,
         stage,
@@ -5438,6 +5565,7 @@ export default function ProviderOutreachPage() {
         needs_email: 0,
         ready: 0,
         hidden: 0,
+        email_testing: 0,
       });
       prevStateRef.current = selectedState;
     }
@@ -5699,10 +5827,11 @@ export default function ProviderOutreachPage() {
   // If requiresReasonValidation is true, reason is required (archive/unarchive actions)
   const handleQuickAction = async (
     providerId: string,
-    action: "not_contacted" | "archived",
+    action: "not_contacted" | "archived" | "not_interested",
     reason?: string | null,
     notes?: string | null,
-    requiresReasonValidation?: boolean
+    requiresReasonValidation?: boolean,
+    notInterestedReason?: string
   ) => {
     setActionLoading(true);
     try {
@@ -5714,11 +5843,13 @@ export default function ProviderOutreachPage() {
           stage: action,
           reason: requiresReasonValidation ? reason : undefined,
           notes: notes || undefined,
+          // not_interested_reason is required when moving to not_interested
+          not_interested_reason: action === "not_interested" ? (notInterestedReason || "no_response_exhausted") : undefined,
         }),
       });
 
       if (res.ok) {
-        const actionLabel = action === "not_contacted" ? "Restored" : "Archived";
+        const actionLabel = action === "not_contacted" ? "Restored" : action === "not_interested" ? "Not Interested" : "Archived";
         showToast(`Marked as ${actionLabel}`, "success");
         // Mark as recently moved to filter from stale API responses
         markAsRecentlyMoved(providerId);
@@ -6518,7 +6649,13 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
-      {/* Content - Search results (flat list) or City-grouped view */}
+      {/* Content - Email Testing tab has its own panel */}
+      {activeTab === "email_testing" ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <VariantTestingPanel />
+        </div>
+      ) : (
+      /* Content - Search results (flat list) or City-grouped view */
       <div className="bg-white rounded-xl border border-gray-200">
         {!selectedState ? (
           // No state selected - prompt user to select a state from the header
@@ -6585,9 +6722,6 @@ export default function ProviderOutreachPage() {
                                 {provider.stage === "in_sequence" && typeof provider.emails_sent === "number" && (
                                   <span className={`ml-1 ${provider.sequence_status?.failed_step !== undefined ? "text-red-600" : "text-blue-500"}`}>
                                     ({provider.emails_sent}/4)
-                                    {provider.cycle_number >= 2 && (
-                                      <span className="ml-0.5 text-gray-400 font-normal">·C{provider.cycle_number}</span>
-                                    )}
                                   </span>
                                 )}
                               </span>
@@ -6785,6 +6919,9 @@ export default function ProviderOutreachPage() {
               onArchive={(provider) => {
                 setActionModalProvider(provider);
               }}
+              onNotInterested={(provider, reason) => {
+                handleQuickAction(provider.provider_id, "not_interested", null, null, false, reason);
+              }}
               adminNameLookup={adminNameLookup}
             />
           </>
@@ -6931,6 +7068,7 @@ export default function ProviderOutreachPage() {
           </>
         )}
       </div>
+      )}
 
       {/* Summary */}
       {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (

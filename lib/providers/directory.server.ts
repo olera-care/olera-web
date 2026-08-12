@@ -44,14 +44,17 @@ export interface DirectoryFilters {
   category: string;
   state: string;
   tab: string;
+  /** Set of provider_ids that are claimed (have linked business_profile with account_id) */
+  _claimedProviderIds?: Set<string>;
 }
 
 /**
- * BPs join the union only when there's a search query and the tab isn't the
- * OP-only `deleted` tab (BPs have no `deleted` column).
+ * BPs join the union only when there's a search query and the tab isn't:
+ *   - "deleted" (BPs have no `deleted` column)
+ *   - "unclaimed" (BPs are self-registered accounts, inherently "owned")
  */
 function computeIncludeBps(filters: DirectoryFilters): boolean {
-  return filters.search.length > 0 && filters.tab !== "deleted";
+  return filters.search.length > 0 && filters.tab !== "deleted" && filters.tab !== "unclaimed";
 }
 
 // The query builders below are intentionally `any`-typed: PostgREST's
@@ -65,6 +68,28 @@ function applyOpFilters(q: any, filters: DirectoryFilters): any {
   if (filters.tab === "published") query = query.or("deleted.is.null,deleted.eq.false");
   else if (filters.tab === "deleted") query = query.eq("deleted", true);
   else if (filters.tab === "no_city") query = query.is("city", null);
+  else if (filters.tab === "unclaimed") {
+    // Unclaimed = published AND not in claimed set
+    query = query.or("deleted.is.null,deleted.eq.false");
+    // If we have claimed IDs, exclude them
+    if (filters._claimedProviderIds && filters._claimedProviderIds.size > 0) {
+      const claimedIds = Array.from(filters._claimedProviderIds);
+      // PostgREST can handle large IN clauses; 5000 is safe, beyond that log warning
+      const CLAIMED_FILTER_LIMIT = 5000;
+      if (claimedIds.length > CLAIMED_FILTER_LIMIT) {
+        console.warn(
+          `[directory] ${claimedIds.length} claimed providers exceeds filter limit of ${CLAIMED_FILTER_LIMIT}. ` +
+          `Unclaimed tab may include some claimed providers. Consider database function approach.`
+        );
+      }
+      // Apply filter for all IDs up to a reasonable limit
+      // PostgREST handles the escaping; we just provide comma-separated IDs
+      const idsToExclude = claimedIds.slice(0, CLAIMED_FILTER_LIMIT);
+      if (idsToExclude.length > 0) {
+        query = query.not("provider_id", "in", `(${idsToExclude.join(",")})`);
+      }
+    }
+  }
   if (filters.search) query = query.ilike("provider_name", `%${filters.search}%`);
   if (filters.category) query = query.eq("provider_category", filters.category);
   if (filters.state) query = query.eq("state", filters.state);
@@ -149,6 +174,38 @@ function mapBpToItem(row: BpListRow): DirectoryListItem {
 }
 
 /**
+ * Fetch the set of provider_ids that are claimed (have business_profile with account_id).
+ * Used for the "unclaimed" tab filter.
+ *
+ * On error, returns empty Set and logs warning. This means the "unclaimed" tab will
+ * show ALL published providers (including claimed ones). This is a graceful degradation
+ * since the send-claim-link endpoint validates claimed status before sending.
+ */
+async function fetchClaimedProviderIds(db: SupabaseClient): Promise<Set<string>> {
+  const { data, error } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .not("account_id", "is", null);
+
+  if (error) {
+    console.error(
+      "[directory] DEGRADED: Failed to fetch claimed provider IDs. " +
+      "Unclaimed tab will show all published providers (including claimed). " +
+      "Send-claim-link endpoint will still validate correctly.",
+      error
+    );
+    return new Set();
+  }
+
+  return new Set(
+    (data || [])
+      .map((row) => row.source_provider_id)
+      .filter((id): id is string => id != null)
+  );
+}
+
+/**
  * Total count across OP + (when applicable) orphan BPs. Throws on the OP count
  * error so the route can surface a 500; a BP count error degrades to 0 (matches
  * the original's "log and continue").
@@ -157,9 +214,16 @@ export async function countDirectory(
   filters: DirectoryFilters,
   db: SupabaseClient,
 ): Promise<number> {
+  // For unclaimed tab, fetch claimed IDs first
+  let enrichedFilters = filters;
+  if (filters.tab === "unclaimed") {
+    const claimedIds = await fetchClaimedProviderIds(db);
+    enrichedFilters = { ...filters, _claimedProviderIds: claimedIds };
+  }
+
   const opCountResult = await applyOpFilters(
     db.from("olera-providers").select("provider_id", { count: "exact", head: true }),
-    filters,
+    enrichedFilters,
   );
   if (opCountResult.error) {
     console.error("Directory count error:", opCountResult.error);
@@ -207,9 +271,16 @@ export async function listDirectory(
   perPage: number,
   db: SupabaseClient,
 ): Promise<DirectoryListPage> {
+  // For unclaimed tab, fetch claimed IDs first
+  let enrichedFilters = filters;
+  if (filters.tab === "unclaimed") {
+    const claimedIds = await fetchClaimedProviderIds(db);
+    enrichedFilters = { ...filters, _claimedProviderIds: claimedIds };
+  }
+
   const opQuery = applyOpFilters(
     db.from("olera-providers").select(OP_LIST_COLUMNS, { count: "exact" }),
-    filters,
+    enrichedFilters,
   ).order("provider_name", { ascending: true });
 
   // Without union: preserve existing behavior — direct pagination on OP.
@@ -335,6 +406,13 @@ export async function exportDirectoryRows(
   filters: DirectoryFilters,
   db: SupabaseClient,
 ): Promise<DirectoryExportResult> {
+  // For unclaimed tab, fetch claimed IDs first
+  let enrichedFilters = filters;
+  if (filters.tab === "unclaimed") {
+    const claimedIds = await fetchClaimedProviderIds(db);
+    enrichedFilters = { ...filters, _claimedProviderIds: claimedIds };
+  }
+
   // OP with Supabase 1000-row pagination.
   const PAGE_SIZE = 1000;
   let allOpRows: OpExportRow[] = [];
@@ -344,7 +422,7 @@ export async function exportDirectoryRows(
   while (hasMore) {
     const query = applyOpFilters(
       db.from("olera-providers").select(OP_EXPORT_COLUMNS),
-      filters,
+      enrichedFilters,
     )
       .order("provider_name", { ascending: true })
       .range(offset, offset + PAGE_SIZE - 1);

@@ -42,6 +42,10 @@ export default function AdminDirectoryDetailPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [source, setSource] = useState<ProviderSource>("scraped");
+  const [isClaimed, setIsClaimed] = useState<boolean | null>(null);
+  const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  const [claimLinkSent, setClaimLinkSent] = useState(false);
+  const [showClaimLinkModal, setShowClaimLinkModal] = useState(false);
   // Canonical olera-providers.provider_id from the API response. URLs accept
   // multiple input shapes (op.provider_id, op.slug, bp.id, bp.slug) but PATCH
   // + image action endpoints require the exact provider_id. Without this, a
@@ -116,6 +120,9 @@ export default function AdminDirectoryDetailPage() {
           image: staff.image || "",
         });
       }
+
+      // Set claimed status from API response
+      setIsClaimed(data.isClaimed ?? false);
     } catch (err) {
       console.error("Failed to fetch provider:", err);
     } finally {
@@ -144,6 +151,18 @@ export default function AdminDirectoryDetailPage() {
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
+
+  // Close claim link modal on Escape key
+  useEffect(() => {
+    if (!showClaimLinkModal) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !sendingClaimLink) {
+        setShowClaimLinkModal(false);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [showClaimLinkModal, sendingClaimLink]);
 
   function updateField(field: string, value: unknown) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -288,6 +307,34 @@ export default function AdminDirectoryDetailPage() {
     staffBio !== (originalStaff.bio || "") ||
     staffCareMotivation !== (originalStaff.care_motivation || "") ||
     staffImage !== (originalStaff.image || "");
+
+  async function handleConfirmSendClaimLink() {
+    const id = canonicalProviderId ?? providerId;
+    setSendingClaimLink(true);
+    setSaveMessage(null);
+    try {
+      const res = await fetch("/api/admin/directory/send-claim-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: id }),
+      });
+      if (res.ok) {
+        setClaimLinkSent(true);
+        setShowClaimLinkModal(false);
+        setSaveMessage({ type: "success", text: "Claim link sent successfully!" });
+        setTimeout(() => setSaveMessage(null), 4000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setSaveMessage({ type: "error", text: err.error || "Failed to send claim link." });
+        setShowClaimLinkModal(false);
+      }
+    } catch {
+      setSaveMessage({ type: "error", text: "Network error. Please try again." });
+      setShowClaimLinkModal(false);
+    } finally {
+      setSendingClaimLink(false);
+    }
+  }
 
   async function handleSaveStaff() {
     setSavingStaff(true);
@@ -472,11 +519,17 @@ export default function AdminDirectoryDetailPage() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{provider.provider_name}</h1>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
           <Badge variant="default">{provider.provider_category}</Badge>
           <Badge variant={provider.deleted ? "rejected" : "verified"}>
             {provider.deleted ? "Deleted" : "Published"}
           </Badge>
+          {isClaimed === true && (
+            <Badge variant="verified">Claimed</Badge>
+          )}
+          {isClaimed === false && (
+            <Badge variant="default">Unclaimed</Badge>
+          )}
           {typeof formData.slug === "string" && (
             <Link
               href={`/provider/${formData.slug}`}
@@ -485,6 +538,24 @@ export default function AdminDirectoryDetailPage() {
             >
               View Public Profile &rarr;
             </Link>
+          )}
+          {/* Send Claim Link button - only for unclaimed providers with email */}
+          {isClaimed === false && !!formData.email && (
+            claimLinkSent ? (
+              <span className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Claim Link Sent
+              </span>
+            ) : (
+              <button
+                onClick={() => setShowClaimLinkModal(true)}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors"
+              >
+                Send Claim Link
+              </button>
+            )
           )}
         </div>
       </div>
@@ -1056,6 +1127,50 @@ export default function AdminDirectoryDetailPage() {
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
+        </div>
+      )}
+
+      {/* Send Claim Link Confirmation Modal */}
+      {showClaimLinkModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => !sendingClaimLink && setShowClaimLinkModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-semibold text-gray-900">
+              Send Claim Link
+            </h2>
+            <p className="text-sm text-gray-600 mt-2">
+              You are about to send a claim link email to:
+            </p>
+            <div className="mt-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm font-medium text-gray-900">{provider.provider_name}</p>
+              <p className="text-sm text-teal-600 font-mono mt-1">{formData.email as string}</p>
+            </div>
+            <p className="text-sm text-gray-500 mt-3">
+              Please verify this is the correct email address. Sending to invalid emails affects our sender reputation.
+            </p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowClaimLinkModal(false)}
+                disabled={sendingClaimLink}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmSendClaimLink}
+                disabled={sendingClaimLink}
+                className="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50"
+              >
+                {sendingClaimLink ? "Sending..." : "Confirm & Send"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

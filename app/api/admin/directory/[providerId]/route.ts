@@ -167,13 +167,15 @@ export async function GET(
         }
       }
 
-      // Fetch linked business_profiles record for owner/staff metadata
+      // Fetch linked business_profiles record for owner/staff metadata and claimed status
       let staffData = null;
       let businessProfileId: string | null = bpRow?.id ?? null;
+      let isClaimed = false;
+
       if (!businessProfileId) {
         const { data } = await db
           .from("business_profiles")
-          .select("id, metadata")
+          .select("id, metadata, account_id")
           .eq("source_provider_id", canonicalId)
           .limit(1)
           .maybeSingle();
@@ -181,10 +183,12 @@ export async function GET(
           businessProfileId = data.id;
           const meta = (data.metadata || {}) as Record<string, unknown>;
           staffData = meta.staff || null;
+          isClaimed = data.account_id != null;
         }
       } else if (bpRow) {
         const meta = (bpRow.metadata || {}) as Record<string, unknown>;
         staffData = meta.staff || null;
+        isClaimed = (bpRow as Record<string, unknown>).account_id != null;
       }
 
       return NextResponse.json({
@@ -193,18 +197,21 @@ export async function GET(
         rawImages,
         staffData,
         businessProfileId,
+        isClaimed,
         source: "scraped",
       });
     }
 
     if (bpRow) {
       const meta = (bpRow.metadata || {}) as Record<string, unknown>;
+      const isClaimed = (bpRow as Record<string, unknown>).account_id != null;
       return NextResponse.json({
         provider: bpRow,
         images: [],
         rawImages: [],
         staffData: meta.staff || null,
         businessProfileId: bpRow.id,
+        isClaimed,
         source: "user-created",
       });
     }

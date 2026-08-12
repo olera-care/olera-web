@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import {
   getPricingForProviderSync,
   formatPricingRange,
@@ -99,6 +99,8 @@ export default function LoggedInFamilyCTA({
             surface: "desktop",
             action: "direct_request",
             logged_in: true,
+            visit_id: getOrCreateVisitId(),
+            page_path: `/provider/${providerSlug}`,
           },
         }),
       }).catch(() => {});
@@ -118,6 +120,7 @@ export default function LoggedInFamilyCTA({
             urgency: null,
           },
           session_id: getOrCreateSessionId(),
+          visit_id: getOrCreateVisitId(),
           cta_variant: ctaVariant || "legacy",
         }),
       });

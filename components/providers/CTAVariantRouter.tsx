@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useCTAVariant, isCTAPreviewMode } from "@/hooks/use-cta-variant";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
 import { CompareCard, GuideCard } from "@/components/providers/cta-variants";
@@ -52,6 +52,10 @@ function useImpressionTracking(
     if (firedRef.current) return;
     // Don't fire in preview mode (contaminates A/B data)
     if (isCTAPreviewMode()) return;
+    // Both responsive routers are mounted so CSS can switch instantly, but
+    // only the visible surface is a real impression.
+    const desktopVisible = window.matchMedia("(min-width: 768px)").matches;
+    if ((surface === "desktop") !== desktopVisible) return;
     firedRef.current = true;
     // Fire-and-forget POST to the activity tracking endpoint.
     // Using navigator.sendBeacon would be nice but is overkill for an
@@ -67,6 +71,8 @@ function useImpressionTracking(
         metadata: {
           variant,
           surface,
+          visit_id: getOrCreateVisitId(),
+          page_path: `/provider/${providerSlug}`,
         },
       }),
     }).catch(() => {

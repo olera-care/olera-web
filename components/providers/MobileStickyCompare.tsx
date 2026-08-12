@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import CompareBottomSheet, { type CompareProvider } from "./CompareBottomSheet";
@@ -113,6 +113,8 @@ export default function MobileStickyCompare({
             surface: "mobile",
             action: "direct_request",
             logged_in: true,
+            visit_id: getOrCreateVisitId(),
+            page_path: `/provider/${providerSlug}`,
           },
         }),
       }).catch(() => {});
@@ -132,6 +134,7 @@ export default function MobileStickyCompare({
             urgency: null,
           },
           session_id: getOrCreateSessionId(),
+          visit_id: getOrCreateVisitId(),
           cta_variant: ctaVariant || "compare",
         }),
       });

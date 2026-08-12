@@ -26,7 +26,7 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { ArrowRight, Spinner, CheckCircle } from "@phosphor-icons/react";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { trackBenefitsEvent } from "@/lib/analytics/track-step";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { EMPATHIC_INTENT_H2 } from "@/lib/analytics/variant-copy";
@@ -277,6 +277,7 @@ export default function EmpathicSingleStep({
           providerSlug: providerSlug ?? undefined,
           entrySource: entrySource ?? undefined,
           sessionId: sessionId || undefined,
+          visitId: getOrCreateVisitId(),
           utmSource,
           utmCampaign,
           matchedPrograms: matchingPrograms.map((p) => ({

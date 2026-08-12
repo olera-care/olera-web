@@ -48,6 +48,8 @@ import { trackBenefitsEvent } from "@/lib/analytics/track-step";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { matchesCareNeed, type CareNeed } from "@/lib/benefits/match-care-need";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getOrCreateVisitId } from "@/lib/analytics/session";
+import { trackGrowthEvent } from "@/lib/analytics/growth-attribution";
 import {
   trackBenefitsEnrichmentStarted,
   trackBenefitsEnrichmentStepCompleted,
@@ -215,6 +217,7 @@ export default function ProgramBenefitsCard({
 
   // Track enrichment start only once
   const hasTrackedEnrichmentStart = useRef(false);
+  const hasTrackedCtaEngagement = useRef(false);
 
   const entrySource = `/benefits/${stateId}/${programId}`;
   const ctaSurface = variant === "bare" ? "mobile" : "desktop";
@@ -223,6 +226,17 @@ export default function ProgramBenefitsCard({
 
   const submittableEmail = (authedEmail ?? email).trim();
   const emailValid = EMAIL_RE.test(submittableEmail);
+
+  const trackCtaEngagement = useCallback(() => {
+    if (hasTrackedCtaEngagement.current) return;
+    hasTrackedCtaEngagement.current = true;
+    trackGrowthEvent({
+      eventType: "cta_engaged",
+      pagePath: entrySource,
+      ctaId: "benefits_intake",
+      ctaSurface,
+    });
+  }, [ctaSurface, entrySource]);
 
   const handleSubmit = useCallback(async () => {
     setError(null);
@@ -281,6 +295,7 @@ export default function ProgramBenefitsCard({
           email: submittableEmail.toLowerCase(),
           entrySource,
           sessionId: sessionId || undefined,
+          visitId: getOrCreateVisitId(),
           matchedPrograms: matched.map((p) => ({
             programId: p.id,
             stateId,
@@ -925,6 +940,7 @@ export default function ProgramBenefitsCard({
         <input
           type="email"
           value={email}
+          onFocus={trackCtaEngagement}
           onChange={(e) => {
             setEmail(e.target.value);
             if (error) setError(null);
@@ -952,7 +968,10 @@ export default function ProgramBenefitsCard({
       )}
 
       <button
-        onClick={handleSubmit}
+        onClick={() => {
+          trackCtaEngagement();
+          void handleSubmit();
+        }}
         disabled={saving}
         className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-[15px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md active:scale-[0.98] disabled:cursor-default disabled:opacity-70 disabled:active:scale-100"
       >

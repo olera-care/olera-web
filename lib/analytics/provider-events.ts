@@ -39,6 +39,30 @@ export async function recordProviderEvent(input: RecordProviderEventInput): Prom
     if (error) {
       console.error(`[provider-events] ${input.event_type} insert failed:`, error);
     }
+
+    if (input.event_type === "lead_received") {
+      const metadata = input.metadata ?? {};
+      const anonymousId = typeof metadata.session_id === "string" ? metadata.session_id : null;
+      const conversionId = typeof metadata.connection_id === "string" ? metadata.connection_id : null;
+      if (anonymousId && conversionId) {
+        const { error: growthError } = await db.from("growth_attribution_events").upsert({
+          anonymous_id: anonymousId,
+          visit_id: typeof metadata.visit_id === "string" ? metadata.visit_id : anonymousId,
+          subject_id: typeof metadata.subject_id === "string" ? metadata.subject_id : null,
+          event_type: "lead_created",
+          page_path: `/provider/${input.provider_id}`,
+          page_category: "provider",
+          cta_id: typeof metadata.entry_point === "string"
+            ? metadata.entry_point
+            : typeof metadata.cta_variant === "string" ? `provider_${metadata.cta_variant}` : "provider_inquiry",
+          cta_surface: typeof metadata.cta_surface === "string" ? metadata.cta_surface : null,
+          conversion_type: "provider_inquiry",
+          conversion_id: conversionId,
+          metadata,
+        }, { onConflict: "conversion_type,conversion_id", ignoreDuplicates: true });
+        if (growthError) console.error("[provider-events] Growth conversion mirror failed:", growthError);
+      }
+    }
   } catch (err) {
     console.error(`[provider-events] ${input.event_type} threw:`, err);
   }

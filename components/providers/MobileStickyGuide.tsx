@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import GuideBottomSheet from "./GuideBottomSheet";
@@ -102,6 +102,8 @@ export default function MobileStickyGuide({
             surface: "mobile",
             action: "direct_request",
             logged_in: true,
+            visit_id: getOrCreateVisitId(),
+            page_path: `/provider/${providerSlug}`,
           },
         }),
       }).catch(() => {});
@@ -121,6 +123,7 @@ export default function MobileStickyGuide({
             urgency: null,
           },
           session_id: getOrCreateSessionId(),
+          visit_id: getOrCreateVisitId(),
           cta_variant: ctaVariant || "guide",
         }),
       });

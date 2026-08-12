@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
@@ -256,6 +256,7 @@ export default function GuideBottomSheet({
             name: providerName,
           },
           sessionId: getOrCreateSessionId(),
+          visitId: getOrCreateVisitId(),
         }),
       });
 

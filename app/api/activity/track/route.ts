@@ -251,6 +251,38 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Mirror provider-page CTA events into the normalized growth funnel.
+      // The legacy event remains canonical for the A/B dashboard; this row is
+      // the page-attribution vocabulary shared with benefits and editorial.
+      const growthEvent = event_type === "cta_variant_impression"
+        ? "cta_visible"
+        : event_type === "cta_variant_clicked" || event_type === "cta_click_public"
+          ? (metadata?.cta === "phone"
+            ? "contact_intent"
+            : metadata?.action === "form_submitted" || metadata?.action === "direct_request"
+              ? "lead_started"
+              : "cta_engaged")
+          : null;
+      if (growthEvent) {
+        const { error: growthError } = await db.from("growth_attribution_events").insert({
+          anonymous_id: session_id,
+          visit_id: typeof metadata?.visit_id === "string" ? metadata.visit_id : session_id,
+          event_type: growthEvent,
+          page_path: typeof metadata?.page_path === "string" ? metadata.page_path : `/provider/${related_provider_id}`,
+          page_category: "provider",
+          cta_id: typeof metadata?.action === "string"
+            ? metadata.action
+            : typeof metadata?.cta === "string"
+              ? metadata.cta
+              : typeof metadata?.variant === "string" ? `provider_${metadata.variant}` : "provider_cta",
+          cta_surface: typeof metadata?.surface === "string" ? metadata.surface : null,
+          metadata: enrichedMetadata,
+        });
+        // Migration 174 may land shortly after the application deploy. This
+        // mirror is analytics-only and must not make a care CTA fail.
+        if (growthError) console.error("[activity/track] Growth mirror failed:", growthError);
+      }
+
       // Send Slack alert for multi_provider conversions. Awaited so the
       // Vercel serverless runtime doesn't kill the pending Promise after
       // the response returns (see feedback_serverless_fire_and_forget.md).

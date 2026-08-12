@@ -74,13 +74,20 @@ function applyOpFilters(q: any, filters: DirectoryFilters): any {
     // If we have claimed IDs, exclude them
     if (filters._claimedProviderIds && filters._claimedProviderIds.size > 0) {
       const claimedIds = Array.from(filters._claimedProviderIds);
-      // Supabase has a limit on IN clause size, batch if needed
-      // For now, we'll handle up to 1000 claimed providers
-      if (claimedIds.length <= 1000) {
-        query = query.not("provider_id", "in", `(${claimedIds.join(",")})`);
+      // PostgREST can handle large IN clauses; 5000 is safe, beyond that log warning
+      const CLAIMED_FILTER_LIMIT = 5000;
+      if (claimedIds.length > CLAIMED_FILTER_LIMIT) {
+        console.warn(
+          `[directory] ${claimedIds.length} claimed providers exceeds filter limit of ${CLAIMED_FILTER_LIMIT}. ` +
+          `Unclaimed tab may include some claimed providers. Consider database function approach.`
+        );
       }
-      // If more than 1000 claimed, we can't filter them all in one query
-      // This is a known limitation - documented in the code
+      // Apply filter for all IDs up to a reasonable limit
+      // PostgREST handles the escaping; we just provide comma-separated IDs
+      const idsToExclude = claimedIds.slice(0, CLAIMED_FILTER_LIMIT);
+      if (idsToExclude.length > 0) {
+        query = query.not("provider_id", "in", `(${idsToExclude.join(",")})`);
+      }
     }
   }
   if (filters.search) query = query.ilike("provider_name", `%${filters.search}%`);
@@ -169,6 +176,10 @@ function mapBpToItem(row: BpListRow): DirectoryListItem {
 /**
  * Fetch the set of provider_ids that are claimed (have business_profile with account_id).
  * Used for the "unclaimed" tab filter.
+ *
+ * On error, returns empty Set and logs warning. This means the "unclaimed" tab will
+ * show ALL published providers (including claimed ones). This is a graceful degradation
+ * since the send-claim-link endpoint validates claimed status before sending.
  */
 async function fetchClaimedProviderIds(db: SupabaseClient): Promise<Set<string>> {
   const { data, error } = await db
@@ -178,7 +189,12 @@ async function fetchClaimedProviderIds(db: SupabaseClient): Promise<Set<string>>
     .not("account_id", "is", null);
 
   if (error) {
-    console.error("Failed to fetch claimed provider IDs:", error);
+    console.error(
+      "[directory] DEGRADED: Failed to fetch claimed provider IDs. " +
+      "Unclaimed tab will show all published providers (including claimed). " +
+      "Send-claim-link endpoint will still validate correctly.",
+      error
+    );
     return new Set();
   }
 

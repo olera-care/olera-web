@@ -152,6 +152,18 @@ export default function AdminDirectoryDetailPage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
+  // Close claim link modal on Escape key
+  useEffect(() => {
+    if (!showClaimLinkModal) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !sendingClaimLink) {
+        setShowClaimLinkModal(false);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [showClaimLinkModal, sendingClaimLink]);
+
   function updateField(field: string, value: unknown) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
@@ -1120,8 +1132,14 @@ export default function AdminDirectoryDetailPage() {
 
       {/* Send Claim Link Confirmation Modal */}
       {showClaimLinkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => !sendingClaimLink && setShowClaimLinkModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-lg font-semibold text-gray-900">
               Send Claim Link
             </h2>

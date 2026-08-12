@@ -205,6 +205,7 @@ export default function SupportEmailPage() {
   const detailRequestRef = useRef(0);
   const markingReadRef = useRef<Set<string>>(new Set());
   const threadsRef = useRef<Thread[] | null>(null);
+  const listScopeRef = useRef<string | null>(null);
   const selectedRef = useRef<string | null>(null);
   const unreadOnlyRef = useRef(false);
 
@@ -232,6 +233,7 @@ export default function SupportEmailPage() {
 
   const loadList = useCallback(async () => {
     const requestId = ++listRequestRef.current;
+    const scopeKey = JSON.stringify({ view, query, category, dateWindow, sort });
     try {
       setError(null);
       const params = new URLSearchParams({ view });
@@ -244,7 +246,17 @@ export default function SupportEmailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not load support email");
       if (requestId !== listRequestRef.current) return;
-      threadsRef.current = data.threads ?? [];
+      const nextThreads: Thread[] = data.threads ?? [];
+      // An unread thread becomes read as soon as its detail successfully
+      // opens. Preserve that selected row through same-scope refreshes until
+      // the operator moves away, even though the server now excludes it.
+      const retainedSelected = unreadOnly && listScopeRef.current === scopeKey
+        ? threadsRef.current?.find((thread) => thread.id === selectedRef.current && !thread.unread)
+        : null;
+      threadsRef.current = retainedSelected && !nextThreads.some((thread) => thread.id === retainedSelected.id)
+        ? [retainedSelected, ...nextThreads]
+        : nextThreads;
+      listScopeRef.current = scopeKey;
       setMailboxes(data.mailboxes ?? []);
       setThreads(threadsRef.current);
       setTotal(data.total ?? 0);

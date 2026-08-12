@@ -104,7 +104,7 @@ function WeeklyVolumeChart({ weeks }: { weeks: WeeklyTotal[] }) {
             return (
               <div
                 key={week.week_start}
-                className="relative flex-1 flex flex-col items-center"
+                className="relative flex-1 h-full flex flex-col justify-end items-center"
                 onMouseEnter={() => setHoverIndex(i)}
                 onMouseLeave={() => setHoverIndex(null)}
               >
@@ -123,7 +123,7 @@ function WeeklyVolumeChart({ weeks }: { weeks: WeeklyTotal[] }) {
                   className={`w-full rounded-t transition-all cursor-pointer ${
                     isHovered ? "bg-teal-600" : "bg-teal-500"
                   }`}
-                  style={{ height: `${Math.max(height, 2)}%` }}
+                  style={{ height: `${Math.max(height, 4)}%` }}
                 />
               </div>
             );
@@ -160,33 +160,44 @@ function WeeklyVolumeChart({ weeks }: { weeks: WeeklyTotal[] }) {
 
 /**
  * Day-of-Week Breakdown with horizontal bars
+ * Shows average questions received per day of week (e.g., "~84 questions/day on Tue")
  */
 function DayOfWeekBreakdown({ days }: { days: DayOfWeek[] }) {
   const maxAvg = Math.max(...days.map((d) => d.avg), 1);
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-700">Day-of-Week Patterns</h3>
-        <span className="text-xs text-gray-400">12-week average</span>
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-sm font-medium text-gray-700">Questions by Day of Week</h3>
+        <span className="text-xs text-gray-400">avg per day</span>
       </div>
+      <p className="text-[11px] text-gray-400 mb-3">
+        How many questions come in on each day (averaged over 12 weeks)
+      </p>
 
       <div className="space-y-2">
         {days.map((day) => {
           const width = (day.avg / maxAvg) * 100;
+          const roundedAvg = Math.round(day.avg);
 
           return (
             <div key={day.day} className="flex items-center gap-3">
-              <div className="w-8 text-xs font-medium text-gray-600">{day.day}</div>
-              <div className="flex-1 h-5 bg-gray-100 rounded overflow-hidden">
+              <div className="w-10 text-xs font-medium text-gray-600">{day.day}</div>
+              <div className="flex-1 h-6 bg-gray-100 rounded overflow-hidden relative">
                 <div
                   className="h-full bg-blue-500 rounded transition-all"
                   style={{ width: `${width}%` }}
                 />
+                {/* Show count inside bar if there's room */}
+                {width > 25 && (
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-white">
+                    ~{roundedAvg}
+                  </span>
+                )}
               </div>
-              <div className="w-16 text-right">
-                <span className="text-xs font-medium text-gray-700">{day.avg}</span>
-                <span className="text-[10px] text-gray-400 ml-1">avg</span>
+              <div className="w-20 text-right">
+                <span className="text-xs font-medium text-gray-700">~{roundedAvg}</span>
+                <span className="text-[10px] text-gray-400 ml-1">/day</span>
               </div>
             </div>
           );
@@ -215,17 +226,15 @@ function BusiestDayInsight({ days }: { days: DayOfWeek[] }) {
     return <div className="text-xs text-gray-400">Not enough data for patterns</div>;
   }
 
-  const diff = busiest.avg - quietest.avg;
   const pctMore = quietest.avg > 0 ? Math.round(((busiest.avg - quietest.avg) / quietest.avg) * 100) : 0;
 
   return (
     <div className="text-xs text-gray-500">
-      <span className="font-medium text-gray-700">{busiest.day}</span> is your busiest day
-      {pctMore > 20 && (
-        <>
-          {" "}
-          (<span className="text-blue-600">{pctMore}% more</span> than {quietest.day})
-        </>
+      <span className="font-medium text-gray-700">{busiest.day}</span> gets the most questions (~{Math.round(busiest.avg)}/day)
+      {pctMore > 15 && (
+        <span className="text-gray-400">
+          {" "}— <span className="text-blue-600">{pctMore}% more</span> than {quietest.day} (~{Math.round(quietest.avg)}/day)
+        </span>
       )}
     </div>
   );

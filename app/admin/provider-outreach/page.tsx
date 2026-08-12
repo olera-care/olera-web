@@ -6443,7 +6443,7 @@ export default function ProviderOutreachPage() {
                 {/* When Providers Claim breakdown */}
                 <div>
                   <div className="text-sm font-medium text-gray-700 mb-2">When Providers Claim</div>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
                     {claimsDashboard.sequence_day_breakdown.map((bucket) => (
                       <div key={bucket.label} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
                         <div className="text-xs text-gray-500 mb-1">{bucket.label}</div>

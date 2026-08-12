@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 interface WeeklyTotal {
   week_start: string;
@@ -20,25 +20,121 @@ interface WorkloadData {
   day_of_week: DayOfWeek[];
 }
 
+// Preset date ranges
+type DatePreset = "12w" | "6m" | "1y" | "custom";
+
+const DATE_PRESETS: { label: string; value: DatePreset }[] = [
+  { label: "Last 12 weeks", value: "12w" },
+  { label: "Last 6 months", value: "6m" },
+  { label: "Last year", value: "1y" },
+  { label: "Custom", value: "custom" },
+];
+
+function getPresetDates(preset: DatePreset): { start: Date; end: Date } {
+  const end = new Date();
+  end.setUTCHours(23, 59, 59, 999);
+  const start = new Date();
+
+  switch (preset) {
+    case "12w":
+      start.setDate(start.getDate() - 84);
+      break;
+    case "6m":
+      start.setMonth(start.getMonth() - 6);
+      break;
+    case "1y":
+      start.setFullYear(start.getFullYear() - 1);
+      break;
+    default:
+      start.setDate(start.getDate() - 84);
+  }
+
+  start.setUTCHours(0, 0, 0, 0);
+  return { start, end };
+}
+
+function formatDateForInput(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
 /**
  * WorkloadPatterns - Compact section for bandwidth planning
  *
  * Shows:
- * 1. Weekly volume bar chart (last 12 weeks)
+ * 1. Weekly volume bar chart with date range picker
  * 2. Day-of-week breakdown with averages
+ * 3. Export to CSV functionality
  */
 export default function WorkloadPatterns() {
   const [data, setData] = useState<WorkloadData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/admin/questions/workload-patterns")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setData(d))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
+  // Date range state
+  const [preset, setPreset] = useState<DatePreset>("12w");
+  const [customStart, setCustomStart] = useState<string>("");
+  const [customEnd, setCustomEnd] = useState<string>("");
+
+  const fetchData = useCallback(async (startDate: Date, endDate: Date) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+      });
+      const res = await fetch(`/api/admin/questions/workload-patterns?${params}`);
+      if (res.ok) {
+        const d = await res.json();
+        setData(d);
+      } else {
+        setData(null);
+      }
+    } catch {
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Fetch data when preset changes or custom dates are applied
+  useEffect(() => {
+    if (preset !== "custom") {
+      const { start, end } = getPresetDates(preset);
+      fetchData(start, end);
+    }
+  }, [preset, fetchData]);
+
+  // Initialize custom dates when switching to custom
+  useEffect(() => {
+    if (preset === "custom" && !customStart && !customEnd) {
+      const { start, end } = getPresetDates("12w");
+      setCustomStart(formatDateForInput(start));
+      setCustomEnd(formatDateForInput(end));
+    }
+  }, [preset, customStart, customEnd]);
+
+  const handleApplyCustomRange = () => {
+    if (customStart && customEnd) {
+      const start = new Date(customStart);
+      const end = new Date(customEnd);
+      // Validate date range
+      if (start > end) {
+        alert("Start date must be before end date");
+        return;
+      }
+      fetchData(start, end);
+    }
+  };
+
+  // Get current date range label for display
+  const getDateRangeLabel = (): string => {
+    if (preset === "custom" && customStart && customEnd) {
+      const start = new Date(customStart);
+      const end = new Date(customEnd);
+      return `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+    }
+    return DATE_PRESETS.find(p => p.value === preset)?.label || "Last 12 weeks";
+  };
 
   return (
     <div className="mb-6">
@@ -58,14 +154,62 @@ export default function WorkloadPatterns() {
 
       {expanded && (
         <div className="mt-4 space-y-6">
+          {/* Date Range Picker */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1">
+              {DATE_PRESETS.map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => setPreset(p.value)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    preset === p.value
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom date inputs */}
+            {preset === "custom" && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={customStart}
+                  max={customEnd || formatDateForInput(new Date())}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="px-2 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <span className="text-xs text-gray-400">to</span>
+                <input
+                  type="date"
+                  value={customEnd}
+                  min={customStart}
+                  max={formatDateForInput(new Date())}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="px-2 py-1 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <button
+                  onClick={handleApplyCustomRange}
+                  disabled={!customStart || !customEnd}
+                  className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+          </div>
+
           {loading ? (
             <div className="h-32 rounded-lg bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 animate-pulse" />
           ) : !data ? (
             <div className="text-sm text-gray-400">Failed to load workload data</div>
           ) : (
             <>
-              <WeeklyVolumeChart weeks={data.weekly_totals} />
-              <DayOfWeekBreakdown days={data.day_of_week} />
+              <WeeklyVolumeChart weeks={data.weekly_totals} dateRangeLabel={getDateRangeLabel()} />
+              <DayOfWeekBreakdown days={data.day_of_week} numWeeks={data.weekly_totals.length} />
             </>
           )}
         </div>
@@ -77,7 +221,7 @@ export default function WorkloadPatterns() {
 /**
  * Weekly Volume Bar Chart
  */
-function WeeklyVolumeChart({ weeks }: { weeks: WeeklyTotal[] }) {
+function WeeklyVolumeChart({ weeks, dateRangeLabel }: { weeks: WeeklyTotal[]; dateRangeLabel: string }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const maxQuestions = Math.max(...weeks.map((w) => w.questions), 1);
@@ -88,11 +232,46 @@ function WeeklyVolumeChart({ weeks }: { weeks: WeeklyTotal[] }) {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
   };
 
+  // Export to CSV
+  const handleExportCSV = () => {
+    const headers = ["Week Starting", "Questions", "Unique Providers"];
+    const rows = weeks.map((w) => [
+      w.week_start,
+      w.questions.toString(),
+      w.providers.toString(),
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((r) => r.join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `weekly-volume-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium text-gray-700">Weekly Volume</h3>
-        <span className="text-xs text-gray-400">Last 12 weeks</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400">{dateRangeLabel}</span>
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            title="Export to CSV"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            CSV
+          </button>
+        </div>
       </div>
 
       <div className="relative h-32">
@@ -162,7 +341,7 @@ function WeeklyVolumeChart({ weeks }: { weeks: WeeklyTotal[] }) {
  * Day-of-Week Breakdown with horizontal bars
  * Shows average questions received per day of week (e.g., "~84 questions/day on Tue")
  */
-function DayOfWeekBreakdown({ days }: { days: DayOfWeek[] }) {
+function DayOfWeekBreakdown({ days, numWeeks }: { days: DayOfWeek[]; numWeeks: number }) {
   const maxAvg = Math.max(...days.map((d) => d.avg), 1);
 
   return (
@@ -172,7 +351,7 @@ function DayOfWeekBreakdown({ days }: { days: DayOfWeek[] }) {
         <span className="text-xs text-gray-400">avg per day</span>
       </div>
       <p className="text-[11px] text-gray-400 mb-3">
-        How many questions come in on each day (averaged over 12 weeks)
+        How many questions come in on each day (averaged over {numWeeks} week{numWeeks !== 1 ? "s" : ""})
       </p>
 
       <div className="space-y-2">

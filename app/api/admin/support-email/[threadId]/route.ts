@@ -119,8 +119,9 @@ export async function POST(request: NextRequest, context: Context) {
     const { db, thread, mailbox } = await loadThread(threadId);
     const actor = auth.admin.email;
     const now = new Date().toISOString();
+    // mark_handled is deliberately NOT here: it has to clear UNREAD in Gmail,
+    // so it runs below with an access token.
     const simpleStates: Record<string, Record<string, unknown>> = {
-      mark_handled: { state: "handled", handled_at: now, handled_by: actor, snoozed_until: null },
       needs_reply: { state: "needs_reply", handled_at: null, handled_by: null, snoozed_until: null },
       escalate: { state: "escalated", handled_at: null, handled_by: null, snoozed_until: null },
     };
@@ -154,6 +155,22 @@ export async function POST(request: NextRequest, context: Context) {
 
     if (!mailbox.encrypted_refresh_token) throw new Error("This mailbox is not connected to Gmail.");
     const accessToken = await gmailAccessToken(decryptGmailToken(mailbox.encrypted_refresh_token));
+    if (body.action === "mark_handled") {
+      // Handled is a real decision, so it must also clear UNREAD in Gmail --
+      // otherwise the operator sees a permanent unread dot and the two inboxes
+      // disagree. The thread stays in the Gmail inbox; only archive removes it.
+      await modifyGmailThread(accessToken, thread.gmail_thread_id, { removeLabelIds: ["UNREAD"] });
+      await updateThread(db, threadId, {
+        state: "handled",
+        unread: false,
+        handled_at: now,
+        handled_by: actor,
+        snoozed_until: null,
+        updated_at: now,
+      });
+      await recordAction(threadId, actor, auth.admin.id, "mark_handled");
+      return NextResponse.json({ ok: true });
+    }
     if (body.action === "archive" || body.action === "mark_noise") {
       await modifyGmailThread(accessToken, thread.gmail_thread_id, { removeLabelIds: ["INBOX", "UNREAD"] });
       const state = body.action === "mark_noise" ? "noise" : "handled";

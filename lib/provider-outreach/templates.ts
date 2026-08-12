@@ -142,7 +142,7 @@ export function substituteVars(
 export function buildVars(ctx: TemplateContext): Record<string, string> {
   return {
     provider_name: ctx.provider_name,
-    city: ctx.city,
+    city: ctx.city || ctx.state || "your area",
     state: ctx.state,
     category: ctx.category || "care providers",
     rank: ctx.rank?.toString() || "",
@@ -164,33 +164,26 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
 /**
  * Day 0: Introduction email
  *
- * First touch from Dr. Logan DuBose. Introduces Olera, explains the
- * free profile we've created, and invites them to manage their page.
+ * First touch. Direct value prop: families can see you but can't reach you.
+ * Shorter, more urgent, location-specific.
  *
- * Style: Professional, warm, clear value proposition.
+ * Style: Direct, concise, action-oriented.
  * Each array element is a paragraph. Empty strings create paragraph breaks.
  * Single newlines within elements become <br> tags.
  */
 function introEmail(): EmailDraft {
   return {
-    subject: `We've created a free profile for ${PLACEHOLDER.providerName}`,
+    subject: `Families in ${PLACEHOLDER.city} can see ${PLACEHOLDER.providerName} on Olera`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `I'm Dr. Logan DuBose, a physician and co-founder of Olera.`,
+      `Families in ${PLACEHOLDER.city} searching for ${PLACEHOLDER.category} can already see the page we built for ${PLACEHOLDER.providerName} from public information. But if one of them reached out today, no one at ${PLACEHOLDER.providerName} would see the message.`,
       ``,
-      `As a physician, I've seen how difficult it can be for families to navigate senior care. That's why we created Olera. With support from the NIH, we're building a free referral platform that helps families discover trusted senior care providers.`,
+      `Olera is free for providers: no contracts, no referral or per-lead fees. Taking over your page takes about two minutes.`,
       ``,
-      `As part of that, we've already created a **free profile** for ${PLACEHOLDER.providerName} using publicly available information. It's ready for your team to review and manage, making it easier for families to find your services.`,
+      `[Activate ${PLACEHOLDER.providerName}'s page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `Claiming your profile takes less than **two minutes** and allows you to:`,
-      `✓ Have families contact you directly`,
-      `✓ Never pay referral or per-lead fees`,
-      `✓ Improve your online visibility`,
-      ``,
-      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Questions? Just reply to this email or call +1 (979) 243-9801. A real person answers both.`,
     ].join("\n"),
   };
 }

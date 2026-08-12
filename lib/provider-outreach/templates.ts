@@ -264,28 +264,24 @@ function finalEmail(): EmailDraft {
  * Standalone: Nudge email
  *
  * NOT part of the cadence. Used by:
- *   - Follow Up "resend link" action
+ *   - "Send Claim Link" action from Ready tab / Not Interested stage
  *   - Future re-engagement triggers
  *
- * Personal tone emphasizing mission and direct family connections.
+ * Short and direct - just delivers the link.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Minimal, transactional.
  */
 function nudgeEmail(): EmailDraft {
   return {
-    subject: `Your free Olera page for ${PLACEHOLDER.providerName} is ready`,
+    subject: `The link for ${PLACEHOLDER.providerName}'s page`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Finding the right senior care is one of the biggest decisions a family will make. That's why we're building a better experience for both families and providers.`,
+      `Here's the link to take over ${PLACEHOLDER.providerName}'s page on Olera:`,
       ``,
-      `We've already created a free Olera profile to help more families discover ${PLACEHOLDER.providerName}, ask questions, and connect directly with your team.`,
+      `[Activate ${PLACEHOLDER.providerName}'s page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Review your page →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `There are **no referral fees** and no brokers in between, so every conversation stays directly between your team and the families you serve.`,
-      ``,
-      `If you have any questions or need help getting started, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Two minutes, free: no contracts, no referral or per-lead fees. If anything gets in the way, just reply or call +1 (979) 243-9801.`,
     ].join("\n"),
   };
 }

@@ -7274,9 +7274,13 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Send Claim Link - show for not_interested stage or Ready tab with email */}
-                {/* Note: re_engage providers use the inline button in ReEngageQueue instead */}
-                {(actionModalProvider.stage === "not_interested" || activeTab === "ready") && actionModalProvider.email && (
+                {/* Send Claim Link - show for active outreach stages with email */}
+                {/* This sends a Nudge email via Resend (instant, not SmartLead sequence) */}
+                {/* re_engage providers use the inline button in ReEngageQueue instead */}
+                {(
+                  ["not_interested", "in_sequence", "needs_call"].includes(actionModalProvider.stage) ||
+                  activeTab === "ready"
+                ) && actionModalProvider.email && (
                   <button
                     onClick={async () => {
                       setSendingClaimLink(true);

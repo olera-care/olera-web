@@ -447,11 +447,11 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "intro_email",
       phase: "Email Sequence",
-      title: "Introduction email sent",
+      title: "Visibility email sent",
       timing: "Day 0 · Provider enrolled",
       description:
-        "Provider is added to outreach sequence. First email explains Olera, " +
-        "shows their free profile exists, and invites them to claim it.",
+        "Provider is added to outreach sequence. First email: families can see " +
+        "them on Olera but can't reach them — no one would see the message.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_intro",
       ownedBy: "provider-outreach-send",
@@ -459,11 +459,11 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "followup_email",
       phase: "Email Sequence",
-      title: "Family Confidence email",
+      title: "Page Control email",
       timing: "Day 3",
       description:
-        "Follow-up emphasizing how a complete profile helps families feel " +
-        "confident choosing this provider.",
+        "Follow-up about page ownership: public info gets stale, " +
+        "no one at the facility can update pricing, availability, photos.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_followup",
       ownedBy: "provider-outreach-send",
@@ -471,11 +471,11 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "demand_loss_email",
       phase: "Email Sequence",
-      title: "Why It's Free email",
+      title: "FOMO email",
       timing: "Day 5",
       description:
-        "Explains the free model — no referral fees, no pay-per-lead, " +
-        "direct family connections.",
+        "Urgency angle: families sent questions and leads to other providers " +
+        "this week — theirs would go unanswered.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_demand_loss",
       ownedBy: "provider-outreach-send",
@@ -483,10 +483,11 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
     {
       key: "final_email",
       phase: "Email Sequence",
-      title: "Get Verified email",
+      title: "Free Ad email",
       timing: "Day 7",
       description:
-        "Final push focusing on the verified badge as a trust signal for families.",
+        "Incentive offer: we'll set up and run their first ad for free " +
+        "so more families find them.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_final",
       ownedBy: "provider-outreach-send",

@@ -466,7 +466,7 @@ export function buildContextFromProvider(
 
   return {
     provider_name: provider.name,
-    city: provider.city || "your area",
+    city: provider.city || provider.state || "your area",
     state: provider.state || "",
     category: normalizeCategory(provider.category),
     rank: options?.rank,

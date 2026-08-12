@@ -7274,13 +7274,10 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Send Claim Link - show for active outreach stages with email */}
-                {/* This sends a Nudge email via Resend (instant, not SmartLead sequence) */}
-                {/* re_engage providers use the inline button in ReEngageQueue instead */}
-                {(
-                  ["not_interested", "in_sequence", "needs_call"].includes(actionModalProvider.stage) ||
-                  activeTab === "ready"
-                ) && actionModalProvider.email && (
+                {/* Send Claim Link - available for all active stages with email */}
+                {/* Sends instant Nudge email via Resend (not SmartLead sequence) */}
+                {/* Only blocked for claimed/archived (API enforces this too) */}
+                {!["claimed", "archived"].includes(actionModalProvider.stage) && actionModalProvider.email && (
                   <button
                     onClick={async () => {
                       setSendingClaimLink(true);

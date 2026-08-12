@@ -851,6 +851,9 @@ interface OutreachProvider {
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at?: string | null;
   generic_email_skipped_at?: string | null;
+  // Questions and leads context
+  questions_count?: number;
+  leads_count?: number;
 }
 
 interface ActiveState {

@@ -191,28 +191,24 @@ function introEmail(): EmailDraft {
 /**
  * Day 3: Follow-up email
  *
- * Encourages providers to complete their profile so families feel
- * more confident choosing them. Personal tone from Logan.
+ * Focuses on family questions going unanswered. Creates urgency
+ * with link expiration notice.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Direct, concise, action-oriented.
  */
 function followupEmail(): EmailDraft {
   return {
-    subject: `Help families feel more confident choosing ${PLACEHOLDER.providerName}`,
+    subject: `When a family asks about ${PLACEHOLDER.providerName}`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `One thing I've learned throughout my career is that finding senior care isn't easy. Families are often left making an important decision with limited information and guidance.`,
+      `Families on Olera ask providers questions directly: about availability, pricing, and whether the fit is right for their loved one. The answers are often how a family decides.`,
       ``,
-      `That's why your Olera profile matters.`,
+      `If a family asked ${PLACEHOLDER.providerName} something today, it would go unanswered. Taking over your page fixes that in about two minutes, free: no contracts, no referral or per-lead fees.`,
       ``,
-      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
+      `[Activate ${PLACEHOLDER.providerName}'s page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `It's ready for your review. Every photo, update, and detail you add helps families better understand your community and feel more confident in choosing the right care.`,
-      ``,
-      `It only takes a minute to activate your profile.`,
-      ``,
-      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Questions? Just reply to this email or call +1 (979) 243-9801. A real person answers both.`,
     ].join("\n"),
   };
 }

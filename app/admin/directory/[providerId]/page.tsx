@@ -528,7 +528,7 @@ export default function AdminDirectoryDetailPage() {
             </Link>
           )}
           {/* Send Claim Link button - only for unclaimed providers with email */}
-          {isClaimed === false && formData.email && (
+          {isClaimed === false && !!formData.email && (
             claimLinkSent ? (
               <span className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -193,6 +193,25 @@ export function listGmailHistory(accessToken: string, startHistoryId: string, pa
   }>(accessToken, `/history?${params}`);
 }
 
+export interface GmailLabel {
+  id: string;
+  name: string;
+  type?: "system" | "user";
+  messagesTotal?: number;
+  messagesUnread?: number;
+  threadsTotal?: number;
+}
+
+// labels.list returns identity only. Per-label counts require labels.get, which
+// is 1 quota unit each -- trivial for a mailbox with a few dozen labels.
+export function listGmailLabels(accessToken: string) {
+  return gmailRequest<{ labels?: GmailLabel[] }>(accessToken, "/labels");
+}
+
+export function getGmailLabel(accessToken: string, labelId: string) {
+  return gmailRequest<GmailLabel>(accessToken, `/labels/${encodeURIComponent(labelId)}`);
+}
+
 export function modifyGmailThread(accessToken: string, gmailThreadId: string, opts: { addLabelIds?: string[]; removeLabelIds?: string[] }) {
   return gmailRequest(accessToken, `/threads/${encodeURIComponent(gmailThreadId)}/modify`, {
     method: "POST",

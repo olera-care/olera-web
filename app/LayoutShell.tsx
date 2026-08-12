@@ -51,12 +51,21 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     (pathname.startsWith("/account") && isOrg) ||
     (pathname.startsWith("/portal/inbox") && isOrg);
 
-  // Admin has its own complete navigation system. Keeping the public product
-  // navbar here duplicates navigation and takes workspace away from operations.
-  if (isStandalone || isAdmin) {
+  if (isStandalone) {
     return (
       <>
         {children}
+        <GlobalUnifiedAuthModal />
+      </>
+    );
+  }
+
+  // Admin has its own complete navigation system. Keeping the public product
+  // navbar here duplicates navigation and takes workspace away from operations.
+  if (isAdmin) {
+    return (
+      <>
+        <main className="flex-grow">{children}</main>
         <GlobalUnifiedAuthModal />
       </>
     );

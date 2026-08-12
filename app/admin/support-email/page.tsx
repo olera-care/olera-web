@@ -204,6 +204,7 @@ export default function SupportEmailPage() {
   const listRequestRef = useRef(0);
   const detailRequestRef = useRef(0);
   const markingReadRef = useRef<Set<string>>(new Set());
+  const threadsRef = useRef<Thread[] | null>(null);
   const selectedRef = useRef<string | null>(null);
   const unreadOnlyRef = useRef(false);
 
@@ -243,11 +244,13 @@ export default function SupportEmailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not load support email");
       if (requestId !== listRequestRef.current) return;
+      threadsRef.current = data.threads ?? [];
       setMailboxes(data.mailboxes ?? []);
-      setThreads(data.threads ?? []);
+      setThreads(threadsRef.current);
       setTotal(data.total ?? 0);
     } catch (err) {
       if (requestId !== listRequestRef.current) return;
+      threadsRef.current = [];
       setThreads([]);
       setTotal(0);
       setError(err instanceof Error ? err.message : "Could not load support email");
@@ -267,17 +270,21 @@ export default function SupportEmailPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Could not mark this conversation read");
-      setThreads((current) => current?.flatMap((thread) => {
+      const targetWasVisible = Boolean(threadsRef.current?.some((thread) => thread.id === id));
+      threadsRef.current = threadsRef.current?.flatMap((thread) => {
         if (thread.id !== id) return [thread];
         // The just-opened row stays put while it is selected. If the admin
         // already moved on before Gmail answered, remove it from Unread now.
         if (unreadOnlyRef.current && selectedRef.current !== id) return [];
         return [{ ...thread, unread: false }];
-      }) ?? current);
+      }) ?? threadsRef.current;
+      setThreads(threadsRef.current);
       setDetail((current) => current?.thread.id === id
         ? { ...current, thread: { ...current.thread, unread: false } }
         : current);
-      if (unreadOnlyRef.current) setTotal((current) => Math.max(0, current - 1));
+      if (unreadOnlyRef.current && targetWasVisible) {
+        setTotal((current) => Math.max(0, current - 1));
+      }
     } catch (err) {
       if (selectedRef.current === id) {
         setError(err instanceof Error ? err.message : "Could not mark this conversation read");
@@ -372,9 +379,10 @@ export default function SupportEmailPage() {
 
   function leaveSelectedThread(nextId: string | null) {
     const previousId = selectedRef.current;
-    const previousIsNowRead = threads?.some((thread) => thread.id === previousId && !thread.unread);
+    const previousIsNowRead = threadsRef.current?.some((thread) => thread.id === previousId && !thread.unread);
     if (unreadOnly && previousId && previousId !== nextId && previousIsNowRead) {
-      setThreads((current) => current?.filter((thread) => thread.id !== previousId) ?? current);
+      threadsRef.current = threadsRef.current?.filter((thread) => thread.id !== previousId) ?? threadsRef.current;
+      setThreads(threadsRef.current);
     }
     selectedRef.current = nextId;
   }

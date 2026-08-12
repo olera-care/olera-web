@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 const SIDEBAR_VISIBILITY_KEY = "admin-sidebar-hidden";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, openAuth } = useAuth();
   const { adminUser, isLoading: adminLoading, error } = useAdminAuth();
   const [sidebarHidden, setSidebarHidden] = useState(false);
 
@@ -51,6 +51,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <p className="text-lg text-gray-600">
             You need to be signed in to access the admin dashboard.
           </p>
+          <button
+            type="button"
+            onClick={() => openAuth({
+              defaultMode: "sign-in",
+              headline: "Sign in to Olera Admin",
+              subline: "Use an account with admin access to continue.",
+            })}
+            className="mt-5 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
+          >
+            Sign in
+          </button>
         </div>
       </div>
     );

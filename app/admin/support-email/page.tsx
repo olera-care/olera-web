@@ -139,6 +139,13 @@ function relative(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function mailboxSyncMessage(message: string): string {
+  if (/Gmail API|Google OAuth|fetch failed|timed?\s*out/i.test(message)) {
+    return "Gmail sync was temporarily interrupted. Olera will retry automatically; the inbox remains available.";
+  }
+  return message;
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     timeZone: "America/New_York",
@@ -383,7 +390,7 @@ export default function SupportEmailPage() {
       setNotice("Gmail caught up and the next full-history page was imported.");
       await loadList();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sync failed");
+      setError(mailboxSyncMessage(err instanceof Error ? err.message : "Sync failed"));
     } finally {
       setSyncing(false);
     }
@@ -455,7 +462,7 @@ export default function SupportEmailPage() {
           <span className="text-amber-700">New mail always arrives first</span>
         </div>
       )}
-      {mailbox?.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailbox.last_error}</div>}
+      {mailbox?.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailboxSyncMessage(mailbox.last_error)}</div>}
       {notice && <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
       {error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 

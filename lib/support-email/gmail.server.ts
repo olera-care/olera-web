@@ -125,18 +125,33 @@ export async function gmailAccessToken(refreshToken: string): Promise<string> {
 }
 
 async function gmailRequest<T>(accessToken: string, path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${GMAIL_API}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
-      ...(init.headers ?? {}),
-    },
-    signal: AbortSignal.timeout(30_000),
-  });
-  const body = await res.text();
-  if (!res.ok) throw new GmailApiError(`Gmail API ${path} failed`, res.status, body);
-  return (body ? JSON.parse(body) : {}) as T;
+  const method = (init.method ?? "GET").toUpperCase();
+  const maxAttempts = method === "GET" ? 3 : 1;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const res = await fetch(`${GMAIL_API}${path}`, {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          ...(init.body ? { "Content-Type": "application/json" } : {}),
+          ...(init.headers ?? {}),
+        },
+        signal: AbortSignal.timeout(30_000),
+      });
+      const body = await res.text();
+      if (res.ok) return (body ? JSON.parse(body) : {}) as T;
+      const error = new GmailApiError(`Gmail API ${path} failed`, res.status, body);
+      if (![429, 500, 502, 503, 504].includes(res.status) || attempt === maxAttempts) throw error;
+      lastError = error;
+    } catch (error) {
+      if (error instanceof GmailApiError) throw error;
+      lastError = error;
+      if (attempt === maxAttempts) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** (attempt - 1)));
+  }
+  throw lastError;
 }
 
 export function getGmailProfile(accessToken: string) {
@@ -165,6 +180,15 @@ export function listGmailMessages(accessToken: string, pageToken?: string | null
 
 export function getGmailMessage(accessToken: string, messageId: string) {
   return gmailRequest<GmailMessage>(accessToken, `/messages/${encodeURIComponent(messageId)}?format=full`);
+}
+
+export function getGmailMessageMetadata(accessToken: string, messageId: string) {
+  const params = new URLSearchParams({ format: "metadata", metadataHeaders: "From" });
+  for (const header of [
+    "To", "Cc", "Reply-To", "Subject", "Message-ID", "List-Unsubscribe",
+    "List-Unsubscribe-Post", "Auto-Submitted",
+  ]) params.append("metadataHeaders", header);
+  return gmailRequest<GmailMessage>(accessToken, `/messages/${encodeURIComponent(messageId)}?${params}`);
 }
 
 export function getGmailAttachment(accessToken: string, messageId: string, attachmentId: string) {

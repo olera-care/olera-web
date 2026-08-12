@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (authLoading || adminLoading) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg text-gray-500">Loading...</div>
       </div>
     );
@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (!user) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Sign in required
@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (error === "access_denied" || !adminUser) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Access denied
@@ -74,7 +74,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
       <RecentMovesProvider>
-        <div className="min-h-[calc(100vh-4rem)] flex">
+        <div className="min-h-screen flex">
           <AdminSidebar
             adminUser={adminUser}
             desktopHidden={sidebarHidden}

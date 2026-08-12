@@ -38,6 +38,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const mobileNavVariant = useMobileNavVariant();
   const { activeProfile } = useAuth();
   const isStandalone = STANDALONE_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`));
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
 
   // Check if bottom tabs are visible (provider portal with bottom_tabs variant)
   // Must match Navbar's isProviderPortal logic exactly to avoid spacer without tabs
@@ -50,7 +51,9 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     (pathname.startsWith("/account") && isOrg) ||
     (pathname.startsWith("/portal/inbox") && isOrg);
 
-  if (isStandalone) {
+  // Admin has its own complete navigation system. Keeping the public product
+  // navbar here duplicates navigation and takes workspace away from operations.
+  if (isStandalone || isAdmin) {
     return (
       <>
         {children}

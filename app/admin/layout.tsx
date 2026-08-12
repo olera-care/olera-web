@@ -3,13 +3,35 @@
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import SidebarDrawerToggle from "@/components/admin/SidebarDrawerToggle";
 import { ToastProvider } from "@/components/admin/Toast";
 import { RecentMovesProvider } from "@/components/admin/RecentMoves";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+
+const SIDEBAR_VISIBILITY_KEY = "admin-sidebar-hidden";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
   const { adminUser, isLoading: adminLoading, error } = useAdminAuth();
+  const [sidebarHidden, setSidebarHidden] = useState(false);
+
+  useEffect(() => {
+    try {
+      setSidebarHidden(localStorage.getItem(SIDEBAR_VISIBILITY_KEY) === "true");
+    } catch {
+      // Storage can be unavailable in privacy-restricted browsers. The
+      // drawer still works for the current page; it simply won't persist.
+    }
+  }, []);
+
+  const setSidebarVisibility = useCallback((hidden: boolean) => {
+    setSidebarHidden(hidden);
+    try {
+      localStorage.setItem(SIDEBAR_VISIBILITY_KEY, String(hidden));
+    } catch {
+      // Treat persistence as a convenience, never a navigation dependency.
+    }
+  }, []);
 
   if (authLoading || adminLoading) {
     return (
@@ -53,8 +75,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <ToastProvider>
       <RecentMovesProvider>
         <div className="min-h-[calc(100vh-4rem)] flex">
-          <AdminSidebar adminUser={adminUser} />
-          <div className="flex-1 min-w-0">
+          <AdminSidebar
+            adminUser={adminUser}
+            desktopHidden={sidebarHidden}
+            onRequestClose={() => setSidebarVisibility(true)}
+          />
+          {sidebarHidden && (
+            <div className="fixed left-3 top-20 z-30 hidden md:block">
+              <SidebarDrawerToggle
+                direction="open"
+                onClick={() => setSidebarVisibility(false)}
+                floating
+              />
+            </div>
+          )}
+          <div
+            className={[
+              "flex-1 min-w-0 transition-[padding] duration-200 ease-out",
+              sidebarHidden ? "md:pl-10" : "",
+            ].join(" ")}
+          >
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               {children}
             </div>

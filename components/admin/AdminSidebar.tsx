@@ -6,9 +6,12 @@ import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
 import { useMedJobsRefresh } from "@/hooks/useMedJobsRefresh";
 import { useToast } from "@/components/admin/Toast";
+import SidebarDrawerToggle from "@/components/admin/SidebarDrawerToggle";
 
 interface AdminSidebarProps {
   adminUser: AdminUser;
+  desktopHidden?: boolean;
+  onRequestClose?: () => void;
 }
 
 interface NavItem {
@@ -252,7 +255,11 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
-export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
+export default function AdminSidebar({
+  adminUser,
+  desktopHidden = false,
+  onRequestClose,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const toast = useToast();
 
@@ -426,8 +433,18 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-52 bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-        <nav className="flex-1 px-3 pt-3 pb-3">
+      <aside
+        aria-hidden={desktopHidden}
+        inert={desktopHidden}
+        className={[
+          "hidden md:flex md:flex-col bg-white border-r sticky top-16 h-[calc(100vh-4rem)] shrink-0",
+          "transition-[width,opacity,border-color] duration-200 ease-out",
+          desktopHidden
+            ? "md:w-0 opacity-0 border-transparent pointer-events-none overflow-hidden"
+            : "md:w-52 opacity-100 border-gray-100 overflow-y-auto",
+        ].join(" ")}
+      >
+        <nav className="flex-1 min-w-52 px-3 pt-3 pb-3">
           {/* Overview — standalone top link, with collapse/expand-all beside it */}
           <div className="flex items-center justify-between mb-3">
             <Link
@@ -448,6 +465,9 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
             >
               {allCollapsed ? "Expand all" : "Collapse all"}
             </button>
+            {onRequestClose && (
+              <SidebarDrawerToggle direction="close" onClick={onRequestClose} />
+            )}
           </div>
 
           {/* Pinned — this admin's personal shortcut layer. Hidden until
@@ -665,7 +685,7 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
           </div>
         </nav>
 
-        <div className="border-t border-gray-100 px-3 py-3">
+        <div className="min-w-52 border-t border-gray-100 px-3 py-3">
           <div className="flex items-center gap-2.5 px-2.5">
             <div className="w-6 h-6 rounded-full bg-gray-100 text-[10px] font-semibold text-gray-500 flex items-center justify-center shrink-0">
               {getInitials(adminUser.email)}

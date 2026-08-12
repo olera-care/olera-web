@@ -499,6 +499,14 @@ async function applyGmailLabelChanges(
       if (error) throw error;
     }
   }
+  console.log("[support-email] applied Gmail label changes", {
+    mailbox: mailbox.email,
+    deltas: ids.length,
+    matchedMessages: rows.length,
+    missingMessages: ids.length - found.size,
+    messageUpdateGroups: messageUpdates.size,
+    threadUpdateGroups: threadUpdates.size,
+  });
   return rows.length;
 }
 

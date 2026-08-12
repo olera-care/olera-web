@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const { data: rows, count, error } = await db
       .from("support_email_threads")
-      .select("id, subject, state, category, unread, agent_confidence, handled_by", { count: "exact" })
+      .select("id, subject, state, category, unread, agent_confidence, handled_by, gmail_label_ids", { count: "exact" })
       .in("state", ARCHIVABLE_STATES)
       .contains("gmail_label_ids", ["INBOX"])
       .order("last_message_at", { ascending: false })
@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
       unread: boolean;
       agent_confidence: number | null;
       handled_by: string | null;
+      gmail_label_ids: string[] | null;
     }>;
     const matchedBySql = count ?? 0;
     const total = threads.length;
@@ -150,16 +151,31 @@ export async function GET(request: NextRequest) {
 
     const now = new Date().toISOString();
     const actor = admin.email;
-    await chunked(threadIds, SUPABASE_IN_CHUNK, async (chunk) => {
-      // State is intentionally untouched: handled stays handled, noise stays
-      // noise. Only the Gmail-derived flags change.
-      const { error: updateError } = await db
-        .from("support_email_threads")
-        .update({ unread: false, updated_at: now })
-        .in("id", chunk);
-      if (updateError) throw updateError;
-      return [];
-    });
+    // Mirror the Gmail change into the local label copy. Without this the
+    // cohort query -- which selects on gmail_label_ids -- keeps re-offering
+    // threads that were already archived, until an unrelated sync happens to
+    // refresh them. Threads that share a label set are updated together, so
+    // this stays a handful of queries rather than one per thread.
+    const byLabelSet = new Map<string, { labels: string[]; ids: string[] }>();
+    for (const thread of threads) {
+      const stripped = (thread.gmail_label_ids ?? []).filter((l) => l !== "INBOX" && l !== "UNREAD");
+      const key = JSON.stringify(stripped);
+      const group = byLabelSet.get(key);
+      if (group) group.ids.push(thread.id);
+      else byLabelSet.set(key, { labels: stripped, ids: [thread.id] });
+    }
+    for (const { labels, ids } of byLabelSet.values()) {
+      await chunked(ids, SUPABASE_IN_CHUNK, async (chunk) => {
+        // State is intentionally untouched: handled stays handled, noise stays
+        // noise. Only the Gmail-derived fields change.
+        const { error: updateError } = await db
+          .from("support_email_threads")
+          .update({ unread: false, gmail_label_ids: labels, updated_at: now })
+          .in("id", chunk);
+        if (updateError) throw updateError;
+        return [];
+      });
+    }
 
     await chunked(threadIds, 500, async (chunk) => {
       const { error: actionError } = await db.from("support_email_actions").insert(

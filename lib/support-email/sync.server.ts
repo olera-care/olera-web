@@ -6,6 +6,7 @@ import {
   GmailApiError,
   getGmailAttachment,
   getGmailMessage,
+  getGmailMessageMetadata,
   getGmailProfile,
   gmailAccessToken,
   listGmailHistory,
@@ -222,7 +223,13 @@ async function refreshThread(db: SupabaseClient, mailbox: SupportMailboxRow, thr
     !(current.gmail_label_ids ?? []).includes("UNREAD");
   if (latestChanged || labelsChanged) {
     if (latest.labelIds.includes("SPAM") || latest.labelIds.includes("TRASH")) state = "noise";
-    else if (latest.direction === "out" || !inActiveInbox) state = "handled";
+    // Replying always means handled: we engaged with it.
+    else if (latest.direction === "out") state = "handled";
+    // Leaving the inbox also settles a thread, but must not overwrite `noise`.
+    // Noise is a classification ("this was junk"), not a workflow step, and
+    // archiving is precisely what happens to noise -- so the old behaviour
+    // guaranteed the Noise view drained into Handled and the label was lost.
+    else if (!inActiveInbox) state = current.state === "noise" ? "noise" : "handled";
     // Otherwise only a genuinely new message, or a deliberate mark-as-unread,
     // reopens a settled conversation.
     else if (latestChanged || gainedUnread || !settled) state = "needs_reply";
@@ -320,7 +327,17 @@ export async function importGmailMessage(db: SupabaseClient, mailbox: SupportMai
     // A message can disappear between history/list and get (trash emptied,
     // draft replaced). It must not poison the rest of an otherwise valid page.
     if (err instanceof GmailApiError && err.status === 404) return null;
-    throw err;
+    // Some real Gmail messages contain MIME payloads that Gmail's own
+    // `format=full` renderer cannot return. Preserve their headers, labels,
+    // thread identity, and cursor position through the metadata representation
+    // rather than letting one malformed body poison the whole mailbox sync.
+    try {
+      raw = await getGmailMessageMetadata(accessToken, gmailMessageId);
+      console.warn(`[support-email] imported Gmail message ${gmailMessageId} from metadata after full payload failed`);
+    } catch (metadataError) {
+      if (metadataError instanceof GmailApiError && metadataError.status === 404) return null;
+      throw metadataError;
+    }
   }
   // Draft resources are editable containers, not conversation events. Olera
   // tracks its Gmail draft ID on the thread and imports the canonical SENT

@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     const search = request.nextUrl.searchParams.get("q")?.trim();
     const category = request.nextUrl.searchParams.get("category") ?? "all";
     const dateWindow = request.nextUrl.searchParams.get("date") ?? "all";
+    const unreadOnly = request.nextUrl.searchParams.get("unread") === "true";
     const oldestFirst = request.nextUrl.searchParams.get("sort") === "oldest";
     let query = db
       .from("support_email_threads")
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
       .limit(250);
     if (view === "needs_reply") query = query.in("state", ["needs_reply", "escalated"]);
     else if (["handled", "noise", "escalated", "snoozed"].includes(view)) query = query.eq("state", view);
+    if (unreadOnly) query = query.eq("unread", true);
     if (CATEGORIES.has(category)) query = query.eq("category", category);
     if (DATE_WINDOWS[dateWindow]) {
       const since = new Date(Date.now() - DATE_WINDOWS[dateWindow] * 24 * 60 * 60 * 1_000);

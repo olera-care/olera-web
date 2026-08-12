@@ -226,12 +226,53 @@ function formatRate(value: number | null) {
   return `${(value * 100).toFixed(value >= 0.1 ? 1 : 2)}%`;
 }
 
-export default function GrowthDrivers({ from, to }: { from: string; to: string }) {
+function GrowthDriversHeader({
+  collapsed,
+  onToggle,
+  detail,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+  detail?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={!collapsed}
+      className="flex w-full items-start gap-3 px-5 py-5 text-left transition-colors hover:bg-gray-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 sm:px-7 sm:py-6"
+    >
+      <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${collapsed ? "" : "rotate-90"}`} />
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-2.5">
+          <span className="text-base font-semibold tracking-tight text-gray-950">Growth drivers</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-[10px] font-medium text-teal-700">
+            <Sparkles className="h-3 w-3" /> Outcome view
+          </span>
+        </span>
+        <span className="mt-1 block text-sm text-gray-500">What is creating organic demand—and where to invest next.</span>
+      </span>
+      {detail && <span className="hidden max-w-xs text-xs leading-relaxed text-gray-400 sm:block sm:text-right">{detail}</span>}
+    </button>
+  );
+}
+
+export default function GrowthDrivers({
+  from,
+  to,
+  collapsed,
+  onToggle,
+}: {
+  from: string;
+  to: string;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   const [data, setData] = useState<DriversResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState<Category | null>(null);
-  const [expandedPagePaths, setExpandedPagePaths] = useState<Set<string>>(() => new Set());
+  const [selectedPagePath, setSelectedPagePath] = useState<string | null>(null);
   const [view, setView] = useState<View>("top");
   const [expanded, setExpanded] = useState(false);
 
@@ -301,54 +342,56 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
 
   useEffect(() => {
     setExpanded(false);
-    setExpandedPagePaths(new Set());
+    setSelectedPagePath(null);
   }, [activeCategory, view, from, to]);
 
   if (loading) {
-    return <div className="mt-6 h-[460px] animate-pulse rounded-3xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white" />;
+    return (
+      <section className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
+        <GrowthDriversHeader collapsed={collapsed} onToggle={onToggle} />
+        {!collapsed && <div className="h-[380px] animate-pulse border-t border-gray-100 bg-gradient-to-br from-gray-50 to-white" />}
+      </section>
+    );
   }
 
   if (failed) {
     return (
-      <section className="mt-6 rounded-3xl border border-gray-100 bg-white px-6 py-7">
-        <p className="text-sm font-semibold text-gray-900">Growth drivers are ready to connect</p>
-        <p className="mt-1 text-sm text-gray-500">Apply migration 173, then backfill the Google-backed weeks to activate page intelligence.</p>
+      <section className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white">
+        <GrowthDriversHeader collapsed={collapsed} onToggle={onToggle} />
+        {!collapsed && <div className="border-t border-gray-100 px-6 py-7">
+          <p className="text-sm font-semibold text-gray-900">Growth drivers are ready to connect</p>
+          <p className="mt-1 text-sm text-gray-500">Apply migration 173, then backfill the Google-backed weeks to activate page intelligence.</p>
+        </div>}
       </section>
     );
   }
 
   if (!data || !pages.length && !(data.pages || []).length) {
     return (
-      <section className="mt-6 rounded-3xl border border-gray-100 bg-white px-6 py-7">
-        <p className="text-sm font-semibold text-gray-900">No page-level history in this range</p>
-        <p className="mt-1 text-sm text-gray-500">
-          {data?.available_from
-            ? `Detailed page intelligence begins ${formatDate(data.available_from)}. Choose a more recent range.`
-            : "The next page-metrics collection will establish the baseline."}
-        </p>
+      <section className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white">
+        <GrowthDriversHeader collapsed={collapsed} onToggle={onToggle} />
+        {!collapsed && <div className="border-t border-gray-100 px-6 py-7">
+          <p className="text-sm font-semibold text-gray-900">No page-level history in this range</p>
+          <p className="mt-1 text-sm text-gray-500">
+            {data?.available_from
+              ? `Detailed page intelligence begins ${formatDate(data.available_from)}. Choose a more recent range.`
+              : "The next page-metrics collection will establish the baseline."}
+          </p>
+        </div>}
       </section>
     );
   }
 
   return (
     <section className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
-      <div className="border-b border-gray-100 px-5 py-5 sm:px-7 sm:py-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-base font-semibold tracking-tight text-gray-950">Growth drivers</h2>
-              <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-[10px] font-medium text-teal-700">
-                <Sparkles className="h-3 w-3" /> Outcome view
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-gray-500">What is creating organic demand—and where to invest next.</p>
-          </div>
-          {data.available_from && from < data.available_from && (
-            <p className="max-w-xs text-xs leading-relaxed text-gray-400 sm:text-right">
-              Page detail available from {formatDate(data.available_from)}
-            </p>
-          )}
-        </div>
+      <GrowthDriversHeader
+        collapsed={collapsed}
+        onToggle={onToggle}
+        detail={data.available_from && from < data.available_from ? `Page detail available from ${formatDate(data.available_from)}` : undefined}
+      />
+
+      {!collapsed && <>
+      <div className="border-t border-b border-gray-100 px-5 py-5 sm:px-7 sm:py-6">
 
         {data.attribution.status === "collecting" ? (
           <OutcomeStrip
@@ -463,41 +506,17 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
           <span />
         </div>
 
-        {visiblePages.length > 0 && (
-          <div className="mt-3 flex justify-end gap-3 md:mt-2">
-            <button
-              type="button"
-              onClick={() => setExpandedPagePaths(new Set(visiblePages.map((page) => page.page_path)))}
-              className="text-[11px] text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
-            >
-              Expand all
-            </button>
-            <button
-              type="button"
-              onClick={() => setExpandedPagePaths(new Set())}
-              className="text-[11px] text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
-            >
-              Collapse all
-            </button>
-          </div>
-        )}
-
         {visiblePages.length ? (
           <ol className="divide-y divide-gray-50">
             {visiblePages.map((page, index) => {
               const opportunity = opportunityFor(page, hasPriorData);
-              const isSelected = expandedPagePaths.has(page.page_path);
+              const isSelected = selectedPagePath === page.page_path;
               return (
                 <li key={page.page_path}>
                   <button
                     type="button"
                     aria-expanded={isSelected}
-                    onClick={() => setExpandedPagePaths((current) => {
-                      const next = new Set(current);
-                      if (next.has(page.page_path)) next.delete(page.page_path);
-                      else next.add(page.page_path);
-                      return next;
-                    })}
+                    onClick={() => setSelectedPagePath(isSelected ? null : page.page_path)}
                     className={`group grid w-full gap-3 rounded-xl px-2 py-4 text-left transition-colors md:grid-cols-[minmax(0,1fr)_92px_72px_84px_86px_20px] md:items-center md:gap-3 ${isSelected ? "bg-gray-50" : "hover:bg-gray-50/70"}`}
                   >
                     <div className="flex min-w-0 items-start gap-3">
@@ -541,6 +560,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
           </button>
         )}
       </div>
+      </>}
     </section>
   );
 }

@@ -27,6 +27,9 @@ export interface SupportMailboxRow {
   full_sync_page_token: string | null;
   full_sync_complete: boolean;
   full_sync_messages_imported: number;
+  sync_status: "disconnected" | "backfilling" | "connected" | "error";
+  last_error: string | null;
+  updated_at: string;
 }
 
 // Gmail can return several messages from one conversation in the same API
@@ -35,6 +38,9 @@ export interface SupportMailboxRow {
 // Gmail threads still import concurrently.
 const threadImports = new Map<string, Promise<unknown>>();
 const MAX_TRANSCRIPT_BYTES = 500_000;
+const SYNC_LEASE_MS = 4 * 60 * 1_000;
+const ACTIVE_SYNC_LEASE = "__olera_support_sync_active__";
+const HISTORY_PAGE_SIZE = 50;
 
 function isTranscriptAttachment(attachment: NormalizedGmailMessage["attachments"][number]): boolean {
   return /\.(?:srt|txt|vtt)$/i.test(attachment.filename) ||
@@ -223,7 +229,8 @@ async function refreshThread(db: SupabaseClient, mailbox: SupportMailboxRow, thr
     !(current.gmail_label_ids ?? []).includes("UNREAD");
   if (latestChanged || labelsChanged) {
     if (latest.labelIds.includes("SPAM") || latest.labelIds.includes("TRASH")) state = "noise";
-    else if (latest.direction === "out" || !inActiveInbox) state = "handled";
+    else if (latest.direction === "out") state = "handled";
+    else if (!inActiveInbox) state = state === "noise" ? "noise" : "handled";
     // Otherwise only a genuinely new message, or a deliberate mark-as-unread,
     // reopens a settled conversation.
     else if (latestChanged || gainedUnread || !settled) state = "needs_reply";
@@ -355,6 +362,111 @@ async function inBatches<T>(values: T[], size: number, fn: (value: T) => Promise
   }
 }
 
+interface GmailLabelDelta {
+  added: Set<string>;
+  removed: Set<string>;
+}
+
+function recordLabelDelta(
+  deltas: Map<string, GmailLabelDelta>,
+  messageId: string,
+  added: string[] = [],
+  removed: string[] = [],
+) {
+  const delta = deltas.get(messageId) ?? { added: new Set<string>(), removed: new Set<string>() };
+  for (const label of added) {
+    delta.removed.delete(label);
+    delta.added.add(label);
+  }
+  for (const label of removed) {
+    delta.added.delete(label);
+    delta.removed.add(label);
+  }
+  deltas.set(messageId, delta);
+}
+
+async function applyGmailLabelChanges(
+  db: SupabaseClient,
+  mailbox: SupportMailboxRow,
+  accessToken: string,
+  deltas: Map<string, GmailLabelDelta>,
+): Promise<number> {
+  const ids = [...deltas.keys()];
+  if (!ids.length) return 0;
+  const rows: Array<{
+    id: string;
+    thread_id: string;
+    gmail_message_id: string;
+    gmail_label_ids: string[];
+    direction: "in" | "out";
+    internal_date: string;
+  }> = [];
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await db
+      .from("support_email_messages")
+      .select("id, thread_id, gmail_message_id, gmail_label_ids, direction, internal_date")
+      .eq("mailbox_id", mailbox.id)
+      .in("gmail_message_id", ids.slice(i, i + 100));
+    if (error) throw error;
+    rows.push(...((data ?? []) as typeof rows));
+  }
+  const found = new Set(rows.map((row) => row.gmail_message_id));
+  const threadIds = [...new Set(rows.map((row) => row.thread_id))];
+  const threadRows: Array<{ id: string; state: string; gmail_label_ids: string[]; last_message_at: string }> = [];
+  for (let i = 0; i < threadIds.length; i += 100) {
+    const { data, error } = await db.from("support_email_threads")
+      .select("id, state, gmail_label_ids, last_message_at")
+      .in("id", threadIds.slice(i, i + 100));
+    if (error) throw error;
+    threadRows.push(...((data ?? []) as typeof threadRows));
+  }
+  const threadsById = new Map(threadRows.map((thread) => [thread.id, thread]));
+  const latestLabels = new Map<string, { labels: string[]; direction: "in" | "out" }>();
+  await inBatches(rows, 25, async (row) => {
+    const delta = deltas.get(row.gmail_message_id);
+    if (!delta) return;
+    const labels = new Set(row.gmail_label_ids ?? []);
+    delta.added.forEach((label) => labels.add(label));
+    delta.removed.forEach((label) => labels.delete(label));
+    const nextLabels = [...labels];
+    if (JSON.stringify([...row.gmail_label_ids].sort()) !== JSON.stringify([...nextLabels].sort())) {
+      const { error } = await db.from("support_email_messages").update({
+        gmail_label_ids: nextLabels,
+        updated_at: new Date().toISOString(),
+      }).eq("id", row.id);
+      if (error) throw error;
+    }
+    const thread = threadsById.get(row.thread_id);
+    if (thread && new Date(row.internal_date).getTime() === new Date(thread.last_message_at).getTime()) {
+      latestLabels.set(row.thread_id, { labels: nextLabels, direction: row.direction });
+    }
+  });
+  await inBatches(ids.filter((id) => !found.has(id)), 10, async (id) => {
+    await importGmailMessage(db, mailbox, accessToken, id);
+  });
+  await inBatches([...latestLabels], 25, async ([threadId, latest]) => {
+    const thread = threadsById.get(threadId);
+    if (!thread) return;
+    const inActiveInbox = latest.labels.includes("INBOX") &&
+      !latest.labels.includes("SPAM") && !latest.labels.includes("TRASH");
+    const settled = ["handled", "noise", "snoozed", "escalated"].includes(thread.state);
+    const gainedUnread = latest.labels.includes("UNREAD") && !thread.gmail_label_ids.includes("UNREAD");
+    let state = thread.state;
+    if (latest.labels.includes("SPAM") || latest.labels.includes("TRASH")) state = "noise";
+    else if (latest.direction === "out") state = "handled";
+    else if (!inActiveInbox) state = state === "noise" ? "noise" : "handled";
+    else if (gainedUnread || !settled) state = "needs_reply";
+    const { error } = await db.from("support_email_threads").update({
+      gmail_label_ids: latest.labels,
+      unread: latest.labels.includes("UNREAD"),
+      state,
+      updated_at: new Date().toISOString(),
+    }).eq("id", threadId);
+    if (error) throw error;
+  });
+  return rows.length;
+}
+
 async function removeDeletedGmailMessages(
   db: SupabaseClient,
   mailbox: SupportMailboxRow,
@@ -412,7 +524,6 @@ export async function backfillMailboxPage(db: SupabaseClient, mailbox: SupportMa
     full_sync_page_token: page.nextPageToken ?? null,
     full_sync_complete: complete,
     full_sync_messages_imported: Number(mailbox.full_sync_messages_imported ?? 0) + imported,
-    sync_status: complete ? "connected" : "backfilling",
     last_sync_at: new Date().toISOString(),
     last_error: null,
     updated_at: new Date().toISOString(),
@@ -422,24 +533,38 @@ export async function backfillMailboxPage(db: SupabaseClient, mailbox: SupportMa
 }
 
 export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMailboxRow, accessToken: string) {
-  if (!mailbox.gmail_history_id) return { imported: 0, deleted: 0, historyId: null };
-  let pageToken: string | null = null;
+  if (!mailbox.gmail_history_id) return { imported: 0, deleted: 0, labelsUpdated: 0, historyId: null, hasMore: false };
   let finalHistoryId = mailbox.gmail_history_id;
-  const ids = new Set<string>();
+  const fullMessageIds = new Set<string>();
   const deletedIds = new Set<string>();
+  const labelDeltas = new Map<string, GmailLabelDelta>();
+  let hasMore = false;
   try {
-    do {
-      const page = await listGmailHistory(accessToken, mailbox.gmail_history_id, pageToken);
-      for (const history of page.history ?? []) {
-        for (const message of history.messages ?? []) ids.add(message.id);
-        for (const added of history.messagesAdded ?? []) ids.add(added.message.id);
-        for (const removed of history.messagesDeleted ?? []) deletedIds.add(removed.message.id);
-        for (const changed of history.labelsAdded ?? []) ids.add(changed.message.id);
-        for (const changed of history.labelsRemoved ?? []) ids.add(changed.message.id);
+    const page = await listGmailHistory(accessToken, mailbox.gmail_history_id, null, HISTORY_PAGE_SIZE);
+    const histories = page.history ?? [];
+    for (const history of histories) {
+      const hasTypedChanges = Boolean(
+        history.messagesAdded?.length || history.messagesDeleted?.length ||
+        history.labelsAdded?.length || history.labelsRemoved?.length,
+      );
+      for (const added of history.messagesAdded ?? []) fullMessageIds.add(added.message.id);
+      for (const removed of history.messagesDeleted ?? []) deletedIds.add(removed.message.id);
+      for (const changed of history.labelsAdded ?? []) {
+        if (changed.labelIds?.length) recordLabelDelta(labelDeltas, changed.message.id, changed.labelIds);
+        else fullMessageIds.add(changed.message.id);
       }
-      finalHistoryId = page.historyId ?? finalHistoryId;
-      pageToken = page.nextPageToken ?? null;
-    } while (pageToken);
+      for (const changed of history.labelsRemoved ?? []) {
+        if (changed.labelIds?.length) recordLabelDelta(labelDeltas, changed.message.id, [], changed.labelIds);
+        else fullMessageIds.add(changed.message.id);
+      }
+      if (!hasTypedChanges) {
+        for (const message of history.messages ?? []) fullMessageIds.add(message.id);
+      }
+    }
+    hasMore = Boolean(page.nextPageToken);
+    finalHistoryId = hasMore
+      ? histories.at(-1)?.id ?? mailbox.gmail_history_id
+      : page.historyId ?? histories.at(-1)?.id ?? mailbox.gmail_history_id;
   } catch (err) {
     if (err instanceof GmailApiError && err.status === 404) {
       // Gmail discarded the cursor. A complete mailbox walk is the only safe
@@ -455,19 +580,24 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
         updated_at: new Date().toISOString(),
       }).eq("id", mailbox.id);
       if (resetError) throw resetError;
-      return { imported: 0, deleted: 0, historyId: profile.historyId, restartedFullSync: true };
+      return { imported: 0, deleted: 0, labelsUpdated: 0, historyId: profile.historyId, hasMore: false, restartedFullSync: true };
     }
     throw err;
   }
   // A message deleted from Gmail is no longer available through get(), so it
   // must be removed explicitly from the operating copy. Specific delete events
   // win if the generic history.messages array also mentioned the same ID.
-  for (const id of deletedIds) ids.delete(id);
+  for (const id of deletedIds) {
+    fullMessageIds.delete(id);
+    labelDeltas.delete(id);
+  }
+  for (const id of fullMessageIds) labelDeltas.delete(id);
   const deleted = await removeDeletedGmailMessages(db, mailbox, [...deletedIds]);
   let imported = 0;
-  await inBatches([...ids], 10, async (id) => {
+  await inBatches([...fullMessageIds], 10, async (id) => {
     if (await importGmailMessage(db, mailbox, accessToken, id)) imported += 1;
   });
+  const labelsUpdated = await applyGmailLabelChanges(db, mailbox, accessToken, labelDeltas);
   const { error: cursorError } = await db.from("support_mailboxes").update({
     gmail_history_id: finalHistoryId,
     last_sync_at: new Date().toISOString(),
@@ -475,33 +605,58 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
     updated_at: new Date().toISOString(),
   }).eq("id", mailbox.id);
   if (cursorError) throw cursorError;
-  return { imported, deleted, historyId: finalHistoryId };
+  console.log("[support-email] history chunk", {
+    mailbox: mailbox.email,
+    from: mailbox.gmail_history_id,
+    to: finalHistoryId,
+    hasMore,
+    fullMessages: fullMessageIds.size,
+    labelsUpdated,
+    deleted,
+  });
+  return { imported, deleted, labelsUpdated, historyId: finalHistoryId, hasMore };
 }
 
 export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMailboxRow) {
-  if (!mailbox.encrypted_refresh_token) throw new Error(`Mailbox ${mailbox.email} is not connected`);
-  const refreshToken = decryptGmailToken(mailbox.encrypted_refresh_token);
+  const { data: fresh, error: freshError } = await db.from("support_mailboxes").select("*").eq("id", mailbox.id).single();
+  if (freshError || !fresh) throw freshError ?? new Error(`Mailbox ${mailbox.email} no longer exists`);
+  const current = fresh as SupportMailboxRow;
+  if (current.last_error === ACTIVE_SYNC_LEASE && new Date(current.updated_at).getTime() > Date.now() - SYNC_LEASE_MS) {
+    return skippedSync(current);
+  }
+  const { data: claimed, error: claimError } = await db.from("support_mailboxes").update({
+    sync_status: "backfilling",
+    // An internal marker distinguishes an actively owned lease from the
+    // user-facing "Catching up" state between bounded worker runs.
+    last_error: ACTIVE_SYNC_LEASE,
+    updated_at: new Date().toISOString(),
+  }).eq("id", current.id).eq("updated_at", current.updated_at).select("*").maybeSingle();
+  if (claimError) throw claimError;
+  if (!claimed) return skippedSync(current);
+  const activeMailbox = claimed as SupportMailboxRow;
+  if (!activeMailbox.encrypted_refresh_token) throw new Error(`Mailbox ${activeMailbox.email} is not connected`);
+  const refreshToken = decryptGmailToken(activeMailbox.encrypted_refresh_token);
   const accessToken = await gmailAccessToken(refreshToken);
-  const history = await syncMailboxHistory(db, mailbox, accessToken);
+  const history = await syncMailboxHistory(db, activeMailbox, accessToken);
   // syncMailboxHistory may have reset the persisted backfill after Gmail
   // expired its history cursor. Mirror that reset locally in this same worker
   // run instead of letting the stale mailbox object skip recovery.
   const backfillMailbox = history.restartedFullSync
     ? {
-        ...mailbox,
+        ...activeMailbox,
         gmail_history_id: history.historyId,
         full_sync_page_token: null,
         full_sync_complete: false,
         full_sync_messages_imported: 0,
       }
-    : mailbox;
+    : activeMailbox;
   const backfill = await backfillMailboxPage(db, backfillMailbox, accessToken);
   // Earlier releases intentionally recognized voicemails with a fast subject
   // rule, which left the operating brief generic. Revisit a small bounded batch
   // on each worker run so existing history becomes transcript-aware without a
   // costly one-shot mailbox reclassification.
-  const refreshedVoicemails = await refreshStaleVoicemails(db, mailbox, accessToken);
-  const expirationMs = mailbox.watch_expiration ? new Date(mailbox.watch_expiration).getTime() : 0;
+  const refreshedVoicemails = history.hasMore ? 0 : await refreshStaleVoicemails(db, activeMailbox, accessToken);
+  const expirationMs = activeMailbox.watch_expiration ? new Date(activeMailbox.watch_expiration).getTime() : 0;
   const topic = process.env.GMAIL_PUBSUB_TOPIC;
   let watchRenewed = false;
   if (topic && expirationMs < Date.now() + 48 * 60 * 60 * 1000) {
@@ -509,16 +664,26 @@ export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMai
     const { error: watchError } = await db.from("support_mailboxes").update({
       watch_expiration: new Date(Number(watched.expiration)).toISOString(),
       updated_at: new Date().toISOString(),
-    }).eq("id", mailbox.id);
+    }).eq("id", activeMailbox.id);
     if (watchError) throw watchError;
     watchRenewed = true;
   }
   const { error: finalError } = await db.from("support_mailboxes").update({
-    sync_status: backfill.complete ? "connected" : "backfilling",
+    sync_status: history.hasMore || !backfill.complete ? "backfilling" : "connected",
     last_sync_at: new Date().toISOString(),
     last_error: null,
     updated_at: new Date().toISOString(),
-  }).eq("id", mailbox.id);
+  }).eq("id", activeMailbox.id);
   if (finalError) throw finalError;
   return { history, backfill, refreshedVoicemails, watchRenewed };
+}
+
+function skippedSync(mailbox: SupportMailboxRow) {
+  return {
+    skipped: "already_syncing" as const,
+    history: { imported: 0, deleted: 0, labelsUpdated: 0, historyId: mailbox.gmail_history_id, hasMore: true },
+    backfill: { imported: 0, complete: mailbox.full_sync_complete },
+    refreshedVoicemails: 0,
+    watchRenewed: false,
+  };
 }

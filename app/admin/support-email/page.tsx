@@ -384,10 +384,16 @@ export default function SupportEmailPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "sync_now", mailboxId: mailboxes[0]?.id }),
+        signal: AbortSignal.timeout(55_000),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sync failed");
-      setNotice("Gmail caught up and the next full-history page was imported.");
+      const stillCatchingUp = data.results?.some((result: { history?: { hasMore?: boolean }; skipped?: string }) =>
+        result.history?.hasMore || result.skipped === "already_syncing",
+      );
+      setNotice(stillCatchingUp
+        ? "Gmail is catching up safely in the background. You can keep working."
+        : "Gmail is caught up.");
       await loadList();
     } catch (err) {
       setError(mailboxSyncMessage(err instanceof Error ? err.message : "Sync failed"));
@@ -436,8 +442,8 @@ export default function SupportEmailPage() {
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Support Email</h1>
             {mailbox && (
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${mailbox.sync_status === "error" ? "bg-rose-50 text-rose-700" : mailbox.full_sync_complete ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                {mailbox.sync_status === "error" ? "Needs attention" : mailbox.full_sync_complete ? "Live" : "Importing history"}
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${mailbox.sync_status === "error" ? "bg-rose-50 text-rose-700" : mailbox.sync_status === "backfilling" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
+                {mailbox.sync_status === "error" ? "Needs attention" : mailbox.sync_status === "backfilling" ? "Catching up" : "Live"}
               </span>
             )}
           </div>
@@ -462,7 +468,7 @@ export default function SupportEmailPage() {
           <span className="text-amber-700">New mail always arrives first</span>
         </div>
       )}
-      {mailbox?.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailboxSyncMessage(mailbox.last_error)}</div>}
+      {mailbox?.sync_status === "error" && mailbox.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailboxSyncMessage(mailbox.last_error)}</div>}
       {notice && <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
       {error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 

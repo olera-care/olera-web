@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { syncSupportMailbox, type SupportMailboxRow } from "@/lib/support-email/sync.server";
 
+export const maxDuration = 60;
+
 const CATEGORIES = new Set([
   "care_seeker", "provider", "partner", "marketing", "automated",
   "legal", "security", "billing", "voicemail", "internal", "other",
@@ -76,8 +78,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await adminOrResponse();
   if ("response" in auth) return auth.response;
+  let requestedMailboxId: string | undefined;
   try {
     const body = (await request.json().catch(() => ({}))) as { action?: string; mailboxId?: string };
+    requestedMailboxId = body.mailboxId;
     if (body.action !== "sync_now") return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     const db = getServiceClient();
     let query = db.from("support_mailboxes").select("*");
@@ -89,6 +93,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, results });
   } catch (err) {
     console.error("[support-email] manual sync failed:", err);
+    if (requestedMailboxId) {
+      const message = err instanceof Error ? err.message : "Sync failed";
+      await getServiceClient().from("support_mailboxes").update({
+        sync_status: "error",
+        last_error: message,
+        updated_at: new Date().toISOString(),
+      }).eq("id", requestedMailboxId);
+    }
     return NextResponse.json({ error: err instanceof Error ? err.message : "Sync failed" }, { status: 500 });
   }
 }

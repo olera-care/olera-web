@@ -4034,22 +4034,16 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
         </summary>
         <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
           <p>
-            &quot;Hi, is this <span className="font-medium text-gray-800">[Provider Name]</span>?&quot;
+            &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Olera, calling on behalf of Dr. Logan DuBose&apos;s office.&quot;
           </p>
           <p>
-            &quot;This is <span className="font-medium text-gray-800">[Your Name]</span> calling from Dr. DuBose&apos;s office at Olera. I hope you&apos;re doing well.&quot;
+            &quot;I&apos;m following up on the emails we sent about your listing on Olera. We run a free family referral service for <span className="font-medium text-gray-800">[care type]</span> in <span className="font-medium text-gray-800">[city]</span>.&quot;
           </p>
           <p>
-            &quot;I just wanted to check in because I noticed you&apos;ve had a chance to look through some of the emails we&apos;ve sent about our free referral platform.&quot;
+            &quot;I wanted to check if you had any questions or if there&apos;s anything stopping you from activating your page. It takes about 30 seconds.&quot;
           </p>
           <p>
-            &quot;I was wondering if you had any questions or if there were any roadblocks stopping you from claiming your profile.&quot;
-          </p>
-          <p>
-            &quot;It only takes about 30 seconds to claim, and I&apos;m happy to walk you through it or answer any questions you have.&quot;
-          </p>
-          <p>
-            &quot;If now isn&apos;t a good time, I&apos;m also happy to resend the claim link or any information you need. What&apos;s the best way I can help?&quot;
+            &quot;I can resend the link right now if that helps—is <span className="font-medium text-gray-800">[email on file]</span> still the best address?&quot;
           </p>
         </div>
       </details>
@@ -6950,26 +6944,17 @@ export default function ProviderOutreachPage() {
             {activeTab === "ready" && (
               <details className="mx-5 mt-2 mb-4">
                 <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
-                  Call Script (for generic emails)
+                  Call Script
                 </summary>
                 <div className="pl-4 pt-2 pb-3 text-sm text-gray-600 space-y-3 border-l-2 border-gray-200 ml-1">
                   <p>
-                    &quot;Hi, is this <span className="font-medium text-gray-800">[provider name]</span>? My name is <span className="font-medium text-gray-800">[Your Name]</span>, and I&apos;m calling from Dr. DuBose&apos;s office at Olera.&quot;
+                    &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Olera, calling on behalf of Dr. Logan DuBose&apos;s office.&quot;
                   </p>
                   <p>
-                    &quot;Do you have 3 minutes to quickly chat? I promise I&apos;ll be quick.&quot;
+                    &quot;I hope I reached the right person. Olera runs a free family referral service for <span className="font-medium text-gray-800">[care type]</span> here in <span className="font-medium text-gray-800">[city]</span>.&quot;
                   </p>
                   <p>
-                    &quot;We run a free referral program that connects families with <span className="font-medium text-gray-800">[care type]</span> with trusted providers in <span className="font-medium text-gray-800">[city]</span>.&quot;
-                  </p>
-                  <p>
-                    &quot;We&apos;ve already created a profile for your community using publicly available information, and we&apos;d love for you to manage it by adding your own details and photos and get families sent directly to you.&quot;
-                  </p>
-                  <p>
-                    &quot;There&apos;s no cost to claim or update your profile.&quot;
-                  </p>
-                  <p>
-                    &quot;I was hoping to send you some information on how it works. What&apos;s the best email address for me to send that to?&quot;
+                    &quot;I&apos;m getting ready to send over your activation link so you can manage your listing and receive direct referrals. I have <span className="font-medium text-gray-800">[email on file]</span> listed for you—is that still the best address?&quot;
                   </p>
                 </div>
               </details>

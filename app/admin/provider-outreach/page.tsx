@@ -7322,7 +7322,10 @@ export default function ProviderOutreachPage() {
 
                 {/* Send Claim Link Confirmation Modal */}
                 {pendingClaimLink && (
-                  <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50">
+                  <div
+                    className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">Send Claim Link</h3>
                       <p className="text-sm text-gray-600 mb-4">

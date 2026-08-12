@@ -8,6 +8,7 @@ import {
   Check,
   Download,
   Filter,
+  ListFilter,
   Paperclip,
   Phone,
   Search,
@@ -138,6 +139,13 @@ function relative(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function mailboxSyncMessage(message: string): string {
+  if (/Gmail API|Google OAuth|fetch failed|timed?\s*out/i.test(message)) {
+    return "Gmail sync was temporarily interrupted. Olera will retry automatically; the inbox remains available.";
+  }
+  return message;
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     timeZone: "America/New_York",
@@ -187,6 +195,7 @@ export default function SupportEmailPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [dateWindow, setDateWindow] = useState<DateWindow>("all");
+  const [unreadOnly, setUnreadOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("newest");
   const [total, setTotal] = useState(0);
   const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
@@ -201,11 +210,19 @@ export default function SupportEmailPage() {
   const [syncing, setSyncing] = useState(false);
   const listRequestRef = useRef(0);
   const detailRequestRef = useRef(0);
+  const markingReadRef = useRef<Set<string>>(new Set());
+  const threadsRef = useRef<Thread[] | null>(null);
+  const listScopeRef = useRef<string | null>(null);
   const selectedRef = useRef<string | null>(null);
+  const unreadOnlyRef = useRef(false);
 
   useEffect(() => {
     selectedRef.current = selected;
   }, [selected]);
+
+  useEffect(() => {
+    unreadOnlyRef.current = unreadOnly;
+  }, [unreadOnly]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -223,29 +240,78 @@ export default function SupportEmailPage() {
 
   const loadList = useCallback(async () => {
     const requestId = ++listRequestRef.current;
+    const scopeKey = JSON.stringify({ view, query, category, dateWindow, sort });
     try {
       setError(null);
       const params = new URLSearchParams({ view });
       if (query) params.set("q", query);
       if (category !== "all") params.set("category", category);
       if (dateWindow !== "all") params.set("date", dateWindow);
+      if (unreadOnly) params.set("unread", "true");
       if (sort === "oldest") params.set("sort", "oldest");
       const res = await fetch(`/api/admin/support-email?${params}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not load support email");
       if (requestId !== listRequestRef.current) return;
+      const nextThreads: Thread[] = data.threads ?? [];
+      // An unread thread becomes read as soon as its detail successfully
+      // opens. Preserve that selected row through same-scope refreshes until
+      // the operator moves away, even though the server now excludes it.
+      const retainedSelected = unreadOnly && listScopeRef.current === scopeKey
+        ? threadsRef.current?.find((thread) => thread.id === selectedRef.current && !thread.unread)
+        : null;
+      threadsRef.current = retainedSelected && !nextThreads.some((thread) => thread.id === retainedSelected.id)
+        ? [retainedSelected, ...nextThreads]
+        : nextThreads;
+      listScopeRef.current = scopeKey;
       setMailboxes(data.mailboxes ?? []);
-      setThreads(data.threads ?? []);
+      setThreads(threadsRef.current);
       setTotal(data.total ?? 0);
     } catch (err) {
       if (requestId !== listRequestRef.current) return;
+      threadsRef.current = [];
       setThreads([]);
       setTotal(0);
       setError(err instanceof Error ? err.message : "Could not load support email");
     }
-  }, [category, dateWindow, query, sort, view]);
+  }, [category, dateWindow, query, sort, unreadOnly, view]);
 
   useEffect(() => { void loadList(); }, [loadList]);
+
+  const markThreadRead = useCallback(async (id: string) => {
+    if (markingReadRef.current.has(id)) return;
+    markingReadRef.current.add(id);
+    try {
+      const res = await fetch(`/api/admin/support-email/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "mark_read" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not mark this conversation read");
+      const targetWasVisible = Boolean(threadsRef.current?.some((thread) => thread.id === id));
+      threadsRef.current = threadsRef.current?.flatMap((thread) => {
+        if (thread.id !== id) return [thread];
+        // The just-opened row stays put while it is selected. If the admin
+        // already moved on before Gmail answered, remove it from Unread now.
+        if (unreadOnlyRef.current && selectedRef.current !== id) return [];
+        return [{ ...thread, unread: false }];
+      }) ?? threadsRef.current;
+      setThreads(threadsRef.current);
+      setDetail((current) => current?.thread.id === id
+        ? { ...current, thread: { ...current.thread, unread: false } }
+        : current);
+      if (unreadOnlyRef.current && targetWasVisible) {
+        setTotal((current) => Math.max(0, current - 1));
+      }
+    } catch (err) {
+      if (selectedRef.current === id) {
+        setError(err instanceof Error ? err.message : "Could not mark this conversation read");
+      }
+    } finally {
+      markingReadRef.current.delete(id);
+    }
+  }, []);
 
   const loadDetail = useCallback(async (id: string, adoptDraft = true) => {
     const requestId = ++detailRequestRef.current;
@@ -258,6 +324,7 @@ export default function SupportEmailPage() {
       if (requestId !== detailRequestRef.current || selectedRef.current !== id) return;
       setDetail(data);
       if (adoptDraft) setReply(data.thread.draft_body || data.thread.suggested_draft || "");
+      if (data.thread.unread) void markThreadRead(id);
     } catch (err) {
       if (requestId !== detailRequestRef.current || selectedRef.current !== id) return;
       setDetail(null);
@@ -265,7 +332,7 @@ export default function SupportEmailPage() {
     } finally {
       if (requestId === detailRequestRef.current) setLoadingDetail(false);
     }
-  }, []);
+  }, [markThreadRead]);
 
   useEffect(() => {
     if (selected) void loadDetail(selected);
@@ -323,14 +390,24 @@ export default function SupportEmailPage() {
       setNotice("Gmail caught up and the next full-history page was imported.");
       await loadList();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sync failed");
+      setError(mailboxSyncMessage(err instanceof Error ? err.message : "Sync failed"));
     } finally {
       setSyncing(false);
     }
   }
 
+  function leaveSelectedThread(nextId: string | null) {
+    const previousId = selectedRef.current;
+    const previousIsNowRead = threadsRef.current?.some((thread) => thread.id === previousId && !thread.unread);
+    if (unreadOnly && previousId && previousId !== nextId && previousIsNowRead) {
+      threadsRef.current = threadsRef.current?.filter((thread) => thread.id !== previousId) ?? threadsRef.current;
+      setThreads(threadsRef.current);
+    }
+    selectedRef.current = nextId;
+  }
+
   function selectThread(id: string) {
-    selectedRef.current = id;
+    leaveSelectedThread(id);
     detailRequestRef.current += 1;
     setDetail(null);
     setReply("");
@@ -344,7 +421,13 @@ export default function SupportEmailPage() {
   const mailbox = mailboxes[0] ?? null;
   const phone = callbackNumber(detail);
   const isVoicemail = detail?.thread.category === "voicemail";
-  const activeFilterCount = Number(category !== "all") + Number(dateWindow !== "all");
+  const scopeParts = [
+    category !== "all" ? CATEGORY_LABELS[category] : null,
+    dateWindow !== "all" ? DATE_LABELS[dateWindow] : null,
+  ].filter((value): value is string => Boolean(value));
+  const resultLabel = threads == null
+    ? "Loading conversations…"
+    : `${total.toLocaleString()} ${unreadOnly ? "unread" : `conversation${total === 1 ? "" : "s"}`}${scopeParts.length ? ` · ${scopeParts.join(" · ")}` : ""}`;
 
   return (
     <div className="space-y-4 pb-20 md:pb-0">
@@ -379,7 +462,7 @@ export default function SupportEmailPage() {
           <span className="text-amber-700">New mail always arrives first</span>
         </div>
       )}
-      {mailbox?.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailbox.last_error}</div>}
+      {mailbox?.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailboxSyncMessage(mailbox.last_error)}</div>}
       {notice && <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
       {error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
@@ -408,6 +491,21 @@ export default function SupportEmailPage() {
                     <input aria-label="Search support email" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mail…" className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-sm outline-none placeholder:text-gray-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
                   </label>
                   <button
+                    onClick={() => {
+                      if (!unreadOnly && detail && !detail.thread.unread) {
+                        leaveSelectedThread(null);
+                        setSelected(null);
+                      }
+                      setUnreadOnly((current) => !current);
+                    }}
+                    aria-pressed={unreadOnly}
+                    aria-label={unreadOnly ? "Show all conversations" : "Show unread conversations only"}
+                    title={unreadOnly ? "Show all conversations" : "Show unread only"}
+                    className={`flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border shadow-sm transition-[color,background-color,border-color,transform] duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 ${unreadOnly ? "border-teal-600 bg-teal-600 text-white hover:bg-teal-700" : "border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"}`}
+                  >
+                    <ListFilter className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={() => setSort((current) => current === "newest" ? "oldest" : "newest")}
                     aria-label={sort === "newest" ? "Sort oldest first" : "Sort newest first"}
                     title={sort === "newest" ? "Newest first" : "Oldest first"}
@@ -427,9 +525,9 @@ export default function SupportEmailPage() {
                     {(Object.keys(DATE_LABELS) as DateWindow[]).map((value) => <option key={value} value={value}>{DATE_LABELS[value]}</option>)}
                   </select>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
-                  <span>{threads == null ? "Loading conversations…" : `${threads.length}${total > threads.length ? ` of ${total}` : ""} conversation${total === 1 ? "" : "s"}`}</span>
-                  <span>{sort === "newest" ? "Newest first" : "Oldest first"}{activeFilterCount ? ` · ${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"}` : ""}</span>
+                <div className="mt-2 flex items-start justify-between gap-3 text-[11px] leading-4 text-gray-400">
+                  <span className="min-w-0">{resultLabel}</span>
+                  <span className="shrink-0">{sort === "newest" ? "Newest first" : "Oldest first"}</span>
                 </div>
               </div>
               <div className="max-h-[640px] overflow-y-auto">
@@ -437,8 +535,17 @@ export default function SupportEmailPage() {
                   <p className="px-4 py-10 text-center text-sm text-gray-400">Loading inbox…</p>
                 ) : threads.length === 0 ? (
                   <div className="px-6 py-16 text-center">
-                    <p className="text-sm font-medium text-gray-700">Nothing here</p>
-                    <p className="mt-1 text-xs text-gray-400">This view is caught up.</p>
+                    <p className="text-sm font-medium text-gray-700">{unreadOnly ? "You’re caught up" : "Nothing here"}</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-400">
+                      {unreadOnly
+                        ? `No unread${category !== "all" ? ` ${CATEGORY_LABELS[category]}` : ""} conversations${dateWindow !== "all" ? ` from ${DATE_LABELS[dateWindow].toLowerCase()}` : ""}.`
+                        : "This view is caught up."}
+                    </p>
+                    {unreadOnly && (
+                      <button onClick={() => setUnreadOnly(false)} className="mt-3 text-xs font-medium text-teal-700 hover:text-teal-800 hover:underline">
+                        Show all{category !== "all" ? ` ${CATEGORY_LABELS[category]}` : ""}
+                      </button>
+                    )}
                   </div>
                 ) : threads.map((thread) => (
                   <button key={thread.id} onClick={() => selectThread(thread.id)} className={`relative block w-full border-b border-gray-100 px-4 py-3 text-left transition-colors duration-150 ${selected === thread.id ? "bg-teal-50/70" : "hover:bg-gray-50"}`}>
@@ -446,7 +553,7 @@ export default function SupportEmailPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2">
                         {thread.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-teal-600" aria-label="Unread" />}
-                        <p className={`truncate text-sm ${thread.unread || thread.state === "needs_reply" ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>{sender(thread)}</p>
+                        <p className={`truncate text-sm ${thread.unread ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>{sender(thread)}</p>
                       </div>
                       <span className="shrink-0 text-[11px] text-gray-400">{relative(thread.last_message_at)}</span>
                     </div>
@@ -476,7 +583,7 @@ export default function SupportEmailPage() {
                   <header className="border-b border-gray-100 px-5 py-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex min-w-0 items-start gap-3">
-                        <button onClick={() => setSelected(null)} aria-label="Back to inbox" className="mt-0.5 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 lg:hidden">
+                        <button onClick={() => { leaveSelectedThread(null); setSelected(null); }} aria-label="Back to inbox" className="mt-0.5 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 lg:hidden">
                           <ArrowLeft className="h-4 w-4" />
                         </button>
                         <div className="min-w-0">

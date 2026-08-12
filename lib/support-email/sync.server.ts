@@ -6,6 +6,7 @@ import {
   GmailApiError,
   getGmailAttachment,
   getGmailMessage,
+  getGmailMessageMetadata,
   getGmailProfile,
   gmailAccessToken,
   listGmailHistory,
@@ -320,7 +321,17 @@ export async function importGmailMessage(db: SupabaseClient, mailbox: SupportMai
     // A message can disappear between history/list and get (trash emptied,
     // draft replaced). It must not poison the rest of an otherwise valid page.
     if (err instanceof GmailApiError && err.status === 404) return null;
-    throw err;
+    // Some real Gmail messages contain MIME payloads that Gmail's own
+    // `format=full` renderer cannot return. Preserve their headers, labels,
+    // thread identity, and cursor position through the metadata representation
+    // rather than letting one malformed body poison the whole mailbox sync.
+    try {
+      raw = await getGmailMessageMetadata(accessToken, gmailMessageId);
+      console.warn(`[support-email] imported Gmail message ${gmailMessageId} from metadata after full payload failed`);
+    } catch (metadataError) {
+      if (metadataError instanceof GmailApiError && metadataError.status === 404) return null;
+      throw metadataError;
+    }
   }
   // Draft resources are editable containers, not conversation events. Olera
   // tracks its Gmail draft ID on the thread and imports the canonical SENT

@@ -153,8 +153,24 @@ export async function POST(request: NextRequest, context: Context) {
       return NextResponse.json({ ok: true });
     }
 
+    if (body.action === "mark_read" && !thread.unread) {
+      return NextResponse.json({ ok: true });
+    }
     if (!mailbox.encrypted_refresh_token) throw new Error("This mailbox is not connected to Gmail.");
     const accessToken = await gmailAccessToken(decryptGmailToken(mailbox.encrypted_refresh_token));
+    if (body.action === "mark_read") {
+      // Reading and handling are intentionally independent. Opening a thread
+      // clears Gmail's shared UNREAD state without resolving the support work.
+      await modifyGmailThread(accessToken, thread.gmail_thread_id, { removeLabelIds: ["UNREAD"] });
+      await updateThread(db, threadId, {
+        unread: false,
+        gmail_label_ids: Array.isArray(thread.gmail_label_ids)
+          ? thread.gmail_label_ids.filter((label: string) => label !== "UNREAD")
+          : [],
+        updated_at: now,
+      });
+      return NextResponse.json({ ok: true });
+    }
     if (body.action === "mark_handled") {
       // Handled is a real decision, so it must also clear UNREAD in Gmail --
       // otherwise the operator sees a permanent unread dot and the two inboxes

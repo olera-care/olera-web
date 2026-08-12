@@ -231,7 +231,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState<Category | null>(null);
-  const [selectedPagePath, setSelectedPagePath] = useState<string | null>(null);
+  const [expandedPagePaths, setExpandedPagePaths] = useState<Set<string>>(() => new Set());
   const [view, setView] = useState<View>("top");
   const [expanded, setExpanded] = useState(false);
 
@@ -301,7 +301,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
 
   useEffect(() => {
     setExpanded(false);
-    setSelectedPagePath(null);
+    setExpandedPagePaths(new Set());
   }, [activeCategory, view, from, to]);
 
   if (loading) {
@@ -463,17 +463,41 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
           <span />
         </div>
 
+        {visiblePages.length > 0 && (
+          <div className="mt-3 flex justify-end gap-3 md:mt-2">
+            <button
+              type="button"
+              onClick={() => setExpandedPagePaths(new Set(visiblePages.map((page) => page.page_path)))}
+              className="text-[11px] text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+            >
+              Expand all
+            </button>
+            <button
+              type="button"
+              onClick={() => setExpandedPagePaths(new Set())}
+              className="text-[11px] text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+            >
+              Collapse all
+            </button>
+          </div>
+        )}
+
         {visiblePages.length ? (
           <ol className="divide-y divide-gray-50">
             {visiblePages.map((page, index) => {
               const opportunity = opportunityFor(page, hasPriorData);
-              const isSelected = selectedPagePath === page.page_path;
+              const isSelected = expandedPagePaths.has(page.page_path);
               return (
                 <li key={page.page_path}>
                   <button
                     type="button"
                     aria-expanded={isSelected}
-                    onClick={() => setSelectedPagePath(isSelected ? null : page.page_path)}
+                    onClick={() => setExpandedPagePaths((current) => {
+                      const next = new Set(current);
+                      if (next.has(page.page_path)) next.delete(page.page_path);
+                      else next.add(page.page_path);
+                      return next;
+                    })}
                     className={`group grid w-full gap-3 rounded-xl px-2 py-4 text-left transition-colors md:grid-cols-[minmax(0,1fr)_92px_72px_84px_86px_20px] md:items-center md:gap-3 ${isSelected ? "bg-gray-50" : "hover:bg-gray-50/70"}`}
                   >
                     <div className="flex min-w-0 items-start gap-3">

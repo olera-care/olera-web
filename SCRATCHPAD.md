@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-08-12 — Organic Growth page-detail controls (`codex/organic-growth-collapse-all`)
+
+Added compact **Expand all / Collapse all** controls above the Organic Growth page table, matching the Analytics interaction language. Page funnels can now stay open independently; bulk expand applies to the currently visible rows, bulk collapse clears them, and changing category, view, or date range resets the details. The intentionally duplicated pinned sidebar link remains unchanged. **File:** `components/admin/GrowthDrivers.tsx`. **Validation:** production build (including TypeScript) and 32-cron registry pass; diff check clean. **Next:** preview the PR against `staging`, then merge only after TJ approval.
+
 ### 2026-08-12 — Support inbox: "handled" was the one state the system could not remember (PR #1561, `support-email-handled-gmail-sync`)
 
 Started as an orientation pass over `/admin/support-email` and turned into a real bug. TJ asked a simple question: **does Mark handled mark the message read in our actual Gmail?** It did not. `mark_handled` sat in the Supabase-only `simpleStates` map in `app/api/admin/support-email/[threadId]/route.ts` and returned before the code ever minted a Gmail access token. Archive and Mark noise both call `modifyGmailThread(removeLabelIds: ["INBOX","UNREAD"])`; handled was the one action that touched nothing.

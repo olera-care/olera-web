@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-08-12 — Support Email unread filter + admin chrome cleanup (`codex/support-email-unread-filter`)
+
+Added an Apple Mail-style **Unread** quick filter that composes with queue, category, date, search, and sort. Opening an unread conversation marks it read in Gmail and Olera without marking it handled; the selected row remains visible until the operator moves away. Hardened refresh and rapid-selection races so delayed responses cannot corrupt counts or make the active thread disappear. Removed the public Profile / Find Families / Growth / Hire Caregivers navbar from all `/admin` routes while preserving the admin navigation drawer and semantic main landmark. **Files:** `app/LayoutShell.tsx`, `app/admin/layout.tsx`, `app/admin/support-email/page.tsx`, and both support-email admin API routes. **Validation:** targeted ESLint, TypeScript, production build, 32-cron registry, diff checks, latest-staging overlap audit, and Vercel deployment pass. **PR:** #1574 against `staging`. **Next:** preview the unread stacking/read-sync behavior, then merge only after TJ approval. No migration required.
+
 ### 2026-08-12 — Organic Growth page-level controls (`codex/organic-growth-collapse-all`)
 
 Added compact **Expand all / Collapse all** controls at the top of Organic Growth, matching the Analytics page hierarchy. The controls govern all three major sections—Weekly performance, Growth drivers, and Organic acquisition—and each section can still be toggled independently from its own header. Page funnels remain a separate one-at-a-time drill-down. The intentionally duplicated pinned sidebar link remains unchanged. Pre-test normalized Growth drivers so bulk collapse also works during loading and in empty/error states. **Files:** `components/admin/GrowthOverview.tsx`, `components/admin/GrowthDrivers.tsx`. **Validation:** production build (including TypeScript) and 32-cron registry pass; targeted ESLint and diff checks clean. **PR:** #1565 against `staging`. **Next:** preview the corrected hierarchy, then merge only after TJ approval.

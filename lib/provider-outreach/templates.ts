@@ -191,20 +191,20 @@ function introEmail(): EmailDraft {
 /**
  * Day 3: Follow-up email
  *
- * Focuses on family questions going unanswered. Creates urgency
- * with link expiration notice.
+ * Control angle: who updates/owns the page? Information gets stale
+ * and no one at the facility can fix it.
  *
  * Style: Direct, concise, action-oriented.
  */
 function followupEmail(): EmailDraft {
   return {
-    subject: `When a family asks about ${PLACEHOLDER.providerName}`,
+    subject: `Who updates ${PLACEHOLDER.providerName}'s page?`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Families on Olera ask providers questions directly: about availability, pricing, and whether the fit is right for their loved one. The answers are often how a family decides.`,
+      `${PLACEHOLDER.providerName}'s page on Olera shows what we could find publicly. But things change. Pricing, availability, staff, photos. Right now, no one at ${PLACEHOLDER.providerName} can update any of it.`,
       ``,
-      `If a family asked ${PLACEHOLDER.providerName} something today, it would go unanswered. Taking over your page fixes that in about two minutes, free: no contracts, no referral or per-lead fees.`,
+      `Taking over your page puts it in your hands. Two minutes, free: no contracts, no referral or per-lead fees.`,
       ``,
       `[Activate ${PLACEHOLDER.providerName}'s page →](${PLACEHOLDER.claimUrl})`,
       ``,

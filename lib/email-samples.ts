@@ -161,7 +161,7 @@ const OUTREACH_CTX = {
   provider_name: "Sunrise Senior Care",
   city: "Austin",
   state: "TX",
-  category: "home_care_agency",
+  category: "home care",
   rank: 5,
   total: 23,
   city_views: 142,

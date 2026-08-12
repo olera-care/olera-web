@@ -226,12 +226,22 @@ function formatRate(value: number | null) {
   return `${(value * 100).toFixed(value >= 0.1 ? 1 : 2)}%`;
 }
 
-export default function GrowthDrivers({ from, to }: { from: string; to: string }) {
+export default function GrowthDrivers({
+  from,
+  to,
+  collapsed,
+  onToggle,
+}: {
+  from: string;
+  to: string;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   const [data, setData] = useState<DriversResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState<Category | null>(null);
-  const [expandedPagePaths, setExpandedPagePaths] = useState<Set<string>>(() => new Set());
+  const [selectedPagePath, setSelectedPagePath] = useState<string | null>(null);
   const [view, setView] = useState<View>("top");
   const [expanded, setExpanded] = useState(false);
 
@@ -301,7 +311,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
 
   useEffect(() => {
     setExpanded(false);
-    setExpandedPagePaths(new Set());
+    setSelectedPagePath(null);
   }, [activeCategory, view, from, to]);
 
   if (loading) {
@@ -332,23 +342,31 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
 
   return (
     <section className="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]">
-      <div className="border-b border-gray-100 px-5 py-5 sm:px-7 sm:py-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-base font-semibold tracking-tight text-gray-950">Growth drivers</h2>
+      <div className={`${collapsed ? "" : "border-b border-gray-100"} px-5 py-5 sm:px-7 sm:py-6`}>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          className="flex w-full items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+        >
+          <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${collapsed ? "" : "rotate-90"}`} />
+          <span className="min-w-0 flex-1">
+            <span className="flex flex-wrap items-center gap-2.5">
+              <span className="text-base font-semibold tracking-tight text-gray-950">Growth drivers</span>
               <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2 py-1 text-[10px] font-medium text-teal-700">
                 <Sparkles className="h-3 w-3" /> Outcome view
               </span>
-            </div>
-            <p className="mt-1 text-sm text-gray-500">What is creating organic demand—and where to invest next.</p>
-          </div>
+            </span>
+            <span className="mt-1 block text-sm text-gray-500">What is creating organic demand—and where to invest next.</span>
+          </span>
           {data.available_from && from < data.available_from && (
-            <p className="max-w-xs text-xs leading-relaxed text-gray-400 sm:text-right">
+            <span className="hidden max-w-xs text-xs leading-relaxed text-gray-400 sm:block sm:text-right">
               Page detail available from {formatDate(data.available_from)}
-            </p>
+            </span>
           )}
-        </div>
+        </button>
+
+        {!collapsed && <>
 
         {data.attribution.status === "collecting" ? (
           <OutcomeStrip
@@ -430,9 +448,10 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
             );
           })}
         </div>
+        </>}
       </div>
 
-      <div className="px-5 py-5 sm:px-7 sm:py-6">
+      {!collapsed && <div className="px-5 py-5 sm:px-7 sm:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.11em] text-gray-400">{CATEGORY_META[activeCategory].shortLabel}</p>
@@ -463,41 +482,17 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
           <span />
         </div>
 
-        {visiblePages.length > 0 && (
-          <div className="mt-3 flex justify-end gap-3 md:mt-2">
-            <button
-              type="button"
-              onClick={() => setExpandedPagePaths(new Set(visiblePages.map((page) => page.page_path)))}
-              className="text-[11px] text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
-            >
-              Expand all
-            </button>
-            <button
-              type="button"
-              onClick={() => setExpandedPagePaths(new Set())}
-              className="text-[11px] text-gray-500 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
-            >
-              Collapse all
-            </button>
-          </div>
-        )}
-
         {visiblePages.length ? (
           <ol className="divide-y divide-gray-50">
             {visiblePages.map((page, index) => {
               const opportunity = opportunityFor(page, hasPriorData);
-              const isSelected = expandedPagePaths.has(page.page_path);
+              const isSelected = selectedPagePath === page.page_path;
               return (
                 <li key={page.page_path}>
                   <button
                     type="button"
                     aria-expanded={isSelected}
-                    onClick={() => setExpandedPagePaths((current) => {
-                      const next = new Set(current);
-                      if (next.has(page.page_path)) next.delete(page.page_path);
-                      else next.add(page.page_path);
-                      return next;
-                    })}
+                    onClick={() => setSelectedPagePath(isSelected ? null : page.page_path)}
                     className={`group grid w-full gap-3 rounded-xl px-2 py-4 text-left transition-colors md:grid-cols-[minmax(0,1fr)_92px_72px_84px_86px_20px] md:items-center md:gap-3 ${isSelected ? "bg-gray-50" : "hover:bg-gray-50/70"}`}
                   >
                     <div className="flex min-w-0 items-start gap-3">
@@ -540,7 +535,7 @@ export default function GrowthDrivers({ from, to }: { from: string; to: string }
             {expanded ? "Show less" : `View all ${pages.length} pages`}
           </button>
         )}
-      </div>
+      </div>}
     </section>
   );
 }

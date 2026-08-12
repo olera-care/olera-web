@@ -9,7 +9,7 @@ import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
 import type { DirectoryListItem } from "@/lib/types";
 
-type TabFilter = "all" | "published" | "deleted" | "no_city";
+type TabFilter = "all" | "published" | "deleted" | "no_city" | "unclaimed";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
@@ -241,6 +241,7 @@ export default function AdminDirectoryPage() {
   const tabs: { label: string; value: TabFilter }[] = [
     { label: "All", value: "all" },
     { label: "Published", value: "published" },
+    { label: "Unclaimed", value: "unclaimed" },
     { label: "Deleted", value: "deleted" },
     { label: "No City", value: "no_city" },
   ];

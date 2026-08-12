@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from "react";
 import { X } from "@phosphor-icons/react";
 import { type CareNeed } from "@/lib/benefits/match-care-need";
 import ProgramBenefitsCard, { type ProgramBenefitsCardProps } from "./ProgramBenefitsCard";
+import { trackGrowthEvent } from "@/lib/analytics/growth-attribution";
 
 type Props = Omit<ProgramBenefitsCardProps, "variant"> & {
   careNeed: CareNeed;
@@ -36,6 +37,15 @@ export default function ProgramBenefitsMobileCTA(props: Props) {
   const savings = topSavingsLabel(props.savingsRange);
 
   const close = useCallback(() => setOpen(false), []);
+  const openCard = useCallback(() => {
+    trackGrowthEvent({
+      eventType: "cta_engaged",
+      pagePath: `/benefits/${props.stateId}/${props.programId}`,
+      ctaId: "benefits_intake",
+      ctaSurface: "mobile_sticky",
+    });
+    setOpen(true);
+  }, [props.programId, props.stateId]);
 
   // Escape to close + lock body scroll while the sheet is open.
   useEffect(() => {
@@ -78,7 +88,7 @@ export default function ProgramBenefitsMobileCTA(props: Props) {
             )}
           </div>
           <button
-            onClick={() => setOpen(true)}
+            onClick={openCard}
             className="shrink-0 rounded-full bg-primary-600 px-5 py-3 text-[15px] font-semibold text-white shadow-sm transition-all hover:bg-primary-700 active:scale-[0.97]"
           >
             Check my eligibility

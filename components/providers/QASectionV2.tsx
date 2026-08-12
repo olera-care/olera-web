@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders, type SaveProviderData } from "@/hooks/use-saved-providers";
 import MultiProviderCard from "@/components/providers/MultiProviderCard";
 import MultiProviderCardV2 from "@/components/providers/MultiProviderCardV2";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import type { IntakeVariant } from "@/lib/analytics/variant";
 import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
@@ -440,6 +440,7 @@ export default function QASectionV2({
           providerName,
           questionText: expandedQuestion,
           sessionId: getOrCreateSessionId(),
+          visitId: getOrCreateVisitId(),
           // Include all providers contacted for multi_provider variants
           sentProviderIds,
           sentCount,

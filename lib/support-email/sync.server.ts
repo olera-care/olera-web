@@ -213,10 +213,19 @@ async function refreshThread(db: SupabaseClient, mailbox: SupportMailboxRow, thr
   const labelsChanged = JSON.stringify([...(current.gmail_label_ids ?? [])].sort()) !== JSON.stringify([...latest.labelIds].sort());
   const inActiveInbox = latest.labelIds.includes("INBOX") && !latest.labelIds.includes("SPAM") && !latest.labelIds.includes("TRASH");
   let state = String(current.state);
+  // UNREAD is asymmetric. Losing it means someone merely read the mail in Gmail
+  // and must never undo a deliberate handled/noise/snoozed/escalated decision.
+  // Gaining it is an explicit "bring this back" gesture, and is the only way to
+  // reopen a thread from Gmail's side.
+  const settled = ["handled", "noise", "snoozed", "escalated"].includes(String(current.state));
+  const gainedUnread = latest.labelIds.includes("UNREAD") &&
+    !(current.gmail_label_ids ?? []).includes("UNREAD");
   if (latestChanged || labelsChanged) {
     if (latest.labelIds.includes("SPAM") || latest.labelIds.includes("TRASH")) state = "noise";
     else if (latest.direction === "out" || !inActiveInbox) state = "handled";
-    else state = "needs_reply";
+    // Otherwise only a genuinely new message, or a deliberate mark-as-unread,
+    // reopens a settled conversation.
+    else if (latestChanged || gainedUnread || !settled) state = "needs_reply";
   }
 
   const baseUpdate: Record<string, unknown> = {

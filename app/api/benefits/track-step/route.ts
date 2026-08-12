@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { classifyOrganicPage } from "@/lib/analytics/content-pages";
 
 // Per-step funnel events for the embedded benefits intake on provider pages.
 // Mirrors /api/benefits/track-start (sibling route): writes to provider_activity
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
     }
 
     const sessionId: string | null = body.sessionId || null;
+    const visitId: string | null = body.visitId || sessionId;
+    const entrySource: string | null = body.entrySource || null;
     const stateCode: string | null = body.stateCode || null;
     const stateName: string | null = body.stateName || null;
     const providerName: string | null = body.providerName || null;
@@ -53,8 +56,9 @@ export async function POST(request: Request) {
     const careNeedSelected: string | null = body.careNeedSelected || null;
 
     const db = getServiceDb();
+    const writes: Array<PromiseLike<unknown>> = [];
     if (db && providerSlug && sessionId) {
-      db.from("provider_activity").insert({
+      writes.push(db.from("provider_activity").insert({
         provider_id: providerSlug,
         profile_id: null,
         event_type: event,
@@ -68,10 +72,47 @@ export async function POST(request: Request) {
           time_on_step_ms: timeOnStepMs,
           variant,
           care_need_selected: careNeedSelected,
+          entry_source: entrySource,
+          visit_id: visitId,
         },
-      }).then(({ error }: { error: { message: string } | null }) => {
-        if (error) console.error(`[track-step] ${event} insert failed:`, error);
-      });
+      }));
+    }
+
+    const pagePath = entrySource || (providerSlug ? `/provider/${providerSlug}` : null);
+    const pageCategory = pagePath ? classifyOrganicPage(pagePath) : null;
+    const growthEvent = event === "benefits_entry_viewed"
+      ? "cta_visible"
+      : event === "benefits_step_completed" && stepName === "contact"
+        ? "lead_started"
+        : event === "benefits_step_completed" && (stepName === "care-need" || stepName === "empathic_single_submitted")
+          ? "cta_engaged"
+          : null;
+    if (db && sessionId && visitId && pagePath && pageCategory && growthEvent) {
+      writes.push(db.from("growth_attribution_events").insert({
+        anonymous_id: sessionId,
+        visit_id: visitId,
+        event_type: growthEvent,
+        page_path: pagePath,
+        page_category: pageCategory,
+        cta_id: "benefits_intake",
+        cta_surface: pageCategory === "editorial" ? "editorial_embed" : pageCategory === "benefit" ? "program_page" : "provider_page",
+        metadata: {
+          state: stateCode,
+          step_number: stepNumber,
+          step_name: stepName,
+          variant,
+          care_need_selected: careNeedSelected,
+        },
+      }));
+    }
+    const results = await Promise.allSettled(writes);
+    for (const result of results) {
+      if (result.status === "fulfilled") {
+        const value = result.value as { error?: { message?: string } | null };
+        if (value?.error) console.error(`[track-step] ${event} insert failed:`, value.error);
+      } else {
+        console.error(`[track-step] ${event} insert rejected:`, result.reason);
+      }
     }
 
     return NextResponse.json({ ok: true });

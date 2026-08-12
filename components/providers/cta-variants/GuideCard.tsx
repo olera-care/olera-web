@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getOrCreateSessionId } from "@/lib/analytics/session";
+import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/session";
 import { getPricingConfig } from "@/lib/pricing-config";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -140,6 +140,8 @@ export default function GuideCard({
             variant: ctaVariant,
             surface: "desktop",
             action: "guide_clicked",
+            visit_id: getOrCreateVisitId(),
+            page_path: `/provider/${providerSlug}`,
           },
         }),
       }).catch(() => {});
@@ -195,6 +197,7 @@ export default function GuideCard({
             name: providerName,
           },
           sessionId: getOrCreateSessionId(),
+          visitId: getOrCreateVisitId(),
         }),
       });
 

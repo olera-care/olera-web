@@ -1306,7 +1306,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
 
                   {program.sourceUrl && (
                     <div>
-                      <a href={program.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2 decoration-primary-200 transition-colors">
+                      <a href={program.sourceUrl} data-growth-contact="official_site" data-growth-surface="program_contact" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2 decoration-primary-200 transition-colors">
                         <Globe className="w-4 h-4" /> Visit official program page
                       </a>
                       {program.lastVerifiedDate && (
@@ -1321,7 +1321,7 @@ export function ProgramPageV3({ program, state, relatedArticles }: ProgramPageV3
                       <SectionLabel>Application forms</SectionLabel>
                       <div className="space-y-2">
                         {program.forms.map((form) => (
-                          <a key={form.id} href={form.url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg border border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm transition-all group">
+                          <a key={form.id} href={form.url} data-growth-contact="application_form" data-growth-surface="program_contact" target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg border border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm transition-all group">
                             <p className="font-medium text-sm text-gray-900 group-hover:text-primary-700 transition-colors flex items-center gap-1.5">
                               <FileText className="w-4 h-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
                               {form.name}

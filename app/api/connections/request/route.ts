@@ -60,6 +60,8 @@ interface GuestConnectionParams {
    *  cannibalization analysis. Optional because legacy callers don't send
    *  it; null is a valid value in metadata. */
   sessionId?: string | null;
+  /** Thirty-minute visit id for honest landing-session conversion rates. */
+  visitId?: string | null;
   /** CTA variant for A/B testing attribution. Passed from the frontend
    *  CTAVariantRouter so conversions can be attributed to a variant arm. */
   ctaVariant?: string | null;
@@ -81,6 +83,7 @@ async function handleGuestConnection({
   providerSlug,
   intentData,
   sessionId,
+  visitId,
   ctaVariant,
   entryPoint,
   admin,
@@ -649,6 +652,7 @@ async function handleGuestConnection({
   if (ctaVariant) connectionMetadata.cta_variant = ctaVariant;
   if (entryPoint) connectionMetadata.entry_point = entryPoint;
   if (sessionId) connectionMetadata.session_id = sessionId;
+  if (visitId) connectionMetadata.visit_id = visitId;
 
   // Thread starts empty - provider must send the first real message
   connectionMetadata.thread = [];
@@ -713,6 +717,8 @@ async function handleGuestConnection({
       // session_id makes leads joinable back to arm impressions in
       // seeker_activity / provider_activity for cannibalization analysis.
       session_id: sessionId || null,
+      visit_id: visitId || sessionId || null,
+      subject_id: fromProfileId,
       // cta_variant for CTA A/B testing attribution
       // Default to "legacy" only for CTA-based conversions (no entry_point)
       // Lead Capture conversions have entry_point and shouldn't be attributed to a CTA variant
@@ -1264,6 +1270,7 @@ export async function POST(request: Request) {
       formData,
       website, // Honeypot field
       session_id: sessionId,
+      visit_id: visitId,
       cta_variant: ctaVariant,
       entry_point: entryPoint,
     } = body as {
@@ -1282,6 +1289,7 @@ export async function POST(request: Request) {
       formData?: { fullName?: string; phone?: string; message?: string };
       website?: string; // Honeypot
       session_id?: string;
+      visit_id?: string;
       cta_variant?: string;
       entry_point?: string; // Lead capture entry point (custom_quote, book_consultation, message_host)
     };
@@ -1316,6 +1324,7 @@ export async function POST(request: Request) {
         providerSlug,
         intentData,
         sessionId,
+        visitId,
         ctaVariant,
         entryPoint,
         managedUtm,
@@ -1719,6 +1728,7 @@ export async function POST(request: Request) {
     if (ctaVariant) connectionMetadata.cta_variant = ctaVariant;
     if (entryPoint) connectionMetadata.entry_point = entryPoint;
     if (sessionId) connectionMetadata.session_id = sessionId;
+    if (visitId) connectionMetadata.visit_id = visitId;
 
     // Thread starts empty - provider must send the first real message
     connectionMetadata.thread = [];
@@ -1785,6 +1795,8 @@ export async function POST(request: Request) {
         // session_id makes leads joinable back to arm impressions in
         // seeker_activity / provider_activity for cannibalization analysis.
         session_id: sessionId || null,
+        visit_id: visitId || sessionId || null,
+        subject_id: fromProfileId,
         // cta_variant for CTA A/B testing attribution
         // Default to "legacy" only for CTA-based conversions (no entry_point)
         // Lead Capture conversions have entry_point and shouldn't be attributed to a CTA variant

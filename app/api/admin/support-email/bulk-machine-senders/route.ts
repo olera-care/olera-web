@@ -44,23 +44,27 @@ const MACHINE_SENDERS: Array<{ address: string; what: string }> = [
 ];
 
 /**
- * Deliberately NOT on the list. Each looks mechanical and is not:
+ * These senders are mostly noise but carry occasional real signal, so they are
+ * swept per-thread rather than wholesale: everything goes except threads whose
+ * analysis describes an actual unauthorised action.
  *
- *  no-reply@accounts.google.com  one alert reports a passkey added without authorisation
- *  no-reply@zoom.us              carries all 519 voicemails, plus the Sri Lanka sign-in
- *  support@ahrefs.com            13 unrequested "change your email" requests -- takeover pattern
- *  noreply@business.facebook.com the classifier calls these phishing, which is worth seeing
- *  noreply@appsheet.com          carries the fake "law firm" IP-claim campaign
- *
- * Adding any of these needs a human to look at the mail first, not a code review.
+ * That distinction is not academic. support@olera.care has a two-year run of
+ * account-compromise alerts in here -- 2FA phone numbers added and removed, a
+ * passkey registered without authorisation, and Zoom sign-ins from four
+ * different countries. Sweeping these senders by address would have buried it.
  */
-const DELIBERATELY_EXCLUDED = [
-  "no-reply@accounts.google.com",
-  "no-reply@zoom.us",
-  "support@ahrefs.com",
-  "noreply@business.facebook.com",
-  "noreply@appsheet.com",
+const RISK_REVIEWED_SENDERS: Array<{ address: string; what: string }> = [
+  { address: "no-reply@accounts.google.com", what: "Google account alerts" },
+  { address: "no-reply@zoom.us", what: "Zoom sign-in codes (voicemail excluded separately)" },
+  { address: "support@ahrefs.com", what: "Ahrefs sign-in confirmations" },
+  { address: "noreply@business.facebook.com", what: "Meta Business Manager requests" },
+  { address: "noreply@appsheet.com", what: "AppSheet-delivered campaigns" },
 ];
+
+// A thread from a risk-reviewed sender is kept for a human whenever its
+// analysis names a real unauthorised action rather than routine account chatter.
+const REAL_SECURITY_SIGNAL =
+  /unauthori[sz]ed|without authorisation|without authorization|passkey|compromise[ds]?|takeover|executable|malicious|unexpected location|sri lanka|philippines|ho chi minh|western cape|2-step|2fa/i;
 
 // Belt and braces on top of the sender allowlist. A machine sender should never
 // produce these, so if one does, something has changed and a human should look.
@@ -82,7 +86,8 @@ export async function GET(request: NextRequest) {
   if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
   const confirm = request.nextUrl.searchParams.get("confirm");
-  const allowed = new Set(MACHINE_SENDERS.map((s) => s.address));
+  const riskReviewed = new Set(RISK_REVIEWED_SENDERS.map((s) => s.address));
+  const allowed = new Set([...MACHINE_SENDERS.map((s) => s.address), ...riskReviewed]);
 
   try {
     const db = getServiceClient();
@@ -108,17 +113,19 @@ export async function GET(request: NextRequest) {
     const threads = (await chunked(candidateIds, SUPABASE_IN_CHUNK, async (chunk) => {
       const { data, error } = await db
         .from("support_email_threads")
-        .select("id, subject, category, state, unread, gmail_label_ids, matched_profile_id, matched_provider_id")
+        .select("id, subject, category, state, unread, agent_summary, gmail_label_ids, matched_profile_id, matched_provider_id")
         .in("id", chunk)
         .in("state", ["needs_reply", "escalated"]);
       if (error) throw error;
       return data ?? [];
     })) as Array<{
       id: string; subject: string; category: string; state: string; unread: boolean;
-      gmail_label_ids: string[] | null; matched_profile_id: string | null; matched_provider_id: string | null;
+      agent_summary: string | null; gmail_label_ids: string[] | null;
+      matched_profile_id: string | null; matched_provider_id: string | null;
     }>;
 
     const skipped: Array<{ subject: string; why: string }> = [];
+    const heldForSecurityReview: Array<{ subject: string; summary: string; from: string }> = [];
     const eligible = threads.filter((t) => {
       if (NEVER_TOUCH_CATEGORIES.includes(t.category)) {
         skipped.push({ subject: t.subject, why: `category ${t.category}` }); return false;
@@ -128,6 +135,15 @@ export async function GET(request: NextRequest) {
       }
       if (t.matched_profile_id || t.matched_provider_id) {
         skipped.push({ subject: t.subject, why: "matches an Olera identity" }); return false;
+      }
+      const from = senderByThread.get(t.id) ?? "";
+      if (riskReviewed.has(from) && REAL_SECURITY_SIGNAL.test(String(t.agent_summary ?? ""))) {
+        heldForSecurityReview.push({
+          subject: t.subject,
+          summary: String(t.agent_summary ?? "").slice(0, 200),
+          from,
+        });
+        return false;
       }
       return true;
     }).slice(0, MAX_THREADS_PER_RUN);
@@ -147,7 +163,9 @@ export async function GET(request: NextRequest) {
         matching: total,
         bySender,
         senders: MACHINE_SENDERS,
-        deliberatelyExcluded: DELIBERATELY_EXCLUDED,
+        riskReviewedSenders: RISK_REVIEWED_SENDERS,
+        heldForSecurityReview,
+        heldCount: heldForSecurityReview.length,
         skipped: skipped.slice(0, 20),
         skippedCount: skipped.length,
         confirmUrl: `/api/admin/support-email/bulk-machine-senders?confirm=${total}`,
@@ -233,6 +251,7 @@ export async function GET(request: NextRequest) {
       gmailMessagesModified: gmailMessageIds.length,
       bySender,
       skippedForSafety: skipped.length,
+      heldForSecurityReview: heldForSecurityReview.length,
       note: "Archived. Nothing was deleted; all of it stays in All Mail, and marking one unread in Gmail returns it to Needs attention.",
     });
   } catch (err) {

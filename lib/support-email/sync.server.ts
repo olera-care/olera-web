@@ -222,7 +222,13 @@ async function refreshThread(db: SupabaseClient, mailbox: SupportMailboxRow, thr
     !(current.gmail_label_ids ?? []).includes("UNREAD");
   if (latestChanged || labelsChanged) {
     if (latest.labelIds.includes("SPAM") || latest.labelIds.includes("TRASH")) state = "noise";
-    else if (latest.direction === "out" || !inActiveInbox) state = "handled";
+    // Replying always means handled: we engaged with it.
+    else if (latest.direction === "out") state = "handled";
+    // Leaving the inbox also settles a thread, but must not overwrite `noise`.
+    // Noise is a classification ("this was junk"), not a workflow step, and
+    // archiving is precisely what happens to noise -- so the old behaviour
+    // guaranteed the Noise view drained into Handled and the label was lost.
+    else if (!inActiveInbox) state = current.state === "noise" ? "noise" : "handled";
     // Otherwise only a genuinely new message, or a deliberate mark-as-unread,
     // reopens a settled conversation.
     else if (latestChanged || gainedUnread || !settled) state = "needs_reply";

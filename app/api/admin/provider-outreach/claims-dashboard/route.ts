@@ -183,6 +183,33 @@ export async function GET() {
       }
     }
 
+    // Get set of all provider IDs that received nudges
+    const nudgeRecipientIds = new Set(latestNudgeMap.keys());
+
+    // Query 4: Find providers who received nudges but NEVER went through sequence
+    // These are "nudge-only" providers (e.g., from Ready tab Send Claim Link)
+    const nudgeOnlyProviderIds = new Set<string>();
+    if (nudgeRecipientIds.size > 0) {
+      // Get tracking rows for nudge recipients where sequence_started_at IS NULL
+      const { data: nudgeOnlyRows } = await db
+        .from("provider_outreach_tracking")
+        .select("provider_id")
+        .in("provider_id", Array.from(nudgeRecipientIds))
+        .is("sequence_started_at", null);
+
+      for (const row of nudgeOnlyRows || []) {
+        nudgeOnlyProviderIds.add(row.provider_id);
+      }
+    }
+
+    // Count claims from nudge-only providers (never sequenced but received nudge)
+    let nudgeOnlyClaimsCount = 0;
+    for (const providerId of nudgeOnlyProviderIds) {
+      if (claimedProviderIds.has(providerId)) {
+        nudgeOnlyClaimsCount++;
+      }
+    }
+
     // Process tracking data: calculate metrics AND collect campaign IDs
     // Track claims with timing data and whether they should be attributed to nudge
     const claimsWithTiming: Array<{ daysSinceSequence: number; viaNudge: boolean }> = [];
@@ -253,8 +280,14 @@ export async function GET() {
       { label: "Day 7+", day_min: 7, day_max: null },
     ];
 
-    const claimsWithTimingCount = claimsWithTiming.length;
-    const nudgeClaimsCount = claimsWithTiming.filter((c) => c.viaNudge).length;
+    // Claims from sequenced providers attributed to nudge (post-Day 7 nudge)
+    const sequencedNudgeClaimsCount = claimsWithTiming.filter((c) => c.viaNudge).length;
+
+    // Total nudge claims = sequenced nudge claims + nudge-only claims (never sequenced)
+    const totalNudgeClaimsCount = sequencedNudgeClaimsCount + nudgeOnlyClaimsCount;
+
+    // Total claims for percentage = sequenced claims with timing + nudge-only claims
+    const totalClaimsForPercentage = claimsWithTiming.length + nudgeOnlyClaimsCount;
 
     const sequenceDayBreakdown = dayBuckets.map((bucket) => {
       // Exclude nudge-attributed claims from day buckets
@@ -271,18 +304,20 @@ export async function GET() {
         day_min: bucket.day_min,
         day_max: bucket.day_max,
         count,
-        // Percentage is of claims WITH timing data, not total claims
-        percentage: claimsWithTimingCount > 0 ? Math.round((count / claimsWithTimingCount) * 100) : 0,
+        // Percentage is of all claims (sequenced + nudge-only)
+        percentage: totalClaimsForPercentage > 0 ? Math.round((count / totalClaimsForPercentage) * 100) : 0,
       };
     });
 
-    // Add Nudge bucket at the end
+    // Add Nudge bucket at the end - includes BOTH:
+    // 1. Sequenced providers who claimed after post-sequence nudge
+    // 2. Non-sequenced providers who received nudge (e.g., Ready tab) and claimed
     sequenceDayBreakdown.push({
       label: "Nudge",
       day_min: -1, // Special marker for nudge bucket
       day_max: null,
-      count: nudgeClaimsCount,
-      percentage: claimsWithTimingCount > 0 ? Math.round((nudgeClaimsCount / claimsWithTimingCount) * 100) : 0,
+      count: totalNudgeClaimsCount,
+      percentage: totalClaimsForPercentage > 0 ? Math.round((totalNudgeClaimsCount / totalClaimsForPercentage) * 100) : 0,
     });
 
     // Fetch engagement stats from SmartLead (cached + parallel)

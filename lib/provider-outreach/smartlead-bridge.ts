@@ -157,7 +157,7 @@ export function providerToLead(row: ProviderBridgeRow): SmartleadLead {
       manage_url: row.manage_url,
       remove_url: row.remove_url,
       unsubscribe_url: row.unsubscribe_url,
-      city: row.city ?? "",
+      city: row.city || row.state || "your area",
       state: row.state ?? "",
       category: row.category ?? "care providers",
       gap_list: row.gap_list ?? "",

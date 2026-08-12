@@ -142,7 +142,7 @@ export function substituteVars(
 export function buildVars(ctx: TemplateContext): Record<string, string> {
   return {
     provider_name: ctx.provider_name,
-    city: ctx.city,
+    city: ctx.city || ctx.state || "your area",
     state: ctx.state,
     category: ctx.category || "care providers",
     rank: ctx.rank?.toString() || "",
@@ -164,33 +164,26 @@ export function buildVars(ctx: TemplateContext): Record<string, string> {
 /**
  * Day 0: Introduction email
  *
- * First touch from Dr. Logan DuBose. Introduces Olera, explains the
- * free profile we've created, and invites them to manage their page.
+ * First touch. Direct value prop: families can see you but can't reach you.
+ * Shorter, more urgent, location-specific.
  *
- * Style: Professional, warm, clear value proposition.
+ * Style: Direct, concise, action-oriented.
  * Each array element is a paragraph. Empty strings create paragraph breaks.
  * Single newlines within elements become <br> tags.
  */
 function introEmail(): EmailDraft {
   return {
-    subject: `We've created a free profile for ${PLACEHOLDER.providerName}`,
+    subject: `Families in ${PLACEHOLDER.city} can see ${PLACEHOLDER.providerName} on Olera`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `I'm Dr. Logan DuBose, a physician and co-founder of Olera.`,
+      `Families in ${PLACEHOLDER.city} searching for ${PLACEHOLDER.category} can already see the page we built for ${PLACEHOLDER.providerName} from public information. But if one of them reached out today, no one at ${PLACEHOLDER.providerName} would see the message.`,
       ``,
-      `As a physician, I've seen how difficult it can be for families to navigate senior care. That's why we created Olera. With support from the NIH, we're building a free referral platform that helps families discover trusted senior care providers.`,
+      `Olera is free for providers: no contracts, no referral or per-lead fees. Taking over your page takes about two minutes.`,
       ``,
-      `As part of that, we've already created a **free profile** for ${PLACEHOLDER.providerName} using publicly available information. It's ready for your team to review and manage, making it easier for families to find your services.`,
+      `[Activate your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `Claiming your profile takes less than **two minutes** and allows you to:`,
-      `✓ Have families contact you directly`,
-      `✓ Never pay referral or per-lead fees`,
-      `✓ Improve your online visibility`,
-      ``,
-      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Questions? Just reply to this email or call +1 (979) 243-9801. A real person answers both.`,
     ].join("\n"),
   };
 }
@@ -198,58 +191,48 @@ function introEmail(): EmailDraft {
 /**
  * Day 3: Follow-up email
  *
- * Encourages providers to complete their profile so families feel
- * more confident choosing them. Personal tone from Logan.
+ * Control angle: who updates/owns the page? Information gets stale
+ * and no one at the facility can fix it.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Direct, concise, action-oriented.
  */
 function followupEmail(): EmailDraft {
   return {
-    subject: `Help families feel more confident choosing ${PLACEHOLDER.providerName}`,
+    subject: `Who updates ${PLACEHOLDER.providerName}'s page?`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `One thing I've learned throughout my career is that finding senior care isn't easy. Families are often left making an important decision with limited information and guidance.`,
+      `${PLACEHOLDER.providerName}'s page on Olera shows what we could find publicly. But things change. Pricing, availability, staff, photos. Right now, no one at ${PLACEHOLDER.providerName} can update any of it.`,
       ``,
-      `That's why your Olera profile matters.`,
+      `Taking over your page puts it in your hands. Two minutes, free: no contracts, no referral or per-lead fees.`,
       ``,
-      `[Manage your profile →](${PLACEHOLDER.claimUrl})`,
+      `[Activate your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `It's ready for your review. Every photo, update, and detail you add helps families better understand your community and feel more confident in choosing the right care.`,
-      ``,
-      `It only takes a minute to activate your profile.`,
-      ``,
-      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Questions? Just reply to this email or call +1 (979) 243-9801. A real person answers both.`,
     ].join("\n"),
   };
 }
 
 /**
- * Day 5: Free model email
+ * Day 5: Demand loss email
  *
- * Explains why Olera is free and the value proposition for providers.
- * Emphasizes no fees and direct family connections.
+ * FOMO angle: other providers are getting questions/leads.
+ * Shortest template - pure urgency.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Direct, urgent, minimal.
  */
 function demandLossEmail(_hasDemandData: boolean): EmailDraft {
   // Note: hasDemandData parameter kept for backward compatibility but no longer used
   return {
-    subject: `Why we've made Olera free`,
+    subject: `Families' questions are going to other providers`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Throughout my time in senior care, I've seen how difficult finding the right care can be. Families deserve an easier way to connect with providers.`,
+      `Families on Olera sent providers questions and leads this week. If any came to ${PLACEHOLDER.providerName}, no one could answer them. No one has taken over your page yet.`,
       ``,
-      `That's why we built Olera.`,
+      `Two minutes and it's yours, free: [Activate your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Claiming and managing your Olera profile is **completely free**. That means **no referral fees**, **no pay-per-lead costs**, and **no subscription fees**.`,
-      ``,
-      `[Review your page →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `We chose this model because we believe families should be in control of their care. Once your page is claimed, families can contact your team directly, have conversations sooner, and begin their next chapter with confidence.`,
-      ``,
-      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Questions? Just reply to this email or call +1 (979) 243-9801. A real person answers both.`,
     ].join("\n"),
   };
 }
@@ -257,28 +240,22 @@ function demandLossEmail(_hasDemandData: boolean): EmailDraft {
 /**
  * Day 7: Final email
  *
- * Focuses on the Verified badge as a trust signal for families.
- * Personal tone with medical school trust story from Logan.
+ * Incentive angle: free ad offer. Different closing - asks if
+ * wrong contact to encourage forwarding.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Direct, value-add offer.
  */
 function finalEmail(): EmailDraft {
   return {
-    subject: `Show families ${PLACEHOLDER.providerName} is verified`,
+    subject: `We'll run ${PLACEHOLDER.providerName}'s first ad on us`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `One of the first things we learn in medical school is that trust is the foundation of every patient relationship.`,
+      `One last thing you should know. We'll set up and run ${PLACEHOLDER.providerName}'s first ad, on us, so more families in ${PLACEHOLDER.city} find you. It starts with taking over your page. Two minutes, free, no contracts or per-lead fees.`,
       ``,
-      `The same is true in senior care. Before families ever pick up the phone or schedule a tour, they want peace of mind that they're connecting with the right provider.`,
+      `[Activate your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `That's why we recommend verifying your Olera profile to display a **verified badge**, letting families know your information has been reviewed and confirmed by your team.`,
-      ``,
-      `[Get your verified badge →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `It's a small step that helps build trust before the very first conversation.`,
-      ``,
-      `If you have any questions or need help getting verified, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `If I've been writing to the wrong person, just reply with the right name and I'll take it from there.`,
     ].join("\n"),
   };
 }
@@ -287,28 +264,24 @@ function finalEmail(): EmailDraft {
  * Standalone: Nudge email
  *
  * NOT part of the cadence. Used by:
- *   - Follow Up "resend link" action
+ *   - "Send Claim Link" action from Ready tab / Not Interested stage
  *   - Future re-engagement triggers
  *
- * Personal tone emphasizing mission and direct family connections.
+ * Short and direct - just delivers the link.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Minimal, transactional.
  */
 function nudgeEmail(): EmailDraft {
   return {
-    subject: `Your free Olera page for ${PLACEHOLDER.providerName} is ready`,
+    subject: `The link for ${PLACEHOLDER.providerName}'s page`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Finding the right senior care is one of the biggest decisions a family will make. That's why we're building a better experience for both families and providers.`,
+      `Here's the link to take over ${PLACEHOLDER.providerName}'s page on Olera:`,
       ``,
-      `We've already created a free Olera profile to help more families discover ${PLACEHOLDER.providerName}, ask questions, and connect directly with your team.`,
+      `[Activate your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `[Review your page →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `There are **no referral fees** and no brokers in between, so every conversation stays directly between your team and the families you serve.`,
-      ``,
-      `If you have any questions or need help getting started, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Two minutes, free: no contracts, no referral or per-lead fees. If anything gets in the way, just reply or call +1 (979) 243-9801.`,
     ].join("\n"),
   };
 }

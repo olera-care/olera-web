@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
+import { buildSeries, buildUniqueSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
 
 /**
  * GET /api/admin/questions/stats
@@ -220,12 +220,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Series: ALL questions per bucket in the current range
-    const seriesTimestamps = allRows.map((r) => new Date(r.created_at)).filter(inRange);
+    const rowsInRange = allRows.filter((r) => inRange(new Date(r.created_at)));
+    const seriesTimestamps = rowsInRange.map((r) => new Date(r.created_at));
     const bucket: Bucket = from
       ? resolveBucket(from, to)
       : resolveBucket(seriesTimestamps[0] ?? now, now);
     const seriesStart = from ?? seriesTimestamps[0] ?? now;
-    const series = buildSeries(seriesTimestamps, seriesStart, to, bucket);
+
+    // Build two series for the breakdown chart:
+    // 1. Questions - total questions per bucket
+    // 2. Providers - unique providers receiving questions per bucket
+    const questionsSeries = buildSeries(seriesTimestamps, seriesStart, to, bucket);
+    const providersSeries = buildUniqueSeries(
+      rowsInRange,
+      seriesStart,
+      to,
+      bucket,
+      (r) => new Date(r.created_at),
+      (r) => r.provider_id,
+    );
+
+    const breakdown = [
+      { name: "Questions", color: "#047857", series: questionsSeries },
+      { name: "Providers", color: "#2563eb", series: providersSeries },
+    ];
 
     // Summary stats: new_today and answered_today
     // Use UTC midnight to avoid timezone drift between server and database
@@ -252,7 +270,7 @@ export async function GET(request: NextRequest) {
       answered_today: answeredTodayCount ?? 0,
     };
 
-    return NextResponse.json({ total: kpiCurrent, delta, series, bucket, summary });
+    return NextResponse.json({ total: kpiCurrent, delta, breakdown, bucket, summary });
   } catch (err) {
     console.error("Admin questions stats fatal:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

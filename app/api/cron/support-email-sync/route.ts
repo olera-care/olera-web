@@ -8,7 +8,7 @@ export const maxDuration = 300;
 /**
  * Resumable Gmail worker. Every run does two things in this order:
  *  1. catches up from Gmail's history cursor (new mail never waits behind backfill)
- *  2. imports the next unbounded full-history page until no page token remains
+ *  2. imports one bounded full-history page until no page token remains
  *
  * Pub/Sub is the low-latency nudge, but this scheduled poll is also the recovery
  * path Google requires for delayed/dropped notifications.
@@ -20,6 +20,15 @@ export async function GET(request: NextRequest) {
   }
   return withCronRun("support-email-sync", async () => {
     const db = getServiceClient();
+    // Serverless timeouts cannot reach withCronRun's finalizer. Close abandoned
+    // rows so Operations does not accumulate phantom "running" executions.
+    const { error: staleRunError } = await db.from("cron_runs").update({
+      status: "error",
+      finished_at: new Date().toISOString(),
+      error: "Worker timed out before completion",
+    }).eq("job_id", "support-email-sync").eq("status", "running")
+      .lt("started_at", new Date(Date.now() - 10 * 60 * 1_000).toISOString());
+    if (staleRunError) console.error("[support-email] could not close stale cron runs:", staleRunError);
     // Snoozing is a promise to put the thread back, not a hidden terminal state.
     const { error: snoozeError } = await db.from("support_email_threads").update({
       state: "needs_reply",
@@ -32,7 +41,7 @@ export async function GET(request: NextRequest) {
       .select("*")
       .not("encrypted_refresh_token", "is", null);
     if (error) throw error;
-    const summary = { mailboxes: 0, historyImported: 0, historyDeleted: 0, backfillImported: 0, backfillsComplete: 0, errors: 0 };
+    const summary = { mailboxes: 0, historyImported: 0, historyDeleted: 0, labelsUpdated: 0, skippedLocked: 0, backfillImported: 0, backfillsComplete: 0, errors: 0 };
     for (const raw of mailboxes ?? []) {
       const mailbox = raw as SupportMailboxRow;
       summary.mailboxes += 1;
@@ -40,11 +49,18 @@ export async function GET(request: NextRequest) {
         const result = await syncSupportMailbox(db, mailbox);
         summary.historyImported += result.history.imported;
         summary.historyDeleted += result.history.deleted;
+        summary.labelsUpdated += result.history.labelsUpdated;
+        if ("skipped" in result && result.skipped === "already_syncing") summary.skippedLocked += 1;
         summary.backfillImported += result.backfill.imported;
         if (result.backfill.complete) summary.backfillsComplete += 1;
-        const { error: eventError } = await db.from("support_email_events").update({ processed_at: new Date().toISOString(), error: null })
-          .eq("mailbox_email", mailbox.email).is("processed_at", null);
-        if (eventError) throw eventError;
+        // Pub/Sub events are merely nudges. Keep them pending while a bounded
+        // history chunk says more pages remain; acknowledging them early would
+        // make a partial catch-up look complete after a later worker failure.
+        if (!("skipped" in result) && !result.history.hasMore) {
+          const { error: eventError } = await db.from("support_email_events").update({ processed_at: new Date().toISOString(), error: null })
+            .eq("mailbox_email", mailbox.email).is("processed_at", null);
+          if (eventError) throw eventError;
+        }
       } catch (err) {
         summary.errors += 1;
         const message = err instanceof Error ? err.message : String(err);

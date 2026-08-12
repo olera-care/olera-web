@@ -2211,11 +2211,11 @@ function CityRow({
                             </>
                           )}
                           {/* Questions and leads context pills */}
-                          <span>·</span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                          {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                             {provider.questions_count ?? 0} Q
                           </span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                             {provider.leads_count ?? 0} Leads
                           </span>
                         </div>
@@ -3061,11 +3061,11 @@ function FollowUpProviderRow({
                 </a>
               )}
               {/* Questions and leads context pills */}
-              <span>·</span>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+              {(provider.provider_category || provider.city || provider.phone) && <span>·</span>}
+              <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                 {provider.questions_count ?? 0} Q
               </span>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+              <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                 {provider.leads_count ?? 0} Leads
               </span>
             </div>
@@ -4381,11 +4381,11 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, adminNa
                   </span>
                 )}
                 {/* Questions and leads context pills */}
-                <span>·</span>
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                   {provider.questions_count ?? 0} Q
                 </span>
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                   {provider.leads_count ?? 0} Leads
                 </span>
               </div>
@@ -6807,11 +6807,11 @@ export default function ProviderOutreachPage() {
                           {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
                           {provider.email && <span>{provider.email}</span>}
                           {/* Questions and leads context pills */}
-                          <span>·</span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                          {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                             {provider.questions_count ?? 0} Q
                           </span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                             {provider.leads_count ?? 0} Leads
                           </span>
                         </div>

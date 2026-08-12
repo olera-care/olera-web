@@ -445,6 +445,14 @@ export default function AdminSidebar({
         ].join(" ")}
       >
         <nav className="flex-1 min-w-52 px-3 pt-3 pb-3">
+          {/* The drawer control sits above navigation-level actions so hiding
+              the whole rail never competes with Overview or section controls. */}
+          {onRequestClose && (
+            <div className="mb-1 flex justify-end">
+              <SidebarDrawerToggle direction="close" onClick={onRequestClose} />
+            </div>
+          )}
+
           {/* Overview — standalone top link, with collapse/expand-all beside it */}
           <div className="flex items-center justify-between mb-3">
             <Link
@@ -465,9 +473,6 @@ export default function AdminSidebar({
             >
               {allCollapsed ? "Expand all" : "Collapse all"}
             </button>
-            {onRequestClose && (
-              <SidebarDrawerToggle direction="close" onClick={onRequestClose} />
-            )}
           </div>
 
           {/* Pinned — this admin's personal shortcut layer. Hidden until

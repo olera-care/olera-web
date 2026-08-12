@@ -15,7 +15,7 @@ Optional `$ARGUMENTS`:
 
 ## The one constraint that shapes everything
 
-**Claude cannot execute the mutating endpoints.** `bulk-handle`, `bulk-archive`, and every write in `/admin/support-email` require an admin browser session, and the Vercel WAF 429s server-side calls. Only TJ can click them.
+**Claude cannot execute the mutating endpoints.** `bulk-noise`, `bulk-handle`, `bulk-archive`, and every write in `/admin/support-email` require an admin browser session, and the Vercel WAF 429s server-side calls. Only TJ can click them.
 
 So this command is: **Claude analyses and decides, TJ executes, Claude verifies.** Never claim a sweep ran because you generated the URL. Read the database afterward and confirm.
 
@@ -58,7 +58,9 @@ Chunk every `.in()` query at **200 IDs**. PostgREST silently returns `null` past
 
 Pull these out **first**, every run. They are the business, and no sweep may ever touch them.
 
-**Never auto-process:** `care_seeker`, `legal`, `security`, `billing`, `voicemail`, and any `provider` thread containing removal or authorization language.
+**Never auto-process:** `care_seeker`, `provider`, `legal`, `billing`, `voicemail`.
+
+`security` is **not** on that list, despite sounding like it should be. It is 231 threads split 125 `urgent` / 106 `high` with nothing lower, because the classifier writes "possible account compromise" on every routine new-device sign-in. A shared mailbox used by a distributed team generates exactly that pattern. Treat the adjectives as noise, not evidence -- what protects that bucket is the identity, voicemail and opt-out guards, not the category.
 
 Then actively hunt for these, because the classifier does not model them:
 
@@ -76,10 +78,15 @@ Everything else in this phase gets **surfaced to TJ, not actioned**. Naming a st
 
 Only after Phase 2. Produce the exact click-list, in order, with the numbers you measured:
 
-1. **Sweep cold solicitation** — `/api/admin/support-email/bulk-handle?category=marketing` then `?category=automated`. Dry run first; the response carries a `confirmUrl` whose `confirm=` is the exact cohort size. Tell TJ to use the number the dry run returns, never a remembered one -- a mismatch 409s, which is the safety net working, not a failure.
-2. **Archive what is already decided** — `/api/admin/support-email/bulk-archive`. Files `handled` and `noise` threads out of the Gmail inbox. Sweeping alone never shrinks the inbox; only archiving does.
+1. **Archive the noise categories** — `/api/admin/support-email/bulk-noise`. Sweeps `marketing`, `automated`, `security`, `partner`, `internal` and archives in one pass. This is the workhorse; start here.
+2. **Archive what is already decided** — `/api/admin/support-email/bulk-archive`. Files any remaining `handled` or `noise` threads out of the Gmail inbox.
+3. `bulk-handle?category=marketing|automated` still exists and gates on confidence ≥ 0.95. It is now the conservative option, useful when you want to sweep without archiving.
+
+Dry run first, always. The response carries a `confirmUrl` whose `confirm=` is the exact cohort size. Tell TJ to use the number the dry run returns, never a remembered one -- a mismatch 409s, which is the safety net working, not a failure.
 
 Prefix every URL with `https://olera.care`. Browser only.
+
+**Confidence is the wrong gate for whole categories.** The early sweeps required ≥ 0.95 and a single-message thread. That is right when the question is "is this cold solicitation?", because a wrong answer buries a real person. It is wrong for categories nobody reads either way: a cold pitch does not become worth reading because the model was 0.92 sure, or because the sender followed up twice. Gate on *identity, voicemail and opt-out*; those are the guards that carry weight.
 
 Before proposing a sweep, **read the dry-run sample**. If any entry looks like a real person rather than a vendor, stop and say so.
 
@@ -87,7 +94,7 @@ Before proposing a sweep, **read the dry-run sample**. If any entry looks like a
 
 ## Phase 4 — The long tail
 
-Sweeping is close to exhausted: the filters require confidence ≥ 0.95, a single-message thread, and no Olera identity match. Most of what remains fails one of those.
+After the noise sweep, what remains is `voicemail`, `provider`, `care_seeker`, `legal` and `billing` -- all real work by definition, none of it sweepable.
 
 For the aged tail the honest lever is **age, not category**. A voicemail from four months ago will not be returned; a provider email from last autumn is cold. Archiving is not a claim that something was handled -- it is admitting it aged out, and nothing is lost because everything stays in All Mail.
 
@@ -140,7 +147,8 @@ Propose the edit. Do not silently change the filters.
 ## Guardrails
 
 - **Never claim an endpoint ran.** Claude cannot call them. Verify in the database.
-- **Never bulk-process `care_seeker` or `legal`.** Not at any confidence, not at any age.
+- **Never bulk-process `care_seeker`, `provider`, `legal`, `billing` or `voicemail`.** Not at any confidence, not at any age.
+- **Do not read the classifier's adjectives as evidence.** It calls routine sign-in alerts "possible account compromise". Check what actually happened before escalating anything.
 - **Never auto-reply.** Drafts are advisory; a human sends.
 - **One Supabase instance behind staging and production.** Anything you touch is live. There is no sandbox.
 - **Crons run against production only.** Staging has no cron; use Sync now.

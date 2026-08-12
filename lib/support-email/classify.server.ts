@@ -107,8 +107,37 @@ Rules:
 - Drafts should sound human, direct, and kind. Do not mention AI. Do not send anything.
 - Urgent means immediate safety/security/legal or an actively blocked family. High means same business day. Normal means ordinary support. Low means noise/no action.`;
 
+// The model reliably emits the requested object, but on security- and
+// abuse-flavoured mail it often appends a prose addendum after it
+// ("Recommended actions: - Verify SPF/DKIM..."). Parsing the whole response
+// then fails on trailing text, which is not a classification failure at all --
+// it silently sent a quarter of the mailbox to the human-review fallback.
+// Extract the first balanced object instead, tracking string state so a brace
+// inside a quoted draft cannot end it early.
+function firstJsonObject(raw: string): string | null {
+  const start = raw.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < raw.length; i += 1) {
+    const ch = raw[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") depth += 1;
+    else if (ch === "}") {
+      depth -= 1;
+      if (depth === 0) return raw.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
 function parse(raw: string): SupportRecommendation | null {
-  const cleaned = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  const cleaned = firstJsonObject(raw);
+  if (!cleaned) return null;
   try {
     const p = JSON.parse(cleaned) as Record<string, unknown>;
     if (!CATEGORIES.has(String(p.category)) || !PRIORITIES.has(String(p.priority)) || !ACTIONS.has(String(p.suggestedAction))) return null;

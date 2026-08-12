@@ -8,7 +8,6 @@ import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/Trust
 import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
-import { VariantTestingPanel } from "@/components/admin/provider-outreach/VariantTestingPanel";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,8 +29,7 @@ type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
 // "hidden" is a special tab for viewing admin-hidden providers
-// "email_testing" is for variant A/B testing
-type UITab = "needs_email" | "ready" | "hidden" | "email_testing" | Exclude<OutreachStage, "not_contacted">;
+type UITab = "needs_email" | "ready" | "hidden" | Exclude<OutreachStage, "not_contacted">;
 
 const UI_TABS: UITab[] = [
   "needs_email",
@@ -43,7 +41,6 @@ const UI_TABS: UITab[] = [
   "claimed",
   "archived",  // Hard terminal
   "hidden",  // Admin-hidden providers (for recovery)
-  "email_testing",  // Variant A/B testing
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -56,7 +53,6 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   claimed: "Claimed",
   archived: "Archived",
   hidden: "Hidden",
-  email_testing: "Email Testing",
 };
 
 // Database stage labels (for search results showing provider's actual stage)
@@ -851,6 +847,9 @@ interface OutreachProvider {
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at?: string | null;
   generic_email_skipped_at?: string | null;
+  // Questions and leads context
+  questions_count?: number;
+  leads_count?: number;
 }
 
 interface ActiveState {
@@ -874,8 +873,7 @@ interface ActiveState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Map UI tab to API parameters (stage + optional email_filter)
-// Returns null for tabs that don't need provider fetching (like email_testing)
-function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } | null {
+function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
   if (tab === "needs_email") {
     return { stage: "not_contacted", emailFilter: "needs_email" };
   }
@@ -884,9 +882,6 @@ function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emai
   }
   if (tab === "hidden") {
     return { stage: "hidden" };
-  }
-  if (tab === "email_testing") {
-    return null; // Email testing tab has its own panel, no provider fetch needed
   }
   return { stage: tab as OutreachStage };
 }
@@ -2210,6 +2205,14 @@ function CityRow({
                               )}
                             </>
                           )}
+                          {/* Questions and leads context pills */}
+                          {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.questions_count ?? 0} Q
+                          </span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.leads_count ?? 0} Leads
+                          </span>
                         </div>
 
                         {/* Row 3: Assignment + Claimed-specific badges */}
@@ -3052,6 +3055,14 @@ function FollowUpProviderRow({
                   {formatPhone(provider.phone)}
                 </a>
               )}
+              {/* Questions and leads context pills */}
+              {(provider.provider_category || provider.city || provider.phone) && <span>·</span>}
+              <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                {provider.questions_count ?? 0} Q
+              </span>
+              <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                {provider.leads_count ?? 0} Leads
+              </span>
             </div>
 
             {/* Row 3: Admin assignment (subtle) */}
@@ -4023,22 +4034,16 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
         </summary>
         <div className="px-4 py-3 border-t border-gray-100 text-sm text-gray-600 space-y-3">
           <p>
-            &quot;Hi, is this <span className="font-medium text-gray-800">[Provider Name]</span>?&quot;
+            &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Olera, calling on behalf of Dr. Logan DuBose&apos;s office.&quot;
           </p>
           <p>
-            &quot;This is <span className="font-medium text-gray-800">[Your Name]</span> calling from Dr. DuBose&apos;s office at Olera. I hope you&apos;re doing well.&quot;
+            &quot;I&apos;m following up on the emails we sent about your listing on Olera. We run a free family referral service for <span className="font-medium text-gray-800">[care type]</span> in <span className="font-medium text-gray-800">[city]</span>.&quot;
           </p>
           <p>
-            &quot;I just wanted to check in because I noticed you&apos;ve had a chance to look through some of the emails we&apos;ve sent about our free referral platform.&quot;
+            &quot;I wanted to check if you had any questions or if there&apos;s anything stopping you from activating your page. It takes about 30 seconds.&quot;
           </p>
           <p>
-            &quot;I was wondering if you had any questions or if there were any roadblocks stopping you from claiming your profile.&quot;
-          </p>
-          <p>
-            &quot;It only takes about 30 seconds to claim, and I&apos;m happy to walk you through it or answer any questions you have.&quot;
-          </p>
-          <p>
-            &quot;If now isn&apos;t a good time, I&apos;m also happy to resend the claim link or any information you need. What&apos;s the best way I can help?&quot;
+            &quot;I can resend the link right now if that helps—is <span className="font-medium text-gray-800">[email on file]</span> still the best address?&quot;
           </p>
         </div>
       </details>
@@ -4364,6 +4369,14 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, adminNa
                     No LinkedIn
                   </span>
                 )}
+                {/* Questions and leads context pills */}
+                {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                  {provider.questions_count ?? 0} Q
+                </span>
+                <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                  {provider.leads_count ?? 0} Leads
+                </span>
               </div>
 
               {/* Row 3: Assignment */}
@@ -4681,12 +4694,11 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes needs_email, ready, hidden, and email_testing for UI tabs)
+  // Stage counts (includes needs_email, ready, hidden for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     needs_email: number;
     ready: number;
     hidden: number;
-    email_testing: number;
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
@@ -4699,7 +4711,6 @@ export default function ProviderOutreachPage() {
     needs_email: 0,
     ready: 0,
     hidden: 0,
-    email_testing: 0,
   });
 
   // Follow-ups due today with admin breakdown
@@ -4844,6 +4855,7 @@ export default function ProviderOutreachPage() {
   // Send Claim Link state (for action modal)
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
   const [claimLinkSent, setClaimLinkSent] = useState(false);
+  const [pendingClaimLink, setPendingClaimLink] = useState(false); // Confirmation modal
 
   // Remove from outreach confirmation state
   const [pendingRemoval, setPendingRemoval] = useState<{
@@ -4987,6 +4999,7 @@ export default function ProviderOutreachPage() {
     setUnarchivePreviewConfirmed(false);
     setPendingStageMove(null);
     setClaimLinkSent(false);
+    setPendingClaimLink(false);
     setActionNotInterestedReason("");
   };
 
@@ -5235,7 +5248,7 @@ export default function ProviderOutreachPage() {
   const fetchProviders = useCallback(async (city?: string, searchTerm?: string) => {
     if (!selectedState) return;
 
-    // Some tabs don't need provider fetching (e.g., email_testing has its own panel)
+    // Some tabs may not need provider fetching
     const apiParams = getApiParamsForTab(activeTab);
     if (!apiParams) {
       setLoadingProviders(false);
@@ -5452,8 +5465,9 @@ export default function ProviderOutreachPage() {
       setPreviewLoading(true);
       setPreviewHtml(null); // Clear old preview while loading new one
       try {
-        // Always use smartlead engine (the templates actually sent)
-        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=smartlead`);
+        // Use correct engine: nudge is sent via Resend, sequence emails via SmartLead
+        const engine = previewTemplate === "nudge" ? "resend" : "smartlead";
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=${engine}`);
         if (res.ok) {
           const data = await res.json();
           setPreviewHtml(data.html);
@@ -5565,7 +5579,6 @@ export default function ProviderOutreachPage() {
         needs_email: 0,
         ready: 0,
         hidden: 0,
-        email_testing: 0,
       });
       prevStateRef.current = selectedState;
     }
@@ -6427,7 +6440,7 @@ export default function ProviderOutreachPage() {
                 {/* When Providers Claim breakdown */}
                 <div>
                   <div className="text-sm font-medium text-gray-700 mb-2">When Providers Claim</div>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
                     {claimsDashboard.sequence_day_breakdown.map((bucket) => (
                       <div key={bucket.label} className="bg-white border border-gray-200 rounded-lg p-3 text-center">
                         <div className="text-xs text-gray-500 mb-1">{bucket.label}</div>
@@ -6649,13 +6662,7 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
-      {/* Content - Email Testing tab has its own panel */}
-      {activeTab === "email_testing" ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <VariantTestingPanel />
-        </div>
-      ) : (
-      /* Content - Search results (flat list) or City-grouped view */
+      {/* Content - Search results (flat list) or City-grouped view */}
       <div className="bg-white rounded-xl border border-gray-200">
         {!selectedState ? (
           // No state selected - prompt user to select a state from the header
@@ -6782,6 +6789,14 @@ export default function ProviderOutreachPage() {
                           {provider.city && <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>}
                           {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
                           {provider.email && <span>{provider.email}</span>}
+                          {/* Questions and leads context pills */}
+                          {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.questions_count ?? 0} Q
+                          </span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
+                            {provider.leads_count ?? 0} Leads
+                          </span>
                         </div>
 
                         {/* Row 3: Assignment */}
@@ -6932,26 +6947,17 @@ export default function ProviderOutreachPage() {
             {activeTab === "ready" && (
               <details className="mx-5 mt-2 mb-4">
                 <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
-                  Call Script (for generic emails)
+                  Call Script
                 </summary>
                 <div className="pl-4 pt-2 pb-3 text-sm text-gray-600 space-y-3 border-l-2 border-gray-200 ml-1">
                   <p>
-                    &quot;Hi, is this <span className="font-medium text-gray-800">[provider name]</span>? My name is <span className="font-medium text-gray-800">[Your Name]</span>, and I&apos;m calling from Dr. DuBose&apos;s office at Olera.&quot;
+                    &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Olera, calling on behalf of Dr. Logan DuBose&apos;s office.&quot;
                   </p>
                   <p>
-                    &quot;Do you have 3 minutes to quickly chat? I promise I&apos;ll be quick.&quot;
+                    &quot;I hope I reached the right person. Olera runs a free family referral service for <span className="font-medium text-gray-800">[care type]</span> here in <span className="font-medium text-gray-800">[city]</span>.&quot;
                   </p>
                   <p>
-                    &quot;We run a free referral program that connects families with <span className="font-medium text-gray-800">[care type]</span> with trusted providers in <span className="font-medium text-gray-800">[city]</span>.&quot;
-                  </p>
-                  <p>
-                    &quot;We&apos;ve already created a profile for your community using publicly available information, and we&apos;d love for you to manage it by adding your own details and photos and get families sent directly to you.&quot;
-                  </p>
-                  <p>
-                    &quot;There&apos;s no cost to claim or update your profile.&quot;
-                  </p>
-                  <p>
-                    &quot;I was hoping to send you some information on how it works. What&apos;s the best email address for me to send that to?&quot;
+                    &quot;I&apos;m getting ready to send over your activation link so you can manage your listing and receive direct referrals. I have <span className="font-medium text-gray-800">[email on file]</span> listed for you—is that still the best address?&quot;
                   </p>
                 </div>
               </details>
@@ -7068,7 +7074,6 @@ export default function ProviderOutreachPage() {
           </>
         )}
       </div>
-      )}
 
       {/* Summary */}
       {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (
@@ -7272,30 +7277,12 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Send Claim Link - show for not_interested stage with email */}
-                {/* Note: re_engage providers use the inline button in ReEngageQueue instead */}
-                {actionModalProvider.stage === "not_interested" && actionModalProvider.email && (
+                {/* Send Claim Link - available for all active stages with email */}
+                {/* Sends instant Nudge email via Resend (not SmartLead sequence) */}
+                {/* Only blocked for claimed/archived (API enforces this too) */}
+                {!["claimed", "archived"].includes(actionModalProvider.stage) && actionModalProvider.email && (
                   <button
-                    onClick={async () => {
-                      setSendingClaimLink(true);
-                      try {
-                        const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ provider_id: actionModalProvider.provider_id }),
-                        });
-                        if (res.ok) {
-                          setClaimLinkSent(true);
-                        } else {
-                          const err = await res.json();
-                          alert(err.error || "Failed to send claim link");
-                        }
-                      } catch {
-                        alert("Failed to send claim link");
-                      } finally {
-                        setSendingClaimLink(false);
-                      }
-                    }}
+                    onClick={() => setPendingClaimLink(true)}
                     disabled={sendingClaimLink || claimLinkSent}
                     className={`w-full text-left px-4 py-3 rounded-lg border transition-colors disabled:opacity-50 ${
                       claimLinkSent
@@ -7331,6 +7318,80 @@ export default function ProviderOutreachPage() {
                       </div>
                     </div>
                   </button>
+                )}
+
+                {/* Send Claim Link Confirmation Modal */}
+                {pendingClaimLink && (
+                  <div
+                    className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Send Claim Link</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        This will send an activation email to <span className="font-medium">{actionModalProvider.email}</span> with their claim link.
+                      </p>
+                      <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                        <p className="text-xs text-gray-500 mb-1">Provider</p>
+                        <p className="text-sm font-medium text-gray-900">{actionModalProvider.provider_name}</p>
+                        <p className="text-xs text-gray-500 mt-2 mb-1">Current Stage</p>
+                        <p className="text-sm text-gray-700">
+                          {actionModalProvider.stage === "not_contacted" ? "Not Contacted" :
+                           actionModalProvider.stage === "in_sequence" ? "In Sequence" :
+                           actionModalProvider.stage === "needs_call" ? "Follow Up" :
+                           actionModalProvider.stage === "re_engage" ? "Alternative Channels" :
+                           actionModalProvider.stage === "not_interested" ? "Not Interested" :
+                           actionModalProvider.stage}
+                        </p>
+                        <p className="text-xs text-amber-600 mt-2">
+                          Note: This will not change the provider&apos;s stage.
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setPendingClaimLink(false)}
+                          disabled={sendingClaimLink}
+                          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setSendingClaimLink(true);
+                            try {
+                              const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ provider_id: actionModalProvider.provider_id }),
+                              });
+                              if (res.ok) {
+                                setClaimLinkSent(true);
+                                setPendingClaimLink(false);
+                              } else {
+                                const err = await res.json();
+                                alert(err.error || "Failed to send claim link");
+                              }
+                            } catch {
+                              alert("Failed to send claim link");
+                            } finally {
+                              setSendingClaimLink(false);
+                            }
+                          }}
+                          disabled={sendingClaimLink}
+                          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                        >
+                          {sendingClaimLink ? (
+                            <span className="inline-flex items-center justify-center gap-1.5">
+                              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Sending...
+                            </span>
+                          ) : (
+                            "Send Email"
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {/* Move to Stage Section - hide for claimed, archived, and when viewing hidden tab */}

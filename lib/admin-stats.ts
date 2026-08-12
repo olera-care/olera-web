@@ -82,3 +82,49 @@ export function buildSeries(
 
   return buckets;
 }
+
+/**
+ * Bucket rows into a zero-filled series counting unique values of a key per bucket.
+ * Used for counting unique providers per time bucket.
+ */
+export function buildUniqueSeries<T>(
+  rows: T[],
+  from: Date,
+  to: Date,
+  bucket: Bucket,
+  getTimestamp: (row: T) => Date,
+  getKey: (row: T) => string,
+): { date: string; count: number }[] {
+  const start = floorTo(from, bucket);
+  const end = floorTo(to, bucket);
+
+  // Pre-fill all buckets with empty sets
+  const bucketSets: Map<string, Set<string>> = new Map();
+  const buckets: { date: string; count: number }[] = [];
+  let cursor = start;
+  let safety = 0;
+  while (cursor <= end && safety < 10000) {
+    const iso = cursor.toISOString();
+    buckets.push({ date: iso, count: 0 });
+    bucketSets.set(iso, new Set());
+    cursor = step(cursor, bucket);
+    safety++;
+  }
+
+  if (buckets.length === 0) return [];
+
+  // Add each row's key to its bucket's set
+  for (const row of rows) {
+    const ts = getTimestamp(row);
+    const key = floorTo(ts, bucket).toISOString();
+    const set = bucketSets.get(key);
+    if (set) set.add(getKey(row));
+  }
+
+  // Convert sets to counts
+  for (const b of buckets) {
+    b.count = bucketSets.get(b.date)?.size ?? 0;
+  }
+
+  return buckets;
+}

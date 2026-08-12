@@ -198,10 +198,10 @@ export function getGmailAttachment(accessToken: string, messageId: string, attac
   );
 }
 
-export function listGmailHistory(accessToken: string, startHistoryId: string, pageToken?: string | null) {
+export function listGmailHistory(accessToken: string, startHistoryId: string, pageToken?: string | null, maxResults = 50) {
   // Do not filter to messageAdded. A Gmail-side archive/read/spam action is a
   // label change, and Olera must see it or the two inboxes drift apart.
-  const params = new URLSearchParams({ startHistoryId, maxResults: "500" });
+  const params = new URLSearchParams({ startHistoryId, maxResults: String(maxResults) });
   if (pageToken) params.set("pageToken", pageToken);
   return gmailRequest<{
     history?: Array<{
@@ -209,8 +209,8 @@ export function listGmailHistory(accessToken: string, startHistoryId: string, pa
       messages?: Array<{ id: string; threadId: string }>;
       messagesAdded?: Array<{ message: { id: string; threadId: string } }>;
       messagesDeleted?: Array<{ message: { id: string; threadId: string } }>;
-      labelsAdded?: Array<{ message: { id: string; threadId: string } }>;
-      labelsRemoved?: Array<{ message: { id: string; threadId: string } }>;
+      labelsAdded?: Array<{ message: { id: string; threadId: string }; labelIds?: string[] }>;
+      labelsRemoved?: Array<{ message: { id: string; threadId: string }; labelIds?: string[] }>;
     }>;
     nextPageToken?: string;
     historyId: string;

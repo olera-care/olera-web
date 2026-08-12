@@ -214,31 +214,25 @@ function followupEmail(): EmailDraft {
 }
 
 /**
- * Day 5: Free model email
+ * Day 5: Demand loss email
  *
- * Explains why Olera is free and the value proposition for providers.
- * Emphasizes no fees and direct family connections.
+ * FOMO angle: other providers are getting questions/leads.
+ * Shortest template - pure urgency.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Direct, urgent, minimal.
  */
 function demandLossEmail(_hasDemandData: boolean): EmailDraft {
   // Note: hasDemandData parameter kept for backward compatibility but no longer used
   return {
-    subject: `Why we've made Olera free`,
+    subject: `Families' questions are going to other providers`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `Throughout my time in senior care, I've seen how difficult finding the right care can be. Families deserve an easier way to connect with providers.`,
+      `Families on Olera sent providers questions and leads this week. If any came to ${PLACEHOLDER.providerName}, no one could answer them. No one has taken over your page yet.`,
       ``,
-      `That's why we built Olera.`,
+      `Two minutes and it's yours, free: [Activate ${PLACEHOLDER.providerName}'s page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Claiming and managing your Olera profile is **completely free**. That means **no referral fees**, **no pay-per-lead costs**, and **no subscription fees**.`,
-      ``,
-      `[Review your page →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `We chose this model because we believe families should be in control of their care. Once your page is claimed, families can contact your team directly, have conversations sooner, and begin their next chapter with confidence.`,
-      ``,
-      `If you have any questions, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `Questions? Just reply to this email or call +1 (979) 243-9801. A real person answers both.`,
     ].join("\n"),
   };
 }
@@ -246,28 +240,22 @@ function demandLossEmail(_hasDemandData: boolean): EmailDraft {
 /**
  * Day 7: Final email
  *
- * Focuses on the Verified badge as a trust signal for families.
- * Personal tone with medical school trust story from Logan.
+ * Incentive angle: free ad offer. Different closing - asks if
+ * wrong contact to encourage forwarding.
  *
- * Style: Personal, supportive, PitchBook-inspired clean layout.
+ * Style: Direct, value-add offer.
  */
 function finalEmail(): EmailDraft {
   return {
-    subject: `Show families ${PLACEHOLDER.providerName} is verified`,
+    subject: `We'll run ${PLACEHOLDER.providerName}'s first ad on us`,
     body: [
       `Hi ${PLACEHOLDER.providerName},`,
       ``,
-      `One of the first things we learn in medical school is that trust is the foundation of every patient relationship.`,
+      `One last thing you should know. We'll set up and run ${PLACEHOLDER.providerName}'s first ad, on us, so more families in ${PLACEHOLDER.city} find you. It starts with taking over your page. Two minutes, free, no contracts or per-lead fees.`,
       ``,
-      `The same is true in senior care. Before families ever pick up the phone or schedule a tour, they want peace of mind that they're connecting with the right provider.`,
+      `[Activate ${PLACEHOLDER.providerName}'s page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `That's why we recommend verifying your Olera profile to display a **verified badge**, letting families know your information has been reviewed and confirmed by your team.`,
-      ``,
-      `[Get your verified badge →](${PLACEHOLDER.claimUrl})`,
-      ``,
-      `It's a small step that helps build trust before the very first conversation.`,
-      ``,
-      `If you have any questions or need help getting verified, simply reply to this email or give us a call at +1 (979) 243-9801. We'd be happy to help.`,
+      `If I've been writing to the wrong person, just reply with the right name and I'll take it from there.`,
     ].join("\n"),
   };
 }

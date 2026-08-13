@@ -1,4 +1,4 @@
-# /check-email -- Process the Olera Support Inbox
+# /email-checker -- Process the Olera Support Inbox
 
 Work the `support@olera.care` queue toward zero: surface what a human must answer, file what nobody needs to, suppress anyone who asked us to stop, and report what changed.
 

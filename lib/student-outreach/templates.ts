@@ -1036,12 +1036,11 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
 // with program info + a meeting offer. Can be bulk-launched.
 
 export function reengagementIntroEmail(ctx: TemplateContext): EmailDraft {
-  const greeting = `Hi again,`;
   const campusName = ctx.campus_name ?? PLACEHOLDER.campus;
   return {
     subject: `Following up: Student Caregiver Program for ${campusName} students`,
     body: [
-      greeting,
+      `Hi {salutation},`,
       ``,
       `Following up from my earlier outreach about ${PROGRAM_NAME}. I wanted to check in and see if you've had a chance to consider the program.`,
       ``,
@@ -1051,12 +1050,11 @@ export function reengagementIntroEmail(ctx: TemplateContext): EmailDraft {
 }
 
 export function reengagementFinalEmail(ctx: TemplateContext): EmailDraft {
-  const greeting = `Hi again,`;
   const campusName = ctx.campus_name ?? PLACEHOLDER.campus;
   return {
     subject: `One more note: Student Caregiver Program for ${campusName} students`,
     body: [
-      greeting,
+      `Hi {salutation},`,
       ``,
       `Wanted to circle back one more time on ${PROGRAM_NAME}. If timing wasn't right before, we'd still love to help when you're ready.`,
       ``,

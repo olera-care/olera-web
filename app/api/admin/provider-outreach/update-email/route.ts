@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
+import { getLeadByEmail, updateLeadInCampaign } from "@/lib/smartlead";
 
 /**
  * PATCH /api/admin/provider-outreach/update-email
@@ -92,13 +93,81 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Reset confirmation status since contact info changed
+    // Fetch tracking record for confirmation reset and SmartLead sync
     const { data: tracking } = await db
       .from("provider_outreach_tracking")
-      .select("id")
+      .select("id, stage, smartlead_data")
       .eq("provider_id", provider_id)
       .maybeSingle();
 
+    // Sync email to SmartLead if provider has an active/paused SmartLead enrollment
+    // This ensures that even paused leads get updated, so if resumed later,
+    // remaining emails go to the new address
+    let smartleadSynced = false;
+    let smartleadError: string | null = null;
+    if (tracking?.smartlead_data) {
+      const slData = tracking.smartlead_data as {
+        campaign_id?: number;
+        lead_id?: number;
+        lead_email?: string;
+      };
+
+      if (slData.campaign_id && slData.lead_email && slData.lead_email !== trimmedEmail) {
+        try {
+          // Look up lead by OLD email to get lead_id
+          let leadId = slData.lead_id;
+          if (!leadId) {
+            const lookup = await getLeadByEmail(slData.lead_email);
+            if (lookup.ok && lookup.data?.id) {
+              leadId = lookup.data.id;
+            }
+          }
+
+          if (leadId) {
+            // Update lead email in SmartLead
+            const updateResult = await updateLeadInCampaign(
+              slData.campaign_id,
+              leadId,
+              { email: trimmedEmail }
+            );
+
+            if (updateResult.ok) {
+              console.log(`[provider-outreach/update-email] SmartLead email updated for lead ${leadId}`);
+
+              // Update smartlead_data.lead_email in tracking table
+              const updatedSlData = {
+                ...slData,
+                lead_email: trimmedEmail,
+                lead_id: leadId, // Persist lead_id now that we have it
+              };
+              const { error: slDataUpdateErr } = await db
+                .from("provider_outreach_tracking")
+                .update({ smartlead_data: updatedSlData })
+                .eq("id", tracking.id);
+
+              if (slDataUpdateErr) {
+                // SmartLead was updated but local sync failed - log mismatch
+                console.error("[provider-outreach/update-email] Failed to update local smartlead_data:", slDataUpdateErr.message);
+                smartleadError = "SmartLead updated but local sync failed";
+              } else {
+                smartleadSynced = true;
+              }
+            } else {
+              smartleadError = updateResult.error || "Unknown SmartLead error";
+              console.error(`[provider-outreach/update-email] SmartLead update failed:`, smartleadError);
+            }
+          } else {
+            smartleadError = "Could not find lead in SmartLead";
+            console.warn(`[provider-outreach/update-email] Lead not found for ${slData.lead_email}`);
+          }
+        } catch (slErr) {
+          smartleadError = slErr instanceof Error ? slErr.message : "SmartLead sync error";
+          console.error("[provider-outreach/update-email] SmartLead sync error:", slErr);
+        }
+      }
+    }
+
+    // Reset confirmation status since contact info changed
     if (tracking) {
       await db
         .from("provider_outreach_tracking")
@@ -180,6 +249,8 @@ export async function PATCH(request: NextRequest) {
         lead_emails_sent: notificationResult.leadEmailsSent,
         leads_skipped: notificationResult.leadsSkipped,
         question_flags_cleared: questionFlagsCleared,
+        smartlead_synced: smartleadSynced,
+        smartlead_error: smartleadError,
       },
     });
 
@@ -187,6 +258,8 @@ export async function PATCH(request: NextRequest) {
       success: true,
       email: trimmedEmail,
       notificationsSent: notificationResult.leadEmailsSent + notificationResult.questionEmailsSent,
+      smartleadSynced,
+      smartleadError,
     });
   } catch (err) {
     console.error("[provider-outreach/update-email] Error:", err);

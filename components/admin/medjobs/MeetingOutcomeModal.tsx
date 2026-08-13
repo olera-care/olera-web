@@ -22,6 +22,7 @@ import {
 import { CadenceLaunchModal } from "@/app/admin/student-outreach/CadenceLaunchModal";
 import { MarkPartnerModal } from "@/app/admin/student-outreach/MarkPartnerModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
+import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import { formatLongDate } from "@/lib/student-outreach/formatters";
 import type { DrawerContext } from "@/lib/student-outreach/types";
 
@@ -79,7 +80,7 @@ function outcomesFor(partner: boolean, activationRunning: boolean): OutcomeChoic
     {
       key: "no_show",
       label: "No-show / reschedule",
-      blurb: "Logs a no-show; the row stays so you can rebook.",
+      blurb: "Logs a no-show and opens Calendly to reschedule.",
       tone: "neutral",
     },
     {
@@ -151,6 +152,8 @@ export function MeetingOutcomeModal({
     }
     if (outcomeKey === "no_show") {
       await action("log_meeting_no_show", { notes });
+      // Open Calendly so admin can reschedule immediately
+      window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer");
       onClose();
       return;
     }

@@ -27,7 +27,7 @@ import {
   substituteVars,
   type TemplateContext,
 } from "@/lib/student-outreach/templates";
-import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
+import { nextBusinessDayET } from "@/lib/business-day";
 import type { ResearchData, StakeholderType } from "@/lib/student-outreach/types";
 
 type DB = ReturnType<typeof getServiceClient>;

@@ -59,6 +59,7 @@ interface ProspectPreview {
   id: string;
   organization_name: string;
   campus_name: string;
+  stakeholder_type: string | null;
   email: string | null;
   first_name: string | null;
   valid: boolean;
@@ -183,6 +184,7 @@ export async function POST(req: NextRequest) {
       id: row.id,
       organization_name: row.organization_name,
       campus_name: campusInfo.name,
+      stakeholder_type: row.stakeholder_type,
       email,
       first_name: firstName,
       valid: skipReason === null,

@@ -6,8 +6,8 @@
  * Shows:
  *   - Header with prospect count
  *   - Summary of valid/invalid rows
- *   - Prospects list (scrollable)
- *   - Email/call preview by day
+ *   - Prospects list (scrollable, clickable to preview)
+ *   - Personalized email/call preview by day for selected prospect
  *   - Launch button
  *
  * Uses the /api/admin/student-outreach/bulk-reengage endpoint:
@@ -15,22 +15,24 @@
  *   - dry_run=false for execution
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import {
+  reengagementIntroEmail,
+  reengagementFinalEmail,
+  reengagementCallScript,
+  substituteVars,
+  type TemplateContext,
+} from "@/lib/student-outreach/templates";
 
 interface ProspectPreview {
   id: string;
   organization_name: string;
   campus_name: string;
+  stakeholder_type: string | null;
   email: string | null;
   first_name: string | null;
   valid: boolean;
   skip_reason: string | null;
-}
-
-interface EmailPreview {
-  day_0: { subject: string; body: string };
-  day_3_call: { script: string };
-  day_7: { subject: string; body: string };
 }
 
 interface Props {
@@ -47,9 +49,11 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
 
   // Preview data
   const [prospects, setProspects] = useState<ProspectPreview[]>([]);
-  const [emails, setEmails] = useState<EmailPreview | null>(null);
   const [validCount, setValidCount] = useState(0);
   const [invalidCount, setInvalidCount] = useState(0);
+
+  // Selected prospect for email preview
+  const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
 
   // Fetch preview on mount
   useEffect(() => {
@@ -67,10 +71,13 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
           setError(data.error ?? "Failed to load preview");
           return;
         }
-        setProspects(data.prospects ?? []);
-        setEmails(data.emails ?? null);
+        const prospectsList = (data.prospects ?? []) as ProspectPreview[];
+        setProspects(prospectsList);
         setValidCount(data.valid ?? 0);
         setInvalidCount(data.invalid ?? 0);
+        // Auto-select first valid prospect for preview
+        const firstValid = prospectsList.find((p) => p.valid);
+        if (firstValid) setSelectedProspectId(firstValid.id);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load preview");
       } finally {
@@ -122,6 +129,49 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
 
   const validProspects = prospects.filter((p) => p.valid);
   const invalidProspects = prospects.filter((p) => !p.valid);
+
+  // Get selected prospect
+  const selectedProspect = selectedProspectId
+    ? prospects.find((p) => p.id === selectedProspectId)
+    : null;
+
+  // Generate personalized email preview for selected prospect
+  const emailPreview = useMemo(() => {
+    if (!selectedProspect) return null;
+
+    const ctx: TemplateContext = {
+      stakeholder_type: (selectedProspect.stakeholder_type as "advisor" | "employer" | "student_org") ?? "advisor",
+      organization_name: selectedProspect.organization_name,
+      campus_name: selectedProspect.campus_name,
+      admin_first_name: "Graize",
+    };
+
+    const vars = {
+      salutation: selectedProspect.first_name ?? "there",
+      first_name: selectedProspect.first_name ?? undefined,
+      organization_name: selectedProspect.organization_name,
+      campus_name: selectedProspect.campus_name,
+      admin_first_name: "Graize",
+    };
+
+    const day0 = reengagementIntroEmail(ctx);
+    const day7 = reengagementFinalEmail(ctx);
+    const day3Call = reengagementCallScript(ctx);
+
+    return {
+      day_0: {
+        subject: substituteVars(day0.subject, vars),
+        body: substituteVars(day0.body, vars),
+      },
+      day_3_call: {
+        script: substituteVars(day3Call.script, vars),
+      },
+      day_7: {
+        subject: substituteVars(day7.subject, vars),
+        body: substituteVars(day7.body, vars),
+      },
+    };
+  }, [selectedProspect]);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
@@ -178,13 +228,26 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
                 <div>
                   <h4 className="mb-2 text-sm font-medium text-gray-900">
                     Will be re-engaged ({validProspects.length})
+                    <span className="ml-2 text-xs font-normal text-gray-500">
+                      Click to preview email
+                    </span>
                   </h4>
                   <div className="max-h-40 overflow-y-auto rounded-lg border border-gray-200">
                     <ul className="divide-y divide-gray-100">
                       {validProspects.map((p) => (
-                        <li key={p.id} className="flex items-center justify-between px-3 py-2">
+                        <li
+                          key={p.id}
+                          onClick={() => setSelectedProspectId(p.id)}
+                          className={`flex cursor-pointer items-center justify-between px-3 py-2 transition-colors ${
+                            selectedProspectId === p.id
+                              ? "bg-primary-50 border-l-2 border-l-primary-500"
+                              : "hover:bg-gray-50"
+                          }`}
+                        >
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-gray-900">
+                            <p className={`truncate text-sm font-medium ${
+                              selectedProspectId === p.id ? "text-primary-700" : "text-gray-900"
+                            }`}>
                               {p.organization_name}
                             </p>
                             <p className="truncate text-xs text-gray-500">{p.campus_name}</p>
@@ -224,9 +287,14 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
               )}
 
               {/* Email/Call Preview */}
-              {emails && (
+              {emailPreview && selectedProspect && (
                 <div>
-                  <h4 className="mb-2 text-sm font-medium text-gray-900">Sequence Preview</h4>
+                  <h4 className="mb-2 text-sm font-medium text-gray-900">
+                    Sequence Preview
+                    <span className="ml-2 text-xs font-normal text-gray-500">
+                      for {selectedProspect.organization_name}
+                    </span>
+                  </h4>
                   <div className="rounded-lg border border-gray-200">
                     {/* Day tabs */}
                     <div className="flex border-b border-gray-200">
@@ -254,10 +322,10 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
                         <div className="space-y-2">
                           <p className="text-sm">
                             <span className="font-medium text-gray-600">Subject:</span>{" "}
-                            <span className="text-gray-900">{emails.day_0.subject}</span>
+                            <span className="text-gray-900">{emailPreview.day_0.subject}</span>
                           </p>
                           <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
-                            {emails.day_0.body}
+                            {emailPreview.day_0.body}
                           </div>
                         </div>
                       )}
@@ -265,7 +333,7 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
                         <div className="space-y-2">
                           <p className="text-sm font-medium text-gray-600">Call Script:</p>
                           <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
-                            {emails.day_3_call.script}
+                            {emailPreview.day_3_call.script}
                           </div>
                         </div>
                       )}
@@ -273,10 +341,10 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
                         <div className="space-y-2">
                           <p className="text-sm">
                             <span className="font-medium text-gray-600">Subject:</span>{" "}
-                            <span className="text-gray-900">{emails.day_7.subject}</span>
+                            <span className="text-gray-900">{emailPreview.day_7.subject}</span>
                           </p>
                           <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
-                            {emails.day_7.body}
+                            {emailPreview.day_7.body}
                           </div>
                         </div>
                       )}

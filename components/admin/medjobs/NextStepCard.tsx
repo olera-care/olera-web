@@ -60,6 +60,14 @@ import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLin
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
+import { CustomCadenceModal, type InitialStep } from "@/components/admin/medjobs/CustomCadenceModal";
+import {
+  reengagementIntroEmail,
+  reengagementFinalEmail,
+  reengagementCallScript,
+  substituteVars,
+  type TemplateContext,
+} from "@/lib/student-outreach/templates";
 
 type ActionFn = (
   actionName: string,
@@ -676,6 +684,7 @@ function ClosedBody({
   setError: (m: string | null) => void;
 }) {
   const [reopening, setReopening] = useState(false);
+  const [showReengage, setShowReengage] = useState(false);
   const closedAt = ctx.outreach.last_edited_at
     ? formatLongDate(ctx.outreach.last_edited_at)
     : null;
@@ -693,6 +702,61 @@ function ClosedBody({
     }
   };
 
+  // Build re-engagement steps for the modal
+  const buildReengagementSteps = (): InitialStep[] => {
+    const templateCtx: TemplateContext = {
+      stakeholder_type: ctx.outreach.stakeholder_type ?? "advisor",
+      organization_name: ctx.outreach.organization_name,
+      campus_name: ctx.campus?.name ?? "{campus_name}",
+      admin_first_name: "Graize",
+    };
+
+    const firstName = ctx.outreach.primary_contact_first_name ?? null;
+    const vars = {
+      salutation: firstName ?? "there",
+      first_name: firstName ?? undefined,
+      organization_name: ctx.outreach.organization_name,
+      campus_name: ctx.campus?.name ?? "{campus_name}",
+      admin_first_name: "Graize",
+    };
+
+    const day0 = reengagementIntroEmail(templateCtx);
+    const day7 = reengagementFinalEmail(templateCtx);
+    const day3Call = reengagementCallScript(templateCtx);
+
+    return [
+      {
+        type: "email" as const,
+        day: 0,
+        subject: substituteVars(day0.subject, vars),
+        body: substituteVars(day0.body, vars),
+      },
+      {
+        type: "call" as const,
+        day: 3,
+        script: substituteVars(day3Call.script, vars),
+      },
+      {
+        type: "email" as const,
+        day: 7,
+        subject: substituteVars(day7.subject, vars),
+        body: substituteVars(day7.body, vars),
+      },
+    ];
+  };
+
+  const handleReengageSubmit = async (payload: { name: string; steps: Array<{ type: "email" | "call"; day: number; subject?: string; body?: string; script?: string }> }) => {
+    await action("launch_custom_cadence", {
+      name: payload.name,
+      steps: payload.steps,
+      source: "reengagement",
+    });
+    setShowReengage(false);
+  };
+
+  // Show Re-engage button for no_response_closed (completed cadence, no reply)
+  const canReengage = ctx.outreach.status === "no_response_closed";
+
   return (
     <>
       <p className="text-sm text-gray-700">
@@ -700,7 +764,15 @@ function ClosedBody({
         {reasonLabel ? ` · ${reasonLabel}` : ""}
       </p>
       {ctx.outreach.status !== "do_not_contact" && (
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {canReengage && (
+            <button
+              onClick={() => setShowReengage(true)}
+              className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+            >
+              Re-engage
+            </button>
+          )}
           <button
             onClick={reopen}
             disabled={reopening}
@@ -709,6 +781,17 @@ function ClosedBody({
             {reopening ? "Reopening…" : "Reopen →"}
           </button>
         </div>
+      )}
+
+      {showReengage && (
+        <CustomCadenceModal
+          recipientName={ctx.outreach.primary_contact_first_name ?? ctx.outreach.organization_name}
+          recipientEmail={ctx.outreach.primary_contact_email ?? null}
+          initialSteps={buildReengagementSteps()}
+          initialName="Re-engagement"
+          onCancel={() => setShowReengage(false)}
+          onSubmit={handleReengageSubmit}
+        />
       )}
     </>
   );

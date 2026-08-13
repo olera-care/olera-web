@@ -46,7 +46,9 @@ export type TabKey =
   | "all"
   | "outbound"
   | "emails_sent"
-  | "signups";
+  | "signups"
+  // Follow-up tab for no-response rows that can be re-engaged
+  | "followup";
 
 export interface TabDef {
   key: TabKey;
@@ -109,6 +111,7 @@ export const TABS: TabDef[] = [
   { key: "calls",        label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
   { key: "replies",      label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
   { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
+  { key: "followup",     label: "Follow-up",  tooltip: "No-response rows ready for bulk re-engagement. Select multiple and launch a new outreach cadence." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -164,6 +167,7 @@ export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   outbound:    { metric: "outbound",         label: "outbound messages"    },
   emails_sent: { metric: "emails_sent",      label: "emails sent"          },
   signups:     { metric: "signups",          label: "student signups"      },
+  followup:    { metric: "activity",         label: "follow-up rows"       },
 };
 
 // v8.10.47: chart-series picker options. The ⋯ menu lets admin compose

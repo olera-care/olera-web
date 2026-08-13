@@ -1,0 +1,359 @@
+/**
+ * POST /api/admin/student-outreach/bulk-reengage
+ *
+ * Bulk re-engage multiple outreach rows from the Follow-up tab. Each row
+ * gets enrolled into a re-engagement cadence (Day 0 email, Day 3 call,
+ * Day 7 email) using the same enrollCustomCadence machinery.
+ *
+ * Body:
+ *   outreach_ids: string[]     — rows to re-engage
+ *   dry_run?: boolean          — true = preview only, returns counts + emails
+ *   assigned_to?: string       — optional admin user_id for call task assignment
+ *
+ * Response:
+ *   dry_run=true:
+ *     { preview: true, valid: number, invalid: number, prospects: [...], emails: {...} }
+ *   dry_run=false:
+ *     { processed: number, succeeded: number, skipped: number, results: [...] }
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { enrollCustomCadence, type CustomEmailStep } from "@/lib/medjobs/smartlead-bridge";
+import {
+  reengagementIntroEmail,
+  reengagementFinalEmail,
+  reengagementCallScript,
+  substituteVars,
+  type TemplateContext,
+} from "@/lib/student-outreach/templates";
+import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
+import type { OutreachRow, ResearchData } from "@/lib/student-outreach/types";
+
+type DB = ReturnType<typeof getServiceClient>;
+const DAY_MS = 86_400_000;
+
+// Statuses eligible for re-engagement (follow-up tab rows that completed cadence)
+// Only no_response_closed is allowed - these are rows whose initial cadence
+// completed without a reply. outreach_sent rows are still in their initial cadence.
+const REENGAGEABLE_STATUSES = new Set([
+  "no_response_closed",
+]);
+
+interface ProspectPreview {
+  id: string;
+  organization_name: string;
+  campus_name: string;
+  email: string | null;
+  first_name: string | null;
+  valid: boolean;
+  skip_reason: string | null;
+}
+
+interface EmailPreview {
+  day_0: { subject: string; body: string };
+  day_3_call: { script: string };
+  day_7: { subject: string; body: string };
+}
+
+export async function POST(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const admin = await getAdminUser(user.id);
+  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const body = await req.json();
+  const ids = body.outreach_ids as string[] | undefined;
+  const dryRun = body.dry_run === true;
+  const assignedTo = (body.assigned_to as string | undefined) ?? user.id;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return NextResponse.json({ error: "outreach_ids required" }, { status: 400 });
+  }
+  if (ids.length > 100) {
+    return NextResponse.json({ error: "Max 100 rows at once" }, { status: 400 });
+  }
+
+  const db = getServiceClient();
+
+  // Fetch all rows with campus info
+  // Note: primary_contact_phone is not stored on student_outreach table.
+  // It would need to be fetched from student_outreach_contacts. For now,
+  // call tasks will have null phone - the admin can view it in the drawer.
+  const { data: rowsData, error: fetchErr } = await db
+    .from("student_outreach")
+    .select(`
+      id, organization_name, status, stakeholder_type, kind,
+      primary_contact_email, primary_contact_first_name, primary_contact_last_name,
+      research_data, campus_id,
+      campus:student_outreach_campuses!campus_id(id, name, slug, city)
+    `)
+    .in("id", ids);
+
+  if (fetchErr || !rowsData) {
+    return NextResponse.json({ error: "Failed to fetch rows" }, { status: 500 });
+  }
+
+  // Build preview data
+  const prospects: ProspectPreview[] = [];
+  const validRows: Array<{
+    row: OutreachRow;
+    campus: { name: string; slug: string | null; city: string | null };
+    email: string;
+    first_name: string | null;
+  }> = [];
+
+  for (const r of rowsData) {
+    const row = r as OutreachRow & { campus: { id: string; name: string; slug: string | null; city: string | null } | null };
+    const email = row.primary_contact_email?.trim() || null;
+    const campusInfo = row.campus ?? { name: "Unknown Campus", slug: null, city: null };
+
+    let skipReason: string | null = null;
+    if (!email) {
+      skipReason = "no_email";
+    } else if (!REENGAGEABLE_STATUSES.has(row.status)) {
+      skipReason = `invalid_status:${row.status}`;
+    }
+
+    prospects.push({
+      id: row.id,
+      organization_name: row.organization_name,
+      campus_name: campusInfo.name,
+      email,
+      first_name: row.primary_contact_first_name ?? null,
+      valid: skipReason === null,
+      skip_reason: skipReason,
+    });
+
+    if (!skipReason && email) {
+      validRows.push({
+        row,
+        campus: campusInfo,
+        email,
+        first_name: row.primary_contact_first_name ?? null,
+      });
+    }
+  }
+
+  // Build templated emails for preview (use first valid row or generic context)
+  // Admin name for templates - consistently "Graize" across the workflow
+  const adminFirstName = "Graize";
+  const sampleCtx: TemplateContext = validRows.length > 0
+    ? {
+        stakeholder_type: validRows[0].row.stakeholder_type ?? "advisor",
+        organization_name: validRows[0].row.organization_name,
+        campus_name: validRows[0].campus.name,
+        admin_first_name: adminFirstName,
+      }
+    : {
+        stakeholder_type: "advisor",
+        organization_name: "{organization_name}",
+        campus_name: "{campus_name}",
+        admin_first_name: adminFirstName,
+      };
+
+  const day0 = reengagementIntroEmail(sampleCtx);
+  const day7 = reengagementFinalEmail(sampleCtx);
+  const day3Call = reengagementCallScript(sampleCtx);
+
+  const emailPreview: EmailPreview = {
+    day_0: { subject: day0.subject, body: day0.body },
+    day_3_call: { script: day3Call.script },
+    day_7: { subject: day7.subject, body: day7.body },
+  };
+
+  // Dry run: return preview
+  if (dryRun) {
+    return NextResponse.json({
+      preview: true,
+      valid: validRows.length,
+      invalid: prospects.length - validRows.length,
+      prospects,
+      emails: emailPreview,
+    });
+  }
+
+  // Execute re-engagement for each valid row
+  const results: Array<{ id: string; ok: boolean; reason?: string }> = [];
+  const now = Date.now();
+
+  for (const { row, campus, email, first_name } of validRows) {
+    try {
+      const ok = await enrollReengagement(
+        db,
+        row,
+        campus,
+        email,
+        first_name,
+        assignedTo,
+        adminFirstName,
+        now,
+      );
+      results.push({ id: row.id, ok, reason: ok ? undefined : "enrollment_failed" });
+    } catch (err) {
+      results.push({ id: row.id, ok: false, reason: err instanceof Error ? err.message : "failed" });
+    }
+  }
+
+  // Add skipped rows to results
+  for (const p of prospects) {
+    if (!p.valid) {
+      results.push({ id: p.id, ok: false, reason: p.skip_reason ?? "invalid" });
+    }
+  }
+
+  return NextResponse.json({
+    processed: results.length,
+    succeeded: results.filter((r) => r.ok).length,
+    skipped: results.filter((r) => !r.ok).length,
+    results,
+  });
+}
+
+async function enrollReengagement(
+  db: DB,
+  row: OutreachRow,
+  campus: { name: string; slug: string | null; city: string | null },
+  email: string,
+  firstName: string | null,
+  assignedTo: string,
+  adminFirstName: string,
+  now: number,
+): Promise<boolean> {
+  const ctx: TemplateContext = {
+    stakeholder_type: row.stakeholder_type ?? "advisor",
+    organization_name: row.organization_name,
+    campus_name: campus.name,
+    admin_first_name: adminFirstName,
+  };
+
+  // Build email steps
+  const day0 = reengagementIntroEmail(ctx);
+  const day7 = reengagementFinalEmail(ctx);
+  const day3Call = reengagementCallScript(ctx);
+
+  // Substitute variables for emails
+  const varsForSubstitution = {
+    salutation: firstName ?? "there",
+    first_name: firstName ?? undefined,
+    organization_name: row.organization_name,
+    campus_name: campus.name,
+    admin_first_name: adminFirstName,
+  };
+
+  const emailSteps: CustomEmailStep[] = [
+    {
+      day: 0,
+      subject: substituteVars(day0.subject, varsForSubstitution),
+      body: substituteVars(day0.body, varsForSubstitution),
+    },
+    {
+      day: 7,
+      subject: substituteVars(day7.subject, varsForSubstitution),
+      body: substituteVars(day7.body, varsForSubstitution),
+    },
+  ];
+
+  // 1. Provision Smartlead campaign + enroll lead (best-effort)
+  const yyyymm = new Date().toISOString().slice(0, 7);
+  let emailDelivery = "smartlead_pending";
+  let campaignId: number | undefined;
+
+  try {
+    const enroll = await enrollCustomCadence({
+      outreach_id: row.id,
+      organizationName: row.organization_name,
+      campus: {
+        name: campus.name,
+        city: campus.city,
+        slug: campus.slug,
+      },
+      campaignName: `MedJobs Re-engage — ${row.organization_name} — ${yyyymm}`,
+      emailSteps,
+      recipient: {
+        email,
+        first_name: firstName,
+        last_name: row.primary_contact_last_name ?? null,
+        contact_id: null,
+      },
+      is_partner: row.kind !== "provider",
+      stakeholder_type: row.stakeholder_type,
+    });
+
+    if (enroll.skipped_reason) {
+      emailDelivery = `smartlead_skipped_${enroll.skipped_reason}`;
+    } else if (!enroll.ok || !enroll.campaign_id) {
+      emailDelivery = "smartlead_error";
+      console.error(
+        "[bulk-reengage] enrollment error:",
+        enroll.errors.map((e) => `${e.stage}: ${e.message}`).join("; "),
+      );
+    } else {
+      emailDelivery = "smartlead_enrolled";
+      campaignId = enroll.campaign_id;
+    }
+  } catch (e) {
+    emailDelivery = "smartlead_error";
+    console.error("[bulk-reengage] enrollment threw:", e instanceof Error ? e.message : e);
+  }
+
+  // 2. Queue Day 3 call task
+  const callScript = substituteVars(day3Call.script, varsForSubstitution);
+  const callDueAt = nextBusinessDayET(new Date(now + 3 * DAY_MS));
+
+  await db.from("student_outreach_tasks").insert({
+    outreach_id: row.id,
+    task_type: "outreach_followup_call",
+    due_at: callDueAt.toISOString(),
+    payload: {
+      cadence: "reengagement",
+      day: 3,
+      label: "Re-engagement check-in call",
+      script: callScript,
+      recipient_name: firstName ?? row.organization_name,
+      recipient_phone: null, // Phone fetched from contacts table in drawer
+      recipient_contact_id: null,
+    },
+    created_by: assignedTo,
+  });
+
+  // 3. Persist re-engagement campaign linkage
+  if (campaignId) {
+    const nextResearch: ResearchData = {
+      ...(row.research_data as ResearchData),
+      smartlead_custom: {
+        campaign_id: campaignId,
+        lead_email: email,
+        enrolled_at: new Date().toISOString(),
+        name: "Re-engagement",
+      },
+    };
+    await db.from("student_outreach").update({ research_data: nextResearch }).eq("id", row.id);
+  }
+
+  // 4. Update status to outreach_sent (re-activates the row)
+  await db
+    .from("student_outreach")
+    .update({
+      status: "outreach_sent",
+      last_edited_by: assignedTo,
+      last_edited_at: new Date().toISOString(),
+    })
+    .eq("id", row.id);
+
+  // 5. Log touchpoint
+  await db.from("student_outreach_touchpoints").insert({
+    outreach_id: row.id,
+    touchpoint_type: "note_added",
+    notes: "Bulk re-engagement launched",
+    payload: {
+      reason: "bulk_reengagement_launched",
+      email_delivery: emailDelivery,
+      email_steps: emailSteps.length,
+      call_scheduled: true,
+    },
+    created_by: assignedTo,
+  });
+
+  return emailDelivery !== "smartlead_error";
+}

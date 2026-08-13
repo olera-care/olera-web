@@ -608,6 +608,8 @@ export interface TabCounts {
   // v9.0 Phase 7: Sites = the renamed Campuses tab + new Site-task
   // surfacing. Same numeric shape as campuses.
   sites?: number;
+  // Follow-up tab: no_response_closed rows ready for bulk re-engagement
+  followup?: number;
 }
 
 /** v9.0 Phase 4: per-tab unread counts, mirroring TabCounts shape.

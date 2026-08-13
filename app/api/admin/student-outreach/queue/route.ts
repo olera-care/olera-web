@@ -89,6 +89,8 @@ export interface TabCounts {
   partners: number;
   archive: number;
   all: number;
+  // Follow-up tab: no_response_closed rows ready for re-engagement
+  followup?: number;
   // v9.0 Phase 2: optional so the legacy fields are decoupled. The
   // public type in lib/student-outreach/types.ts mirrors this.
   clients?: number;
@@ -477,6 +479,9 @@ async function computeTabCounts(
     if (row.status === "no_response_closed") {
       counts.archive++;
       if (isUnread) unread.archive++;
+      // Follow-up count: same rows as no_response_closed (candidates for re-engagement)
+      counts.followup = (counts.followup ?? 0) + 1;
+      if (isUnread) unread.followup = (unread.followup ?? 0) + 1;
     }
   }
 
@@ -970,6 +975,10 @@ async function fetchRowIdsForTab(
     }
     case "archive":
       return await idsByArchive(db, { campusId, type, searchIds, page, pageSize });
+    // Follow-up tab: specifically no_response_closed rows that can be re-engaged
+    // (completed their cadence without converting, ready for a re-engagement cadence).
+    case "followup":
+      return await idsByFollowup(db, { campusId, type, searchIds, page, pageSize });
     default:
       return [];
   }
@@ -1038,6 +1047,29 @@ async function idsByArchive(db: DB, opts: QueryOpts): Promise<string[]> {
   const all = [...closedIds, ...staleIds];
   const start = opts.page * opts.pageSize;
   return all.slice(start, start + opts.pageSize);
+}
+
+/**
+ * Follow-up: rows that completed outreach without conversion (no_response_closed).
+ * These are candidates for bulk re-engagement. Excludes manually archived rows
+ * and stale outreach_sent rows (those are still "in flight" with potential).
+ * Provider and partner rows are both included for re-engagement.
+ */
+async function idsByFollowup(db: DB, opts: QueryOpts): Promise<string[]> {
+  // Only no_response_closed status (completed cadence, no reply)
+  let q = db
+    .from("student_outreach")
+    .select("id")
+    .eq("status", "no_response_closed")
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true });
+  if (opts.campusId) q = q.eq("campus_id", opts.campusId);
+  if (opts.type) q = q.eq("stakeholder_type", opts.type);
+  if (opts.searchIds) q = q.in("id", opts.searchIds);
+  const { data } = await q;
+  const ids = ((data ?? []) as Array<{ id: string }>).map((r) => r.id);
+  const start = opts.page * opts.pageSize;
+  return ids.slice(start, start + opts.pageSize);
 }
 
 interface QueryOpts {

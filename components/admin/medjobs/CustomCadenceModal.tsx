@@ -24,9 +24,22 @@ export interface CustomCadenceSubmit {
   steps: Array<{ type: "email" | "call"; day: number; subject?: string; body?: string; script?: string }>;
 }
 
+/** Pre-filled step passed to the modal to seed the cadence with templated content. */
+export interface InitialStep {
+  type: "email" | "call";
+  day: number;
+  subject?: string;
+  body?: string;
+  script?: string;
+}
+
 interface Props {
   recipientName?: string | null;
   recipientEmail?: string | null;
+  /** Pre-filled steps to seed the cadence (e.g., re-engagement templates). */
+  initialSteps?: InitialStep[];
+  /** Default cadence name when using initialSteps. */
+  initialName?: string;
   onCancel: () => void;
   onSubmit: (payload: CustomCadenceSubmit) => Promise<void>;
 }
@@ -46,9 +59,29 @@ function nextDay(steps: StepDraft[]): number {
   return Math.max(...steps.map((s) => s.day)) + 2;
 }
 
-export function CustomCadenceModal({ recipientName, recipientEmail, onCancel, onSubmit }: Props) {
-  const [name, setName] = useState("");
-  const [steps, setSteps] = useState<StepDraft[]>(() => [newStep("email", 0)]);
+export function CustomCadenceModal({
+  recipientName,
+  recipientEmail,
+  initialSteps,
+  initialName,
+  onCancel,
+  onSubmit,
+}: Props) {
+  const [name, setName] = useState(initialName ?? "");
+  const [steps, setSteps] = useState<StepDraft[]>(() => {
+    // Seed from initialSteps if provided
+    if (initialSteps && initialSteps.length > 0) {
+      return initialSteps.map((s) => ({
+        id: `s${++stepSeq}`,
+        type: s.type,
+        day: s.day,
+        subject: s.subject ?? "",
+        body: s.body ?? "",
+        script: s.script ?? "",
+      }));
+    }
+    return [newStep("email", 0)];
+  });
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 

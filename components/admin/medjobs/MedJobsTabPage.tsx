@@ -56,6 +56,7 @@ import { ResearchTabContent } from "@/components/admin/medjobs/lists/ResearchTab
 import { RepliesGroupedList } from "@/components/admin/medjobs/lists/RepliesGroupedList";
 import { InBasketHero } from "@/components/admin/medjobs/InBasketHero";
 import { BulkResearchModal } from "@/app/admin/student-outreach/BulkResearchModal";
+import { BulkReengageModal } from "@/components/admin/medjobs/BulkReengageModal";
 import { useMedJobsRefresh, refreshMedJobs } from "@/hooks/useMedJobsRefresh";
 import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
@@ -131,6 +132,17 @@ export function MedJobsTabPage({
   const [openFocusName, setOpenFocusName] = useState<string | null>(null);
   const [openFocusRole, setOpenFocusRole] = useState<string | null>(null);
   const [bulkResearchCampus, setBulkResearchCampus] = useState<ResearchCampusCard | null>(null);
+
+  // Bulk selection for Follow-up tab re-engagement
+  const [selectedFollowupIds, setSelectedFollowupIds] = useState<Set<string>>(new Set());
+  const [showBulkReengageModal, setShowBulkReengageModal] = useState(false);
+
+  // Clear selection when switching tabs
+  useEffect(() => {
+    if (tab !== "followup") {
+      setSelectedFollowupIds(new Set());
+    }
+  }, [tab]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -801,21 +813,59 @@ export function MedJobsTabPage({
           <RepliesGroupedList rows={rows} renderRow={(row) => renderRow(row)} />
         )
       ) : tab === "followup" ? (
+        // Follow-up tab: bulk selection UI for re-engagement
         rows.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">
             ✓ Nothing to follow up — no finished cadences waiting on a decision.
           </p>
         ) : (
-          <ul className="space-y-2">
-            {rows.map((row) => (
-              <li key={row.row_key ?? row.id}>
-                {row.followup_summary && (
-                  <p className="mb-1 px-1 text-xs text-gray-500">{row.followup_summary}</p>
-                )}
-                {renderRow(row)}
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-2">
+            {/* Select All header */}
+            <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-2">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={rows.length > 0 && selectedFollowupIds.size === rows.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedFollowupIds(new Set(rows.map((r) => r.id)));
+                    } else {
+                      setSelectedFollowupIds(new Set());
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                Select all ({rows.length})
+              </label>
+              {selectedFollowupIds.size > 0 && (
+                <span className="text-sm font-medium text-primary-600">
+                  {selectedFollowupIds.size} selected
+                </span>
+              )}
+            </div>
+            {/* Row list with checkboxes */}
+            <ul className="space-y-2">
+              {rows.map((row) => (
+                <li key={row.row_key ?? row.id} className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedFollowupIds.has(row.id)}
+                    onChange={(e) => {
+                      const next = new Set(selectedFollowupIds);
+                      if (e.target.checked) {
+                        next.add(row.id);
+                      } else {
+                        next.delete(row.id);
+                      }
+                      setSelectedFollowupIds(next);
+                    }}
+                    className="h-4 w-4 shrink-0 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div className="min-w-0 flex-1">{renderRow(row)}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
         )
       ) : tab === "sites" ? (
         // v9.0 Phase 7 Commit N: In Basket Sites tab surfaces sites
@@ -965,6 +1015,42 @@ export function MedJobsTabPage({
           onClose={() => setBulkResearchCampus(null)}
           onSaved={async () => {
             setBulkResearchCampus(null);
+            await silentRefresh();
+          }}
+        />
+      )}
+
+      {/* Floating action bar for bulk re-engagement */}
+      {selectedFollowupIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform">
+          <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-lg">
+            <span className="text-sm font-medium text-gray-700">
+              {selectedFollowupIds.size} selected
+            </span>
+            <button
+              onClick={() => setShowBulkReengageModal(true)}
+              className="rounded-full bg-primary-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-primary-700"
+            >
+              Re-engage All
+            </button>
+            <button
+              onClick={() => setSelectedFollowupIds(new Set())}
+              className="text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk re-engage modal */}
+      {showBulkReengageModal && (
+        <BulkReengageModal
+          outreachIds={Array.from(selectedFollowupIds)}
+          onClose={() => setShowBulkReengageModal(false)}
+          onSuccess={async () => {
+            setShowBulkReengageModal(false);
+            setSelectedFollowupIds(new Set());
             await silentRefresh();
           }}
         />

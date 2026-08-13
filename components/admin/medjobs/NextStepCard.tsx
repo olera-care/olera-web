@@ -54,7 +54,7 @@ import type { TabKey } from "@/lib/student-outreach/tab-config";
 import { logActionSuccessMessage } from "@/lib/student-outreach/log-success-messages";
 import { CallFollowUpModal } from "@/components/admin/medjobs/CallFollowUpModal";
 import { EmailReplyModal } from "@/components/admin/medjobs/EmailReplyModal";
-import { CustomCadenceModal } from "@/components/admin/medjobs/CustomCadenceModal";
+import { CustomCadenceModal, type InitialStep } from "@/components/admin/medjobs/CustomCadenceModal";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { MeetingOutcomeModal } from "@/components/admin/medjobs/MeetingOutcomeModal";
 import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
@@ -62,6 +62,13 @@ import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import { useToast } from "@/components/admin/Toast";
 import { useRecentMoves } from "@/components/admin/RecentMoves";
+import {
+  reengagementIntroEmail,
+  reengagementFinalEmail,
+  reengagementCallScript,
+  substituteVars,
+  type TemplateContext,
+} from "@/lib/student-outreach/templates";
 
 type ActionFn = (
   actionName: string,
@@ -547,13 +554,56 @@ function CadenceDoneBody({
   const recipientName = primary
     ? [primary.first_name, primary.last_name].filter(Boolean).join(" ").trim() || primary.name
     : dm?.name ?? null;
+  const firstName = primary?.first_name ?? (dm?.name ? dm.name.trim().split(/\s+/)[0] : null) ?? null;
   const recipientPayload = {
     name: recipientName,
     email: recipientEmail,
     phone: primary?.phone ?? gc?.phone ?? null,
     contact_id: primary?.id ?? null,
-    first_name: primary?.first_name ?? (dm?.name ? dm.name.trim().split(/\s+/)[0] : null) ?? null,
+    first_name: firstName,
     last_name: primary?.last_name ?? null,
+  };
+
+  // Build pre-filled re-engagement steps from templates
+  const buildReengagementSteps = (): InitialStep[] => {
+    const templateCtx: TemplateContext = {
+      stakeholder_type: ctx.outreach.stakeholder_type ?? "advisor",
+      organization_name: ctx.outreach.organization_name,
+      campus_name: ctx.campus?.name ?? "{campus_name}",
+      admin_first_name: "Graize",
+    };
+
+    const vars = {
+      salutation: firstName ?? "there",
+      first_name: firstName ?? undefined,
+      organization_name: ctx.outreach.organization_name,
+      campus_name: ctx.campus?.name ?? "{campus_name}",
+      admin_first_name: "Graize",
+    };
+
+    const day0 = reengagementIntroEmail(templateCtx);
+    const day7 = reengagementFinalEmail(templateCtx);
+    const day3Call = reengagementCallScript(templateCtx);
+
+    return [
+      {
+        type: "email" as const,
+        day: 0,
+        subject: substituteVars(day0.subject, vars),
+        body: substituteVars(day0.body, vars),
+      },
+      {
+        type: "call" as const,
+        day: 3,
+        script: substituteVars(day3Call.script, vars),
+      },
+      {
+        type: "email" as const,
+        day: 7,
+        subject: substituteVars(day7.subject, vars),
+        body: substituteVars(day7.body, vars),
+      },
+    ];
   };
 
   const archive = async () => {
@@ -582,6 +632,8 @@ function CadenceDoneBody({
       <CustomCadenceModal
         recipientName={recipientName}
         recipientEmail={recipientEmail}
+        initialSteps={buildReengagementSteps()}
+        initialName="Re-engagement"
         onCancel={() => setShowCustom(false)}
         onSubmit={async (payload) => {
           try {
@@ -589,7 +641,7 @@ function CadenceDoneBody({
               name: payload.name,
               steps: payload.steps,
               recipient: recipientPayload,
-              source: "followup",
+              source: "reengagement",
             });
             setShowCustom(false);
           } catch (e) {

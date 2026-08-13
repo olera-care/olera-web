@@ -8,7 +8,12 @@ import type {
 } from "@/lib/war-room/types";
 
 export const WAR_ROOM_MODEL = process.env.WAR_ROOM_MODEL || "claude-opus-5";
-const AI_REQUEST_OPTIONS = { timeout: 110_000, maxRetries: 1 };
+// The API route has a 300-second execution ceiling and these passes run
+// sequentially. Bound each pass to 120 seconds with no SDK retry so analyst +
+// critic always leave time to persist the result or a durable failure. A retry
+// here could otherwise stretch the worst case to ~440 seconds and let Vercel
+// kill the function before the run records why it failed.
+const AI_REQUEST_OPTIONS = { timeout: 120_000, maxRetries: 0 };
 
 const ANALYST_SYSTEM = `You are Olera's War Room: a fiercely loyal, unusually perceptive operating partner for an early-stage senior-care company.
 

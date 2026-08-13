@@ -2,7 +2,7 @@
 
 Work the `support@olera.care` queue toward zero: surface what a human must answer, file what nobody needs to, suppress anyone who asked us to stop, and report what changed.
 
-> **Status: v1 — every run should improve this command.** Phase 7 captures what the run taught you. The classifier, the filters, and the protected list are all still being tuned.
+> **Status: v2, hardened by one full run on 2026-08-12** that took the queue from 2,703 to 906 and turned up six bugs. Phase 7 captures what each run teaches. The classifier, the filters, and the protected list are all still being tuned.
 
 Optional `$ARGUMENTS`:
 
@@ -50,6 +50,14 @@ in Gmail inbox = gmail_label_ids @> ARRAY['INBOX']
 
 Report: active total, unread total, inbox total, and a per-category breakdown. Then split it: **arrived since the last run** vs **backlog**. Most of this queue is archaeology, and a run that re-litigates 1,500 old threads every time is useless.
 
+**Check the classifier's health before trusting any category.** Count threads whose `agent_summary` is exactly:
+
+> This message needs human review; the support recommendation was unavailable.
+
+That string is the safe fallback. Every one of those threads was never classified. If the count is climbing, the classifier is broken, not the mail -- and every category number below it is understated. It reached **395 threads, a quarter of the queue**, before anyone noticed, because the failures pile into `other` and `other` looks like a category rather than a bug.
+
+**Baseline after the 2026-08-12 cleanup**, so a future run knows what normal looks like: active 906, unread 480, `other` 14, voicemail 425, provider 210, care_seeker 74, billing 67, legal 40.
+
 Chunk every `.in()` query at **200 IDs**. PostgREST silently returns `null` past roughly 400 -- it does not error. A `null` count is a failed query, not a zero.
 
 ---
@@ -84,7 +92,11 @@ Only after Phase 2. Produce the exact click-list, in order, with the numbers you
 
 Dry run first, always. The response carries a `confirmUrl` whose `confirm=` is the exact cohort size. Tell TJ to use the number the dry run returns, never a remembered one -- a mismatch 409s, which is the safety net working, not a failure.
 
+4. **Audit the mailbox's Gmail labels** — `/api/admin/support-email/labels`. Read-only; joins real label names and message counts with recency. There is no delete path, and there should not be: removing a Gmail label is irreversible and dissolves the grouping on every message that carried it.
+
 Prefix every URL with `https://olera.care`. Browser only.
+
+**After a large sweep the admin header will read "Catching up" for a while.** A batch of 1,000+ label changes lands in Gmail's history as very few records, and the sync worker walks one record per pass by design (`HISTORY_PAGE_SIZE = 1`). That is the bounded-sync fix doing its job, not a stall. Do not re-run anything to "help".
 
 **Confidence is the wrong gate for whole categories.** The early sweeps required ≥ 0.95 and a single-message thread. That is right when the question is "is this cold solicitation?", because a wrong answer buries a real person. It is wrong for categories nobody reads either way: a cold pitch does not become worth reading because the model was 0.92 sure, or because the sender followed up twice. Gate on *identity, voicemail and opt-out*; those are the guards that carry weight.
 
@@ -138,9 +150,20 @@ Every run should teach it something. Note anything worth folding back in:
 - A classification that was wrong in a way the filters do not catch.
 - A new opt-out or complaint phrasing worth adding to Phase 2.
 - A category that should join the protected list.
-- A bug in the endpoints themselves. Two were found by running this for real: the archive route re-offering work it had already done, and archiving destroying the `noise` classification.
+- A bug in the endpoints themselves. Six were found by running this for real, none by reading the code: `mark_handled` never touching Gmail, thread state resurrecting when someone merely read the mail, the archive route re-offering work it had already done, archiving destroying the `noise` classification, a JSON parse failure hiding a quarter of the mailbox, and an over-conservative confidence gate that spared cold spam nobody wanted.
 
 Propose the edit. Do not silently change the filters.
+
+### Re-classifying threads the classifier failed on
+
+When Phase 1 finds a pile of fallback summaries, they can be re-run in bulk **without waiting for new mail**, using the real classifier rather than a copy of its prompt:
+
+1. `lib/support-email/classify.server.ts` imports `server-only`, which does not resolve under `tsx`. Create a no-op shim at `node_modules/server-only/index.js` (gitignored, so it never ships) and the real module imports cleanly.
+2. Read each thread's messages, map them back to `NormalizedGmailMessage` shape, and call `classifySupportThread({ messages, identity })`.
+3. Write `category`, `priority`, `agent_summary`, `agent_reason`, `agent_confidence`, `suggested_action`, `agent_risk_flags`, `analyzed_at`, `analysis_message_id`, plus a `support_email_recommendations` row.
+4. **Do not touch `state`.** Re-reading a thread is not a triage decision; the sweeps own that and they have dry-run guards.
+
+Concurrency of 4 is comfortable. 395 threads cost a couple of dollars on Haiku and a few minutes.
 
 ---
 
@@ -154,4 +177,6 @@ Propose the edit. Do not silently change the filters.
 - **Crons run against production only.** Staging has no cron; use Sync now.
 - **Chunk `.in()` at 200.** Silent `null` past ~400.
 - **Opt-outs get suppressed, never buried.** The reply *is* the opt-out record.
+- **A big sweep costs the sync worker.** 1,000+ label changes land as very few Gmail history records; expect "Catching up" and let it drain.
+- **The queue is not the whole mailbox.** TJ's own Gmail labels sit outside it -- `Care Seekers` alone held 105 unread that no sweep ever saw. Say so rather than implying the inbox is clear.
 - **When a thread is ambiguous, surface it.** Cost of asking is one line; cost of burying a family is the whole product.

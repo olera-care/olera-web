@@ -102,8 +102,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch rows" }, { status: 500 });
   }
 
-  // Fetch primary contacts from student_outreach_contacts table
-  // (contact info is NOT stored on student_outreach itself)
+  // Fetch decision maker contacts from student_outreach_contacts table
   const { data: contactsData } = await db
     .from("student_outreach_contacts")
     .select("outreach_id, email, first_name, last_name, name")
@@ -125,6 +124,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Helper to extract general contact email from research_data
+  // (for providers that have no decision makers but have a general contact)
+  function getGeneralContactEmail(researchData: ResearchData): {
+    email: string | null;
+    firstName: string | null;
+  } {
+    const gc = researchData?.general_contact;
+    if (!gc?.email) return { email: null, firstName: null };
+    // General contact doesn't have first_name, but decision_maker might
+    const dm = researchData?.decision_maker;
+    const firstName = dm?.name?.split(" ")[0] ?? null;
+    return { email: gc.email, firstName };
+  }
+
   // Build preview data
   const prospects: ProspectPreview[] = [];
   const validRows: Array<{
@@ -140,9 +153,20 @@ export async function POST(req: NextRequest) {
     // Supabase nested selects return arrays; take first element
     const campusData = Array.isArray(row.campus) ? row.campus[0] : row.campus;
     const contact = contactByOutreach.get(row.id);
-    const email = contact?.email?.trim() || null;
-    const firstName = contact?.first_name ?? null;
-    const lastName = contact?.last_name ?? null;
+
+    // Try decision maker contact first, then fall back to general contact email
+    let email = contact?.email?.trim() || null;
+    let firstName = contact?.first_name ?? null;
+    let lastName = contact?.last_name ?? null;
+
+    if (!email) {
+      // No decision maker email — check general contact in research_data
+      const gc = getGeneralContactEmail(row.research_data);
+      email = gc.email?.trim() || null;
+      firstName = gc.firstName;
+      lastName = null; // General contact doesn't have structured name
+    }
+
     const campusInfo = campusData ?? { name: "Unknown Campus", slug: null, city: null };
 
     let skipReason: string | null = null;

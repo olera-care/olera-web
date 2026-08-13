@@ -15,7 +15,7 @@
  *   - dry_run=false for execution
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   reengagementIntroEmail,
   reengagementFinalEmail,
@@ -72,6 +72,16 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
 
   // Visual feedback for "Apply to all"
   const [applySuccess, setApplySuccess] = useState(false);
+  const applySuccessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (applySuccessTimeoutRef.current) {
+        clearTimeout(applySuccessTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Helper to generate default edits for a prospect
   const generateDefaultEdits = (prospect: ProspectPreview): ProspectEdits => {
@@ -215,48 +225,72 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
           let day7Subject = sourceEdits.day_7_subject;
           let day7Body = sourceEdits.day_7_body;
 
-          // Replace organization name
+          // Use placeholder tokens to avoid replacement corruption
+          // (e.g., if target org name contains source campus name)
+          const ORG_PLACEHOLDER = "___ORG_PLACEHOLDER_8x7k___";
+          const CAMPUS_PLACEHOLDER = "___CAMPUS_PLACEHOLDER_9y2m___";
+          const SALUTATION_PLACEHOLDERS: Record<string, string> = {};
+
+          // Step 1: Replace source values with placeholders
           if (selectedVars.organization_name !== vars.organization_name) {
             const regex = new RegExp(escapeRegex(selectedVars.organization_name), 'g');
-            day0Subject = day0Subject.replace(regex, vars.organization_name);
-            day0Body = day0Body.replace(regex, vars.organization_name);
-            day3Script = day3Script.replace(regex, vars.organization_name);
-            day7Subject = day7Subject.replace(regex, vars.organization_name);
-            day7Body = day7Body.replace(regex, vars.organization_name);
+            day0Subject = day0Subject.replace(regex, ORG_PLACEHOLDER);
+            day0Body = day0Body.replace(regex, ORG_PLACEHOLDER);
+            day3Script = day3Script.replace(regex, ORG_PLACEHOLDER);
+            day7Subject = day7Subject.replace(regex, ORG_PLACEHOLDER);
+            day7Body = day7Body.replace(regex, ORG_PLACEHOLDER);
           }
 
-          // Replace campus name
           if (selectedVars.campus_name !== vars.campus_name) {
             const regex = new RegExp(escapeRegex(selectedVars.campus_name), 'g');
-            day0Subject = day0Subject.replace(regex, vars.campus_name);
-            day0Body = day0Body.replace(regex, vars.campus_name);
-            day3Script = day3Script.replace(regex, vars.campus_name);
-            day7Subject = day7Subject.replace(regex, vars.campus_name);
-            day7Body = day7Body.replace(regex, vars.campus_name);
+            day0Subject = day0Subject.replace(regex, CAMPUS_PLACEHOLDER);
+            day0Body = day0Body.replace(regex, CAMPUS_PLACEHOLDER);
+            day3Script = day3Script.replace(regex, CAMPUS_PLACEHOLDER);
+            day7Subject = day7Subject.replace(regex, CAMPUS_PLACEHOLDER);
+            day7Body = day7Body.replace(regex, CAMPUS_PLACEHOLDER);
           }
 
-          // Replace salutation with common greeting patterns (fix #1 and #3)
-          // Matches: Hi/Hello/Dear {name}, or Hi/Hello/Dear {name}
+          // Replace salutation with placeholders
           if (selectedVars.salutation !== vars.salutation) {
             const greetings = ["Hi", "Hello", "Dear", "Hey"];
             for (const greeting of greetings) {
+              const placeholder = `___SAL_${greeting}_PLACEHOLDER___`;
+              SALUTATION_PLACEHOLDERS[placeholder] = `${greeting} ${vars.salutation}`;
+
               // With comma
               const regexWithComma = new RegExp(
                 `${greeting} ${escapeRegex(selectedVars.salutation)},`,
                 'g'
               );
-              day0Body = day0Body.replace(regexWithComma, `${greeting} ${vars.salutation},`);
-              day7Body = day7Body.replace(regexWithComma, `${greeting} ${vars.salutation},`);
+              day0Body = day0Body.replace(regexWithComma, `${placeholder},`);
+              day7Body = day7Body.replace(regexWithComma, `${placeholder},`);
 
               // Without comma (at end of line or before newline)
               const regexNoComma = new RegExp(
                 `${greeting} ${escapeRegex(selectedVars.salutation)}(?=\\n|$)`,
                 'g'
               );
-              day0Body = day0Body.replace(regexNoComma, `${greeting} ${vars.salutation}`);
-              day7Body = day7Body.replace(regexNoComma, `${greeting} ${vars.salutation}`);
+              day0Body = day0Body.replace(regexNoComma, placeholder);
+              day7Body = day7Body.replace(regexNoComma, placeholder);
             }
           }
+
+          // Step 2: Replace placeholders with target values
+          const replacePlaceholders = (text: string) => {
+            let result = text
+              .replace(new RegExp(escapeRegex(ORG_PLACEHOLDER), 'g'), vars.organization_name)
+              .replace(new RegExp(escapeRegex(CAMPUS_PLACEHOLDER), 'g'), vars.campus_name);
+            for (const [placeholder, value] of Object.entries(SALUTATION_PLACEHOLDERS)) {
+              result = result.replace(new RegExp(escapeRegex(placeholder), 'g'), value);
+            }
+            return result;
+          };
+
+          day0Subject = replacePlaceholders(day0Subject);
+          day0Body = replacePlaceholders(day0Body);
+          day3Script = replacePlaceholders(day3Script);
+          day7Subject = replacePlaceholders(day7Subject);
+          day7Body = replacePlaceholders(day7Body);
 
           next.set(p.id, {
             day_0_subject: day0Subject,
@@ -272,9 +306,12 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
       return next;
     });
 
-    // Show success feedback
+    // Show success feedback (with cleanup)
+    if (applySuccessTimeoutRef.current) {
+      clearTimeout(applySuccessTimeoutRef.current);
+    }
     setApplySuccess(true);
-    setTimeout(() => setApplySuccess(false), 2000);
+    applySuccessTimeoutRef.current = setTimeout(() => setApplySuccess(false), 2000);
   };
 
   // Get current prospect's edits (or generated preview)
@@ -471,7 +508,7 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
                               : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                           }`}
                         >
-                          {applySuccess ? "✓ Applied!" : `Apply to all (${validCount})`}
+                          {applySuccess ? "✓ Applied!" : `Apply to all (${validCount - 1})`}
                         </button>
                       )}
                       <button

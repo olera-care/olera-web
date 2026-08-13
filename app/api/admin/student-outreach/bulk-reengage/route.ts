@@ -28,9 +28,21 @@ import {
   type TemplateContext,
 } from "@/lib/student-outreach/templates";
 import { nextBusinessDayET } from "@/lib/student-outreach/business-day";
-import type { OutreachRow, ResearchData } from "@/lib/student-outreach/types";
+import type { ResearchData, StakeholderType } from "@/lib/student-outreach/types";
 
 type DB = ReturnType<typeof getServiceClient>;
+
+// Minimal type for rows returned from our selective query
+interface OutreachRowPartial {
+  id: string;
+  organization_name: string;
+  status: string;
+  stakeholder_type: StakeholderType | null;
+  kind: string;
+  research_data: ResearchData;
+  campus_id: string;
+  campus: { id: string; name: string; slug: string | null; city: string | null }[] | null;
+}
 const DAY_MS = 86_400_000;
 
 // Statuses eligible for re-engagement (follow-up tab rows that completed cadence)
@@ -76,15 +88,11 @@ export async function POST(req: NextRequest) {
 
   const db = getServiceClient();
 
-  // Fetch all rows with campus info
-  // Note: primary_contact_phone is not stored on student_outreach table.
-  // It would need to be fetched from student_outreach_contacts. For now,
-  // call tasks will have null phone - the admin can view it in the drawer.
+  // Fetch outreach rows with campus info
   const { data: rowsData, error: fetchErr } = await db
     .from("student_outreach")
     .select(`
       id, organization_name, status, stakeholder_type, kind,
-      primary_contact_email, primary_contact_first_name, primary_contact_last_name,
       research_data, campus_id,
       campus:student_outreach_campuses!campus_id(id, name, slug, city)
     `)
@@ -94,19 +102,48 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to fetch rows" }, { status: 500 });
   }
 
+  // Fetch primary contacts from student_outreach_contacts table
+  // (contact info is NOT stored on student_outreach itself)
+  const { data: contactsData } = await db
+    .from("student_outreach_contacts")
+    .select("outreach_id, email, first_name, last_name, name")
+    .in("outreach_id", ids)
+    .eq("status", "active");
+
+  type ContactRow = {
+    outreach_id: string;
+    email: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    name: string | null;
+  };
+  const contactByOutreach = new Map<string, ContactRow>();
+  for (const c of (contactsData ?? []) as ContactRow[]) {
+    // Take the first active contact per outreach
+    if (!contactByOutreach.has(c.outreach_id)) {
+      contactByOutreach.set(c.outreach_id, c);
+    }
+  }
+
   // Build preview data
   const prospects: ProspectPreview[] = [];
   const validRows: Array<{
-    row: OutreachRow;
+    row: OutreachRowPartial;
     campus: { name: string; slug: string | null; city: string | null };
     email: string;
     first_name: string | null;
+    last_name: string | null;
   }> = [];
 
   for (const r of rowsData) {
-    const row = r as OutreachRow & { campus: { id: string; name: string; slug: string | null; city: string | null } | null };
-    const email = row.primary_contact_email?.trim() || null;
-    const campusInfo = row.campus ?? { name: "Unknown Campus", slug: null, city: null };
+    const row = r as OutreachRowPartial;
+    // Supabase nested selects return arrays; take first element
+    const campusData = Array.isArray(row.campus) ? row.campus[0] : row.campus;
+    const contact = contactByOutreach.get(row.id);
+    const email = contact?.email?.trim() || null;
+    const firstName = contact?.first_name ?? null;
+    const lastName = contact?.last_name ?? null;
+    const campusInfo = campusData ?? { name: "Unknown Campus", slug: null, city: null };
 
     let skipReason: string | null = null;
     if (!email) {
@@ -120,7 +157,7 @@ export async function POST(req: NextRequest) {
       organization_name: row.organization_name,
       campus_name: campusInfo.name,
       email,
-      first_name: row.primary_contact_first_name ?? null,
+      first_name: firstName,
       valid: skipReason === null,
       skip_reason: skipReason,
     });
@@ -130,7 +167,8 @@ export async function POST(req: NextRequest) {
         row,
         campus: campusInfo,
         email,
-        first_name: row.primary_contact_first_name ?? null,
+        first_name: firstName,
+        last_name: lastName,
       });
     }
   }
@@ -177,7 +215,7 @@ export async function POST(req: NextRequest) {
   const results: Array<{ id: string; ok: boolean; reason?: string }> = [];
   const now = Date.now();
 
-  for (const { row, campus, email, first_name } of validRows) {
+  for (const { row, campus, email, first_name, last_name } of validRows) {
     try {
       const ok = await enrollReengagement(
         db,
@@ -185,6 +223,7 @@ export async function POST(req: NextRequest) {
         campus,
         email,
         first_name,
+        last_name,
         assignedTo,
         adminFirstName,
         now,
@@ -212,10 +251,11 @@ export async function POST(req: NextRequest) {
 
 async function enrollReengagement(
   db: DB,
-  row: OutreachRow,
+  row: OutreachRowPartial,
   campus: { name: string; slug: string | null; city: string | null },
   email: string,
   firstName: string | null,
+  lastName: string | null,
   assignedTo: string,
   adminFirstName: string,
   now: number,
@@ -273,7 +313,7 @@ async function enrollReengagement(
       recipient: {
         email,
         first_name: firstName,
-        last_name: row.primary_contact_last_name ?? null,
+        last_name: lastName,
         contact_id: null,
       },
       is_partner: row.kind !== "provider",

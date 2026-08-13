@@ -690,6 +690,11 @@ function ClosedBody({
     : null;
   const reasonLabel = closedReasonLabel(ctx.outreach.status);
 
+  // Get primary contact from contacts array (contact info is NOT on outreach row)
+  const primaryContact = ctx.contacts.find((c) => c.is_primary && c.status === "active")
+    ?? ctx.contacts.find((c) => c.status === "active")
+    ?? null;
+
   const reopen = async () => {
     setReopening(true);
     setError(null);
@@ -711,7 +716,7 @@ function ClosedBody({
       admin_first_name: "Graize",
     };
 
-    const firstName = ctx.outreach.primary_contact_first_name ?? null;
+    const firstName = primaryContact?.first_name ?? null;
     const vars = {
       salutation: firstName ?? "there",
       first_name: firstName ?? undefined,
@@ -785,8 +790,8 @@ function ClosedBody({
 
       {showReengage && (
         <CustomCadenceModal
-          recipientName={ctx.outreach.primary_contact_first_name ?? ctx.outreach.organization_name}
-          recipientEmail={ctx.outreach.primary_contact_email ?? null}
+          recipientName={primaryContact?.first_name ?? ctx.outreach.organization_name}
+          recipientEmail={primaryContact?.email ?? null}
           initialSteps={buildReengagementSteps()}
           initialName="Re-engagement"
           onCancel={() => setShowReengage(false)}

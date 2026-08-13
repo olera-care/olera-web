@@ -640,6 +640,8 @@ export interface TabUnreadCounts {
   // v9.0 Phase 7: Sites = the renamed Campuses tab + new Site-task
   // surfacing. Same numeric shape as campuses.
   sites?: number;
+  // Follow-up tab: unread count for no_response_closed rows
+  followup?: number;
 }
 
 /** What the drawer needs to render every section. */

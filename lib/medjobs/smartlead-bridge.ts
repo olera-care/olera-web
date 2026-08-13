@@ -415,7 +415,7 @@ export function buildEmailSequence(
   // greeting baked into the body before the per-lead {{salutation}}
   // substitution takes over.
   const ctxStakeholderType: StakeholderType =
-    cadenceKey === "activation" || cadenceKey === "partner_welcome"
+    cadenceKey === "activation" || cadenceKey === "partner_welcome" || cadenceKey === "reengagement"
       ? opts.stakeholderType ?? "student_org"
       : cadenceKey === "provider"
         ? "student_org"

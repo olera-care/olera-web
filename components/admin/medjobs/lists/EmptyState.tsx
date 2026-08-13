@@ -52,6 +52,7 @@ export function EmptyState({
     sites: "No sites need research or have open tasks.",
     campuses: "No sites configured yet.",
     archive: "Archive is empty — no stale or no-response outreach yet.",
+    followup: "No follow-up rows. Rows appear here when their cadence completes without a reply.",
     all: "No matches.",
     outbound: "Coming soon — outbound activity log.",
     emails_sent: "Coming soon — email-send log.",

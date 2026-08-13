@@ -51,6 +51,12 @@ export interface WarRoomGrowthWeek {
   anomalies: string[];
 }
 
+export interface WarRoomAction {
+  label: string;
+  detail: string;
+  href: string;
+}
+
 export interface WarRoomRecommendation {
   key: string;
   eyebrow: string;
@@ -61,6 +67,7 @@ export interface WarRoomRecommendation {
   confidence: "high" | "medium" | "low";
   evidence: string[];
   href: string;
+  actions: WarRoomAction[];
 }
 
 export interface WarRoomDecision {
@@ -92,6 +99,8 @@ export interface WarRoomAiRecommendation {
   counterEvidence: string;
   whatWouldChangeOurMind: string;
   href: string;
+  /** Optional for backwards compatibility with briefings saved before actions existed. */
+  actions?: WarRoomAction[];
 }
 
 export interface WarRoomBriefing {

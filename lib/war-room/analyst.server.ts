@@ -30,6 +30,7 @@ Rules:
 - Prefer causal hypotheses and contradictions over metric recitation.
 - State counter-evidence and what would change your mind.
 - Recommend one move that can be owned and acted on now. The kill list must be specific.
+- Include a 2-4 step execution plan. Every step must say what to do, where to do it through an exact admin href, and what outcome advances the work. Do not tell the operator to "investigate" without a concrete first action.
 - Return the briefing only through the provided tool.`;
 
 const CRITIC_SYSTEM = `You are the skeptical partner in Olera's War Room. Your job is to stop a persuasive but wrong strategy memo from reaching the team.
@@ -52,8 +53,23 @@ const RECOMMENDATION_SCHEMA = {
     counterEvidence: { type: "string", maxLength: 700 },
     whatWouldChangeOurMind: { type: "string", maxLength: 700 },
     href: { type: "string", pattern: "^/admin/" },
+    actions: {
+      type: "array",
+      minItems: 2,
+      maxItems: 4,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          label: { type: "string", maxLength: 120 },
+          detail: { type: "string", maxLength: 500 },
+          href: { type: "string", pattern: "^/admin/" },
+        },
+        required: ["label", "detail", "href"],
+      },
+    },
   },
-  required: ["eyebrow", "title", "verdict", "move", "kill", "confidence", "evidenceIds", "counterEvidence", "whatWouldChangeOurMind", "href"],
+  required: ["eyebrow", "title", "verdict", "move", "kill", "confidence", "evidenceIds", "counterEvidence", "whatWouldChangeOurMind", "href", "actions"],
 } as const;
 
 const OBSERVATION_SCHEMA = {
@@ -202,20 +218,28 @@ function validateBriefing(draft: AnalystDraft, citations: WarRoomCitation[]): An
   const evidenceIds = cleanIds(draft.recommendation.evidenceIds ?? []);
   if (evidenceIds.length < 2) throw new Error("war_room_insufficient_valid_citations");
   const validHrefs = new Set(citations.flatMap((citation) => citation.href ? [citation.href] : []));
+  const validPaths = new Set([...validHrefs].map((candidate) => candidate.split("?")[0]));
   const firstEvidenceHref = citations.find((citation) => evidenceIds.includes(citation.id))?.href;
-  const href = validHrefs.has(draft.recommendation.href)
+  const isKnownAdminHref = (candidate: string) =>
+    candidate.startsWith("/admin/") && validPaths.has(candidate.split("?")[0]);
+  const href = isKnownAdminHref(draft.recommendation.href)
     ? draft.recommendation.href
     : firstEvidenceHref ?? "/admin";
   if (!(["high", "medium", "low"] as string[]).includes(draft.recommendation.confidence)) {
     throw new Error("war_room_invalid_confidence");
   }
+  const actions = (draft.recommendation.actions ?? []).map((action) => ({
+    ...action,
+    href: isKnownAdminHref(action.href) ? action.href : href,
+  })).filter((action) => action.label?.trim() && action.detail?.trim()).slice(0, 4);
+  if (actions.length < 2) throw new Error("war_room_insufficient_actions");
   const observations = (draft.observations ?? []).map((observation) => ({
     ...observation,
     evidenceIds: cleanIds(observation.evidenceIds ?? []),
   })).filter((observation) => observation.evidenceIds.length > 0);
   if (observations.length < 2) throw new Error("war_room_insufficient_observations");
   return {
-    recommendation: { ...draft.recommendation, evidenceIds, href },
+    recommendation: { ...draft.recommendation, evidenceIds, href, actions },
     observations,
     questionsToResolve: (draft.questionsToResolve ?? []).filter(Boolean).slice(0, 5),
   };

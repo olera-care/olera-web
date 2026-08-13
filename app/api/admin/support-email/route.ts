@@ -14,6 +14,7 @@ const DATE_WINDOWS: Record<string, number> = {
   "30d": 30,
   "90d": 90,
 };
+const PRIORITIES = new Set(["low", "normal", "high", "urgent"]);
 
 async function adminOrResponse() {
   const user = await getAuthUser();
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
     const category = request.nextUrl.searchParams.get("category") ?? "all";
     const dateWindow = request.nextUrl.searchParams.get("date") ?? "all";
     const unreadOnly = request.nextUrl.searchParams.get("unread") === "true";
+    const priority = request.nextUrl.searchParams.get("priority") ?? "all";
     const oldestFirst = request.nextUrl.searchParams.get("sort") === "oldest";
     let query = db
       .from("support_email_threads")
@@ -55,6 +57,14 @@ export async function GET(request: NextRequest) {
     if (view === "needs_reply") query = query.in("state", ["needs_reply", "escalated"]);
     else if (["handled", "noise", "escalated", "snoozed"].includes(view)) query = query.eq("state", view);
     if (unreadOnly) query = query.eq("unread", true);
+    if (priority === "urgent") {
+      // War Room defines the urgent operating queue as explicitly urgent
+      // threads plus anything already escalated. Keep this deep link aligned
+      // with the count that produced the recommendation.
+      query = query.or("priority.eq.urgent,state.eq.escalated");
+    } else if (PRIORITIES.has(priority)) {
+      query = query.eq("priority", priority);
+    }
     if (CATEGORIES.has(category)) query = query.eq("category", category);
     if (DATE_WINDOWS[dateWindow]) {
       const since = new Date(Date.now() - DATE_WINDOWS[dateWindow] * 24 * 60 * 60 * 1_000);

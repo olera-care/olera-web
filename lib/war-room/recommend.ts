@@ -161,6 +161,23 @@ export function chooseWarRoomRecommendation(facts: WarRoomFacts): WarRoomRecomme
         `${facts.supportUnhandled} current threads needing attention`,
       ],
       href: "/admin/support-email",
+      actions: [
+        {
+          label: `Open ${number(facts.supportUrgent)} urgent thread${facts.supportUrgent === 1 ? "" : "s"}`,
+          detail: "Start with the oldest. Reply when Olera owns the answer; escalate when another owner is required; mark handled only when the customer has a real next step.",
+          href: "/admin/support-email?view=needs_reply&priority=urgent&sort=oldest",
+        },
+        {
+          label: "Name the owner before leaving the thread",
+          detail: "No orphaned escalation. Every unresolved thread needs a person responsible for the next response and a clear handoff in the conversation.",
+          href: "/admin/support-email?view=needs_reply&priority=urgent&sort=oldest",
+        },
+        {
+          label: "Return when the urgent count is zero",
+          detail: "Refresh War Room, verify the urgent backlog cleared, then mark this move complete. If the same failure repeats, that pattern becomes the next product or operations fix.",
+          href: "/admin/war-room",
+        },
+      ],
     };
   }
 
@@ -182,6 +199,23 @@ export function chooseWarRoomRecommendation(facts: WarRoomFacts): WarRoomRecomme
         `${number(facts.adBoostEndedUnpaid)} ended campaigns without an active plan`,
       ],
       href: "/admin/ad-boost",
+      actions: [
+        {
+          label: "Open the warmest unpaid campaign",
+          detail: "Start with an ended campaign that delivered visible value and still has no active plan. Do not spray a generic pitch across the whole queue.",
+          href: "/admin/ad-boost",
+        },
+        {
+          label: "Ask for the paid plan directly",
+          detail: "Contact the provider, name the value already delivered, offer the correct monthly plan, and ask for a yes or no—not vague feedback.",
+          href: "/admin/ad-boost",
+        },
+        {
+          label: "Record the objection verbatim",
+          detail: "Put the exact objection in the campaign admin note. Change the offer only after the queue shows a repeated pattern, not after one uncomfortable call.",
+          href: "/admin/ad-boost",
+        },
+      ],
     };
   }
 
@@ -200,6 +234,23 @@ export function chooseWarRoomRecommendation(facts: WarRoomFacts): WarRoomRecomme
         `${percent(facts.questionsAnswered, facts.questions)} response rate`,
       ],
       href: "/admin/questions",
+      actions: [
+        {
+          label: "Open the unanswered question queue",
+          detail: "Work the oldest high-intent questions first. Confirm whether the provider has a usable email and whether outreach has already happened.",
+          href: "/admin/questions",
+        },
+        {
+          label: "Get the provider to an answer",
+          detail: "Send or retry the provider outreach, resolve bad contact data, and close questions that cannot honestly be answered instead of letting them rot.",
+          href: "/admin/questions",
+        },
+        {
+          label: "Write down the repeated blocker",
+          detail: "After ten threads, identify the dominant failure—bad email, weak prompt, or provider apathy—and fix that constraint rather than adding more demand.",
+          href: "/admin/questions",
+        },
+      ],
     };
   }
 
@@ -216,6 +267,23 @@ export function chooseWarRoomRecommendation(facts: WarRoomFacts): WarRoomRecomme
       confidence: "high",
       evidence: [growthAgeDays == null ? "No live growth collection" : `Growth data is ${growthAgeDays} days old`],
       href: "/admin/organic-growth",
+      actions: [
+        {
+          label: "Open the canonical growth report",
+          detail: "Check the latest week ending date and source-health indicators before interpreting any traffic movement.",
+          href: "/admin/organic-growth",
+        },
+        {
+          label: "Refresh the weekly metrics source",
+          detail: "Run the canonical metrics collection, then verify GA4, Search Console, and marketplace outcomes describe the same reporting week.",
+          href: "/admin/organic-growth",
+        },
+        {
+          label: "Re-run War Room with current evidence",
+          detail: "Return only after the fresh snapshot exists. The next recommendation should be based on the corrected week, not this telemetry warning.",
+          href: "/admin/war-room",
+        },
+      ],
     };
   }
 
@@ -233,5 +301,22 @@ export function chooseWarRoomRecommendation(facts: WarRoomFacts): WarRoomRecomme
       `${number(facts.activeProviders)} meaningfully active providers`,
     ],
     href: "/admin/activity?actor=providers",
+    actions: [
+      {
+        label: "Find the providers already responding",
+        detail: "Open provider activity and identify the people answering questions or opening leads fastest. They are the working behavior to copy.",
+        href: "/admin/activity?actor=providers",
+      },
+      {
+        label: "Inspect the unanswered demand",
+        detail: "Compare those responders with the oldest unanswered questions and unworked connections. Find the step where everyone else stalls.",
+        href: "/admin/questions",
+      },
+      {
+        label: "Remove one response step",
+        detail: "Choose one concrete friction point, assign an owner, and measure whether provider response improves before adding more acquisition.",
+        href: "/admin/connections?direction=inbound",
+      },
+    ],
   };
 }

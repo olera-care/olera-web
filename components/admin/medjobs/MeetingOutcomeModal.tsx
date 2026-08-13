@@ -38,20 +38,23 @@ function isPartnerRow(ctx: DrawerContext): boolean {
 
 /** Grey details box mirroring CallScriptBlock — the meeting's time + attendee. */
 function MeetingBlock({ ctx, attendee }: { ctx: DrawerContext; attendee: string | null }) {
+  const isInFlight = ctx.meeting_state === "in_flight";
   const when =
     ctx.meeting_state === "scheduled" && ctx.meeting_at
       ? formatLongDate(ctx.meeting_at)
-      : "On the calendar";
+      : isInFlight
+        ? "Finding a time…"
+        : "On the calendar";
 
   return (
     <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        📅 Booked
+        {isInFlight ? "🔄 Rescheduling" : "📅 Booked"}
       </p>
       <p className="mt-1 text-[12px] leading-relaxed text-gray-700">{when}</p>
       {attendee && (
         <p className="mt-0.5 text-[12px] leading-relaxed text-gray-500">
-          Attendee: {attendee}
+          {isInFlight ? "Contact" : "Attendee"}: {attendee}
         </p>
       )}
     </section>

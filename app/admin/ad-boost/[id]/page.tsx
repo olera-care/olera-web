@@ -12,6 +12,8 @@ import {
   CHANNELS,
   StatusBadge,
   PhotoReadinessBadge,
+  adBudgetLabel,
+  channelLabel,
   utmUrl,
   fmtTimestamp,
   fmtDateOnly,
@@ -141,7 +143,12 @@ function Detail({
   const [status, setStatus] = useState(request.status);
   const [channel, setChannel] = useState(request.channel ?? "");
   const [setupWeek, setSetupWeek] = useState(request.requested_setup_week);
+  const [flightStart, setFlightStart] = useState(request.flight_start_date ?? "");
   const [flightEnd, setFlightEnd] = useState(request.flight_end_date ?? "");
+  const [flightBudget, setFlightBudget] = useState(
+    request.ad_budget_cents != null ? (request.ad_budget_cents / 100).toString() : "",
+  );
+  const [budgetType, setBudgetType] = useState(request.ad_budget_type ?? "");
   const [tag, setTag] = useState(request.campaign_tag ?? "");
   const [note, setNote] = useState(request.admin_note ?? "");
   // Launch-email schedule: datetime-local as US EASTERN wall-clock (TJ
@@ -190,7 +197,7 @@ function Detail({
 
   const isArchived = !!request.deleted_at;
   const name = request.display_name || request.provider_slug || request.provider_id;
-  const url = utmUrl(request.provider_slug, tag, request.id);
+  const url = utmUrl(request.provider_slug, tag, request.id, channel || null);
   const unresolvedOutcomes = receipt?.outcomes.unanswered ?? 0;
   const journeyStates = getAdBoostJourneyStates(request, communications, {
     leadCount: leads.length,
@@ -208,6 +215,15 @@ function Detail({
   const spendNum = spend.trim() === "" ? null : Number(spend);
   const clicksNum = clicks.trim() === "" ? null : Number(clicks);
   const impressionsNum = impressions.trim() === "" ? null : Number(impressions);
+  const flightBudgetNum = flightBudget.trim() === "" ? null : Number(flightBudget);
+  const flightBudgetCents =
+    flightBudgetNum != null && Number.isFinite(flightBudgetNum)
+      ? Math.round(flightBudgetNum * 100)
+      : null;
+  const costPerClick =
+    spendNum != null && spendNum > 0 && clicksNum != null && clicksNum > 0
+      ? spendNum / clicksNum
+      : null;
   const costPerFamily =
     spendNum != null && spendNum > 0 && delivered > 0 ? spendNum / delivered : null;
   const perfDirty =
@@ -233,13 +249,31 @@ function Detail({
     status !== request.status ||
     channel !== (request.channel ?? "") ||
     setupWeek !== request.requested_setup_week ||
+    flightStart !== (request.flight_start_date ?? "") ||
     flightEnd !== (request.flight_end_date ?? "") ||
+    flightBudgetCents !== request.ad_budget_cents ||
+    budgetType !== (request.ad_budget_type ?? "") ||
     tag !== (request.campaign_tag ?? "") ||
     note !== (request.admin_note ?? "") ||
     launchEmailDirty ||
     wrapUpDirty;
 
   const save = async () => {
+    if (
+      flightBudgetNum != null &&
+      (!Number.isFinite(flightBudgetNum) || flightBudgetCents == null || flightBudgetCents <= 0)
+    ) {
+      setMsg("Flight budget must be greater than zero");
+      return;
+    }
+    if (flightBudgetNum != null && !budgetType) {
+      setMsg("Choose whether the ad-platform budget is daily or a lifetime cap");
+      return;
+    }
+    if (flightBudgetNum == null && budgetType) {
+      setMsg("Enter the ad-platform budget amount");
+      return;
+    }
     setSaving(true);
     setMsg(null);
     try {
@@ -251,7 +285,10 @@ function Detail({
           status,
           channel: channel || null,
           requested_setup_week: setupWeek,
+          flight_start_date: flightStart || null,
           flight_end_date: flightEnd || null,
+          ad_budget_cents: flightBudgetCents,
+          ad_budget_type: budgetType || null,
           campaign_tag: tag || null,
           admin_note: note || null,
           // Only when touched: re-sending a stored time would trip the
@@ -552,7 +589,7 @@ function Detail({
       {/* Campaign setup */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Campaign setup</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <label className="text-sm">
             <span className="block text-gray-500 mb-1">Status</span>
             <select
@@ -583,16 +620,25 @@ function Detail({
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
             >
               {CHANNELS.map((c) => (
-                <option key={c} value={c}>{c || "—"}</option>
+                <option key={c} value={c}>{channelLabel(c || null) ?? "—"}</option>
               ))}
             </select>
           </label>
           <label className="text-sm">
-            <span className="block text-gray-500 mb-1">Setup week</span>
+            <span className="block text-gray-500 mb-1">Requested setup week</span>
             <input
               type="date"
               value={setupWeek}
               onChange={(e) => setSetupWeek(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Flight start (from ad platform)</span>
+            <input
+              type="date"
+              value={flightStart}
+              onChange={(e) => setFlightStart(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
             />
           </label>
@@ -608,6 +654,41 @@ function Detail({
               Last serving day. The campaign auto-ends the morning after, and the wrap-up
               email schedules itself. Leave blank and it never auto-ends.
             </span>
+          </label>
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Ad-platform budget ($)</span>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={flightBudget}
+              onChange={(e) => setFlightBudget(e.target.value)}
+              placeholder="50.00"
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            />
+          </label>
+          <label className="text-sm">
+            <span className="block text-gray-500 mb-1">Budget control</span>
+            <select
+              value={budgetType}
+              onChange={(e) => setBudgetType(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
+            >
+              <option value="">—</option>
+              <option value="lifetime">Lifetime cap</option>
+              <option value="daily">Daily budget</option>
+            </select>
+            {flightBudgetCents != null && (
+              <span className="mt-1 block text-xs text-gray-400">
+                {adBudgetLabel(
+                  flightBudgetCents,
+                  budgetType === "daily" || budgetType === "lifetime" ? budgetType : null,
+                )}
+              </span>
+            )}
           </label>
         </div>
 
@@ -894,8 +975,14 @@ function Detail({
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Performance</h2>
 
-        {/* Three at-a-glance stats */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        {/* Cross-channel read: spend and CPC make the Nextdoor pilot directly
+            comparable with the existing Google flights. */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+          <Stat value={spendNum != null ? `$${spendNum.toFixed(2)}` : "—"} label="Spend" />
+          <Stat
+            value={costPerClick != null ? `$${costPerClick.toFixed(2)}` : "—"}
+            label="Cost / click"
+          />
           <Stat value={String(delivered)} label="Families delivered" accent />
           <Stat value={clicksNum != null ? clicksNum.toLocaleString() : "—"} label="Clicks" />
           <Stat
@@ -953,7 +1040,7 @@ function Detail({
             {savingPerf ? "Saving…" : "Save metrics"}
           </button>
           <span className="text-xs text-gray-400">
-            Enter spend, clicks &amp; impressions from the Google/Meta dashboards.
+            Enter spend, clicks &amp; impressions from the Google, Meta, or Nextdoor dashboard.
             Impressions top the provider&apos;s demand receipt; cost per family is
             computed against delivered families.
           </span>

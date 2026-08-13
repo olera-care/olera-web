@@ -39,6 +39,7 @@ type CampaignRow = {
   provider_slug: string | null;
   display_name: string | null;
   requested_setup_week: string | null;
+  flight_start_date?: string | null;
   channel: string | null;
   campaign_tag: string | null;
   intended_monthly_budget: number | null;
@@ -125,7 +126,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
   }
 
   const since = new Date(
-    opts.request.requested_setup_week || new Date().toISOString(),
+    opts.request.flight_start_date || opts.request.requested_setup_week || new Date().toISOString(),
   ).toISOString();
   const providerIdVariants = [opts.request.provider_slug || "", opts.request.provider_id];
   const [stats, questions] = await Promise.all([
@@ -144,6 +145,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
           provider_slug: opts.request.provider_slug,
           campaign_tag: opts.request.campaign_tag,
           requested_setup_week: opts.request.requested_setup_week,
+          flight_start_date: opts.request.flight_start_date,
           created_at: opts.request.created_at || new Date().toISOString(),
           ad_impressions: opts.request.ad_impressions ?? null,
           ad_clicks: opts.request.ad_clicks,

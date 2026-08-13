@@ -7,6 +7,7 @@ import {
   STATUS_LABELS,
   StatusBadge,
   PhotoReadinessBadge,
+  adBudgetLabel,
   channelLabel,
   fmtDateOnly,
   fmtTimestamp,
@@ -254,6 +255,7 @@ function RequestRow({
   const isArchived = !!request.deleted_at;
   const name = request.display_name || request.provider_slug || request.provider_id;
   const channel = channelLabel(request.channel);
+  const configuredBudget = adBudgetLabel(request.ad_budget_cents, request.ad_budget_type);
   // Soft delete / restore — flips deleted_at via POST. Reversible.
   const setArchived = async (archived: boolean) => {
     setBusy(true);
@@ -352,13 +354,19 @@ function RequestRow({
           emphasize
         />
 
-        {/* Flight — start (setup week) through the ad platform's end date. */}
+        {/* Flight — actual ad-platform dates when known, with the provider's
+            requested setup week as the legacy fallback. */}
         <div className="text-sm text-gray-600">
           <span className="lg:hidden text-gray-400">Flight: </span>
-          {fmtDateOnly(request.requested_setup_week)}
+          {fmtDateOnly(request.flight_start_date ?? request.requested_setup_week)}
           {request.flight_end_date && (
             <span className="block text-[11px] leading-tight text-gray-400">
               ends {fmtDateOnly(request.flight_end_date)}
+            </span>
+          )}
+          {configuredBudget && (
+            <span className="block text-[11px] leading-tight text-gray-400">
+              {configuredBudget}
             </span>
           )}
         </div>

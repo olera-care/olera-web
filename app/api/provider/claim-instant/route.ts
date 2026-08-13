@@ -439,6 +439,60 @@ export async function POST(request: Request) {
       }
     }
 
+    // 8c. Update provider_outreach_tracking to "claimed" stage
+    // This ensures the tracking table stays in sync with actual claim state
+    // Only applies to claims of existing directory providers (not new orgs)
+    if (!isNewOrg && providerId) {
+      try {
+        const nowIso = new Date().toISOString();
+
+        // Look up existing tracking row
+        const { data: trackingRow } = await supabaseAdmin
+          .from("provider_outreach_tracking")
+          .select("id, stage")
+          .eq("provider_id", providerId)
+          .maybeSingle();
+
+        if (trackingRow && trackingRow.stage !== "claimed") {
+          const oldStage = trackingRow.stage;
+
+          // Update tracking row to claimed (with race condition guard)
+          const { error: updateErr, count } = await supabaseAdmin
+            .from("provider_outreach_tracking")
+            .update({
+              stage: "claimed",
+              claimed_at: nowIso,
+              stage_changed_at: nowIso,
+            })
+            .eq("id", trackingRow.id)
+            .neq("stage", "claimed"); // Atomic guard: only update if not already claimed
+
+          if (updateErr) {
+            console.error("[claim-instant] Failed to update tracking to claimed:", updateErr.message);
+          } else if (count && count > 0) {
+            // Only log touchpoint if update actually changed something
+            console.log("[claim-instant] Updated provider_outreach_tracking to claimed:", providerId);
+
+            await supabaseAdmin.from("provider_outreach_touchpoints").insert({
+              provider_id: providerId,
+              touchpoint_type: "stage_changed",
+              details: {
+                old_stage: oldStage,
+                new_stage: "claimed",
+                source: "instant_claim",
+                auto_updated: true,
+              },
+              admin_user_id: null, // System-triggered, not admin action
+              created_at: nowIso,
+            });
+          }
+        }
+      } catch (trackingErr) {
+        // Non-fatal: log but don't fail the claim
+        console.error("[claim-instant] Error updating outreach tracking:", trackingErr);
+      }
+    }
+
     // ──────────────────────────────────────────────────────────
     // 9. Email + marketing-loop notifications (fire-and-forget)
     // ──────────────────────────────────────────────────────────

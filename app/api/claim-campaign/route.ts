@@ -559,6 +559,60 @@ export async function GET(request: NextRequest) {
         console.error("[claim-campaign] Slack suspicious claim alert failed:", slackErr);
       }
     }
+
+    // Update provider_outreach_tracking to "claimed" stage
+    // This ensures the tracking table stays in sync with actual claim state
+    const sourceProviderId = providerProfile.source_provider_id;
+    if (sourceProviderId) {
+      try {
+        const nowIso = new Date().toISOString();
+
+        // Look up existing tracking row
+        const { data: trackingRow } = await admin
+          .from("provider_outreach_tracking")
+          .select("id, stage")
+          .eq("provider_id", sourceProviderId)
+          .maybeSingle();
+
+        if (trackingRow && trackingRow.stage !== "claimed") {
+          const oldStage = trackingRow.stage;
+
+          // Update tracking row to claimed (with race condition guard)
+          const { error: updateErr, count } = await admin
+            .from("provider_outreach_tracking")
+            .update({
+              stage: "claimed",
+              claimed_at: nowIso,
+              stage_changed_at: nowIso,
+            })
+            .eq("id", trackingRow.id)
+            .neq("stage", "claimed"); // Atomic guard: only update if not already claimed
+
+          if (updateErr) {
+            console.error("[claim-campaign] Failed to update tracking to claimed:", updateErr.message);
+          } else if (count && count > 0) {
+            // Only log touchpoint if update actually changed something
+            console.log("[claim-campaign] Updated provider_outreach_tracking to claimed:", sourceProviderId);
+
+            await admin.from("provider_outreach_touchpoints").insert({
+              provider_id: sourceProviderId,
+              touchpoint_type: "stage_changed",
+              details: {
+                old_stage: oldStage,
+                new_stage: "claimed",
+                source: "cold_outreach_claim",
+                auto_updated: true,
+              },
+              admin_user_id: null, // System-triggered, not admin action
+              created_at: nowIso,
+            });
+          }
+        }
+      } catch (trackingErr) {
+        // Non-fatal: log but don't fail the claim
+        console.error("[claim-campaign] Error updating outreach tracking:", trackingErr);
+      }
+    }
   }
 
   console.log("[claim-campaign] success, redirecting to:", redirectTarget.toString());

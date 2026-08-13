@@ -7,11 +7,12 @@
  * then the outcome cards that advance the row after the meeting:
  *   Interested / went well → log the meeting + open the Activation launch modal
  *   ★ Make partner          → log the meeting + capture evidence + mark_partner
- *   No-show / reschedule    → log a no-show; the row stays for you to rebook
+ *   No-show / reschedule    → log a no-show + open Calendly; Calendly webhook
+ *                             auto-updates meeting when rebooked
  *   Not interested          → send a closing note + close the row
  *
  * Every outcome reuses an existing backend action (log_meeting_held,
- * log_meeting_no_show, launch_activation, mark_partner, mark_not_interested).
+ * flag_wants_meeting, launch_activation, mark_partner, mark_not_interested).
  */
 
 import { useState } from "react";
@@ -37,19 +38,23 @@ function isPartnerRow(ctx: DrawerContext): boolean {
 
 /** Grey details box mirroring CallScriptBlock — the meeting's time + attendee. */
 function MeetingBlock({ ctx, attendee }: { ctx: DrawerContext; attendee: string | null }) {
+  const isInFlight = ctx.meeting_state === "in_flight";
   const when =
     ctx.meeting_state === "scheduled" && ctx.meeting_at
       ? formatLongDate(ctx.meeting_at)
-      : "On the calendar";
+      : isInFlight
+        ? "Finding a time…"
+        : "On the calendar";
+
   return (
     <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        📅 Booked
+        {isInFlight ? "🔄 Rescheduling" : "📅 Booked"}
       </p>
       <p className="mt-1 text-[12px] leading-relaxed text-gray-700">{when}</p>
       {attendee && (
         <p className="mt-0.5 text-[12px] leading-relaxed text-gray-500">
-          Attendee: {attendee}
+          {isInFlight ? "Contact" : "Attendee"}: {attendee}
         </p>
       )}
     </section>
@@ -151,7 +156,10 @@ export function MeetingOutcomeModal({
       return;
     }
     if (outcomeKey === "no_show") {
-      await action("log_meeting_no_show", { notes });
+      // Use flag_wants_meeting with no_show: true to insert BOTH touchpoints:
+      // 1. meeting_no_show (logs the no-show)
+      // 2. note_added{meeting_in_flight} (keeps meeting visible for rescheduling)
+      await action("flag_wants_meeting", { notes, no_show: true });
       // Open Calendly so admin can reschedule immediately
       window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer");
       onClose();

@@ -697,13 +697,34 @@ function MeetingSetBody({
   const activationRunning = isActivationRunning(ctx);
   const isInFlight = ctx.meeting_state === "in_flight";
 
-  const sublineCopy = isInFlight
-    ? "🔄 Finding a time…"
-    : ctx.meeting_state === "scheduled" && ctx.meeting_at
+  // In-flight state: no-show was logged, admin is finding a new time.
+  // The Calendly webhook will automatically update the meeting when booked.
+  if (isInFlight) {
+    return (
+      <>
+        <p className="text-sm font-medium text-gray-900">
+          🔄 Finding a time…
+        </p>
+        <p className="mt-0.5 text-xs text-gray-500">
+          No-show logged. Book in Calendly — meeting updates automatically.
+        </p>
+        <div className="mt-3">
+          <button
+            onClick={() => window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer")}
+            className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
+          >
+            Open Calendly
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // Scheduled state: meeting is on the calendar, ready to log outcome.
+  const sublineCopy =
+    ctx.meeting_state === "scheduled" && ctx.meeting_at
       ? `📅 Booked · ${formatLongDate(ctx.meeting_at)}`
       : "On the calendar";
-
-  const buttonLabel = isInFlight ? "Confirm reschedule" : "Log meeting outcome";
 
   return (
     <>
@@ -713,7 +734,7 @@ function MeetingSetBody({
           onClick={() => setShowOutcome(true)}
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          {buttonLabel}
+          Log meeting outcome
         </button>
       </div>
       {showOutcome && (

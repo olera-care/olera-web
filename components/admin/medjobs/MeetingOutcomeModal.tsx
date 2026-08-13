@@ -7,11 +7,12 @@
  * then the outcome cards that advance the row after the meeting:
  *   Interested / went well → log the meeting + open the Activation launch modal
  *   ★ Make partner          → log the meeting + capture evidence + mark_partner
- *   No-show / reschedule    → log a no-show; the row stays for you to rebook
+ *   No-show / reschedule    → log a no-show + open Calendly; Calendly webhook
+ *                             auto-updates meeting when rebooked
  *   Not interested          → send a closing note + close the row
  *
  * Every outcome reuses an existing backend action (log_meeting_held,
- * log_meeting_no_show, launch_activation, mark_partner, mark_not_interested).
+ * flag_wants_meeting, launch_activation, mark_partner, mark_not_interested).
  */
 
 import { useState } from "react";
@@ -37,23 +38,20 @@ function isPartnerRow(ctx: DrawerContext): boolean {
 
 /** Grey details box mirroring CallScriptBlock — the meeting's time + attendee. */
 function MeetingBlock({ ctx, attendee }: { ctx: DrawerContext; attendee: string | null }) {
-  const isInFlight = ctx.meeting_state === "in_flight";
   const when =
     ctx.meeting_state === "scheduled" && ctx.meeting_at
       ? formatLongDate(ctx.meeting_at)
-      : isInFlight
-        ? "Finding a time…"
-        : "On the calendar";
+      : "On the calendar";
 
   return (
     <section className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        {isInFlight ? "🔄 Rescheduling" : "📅 Booked"}
+        📅 Booked
       </p>
       <p className="mt-1 text-[12px] leading-relaxed text-gray-700">{when}</p>
       {attendee && (
         <p className="mt-0.5 text-[12px] leading-relaxed text-gray-500">
-          {isInFlight ? "Contact" : "Attendee"}: {attendee}
+          Attendee: {attendee}
         </p>
       )}
     </section>
@@ -96,30 +94,6 @@ function outcomesFor(partner: boolean, activationRunning: boolean): OutcomeChoic
   ];
 }
 
-/** Outcomes shown when meeting is in_flight (after no-show, finding a time). */
-function rescheduleOutcomes(): OutcomeChoice[] {
-  return [
-    {
-      key: "rescheduled",
-      label: "Meeting rescheduled",
-      blurb: "You booked a new meeting. Marks the meeting as scheduled.",
-      tone: "happy",
-    },
-    {
-      key: "still_trying",
-      label: "Still finding a time",
-      blurb: "Keep this open — you're still coordinating with them.",
-      tone: "neutral",
-    },
-    {
-      key: "couldnt_reschedule",
-      label: "Couldn't reschedule",
-      blurb: "They're not responding or not interested. Close this meeting.",
-      tone: "close",
-    },
-  ];
-}
-
 export function MeetingOutcomeModal({
   ctx,
   action,
@@ -135,9 +109,6 @@ export function MeetingOutcomeModal({
 }) {
   const [showLaunch, setShowLaunch] = useState(false);
   const [showMarkPartner, setShowMarkPartner] = useState(false);
-
-  // Detect if we're in "confirm reschedule" mode (meeting is in_flight after a no-show)
-  const isInFlight = ctx.meeting_state === "in_flight";
 
   const primary =
     ctx.contacts.find((c) => c.is_primary && c.status === "active") ??
@@ -167,27 +138,6 @@ export function MeetingOutcomeModal({
       : recipientName ?? recipientEmail ?? null;
 
   const dispatch = async (outcomeKey: string | null, notes: string | null) => {
-    // ── Reschedule confirmation outcomes (when in_flight) ──
-    if (outcomeKey === "rescheduled") {
-      // Mark meeting as scheduled (admin confirmed they booked in Calendly)
-      await action("mark_meeting_scheduled", { notes });
-      onClose();
-      return;
-    }
-    if (outcomeKey === "still_trying") {
-      // No action needed — meeting stays in_flight
-      // Just close the modal
-      onClose();
-      return;
-    }
-    if (outcomeKey === "couldnt_reschedule") {
-      // Close the meeting — they couldn't reschedule
-      await action("mark_not_interested", { notes });
-      onClose();
-      return;
-    }
-
-    // ── Standard meeting outcomes (when scheduled) ──
     if (outcomeKey === "interested") {
       await action("log_meeting_held", { outcome: "held", notes });
       if (activationRunning) {
@@ -279,13 +229,13 @@ export function MeetingOutcomeModal({
 
   return (
     <CallOutcomeModal
-      title={isInFlight ? "Confirm reschedule" : "Log meeting outcome"}
+      title="Log meeting outcome"
       subtitle={ctx.outreach.organization_name}
       topBlock={<MeetingBlock ctx={ctx} attendee={attendee} />}
-      outcomes={isInFlight ? rescheduleOutcomes() : outcomesFor(isPartnerRow(ctx), activationRunning)}
-      allowNotesOnly={!isInFlight}
-      notesPlaceholder={isInFlight ? "Any notes about the rescheduling." : "How the meeting went — what was said, the next step."}
-      submitLabel={isInFlight ? "Confirm" : "Log"}
+      outcomes={outcomesFor(isPartnerRow(ctx), activationRunning)}
+      allowNotesOnly
+      notesPlaceholder="How the meeting went — what was said, the next step."
+      submitLabel="Log"
       savingLabel="Saving…"
       onCancel={onClose}
       onSubmit={dispatch}

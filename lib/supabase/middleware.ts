@@ -40,10 +40,14 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh the session — this is critical for server components
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Verify the signed access token locally when the project uses asymmetric
+  // signing keys. This avoids a remote Auth round-trip before every protected
+  // document request; getClaims still falls back to server validation for
+  // legacy symmetric tokens.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const user = claimsData?.claims?.sub
+    ? { id: claimsData.claims.sub }
+    : null;
 
   // Protected routes: redirect to home if not authenticated
   const protectedPaths = ["/portal", "/admin", "/account"];

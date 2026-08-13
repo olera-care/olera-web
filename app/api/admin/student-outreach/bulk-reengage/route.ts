@@ -72,6 +72,17 @@ interface EmailPreview {
   day_7: { subject: string; body: string };
 }
 
+// Custom templates per prospect (optional, used when admin edits templates)
+interface CustomTemplates {
+  [outreach_id: string]: {
+    day_0_subject: string;
+    day_0_body: string;
+    day_3_script: string;
+    day_7_subject: string;
+    day_7_body: string;
+  };
+}
+
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -82,6 +93,7 @@ export async function POST(req: NextRequest) {
   const ids = body.outreach_ids as string[] | undefined;
   const dryRun = body.dry_run === true;
   const assignedTo = (body.assigned_to as string | undefined) ?? user.id;
+  const customTemplates = (body.custom_templates as CustomTemplates | undefined) ?? {};
 
   if (!Array.isArray(ids) || ids.length === 0) {
     return NextResponse.json({ error: "outreach_ids required" }, { status: 400 });
@@ -246,6 +258,7 @@ export async function POST(req: NextRequest) {
 
   for (const { row, campus, email, first_name, last_name } of validRows) {
     try {
+      const customTemplate = customTemplates[row.id] ?? null;
       const ok = await enrollReengagement(
         db,
         row,
@@ -256,6 +269,7 @@ export async function POST(req: NextRequest) {
         assignedTo,
         adminFirstName,
         now,
+        customTemplate,
       );
       results.push({ id: row.id, ok, reason: ok ? undefined : "enrollment_failed" });
     } catch (err) {
@@ -288,40 +302,61 @@ async function enrollReengagement(
   assignedTo: string,
   adminFirstName: string,
   now: number,
+  customTemplate: CustomTemplates[string] | null,
 ): Promise<boolean> {
-  const ctx: TemplateContext = {
-    stakeholder_type: row.stakeholder_type ?? "advisor",
-    organization_name: row.organization_name,
-    campus_name: campus.name,
-    admin_first_name: adminFirstName,
-  };
+  let emailSteps: CustomEmailStep[];
+  let callScript: string;
 
-  // Build email steps
-  const day0 = reengagementIntroEmail(ctx);
-  const day7 = reengagementFinalEmail(ctx);
-  const day3Call = reengagementCallScript(ctx);
+  if (customTemplate) {
+    // Use admin-provided custom templates (already personalized)
+    emailSteps = [
+      {
+        day: 0,
+        subject: customTemplate.day_0_subject,
+        body: customTemplate.day_0_body,
+      },
+      {
+        day: 7,
+        subject: customTemplate.day_7_subject,
+        body: customTemplate.day_7_body,
+      },
+    ];
+    callScript = customTemplate.day_3_script;
+  } else {
+    // Generate default templates
+    const ctx: TemplateContext = {
+      stakeholder_type: row.stakeholder_type ?? "advisor",
+      organization_name: row.organization_name,
+      campus_name: campus.name,
+      admin_first_name: adminFirstName,
+    };
 
-  // Substitute variables for emails
-  const varsForSubstitution = {
-    salutation: firstName ?? "there",
-    first_name: firstName ?? undefined,
-    organization_name: row.organization_name,
-    campus_name: campus.name,
-    admin_first_name: adminFirstName,
-  };
+    const day0 = reengagementIntroEmail(ctx);
+    const day7 = reengagementFinalEmail(ctx);
+    const day3Call = reengagementCallScript(ctx);
 
-  const emailSteps: CustomEmailStep[] = [
-    {
-      day: 0,
-      subject: substituteVars(day0.subject, varsForSubstitution),
-      body: substituteVars(day0.body, varsForSubstitution),
-    },
-    {
-      day: 7,
-      subject: substituteVars(day7.subject, varsForSubstitution),
-      body: substituteVars(day7.body, varsForSubstitution),
-    },
-  ];
+    const varsForSubstitution = {
+      salutation: firstName ?? "there",
+      first_name: firstName ?? undefined,
+      organization_name: row.organization_name,
+      campus_name: campus.name,
+      admin_first_name: adminFirstName,
+    };
+
+    emailSteps = [
+      {
+        day: 0,
+        subject: substituteVars(day0.subject, varsForSubstitution),
+        body: substituteVars(day0.body, varsForSubstitution),
+      },
+      {
+        day: 7,
+        subject: substituteVars(day7.subject, varsForSubstitution),
+        body: substituteVars(day7.body, varsForSubstitution),
+      },
+    ];
+    callScript = substituteVars(day3Call.script, varsForSubstitution);
+  }
 
   // 1. Provision Smartlead campaign + enroll lead (best-effort)
   const yyyymm = new Date().toISOString().slice(0, 7);
@@ -367,7 +402,6 @@ async function enrollReengagement(
   }
 
   // 2. Queue Day 3 call task
-  const callScript = substituteVars(day3Call.script, varsForSubstitution);
   const callDueAt = nextBusinessDayET(new Date(now + 3 * DAY_MS));
 
   await db.from("student_outreach_tasks").insert({

@@ -15,7 +15,7 @@
  *   - dry_run=false for execution
  */
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   reengagementIntroEmail,
   reengagementFinalEmail,
@@ -33,6 +33,15 @@ interface ProspectPreview {
   first_name: string | null;
   valid: boolean;
   skip_reason: string | null;
+}
+
+// Per-prospect edits (subject/body/script can be customized)
+interface ProspectEdits {
+  day_0_subject: string;
+  day_0_body: string;
+  day_3_script: string;
+  day_7_subject: string;
+  day_7_body: string;
 }
 
 interface Props {
@@ -55,6 +64,47 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
   // Selected prospect for email preview
   const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
 
+  // Editable templates per prospect (keyed by prospect ID)
+  const [prospectEdits, setProspectEdits] = useState<Map<string, ProspectEdits>>(new Map());
+
+  // Edit mode toggle
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Helper to generate default edits for a prospect
+  const generateDefaultEdits = (prospect: ProspectPreview): ProspectEdits => {
+    const validTypes = ["student_org", "advisor", "professor", "dept_head"];
+    const stakeholderType = validTypes.includes(prospect.stakeholder_type ?? "")
+      ? (prospect.stakeholder_type as "student_org" | "advisor" | "professor" | "dept_head")
+      : "advisor";
+
+    const ctx: TemplateContext = {
+      stakeholder_type: stakeholderType,
+      organization_name: prospect.organization_name,
+      campus_name: prospect.campus_name,
+      admin_first_name: "Graize",
+    };
+
+    const vars = {
+      salutation: prospect.first_name ?? "there",
+      first_name: prospect.first_name ?? undefined,
+      organization_name: prospect.organization_name,
+      campus_name: prospect.campus_name,
+      admin_first_name: "Graize",
+    };
+
+    const day0 = reengagementIntroEmail(ctx);
+    const day7 = reengagementFinalEmail(ctx);
+    const day3Call = reengagementCallScript(ctx);
+
+    return {
+      day_0_subject: substituteVars(day0.subject, vars),
+      day_0_body: substituteVars(day0.body, vars),
+      day_3_script: substituteVars(day3Call.script, vars),
+      day_7_subject: substituteVars(day7.subject, vars),
+      day_7_body: substituteVars(day7.body, vars),
+    };
+  };
+
   // Fetch preview on mount
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +125,16 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
         setProspects(prospectsList);
         setValidCount(data.valid ?? 0);
         setInvalidCount(data.invalid ?? 0);
+
+        // Initialize edits for all valid prospects
+        const editsMap = new Map<string, ProspectEdits>();
+        for (const p of prospectsList) {
+          if (p.valid) {
+            editsMap.set(p.id, generateDefaultEdits(p));
+          }
+        }
+        setProspectEdits(editsMap);
+
         // Auto-select first valid prospect for preview
         const firstValid = prospectsList.find((p) => p.valid);
         if (firstValid) setSelectedProspectId(firstValid.id);
@@ -87,16 +147,135 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
     return () => { cancelled = true; };
   }, [outreachIds]);
 
+  // Update a specific field for the selected prospect
+  const updateEdit = (field: keyof ProspectEdits, value: string) => {
+    if (!selectedProspectId) return;
+    setProspectEdits((prev) => {
+      const next = new Map(prev);
+      const current = next.get(selectedProspectId);
+      if (current) {
+        next.set(selectedProspectId, { ...current, [field]: value });
+      }
+      return next;
+    });
+  };
+
+  // Helper to escape regex special characters
+  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Apply current prospect's edits to all other valid prospects
+  const applyToAll = () => {
+    if (!selectedProspectId) return;
+    const currentEdits = prospectEdits.get(selectedProspectId);
+    if (!currentEdits) return;
+
+    // Move lookup outside the loop (fix #4)
+    const selectedProspect = prospects.find((pr) => pr.id === selectedProspectId);
+    if (!selectedProspect) return;
+
+    const selectedVars = {
+      salutation: selectedProspect.first_name ?? "there",
+      organization_name: selectedProspect.organization_name,
+      campus_name: selectedProspect.campus_name,
+    };
+
+    setProspectEdits((prev) => {
+      const next = new Map(prev);
+      // For each valid prospect, apply the current template but re-personalize
+      for (const p of prospects) {
+        if (p.valid && p.id !== selectedProspectId) {
+          // Re-substitute variables for this prospect while keeping the edited structure
+          const vars = {
+            salutation: p.first_name ?? "there",
+            organization_name: p.organization_name,
+            campus_name: p.campus_name,
+          };
+
+          let day0Subject = currentEdits.day_0_subject;
+          let day0Body = currentEdits.day_0_body;
+          let day3Script = currentEdits.day_3_script;
+          let day7Subject = currentEdits.day_7_subject;
+          let day7Body = currentEdits.day_7_body;
+
+          // Replace organization name
+          if (selectedVars.organization_name !== vars.organization_name) {
+            const regex = new RegExp(escapeRegex(selectedVars.organization_name), 'g');
+            day0Subject = day0Subject.replace(regex, vars.organization_name);
+            day0Body = day0Body.replace(regex, vars.organization_name);
+            day3Script = day3Script.replace(regex, vars.organization_name);
+            day7Subject = day7Subject.replace(regex, vars.organization_name);
+            day7Body = day7Body.replace(regex, vars.organization_name);
+          }
+
+          // Replace campus name
+          if (selectedVars.campus_name !== vars.campus_name) {
+            const regex = new RegExp(escapeRegex(selectedVars.campus_name), 'g');
+            day0Subject = day0Subject.replace(regex, vars.campus_name);
+            day0Body = day0Body.replace(regex, vars.campus_name);
+            day3Script = day3Script.replace(regex, vars.campus_name);
+            day7Subject = day7Subject.replace(regex, vars.campus_name);
+            day7Body = day7Body.replace(regex, vars.campus_name);
+          }
+
+          // Replace salutation with common greeting patterns (fix #1 and #3)
+          // Matches: Hi/Hello/Dear {name}, or Hi/Hello/Dear {name}
+          if (selectedVars.salutation !== vars.salutation) {
+            const greetings = ["Hi", "Hello", "Dear", "Hey"];
+            for (const greeting of greetings) {
+              // With comma
+              const regexWithComma = new RegExp(
+                `${greeting} ${escapeRegex(selectedVars.salutation)},`,
+                'g'
+              );
+              day0Body = day0Body.replace(regexWithComma, `${greeting} ${vars.salutation},`);
+              day7Body = day7Body.replace(regexWithComma, `${greeting} ${vars.salutation},`);
+
+              // Without comma (at end of line or before newline)
+              const regexNoComma = new RegExp(
+                `${greeting} ${escapeRegex(selectedVars.salutation)}(?=\\n|$)`,
+                'g'
+              );
+              day0Body = day0Body.replace(regexNoComma, `${greeting} ${vars.salutation}`);
+              day7Body = day7Body.replace(regexNoComma, `${greeting} ${vars.salutation}`);
+            }
+          }
+
+          next.set(p.id, {
+            day_0_subject: day0Subject,
+            day_0_body: day0Body,
+            day_3_script: day3Script,
+            day_7_subject: day7Subject,
+            day_7_body: day7Body,
+          });
+        }
+      }
+      return next;
+    });
+  };
+
+  // Get current prospect's edits (or generated preview)
+  const currentEdits = selectedProspectId ? prospectEdits.get(selectedProspectId) : null;
+
   // Launch re-engagement
   const handleLaunch = async () => {
     if (validCount === 0) return;
     setLaunching(true);
     setError(null);
     try {
+      // Convert Map to plain object for JSON serialization
+      const customTemplates: Record<string, ProspectEdits> = {};
+      for (const [id, edits] of prospectEdits) {
+        customTemplates[id] = edits;
+      }
+
       const res = await fetch("/api/admin/student-outreach/bulk-reengage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ outreach_ids: outreachIds, dry_run: false }),
+        body: JSON.stringify({
+          outreach_ids: outreachIds,
+          dry_run: false,
+          custom_templates: customTemplates,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -134,50 +313,6 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
   const selectedProspect = selectedProspectId
     ? prospects.find((p) => p.id === selectedProspectId)
     : null;
-
-  // Generate personalized email preview for selected prospect
-  const emailPreview = useMemo(() => {
-    if (!selectedProspect) return null;
-
-    // StakeholderType: "student_org" | "advisor" | "professor" | "dept_head"
-    const validTypes = ["student_org", "advisor", "professor", "dept_head"];
-    const stakeholderType = validTypes.includes(selectedProspect.stakeholder_type ?? "")
-      ? (selectedProspect.stakeholder_type as "student_org" | "advisor" | "professor" | "dept_head")
-      : "advisor";
-
-    const ctx: TemplateContext = {
-      stakeholder_type: stakeholderType,
-      organization_name: selectedProspect.organization_name,
-      campus_name: selectedProspect.campus_name,
-      admin_first_name: "Graize",
-    };
-
-    const vars = {
-      salutation: selectedProspect.first_name ?? "there",
-      first_name: selectedProspect.first_name ?? undefined,
-      organization_name: selectedProspect.organization_name,
-      campus_name: selectedProspect.campus_name,
-      admin_first_name: "Graize",
-    };
-
-    const day0 = reengagementIntroEmail(ctx);
-    const day7 = reengagementFinalEmail(ctx);
-    const day3Call = reengagementCallScript(ctx);
-
-    return {
-      day_0: {
-        subject: substituteVars(day0.subject, vars),
-        body: substituteVars(day0.body, vars),
-      },
-      day_3_call: {
-        script: substituteVars(day3Call.script, vars),
-      },
-      day_7: {
-        subject: substituteVars(day7.subject, vars),
-        body: substituteVars(day7.body, vars),
-      },
-    };
-  }, [selectedProspect]);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
@@ -293,14 +428,36 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
               )}
 
               {/* Email/Call Preview */}
-              {emailPreview && selectedProspect && (
+              {currentEdits && selectedProspect && (
                 <div>
-                  <h4 className="mb-2 text-sm font-medium text-gray-900">
-                    Sequence Preview
-                    <span className="ml-2 text-xs font-normal text-gray-500">
-                      for {selectedProspect.organization_name}
-                    </span>
-                  </h4>
+                  <div className="mb-2 flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-900">
+                      Sequence Preview
+                      <span className="ml-2 text-xs font-normal text-gray-500">
+                        for {selectedProspect.organization_name}
+                      </span>
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      {isEditing && (
+                        <button
+                          onClick={applyToAll}
+                          className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                        >
+                          Apply to all ({validCount})
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className={`rounded-md px-2 py-1 text-xs font-medium ${
+                          isEditing
+                            ? "bg-primary-100 text-primary-700"
+                            : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {isEditing ? "Done editing" : "Edit"}
+                      </button>
+                    </div>
+                  </div>
                   <div className="rounded-lg border border-gray-200">
                     {/* Day tabs */}
                     <div className="flex border-b border-gray-200">
@@ -326,32 +483,77 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
                     <div className="p-4">
                       {previewTab === "day_0" && (
                         <div className="space-y-2">
-                          <p className="text-sm">
+                          <div className="text-sm">
                             <span className="font-medium text-gray-600">Subject:</span>{" "}
-                            <span className="text-gray-900">{emailPreview.day_0.subject}</span>
-                          </p>
-                          <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
-                            {emailPreview.day_0.body}
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={currentEdits.day_0_subject}
+                                onChange={(e) => updateEdit("day_0_subject", e.target.value)}
+                                className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                              />
+                            ) : (
+                              <span className="text-gray-900">{currentEdits.day_0_subject}</span>
+                            )}
                           </div>
+                          {isEditing ? (
+                            <textarea
+                              value={currentEdits.day_0_body}
+                              onChange={(e) => updateEdit("day_0_body", e.target.value)}
+                              rows={6}
+                              className="w-full rounded-md border border-gray-300 p-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            />
+                          ) : (
+                            <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                              {currentEdits.day_0_body}
+                            </div>
+                          )}
                         </div>
                       )}
                       {previewTab === "day_3" && (
                         <div className="space-y-2">
                           <p className="text-sm font-medium text-gray-600">Call Script:</p>
-                          <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
-                            {emailPreview.day_3_call.script}
-                          </div>
+                          {isEditing ? (
+                            <textarea
+                              value={currentEdits.day_3_script}
+                              onChange={(e) => updateEdit("day_3_script", e.target.value)}
+                              rows={4}
+                              className="w-full rounded-md border border-gray-300 p-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            />
+                          ) : (
+                            <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                              {currentEdits.day_3_script}
+                            </div>
+                          )}
                         </div>
                       )}
                       {previewTab === "day_7" && (
                         <div className="space-y-2">
-                          <p className="text-sm">
+                          <div className="text-sm">
                             <span className="font-medium text-gray-600">Subject:</span>{" "}
-                            <span className="text-gray-900">{emailPreview.day_7.subject}</span>
-                          </p>
-                          <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
-                            {emailPreview.day_7.body}
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={currentEdits.day_7_subject}
+                                onChange={(e) => updateEdit("day_7_subject", e.target.value)}
+                                className="mt-1 w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                              />
+                            ) : (
+                              <span className="text-gray-900">{currentEdits.day_7_subject}</span>
+                            )}
                           </div>
+                          {isEditing ? (
+                            <textarea
+                              value={currentEdits.day_7_body}
+                              onChange={(e) => updateEdit("day_7_body", e.target.value)}
+                              rows={6}
+                              className="w-full rounded-md border border-gray-300 p-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            />
+                          ) : (
+                            <div className="rounded-md bg-gray-50 p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                              {currentEdits.day_7_body}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

@@ -432,6 +432,19 @@ export default function SupportEmailPage() {
   const mailbox = mailboxes[0] ?? null;
   const phone = callbackNumber(detail);
   const isVoicemail = detail?.thread.category === "voicemail";
+
+  function clearPriorityFilter() {
+    setPriority("all");
+    const params = new URLSearchParams(window.location.search);
+    params.delete("priority");
+    const queryString = params.toString();
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}${queryString ? `?${queryString}` : ""}`,
+    );
+  }
+
   const scopeParts = [
     priority === "urgent" ? "Urgent + escalated" : null,
     category !== "all" ? CATEGORY_LABELS[category] : null,
@@ -481,7 +494,7 @@ export default function SupportEmailPage() {
       {priority === "urgent" && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           <span><strong>Urgent + escalated queue.</strong> Work oldest first; reply, assign a real escalation owner, or mark handled when the customer has a next step.</span>
-          <button type="button" onClick={() => setPriority("all")} className="shrink-0 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-rose-100">
+          <button type="button" onClick={clearPriorityFilter} className="shrink-0 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-rose-100">
             Show all
           </button>
         </div>

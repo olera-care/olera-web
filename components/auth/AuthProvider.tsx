@@ -223,6 +223,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   // in the same render turn. Share one request per user instead of stampeding
   // the same Supabase tables and turning a slow response into several timeouts.
   const accountFetchesRef = useRef(new Map<string, Promise<AccountData | null>>());
+  // Set only when an admin route deliberately skipped public profile hydration.
+  // The exit-to-public effect keys on this instead of "signed in but no account",
+  // because that shape is also how a failed hydration settles — and re-arming on
+  // failure would refetch forever.
+  const adminHydrationDeferredRef = useRef(false);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -540,6 +545,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // server routes. The public account/profile graph is not used anywhere
       // in the admin shell, so do not put it on this route's critical path.
       if (adminRoute) {
+        adminHydrationDeferredRef.current = true;
         initHandlingRef.current = false;
         console.timeEnd("[olera] init");
         return;
@@ -651,6 +657,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
           if (event === "SIGNED_OUT") {
             versionRef.current++;
+            adminHydrationDeferredRef.current = false;
             clearAuthCache();
             setState({ ...EMPTY_STATE });
             return;
@@ -682,7 +689,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           fetchError: false,
         }));
 
-        if (isAdminRoute()) return;
+        if (isAdminRoute()) {
+          adminHydrationDeferredRef.current = true;
+          return;
+        }
 
         // Fetch fresh data in the background.
         // Only retry (once) if the account row is missing (DB trigger delay),
@@ -823,6 +833,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
           if (event === "TOKEN_REFRESHED" && session?.user) {
         if (isAdminRoute()) {
+          adminHydrationDeferredRef.current = true;
           setState((prev) => ({
             ...prev,
             user: {
@@ -1018,7 +1029,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   // account context.
   useEffect(() => {
     const inAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
-    if (inAdmin || !state.user || state.account || state.isLoading) return;
+    if (inAdmin || !adminHydrationDeferredRef.current) return;
+    if (!state.user || state.account || state.isLoading) return;
+
+    // Consume the flag before fetching. If this attempt fails, the state it
+    // leaves behind must not look like another deferred hydration to the next
+    // run of this effect.
+    adminHydrationDeferredRef.current = false;
 
     setState((prev) => ({ ...prev, isLoading: true, fetchError: false }));
     void refreshAccountData().finally(() => {

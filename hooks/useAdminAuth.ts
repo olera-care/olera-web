@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AdminUser } from "@/lib/types";
 
-const ADMIN_AUTH_TIMEOUT_MS = 10_000;
+const ADMIN_AUTH_TIMEOUT_MS = 5_000;
 
 interface UseAdminAuthResult {
   adminUser: AdminUser | null;

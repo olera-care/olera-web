@@ -9,7 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
@@ -113,6 +113,12 @@ const EMPTY_STATE: AuthState = {
 // so the user sees an error + retry instead of an infinite spinner.
 const QUERY_TIMEOUT_MS = 5_000;
 
+function isAdminRoute(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.pathname === "/admin"
+    || window.location.pathname.startsWith("/admin/");
+}
+
 function withBoundedTimeout<T>(
   promise: PromiseLike<T>,
   ms: number,
@@ -140,6 +146,11 @@ interface CachedAuthData {
   membership: Membership | null;
   cachedAt: number;
 }
+
+type AccountData = Pick<
+  CachedAuthData,
+  "account" | "activeProfile" | "profiles" | "membership"
+>;
 
 function cacheAuthData(userId: string, data: Omit<CachedAuthData, "userId" | "cachedAt">) {
   try {
@@ -187,6 +198,7 @@ interface AuthProviderProps {
 
 export default function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [state, setState] = useState<AuthState>({
     ...EMPTY_STATE,
     isLoading: true,
@@ -207,6 +219,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   // Tracks whether init() is handling the initial session.
   // Prevents the SIGNED_IN listener from firing a duplicate fetchAccountData.
   const initHandlingRef = useRef(true);
+  // Sign-in, auth events, and protected layouts can all ask for account data
+  // in the same render turn. Share one request per user instead of stampeding
+  // the same Supabase tables and turning a slow response into several timeouts.
+  const accountFetchesRef = useRef(new Map<string, Promise<AccountData | null>>());
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -222,73 +238,88 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     async (userId: string) => {
       if (!configured) return null;
 
-      const supabase = createClient();
+      const existing = accountFetchesRef.current.get(userId);
+      if (existing) return existing;
 
-      // Use unique timer labels to avoid conflicts from concurrent calls
-      const timerId = Math.random().toString(36).slice(2, 8);
-      const timerLabel = `[olera] fetchAccountData-${timerId}`;
-      const accountsLabel = `[olera] query: accounts-${timerId}`;
-      const profilesLabel = `[olera] query: profiles+membership-${timerId}`;
+      const request = (async (): Promise<AccountData | null> => {
 
-      console.time(timerLabel);
+        const supabase = createClient();
 
-      // Step 1: Get account (required for everything else)
-      console.time(accountsLabel);
-      const accountResult = await withBoundedTimeout(
-        supabase
-          .from("accounts")
-          .select("*")
-          .eq("user_id", userId)
-          .single(),
-        QUERY_TIMEOUT_MS,
-        "accounts query"
-      ) as { data: Account | null; error: unknown };
-      const account = accountResult.data;
-      const accountError = accountResult.error;
-      console.timeEnd(accountsLabel);
+        // Use unique timer labels to avoid conflicts from concurrent calls
+        const timerId = Math.random().toString(36).slice(2, 8);
+        const timerLabel = `[olera] fetchAccountData-${timerId}`;
+        const accountsLabel = `[olera] query: accounts-${timerId}`;
+        const profilesLabel = `[olera] query: profiles+membership-${timerId}`;
 
-      if (accountError || !account) {
+        console.time(timerLabel);
+
+        // Step 1: Get account (required for everything else)
+        console.time(accountsLabel);
+        const accountResult = await withBoundedTimeout(
+          supabase
+            .from("accounts")
+            .select("*")
+            .eq("user_id", userId)
+            .single(),
+          QUERY_TIMEOUT_MS,
+          "accounts query"
+        ) as { data: Account | null; error: unknown };
+        const account = accountResult.data;
+        const accountError = accountResult.error;
+        console.timeEnd(accountsLabel);
+
+        if (accountError || !account) {
+          console.timeEnd(timerLabel);
+          return null;
+        }
+
+        // Step 2: Fetch profiles and membership in parallel
+        // Note: We include inactive student/caregiver/organization profiles so the
+        // navbar can detect caregivers before video intro, and so the non-family
+        // profile guard works even when a provider profile has is_active=false.
+        // Public listings still filter by is_active: true, so this only affects navbar.
+        console.time(profilesLabel);
+        const [profilesResult, membershipResult] = await withBoundedTimeout(
+          Promise.all([
+            supabase
+              .from("business_profiles")
+              .select("*")
+              .eq("account_id", account.id)
+              .or("is_active.eq.true,type.in.(student,caregiver,organization)")
+              .order("created_at", { ascending: true }),
+            supabase
+              .from("memberships")
+              .select("*")
+              .eq("account_id", account.id)
+              .limit(1),
+          ]),
+          QUERY_TIMEOUT_MS,
+          "profiles+membership query"
+        );
+        console.timeEnd(profilesLabel);
+
+        const profiles = (profilesResult.data as Profile[]) || [];
+        const membershipRows = (membershipResult.data as Membership[]) || [];
+        const membership = membershipRows[0] ?? null;
+
+        let activeProfile: Profile | null = null;
+        if (account.active_profile_id) {
+          activeProfile =
+            profiles.find((p) => p.id === account.active_profile_id) || null;
+        }
+
         console.timeEnd(timerLabel);
-        return null;
+        return { account, activeProfile, profiles, membership };
+      })();
+
+      accountFetchesRef.current.set(userId, request);
+      try {
+        return await request;
+      } finally {
+        if (accountFetchesRef.current.get(userId) === request) {
+          accountFetchesRef.current.delete(userId);
+        }
       }
-
-      // Step 2: Fetch profiles and membership in parallel
-      // Note: We include inactive student/caregiver/organization profiles so the
-      // navbar can detect caregivers before video intro, and so the non-family
-      // profile guard works even when a provider profile has is_active=false.
-      // Public listings still filter by is_active: true, so this only affects navbar.
-      console.time(profilesLabel);
-      const [profilesResult, membershipResult] = await withBoundedTimeout(
-        Promise.all([
-          supabase
-            .from("business_profiles")
-            .select("*")
-            .eq("account_id", account.id)
-            .or("is_active.eq.true,type.in.(student,caregiver,organization)")
-            .order("created_at", { ascending: true }),
-          supabase
-            .from("memberships")
-            .select("*")
-            .eq("account_id", account.id)
-            .limit(1),
-        ]),
-        QUERY_TIMEOUT_MS,
-        "profiles+membership query"
-      );
-      console.timeEnd(profilesLabel);
-
-      const profiles = (profilesResult.data as Profile[]) || [];
-      const membershipRows = (membershipResult.data as Membership[]) || [];
-      const membership = membershipRows[0] ?? null;
-
-      let activeProfile: Profile | null = null;
-      if (account.active_profile_id) {
-        activeProfile =
-          profiles.find((p) => p.id === account.active_profile_id) || null;
-      }
-
-      console.timeEnd(timerLabel);
-      return { account, activeProfile, profiles, membership };
     },
     [configured]
   );
@@ -490,6 +521,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // initials, full portal rendered on first paint.
       const cached = getCachedAuthData(userId);
       const hasCachedData = !!cached?.account;
+      const adminRoute = isAdminRoute();
 
       // ALWAYS set user immediately so they appear logged in.
       // If cache is warm, also set profiles for instant render.
@@ -500,9 +532,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],
         membership: cached?.membership ?? null,
-        isLoading: !hasCachedData,
+        isLoading: adminRoute ? false : !hasCachedData,
         fetchError: false,
       });
+
+      // Admin authorization and data access are independently enforced by the
+      // server routes. The public account/profile graph is not used anywhere
+      // in the admin shell, so do not put it on this route's critical path.
+      if (adminRoute) {
+        initHandlingRef.current = false;
+        console.timeEnd("[olera] init");
+        return;
+      }
 
       // Fetch fresh data. When cache is cold this is the critical path.
       try {
@@ -600,17 +641,22 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     // Auth state listener — handles sign in, sign out, token refresh
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-      if (cancelled) return;
+    } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+      // Supabase may hold its auth lock while notifying listeners. Return from
+      // the callback immediately and do database work on the next task so
+      // getSession/getUser and route changes cannot deadlock behind hydration.
+      window.setTimeout(() => {
+        void (async () => {
+          if (cancelled) return;
 
-      if (event === "SIGNED_OUT") {
-        versionRef.current++;
-        clearAuthCache();
-        setState({ ...EMPTY_STATE });
-        return;
-      }
+          if (event === "SIGNED_OUT") {
+            versionRef.current++;
+            clearAuthCache();
+            setState({ ...EMPTY_STATE });
+            return;
+          }
 
-      if (event === "SIGNED_IN" && session?.user) {
+          if (event === "SIGNED_IN" && session?.user) {
         // On page load, init() already handles the initial session.
         // Skip here to avoid a duplicate fetchAccountData call.
         if (initHandlingRef.current) return;
@@ -632,9 +678,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           activeProfile: cached?.activeProfile ?? prev.activeProfile,
           profiles: cached?.profiles ?? prev.profiles,
           membership: cached?.membership ?? prev.membership,
-          isLoading: !hasCachedData && !prev.account,
+          isLoading: isAdminRoute() ? false : !hasCachedData && !prev.account,
           fetchError: false,
         }));
+
+        if (isAdminRoute()) return;
 
         // Fetch fresh data in the background.
         // Only retry (once) if the account row is missing (DB trigger delay),
@@ -773,7 +821,19 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         }
       }
 
-      if (event === "TOKEN_REFRESHED" && session?.user) {
+          if (event === "TOKEN_REFRESHED" && session?.user) {
+        if (isAdminRoute()) {
+          setState((prev) => ({
+            ...prev,
+            user: {
+              id: session.user.id,
+              email: session.user.email!,
+              email_confirmed_at: session.user.email_confirmed_at ?? undefined,
+            },
+            isLoading: false,
+          }));
+          return;
+        }
         const version = ++versionRef.current;
         try {
           const data = await fetchAccountData(session.user.id);
@@ -797,7 +857,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           console.error("[olera] TOKEN_REFRESHED fetch failed:", err);
           // Keep existing state — don't disrupt the user
         }
-      }
+          }
+        })();
+      }, 0);
     });
 
     return () => {
@@ -949,6 +1011,22 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // Keep existing state
     }
   }, [fetchAccountData]);
+
+  // A direct admin entry intentionally skips public profile hydration. If the
+  // operator later exits to the public product without a full reload, hydrate
+  // at that boundary so provider/family navigation still receives its normal
+  // account context.
+  useEffect(() => {
+    const inAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+    if (inAdmin || !state.user || state.account || state.isLoading) return;
+
+    setState((prev) => ({ ...prev, isLoading: true, fetchError: false }));
+    void refreshAccountData().finally(() => {
+      setState((prev) => prev.account
+        ? prev
+        : { ...prev, isLoading: false, fetchError: true });
+    });
+  }, [pathname, refreshAccountData, state.account, state.isLoading, state.user]);
 
   /**
    * Switch the active profile. Optimistic-first: updates local state

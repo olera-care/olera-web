@@ -21,10 +21,13 @@ export function getServiceClient() {
  */
 export async function getAuthUser() {
   const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims?.sub) return null;
+
+  return {
+    id: data.claims.sub,
+    email: typeof data.claims.email === "string" ? data.claims.email : undefined,
+  };
 }
 
 /**

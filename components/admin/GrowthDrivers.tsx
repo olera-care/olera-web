@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 type Category = "provider" | "benefit" | "editorial";
-type View = "top" | "rising" | "falling" | "opportunities";
+type View = "top" | "leads" | "rising" | "falling" | "opportunities";
 
 interface CategoryPerformance {
   category: Category;
@@ -95,6 +95,7 @@ const CATEGORY_META = {
 
 const VIEWS: Array<{ value: View; label: string }> = [
   { value: "top", label: "Top pages" },
+  { value: "leads", label: "Top leads" },
   { value: "rising", label: "Rising" },
   { value: "falling", label: "Falling" },
   { value: "opportunities", label: "Opportunities" },
@@ -272,6 +273,11 @@ export default function GrowthDrivers({
   const trackedUsers = categories.reduce((sum, item) => sum + item.organic_users, 0);
   const pages = useMemo(() => {
     const matching = (data?.pages || []).filter((page) => page.page_category === activeCategory);
+    if (view === "leads") {
+      return matching.sort((a, b) =>
+        (b.leads ?? -1) - (a.leads ?? -1) || b.organic_users - a.organic_users,
+      );
+    }
     if (view === "rising") {
       if (!hasPriorData) return [];
       return matching

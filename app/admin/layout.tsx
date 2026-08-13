@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/components/auth/AuthProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import SidebarDrawerToggle from "@/components/admin/SidebarDrawerToggle";
@@ -11,8 +10,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 const SIDEBAR_VISIBILITY_KEY = "admin-sidebar-hidden";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { user, isLoading: authLoading } = useAuth();
-  const { adminUser, isLoading: adminLoading, error } = useAdminAuth();
+  const { adminUser, isLoading: adminLoading, error, retry } = useAdminAuth();
   const [sidebarHidden, setSidebarHidden] = useState(false);
 
   useEffect(() => {
@@ -33,7 +31,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  if (authLoading || adminLoading) {
+  // /api/admin/auth already validates the Supabase session. Do not also wait
+  // for the global account/profile refresh: admin pages do not consume that
+  // data, and a slow profile query used to hold the entire console hostage.
+  if (adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg text-gray-500">Loading...</div>
@@ -41,7 +42,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (error === "not_authenticated") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -56,7 +57,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (error === "access_denied" || !adminUser) {
+  if (error === "access_denied") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -66,6 +67,28 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <p className="text-lg text-gray-600">
             You do not have admin privileges.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !adminUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Admin is taking too long
+          </h1>
+          <p className="text-base text-gray-600 mb-5">
+            Your session is intact. The admin access check did not finish cleanly.
+          </p>
+          <button
+            type="button"
+            onClick={retry}
+            className="min-h-11 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800"
+          >
+            Try again
+          </button>
         </div>
       </div>
     );

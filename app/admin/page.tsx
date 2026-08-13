@@ -23,6 +23,9 @@ const PRIMARY_ACTIVITY_CARD_COUNT = 4;
 
 type StatValue = number | null | undefined;
 
+const ADMIN_FETCH_RETRIES = 1;
+const ADMIN_FETCH_RETRY_DELAY_MS = 400;
+
 type ActivityTrendMetric =
   | "questions_asked"
   | "leads_received"
@@ -76,11 +79,41 @@ interface AuditEntry {
   admin_email?: string;
 }
 
+/**
+ * Admin Overview fans out across several independent sources. Preview cold
+ * starts and brief 429/5xx responses should not permanently turn every card
+ * into "Unavailable", so retry transient failures once. Abort still wins
+ * immediately when the operator changes the reporting window.
+ */
+async function fetchAdminJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+  for (let attempt = 0; attempt <= ADMIN_FETCH_RETRIES; attempt += 1) {
+    let response: Response;
+    try {
+      response = await fetch(url, { signal, cache: "no-store" });
+    } catch (error) {
+      if (signal?.aborted || (error as Error)?.name === "AbortError") throw error;
+      if (attempt === ADMIN_FETCH_RETRIES) throw error;
+      await new Promise((resolve) => setTimeout(resolve, ADMIN_FETCH_RETRY_DELAY_MS));
+      continue;
+    }
+
+    if (response.ok) return await response.json() as T;
+
+    const transient = response.status === 429 || response.status >= 500;
+    if (!transient || attempt === ADMIN_FETCH_RETRIES) {
+      throw new Error(`${url} failed with ${response.status}`);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, ADMIN_FETCH_RETRY_DELAY_MS));
+    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+  }
+
+  throw new Error(`${url} failed`);
+}
+
 /** Fetch a count from an admin API endpoint */
 async function fetchCount(url: string, key = "count", signal?: AbortSignal): Promise<number> {
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`${url} failed`);
-  const data = await res.json();
+  const data = await fetchAdminJson<Record<string, number>>(url, signal);
   return data[key] ?? 0;
 }
 
@@ -123,14 +156,12 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     // Current-state metrics do not change meaning when the activity range changes.
-    fetch("/api/admin/verification?counts_only=true")
-      .then((r) => r.ok ? r.json() : Promise.reject(new Error("verification counts failed")))
+    fetchAdminJson<{ counts?: { unverified_claims?: number } }>("/api/admin/verification?counts_only=true")
       .then((d) => setUnverifiedClaims(d?.counts?.unverified_claims ?? 0))
       .catch(() => setUnverifiedClaims(undefined));
 
     // Needs Email is a current backlog, not a period total.
-    fetch("/api/admin/connections?count_only=true")
-      .then((r) => r.ok ? r.json() : Promise.reject(new Error("connections counts failed")))
+    fetchAdminJson<{ engagementCounts?: { needs_email?: number } }>("/api/admin/connections?count_only=true")
       .then((d) => setNeedsEmail(d?.engagementCounts?.needs_email ?? 0))
       .catch(() => setNeedsEmail(undefined));
 
@@ -143,13 +174,15 @@ export default function AdminOverviewPage() {
       .catch(() => setLiveProviders(undefined));
 
     // Current Ad Boost cohort — distinct providers queued, active, or paying.
-    fetch("/api/admin/ad-boost?program_count_only=true")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("ad-boost program count failed"))))
+    fetchAdminJson<{ providers?: number }>("/api/admin/ad-boost?program_count_only=true")
       .then((d) => setAdBoostProviders(d?.providers ?? 0))
       .catch(() => setAdBoostProviders(undefined));
 
-    fetch("/api/admin/marketplace-health")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("marketplace health failed"))))
+    fetchAdminJson<{
+      activeCareRequests?: number;
+      careRequestsReached?: number;
+      careRequestReachRate?: number;
+    }>("/api/admin/marketplace-health")
       .then((d) => {
         setActiveCareRequests(d?.activeCareRequests ?? 0);
         setCareRequestsReached(d?.careRequestsReached ?? 0);
@@ -162,14 +195,12 @@ export default function AdminOverviewPage() {
       });
 
     // Audit log
-    fetch("/api/admin/audit?limit=10")
-      .then((r) => r.ok ? r.json() : { entries: [] })
+    fetchAdminJson<{ entries?: AuditEntry[] }>("/api/admin/audit?limit=10")
       .then((d) => setAuditLog(d.entries ?? []))
       .catch(() => setAuditLog([]));
 
     // Paused-automations guard — surfaces here so a forgotten pause can't hide.
-    fetch("/api/admin/automations")
-      .then((r) => (r.ok ? r.json() : { jobs: [] }))
+    fetchAdminJson<{ jobs?: { paused?: boolean }[] }>("/api/admin/automations")
       .then((d) => setPausedAutomations((d.jobs ?? []).filter((j: { paused?: boolean }) => j.paused).length))
       .catch(() => setPausedAutomations(0));
   }, []);
@@ -198,8 +229,7 @@ export default function AdminOverviewPage() {
     const networkHealthParams = new URLSearchParams();
     if (from) networkHealthParams.set("date_from", from);
     if (to) networkHealthParams.set("date_to", to);
-    fetch(`/api/admin/network-health?${networkHealthParams}`, { signal: controller.signal })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error("network health failed")))
+    fetchAdminJson<Record<string, number>>(`/api/admin/network-health?${networkHealthParams}`, controller.signal)
       .then((data) => {
         setProviderPageViews(data?.providerPageViews ?? 0);
         setBenefitPageViews(data?.benefitPageViews ?? 0);
@@ -240,8 +270,10 @@ export default function AdminOverviewPage() {
     if (from) smsParams.set("date_from", from);
     if (to) smsParams.set("date_to", to);
     if (!from && !to && activityRange.preset === "all") smsParams.set("all_time", "true");
-    fetch(`/api/admin/family-comms-analytics/sms?${smsParams}`, { signal: controller.signal })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error("SMS received count failed")))
+    fetchAdminJson<{ configured?: boolean; error?: string; truncated?: boolean; received?: number }>(
+      `/api/admin/family-comms-analytics/sms?${smsParams}`,
+      controller.signal,
+    )
       .then((data) => {
         if (data?.configured === false || data?.error || data?.truncated) {
           setTextMessagesReceived(undefined);
@@ -281,8 +313,7 @@ export default function AdminOverviewPage() {
     });
     setTrendData(null);
     setTrendLoading(true);
-    fetch(`/api/admin/network-health/trend?${params}`, { signal: controller.signal })
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error("trend failed")))
+    fetchAdminJson<TrendResponse>(`/api/admin/network-health/trend?${params}`, controller.signal)
       .then((data: TrendResponse) => {
         trendCache.current.set(cacheKey, data);
         setTrendData(data);

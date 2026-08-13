@@ -695,10 +695,15 @@ function MeetingSetBody({
 }) {
   const [showOutcome, setShowOutcome] = useState(false);
   const activationRunning = isActivationRunning(ctx);
-  const sublineCopy =
-    ctx.meeting_state === "scheduled" && ctx.meeting_at
+  const isInFlight = ctx.meeting_state === "in_flight";
+
+  const sublineCopy = isInFlight
+    ? "🔄 Finding a time…"
+    : ctx.meeting_state === "scheduled" && ctx.meeting_at
       ? `📅 Booked · ${formatLongDate(ctx.meeting_at)}`
       : "On the calendar";
+
+  const buttonLabel = isInFlight ? "Confirm reschedule" : "Log meeting outcome";
 
   return (
     <>
@@ -708,7 +713,7 @@ function MeetingSetBody({
           onClick={() => setShowOutcome(true)}
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
-          Log meeting outcome
+          {buttonLabel}
         </button>
       </div>
       {showOutcome && (

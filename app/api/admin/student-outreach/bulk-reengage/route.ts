@@ -46,9 +46,12 @@ interface OutreachRowPartial {
 const DAY_MS = 86_400_000;
 
 // Statuses eligible for re-engagement (follow-up tab rows that completed cadence)
-// Only no_response_closed is allowed - these are rows whose initial cadence
-// completed without a reply. outreach_sent rows are still in their initial cadence.
+// The Follow-up tab shows rows whose cadence finished without a meeting booked.
+// These can be:
+//   - outreach_sent: cadence finished but row not explicitly closed
+//   - no_response_closed: explicitly closed after cadence finished with no reply
 const REENGAGEABLE_STATUSES = new Set([
+  "outreach_sent",
   "no_response_closed",
 ]);
 

@@ -711,21 +711,13 @@ function MeetingSetBody({
           No-show logged. Calendly webhook updates when rebooked.
         </p>
       )}
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3">
         <button
           onClick={() => setShowOutcome(true)}
           className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-700"
         >
           Log meeting outcome
         </button>
-        {isInFlight && (
-          <button
-            onClick={() => window.open(bookingUrlFor(ctx), "_blank", "noopener,noreferrer")}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Open Calendly
-          </button>
-        )}
       </div>
       {showOutcome && (
         <MeetingOutcomeModal

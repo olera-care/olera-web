@@ -70,6 +70,9 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
   // Edit mode toggle
   const [isEditing, setIsEditing] = useState(false);
 
+  // Visual feedback for "Apply to all"
+  const [applySuccess, setApplySuccess] = useState(false);
+
   // Helper to generate default edits for a prospect
   const generateDefaultEdits = (prospect: ProspectPreview): ProspectEdits => {
     const validTypes = ["student_org", "advisor", "professor", "dept_head"];
@@ -165,19 +168,34 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
 
   // Apply current prospect's edits to all other valid prospects
   const applyToAll = () => {
-    if (!selectedProspectId) return;
-    const currentEdits = prospectEdits.get(selectedProspectId);
-    if (!currentEdits) return;
+    console.log("[applyToAll] called, selectedProspectId:", selectedProspectId);
 
-    // Move lookup outside the loop (fix #4)
+    if (!selectedProspectId) {
+      console.log("[applyToAll] No selectedProspectId, returning early");
+      return;
+    }
+
+    const sourceEdits = prospectEdits.get(selectedProspectId);
+    if (!sourceEdits) {
+      console.log("[applyToAll] No edits found for selected prospect, returning early");
+      return;
+    }
+
     const selectedProspect = prospects.find((pr) => pr.id === selectedProspectId);
-    if (!selectedProspect) return;
+    if (!selectedProspect) {
+      console.log("[applyToAll] Selected prospect not found in prospects array, returning early");
+      return;
+    }
+
+    console.log("[applyToAll] Applying edits from:", selectedProspect.organization_name);
 
     const selectedVars = {
       salutation: selectedProspect.first_name ?? "there",
       organization_name: selectedProspect.organization_name,
       campus_name: selectedProspect.campus_name,
     };
+
+    let updatedCount = 0;
 
     setProspectEdits((prev) => {
       const next = new Map(prev);
@@ -191,11 +209,11 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
             campus_name: p.campus_name,
           };
 
-          let day0Subject = currentEdits.day_0_subject;
-          let day0Body = currentEdits.day_0_body;
-          let day3Script = currentEdits.day_3_script;
-          let day7Subject = currentEdits.day_7_subject;
-          let day7Body = currentEdits.day_7_body;
+          let day0Subject = sourceEdits.day_0_subject;
+          let day0Body = sourceEdits.day_0_body;
+          let day3Script = sourceEdits.day_3_script;
+          let day7Subject = sourceEdits.day_7_subject;
+          let day7Body = sourceEdits.day_7_body;
 
           // Replace organization name
           if (selectedVars.organization_name !== vars.organization_name) {
@@ -247,10 +265,16 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
             day_7_subject: day7Subject,
             day_7_body: day7Body,
           });
+          updatedCount++;
         }
       }
+      console.log("[applyToAll] Updated", updatedCount, "prospects");
       return next;
     });
+
+    // Show success feedback
+    setApplySuccess(true);
+    setTimeout(() => setApplySuccess(false), 2000);
   };
 
   // Get current prospect's edits (or generated preview)
@@ -441,9 +465,13 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
                       {isEditing && (
                         <button
                           onClick={applyToAll}
-                          className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                          className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                            applySuccess
+                              ? "border-green-300 bg-green-50 text-green-700"
+                              : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
                         >
-                          Apply to all ({validCount})
+                          {applySuccess ? "✓ Applied!" : `Apply to all (${validCount})`}
                         </button>
                       )}
                       <button

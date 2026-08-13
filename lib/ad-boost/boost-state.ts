@@ -25,6 +25,16 @@ export const BOOST_CHANNELS = [
   { value: "meta", label: "Meta only" },
 ] as const;
 
+/** Provider choice stays intentionally limited to the proven Google/Meta
+ * offer. Admins can still assign an experimental channel to a real campaign,
+ * and live/results views must name it accurately. */
+export function boostChannelLabel(channel: string | null): string | null {
+  const providerChoice = BOOST_CHANNELS.find((option) => option.value === channel);
+  if (providerChoice) return providerChoice.label;
+  if (channel === "nextdoor") return "Nextdoor";
+  return null;
+}
+
 export interface BoostRequest {
   id: string;
   status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled";
@@ -44,9 +54,14 @@ export interface BoostRequest {
   /** Whole-flight outcome reported from the zero-lead wrap-up email when a
    * family contacted the provider outside Olera's attributed lead path. */
   provider_reported_outcome?: "client" | "talking" | "no" | null;
+  /** Actual first serving day from the ad platform. */
+  flight_start_date?: string | null;
   /** Last serving day of the ad flight (admin-entered from the ad platform).
    *  Powers the live view's "Day N of M" time context. Null = not entered. */
   flight_end_date?: string | null;
+  /** Configured ad-platform budget, separate from spend and plan intent. */
+  ad_budget_cents?: number | null;
+  ad_budget_type?: "daily" | "lifetime" | null;
   /** Concierge-reviewed landing-page photo gate. Kept separate from profile
    * completeness because URL count does not establish campaign usefulness. */
   photo_readiness_status?: "unreviewed" | "update_requested" | "review_requested" | "ready";
@@ -97,8 +112,10 @@ export interface BoostStateResponse {
 
 /** Client mirror of the server CampaignReceipt, minus the per-lead list
  *  (providers see their leads on /provider/connections; the receipt shows
- *  the rollup). All Google fields are null until the concierge enters the
- *  dashboard numbers — absent renders as absent, never estimated. */
+ *  the rollup). Ad-platform fields are null until the concierge enters the
+ *  dashboard numbers — absent renders as absent, never estimated. The
+ *  `google` key is retained as a legacy wire name while its metrics are
+ *  platform-agnostic. */
 export interface CampaignReceiptData {
   google: {
     impressions: number | null;

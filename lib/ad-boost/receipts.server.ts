@@ -23,7 +23,7 @@ import {
  *              the platform couldn't see).
  *
  * Honesty rules baked in here, not in the render layers:
- *   - Google numbers come only from the manually entered dashboard fields
+ *   - Ad-platform numbers come only from the manually entered dashboard fields
  *     (ad_impressions / ad_clicks / ad_spend_cents). Absent fields render as
  *     absent — never estimated.
  *   - The math line uses the measured category benchmark (~1 lead per 30
@@ -37,7 +37,8 @@ import {
 export const CLICKS_PER_LEAD_BENCHMARK = 30;
 
 export interface CampaignReceipt {
-  /** Manual Google-dashboard numbers. Null = not entered yet, render nothing. */
+  /** Manual ad-platform numbers. The `google` key is a legacy wire name.
+   * Null = not entered yet, render nothing. */
   google: {
     impressions: number | null;
     clicks: number | null;
@@ -72,6 +73,7 @@ export interface ReceiptRequestRow {
   provider_slug: string | null;
   campaign_tag: string | null;
   requested_setup_week: string | null;
+  flight_start_date?: string | null;
   created_at: string;
   ad_impressions: number | null;
   ad_clicks: number | null;
@@ -86,7 +88,9 @@ export async function getCampaignReceipt(
   request: ReceiptRequestRow,
 ): Promise<CampaignReceipt> {
   const tag = request.campaign_tag || request.id;
-  const since = new Date(request.requested_setup_week || request.created_at).toISOString();
+  const since = new Date(
+    request.flight_start_date || request.requested_setup_week || request.created_at,
+  ).toISOString();
   const variants = [request.provider_slug, request.provider_id].filter(
     (v): v is string => typeof v === "string" && v.length > 0,
   );

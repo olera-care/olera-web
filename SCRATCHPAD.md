@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-13 — Ad Boost Nextdoor campaign tracking (`codex/ad-boost-nextdoor`)
+
+Extended Ad Boost beyond Google/Facebook so admins can record `nextdoor`, an explicit flight start/end, and a paired ad-platform budget amount + `daily`/`lifetime` control. Queue/detail/provider views, receipts, lifecycle copy, and both launch/end schedulers now use the actual flight dates and render the configured channel/budget consistently. Migration **175** was applied by TJ. Graceful Homecare's production-backed request was configured and read back as **Nextdoor · Aug 14–17, 2026 · $50 lifetime cap** while preserving `requested` status, so no lifecycle email was triggered.
+
+**Files:** Ad Boost admin/provider UI and API, lifecycle/receipt/email helpers, both scheduler routes, and `supabase/migrations/175_ad_boost_nextdoor_channel.sql`. **Validation:** TypeScript, targeted ESLint, `git diff --check`, 32-cron registry, server-render smoke, UTM/budget smoke, and Vercel preview pass. **Commit:** `993b4b7b5`. **PR:** #1590 → `staging` (ready for review; Vercel green). **Next:** preview-QA the Graceful Homecare detail/queue/provider display, then merge only after TJ approval.
+
 ### 2026-08-12 — Support Email bounded Gmail recovery (`codex/support-email-bounded-sync`)
 
 Diagnosed the 15-minute **Syncing…** hang from persisted production state rather than the UI: the last successful Gmail cursor advance was followed by overlapping five-minute workers that all timed out and remained recorded as `running`. A bulk Gmail label cleanup created a large history interval; the incremental worker treated label-only read/archive changes as new messages, fetched full MIME bodies, rematched identities, and reclassified every thread, then persisted the cursor only after the entire unbounded history finished. Every serverless timeout therefore discarded all progress and the next worker restarted the same backlog.

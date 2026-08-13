@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const { data: due, error } = await db
       .from("ad_campaign_requests")
       .select(
-        "id, provider_id, provider_slug, display_name, requested_setup_week, channel, campaign_tag, intended_monthly_budget, ad_spend_cents, ad_clicks, ad_impressions, created_at",
+        "id, provider_id, provider_slug, display_name, requested_setup_week, flight_start_date, channel, campaign_tag, intended_monthly_budget, ad_spend_cents, ad_clicks, ad_impressions, created_at",
       )
       .eq("status", "live")
       .is("deleted_at", null)

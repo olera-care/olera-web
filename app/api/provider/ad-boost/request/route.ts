@@ -30,7 +30,7 @@ const DEMAND_WINDOW_DAYS = 7;
 // The intro's value event: the wrap-up ask arms at this many delivered leads.
 const WRAPUP_LEADS_THRESHOLD = 3;
 const REQUEST_RETURN_SELECT =
-  "id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_end_date, ad_impressions, ad_clicks, ad_spend_cents, provider_reported_outcome, photo_readiness_status, photo_update_requested_at, photo_update_submitted_at";
+  "id, status, requested_setup_week, channel, intended_monthly_budget, campaign_tag, created_at, plan_status, plan_value, promo_complete_email_sent_at, flight_start_date, flight_end_date, ad_budget_cents, ad_budget_type, ad_impressions, ad_clicks, ad_spend_cents, provider_reported_outcome, photo_readiness_status, photo_update_requested_at, photo_update_submitted_at";
 
 export async function GET() {
   const elig = await loadAdBoostEligibility();
@@ -118,8 +118,8 @@ export async function GET() {
   // Real campaign performance for the live panel: visitors + leads on this
   // provider's page since launch. Only meaningful once the campaign is live and
   // actually driving traffic; pre-live it's null and the UI shows a "numbers
-  // arrive once live" state. Launch anchor = the requested setup week (when the
-  // ads start), falling back to created_at for older rows with no week.
+  // arrive once live" state. Launch anchor = the actual platform start when
+  // present, then the requested setup week for legacy rows.
   let campaignStats:
     | { visitors: number; leads: number; questions: { received: number; unanswered: number }; since: string }
     | null = null;
@@ -127,7 +127,7 @@ export async function GET() {
   // Ended campaigns keep their stats too — the wrap-up moment leads with them.
   if (latest && (latest.status === "live" || latest.status === "ended")) {
     const since = new Date(
-      latest.requested_setup_week || latest.created_at,
+      latest.flight_start_date || latest.requested_setup_week || latest.created_at,
     ).toISOString();
     const providerIdVariants = [elig.slug, elig.profileId];
     // Questions are campaign engagement too — counted the same since-launch way
@@ -143,6 +143,7 @@ export async function GET() {
         provider_slug: elig.slug,
         campaign_tag: latest.campaign_tag,
         requested_setup_week: latest.requested_setup_week,
+        flight_start_date: latest.flight_start_date,
         created_at: latest.created_at,
         ad_impressions: latest.ad_impressions ?? null,
         ad_clicks: latest.ad_clicks ?? null,

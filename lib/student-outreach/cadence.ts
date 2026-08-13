@@ -59,11 +59,7 @@ export type TemplateKey =
   // with Dr. DuBose.
   | "partner_welcome_intro"
   | "partner_welcome_checkin"
-  | "partner_welcome_planning"
-  // Re-engagement cadence — launched from the Follow-up tab to re-engage
-  // prospects that completed their initial outreach without converting.
-  | "reengagement_intro"
-  | "reengagement_final";
+  | "partner_welcome_planning";
 
 /**
  * Cadence lookup key. Stakeholder rows use their StakeholderType;
@@ -71,7 +67,7 @@ export type TemplateKey =
  * Keeps one cadence registry serving both surfaces — the universal
  * launch path goes through schedule_sequence regardless of kind.
  */
-export type CadenceKey = StakeholderType | "provider" | "activation" | "partner_welcome" | "reengagement";
+export type CadenceKey = StakeholderType | "provider" | "activation" | "partner_welcome";
 
 export interface OutreachStep {
   id: StepId;
@@ -353,33 +349,6 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
       title: "Day 300 · term-planning meeting",
       steps: [
         { id: "email", channel: "email", required: true, template: "partner_welcome_planning" },
-      ],
-    },
-  ],
-  // Re-engagement cadence — launched from the Follow-up tab to re-engage
-  // prospects whose initial outreach cadence completed without conversion.
-  // Three touches over 7 days: Day 0 intro email, Day 3 check-in call,
-  // Day 7 final email. Can be bulk-launched for efficiency.
-  reengagement: [
-    {
-      day: 0,
-      title: "Day 0 · re-engagement intro",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "reengagement_intro" },
-      ],
-    },
-    {
-      day: 3,
-      title: "Day 3 · re-engagement call",
-      steps: [
-        { id: "phone", channel: "phone", required: true, label: "Re-engagement check-in call" },
-      ],
-    },
-    {
-      day: 7,
-      title: "Day 7 · re-engagement final",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "reengagement_final" },
       ],
     },
   ],

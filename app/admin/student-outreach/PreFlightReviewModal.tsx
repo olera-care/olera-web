@@ -73,8 +73,7 @@ export function PreFlightReviewModal({
   const templateStakeholderType: StakeholderType =
     stakeholderType === "provider" ||
     stakeholderType === "activation" ||
-    stakeholderType === "partner_welcome" ||
-    stakeholderType === "reengagement"
+    stakeholderType === "partner_welcome"
       ? "student_org"
       : stakeholderType;
 

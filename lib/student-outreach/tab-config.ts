@@ -112,7 +112,7 @@ export const TABS: TabDef[] = [
   { key: "calls",        label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
   { key: "replies",      label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
   { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "followup",     label: "Follow-up",  tooltip: "No-response rows ready for bulk re-engagement. Select multiple and launch a new outreach cadence." },
+  { key: "followup",     label: "Follow-up",  tooltip: "Prospects whose cadence finished with no meeting. Re-engage with a new cadence, or archive." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at

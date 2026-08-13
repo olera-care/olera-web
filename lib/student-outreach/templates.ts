@@ -218,8 +218,6 @@ export function getTemplate(key: TemplateKey, ctx: TemplateContext): EmailDraft 
     case "partner_welcome_intro": return partnerWelcomeIntroEmail(ctx);
     case "partner_welcome_checkin": return partnerWelcomeCheckinEmail(ctx);
     case "partner_welcome_planning": return partnerWelcomePlanningEmail(ctx);
-    case "reengagement_intro": return reengagementIntroEmail(ctx);
-    case "reengagement_final": return reengagementFinalEmail(ctx);
   }
 }
 
@@ -1024,56 +1022,6 @@ export function callScript(ctx: TemplateContext, day: number): CallScript {
     title: `Day ${day} follow-up`,
     script: [
       `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office at Olera, following up on our note to ${ctx.organization_name} about Olera's Student Caregiver Program for pre-health students near ${ctx.campus_name}. Is there a better person or email I should send the details to?"`,
-    ].join("\n"),
-  };
-}
-
-// ── Re-engagement cadence ────────────────────────────────────────────────
-//
-// Launched from the Follow-up tab to re-engage prospects that completed their
-// initial outreach cadence without converting. Three touches over 7 days:
-// Day 0 email, Day 3 call, Day 7 final email. Uses provider-style framing
-// with program info + a meeting offer. Can be bulk-launched.
-
-export function reengagementIntroEmail(ctx: TemplateContext): EmailDraft {
-  const greeting = `Hi again,`;
-  const campusName = ctx.campus_name ?? PLACEHOLDER.campus;
-  return {
-    subject: `Following up: Student Caregiver Program for ${campusName} students`,
-    body: [
-      greeting,
-      ``,
-      `Following up from my earlier outreach about ${PROGRAM_NAME}. I wanted to check in and see if you've had a chance to consider the program.`,
-      ``,
-      `If you'd like to learn more, Dr. DuBose and I would be happy to schedule a quick call. Just reply with your interest level.`,
-    ].join("\n"),
-  };
-}
-
-export function reengagementFinalEmail(ctx: TemplateContext): EmailDraft {
-  const greeting = `Hi again,`;
-  const campusName = ctx.campus_name ?? PLACEHOLDER.campus;
-  return {
-    subject: `One more note: Student Caregiver Program for ${campusName} students`,
-    body: [
-      greeting,
-      ``,
-      `Wanted to circle back one more time on ${PROGRAM_NAME}. If timing wasn't right before, we'd still love to help when you're ready.`,
-      ``,
-      `If there's a better person to talk to, a quick forward would be appreciated.`,
-    ].join("\n"),
-  };
-}
-
-/**
- * Re-engagement call script for Day 3. Used in the bulk re-engage flow
- * and single-row re-engagement cadence.
- */
-export function reengagementCallScript(ctx: TemplateContext): CallScript {
-  return {
-    title: "Re-engagement call",
-    script: [
-      `"Hi, this is ${ctx.admin_first_name ?? "Graize"} from Dr. Logan DuBose's office at Olera, following up on our note about Olera's Student Caregiver Program. We reached out a few months ago and wanted to check back in. Would you have a moment?"`,
     ].join("\n"),
   };
 }

@@ -139,8 +139,14 @@ export function BulkReengageModal({ outreachIds, onClose, onSuccess }: Props) {
   const emailPreview = useMemo(() => {
     if (!selectedProspect) return null;
 
+    // StakeholderType: "student_org" | "advisor" | "professor" | "dept_head"
+    const validTypes = ["student_org", "advisor", "professor", "dept_head"];
+    const stakeholderType = validTypes.includes(selectedProspect.stakeholder_type ?? "")
+      ? (selectedProspect.stakeholder_type as "student_org" | "advisor" | "professor" | "dept_head")
+      : "advisor";
+
     const ctx: TemplateContext = {
-      stakeholder_type: (selectedProspect.stakeholder_type as "advisor" | "employer" | "student_org") ?? "advisor",
+      stakeholder_type: stakeholderType,
       organization_name: selectedProspect.organization_name,
       campus_name: selectedProspect.campus_name,
       admin_first_name: "Graize",

@@ -128,14 +128,12 @@ export async function POST(req: NextRequest) {
   // (for providers that have no decision makers but have a general contact)
   function getGeneralContactEmail(researchData: ResearchData): {
     email: string | null;
-    firstName: string | null;
   } {
     const gc = researchData?.general_contact;
-    if (!gc?.email) return { email: null, firstName: null };
-    // General contact doesn't have first_name, but decision_maker might
-    const dm = researchData?.decision_maker;
-    const firstName = dm?.name?.split(" ")[0] ?? null;
-    return { email: gc.email, firstName };
+    if (!gc?.email) return { email: null };
+    // General contact is a business inbox — no person's name, so firstName stays null
+    // (emails will use "Hi there," salutation)
+    return { email: gc.email };
   }
 
   // Build preview data
@@ -163,8 +161,10 @@ export async function POST(req: NextRequest) {
       // No decision maker email — check general contact in research_data
       const gc = getGeneralContactEmail(row.research_data);
       email = gc.email?.trim() || null;
-      firstName = gc.firstName;
-      lastName = null; // General contact doesn't have structured name
+      // General contact is a business inbox — no person's name
+      // (emails will use "Hi there," salutation)
+      firstName = null;
+      lastName = null;
     }
 
     const campusInfo = campusData ?? { name: "Unknown Campus", slug: null, city: null };

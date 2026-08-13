@@ -751,10 +751,24 @@ function ClosedBody({
   };
 
   const handleReengageSubmit = async (payload: { name: string; steps: Array<{ type: "email" | "call"; day: number; subject?: string; body?: string; script?: string }> }) => {
+    // Get recipient email: try decision maker first, then general contact
+    const recipientEmail = primaryContact?.email
+      ?? ctx.outreach.research_data?.general_contact?.email
+      ?? null;
+    const recipientPhone = primaryContact?.phone ?? primaryContact?.mobile ?? null;
+
     await action("launch_custom_cadence", {
       name: payload.name,
       steps: payload.steps,
       source: "reengagement",
+      recipient: {
+        name: primaryContact?.first_name ?? ctx.outreach.organization_name,
+        email: recipientEmail,
+        phone: recipientPhone,
+        first_name: primaryContact?.first_name ?? null,
+        last_name: primaryContact?.last_name ?? null,
+        contact_id: primaryContact?.id ?? null,
+      },
     });
     setShowReengage(false);
   };

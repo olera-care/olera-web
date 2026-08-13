@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  BOOST_CHANNELS,
+  boostChannelLabel,
   type BoostRequest,
   type CampaignReceiptData,
 } from "@/lib/ad-boost/boost-state";
@@ -24,20 +24,31 @@ import {
  */
 
 /** The campaign the provider committed to — week · channel · plan — as a clean
- *  hairline 3-up (Robinhood/Wise stat-row feel). Shared by the queued + in-motion
+ *  hairline facts row (Robinhood/Wise feel). Shared by the queued + in-motion
  *  states so the choices they just made are always visible. */
 export function CampaignFacts({ request }: { request: BoostRequest }) {
-  const channelLabel = BOOST_CHANNELS.find((c) => c.value === request.channel)?.label ?? null;
+  const channelLabel = boostChannelLabel(request.channel);
   // An active paid plan supersedes the (non-binding) signup intent.
   const hasPaidPlan =
     (request.plan_status === "active" || request.plan_status === "past_due") &&
     request.plan_value != null;
-  const budget =
-    hasPaidPlan
-      ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`)
-      : budgetLabel(request.intended_monthly_budget);
+  const configuredBudget =
+    request.ad_budget_cents != null
+      ? request.ad_budget_type === "daily"
+        ? `$${(request.ad_budget_cents / 100).toLocaleString()}/day`
+        : `$${(request.ad_budget_cents / 100).toLocaleString()} total`
+      : null;
+  const budget = hasPaidPlan
+    ? (budgetLabel(request.plan_value) ?? `$${request.plan_value}/mo`)
+    : configuredBudget ?? budgetLabel(request.intended_monthly_budget);
+  const flightStart = request.flight_start_date ?? request.requested_setup_week;
   const facts: { label: string; value: string }[] = [
-    { label: "Launch", value: `Week of ${formatWeek(request.requested_setup_week)}` },
+    {
+      label: request.flight_start_date ? "Flight starts" : "Launch",
+      value: request.flight_start_date
+        ? formatWeek(request.flight_start_date)
+        : `Week of ${formatWeek(request.requested_setup_week)}`,
+    },
   ];
   if (channelLabel) facts.push({ label: "Advertising on", value: channelLabel });
   if (budget) facts.push({ label: hasPaidPlan ? "Paid plan" : "Campaign budget", value: budget });
@@ -47,7 +58,7 @@ export function CampaignFacts({ request }: { request: BoostRequest }) {
   if (request.flight_end_date) {
     facts.push({
       label: "Flight",
-      value: flightProgress(request.requested_setup_week, request.flight_end_date),
+      value: flightProgress(flightStart, request.flight_end_date),
     });
   }
 
@@ -591,7 +602,7 @@ export function WrapUpMoment({
   );
 }
 
-/** "Day 12 of 28 · ends Aug 3" from the setup week + the ad platform's end
+/** "Day 12 of 28 · ends Aug 3" from the actual/expected start + platform end
  *  date. Parses date parts locally (no TZ drift, same rule as formatWeek). */
 function flightProgress(startIso: string, endIso: string): string {
   const parse = (d: string) => {

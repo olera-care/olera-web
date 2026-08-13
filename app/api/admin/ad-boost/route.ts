@@ -31,7 +31,8 @@ import { nextBusinessSlotEt } from "@/lib/send-window";
  */
 
 const VALID_STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
-const VALID_CHANNELS = ["google", "meta", "both"];
+const VALID_CHANNELS = ["google", "meta", "both", "nextdoor"];
+const VALID_BUDGET_TYPES = ["daily", "lifetime"];
 const VALID_PHOTO_READINESS = ["unreviewed", "update_requested", "review_requested", "ready"];
 const AD_BOOST_EMAIL_TYPES = [
   "ad_boost_queued",
@@ -49,7 +50,7 @@ const AD_BOOST_EMAIL_TYPES = [
 ];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_spend_cents, ad_clicks, ad_impressions, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_budget_cents, ad_budget_type, ad_spend_cents, ad_clicks, ad_impressions, flight_start_date, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -181,7 +182,7 @@ export async function GET(request: NextRequest) {
       | null = null;
     if (row.status === "live" || row.status === "ended") {
       const since = new Date(
-        row.requested_setup_week || row.created_at,
+        row.flight_start_date || row.requested_setup_week || row.created_at,
       ).toISOString();
       const providerIdVariants = [row.provider_slug, row.provider_id];
       const [stats, questions] = await Promise.all([
@@ -310,6 +311,7 @@ export async function GET(request: NextRequest) {
       provider_slug: string | null;
       status: string;
       requested_setup_week: string | null;
+      flight_start_date: string | null;
       created_at: string;
       campaign_tag: string | null;
     };
@@ -320,7 +322,7 @@ export async function GET(request: NextRequest) {
       const sinceByRequest = new Map(
         launched.map((r) => [
           r.id,
-          new Date(r.requested_setup_week || r.created_at).toISOString(),
+          new Date(r.flight_start_date || r.requested_setup_week || r.created_at).toISOString(),
         ]),
       );
       const variantToRequestIds = new Map<string, string[]>();
@@ -423,6 +425,9 @@ export async function POST(request: NextRequest) {
     ad_spend_cents?: unknown;
     ad_clicks?: unknown;
     ad_impressions?: unknown;
+    ad_budget_cents?: unknown;
+    ad_budget_type?: unknown;
+    flight_start_date?: unknown;
     flight_end_date?: unknown;
     launched_email_scheduled_at?: unknown;
     send_launch_email?: unknown;
@@ -521,6 +526,52 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  if (body.flight_start_date !== undefined) {
+    if (body.flight_start_date === null) {
+      update.flight_start_date = null;
+    } else if (
+      typeof body.flight_start_date !== "string" ||
+      Number.isNaN(new Date(body.flight_start_date).getTime())
+    ) {
+      return NextResponse.json({ error: "flight_start_date must be a date string or null" }, { status: 400 });
+    } else {
+      update.flight_start_date = body.flight_start_date.slice(0, 10);
+    }
+  }
+
+  if (body.ad_budget_cents !== undefined) {
+    if (body.ad_budget_cents === null) {
+      update.ad_budget_cents = null;
+    } else if (
+      typeof body.ad_budget_cents !== "number" ||
+      !Number.isInteger(body.ad_budget_cents) ||
+      body.ad_budget_cents <= 0
+    ) {
+      return NextResponse.json(
+        { error: "ad_budget_cents must be a positive integer or null" },
+        { status: 400 },
+      );
+    } else {
+      update.ad_budget_cents = body.ad_budget_cents;
+    }
+  }
+
+  if (body.ad_budget_type !== undefined) {
+    if (body.ad_budget_type === null) {
+      update.ad_budget_type = null;
+    } else if (
+      typeof body.ad_budget_type !== "string" ||
+      !VALID_BUDGET_TYPES.includes(body.ad_budget_type)
+    ) {
+      return NextResponse.json(
+        { error: `ad_budget_type must be one of: ${VALID_BUDGET_TYPES.join(", ")}` },
+        { status: 400 },
+      );
+    } else {
+      update.ad_budget_type = body.ad_budget_type;
+    }
+  }
+
   if (body.requested_setup_week !== undefined) {
     if (typeof body.requested_setup_week !== "string") {
       return NextResponse.json({ error: "requested_setup_week must be a date string" }, { status: 400 });
@@ -616,6 +667,39 @@ export async function POST(request: NextRequest) {
   }
   if (!current) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const effectiveFlightStart =
+    update.flight_start_date === undefined
+      ? current.flight_start_date
+      : (update.flight_start_date as string | null);
+  const effectiveFlightEnd =
+    update.flight_end_date === undefined
+      ? current.flight_end_date
+      : (update.flight_end_date as string | null);
+  if (
+    effectiveFlightStart &&
+    effectiveFlightEnd &&
+    effectiveFlightStart > effectiveFlightEnd
+  ) {
+    return NextResponse.json(
+      { error: "Flight end must be on or after flight start" },
+      { status: 400 },
+    );
+  }
+  const effectiveBudgetCents =
+    update.ad_budget_cents === undefined
+      ? current.ad_budget_cents
+      : (update.ad_budget_cents as number | null);
+  const effectiveBudgetType =
+    update.ad_budget_type === undefined
+      ? current.ad_budget_type
+      : (update.ad_budget_type as string | null);
+  if ((effectiveBudgetCents == null) !== (effectiveBudgetType == null)) {
+    return NextResponse.json(
+      { error: "Ad-platform budget amount and control must be set or cleared together" },
+      { status: 400 },
+    );
   }
 
   const changingPhotoStatus =

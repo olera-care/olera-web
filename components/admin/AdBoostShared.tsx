@@ -18,9 +18,16 @@ export interface CampaignRequest {
    *  concierge confirms before spend). NULL = not chosen / legacy request. */
   intended_monthly_budget: number | null;
   campaign_tag: string | null;
+  /** First serving day reported by the ad platform. This is deliberately
+   * separate from requested_setup_week, which records provider intent. */
+  flight_start_date: string | null;
   /** Last serving day of the ad flight (admin-entered from the ad platform).
    *  Null = not entered; the queue then shows only the setup week. */
   flight_end_date: string | null;
+  /** Budget configured in the ad platform. `lifetime` is a hard flight cap;
+   * `daily` is a per-day amount. Distinct from provider plan intent and spend. */
+  ad_budget_cents: number | null;
+  ad_budget_type: "daily" | "lifetime" | null;
   admin_note: string | null;
   created_at: string;
   updated_at: string;
@@ -115,7 +122,7 @@ export interface CampaignLead {
 }
 
 export const STATUSES = ["pending_profile", "requested", "scheduled", "live", "ended", "cancelled"];
-export const CHANNELS = ["", "google", "meta", "both"];
+export const CHANNELS = ["", "google", "meta", "both", "nextdoor"];
 
 export const STATUS_LABELS: Record<string, string> = {
   pending_profile: "Waiting on provider",
@@ -131,6 +138,7 @@ export function channelLabel(channel: string | null): string | null {
   if (channel === "google") return "Google";
   if (channel === "meta") return "Meta";
   if (channel === "both") return "Google + Meta";
+  if (channel === "nextdoor") return "Nextdoor";
   return null;
 }
 
@@ -158,11 +166,48 @@ export function fmtTimestamp(ts: string): string {
 }
 
 /** Build the canonical managed-ads landing URL with UTM attribution params. */
-export function utmUrl(slug: string | null, tag: string | null, id: string): string {
+export function utmUrl(
+  slug: string | null,
+  tag: string | null,
+  id: string,
+  channel: string | null,
+): string {
   const origin =
     typeof window !== "undefined" ? window.location.origin : "https://olera.care";
   const campaign = tag || id;
-  return `${origin}/provider/${slug ?? ""}?utm_source=olera_managed&utm_campaign=${campaign}`;
+  const medium =
+    channel === "google"
+      ? "paid_search"
+      : channel === "meta" || channel === "nextdoor"
+        ? "paid_social"
+        : channel === "both"
+          ? "paid_media"
+          : null;
+  const params = new URLSearchParams({
+    utm_source: "olera_managed",
+    utm_campaign: campaign,
+  });
+  if (medium) params.set("utm_medium", medium);
+  return `${origin}/provider/${encodeURIComponent(slug ?? "")}?${params.toString()}`;
+}
+
+/** Human-readable configured budget. This is the platform control, never the
+ * actual amount spent. */
+export function adBudgetLabel(
+  cents: number | null,
+  type: CampaignRequest["ad_budget_type"],
+): string | null {
+  if (cents == null) return null;
+  const dollars = cents / 100;
+  const amount = dollars.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: Number.isInteger(dollars) ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
+  if (type === "lifetime") return `${amount} lifetime cap`;
+  if (type === "daily") return `${amount}/day`;
+  return amount;
 }
 
 export function StatusBadge({ status }: { status: string }) {

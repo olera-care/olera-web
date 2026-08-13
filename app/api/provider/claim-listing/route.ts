@@ -424,6 +424,48 @@ export async function POST(request: Request) {
         // Non-blocking
       }
 
+      // Update provider_outreach_tracking to "claimed" stage (re-claim)
+      try {
+        const nowIso = new Date().toISOString();
+        const { data: trackingRow } = await db
+          .from("provider_outreach_tracking")
+          .select("id, stage")
+          .eq("provider_id", providerId)
+          .maybeSingle();
+
+        if (trackingRow && trackingRow.stage !== "claimed") {
+          const oldStage = trackingRow.stage;
+          // Atomic guard: only update if not already claimed
+          const { error: updateErr, count } = await db
+            .from("provider_outreach_tracking")
+            .update({
+              stage: "claimed",
+              claimed_at: nowIso,
+              stage_changed_at: nowIso,
+            })
+            .eq("id", trackingRow.id)
+            .neq("stage", "claimed");
+
+          if (!updateErr && count && count > 0) {
+            console.log("[claim-listing] Updated tracking to claimed (re-claim):", providerId);
+            await db.from("provider_outreach_touchpoints").insert({
+              provider_id: providerId,
+              touchpoint_type: "stage_changed",
+              details: {
+                old_stage: oldStage,
+                new_stage: "claimed",
+                source: "re_claim_from_page",
+                auto_updated: true,
+              },
+              admin_user_id: null,
+              created_at: nowIso,
+            });
+          }
+        }
+      } catch {
+        // Non-blocking
+      }
+
       return NextResponse.json({
         profileId: existingProfile.id,
         verificationState: "verified",
@@ -568,6 +610,57 @@ export async function POST(request: Request) {
       } catch {
         // Non-blocking
       }
+    }
+
+    // Update provider_outreach_tracking to "claimed" stage
+    // This ensures the tracking table stays in sync with actual claim state
+    try {
+      const nowIso = new Date().toISOString();
+
+      // Look up existing tracking row
+      const { data: trackingRow } = await db
+        .from("provider_outreach_tracking")
+        .select("id, stage")
+        .eq("provider_id", providerId)
+        .maybeSingle();
+
+      if (trackingRow && trackingRow.stage !== "claimed") {
+        const oldStage = trackingRow.stage;
+
+        // Update tracking row to claimed (with race condition guard)
+        const { error: updateErr, count } = await db
+          .from("provider_outreach_tracking")
+          .update({
+            stage: "claimed",
+            claimed_at: nowIso,
+            stage_changed_at: nowIso,
+          })
+          .eq("id", trackingRow.id)
+          .neq("stage", "claimed"); // Atomic guard: only update if not already claimed
+
+        if (updateErr) {
+          console.error("[claim-listing] Failed to update tracking to claimed:", updateErr.message);
+        } else if (count && count > 0) {
+          // Only log touchpoint if update actually changed something
+          console.log("[claim-listing] Updated provider_outreach_tracking to claimed:", providerId);
+
+          await db.from("provider_outreach_touchpoints").insert({
+            provider_id: providerId,
+            touchpoint_type: "stage_changed",
+            details: {
+              old_stage: oldStage,
+              new_stage: "claimed",
+              source: "claimed_from_page",
+              auto_updated: true,
+            },
+            admin_user_id: null, // System-triggered, not admin action
+            created_at: nowIso,
+          });
+        }
+      }
+    } catch (trackingErr) {
+      // Non-fatal: log but don't fail the claim
+      console.error("[claim-listing] Error updating outreach tracking:", trackingErr);
     }
 
     return NextResponse.json({

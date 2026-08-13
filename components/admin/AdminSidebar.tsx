@@ -92,6 +92,7 @@ const navSections: NavSection[] = [
       // /admin/staffing-outreach route still resolves for any
       // bookmarks during transition.
       { label: "Team", href: "/admin/team" },
+      { label: "War Room", href: "/admin/war-room" },
     ],
   },
 ];
@@ -457,6 +458,7 @@ export default function AdminSidebar({
           <div className="flex items-center justify-between mb-3">
             <Link
               href="/admin"
+              prefetch={false}
               className={[
                 "flex-1 block px-2.5 py-1.5 rounded-md text-sm transition-colors duration-100",
                 isActive("/admin")
@@ -489,6 +491,7 @@ export default function AdminSidebar({
                     <div key={item.href} className="relative group/item">
                       <Link
                         href={item.href}
+                        prefetch={false}
                         className={[
                           "block pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
                           active
@@ -541,6 +544,7 @@ export default function AdminSidebar({
                         <div key={item.href} className="relative group/item">
                           <Link
                             href={item.href}
+                            prefetch={false}
                             className={[
                               "flex items-center justify-between pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
                               active
@@ -617,6 +621,7 @@ export default function AdminSidebar({
                     <div key={item.href} className="relative group/item">
                       <Link
                         href={item.href}
+                        prefetch={false}
                         className={[
                           "flex items-center justify-between pl-5 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
                           active
@@ -665,6 +670,7 @@ export default function AdminSidebar({
           <div key="young-caregivers" className="mt-1 relative group/item">
             <Link
               href="/admin/young-caregivers"
+              prefetch={false}
               className={[
                 "w-full flex items-center px-2.5 pr-8 py-1.5 rounded-md text-sm font-semibold transition-colors duration-100",
                 isActive("/admin/young-caregivers")
@@ -714,6 +720,7 @@ export default function AdminSidebar({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 className={[
                   "flex flex-col items-center gap-1 px-3 py-2 text-xs font-medium min-w-[64px] min-h-[44px] justify-center",
                   active ? "text-gray-900" : "text-gray-400",

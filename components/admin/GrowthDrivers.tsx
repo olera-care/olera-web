@@ -7,13 +7,11 @@ import {
   Building2,
   ChevronRight,
   HeartHandshake,
-  MousePointerClick,
   Sparkles,
-  Users,
 } from "lucide-react";
 
 type Category = "provider" | "benefit" | "editorial";
-type View = "top" | "rising" | "falling" | "opportunities";
+type View = "top" | "leads" | "rising" | "falling" | "opportunities";
 
 interface CategoryPerformance {
   category: Category;
@@ -24,13 +22,6 @@ interface CategoryPerformance {
   previous_organic_users: number;
   previous_search_clicks: number;
   previous_search_impressions: number;
-  tracked_organic_visits: number;
-  cta_engagements: number;
-  unique_families: number;
-  opportunities: number;
-  direct_leads: number;
-  assisted_leads: number;
-  contact_intents: number;
 }
 
 interface PagePerformance {
@@ -46,15 +37,7 @@ interface PagePerformance {
   previous_search_clicks: number;
   previous_search_impressions: number;
   weeks_present: number;
-  tracked_organic_visits: number;
-  cta_views: number;
-  cta_engagements: number;
-  lead_starts: number;
-  unique_families: number;
-  opportunities: number;
-  direct_leads: number;
-  assisted_leads: number;
-  contact_intents: number;
+  leads: number | null;
 }
 
 interface TrendPoint {
@@ -69,23 +52,7 @@ interface DriversResponse {
   categories: CategoryPerformance[];
   pages: PagePerformance[];
   trend: TrendPoint[];
-  attribution: {
-    status: "collecting" | "pending";
-    available_from: string | null;
-    summary: AttributionMetrics;
-  };
-}
-
-interface AttributionMetrics {
-  tracked_organic_visits: number;
-  cta_views: number;
-  cta_engagements: number;
-  lead_starts: number;
-  unique_families: number;
-  opportunities: number;
-  direct_leads: number;
-  assisted_leads: number;
-  contact_intents: number;
+  lead_data_available: boolean;
 }
 
 const CATEGORY_META = {
@@ -128,6 +95,7 @@ const CATEGORY_META = {
 
 const VIEWS: Array<{ value: View; label: string }> = [
   { value: "top", label: "Top pages" },
+  { value: "leads", label: "Top leads" },
   { value: "rising", label: "Rising" },
   { value: "falling", label: "Falling" },
   { value: "opportunities", label: "Opportunities" },
@@ -217,8 +185,8 @@ function formatDate(value: string) {
     .format(new Date(`${value.slice(0, 10)}T12:00:00Z`));
 }
 
-function conversionRate(families: number, visits: number) {
-  return visits > 0 ? families / visits : null;
+function estimatedLeadRate(leads: number | null, organicUsers: number) {
+  return leads != null && organicUsers > 0 ? leads / organicUsers : null;
 }
 
 function formatRate(value: number | null) {
@@ -272,7 +240,6 @@ export default function GrowthDrivers({
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState<Category | null>(null);
-  const [selectedPagePath, setSelectedPagePath] = useState<string | null>(null);
   const [view, setView] = useState<View>("top");
   const [expanded, setExpanded] = useState(false);
 
@@ -298,19 +265,19 @@ export default function GrowthDrivers({
   }, [from, to]);
 
   const leadingCategory = useMemo(() => {
-    const categories = [...(data?.categories || [])];
-    const hasAttribution = (data?.attribution.summary.tracked_organic_visits || 0) > 0;
-    return categories.sort((a, b) => hasAttribution
-      ? b.unique_families - a.unique_families || b.opportunities - a.opportunities || b.organic_users - a.organic_users
-      : b.organic_users - a.organic_users)[0]?.category || "provider";
+    return [...(data?.categories || [])].sort((a, b) => b.organic_users - a.organic_users)[0]?.category || "provider";
   }, [data]);
   const activeCategory = selected || leadingCategory;
   const hasPriorData = data?.has_prior_data ?? false;
   const categories = data?.categories || [];
   const trackedUsers = categories.reduce((sum, item) => sum + item.organic_users, 0);
-  const attributionHasData = (data?.attribution.summary.tracked_organic_visits || 0) > 0;
   const pages = useMemo(() => {
     const matching = (data?.pages || []).filter((page) => page.page_category === activeCategory);
+    if (view === "leads") {
+      return matching.sort((a, b) =>
+        (b.leads ?? -1) - (a.leads ?? -1) || b.organic_users - a.organic_users,
+      );
+    }
     if (view === "rising") {
       if (!hasPriorData) return [];
       return matching
@@ -331,10 +298,8 @@ export default function GrowthDrivers({
         .filter((page) => opportunityFor(page, hasPriorData))
         .sort((a, b) => (opportunityFor(b, hasPriorData)?.priority || 0) - (opportunityFor(a, hasPriorData)?.priority || 0));
     }
-    return matching.sort((a, b) => attributionHasData
-      ? b.unique_families - a.unique_families || b.opportunities - a.opportunities || b.organic_users - a.organic_users
-      : b.organic_users - a.organic_users || b.search_clicks - a.search_clicks);
-  }, [activeCategory, attributionHasData, data, hasPriorData, view]);
+    return matching.sort((a, b) => b.organic_users - a.organic_users || b.search_clicks - a.search_clicks);
+  }, [activeCategory, data, hasPriorData, view]);
   const visiblePages = expanded ? pages : pages.slice(0, 6);
   const lead = categories.find((item) => item.category === leadingCategory);
   const leadShare = lead && trackedUsers > 0 ? Math.round((lead.organic_users / trackedUsers) * 100) : 0;
@@ -342,7 +307,6 @@ export default function GrowthDrivers({
 
   useEffect(() => {
     setExpanded(false);
-    setSelectedPagePath(null);
   }, [activeCategory, view, from, to]);
 
   if (loading) {
@@ -392,26 +356,7 @@ export default function GrowthDrivers({
 
       {!collapsed && <>
       <div className="border-t border-b border-gray-100 px-5 py-5 sm:px-7 sm:py-6">
-
-        {data.attribution.status === "collecting" ? (
-          <OutcomeStrip
-            metrics={data.attribution.summary}
-            availableFrom={data.attribution.available_from}
-          />
-        ) : (
-          <div className="mt-5 rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 px-4 py-3">
-            <p className="text-sm font-medium text-gray-800">Lead attribution is ready to activate</p>
-            <p className="mt-1 text-xs leading-relaxed text-gray-500">
-              Apply migration 174 to connect organic visits to confirmed families. Traffic intelligence below remains available in the meantime.
-            </p>
-          </div>
-        )}
-
-        {lead && attributionHasData ? (
-          <p className="mt-4 rounded-2xl bg-teal-50/60 px-4 py-3 text-sm leading-relaxed text-gray-700">
-            <span className="font-semibold text-gray-900">{CATEGORY_META[leadingCategory].label}</span> generated the most confirmed families in this period: {lead.unique_families.toLocaleString()} from {lead.tracked_organic_visits.toLocaleString()} attributable organic visits ({formatRate(conversionRate(lead.unique_families, lead.tracked_organic_visits))}).
-          </p>
-        ) : lead && (
+        {lead && (
           <p className="mt-5 rounded-2xl bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-700">
             <span className="font-semibold text-gray-900">{CATEGORY_META[leadingCategory].label}</span> led tracked organic discovery with {lead.organic_users.toLocaleString()} users and {leadShare}% of traffic across these three drivers
             {leadMovement == null ? "." : `, ${leadMovement >= 0 ? "up" : "down"} ${Math.abs(Math.round(leadMovement))}% versus the preceding period.`}
@@ -447,27 +392,10 @@ export default function GrowthDrivers({
                 <div className="mt-4 flex items-end justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold text-gray-900">{meta.label}</p>
-                    {attributionHasData ? (
-                      <>
-                        <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-gray-950">{category.unique_families.toLocaleString()}</p>
-                        <p className="mt-0.5 text-[11px] text-gray-400">
-                          Confirmed families · {formatRate(conversionRate(category.unique_families, category.tracked_organic_visits))} conversion
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-gray-950">{category.organic_users.toLocaleString()}</p>
-                        <p className="mt-0.5 text-[11px] text-gray-400">GA4 organic users · {share}% of tracked</p>
-                      </>
-                    )}
+                    <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-gray-950">{category.organic_users.toLocaleString()}</p>
+                    <p className="mt-0.5 text-[11px] text-gray-400">GA4 organic users · {share}% of tracked</p>
                   </div>
-                  {attributionHasData ? (
-                    <span className="pb-0.5 text-right text-[11px] leading-relaxed text-gray-400">
-                      {category.opportunities.toLocaleString()} opportunities<br />{category.organic_users.toLocaleString()} GA4 users
-                    </span>
-                  ) : (
-                    <span className="pb-0.5 text-xs font-semibold tabular-nums"><Change current={category.organic_users} previous={category.previous_organic_users} hasPriorData={hasPriorData} /></span>
-                  )}
+                  <span className="pb-0.5 text-xs font-semibold tabular-nums"><Change current={category.organic_users} previous={category.previous_organic_users} hasPriorData={hasPriorData} /></span>
                 </div>
               </button>
             );
@@ -497,48 +425,43 @@ export default function GrowthDrivers({
           </div>
         </div>
 
-        <div className="mt-5 hidden grid-cols-[minmax(0,1fr)_92px_72px_84px_86px_20px] gap-3 border-b border-gray-100 px-2 pb-2 text-[10px] font-medium uppercase tracking-[0.08em] text-gray-400 md:grid">
+        <div className="mt-5 hidden grid-cols-[minmax(0,1fr)_110px_80px_110px] gap-4 border-b border-gray-100 px-2 pb-2 text-[10px] font-medium uppercase tracking-[0.08em] text-gray-400 md:grid">
           <span>Page</span>
-          <span className="text-right">GA4 users</span>
-          <span className="text-right">Families</span>
-          <span className="text-right">Opportunities</span>
-          <span className="text-right">Conversion</span>
-          <span />
+          <span className="text-right">GA4 organic users</span>
+          <span className="text-right">Leads</span>
+          <span className="text-right">Est. lead rate</span>
         </div>
 
         {visiblePages.length ? (
           <ol className="divide-y divide-gray-50">
             {visiblePages.map((page, index) => {
               const opportunity = opportunityFor(page, hasPriorData);
-              const isSelected = selectedPagePath === page.page_path;
               return (
-                <li key={page.page_path}>
-                  <button
-                    type="button"
-                    aria-expanded={isSelected}
-                    onClick={() => setSelectedPagePath(isSelected ? null : page.page_path)}
-                    className={`group grid w-full gap-3 rounded-xl px-2 py-4 text-left transition-colors md:grid-cols-[minmax(0,1fr)_92px_72px_84px_86px_20px] md:items-center md:gap-3 ${isSelected ? "bg-gray-50" : "hover:bg-gray-50/70"}`}
-                  >
-                    <div className="flex min-w-0 items-start gap-3">
-                      <span className="mt-0.5 w-5 shrink-0 text-[10px] tabular-nums text-gray-300">{index + 1}</span>
-                      <div className="min-w-0">
+                <li key={page.page_path} className="group grid gap-3 rounded-xl px-2 py-4 transition-colors hover:bg-gray-50/70 md:grid-cols-[minmax(0,1fr)_110px_80px_110px] md:items-center md:gap-4">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="mt-0.5 w-5 shrink-0 text-[10px] tabular-nums text-gray-300">{index + 1}</span>
+                    <div className="min-w-0">
+                      <div className="flex min-w-0 items-center gap-2">
                         <p className="truncate text-sm font-medium text-gray-800" title={pageTitle(page.page_path)}>{pageTitle(page.page_path)}</p>
-                        <div className="mt-1 flex min-w-0 items-center gap-2">
-                          <p className="truncate text-[11px] text-gray-400" title={page.page_path}>{page.page_path}</p>
-                          {opportunity && <OpportunityBadge label={opportunity.label} tone={opportunity.tone} />}
-                        </div>
+                        <a
+                          href={page.page_path}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`Open ${pageTitle(page.page_path)}`}
+                          className="shrink-0 text-gray-300 opacity-0 transition-opacity hover:text-gray-700 group-hover:opacity-100 focus:opacity-100"
+                        >
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                      <div className="mt-1 flex min-w-0 items-center gap-2">
+                        <p className="truncate text-[11px] text-gray-400" title={page.page_path}>{page.page_path}</p>
+                        {opportunity && <OpportunityBadge label={opportunity.label} tone={opportunity.tone} />}
                       </div>
                     </div>
-                    <MetricCell label="GA4 organic users" value={page.organic_users.toLocaleString()} />
-                    <MetricCell label="Confirmed families" value={attributionHasData ? page.unique_families.toLocaleString() : "—"} />
-                    <MetricCell label="Opportunities" value={attributionHasData ? page.opportunities.toLocaleString() : "—"} />
-                    <MetricCell
-                      label="Visit conversion"
-                      value={attributionHasData ? formatRate(conversionRate(page.unique_families, page.tracked_organic_visits)) : "—"}
-                    />
-                    <ChevronRight className={`hidden h-4 w-4 text-gray-300 transition-transform md:block ${isSelected ? "rotate-90" : ""}`} />
-                  </button>
-                  {isSelected && <PageOutcomeDetail page={page} />}
+                  </div>
+                  <MetricCell label="GA4 organic users" value={page.organic_users.toLocaleString()} />
+                  <MetricCell label="Leads" value={page.leads == null ? "—" : page.leads.toLocaleString()} />
+                  <MetricCell label="Estimated lead rate" value={formatRate(estimatedLeadRate(page.leads, page.organic_users))} />
                 </li>
               );
             })}
@@ -549,6 +472,12 @@ export default function GrowthDrivers({
             <p className="mt-1 text-xs text-gray-400">Try another view or category.</p>
           </div>
         )}
+
+        <p className="mt-4 text-[10px] leading-relaxed text-gray-400">
+          {data.lead_data_available
+            ? "Leads are recorded provider inquiries and benefits completions tied to each page; known off-page inquiries are excluded. Est. lead rate divides those leads by GA4 organic users, so treat it as directional rather than exact source attribution."
+            : "Lead records are temporarily unavailable; traffic and search data remain current."}
+        </p>
 
         {pages.length > 6 && (
           <button
@@ -562,93 +491,6 @@ export default function GrowthDrivers({
       </div>
       </>}
     </section>
-  );
-}
-
-function OutcomeStrip({ metrics, availableFrom }: { metrics: AttributionMetrics; availableFrom: string | null }) {
-  const rate = conversionRate(metrics.unique_families, metrics.tracked_organic_visits);
-  const items = [
-    { label: "Attributed visits", value: metrics.tracked_organic_visits.toLocaleString(), detail: "Organic landings we can join" },
-    { label: "Confirmed families", value: metrics.unique_families.toLocaleString(), detail: "Deduplicated people" },
-    { label: "Opportunities", value: metrics.opportunities.toLocaleString(), detail: "Provider + benefits leads" },
-    { label: "Visit → family", value: formatRate(rate), detail: "Confirmed conversion" },
-  ];
-  return (
-    <div className="mt-5 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50/50">
-      <div className="grid grid-cols-2 divide-x divide-y divide-gray-100 lg:grid-cols-4 lg:divide-y-0">
-        {items.map((item) => (
-          <div key={item.label} className="bg-white/70 px-4 py-3.5">
-            <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-gray-400">{item.label}</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-gray-950">{item.value}</p>
-            <p className="mt-0.5 text-[10px] text-gray-400">{item.detail}</p>
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-col gap-1 px-4 py-2.5 text-[11px] text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-        <span>{metrics.direct_leads.toLocaleString()} direct + {metrics.assisted_leads.toLocaleString()} assisted opportunity credits</span>
-        <span>{availableFrom ? `Collection began ${formatDate(availableFrom)}` : "Waiting for the first attributable organic visit"}</span>
-      </div>
-    </div>
-  );
-}
-
-function PageOutcomeDetail({ page }: { page: PagePerformance }) {
-  const funnel = [
-    { label: "Organic visits", value: page.tracked_organic_visits },
-    { label: "CTA engaged", value: page.cta_engagements },
-    { label: "Lead started", value: page.lead_starts },
-    { label: "Families", value: page.unique_families },
-  ];
-  return (
-    <div className="mb-3 rounded-2xl border border-gray-100 bg-gray-50/70 p-4 sm:p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold text-gray-900">How this page turns attention into help</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
-            The funnel shows actions on this page; assisted credits finish on a later Olera page within seven days.
-          </p>
-        </div>
-        <a
-          href={page.page_path}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-gray-500 transition-colors hover:text-gray-900"
-        >
-          View page <ArrowUpRight className="h-3.5 w-3.5" />
-        </a>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {funnel.map((step, index) => (
-          <div key={step.label} className="relative rounded-xl bg-white px-3 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
-            <p className="text-[10px] font-medium text-gray-400">{step.label}</p>
-            <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900">{step.value.toLocaleString()}</p>
-            {index < funnel.length - 1 && <ChevronRight className="absolute -right-2.5 top-1/2 z-10 hidden h-4 w-4 -translate-y-1/2 rounded-full bg-gray-50 text-gray-300 sm:block" />}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        <DetailSignal icon={Users} label="Opportunity credit" value={`${page.direct_leads} direct · ${page.assisted_leads} assisted`} />
-        <DetailSignal icon={MousePointerClick} label="Contact intent" value={`${page.contact_intents} phone or official-link clicks`} />
-        <DetailSignal icon={Sparkles} label="Visit conversion" value={formatRate(conversionRate(page.unique_families, page.tracked_organic_visits))} />
-      </div>
-      <p className="mt-3 text-[10px] leading-relaxed text-gray-400">
-        Contact intent is useful demand, but it is not counted as a lead. GA4 users can be higher than attributed visits because historical and non-joinable traffic remains visible in the table.
-      </p>
-    </div>
-  );
-}
-
-function DetailSignal({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2.5">
-      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
-      <div className="min-w-0">
-        <p className="text-[9px] font-medium uppercase tracking-[0.07em] text-gray-400">{label}</p>
-        <p className="mt-0.5 text-[11px] font-medium text-gray-700">{value}</p>
-      </div>
-    </div>
   );
 }
 

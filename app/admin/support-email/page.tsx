@@ -196,6 +196,7 @@ export default function SupportEmailPage() {
   const [category, setCategory] = useState("all");
   const [dateWindow, setDateWindow] = useState<DateWindow>("all");
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [priority, setPriority] = useState<"all" | "urgent">("all");
   const [sort, setSort] = useState<Sort>("newest");
   const [total, setTotal] = useState(0);
   const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
@@ -228,6 +229,9 @@ export default function SupportEmailPage() {
     const params = new URLSearchParams(window.location.search);
     const connected = params.get("connected");
     const oauthError = params.get("error");
+    if (params.get("view") === "needs_reply") setView("needs_reply");
+    if (params.get("priority") === "urgent") setPriority("urgent");
+    if (params.get("sort") === "oldest") setSort("oldest");
     if (connected) setNotice(`${connected} is connected. Full mailbox history is importing newest first.`);
     if (oauthError) setError(oauthError);
     if (connected || oauthError) window.history.replaceState({}, "", "/admin/support-email");
@@ -240,7 +244,7 @@ export default function SupportEmailPage() {
 
   const loadList = useCallback(async () => {
     const requestId = ++listRequestRef.current;
-    const scopeKey = JSON.stringify({ view, query, category, dateWindow, sort });
+    const scopeKey = JSON.stringify({ view, query, category, dateWindow, priority, sort });
     try {
       setError(null);
       const params = new URLSearchParams({ view });
@@ -248,6 +252,7 @@ export default function SupportEmailPage() {
       if (category !== "all") params.set("category", category);
       if (dateWindow !== "all") params.set("date", dateWindow);
       if (unreadOnly) params.set("unread", "true");
+      if (priority !== "all") params.set("priority", priority);
       if (sort === "oldest") params.set("sort", "oldest");
       const res = await fetch(`/api/admin/support-email?${params}`);
       const data = await res.json();
@@ -274,7 +279,7 @@ export default function SupportEmailPage() {
       setTotal(0);
       setError(err instanceof Error ? err.message : "Could not load support email");
     }
-  }, [category, dateWindow, query, sort, unreadOnly, view]);
+  }, [category, dateWindow, priority, query, sort, unreadOnly, view]);
 
   useEffect(() => { void loadList(); }, [loadList]);
 
@@ -427,7 +432,21 @@ export default function SupportEmailPage() {
   const mailbox = mailboxes[0] ?? null;
   const phone = callbackNumber(detail);
   const isVoicemail = detail?.thread.category === "voicemail";
+
+  function clearPriorityFilter() {
+    setPriority("all");
+    const params = new URLSearchParams(window.location.search);
+    params.delete("priority");
+    const queryString = params.toString();
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}${queryString ? `?${queryString}` : ""}`,
+    );
+  }
+
   const scopeParts = [
+    priority === "urgent" ? "Urgent + escalated" : null,
     category !== "all" ? CATEGORY_LABELS[category] : null,
     dateWindow !== "all" ? DATE_LABELS[dateWindow] : null,
   ].filter((value): value is string => Boolean(value));
@@ -471,6 +490,15 @@ export default function SupportEmailPage() {
       {mailbox?.sync_status === "error" && mailbox.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailboxSyncMessage(mailbox.last_error)}</div>}
       {notice && <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
       {error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+
+      {priority === "urgent" && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <span><strong>Urgent + escalated queue.</strong> Work oldest first; reply, assign a real escalation owner, or mark handled when the customer has a next step.</span>
+          <button type="button" onClick={clearPriorityFilter} className="shrink-0 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-rose-100">
+            Show all
+          </button>
+        </div>
+      )}
 
       {!mailbox && !error ? (
         <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center">

@@ -86,7 +86,7 @@ export function CadenceLaunchModal({
 }: Props) {
   const days: OutreachDay[] = OUTREACH_DAYS_BY_TYPE[cadenceKey];
   const templateStakeholderType: StakeholderType =
-    cadenceKey === "activation" || cadenceKey === "partner_welcome"
+    cadenceKey === "activation" || cadenceKey === "partner_welcome" || cadenceKey === "reengagement"
       ? partnerStakeholderType ?? "student_org"
       : cadenceKey === "provider"
         ? "student_org"

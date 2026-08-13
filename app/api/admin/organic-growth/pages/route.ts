@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
+import { classifyOrganicPage, normalizeOrganicPagePath } from "@/lib/analytics/content-pages";
 import type { GrowthPageCategory } from "@/lib/growth/types";
+import { resolveCanonicalProviderKeys, resolveSlugsForRawIds } from "@/lib/provider-id-variants";
 
 type PerformanceRow = {
   page_path: string;
@@ -28,34 +30,15 @@ type TrendRow = {
   search_impressions: number | string;
 };
 
-type AttributionPageRow = {
-  page_path: string;
-  page_category: GrowthPageCategory;
-  tracked_organic_visits: number | string;
-  cta_views: number | string;
-  cta_engagements: number | string;
-  lead_starts: number | string;
-  unique_families: number | string;
-  opportunities: number | string;
-  direct_leads: number | string;
-  assisted_leads: number | string;
-  contact_intents: number | string;
+type ProviderInquiryRow = {
+  id: string;
+  to_profile_id: string;
+  metadata: Record<string, unknown> | null;
 };
 
-type AttributionSummaryRow = Omit<AttributionPageRow,
-  "page_path" | "page_category" | "cta_views" | "lead_starts"
-> & { scope: "all" | GrowthPageCategory };
-
-const EMPTY_ATTRIBUTION = {
-  tracked_organic_visits: 0,
-  cta_views: 0,
-  cta_engagements: 0,
-  lead_starts: 0,
-  unique_families: 0,
-  opportunities: 0,
-  direct_leads: 0,
-  assisted_leads: 0,
-  contact_intents: 0,
+type BenefitsLeadRow = {
+  id: string;
+  metadata: Record<string, unknown> | null;
 };
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -96,6 +79,46 @@ function normalize(row: PerformanceRow) {
   };
 }
 
+type ServiceClient = ReturnType<typeof getServiceClient>;
+
+async function getProviderInquiries(db: ServiceClient, from: string, toExclusive: string) {
+  const rows: ProviderInquiryRow[] = [];
+  for (let offset = 0; ; offset += 1_000) {
+    const result = await db
+      .from("connections")
+      .select("id, to_profile_id, metadata")
+      .eq("type", "inquiry")
+      .gte("created_at", `${from}T00:00:00Z`)
+      .lt("created_at", `${toExclusive}T00:00:00Z`)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + 999);
+    if (result.error) return { rows: [], error: result.error };
+    const batch = (result.data || []) as ProviderInquiryRow[];
+    rows.push(...batch);
+    if (batch.length < 1_000) return { rows, error: null };
+  }
+}
+
+async function getBenefitsLeads(db: ServiceClient, from: string, toExclusive: string) {
+  const rows: BenefitsLeadRow[] = [];
+  for (let offset = 0; ; offset += 1_000) {
+    const result = await db
+      .from("seeker_activity")
+      .select("id, metadata")
+      .eq("event_type", "benefits_completed")
+      .gte("created_at", `${from}T00:00:00Z`)
+      .lt("created_at", `${toExclusive}T00:00:00Z`)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + 999);
+    if (result.error) return { rows: [], error: result.error };
+    const batch = (result.data || []) as BenefitsLeadRow[];
+    rows.push(...batch);
+    if (batch.length < 1_000) return { rows, error: null };
+  }
+}
+
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -110,6 +133,7 @@ export async function GET(request: NextRequest) {
   const days = inclusiveDays(from, to);
   const priorTo = addDays(from, -1);
   const priorFrom = addDays(priorTo, -(days - 1));
+  const toExclusive = addDays(to, 1);
   const db = getServiceClient();
   const [
     currentResult,
@@ -117,24 +141,16 @@ export async function GET(request: NextRequest) {
     trendResult,
     priorTrendResult,
     earliestResult,
-    attributionPagesResult,
-    attributionSummaryResult,
-    attributionStartResult,
+    providerInquiriesResult,
+    benefitsLeadsResult,
   ] = await Promise.all([
     db.rpc("get_growth_page_performance", { p_from: from, p_to: to, p_limit: 60 }),
     db.rpc("get_growth_page_performance", { p_from: priorFrom, p_to: priorTo, p_limit: 60 }),
     db.rpc("get_growth_category_trend", { p_from: from, p_to: to }),
     db.rpc("get_growth_category_trend", { p_from: priorFrom, p_to: priorTo }),
     db.from("growth_page_metrics").select("week_start").order("week_start", { ascending: true }).limit(1).maybeSingle(),
-    db.rpc("get_growth_attribution_pages", { p_from: from, p_to: to }),
-    db.rpc("get_growth_attribution_summary", { p_from: from, p_to: to }),
-    db.from("growth_attribution_events")
-      .select("occurred_at")
-      .eq("event_type", "page_landed")
-      .eq("traffic_channel", "organic_search")
-      .order("occurred_at", { ascending: true })
-      .limit(1)
-      .maybeSingle(),
+    getProviderInquiries(db, from, toExclusive),
+    getBenefitsLeads(db, from, toExclusive),
   ]);
   const error = currentResult.error || priorResult.error || trendResult.error || priorTrendResult.error || earliestResult.error;
   if (error) {
@@ -154,37 +170,41 @@ export async function GET(request: NextRequest) {
   const hasPriorData = previous.length > 0 && currentWeeks > 0 && priorWeeks === currentWeeks;
   const previousByPage = new Map(previous.map((row) => [`${row.page_category}:${row.page_path}`, row]));
   const currentKeys = new Set(current.map((row) => `${row.page_category}:${row.page_path}`));
-  const performanceKeys = new Set([
-    ...currentKeys,
-    ...previous.map((row) => `${row.page_category}:${row.page_path}`),
+  // This is intentionally a directional page-to-lead count, not session-level
+  // acquisition attribution. Provider inquiries are sourced from the
+  // authoritative connections table; benefits completions have carried
+  // entry_source since June 2026.
+  const leadDataAvailable = !providerInquiriesResult.error && !benefitsLeadsResult.error;
+  if (!leadDataAvailable) {
+    console.error("[organic-growth/pages] Lead counts unavailable", providerInquiriesResult.error || benefitsLeadsResult.error);
+  }
+  const providerIds = providerInquiriesResult.rows.map((row) => row.to_profile_id);
+  const [providerKeys, providerSlugFallbacks] = await Promise.all([
+    resolveCanonicalProviderKeys(db, providerIds),
+    resolveSlugsForRawIds(db, providerIds),
   ]);
-  const attributionReady = !attributionPagesResult.error && !attributionSummaryResult.error && !attributionStartResult.error;
-  const attributionPages = attributionReady
-    ? (attributionPagesResult.data || []) as AttributionPageRow[]
-    : [];
-  const attributionByPage = new Map(attributionPages.map((row) => [row.page_path, {
-    tracked_organic_visits: numeric(row.tracked_organic_visits) || 0,
-    cta_views: numeric(row.cta_views) || 0,
-    cta_engagements: numeric(row.cta_engagements) || 0,
-    lead_starts: numeric(row.lead_starts) || 0,
-    unique_families: numeric(row.unique_families) || 0,
-    opportunities: numeric(row.opportunities) || 0,
-    direct_leads: numeric(row.direct_leads) || 0,
-    assisted_leads: numeric(row.assisted_leads) || 0,
-    contact_intents: numeric(row.contact_intents) || 0,
-  }]));
-  const attributionSummary = new Map(
-    (attributionReady ? (attributionSummaryResult.data || []) as AttributionSummaryRow[] : []).map((row) => [row.scope, {
-      ...EMPTY_ATTRIBUTION,
-      tracked_organic_visits: numeric(row.tracked_organic_visits) || 0,
-      cta_engagements: numeric(row.cta_engagements) || 0,
-      unique_families: numeric(row.unique_families) || 0,
-      opportunities: numeric(row.opportunities) || 0,
-      direct_leads: numeric(row.direct_leads) || 0,
-      assisted_leads: numeric(row.assisted_leads) || 0,
-      contact_intents: numeric(row.contact_intents) || 0,
-    }]),
-  );
+  const leadsByPage = new Map<string, Set<string>>();
+  const addLead = (rawPath: string, leadId: string) => {
+    const pagePath = normalizeOrganicPagePath(rawPath);
+    if (!pagePath || !classifyOrganicPage(pagePath)) return;
+    const ids = leadsByPage.get(pagePath) || new Set<string>();
+    ids.add(leadId);
+    leadsByPage.set(pagePath, ids);
+  };
+  for (const row of providerInquiriesResult.rows) {
+    // Recommendation inquiries originate elsewhere in the product, so do not
+    // present them as leads derived from the provider page.
+    if (row.metadata?.source === "matches_recommendation" || row.metadata?.source === "one_tap_intro") continue;
+    const slug = providerKeys.get(row.to_profile_id) || providerSlugFallbacks.get(row.to_profile_id) || row.to_profile_id;
+    addLead(`/provider/${slug}`, `provider:${row.id}`);
+  }
+  for (const row of benefitsLeadsResult.rows) {
+    const entrySource = typeof row.metadata?.entry_source === "string" ? row.metadata.entry_source : null;
+    const providerSlug = typeof row.metadata?.provider_slug === "string" ? row.metadata.provider_slug : null;
+    const sourcePage = entrySource || (providerSlug ? `/provider/${providerSlug}` : null);
+    if (sourcePage) addLead(sourcePage, `benefits:${row.id}`);
+  }
+  const leadCount = (pagePath: string) => leadDataAvailable ? (leadsByPage.get(pagePath)?.size || 0) : null;
   const categories = (["provider", "benefit", "editorial"] as GrowthPageCategory[]).map((category) => {
     const currentRow = current.find((row) => row.page_category === category);
     const previousRow = previous.find((row) => row.page_category === category);
@@ -197,7 +217,6 @@ export async function GET(request: NextRequest) {
       previous_organic_users: previousRow?.category_organic_users || 0,
       previous_search_clicks: previousRow?.category_search_clicks || 0,
       previous_search_impressions: previousRow?.category_search_impressions || 0,
-      ...(attributionSummary.get(category) || EMPTY_ATTRIBUTION),
     };
   });
 
@@ -206,13 +225,7 @@ export async function GET(request: NextRequest) {
     available_from: earliestResult.data?.week_start || null,
     has_prior_data: hasPriorData,
     coverage: { current_weeks: currentWeeks, prior_weeks: priorWeeks },
-    attribution: {
-      status: attributionReady ? "collecting" : "pending",
-      available_from: attributionReady && attributionStartResult.data?.occurred_at
-        ? attributionStartResult.data.occurred_at
-        : null,
-      summary: attributionSummary.get("all") || EMPTY_ATTRIBUTION,
-    },
+    lead_data_available: leadDataAvailable,
     categories,
     pages: [
       ...current.map((row) => {
@@ -222,7 +235,7 @@ export async function GET(request: NextRequest) {
           previous_organic_users: prior?.organic_users || 0,
           previous_search_clicks: prior?.search_clicks || 0,
           previous_search_impressions: prior?.search_impressions || 0,
-          ...(attributionByPage.get(row.page_path) || EMPTY_ATTRIBUTION),
+          leads: leadCount(row.page_path),
         };
       }),
       // Keep pages that disappeared from the current top sets so the Falling
@@ -240,33 +253,7 @@ export async function GET(request: NextRequest) {
           previous_organic_users: row.organic_users,
           previous_search_clicks: row.search_clicks,
           previous_search_impressions: row.search_impressions,
-          ...(attributionByPage.get(row.page_path) || EMPTY_ATTRIBUTION),
-        })),
-      // A page can create a confirmed family while sitting outside the GA4 /
-      // Search Console top sets. Outcome-producing pages must never disappear
-      // merely because the traffic query is intentionally capped.
-      ...attributionPages
-        .filter((row) => !performanceKeys.has(`${row.page_category}:${row.page_path}`))
-        .map((row) => ({
-          page_path: row.page_path,
-          page_category: row.page_category,
-          organic_users: 0,
-          organic_sessions: 0,
-          search_clicks: 0,
-          search_impressions: 0,
-          search_ctr: 0,
-          search_position: null,
-          category_organic_users: 0,
-          category_organic_sessions: 0,
-          category_search_clicks: 0,
-          category_search_impressions: 0,
-          weeks_present: 0,
-          first_week: from,
-          last_week: to,
-          previous_organic_users: 0,
-          previous_search_clicks: 0,
-          previous_search_impressions: 0,
-          ...(attributionByPage.get(row.page_path) || EMPTY_ATTRIBUTION),
+          leads: leadCount(row.page_path),
         })),
     ],
     trend: currentTrend.map((row) => ({

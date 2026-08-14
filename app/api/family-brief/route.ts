@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
     const facts: FamilyBenefitsFacts = profile
       ? familyBenefitsFacts(profile)
-      : { state: null, careTypes: [], financialPath: null, medicaidStatus: null, veteranStatus: null, age: null, incomeBand: null };
+      : { state: null, careTypes: [], financialPath: null, medicaidStatus: null, veteranStatus: null, age: null, incomeBand: null, hasSpouse: null };
 
     const chipFor = (question: QuizQuestion, options: { label: string; answer: string }[]) => ({
       question,

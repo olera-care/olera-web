@@ -76,8 +76,45 @@ export interface FamilyBenefitsFacts {
    *  ("under1500" | "under2500" | "under4000" | "over4000" | legacy
    *  "under6000"/"over6000" | "preferNotToSay"). Bands, never dollars —
    *  the exclusion math uses the band FLOOR so a family is only ruled out
-   *  of a program their whole band clears the limit of. */
+   *  of a program their whole band clears the limit of.
+   *
+   *  SCOPE WARNING: the intake asks "About how much is THEIR monthly
+   *  income?", so this band describes the care recipient alone. Means-tested
+   *  programs test the HOUSEHOLD. Never compare this band to a limit without
+   *  checking hasSpouse first — see incomeBandIsHouseholdScoped(). */
   incomeBand: string | null;
+  /** True when the person who filled the intake is the care recipient's
+   *  spouse, which is the one relationship that tells us a second adult
+   *  lives in the household. "My parent" and "Myself" say nothing about
+   *  marital status, so they stay null rather than false. */
+  hasSpouse: boolean | null;
+}
+
+/** Relationship values that mean "a spouse lives with the care recipient".
+ *  Covers both the stored display form ("My spouse") and the enrichment
+ *  enum ("spouse"), matching familyPhraseFromRelationship's substring test. */
+export function hasCoResidentSpouse(meta: Record<string, unknown>): boolean | null {
+  const raw = meta.relationship_to_recipient ?? meta.who_needs_care ?? meta.relationship;
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  return raw.toLowerCase().includes("spouse");
+}
+
+/**
+ * Whether the stored income band can be compared to a program's income
+ * limit at all.
+ *
+ * The band is the care recipient's own income. Every MSP and Medicaid
+ * income test counts both spouses when a married couple lives together, so
+ * for a family with a spouse the band is a fragment of the tested figure,
+ * not the figure. Comparing it either way is wrong, and the optimistic
+ * direction is the dangerous one: an $980 band against a $2,455 couple
+ * limit reads as comfortably eligible for a household earning $4,680.
+ *
+ * So when a spouse is known, income neither rules a program out nor earns
+ * the within-income boost, until we hold a household figure.
+ */
+export function incomeBandIsHouseholdScoped(facts: FamilyBenefitsFacts): boolean {
+  return facts.hasSpouse !== true;
 }
 
 /** Derive the benefits-relevant facts from a family profile row (top-level
@@ -125,6 +162,7 @@ export function familyBenefitsFacts(profile: { state?: string | null; care_types
     veteranStatus,
     age,
     incomeBand,
+    hasSpouse: hasCoResidentSpouse(meta),
   };
 }
 

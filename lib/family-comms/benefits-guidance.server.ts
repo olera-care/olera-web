@@ -284,6 +284,9 @@ export async function getProgramsForFamily(
   const affinity = careSettingAffinity(facts.careTypes);
   const seen = new Set<string>();
   const scored: { program: BenefitProgram; isState: boolean; score: number }[] = [];
+  // Whether the stored income band may be compared to a program limit at all.
+  // Constant across the loop — facts do not change per program.
+  const incomeUsable = incomeBandIsHouseholdScoped(facts);
 
   for (const { p, isState } of [...statePrograms, ...federalPrograms]) {
     const key = p.name.toLowerCase().trim();
@@ -295,8 +298,11 @@ export async function getProgramsForFamily(
     if (p.requires_medicaid && facts.medicaidStatus === "doesNotHave") continue;
     if (p.min_age != null && facts.age != null && facts.age < p.min_age) continue;
     // Income: exclude only when the band's FLOOR clears the program limit —
-    // a held fact, not a guess (Phase 3 real-situation capture).
-    {
+    // a held fact, not a guess (Phase 3 real-situation capture). Suppressed
+    // entirely when a spouse lives in the household, because the band is the
+    // recipient's income and the limit is a household one. See
+    // incomeBandIsHouseholdScoped.
+    if (incomeUsable) {
       const floor = incomeBandFloor(facts.incomeBand);
       if (floor != null && p.max_income_single != null && floor > p.max_income_single) continue;
     }
@@ -328,7 +334,11 @@ export async function getProgramsForFamily(
     }
     if (isMedicaidGated(p) && facts.medicaidStatus === "alreadyHas") score += 6;
     if (facts.financialPath === "c" && isMedicaidGated(p)) score += 8;
-    {
+    // The within-income boost is the false-positive path: a recipient-only
+    // band read against a household limit floats premium-help programs to the
+    // top of a plan for a household that is thousands over. Never score it
+    // when a spouse is in the picture.
+    if (incomeUsable) {
       const ceiling = incomeBandCeiling(facts.incomeBand);
       if (ceiling != null && p.max_income_single != null && ceiling <= p.max_income_single) score += 6;
     }

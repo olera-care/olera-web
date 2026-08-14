@@ -242,7 +242,9 @@ export async function composeNavigatorDraft(
   // The intake asks for the recipient's income, but every means test counts
   // the household. With a spouse in the picture the stored band is a
   // fragment, so ask for the combined figure before anything weighs it.
-  else if (hasCoResidentSpouse(input.profileMeta)) {
+  // Skipped for preferNotToSay: they declined to give a figure, and asking
+  // about the scope of a number they withheld reads as not having listened.
+  else if (pMeta.income_range !== "preferNotToSay" && hasCoResidentSpouse(input.profileMeta)) {
     missing.push("whether that income figure is just theirs or covers both spouses");
   }
 

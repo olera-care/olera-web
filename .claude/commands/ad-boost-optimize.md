@@ -119,6 +119,8 @@ For each campaign, pull the same fixed set so verdicts are comparable across the
 1. **Campaign row** — `/aw/campaigns?ocid=984737409`: status (Eligible / Eligible (Limited) / Ended), budget, spend-to-date, clicks, impressions, CTR, avg CPC.
 2. **Impression share** — same page, Columns → Modify columns → **Competitive metrics**: `Search lost IS (rank)` and `Search lost IS (budget)`. Without these you cannot tell "losing auctions" from "budget-capped," and the fix is different.
 3. **Search terms** — `/aw/keywords/searchterms?campaignId={id}&ocid=984737409`, **Show rows: 50**, read every term. For an ended campaign set the date range to **All time**; the default window renders empty and looks like "no data."
+
+   **The report is partial by construction and you must say so in the readout.** Google only exposes search terms above a privacy threshold, so `Total: Search terms` is routinely a fraction of the campaign's real numbers — Pacesetter showed **2 of 13 clicks and 49 of 149 impressions** on 2026-08-14, with the balance hidden under `Total: Other search terms`. Compare the two totals every time. A clean-looking harvest on a campaign with 15% term visibility is not evidence the spend is clean; it is evidence you cannot see it. Never report "no waste found" without the visibility ratio next to it.
 4. **Keywords** — `/aw/keywords?campaignId={id}&ocid=984737409`: note which have zero impressions, and **read the live set before writing any negative** (Phase 3).
 5. **Existing negatives** — `/aw/keywords/negative?campaignId={id}&ocid=984737409`: read the `Level` column. Shared list shows as `List`, campaign-level as `Campaign`. You only need the delta.
 6. **AI Max toggle** — campaign Settings, confirm `aria-checked=false`. It silently re-enables and its URL expansion strips `utm_campaign`, which kills attribution.
@@ -127,8 +129,8 @@ For each campaign, pull the same fixed set so verdicts are comparable across the
 
 - **Change history** (`/aw/changehistory?ocid=984737409` — verified): the fastest answer to "why did this change?", including changes Google made on its own.
 - **Device split** (`/aw/devices?campaignId={id}&ocid=984737409` — verified) — read only. **Never set a device bid adjustment**; see the locked invariant in `/ad-boost-setup`.
-- **Ad-level performance**: a campaign can look fine while one disapproved or under-serving ad drags it. **URL not verified** — reach it via in-app nav (Campaigns → Ads), and once you have the working URL, add it to the direct-URL table in `/ad-boost-setup`.
-- **Geo report**: out-of-market cities in the search terms usually mean the radius or Presence setting drifted. **URL not verified** — same rule as above.
+- **Ad-level performance** (`/aw/ads?campaignId={id}&ocid=984737409` — **verified 2026-08-14**): ad status (Eligible / Disapproved) and Ad Strength. First thing to check on any near-zero-impressions campaign, since it rules approval in or out in one read.
+- **Geo report**: out-of-market cities in the search terms usually mean the radius or Presence setting drifted. **URL not verified** — reach it via in-app nav, then add it to the direct-URL table in `/ad-boost-setup`.
 - **Live landing page**: load the provider page with the campaign's exact Final URL and confirm it renders, the UTM lands, and the inquiry CTA works. Clicks paid for a broken page are the worst outcome available and no Google-side report will ever show it.
 
 Do not guess Google Ads URLs. That direct-URL table exists because the in-app nav hides or 404s most of these, and a guessed URL costs a live browser session. Derive once, verify, record.
@@ -163,18 +165,45 @@ Rules, all non-negotiable:
 
 Pasting: the negative-keyword box is a `<textarea>`, so the JS native-setter trick works. `material-checkbox` and material-inputs do **not** accept synthetic clicks — use the real chrome-devtools `click` tool with snapshot uids. If a click reports success but nothing changes, check `document.elementFromPoint(x,y)` for a stuck `IPL-PROGRESS-INDICATOR` overlay and fix it with a `navigate_page` reload.
 
+**What does and does not respond to synthetic clicks** (measured 2026-08-14, saves a lot of expensive snapshots):
+
+| Element | Synthetic `.click()` | Notes |
+|---|---|---|
+| `material-fab` (the `+` Add negative keywords) | **works** | On a campaign with no campaign-level negatives yet the control is a FAB, not a labeled button — search by `aria-label`, not text |
+| `material-button` labelled Save / Cancel | **works** | |
+| `material-expansionpanel` header (`div.header.closed`) | **fails silently** | Panel stays `closed`. Needs the real `click` tool with a uid |
+| `material-checkbox`, material text inputs | **fails** | |
+
+**Typing into material inputs:** JS value setters do not stick. `focus()` → `document.execCommand('selectAll')` → `document.execCommand('insertText', …)` does, and Angular sees it. This is how the CPC cap and the flight end date were both edited.
+
+**The date picker renders on a `<canvas>`** — there are no day cells in the DOM to click, and `innerHTML` for the calendar is empty. Don't try to compute canvas coordinates. There is a plain `<input>` holding the formatted date (e.g. `Aug 16, 2026`) with no aria-label; find it by value and `insertText` the new date (`Aug 30, 2026`), then Save.
+
+**The "Turn off ad blockers" dialog is permanent on this profile** and has no dismiss button. Dia ships a component extension that Google detects, and `--disable-extensions` does not remove it. It does **not** block the negative-keyword or settings work — proceed through it. But it does sometimes leave the Settings panel needing a second attempt: reload, click Settings again, and it renders.
+
+**Watch for the "Unsaved changes" modal.** Editing one settings section and then clicking into another can throw `Your last change wasn't saved. Continue without saving?` — click **Go back**, save the first section, then move on. Save one section at a time and re-verify after a full page reload; the panel will happily show a value that never persisted.
+
 ## Phase 5 — Write the numbers back (do NOT skip — this is half the value)
 
 Every metric read in Phase 2 has a real column. **Reading Google and not writing back is the single most wasteful thing this command can do**, because those columns are load-bearing:
 
 | Column | What it drives |
 |---|---|
-| `ad_clicks`, `ad_impressions` | The CLICKS column in `/admin/ad-boost`; the provider receipt (`lib/ad-boost/receipts.server.ts`) |
+| `ad_clicks`, `ad_impressions` | The CLICKS column in `/admin/ad-boost` — which reads `ad_clicks ?? ad_landings ?? 0`, so a number there does **not** mean Google data is stored; it may be our own UTM-cookie landings. Also the provider receipt (`lib/ad-boost/receipts.server.ts`) |
 | `ad_spend_cents` | Receipt spend line; wrap-up and end-of-flight emails |
 | `ad_clicks` / `ad_spend_cents` > 0 | **Fires the traction email.** `lib/ad-boost/admin-communications.ts` gates it on exactly this. A live campaign with unwritten metrics sits on "Watching metrics" forever and the provider hears nothing |
 | `flight_start_date`, `flight_end_date` | Days-in-flight for the next sweep's prioritization; auto-end scheduler |
 
-Write via `PATCH /api/admin/ad-boost` (fields `ad_clicks`, `ad_impressions`, `ad_spend_cents`, `ad_budget_cents`) or the `/admin/ad-boost` UI. **Cents, not dollars** — $33.02 is `3302`.
+Write via **`POST /api/admin/ad-boost`** (the route exports GET, POST, DELETE — **there is no PATCH handler**, a PATCH 405s) or the `/admin/ad-boost` UI. **Cents, not dollars** — $33.02 is `3302`.
+
+Body rules the route enforces, all of which 400 if you get them wrong:
+
+- `ad_budget_cents` and `ad_budget_type` **must be sent together** (or both cleared). Valid types are **`daily`** and **`lifetime`** only — a campaign-total budget is `lifetime`; Rosemonte-style daily budgets are `daily` (`$3.57/day` ⇒ `357`).
+- `flight_start_date` must be ≤ `flight_end_date`, evaluated against whatever the row already holds for the field you don't send.
+- `id` is required and the write is one row per call.
+
+**Authentication:** the route needs an admin session, and the automation browser profile is usually signed into Google but *not* into olera.care. Check with `fetch('/api/admin/ad-boost')` from the page early — a `401 {"error":"Not authenticated"}` means TJ has to sign in in that window before any of this works. Do that check at Phase 0, not after the whole read is done.
+
+**Backfill `flight_start_date` whenever it is null** while you are already writing. As of the 2026-08-14 sweep every live row had it null, forcing dates to be reconstructed from `admin_note` prose.
 
 Then append a dated narrative line to `admin_note`:
 

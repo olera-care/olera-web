@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import AdminWorkspace from "@/components/admin/AdminWorkspace";
 
 /**
  * SMS inbox — every inbound text, and the ability to answer it.
@@ -49,6 +52,7 @@ interface ThreadDetail {
   e164: string;
   display_name: string | null;
   profile_type: string | null;
+  profile_id: string | null;
   suppressed: boolean;
   suppression: { reason: string; note: string | null } | null;
   unhandled: number;
@@ -142,6 +146,10 @@ export default function AdminSmsInboxPage() {
   // epoch must not write its result back into the box — otherwise the reply you
   // were typing for one number can end up labelled as another's saved draft.
   const draftEpochRef = useRef(0);
+  // Only the newest detail request may populate the conversation. Twilio can
+  // answer two rapid thread loads out of order, and an older response must not
+  // replace the thread the admin is now viewing.
+  const detailRequestRef = useRef(0);
   // The save currently in flight, so a discard can land AFTER it. Without this a
   // delete can be overtaken by an upsert that was already on the wire, leaving a
   // draft row behind that the UI has already forgotten about.
@@ -182,6 +190,7 @@ export default function AdminSmsInboxPage() {
    */
   const loadDetail = useCallback(
     async (phone: string, { adoptDraft = false }: { adoptDraft?: boolean } = {}) => {
+      const requestId = ++detailRequestRef.current;
       setDetailLoading(true);
       setActionError(null);
       setNotice(null);
@@ -189,6 +198,7 @@ export default function AdminSmsInboxPage() {
         const res = await fetch(`/api/admin/sms-inbox/${phone}`);
         if (!res.ok) throw new Error((await res.json())?.error || "Failed to load thread");
         const data: ThreadDetail = await res.json();
+        if (requestId !== detailRequestRef.current) return;
         setDetail(data);
         if (adoptDraft) {
           const body = data.draft?.body ?? "";
@@ -202,10 +212,11 @@ export default function AdminSmsInboxPage() {
           );
         }
       } catch (err) {
+        if (requestId !== detailRequestRef.current) return;
         setDetail(null);
         setActionError(err instanceof Error ? err.message : "Failed to load thread");
       } finally {
-        setDetailLoading(false);
+        if (requestId === detailRequestRef.current) setDetailLoading(false);
       }
     },
     [],
@@ -301,16 +312,53 @@ export default function AdminSmsInboxPage() {
     return () => document.removeEventListener("visibilitychange", flush);
   }, [reply, selected, saveDraft, cancelPendingDraftSave]);
 
-  function openThread(phone: string) {
+  const openThread = useCallback((phone: string) => {
+    // A thread switch can happen inside the debounce window. Start the write
+    // before invalidating this draft epoch so those last keystrokes still land
+    // server-side; refresh the list afterward so its draft chip stays honest.
+    if (selected && draftLoadedForRef.current === selected && reply !== draftBaselineRef.current) {
+      cancelPendingDraftSave();
+      void saveDraft(selected, reply).then(() => loadThreads());
+    }
     cancelPendingDraftSave();
     draftEpochRef.current += 1;
     draftLoadedForRef.current = null;
     draftBaselineRef.current = "";
     setSelected(phone);
+    setDetail(null);
     setReply("");
     setDraftState({ kind: "none" });
     void loadDetail(phone, { adoptDraft: true });
-  }
+  }, [cancelPendingDraftSave, loadDetail, loadThreads, reply, saveDraft, selected]);
+
+  const closeThread = useCallback(() => {
+    if (selected && draftLoadedForRef.current === selected && reply !== draftBaselineRef.current) {
+      cancelPendingDraftSave();
+      void saveDraft(selected, reply).then(() => loadThreads());
+    }
+    detailRequestRef.current += 1;
+    draftEpochRef.current += 1;
+    draftLoadedForRef.current = null;
+    draftBaselineRef.current = "";
+    setSelected(null);
+    setDetail(null);
+    setReply("");
+    setDraftState({ kind: "none" });
+    setActionError(null);
+    setNotice(null);
+    setDetailLoading(false);
+  }, [cancelPendingDraftSave, loadThreads, reply, saveDraft, selected]);
+
+  // Desktop inboxes are work surfaces, not landing pages. Open the first
+  // actionable row so the flexible pane is useful immediately; mobile keeps
+  // the familiar list-first navigation.
+  useEffect(() => {
+    if (selected || !threads?.length || window.innerWidth < 1024) return;
+    const candidate = unhandledOnly
+      ? threads.find((thread) => thread.unhandled > 0 || thread.has_draft)
+      : threads[0];
+    if (candidate) openThread(candidate.phone_last10);
+  }, [openThread, selected, threads, unhandledOnly]);
 
   async function discardDraft() {
     if (!selected) return;
@@ -403,23 +451,28 @@ export default function AdminSmsInboxPage() {
   const totalUnhandled = (threads ?? []).reduce((s, t) => s + t.unhandled, 0);
   // GSM-7 single segment is 160 chars; longer bodies split and bill per segment.
   const segments = reply.length === 0 ? 0 : Math.ceil(reply.length / 160);
+  const recordHref = detail?.profile_id
+    ? detail.profile_type === "family"
+      ? `/admin/care-seekers/${detail.profile_id}`
+      : detail.profile_type === "provider"
+        ? `/admin/directory/${detail.profile_id}`
+        : null
+    : null;
 
   return (
-    <div className="p-6 max-w-[1400px]">
-      <div className="flex items-baseline justify-between mb-1">
-        <h1 className="text-2xl font-semibold text-gray-900">Messages</h1>
-        <span className="text-[13px] text-gray-500">
-          {totalUnhandled > 0 ? `${totalUnhandled} awaiting a reply` : "All caught up"}
-        </span>
-      </div>
-      <p className="text-[13px] text-gray-500 mb-5">
-        Every text sent to Olera&rsquo;s number. Conversation history is read live from Twilio.
-      </p>
-
-      <div className="flex gap-5 items-start">
+    <AdminWorkspace>
+      <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
         {/* ── Thread list ─────────────────────────────────────────────── */}
-        <div className="w-[340px] shrink-0 border border-gray-200 rounded-xl bg-white overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100">
+        <aside className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r border-gray-200 bg-white`}>
+          <header className="border-b border-gray-200 px-4 pb-3 pt-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h1 className="text-xl font-semibold tracking-tight text-gray-950">Messages</h1>
+                <p className="mt-1 text-xs leading-5 text-gray-500">Texts sent to Olera&rsquo;s number.</p>
+              </div>
+              <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${totalUnhandled > 0 ? "bg-amber-500" : "bg-emerald-500"}`} aria-hidden="true" />
+            </div>
+            <div className="mt-4 flex items-center gap-2">
             {(["unhandled", "all"] as const).map((mode) => {
               const on = (mode === "unhandled") === unhandledOnly;
               return (
@@ -427,15 +480,19 @@ export default function AdminSmsInboxPage() {
                   key={mode}
                   onClick={() => setUnhandledOnly(mode === "unhandled")}
                   className={[
-                    "text-[12px] px-2 py-1 rounded-md transition-colors",
-                    on ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-500 hover:text-gray-900",
+                    "rounded-full px-3 py-1.5 text-xs transition-colors",
+                    on ? "bg-gray-900 font-medium text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                   ].join(" ")}
                 >
                   {mode === "unhandled" ? "Needs reply" : "All"}
                 </button>
               );
             })}
-          </div>
+              <span className="ml-auto text-[11px] text-gray-400">
+                {totalUnhandled > 0 ? `${totalUnhandled} awaiting reply` : "All caught up"}
+              </span>
+            </div>
+          </header>
 
           {listError && (
             <p className="px-3 py-4 text-[13px] text-red-600">{listError}</p>
@@ -459,7 +516,7 @@ export default function AdminSmsInboxPage() {
             </p>
           )}
 
-          <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             {visible.map((t) => {
               const active = selected === t.phone_last10;
               return (
@@ -467,10 +524,11 @@ export default function AdminSmsInboxPage() {
                   key={t.phone_last10}
                   onClick={() => openThread(t.phone_last10)}
                   className={[
-                    "w-full text-left px-3 py-2.5 border-b border-gray-50 transition-colors",
-                    active ? "bg-gray-50" : "hover:bg-gray-50/60",
+                    "relative w-full border-b border-gray-100 px-4 py-3 text-left transition-colors",
+                    active ? "bg-teal-50/70" : "hover:bg-gray-50",
                   ].join(" ")}
                 >
+                  {active && <span className="absolute inset-y-0 left-0 w-0.5 bg-teal-600" />}
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={[
@@ -512,16 +570,21 @@ export default function AdminSmsInboxPage() {
               );
             })}
           </div>
-        </div>
+        </aside>
 
         {/* ── Conversation ────────────────────────────────────────────── */}
-        <div className="flex-1 min-w-0 border border-gray-200 rounded-xl bg-white">
+        <section className={`${selected ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col bg-white`}>
           {!selected && (
-            <p className="p-8 text-[13px] text-gray-500">Select a conversation to read and reply.</p>
+            <div className="flex flex-1 items-center justify-center px-8 text-center">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Select a conversation</p>
+                <p className="mt-1 text-sm text-gray-400">Read the thread and send the next reply.</p>
+              </div>
+            </div>
           )}
 
           {selected && detailLoading && (
-            <div className="p-5 space-y-3">
+            <div className="flex-1 space-y-3 p-5">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="h-14 bg-gray-100 rounded animate-pulse" />
               ))}
@@ -532,7 +595,7 @@ export default function AdminSmsInboxPage() {
               lives inside the `detail &&` block below and can never render —
               a failed thread load would be a silent blank pane. */}
           {selected && !detailLoading && !detail && (
-            <div className="p-8">
+            <div className="flex-1 p-8">
               <p className="text-[13px] text-red-600">
                 {actionError || "Could not load this conversation."}
               </p>
@@ -547,8 +610,16 @@ export default function AdminSmsInboxPage() {
 
           {selected && !detailLoading && detail && (
             <>
-              <div className="flex items-start justify-between gap-3 px-5 py-3.5 border-b border-gray-100">
-                <div>
+              <header className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 px-5 py-3.5">
+                <div className="flex min-w-0 items-start gap-2">
+                  <button
+                    onClick={closeThread}
+                    aria-label="Back to messages"
+                    className="mt-0.5 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 lg:hidden"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </button>
+                  <div className="min-w-0">
                   <p className="text-[15px] font-semibold text-gray-900">
                     {detail.display_name || formatPhone(detail.phone_last10)}
                   </p>
@@ -556,6 +627,7 @@ export default function AdminSmsInboxPage() {
                     {formatPhone(detail.phone_last10)}
                     {detail.profile_type ? ` · ${detail.profile_type}` : " · not in our records"}
                   </p>
+                  </div>
                 </div>
                 {detail.unhandled > 0 && (
                   <button
@@ -565,16 +637,17 @@ export default function AdminSmsInboxPage() {
                     Mark handled
                   </button>
                 )}
-              </div>
+              </header>
 
               {detail.twilioError && (
-                <p className="mx-5 mt-3 text-[12px] text-amber-800 bg-amber-50 border border-amber-100 rounded-md px-3 py-2">
+                <p className="mx-5 mt-3 shrink-0 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
                   {detail.twilioError} Showing the messages we stored.
                 </p>
               )}
 
-              <div className="px-5 py-4 space-y-2.5 max-h-[calc(100vh-420px)] overflow-y-auto">
-                {(detail.messages.length > 0
+              <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain bg-gray-50/30 px-5 py-5">
+                <div className="mx-auto w-full max-w-3xl space-y-2.5">
+                  {(detail.messages.length > 0
                   ? detail.messages
                   : detail.inbound.map((r) => ({
                       sid: String(r.id),
@@ -584,7 +657,7 @@ export default function AdminSmsInboxPage() {
                       status: "received",
                       errorCode: null,
                     }))
-                ).map((m) => (
+                  ).map((m) => (
                   <div
                     key={m.sid}
                     className={m.direction === "in" ? "flex justify-start" : "flex justify-end"}
@@ -618,10 +691,12 @@ export default function AdminSmsInboxPage() {
                     </div>
                   </div>
                 ))}
+                </div>
               </div>
 
               {/* ── Reply ───────────────────────────────────────────── */}
-              <div className="border-t border-gray-100 px-5 py-3.5">
+              <div className="shrink-0 border-t border-gray-200 bg-white px-5 py-3.5">
+                <div className="mx-auto w-full max-w-3xl">
                 {detail.suppressed ? (
                   <p className="text-[13px] text-amber-800 bg-amber-50 border border-amber-100 rounded-md px-3 py-2.5">
                     This number opted out
@@ -670,11 +745,53 @@ export default function AdminSmsInboxPage() {
                   <p className="mt-2 text-[12px] text-red-600">{actionError}</p>
                 )}
                 {notice && <p className="mt-2 text-[12px] text-emerald-700">{notice}</p>}
+                </div>
               </div>
             </>
           )}
-        </div>
+        </section>
+
+        {/* ── Person context ─────────────────────────────────────────── */}
+        {detail && (
+          <aside className="hidden min-h-0 flex-col border-l border-gray-200 bg-white 2xl:flex">
+            <header className="border-b border-gray-200 px-5 py-4">
+              <h2 className="text-base font-semibold text-gray-900">Contact</h2>
+            </header>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-700">
+                {(detail.display_name || formatPhone(detail.phone_last10)).slice(0, 1).toUpperCase()}
+              </div>
+              <h3 className="mt-3 text-lg font-semibold text-gray-950">
+                {detail.display_name || formatPhone(detail.phone_last10)}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">{formatPhone(detail.phone_last10)}</p>
+
+              <dl className="mt-6 divide-y divide-gray-100 border-y border-gray-100 text-sm">
+                <div className="flex items-center justify-between gap-3 py-3">
+                  <dt className="text-gray-500">Record type</dt>
+                  <dd className="font-medium capitalize text-gray-800">{detail.profile_type || "Unknown"}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3 py-3">
+                  <dt className="text-gray-500">Messaging</dt>
+                  <dd className={`font-medium ${detail.suppressed ? "text-amber-700" : "text-emerald-700"}`}>
+                    {detail.suppressed ? "Opted out" : "Available"}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3 py-3">
+                  <dt className="text-gray-500">Needs reply</dt>
+                  <dd className="font-medium text-gray-800">{detail.unhandled > 0 ? `${detail.unhandled} message${detail.unhandled === 1 ? "" : "s"}` : "No"}</dd>
+                </div>
+              </dl>
+
+              {recordHref && (
+                <Link href={recordHref} className="mt-5 flex w-full items-center justify-center rounded-lg bg-gray-900 px-3 py-2.5 text-sm font-semibold text-white hover:bg-gray-800">
+                  Open {detail.profile_type === "family" ? "care-seeker" : "provider"} record
+                </Link>
+              )}
+            </div>
+          </aside>
+        )}
       </div>
-    </div>
+    </AdminWorkspace>
   );
 }

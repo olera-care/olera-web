@@ -2375,7 +2375,13 @@ function CityRow({
                                 </span>
                               )}
                               {/* Apollo decision-maker contact row */}
-                              {(provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready" && (
+                              {/* Show on Ready tab (when has email) OR on Needs Email tab (when lookup failed as fallback) */}
+                              {(
+                                // Ready tab: show when provider has email (find decision-maker as upgrade)
+                                ((provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready") ||
+                                // Needs Email tab: show when lookup failed (Apollo as fallback)
+                                (activeTab === "needs_email" && lookupErrors.has(provider.provider_id))
+                              ) && (
                                 <ApolloContactRow
                                   provider={{
                                     ...provider,

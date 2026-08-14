@@ -96,13 +96,12 @@ export async function findDecisionMaker(
     // This is free (doesn't cost credits) but doesn't return emails
     // Docs: https://docs.apollo.io/reference/people-api-search
     // Note: Apollo API requires JSON body, not query parameters
-    const priorityTitles = ["owner", "executive director", "administrator", "ceo", "president", "founder"];
+    // Note: Using only seniority filter (not titles) to broaden search results
 
     const searchBody: Record<string, unknown> = {
       person_seniorities: SENIORITY,
-      person_titles: priorityTitles,
       page: 1,
-      per_page: 5, // Get a few candidates
+      per_page: 10, // Get more candidates to increase chances
     };
 
     // Organization filter - use domain if available for better accuracy
@@ -111,6 +110,8 @@ export async function findDecisionMaker(
     } else {
       searchBody.q_organization_name = organizationName.trim();
     }
+
+    console.log("[apollo] Search request:", JSON.stringify(searchBody));
 
     const searchUrl = `${APOLLO_BASE_URL}/mixed_people/api_search`;
 
@@ -144,6 +145,8 @@ export async function findDecisionMaker(
 
     const searchData = await searchResponse.json();
     const people = searchData.people || [];
+
+    console.log("[apollo] Search returned", people.length, "people");
 
     if (people.length === 0) {
       clearTimeout(timeoutId);

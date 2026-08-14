@@ -166,8 +166,14 @@ export async function findDecisionMaker(
     const bestMatch = people[0];
     console.log("[apollo] Best match:", JSON.stringify(bestMatch));
 
-    // Need name to enrich
-    if (!bestMatch.first_name && !bestMatch.last_name && !bestMatch.name) {
+    // Apollo returns last_name_obfuscated, not last_name
+    // Extract whatever name info we have
+    const firstName = bestMatch.first_name || null;
+    const lastName = bestMatch.last_name || bestMatch.last_name_obfuscated || null;
+    const fullName = bestMatch.name || null;
+
+    // Need some name to enrich
+    if (!firstName && !lastName && !fullName) {
       console.log("[apollo] No name found on best match, skipping enrichment");
       clearTimeout(timeoutId);
       return {
@@ -182,18 +188,24 @@ export async function findDecisionMaker(
       };
     }
 
-    console.log("[apollo] Attempting enrichment for:", bestMatch.first_name, bestMatch.last_name);
+    console.log("[apollo] Attempting enrichment for:", firstName, lastName || fullName);
 
     // Enrichment endpoint uses query parameters (not JSON body)
     const enrichParams = new URLSearchParams();
     enrichParams.append("reveal_personal_emails", "true");
-    if (bestMatch.first_name) enrichParams.append("first_name", bestMatch.first_name);
-    if (bestMatch.last_name) enrichParams.append("last_name", bestMatch.last_name);
-    if (!bestMatch.first_name && !bestMatch.last_name && bestMatch.name) {
-      enrichParams.append("name", bestMatch.name);
+    if (firstName) enrichParams.append("first_name", firstName);
+    // Use full last_name if available, otherwise try obfuscated (might help matching)
+    if (bestMatch.last_name) {
+      enrichParams.append("last_name", bestMatch.last_name);
+    }
+    // If we only have fullName (no separate first/last), use it
+    if (!firstName && !bestMatch.last_name && fullName) {
+      enrichParams.append("name", fullName);
     }
     if (domain) enrichParams.append("domain", extractDomain(domain));
     if (bestMatch.organization?.name) enrichParams.append("organization_name", bestMatch.organization.name);
+    // Also try Apollo's person ID if available - most reliable for enrichment
+    if (bestMatch.id) enrichParams.append("id", bestMatch.id);
 
     const enrichUrl = `${APOLLO_BASE_URL}/people/match?${enrichParams.toString()}`;
     console.log("[apollo] Enrichment URL:", enrichUrl);

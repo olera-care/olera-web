@@ -851,6 +851,15 @@ interface OutreachProvider {
   // Questions and leads context
   questions_count?: number;
   leads_count?: number;
+  // Apollo.io decision-maker enrichment
+  apollo_contact?: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    title: string | null;
+    linkedin_url: string | null;
+    found_at: string;
+  } | null;
 }
 
 interface ActiveState {
@@ -1690,6 +1699,149 @@ function ProviderContactEditor({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Apollo Decision-Maker Contact Display
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ApolloContactRow({
+  provider,
+  onUseEmail,
+  onContactFound,
+}: {
+  provider: OutreachProvider;
+  onUseEmail: (email: string) => void;
+  onContactFound: (contact: OutreachProvider["apollo_contact"]) => void;
+}) {
+  const [finding, setFinding] = useState(false);
+  const [using, setUsing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const apolloContact = provider.apollo_contact;
+
+  async function handleFind() {
+    setFinding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else if (data.contact?.email) {
+        // Pass the found contact data up to update state
+        onContactFound({
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        });
+      } else {
+        setError("No decision-maker found");
+      }
+    } catch (err) {
+      setError("Lookup failed");
+    } finally {
+      setFinding(false);
+    }
+  }
+
+  // "Use This" - persist Apollo email as the provider's primary email
+  async function handleUseEmail() {
+    if (!apolloContact?.email || using) return;
+    setUsing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email: apolloContact.email,
+        }),
+      });
+      if (res.ok) {
+        // Update local state after successful API call
+        onUseEmail(apolloContact.email);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to update email");
+      }
+    } catch (err) {
+      setError("Failed to update email");
+    } finally {
+      setUsing(false);
+    }
+  }
+
+  // If no Apollo contact yet, show the Find button
+  if (!apolloContact) {
+    return (
+      <div className="flex items-center gap-2 mt-1">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFind();
+          }}
+          disabled={finding}
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
+        >
+          {finding ? "Finding..." : "🎯 Find Decision Maker"}
+        </button>
+        {error && <span className="text-xs text-amber-600">{error}</span>}
+      </div>
+    );
+  }
+
+  // Show the Apollo contact below the email
+  const fullName = [apolloContact.first_name, apolloContact.last_name]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <div className="flex items-center gap-2 mt-1 pl-4 border-l-2 border-purple-200">
+      <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+        Apollo
+      </span>
+      {fullName && (
+        <span className="text-sm font-medium text-gray-900">{fullName}</span>
+      )}
+      {apolloContact.title && (
+        <span className="text-xs text-gray-500">{apolloContact.title}</span>
+      )}
+      <span className="text-sm text-purple-600">{apolloContact.email}</span>
+      {apolloContact.linkedin_url && (
+        <a
+          href={apolloContact.linkedin_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-blue-600 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          LinkedIn
+        </a>
+      )}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleUseEmail();
+        }}
+        disabled={using}
+        className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
+      >
+        {using ? "..." : "Use This"}
+      </button>
+      {error && <span className="text-xs text-amber-600">{error}</span>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // City Row Component (collapsed/expanded)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1705,6 +1857,7 @@ interface CityRowProps {
   onSelectAllInCity: (providerIds: string[]) => void;
   onEmailSaved: (providerId: string, newEmail: string) => void;
   onPhoneSaved: (providerId: string, newPhone: string | null) => void;
+  onApolloContactFound: (providerId: string, apolloContact: OutreachProvider["apollo_contact"]) => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
   onOpenNotesModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
@@ -1731,6 +1884,7 @@ function CityRow({
   onSelectAllInCity,
   onEmailSaved,
   onPhoneSaved,
+  onApolloContactFound,
   onOpenActionModal,
   onOpenNotesModal,
   onRemoveProvider,
@@ -2219,6 +2373,18 @@ function CityRow({
                                 <span className="text-amber-600">
                                   {lookupErrors.get(provider.provider_id)}
                                 </span>
+                              )}
+                              {/* Apollo decision-maker contact row */}
+                              {(provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready" && (
+                                <ApolloContactRow
+                                  provider={{
+                                    ...provider,
+                                    // Use session-found email if available
+                                    email: provider.email || foundEmails.get(provider.provider_id)?.email || null,
+                                  }}
+                                  onUseEmail={(email) => onEmailSaved(provider.provider_id, email)}
+                                  onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
+                                />
                               )}
                             </>
                           )}
@@ -4925,6 +5091,8 @@ export default function ProviderOutreachPage() {
   const [sequenceAssigneeName, setSequenceAssigneeName] = useState<string | null>(null);
   const [showAssigneeAutocomplete, setShowAssigneeAutocomplete] = useState(false);
   const [showSequencePreview, setShowSequencePreview] = useState(false);
+  // Apollo email preference: when true, use decision-maker email for providers that have one
+  const [useApolloEmail, setUseApolloEmail] = useState(true);
   const [sequencePreviewData, setSequencePreviewData] = useState<{
     providers: Array<{
       provider_id: string;
@@ -7129,6 +7297,14 @@ export default function ProviderOutreachPage() {
                           )
                         );
                       }}
+                      onApolloContactFound={(providerId, apolloContact) => {
+                        // Update local providers state with Apollo contact
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId ? { ...p, apollo_contact: apolloContact } : p
+                          )
+                        );
+                      }}
                       onOpenActionModal={setActionModalProvider}
                       onOpenNotesModal={(provider) => {
                         setNotesModalProvider({
@@ -7984,6 +8160,7 @@ export default function ProviderOutreachPage() {
             setSequenceAssigneeId(null);
             setSequenceAssigneeName(null);
             setShowAssigneeAutocomplete(false);
+            setUseApolloEmail(true); // Reset to default
           }}
         >
           <div
@@ -8068,6 +8245,34 @@ export default function ProviderOutreachPage() {
                   )}
                 </div>
               </div>
+
+              {/* Apollo Email Preference - only show if any providers have Apollo contacts */}
+              {sequenceConfirmProviders.some((p) => p.apollo_contact?.email) && (
+                <div className="mb-5">
+                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                    Email Preference
+                  </h4>
+                  <label className="flex items-center gap-3 px-3 py-2.5 bg-purple-50 border border-purple-100 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={useApolloEmail}
+                      onChange={(e) => setUseApolloEmail(e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-purple-900">
+                        Use decision-maker emails
+                      </span>
+                      <p className="text-xs text-purple-600 mt-0.5">
+                        {sequenceConfirmProviders.filter((p) => p.apollo_contact?.email).length} provider(s) have Apollo contacts
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                      Apollo
+                    </span>
+                  </label>
+                </div>
+              )}
 
               {/* Provider list */}
               <div className="mb-5">
@@ -8305,6 +8510,7 @@ export default function ProviderOutreachPage() {
                   setSequenceAssigneeId(null);
                   setSequenceAssigneeName(null);
                   setShowAssigneeAutocomplete(false);
+                  setUseApolloEmail(true); // Reset to default
                 }}
                 disabled={actionLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -8349,6 +8555,7 @@ export default function ProviderOutreachPage() {
                           provider_ids: batch,
                           dry_run: false,
                           assigned_to: sequenceAssigneeId,
+                          use_apollo_email: useApolloEmail,
                         }),
                       });
 
@@ -8404,6 +8611,7 @@ export default function ProviderOutreachPage() {
                   setSequenceAssigneeId(null);
                   setSequenceAssigneeName(null);
                   setShowAssigneeAutocomplete(false);
+                  setUseApolloEmail(true); // Reset to default
                 }}
                 disabled={actionLoading || sequencePreviewLoading || (sequencePreviewData?.summary.valid === 0)}
                 className="px-5 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

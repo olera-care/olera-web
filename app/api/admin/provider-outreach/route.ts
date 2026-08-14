@@ -87,6 +87,17 @@ interface ProviderRow {
   slug: string | null;
 }
 
+// Apollo contact structure stored in JSONB
+interface ApolloContactData {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  title: string | null;
+  linkedin_url: string | null;
+  found_at: string;
+  credits_used?: number;
+}
+
 interface TrackingRow {
   id: string;
   provider_id: string;
@@ -118,6 +129,8 @@ interface TrackingRow {
   generic_email_skipped_at: string | null;
   // Confirmation state (Ready tab)
   confirmed_at: string | null;
+  // Apollo.io decision-maker enrichment
+  apollo_contact: ApolloContactData | null;
   confirmed_by: string | null;
 }
 
@@ -181,6 +194,15 @@ export interface OutreachProvider {
   // Questions and leads context
   questions_count?: number;
   leads_count?: number;
+  // Apollo.io decision-maker enrichment
+  apollo_contact?: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    title: string | null;
+    linkedin_url: string | null;
+    found_at: string;
+  } | null;
 }
 
 /**
@@ -654,6 +676,8 @@ export async function GET(request: NextRequest) {
           // Generic email warning state (persisted for page refresh)
           generic_email_called_at: t.generic_email_called_at ?? null,
           generic_email_skipped_at: t.generic_email_skipped_at ?? null,
+          // Apollo.io decision-maker enrichment
+          apollo_contact: t.apollo_contact ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -701,7 +725,7 @@ async function getNotContactedProviders(
   // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact")
     .eq("state", state);
 
   if (trackingError) {
@@ -814,6 +838,8 @@ async function getNotContactedProviders(
         // Confirmation state (Ready tab)
         confirmed_at: tracking?.confirmed_at ?? null,
         confirmed_by: tracking?.confirmed_by ?? null,
+        // Apollo.io decision-maker enrichment
+        apollo_contact: tracking?.apollo_contact ?? null,
       };
     });
 
@@ -1043,6 +1069,8 @@ async function getHiddenProviders(
         // Generic email warning state (persisted for page refresh)
         generic_email_called_at: t.generic_email_called_at ?? null,
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
+        // Apollo.io decision-maker enrichment
+        apollo_contact: t.apollo_contact ?? null,
       };
     })
     .filter((p): p is OutreachProvider => p !== null)
@@ -1138,6 +1166,8 @@ async function getArchivedProviders(
         // Generic email warning state
         generic_email_called_at: t.generic_email_called_at ?? null,
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
+        // Apollo.io decision-maker enrichment
+        apollo_contact: t.apollo_contact ?? null,
       });
     }
   }
@@ -1298,7 +1328,7 @@ async function searchProviders(
   // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact")
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
@@ -1469,6 +1499,8 @@ async function searchProviders(
       // Confirmation state (Ready tab)
       confirmed_at: tracking?.confirmed_at ?? null,
       confirmed_by: tracking?.confirmed_by ?? null,
+      // Apollo.io decision-maker enrichment
+      apollo_contact: tracking?.apollo_contact ?? null,
     };
   });
 

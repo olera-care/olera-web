@@ -98,22 +98,24 @@ export async function findDecisionMaker(
     // Note: Apollo API requires JSON body, not query parameters
     // Note: Using only seniority filter (not titles) to broaden search results
 
-    const searchBody: Record<string, unknown> = {
-      person_seniorities: SENIORITY,
-      page: 1,
-      per_page: 10, // Get more candidates to increase chances
-    };
-
-    // Organization filter - domain is reliable, org name uses keyword search
-    // Note: Apollo uses q_organization_domains_list (not q_organization_domains)
-    // Note: There's no q_organization_name param - use q_keywords instead
-    if (domain) {
-      searchBody.q_organization_domains_list = [extractDomain(domain)];
-    } else {
-      // Fall back to keyword search with org name
-      searchBody.q_keywords = organizationName.trim();
+    // Apollo requires domain - there's no company name search parameter
+    if (!domain) {
+      return {
+        contact: null,
+        credits_used: 0,
+        error: "Domain required - Apollo cannot search by company name alone",
+      };
     }
 
+    const searchDomain = extractDomain(domain);
+    const searchBody: Record<string, unknown> = {
+      q_organization_domains_list: [searchDomain],
+      person_seniorities: SENIORITY,
+      page: 1,
+      per_page: 10,
+    };
+
+    console.log("[apollo] Searching domain:", searchDomain);
     console.log("[apollo] Search request:", JSON.stringify(searchBody));
 
     const searchUrl = `${APOLLO_BASE_URL}/mixed_people/api_search`;

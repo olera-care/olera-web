@@ -61,10 +61,10 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Fetch provider data
+    // Fetch provider data - include email for domain fallback
     const { data: provider, error: providerError } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, website, city, state")
+      .select("provider_id, provider_name, website, email, city, state")
       .eq("provider_id", provider_id)
       .single();
 
@@ -75,8 +75,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract domain from website
+    // Extract domain from website, or fall back to email domain
     let domain: string | null = null;
+
+    // Try website first
     if (provider.website) {
       try {
         const url = new URL(
@@ -86,13 +88,31 @@ export async function POST(request: NextRequest) {
         );
         domain = url.hostname.replace(/^www\./, "");
       } catch {
-        // Invalid URL, proceed without domain
+        // Invalid URL, try email fallback
+      }
+    }
+
+    // Fall back to extracting domain from email
+    if (!domain && provider.email) {
+      const emailMatch = provider.email.match(/@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/);
+      if (emailMatch) {
+        domain = emailMatch[1].toLowerCase();
       }
     }
 
     console.log("[find-decision-maker] Provider:", provider.provider_name);
     console.log("[find-decision-maker] Website field:", provider.website);
+    console.log("[find-decision-maker] Email field:", provider.email);
     console.log("[find-decision-maker] Extracted domain:", domain);
+
+    // Apollo requires a domain - can't search by company name alone
+    if (!domain) {
+      return NextResponse.json({
+        contact: null,
+        credits_used: 0,
+        error: "No website or email domain available for Apollo search",
+      });
+    }
 
     // Call Apollo API
     const result = await findDecisionMaker(provider.provider_name, domain);

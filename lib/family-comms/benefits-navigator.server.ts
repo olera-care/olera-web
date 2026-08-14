@@ -29,7 +29,7 @@ import {
   familyPhraseFromRelationship,
   type FirstStepPick,
 } from "./benefits-cascade.server";
-import { familyBenefitsFacts } from "./benefits-guidance.server";
+import { familyBenefitsFacts, hasCoResidentSpouse } from "./benefits-guidance.server";
 import { countProvidersInArea } from "./provider-recs.server";
 
 // ── Metadata shape: business_profiles.metadata.benefits_navigator ──────────
@@ -133,6 +133,9 @@ HONESTY RULES (never break these)
 - Hedge the facts, not the recommendation. Rules and figures get "as I understand it" or "the figure I am seeing". What you would do stays direct.
 - Program details (name, phone number, documents, savings) come from the FIRST STEP section. Use them exactly as given. Never invent numbers, dollar amounts, deadlines, or eligibility claims.
 - Never promise approval, never say they qualify. "Worth a call" is the ceiling.
+- Never tell a family their own numbers are "in range", "within the limits", "in the range they look at", or any equivalent. That reads as a yes and it is the same promise as saying they qualify, made sideways. State what a limit IS if it is given to you. Never measure the family against it.
+- The income figure in FAMILY is the care recipient's own income. Means-tested programs count the whole household, including a spouse. So never present that figure as though it were what the program will weigh, and if the family includes a spouse, do not mention the family's income next to a program limit at all.
+- Telling a family they do NOT qualify is subject to the same rules in reverse, and the stakes are worse: a wrong yes costs someone an afternoon, a wrong no costs them a benefit they were owed and would have received. If the facts look unpromising, you may say the limits look tight, but you must in the same breath say that only the agency decides, and that applying is free and worth doing anyway. Never write a sentence whose effect is to talk a family out of applying.
 - The provider offer, when included, is only an offer to introduce them if they reply. No claims about what providers accept or cost.
 
 STRUCTURE (90-130 words total)
@@ -236,6 +239,14 @@ export async function composeNavigatorDraft(
   if (!pMeta.age) missing.push("the age of the person needing care");
   if (!pMeta.medicaid_status) missing.push("whether they are on Medicaid");
   if (!pMeta.income_range) missing.push("a rough monthly income range");
+  // The intake asks for the recipient's income, but every means test counts
+  // the household. With a spouse in the picture the stored band is a
+  // fragment, so ask for the combined figure before anything weighs it.
+  // Skipped for preferNotToSay: they declined to give a figure, and asking
+  // about the scope of a number they withheld reads as not having listened.
+  else if (pMeta.income_range !== "preferNotToSay" && hasCoResidentSpouse(input.profileMeta)) {
+    missing.push("whether that income figure is just theirs or covers both spouses");
+  }
 
   let providerCount = 0;
   if (input.city && input.state && input.careTypes.length > 0) {

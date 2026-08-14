@@ -147,8 +147,11 @@ export async function findDecisionMaker(
     }
 
     const searchData = await searchResponse.json();
-    const people = searchData.people || [];
 
+    // Log full response for debugging
+    console.log("[apollo] Full response:", JSON.stringify(searchData));
+
+    const people = searchData.people || [];
     console.log("[apollo] Search returned", people.length, "people");
 
     if (people.length === 0) {

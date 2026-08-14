@@ -104,11 +104,14 @@ export async function findDecisionMaker(
       per_page: 10, // Get more candidates to increase chances
     };
 
-    // Organization filter - use domain if available for better accuracy
+    // Organization filter - domain is reliable, org name uses keyword search
+    // Note: Apollo uses q_organization_domains_list (not q_organization_domains)
+    // Note: There's no q_organization_name param - use q_keywords instead
     if (domain) {
-      searchBody.q_organization_domains = extractDomain(domain);
+      searchBody.q_organization_domains_list = [extractDomain(domain)];
     } else {
-      searchBody.q_organization_name = organizationName.trim();
+      // Fall back to keyword search with org name
+      searchBody.q_keywords = organizationName.trim();
     }
 
     console.log("[apollo] Search request:", JSON.stringify(searchBody));

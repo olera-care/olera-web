@@ -142,6 +142,8 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 
 **Do not skip this. It is where the actual money is being lost, and it is the single highest-value recurring chore in the whole product.**
 
+> **Running this across the whole live book rather than for one new campaign? Use `/ad-boost-optimize`.** It sweeps every live campaign, prioritizes by days-in-flight and last-harvest date, and logs each sweep to `admin_note`. This phase and Phase 3.6 are its core.
+
 Open `https://ads.google.com/aw/keywords/searchterms?campaignId={id}&ocid=984737409`, set **Show rows: 50**, and read every term.
 
 What we found on HomeWell (2026-07-25) after 5 days: **all 50 named search terms had ZERO clicks.** ~28 were competitor brand navigation (`amada senior care`, `ohana home care`, `home instead`, `shannondale`) and ~14 were the wrong category (`home health`, `nursing home`, `assisted living`, `hospice`). Phrase match with close variants pulls brand queries hard. Nobody clicks a generic ad after searching a specific company by name — so CTR collapses (1.04%), Quality Score follows, and the campaign loses **87% of its auctions to Ad Rank** and underspends ($4.91 of $50). Death spiral.

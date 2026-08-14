@@ -9,7 +9,11 @@
  * Plan: $49/month Basic plan (5,000 email credits/month)
  * Per lookup: 1 credit for email reveal
  *
- * API Reference: https://apolloio.github.io/apollo-api-docs/
+ * API Reference: https://docs.apollo.io/reference/people-api-search
+ *
+ * Flow:
+ * 1. Search for people at org with seniority filters (free, no credits)
+ * 2. Enrich the best match to get email (1 credit)
  */
 
 // Lazy key loading (follows existing pattern from outreach-enrichment.ts)
@@ -17,7 +21,7 @@ function apolloKey(): string | undefined {
   return process.env.APOLLO_API_KEY;
 }
 
-const APOLLO_BASE_URL = "https://api.apollo.io/v1";
+const APOLLO_BASE_URL = "https://api.apollo.io/api/v1";
 
 // Request timeout in milliseconds
 const APOLLO_TIMEOUT_MS = 30000;
@@ -88,123 +92,161 @@ export async function findDecisionMaker(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), APOLLO_TIMEOUT_MS);
 
-    // Use the mixed_people/search endpoint to find contacts at an organization
-    // This endpoint searches for people and can filter by organization, seniority, title
-    // Docs: https://apolloio.github.io/apollo-api-docs/?shell#search-for-people
-    const response = await fetch(`${APOLLO_BASE_URL}/mixed_people/search`, {
+    // Step 1: Search for people at the organization with seniority filters
+    // This is free (doesn't cost credits) but doesn't return emails
+    // Docs: https://docs.apollo.io/reference/people-api-search
+    const searchParams = new URLSearchParams();
+
+    // Organization filter - use domain if available for better accuracy
+    if (domain) {
+      searchParams.append("q_organization_domains", extractDomain(domain));
+    } else {
+      searchParams.append("q_organization_name", organizationName.trim());
+    }
+
+    // Seniority filters
+    for (const seniority of SENIORITY) {
+      searchParams.append("person_seniorities[]", seniority);
+    }
+
+    // Title filters (top priorities only to avoid too broad)
+    const priorityTitles = ["owner", "executive director", "administrator", "ceo", "president", "founder"];
+    for (const title of priorityTitles) {
+      searchParams.append("person_titles[]", title);
+    }
+
+    searchParams.append("page", "1");
+    searchParams.append("per_page", "5"); // Get a few candidates
+
+    const searchUrl = `${APOLLO_BASE_URL}/mixed_people/search?${searchParams.toString()}`;
+
+    const searchResponse = await fetch(searchUrl, {
       method: "POST",
       headers: {
         "x-api-key": key,
         "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
       },
-      body: JSON.stringify({
-        // Organization filters
-        q_organization_name: organizationName.trim(),
-        ...(domain && { q_organization_domains: extractDomain(domain) }),
-        // Filter by seniority to find decision-makers
-        person_seniorities: SENIORITY,
-        // Filter by title keywords
-        person_titles: DECISION_MAKER_TITLES,
-        // Only get contacts with email
-        contact_email_status: ["verified", "guessed", "unavailable"],
-        // Limit to 1 result (we just need the best match)
-        per_page: 1,
-        page: 1,
-      }),
+      signal: controller.signal,
+    });
+
+    if (!searchResponse.ok) {
+      clearTimeout(timeoutId);
+      const errorText = await searchResponse.text();
+      console.error("[apollo] Search API error:", searchResponse.status, errorText);
+
+      if (searchResponse.status === 401) {
+        return { contact: null, credits_used: 0, error: "Invalid Apollo API key" };
+      }
+      if (searchResponse.status === 429) {
+        return { contact: null, credits_used: 0, error: "Apollo rate limit exceeded" };
+      }
+      if (searchResponse.status === 422) {
+        return { contact: null, credits_used: 0, error: "Apollo search failed - invalid parameters" };
+      }
+
+      return { contact: null, credits_used: 0, error: `Apollo API error: ${searchResponse.status}` };
+    }
+
+    const searchData = await searchResponse.json();
+    const people = searchData.people || [];
+
+    if (people.length === 0) {
+      clearTimeout(timeoutId);
+      return { contact: null, credits_used: 0 };
+    }
+
+    // Step 2: Enrich the best match to get email (costs 1 credit)
+    // Docs: https://docs.apollo.io/reference/people-enrichment
+    const bestMatch = people[0];
+
+    // Need name to enrich
+    if (!bestMatch.first_name && !bestMatch.last_name && !bestMatch.name) {
+      clearTimeout(timeoutId);
+      return {
+        contact: {
+          email: null,
+          first_name: null,
+          last_name: null,
+          title: bestMatch.title || null,
+          linkedin_url: bestMatch.linkedin_url || null,
+        },
+        credits_used: 0,
+      };
+    }
+
+    const enrichParams = new URLSearchParams();
+    if (bestMatch.first_name) enrichParams.append("first_name", bestMatch.first_name);
+    if (bestMatch.last_name) enrichParams.append("last_name", bestMatch.last_name);
+    if (!bestMatch.first_name && !bestMatch.last_name && bestMatch.name) {
+      enrichParams.append("name", bestMatch.name);
+    }
+    if (domain) enrichParams.append("domain", extractDomain(domain));
+    if (bestMatch.organization?.name) enrichParams.append("organization_name", bestMatch.organization.name);
+    enrichParams.append("reveal_personal_emails", "true");
+
+    const enrichUrl = `${APOLLO_BASE_URL}/people/match?${enrichParams.toString()}`;
+
+    const enrichResponse = await fetch(enrichUrl, {
+      method: "POST",
+      headers: {
+        "x-api-key": key,
+        "Content-Type": "application/json",
+      },
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[apollo] API error:", response.status, errorText);
+    if (!enrichResponse.ok) {
+      const errorText = await enrichResponse.text();
+      console.error("[apollo] Enrich API error:", enrichResponse.status, errorText);
 
-      // Handle specific error cases
-      if (response.status === 401) {
-        return {
-          contact: null,
-          credits_used: 0,
-          error: "Invalid Apollo API key",
-        };
-      }
-      if (response.status === 429) {
-        return {
-          contact: null,
-          credits_used: 0,
-          error: "Apollo rate limit exceeded",
-        };
-      }
-      if (response.status === 402) {
-        return {
-          contact: null,
-          credits_used: 0,
-          error: "Apollo credits exhausted",
-        };
-      }
-
-      return {
-        contact: null,
-        credits_used: 0,
-        error: `Apollo API error: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-
-    // mixed_people/search returns { people: [...] }
-    const people = data.people || [];
-
-    if (people.length === 0) {
-      // No match found - search doesn't cost credits
-      return {
-        contact: null,
-        credits_used: 0,
-      };
-    }
-
-    // Get the first (best) match
-    const person = people[0];
-
-    // Extract the email - Apollo returns it in the "email" field
-    const email = person.email || null;
-
-    if (!email) {
-      // Found a person but no email available
+      // Return the search result without email if enrichment fails
       return {
         contact: {
           email: null,
-          first_name: person.first_name || null,
-          last_name: person.last_name || null,
-          title: person.title || null,
-          linkedin_url: person.linkedin_url || null,
+          first_name: bestMatch.first_name || null,
+          last_name: bestMatch.last_name || null,
+          title: bestMatch.title || null,
+          linkedin_url: bestMatch.linkedin_url || null,
         },
-        credits_used: 0, // No credit used if no email revealed
+        credits_used: 0,
+        error: `Could not enrich contact: ${enrichResponse.status}`,
       };
     }
 
-    // Successfully found a decision-maker with email
-    // Note: Apollo charges 1 credit when accessing email via the API
+    const enrichData = await enrichResponse.json();
+    const person = enrichData.person;
+
+    if (!person) {
+      return {
+        contact: {
+          email: null,
+          first_name: bestMatch.first_name || null,
+          last_name: bestMatch.last_name || null,
+          title: bestMatch.title || null,
+          linkedin_url: bestMatch.linkedin_url || null,
+        },
+        credits_used: 0,
+      };
+    }
+
+    const email = person.email || null;
+
     return {
       contact: {
-        email: email.toLowerCase(),
-        first_name: person.first_name || null,
-        last_name: person.last_name || null,
-        title: person.title || null,
-        linkedin_url: person.linkedin_url || null,
+        email: email ? email.toLowerCase() : null,
+        first_name: person.first_name || bestMatch.first_name || null,
+        last_name: person.last_name || bestMatch.last_name || null,
+        title: person.title || bestMatch.title || null,
+        linkedin_url: person.linkedin_url || bestMatch.linkedin_url || null,
       },
-      credits_used: 1, // 1 credit used for email access
+      credits_used: email ? 1 : 0, // 1 credit only if email was revealed
     };
   } catch (err) {
-    // Handle abort/timeout specifically
     if (err instanceof Error && err.name === "AbortError") {
       console.error("[apollo] Request timed out");
-      return {
-        contact: null,
-        credits_used: 0,
-        error: "Apollo request timed out",
-      };
+      return { contact: null, credits_used: 0, error: "Apollo request timed out" };
     }
 
     console.error("[apollo] Request failed:", err);

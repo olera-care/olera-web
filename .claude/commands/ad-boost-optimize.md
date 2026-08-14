@@ -25,8 +25,6 @@ The recurring mid-flight maintenance sweep for campaigns that are already runnin
 
 **Run this every 3-4 days.** On a 2-week flight there are only ~3 useful sweeps before the money is gone.
 
-Browser driving: **run `/open-dia` first** and follow its rules (snapshot before screenshot, TJ handles every auth wall, gate irreversible clicks). This account is in **attach mode**, so see the hand-launch block in `/ad-boost-setup` Phase 2 Step A — the `/open-dia` kill-and-relaunch path assumes launch mode and will not work here.
-
 Canonical references (read if uncertain, don't re-derive):
 - `/ad-boost-setup` — locked invariants, direct URLs, campaign ID registry, all Google Ads automation gotchas.
 - Notion SOP: "SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup (any provider)" (id `38d5903a-0ffe-818f-a75b-db0951f7b178`).
@@ -44,7 +42,37 @@ $50 ÷ ~$2.00 CPC = ~25 clicks per flight. At ~3% landing conversion that is **~
 
 Never change keywords and negatives in the same pass — the read becomes unattributable. Sequence is fixed: **negatives → wait 48h → re-read CTR → only then consider a keyword rebuild.**
 
-## Phase 0 — Session guard (once per sweep, before any campaign)
+## Phase 0 — Browser up (`/open-dia`, FIRST ACTION of every sweep)
+
+**Invoke `/open-dia`.** Not "read it," not "follow its principles from memory" — invoke it, so its rules are actually loaded: snapshot before screenshot, viewport set deliberately, TJ handles every auth wall, irreversible clicks gated. Everything below assumes a live, visible window.
+
+Then, in this order:
+
+1. **Is the automation browser even running?**
+   ```bash
+   pgrep -f "remote-debugging-port=9222" && curl -s --max-time 5 http://127.0.0.1:9222/json/version
+   ```
+2. **If it is not running, hand-launch it.** This account runs the MCP in **attach mode** (`--browserUrl http://127.0.0.1:9222` in `~/.claude.json`), so it will *not* launch a browser for you, and `/open-dia`'s kill → `new_page` relaunch path does not apply here. Pass the URL argument — without it Dia can come back windowless:
+   ```bash
+   nohup /Applications/Dia.app/Contents/MacOS/Dia \
+     --user-data-dir=/Users/tfalohun/.cache/chrome-devtools-mcp/chrome-profile \
+     --remote-debugging-port=9222 \
+     --no-first-run --no-default-browser-check --restore-last-session=false \
+     --window-size=1440,900 --window-position=40,40 \
+     "https://ads.google.com/aw/campaigns?ocid=984737409" \
+     >/tmp/dia-9222.log 2>&1 &
+   sleep 9; curl -s --max-time 5 http://127.0.0.1:9222/json/version   # must return JSON
+   ```
+3. **Prove the window is visible before touching anything:**
+   ```
+   evaluate_script: () => ({ innerW: innerWidth, innerH: innerHeight, outerW: outerWidth, outerH: outerHeight })
+   ```
+   **`outerW`/`outerH` of 0 means the process is alive but windowless.** Snapshot and evaluate keep working, so the session looks fine while TJ sees nothing, and you will not find out until the first screenshot times out. Relaunch per step 2 rather than papering over it with `emulate`.
+4. **Expect a Google auth wall and budget for it.** `tj@olera.care` re-auths often, including a "Verify it's you" on a freshly launched profile. `select_page` with `bringToFront: true`, tell TJ exactly what to click, and wait. **Never type credentials.** This is a hard stop, not something to work around — so raise it early rather than after the DB work.
+
+Phase 1 needs no browser, so if TJ is mid-auth, **run Phase 1 while waiting** and present its findings instead of idling.
+
+## Phase 0.5 — Session guard (once per sweep, before any campaign)
 
 Open `https://ads.google.com/aw/recommendations/autoapply?ocid=984737409`. Both cards must read **"0 of 7 selected"** and **"0 of 14 selected"**. If anything is on, uncheck it — then **navigate away and click Save in the leave-confirmation modal** (the top-of-page Save button is the workspace filter save and does nothing here). Reload to confirm.
 
@@ -52,7 +80,7 @@ This is the account's main silent-drift vector. It is what re-enables AI Max, re
 
 ## Phase 1 — Build the sweep list (no browser)
 
-**Targeted mode:** run the same query filtered to that provider — you still need the row `id`, `campaign_tag`, and `flight_start_date` for the Phase 5 write-back — then resolve to the Google campaign ID and go. Skip only the prioritization. Still run Phase 0; auto-apply drift is account-wide, and one campaign is enough to catch it.
+**Targeted mode:** run the same query filtered to that provider — you still need the row `id`, `campaign_tag`, and `flight_start_date` for the Phase 5 write-back — then resolve to the Google campaign ID and go. Skip only the prioritization. Still run Phases 0 and 0.5 — the browser has to be up either way, and auto-apply drift is account-wide, so one campaign is enough to catch it.
 
 **There is no Google campaign ID column on this table.** The mapping is by campaign name / `campaign_tag` against the registry, which is why the registry has to be maintained by hand.
 

@@ -6,12 +6,16 @@ import SidebarDrawerToggle from "@/components/admin/SidebarDrawerToggle";
 import { ToastProvider } from "@/components/admin/Toast";
 import { RecentMovesProvider } from "@/components/admin/RecentMoves";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 const SIDEBAR_VISIBILITY_KEY = "admin-sidebar-hidden";
+const WORKSPACE_ROUTES = new Set(["/admin/inbox", "/admin/support-email"]);
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { adminUser, isLoading: adminLoading, error, retry } = useAdminAuth();
   const [sidebarHidden, setSidebarHidden] = useState(false);
+  const isWorkspaceRoute = WORKSPACE_ROUTES.has(pathname);
 
   useEffect(() => {
     try {
@@ -97,14 +101,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
       <RecentMovesProvider>
-        <div className="min-h-screen flex">
+        <div className={isWorkspaceRoute ? "flex h-dvh min-h-0 overflow-hidden" : "flex min-h-screen"}>
           <AdminSidebar
             adminUser={adminUser}
             desktopHidden={sidebarHidden}
             onRequestClose={() => setSidebarVisibility(true)}
           />
           {sidebarHidden && (
-            <div className="fixed left-3 top-20 z-30 hidden md:block">
+            <div className="fixed left-3 top-3 z-30 hidden md:block">
               <SidebarDrawerToggle
                 direction="open"
                 onClick={() => setSidebarVisibility(false)}
@@ -114,11 +118,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           )}
           <div
             className={[
-              "flex-1 min-w-0 transition-[padding] duration-200 ease-out",
+              "min-w-0 flex-1 transition-[padding] duration-200 ease-out",
+              isWorkspaceRoute ? "h-full min-h-0 overflow-hidden" : "",
               sidebarHidden ? "md:pl-10" : "",
             ].join(" ")}
           >
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className={isWorkspaceRoute
+              ? "h-full min-h-0 w-full overflow-hidden"
+              : "mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8"
+            }>
               {children}
             </div>
           </div>

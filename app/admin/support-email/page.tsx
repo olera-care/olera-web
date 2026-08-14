@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import AdminWorkspace from "@/components/admin/AdminWorkspace";
 import {
   ArrowDownUp,
   ArrowLeft,
@@ -418,6 +419,7 @@ export default function SupportEmailPage() {
   }
 
   function selectThread(id: string) {
+    if (selectedRef.current === id) return;
     leaveSelectedThread(id);
     detailRequestRef.current += 1;
     setDetail(null);
@@ -455,44 +457,19 @@ export default function SupportEmailPage() {
     : `${total.toLocaleString()} ${unreadOnly ? "unread" : `conversation${total === 1 ? "" : "s"}`}${scopeParts.length ? ` · ${scopeParts.join(" · ")}` : ""}`;
 
   return (
-    <div className="space-y-4 pb-20 md:pb-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-950">Support Email</h1>
-            {mailbox && (
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${mailbox.sync_status === "error" ? "bg-rose-50 text-rose-700" : mailbox.sync_status === "backfilling" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
-                {mailbox.sync_status === "error" ? "Needs attention" : mailbox.sync_status === "backfilling" ? "Catching up" : "Live"}
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-sm text-gray-500">One queue for every support conversation and its next move.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {mailbox ? (
-            <button onClick={() => void syncNow()} disabled={syncing} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-              {syncing ? "Syncing…" : "Sync now"}
-            </button>
-          ) : (
-            <Link prefetch={false} href="/api/admin/support-email/connect" className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
-              Connect Gmail
-            </Link>
-          )}
-        </div>
-      </div>
-
+    <AdminWorkspace>
       {mailbox && !mailbox.full_sync_complete && (
-        <div className="flex flex-col gap-1 rounded-lg border border-amber-100 bg-amber-50/50 px-3 py-2 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex shrink-0 flex-col gap-1 border-b border-amber-100 bg-amber-50/60 px-4 py-2 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between">
           <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /><strong>{mailbox.full_sync_messages_imported.toLocaleString()}</strong> imported · History is still syncing</span>
           <span className="text-amber-700">New mail always arrives first</span>
         </div>
       )}
-      {mailbox?.sync_status === "error" && mailbox.last_error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{mailboxSyncMessage(mailbox.last_error)}</div>}
-      {notice && <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
-      {error && <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+      {mailbox?.sync_status === "error" && mailbox.last_error && <div className="shrink-0 border-b border-rose-100 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">{mailboxSyncMessage(mailbox.last_error)}</div>}
+      {notice && <div className="shrink-0 border-b border-emerald-100 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">{notice}</div>}
+      {error && <div className="shrink-0 border-b border-rose-100 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">{error}</div>}
 
       {priority === "urgent" && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           <span><strong>Urgent + escalated queue.</strong> Work oldest first; reply, assign a real escalation owner, or mark handled when the customer has a next step.</span>
           <button type="button" onClick={clearPriorityFilter} className="shrink-0 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-rose-100">
             Show all
@@ -501,17 +478,32 @@ export default function SupportEmailPage() {
       )}
 
       {!mailbox && !error ? (
-        <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center">
+        <div className="flex flex-1 items-center justify-center px-6 py-16 text-center">
+          <div>
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-xl text-teal-700">✦</div>
           <h2 className="text-lg font-semibold text-gray-900">Connect the Olera support mailbox</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">The first sync starts with today, then keeps walking backwards until the complete Gmail history is available here.</p>
           <Link prefetch={false} href="/api/admin/support-email/connect" className="mt-5 inline-flex rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800">Connect Gmail</Link>
+          </div>
         </div>
       ) : mailbox && (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.04)]">
-          <div className="grid min-h-[680px] lg:grid-cols-[330px_minmax(0,1fr)]">
-            <section className={`${selected ? "hidden lg:block" : "block"} border-b border-gray-200 lg:border-b-0 lg:border-r`}>
-              <div className="border-b border-gray-100 p-3">
+        <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
+            <section className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r border-gray-200 bg-white`}>
+              <div className="border-b border-gray-200 px-4 pb-3 pt-5">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h1 className="truncate text-xl font-semibold tracking-tight text-gray-950">Support Email</h1>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${mailbox.sync_status === "error" ? "bg-rose-50 text-rose-700" : mailbox.sync_status === "backfilling" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
+                        {mailbox.sync_status === "error" ? "Needs attention" : mailbox.sync_status === "backfilling" ? "Catching up" : "Live"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-gray-500">Support conversations and their next move.</p>
+                  </div>
+                  <button onClick={() => void syncNow()} disabled={syncing} className="shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+                    {syncing ? "Syncing…" : "Sync"}
+                  </button>
+                </div>
                 <div className="flex gap-1 overflow-x-auto pb-2">
                   {VIEWS.map((item) => (
                     <button key={item.key} onClick={() => setView(item.key)} className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium ${view === item.key ? "bg-gray-100 text-gray-900" : "text-gray-500 hover:text-gray-800"}`}>
@@ -564,7 +556,7 @@ export default function SupportEmailPage() {
                   <span className="shrink-0">{sort === "newest" ? "Newest first" : "Oldest first"}</span>
                 </div>
               </div>
-              <div className="max-h-[640px] overflow-y-auto">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                 {threads == null ? (
                   <p className="px-4 py-10 text-center text-sm text-gray-400">Loading inbox…</p>
                 ) : threads.length === 0 ? (
@@ -605,16 +597,16 @@ export default function SupportEmailPage() {
               </div>
             </section>
 
-            <section className={`${selected ? "block" : "hidden lg:block"} min-w-0`}>
+            <section className={`${selected ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col bg-white`}>
               {!selected ? (
-                <div className="flex min-h-[680px] items-center justify-center px-8 text-center">
+                <div className="flex flex-1 items-center justify-center px-8 text-center">
                   <div><p className="text-sm font-medium text-gray-700">Select a conversation</p><p className="mt-1 text-sm text-gray-400">Read the thread, review the agent&apos;s reasoning, and take the next action.</p></div>
                 </div>
               ) : loadingDetail && !detail ? (
-                <div className="flex min-h-[680px] items-center justify-center text-sm text-gray-400">Loading conversation…</div>
+                <div className="flex flex-1 items-center justify-center text-sm text-gray-400">Loading conversation…</div>
               ) : detail && (
-                <div className="flex min-h-[680px] flex-col">
-                  <header className="border-b border-gray-100 px-5 py-4">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <header className="shrink-0 border-b border-gray-200 px-5 py-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex min-w-0 items-start gap-3">
                         <button onClick={() => { leaveSelectedThread(null); setSelected(null); }} aria-label="Back to inbox" className="mt-0.5 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 lg:hidden">
@@ -641,6 +633,7 @@ export default function SupportEmailPage() {
                     </div>
                   </header>
 
+                  <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gray-50/30">
                   {detail.thread.agent_summary && (
                     <div className="m-5 mb-0 overflow-hidden rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/70 via-white to-white">
                       <div className="p-4">
@@ -697,7 +690,7 @@ export default function SupportEmailPage() {
                     </div>
                   )}
 
-                  <div className="max-h-[440px] flex-1 space-y-4 overflow-y-auto px-5 py-5">
+                  <div className="mx-auto w-full max-w-4xl space-y-4 px-5 py-5">
                     {detail.messages.map((message) => (
                       <article key={message.id} className={`rounded-xl border p-4 ${message.direction === "out" ? "ml-6 border-teal-100 bg-teal-50/40" : "mr-6 border-gray-200 bg-white"}`}>
                         <div className="flex items-start justify-between gap-4">
@@ -729,9 +722,11 @@ export default function SupportEmailPage() {
                       </article>
                     ))}
                   </div>
+                  </div>
 
-                  <div id="support-reply" className="border-t border-gray-100 bg-gray-50/50 p-4">
-                    <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={6} maxLength={20_000} placeholder="Write a reply, or edit the copilot draft…" className="w-full resize-y rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-6 outline-none placeholder:text-gray-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
+                  <div id="support-reply" className="shrink-0 border-t border-gray-200 bg-white p-4">
+                    <div className="mx-auto w-full max-w-4xl">
+                    <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={4} maxLength={20_000} placeholder="Write a reply, or edit the copilot draft…" className="w-full resize-y rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-6 outline-none placeholder:text-gray-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100" />
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-2 text-[11px] text-gray-400">
                         {detail.thread.gmail_draft_id ? <span>Saved in Gmail</span> : detail.thread.suggested_draft ? <span>Agent draft -- review before sending</span> : <span>Nothing sends without your click</span>}
@@ -743,13 +738,69 @@ export default function SupportEmailPage() {
                         <button onClick={() => void act("send", { body: reply })} disabled={!!acting || !reply.trim()} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50">{acting === "send" ? "Sending…" : "Send reply"}</button>
                       </div>
                     </div>
+                    </div>
                   </div>
                 </div>
               )}
             </section>
-          </div>
+
+            {detail && (
+              <aside className="hidden min-h-0 flex-col border-l border-gray-200 bg-white 2xl:flex">
+                <header className="shrink-0 border-b border-gray-200 px-5 py-4">
+                  <h2 className="text-base font-semibold text-gray-900">Conversation</h2>
+                </header>
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">From</p>
+                  <h3 className="mt-1.5 text-lg font-semibold text-gray-950">{sender(detail.thread)}</h3>
+                  <p className="mt-1 break-words text-sm text-gray-500">{latestInbound?.from_email || detail.thread.participants[0] || "Unknown sender"}</p>
+
+                  {detail.thread.matched_profile_name && (
+                    <div className="mt-6 rounded-xl border border-gray-200 p-4">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Matched record</p>
+                      <p className="mt-1.5 text-sm font-semibold text-gray-900">{detail.thread.matched_profile_name}</p>
+                      <p className="mt-0.5 text-xs capitalize text-gray-500">{detail.thread.matched_profile_type || "Olera contact"}</p>
+                      {detail.thread.matched_profile_type === "family" && detail.thread.matched_profile_id ? (
+                        <Link href={`/admin/care-seekers/${detail.thread.matched_profile_id}`} className="mt-3 inline-flex text-xs font-semibold text-teal-700 hover:underline">Open care-seeker record</Link>
+                      ) : detail.thread.matched_provider_id ? (
+                        <Link href={`/admin/directory/${detail.thread.matched_provider_id}`} className="mt-3 inline-flex text-xs font-semibold text-teal-700 hover:underline">Open provider record</Link>
+                      ) : null}
+                    </div>
+                  )}
+
+                  <div className="mt-6 border-y border-gray-100 py-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Next move</p>
+                    <p className="mt-1.5 text-sm font-semibold text-gray-900">{ACTION_LABELS[detail.thread.suggested_action || ""] || "Review manually"}</p>
+                    {detail.thread.suggested_owner && <p className="mt-1 text-xs text-gray-500">Owner: {detail.thread.suggested_owner}</p>}
+                  </div>
+
+                  <dl className="divide-y divide-gray-100 text-sm">
+                    <div className="flex items-center justify-between gap-3 py-3">
+                      <dt className="text-gray-500">Category</dt>
+                      <dd className="font-medium text-gray-800">{CATEGORY_LABELS[detail.thread.category] || detail.thread.category}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 py-3">
+                      <dt className="text-gray-500">Priority</dt>
+                      <dd className="font-medium capitalize text-gray-800">{detail.thread.priority}</dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 py-3">
+                      <dt className="text-gray-500">Messages</dt>
+                      <dd className="font-medium text-gray-800">{detail.messages.length}</dd>
+                    </div>
+                  </dl>
+
+                  {detail.thread.agent_risk_flags?.length > 0 && (
+                    <div className="mt-5">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Flags</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {detail.thread.agent_risk_flags.map((flag) => <span key={flag} className="rounded bg-amber-50 px-1.5 py-1 text-[10px] font-medium text-amber-700">{flag.replaceAll("_", " ")}</span>)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </aside>
+            )}
         </div>
       )}
-    </div>
+    </AdminWorkspace>
   );
 }

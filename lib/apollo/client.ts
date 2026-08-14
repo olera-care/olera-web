@@ -164,9 +164,11 @@ export async function findDecisionMaker(
     // Step 2: Enrich the best match to get email (costs 1 credit)
     // Docs: https://docs.apollo.io/reference/people-enrichment
     const bestMatch = people[0];
+    console.log("[apollo] Best match:", JSON.stringify(bestMatch));
 
     // Need name to enrich
     if (!bestMatch.first_name && !bestMatch.last_name && !bestMatch.name) {
+      console.log("[apollo] No name found on best match, skipping enrichment");
       clearTimeout(timeoutId);
       return {
         contact: {
@@ -180,6 +182,8 @@ export async function findDecisionMaker(
       };
     }
 
+    console.log("[apollo] Attempting enrichment for:", bestMatch.first_name, bestMatch.last_name);
+
     // Enrichment endpoint uses query parameters (not JSON body)
     const enrichParams = new URLSearchParams();
     enrichParams.append("reveal_personal_emails", "true");
@@ -192,6 +196,7 @@ export async function findDecisionMaker(
     if (bestMatch.organization?.name) enrichParams.append("organization_name", bestMatch.organization.name);
 
     const enrichUrl = `${APOLLO_BASE_URL}/people/match?${enrichParams.toString()}`;
+    console.log("[apollo] Enrichment URL:", enrichUrl);
 
     const enrichResponse = await fetch(enrichUrl, {
       method: "POST",

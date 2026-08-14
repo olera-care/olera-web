@@ -90,6 +90,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log("[find-decision-maker] Provider:", provider.provider_name);
+    console.log("[find-decision-maker] Website field:", provider.website);
+    console.log("[find-decision-maker] Extracted domain:", domain);
+
     // Call Apollo API
     const result = await findDecisionMaker(provider.provider_name, domain);
 

@@ -118,7 +118,7 @@ export async function findDecisionMaker(
     searchParams.append("page", "1");
     searchParams.append("per_page", "5"); // Get a few candidates
 
-    const searchUrl = `${APOLLO_BASE_URL}/mixed_people/search?${searchParams.toString()}`;
+    const searchUrl = `${APOLLO_BASE_URL}/mixed_people/api_search?${searchParams.toString()}`;
 
     const searchResponse = await fetch(searchUrl, {
       method: "POST",

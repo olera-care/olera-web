@@ -438,7 +438,7 @@ export default function AdminSidebar({
         aria-hidden={desktopHidden}
         inert={desktopHidden}
         className={[
-          "hidden md:flex md:flex-col bg-white border-r sticky top-16 h-[calc(100vh-4rem)] shrink-0",
+          "hidden md:sticky md:top-0 md:flex md:h-dvh md:shrink-0 md:flex-col border-r bg-white",
           "transition-[width,opacity,border-color] duration-200 ease-out",
           desktopHidden
             ? "md:w-0 opacity-0 border-transparent pointer-events-none overflow-hidden"

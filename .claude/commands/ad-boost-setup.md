@@ -121,7 +121,12 @@ Scripted check over every headline + description: **no URLs** (`http|www|.com|.c
 | Conversion actions | `/aw/conversions?ocid=984737409&subtab=allconv` |
 | Change history | `/aw/changehistory?ocid=984737409` |
 
-Campaign IDs: HomeWell `24052308622` · Legacy Haven `24062146484` · Miracle-Lightstar `23998344651` · Impact `23998367469` · Abode `23981427299` · Rosemonte (assisted living) `24126008389`
+| Ads (status, Ad Strength) | `/aw/ads?campaignId=X&ocid=984737409` |
+| Negative keyword list details | `/aw/negativekeywordlistdetails?ocid=984737409&sharedSetId=12134249254&sharedSetCustomerId=984737409` |
+
+Campaign IDs: HomeWell `24052308622` · Legacy Haven `24062146484` · Miracle-Lightstar `23998344651` · Impact `23998367469` · Abode `23981427299` · Rosemonte (assisted living) `24126008389` · **Pacesetter `24072567829`** · **Edmonds Villa AFH `24094557242`**
+
+Note `/aw/sharedlibrary/negativekeywordlists` and `/aw/campaigns/settings` both **404** — don't guess these. The shared-list URL above was derived by reading the list link's `href` off any campaign's negative-keywords page.
 
 ### Conversion tracking — known dead, don't chase it
 
@@ -133,6 +138,7 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 
 ## Phase 3 — Post-publish (immediately, per campaign)
 
+0. **Re-open Settings → Bidding and read the Maximum CPC bid limit back. It must be `2.50`.** Edmonds Villa published at **$0.50** (2026-08-03) and nobody noticed for 11 days: 4 impressions, 0 clicks, $0.00 of $50 spent, >90% lost impression share to Ad Rank. A 5x-low cap cannot win auctions, and every downstream number looks like "low search volume" instead of a build error. The wizard's Review screen does not surface this. One read at publish time prevents a wasted flight.
 1. Skip the Google-tag interstitial (attribution = UTM → provider-page cookie, PR #1239 — never install gtag).
 2. **Apply the shared negative list** (`provider managed ads negative keywords`, sharedSetId `12134249254`, **97 terms** as of 2026-07-30) to the new campaign. This covers job-seeker terms, wrong care categories, and ~42 national competitor brands. **Home-care providers only** — see the assisted-living invariant above. Reach it via the campaign's Negative keywords page (`/aw/keywords/negative?campaignId=X`) → Add → "Use negative keyword list".
 3. Open campaign Settings and **verify the AI Max toggle is still aria-checked=false**.
@@ -141,6 +147,8 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 ## Phase 3.5 — Search-terms harvest (MANDATORY, 3-5 days after launch — on a 2-week flight, day 7 is already halfway through)
 
 **Do not skip this. It is where the actual money is being lost, and it is the single highest-value recurring chore in the whole product.**
+
+> **Running this across the whole live book rather than for one new campaign? Use `/ad-boost-optimize`.** It sweeps every live campaign, prioritizes by days-in-flight and last-harvest date, and logs each sweep to `admin_note`. This phase and Phase 3.6 are its core.
 
 Open `https://ads.google.com/aw/keywords/searchterms?campaignId={id}&ocid=984737409`, set **Show rows: 50**, and read every term.
 

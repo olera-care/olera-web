@@ -24,6 +24,7 @@ import {
   type FamilyBenefitsFacts,
   incomeBandFloor,
   incomeBandCeiling,
+  incomeBandIsHouseholdScoped,
 } from "@/lib/family-comms/benefits-guidance.server";
 
 // ── sbf eligibility rows ────────────────────────────────────────────────────
@@ -221,14 +222,23 @@ export function evaluateProgramForFamily(
     return { ruledOut: true, reason: `For age ${draftAge} and up`, boost: 0 };
   }
 
+  // Income tests compare a HOUSEHOLD figure to a household limit. The stored
+  // band is the care recipient's own income ("About how much is their monthly
+  // income?"), so when a spouse lives with them it is a fragment of the
+  // tested amount and neither direction of comparison is sound. Skipping the
+  // boost matters more than skipping the rule-out: an $980 band read against
+  // a couple limit floats premium-help programs to the top of the plan for a
+  // household that is thousands over. Falls back to "unknown", which this
+  // module always treats as keep-and-do-not-promote.
+  const incomeUsable = incomeBandIsHouseholdScoped(facts);
   const incomeLimit = program.incomeLimitSingle ?? sbf?.max_income_single ?? null;
-  const floor = incomeBandFloor(facts.incomeBand);
+  const floor = incomeUsable ? incomeBandFloor(facts.incomeBand) : null;
   if (floor != null && incomeLimit != null && floor > incomeLimit) {
     return { ruledOut: true, reason: "Income is likely above its limit", boost: 0 };
   }
 
   let boost = 0;
-  const ceiling = incomeBandCeiling(facts.incomeBand);
+  const ceiling = incomeUsable ? incomeBandCeiling(facts.incomeBand) : null;
   if (ceiling != null && incomeLimit != null && ceiling <= incomeLimit) boost += 12;
   const boostMinAge = draftAge ?? sbf?.min_age ?? null;
   if (facts.age != null && boostMinAge != null && facts.age >= boostMinAge) boost += 8;
@@ -243,7 +253,9 @@ export function hasEligibilityFacts(facts: FamilyBenefitsFacts): boolean {
     facts.age != null ||
     facts.medicaidStatus != null ||
     facts.veteranStatus != null ||
-    incomeBandFloor(facts.incomeBand) != null
+    // Recipient-only income against a household limit is not a fact we can
+    // act on, so a spouse family whose ONLY fact is income gets no re-rank.
+    (incomeBandIsHouseholdScoped(facts) && incomeBandFloor(facts.incomeBand) != null)
   );
 }
 

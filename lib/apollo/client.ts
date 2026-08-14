@@ -95,37 +95,32 @@ export async function findDecisionMaker(
     // Step 1: Search for people at the organization with seniority filters
     // This is free (doesn't cost credits) but doesn't return emails
     // Docs: https://docs.apollo.io/reference/people-api-search
-    const searchParams = new URLSearchParams();
+    // Note: Apollo API requires JSON body, not query parameters
+    const priorityTitles = ["owner", "executive director", "administrator", "ceo", "president", "founder"];
+
+    const searchBody: Record<string, unknown> = {
+      person_seniorities: SENIORITY,
+      person_titles: priorityTitles,
+      page: 1,
+      per_page: 5, // Get a few candidates
+    };
 
     // Organization filter - use domain if available for better accuracy
     if (domain) {
-      searchParams.append("q_organization_domains", extractDomain(domain));
+      searchBody.q_organization_domains = extractDomain(domain);
     } else {
-      searchParams.append("q_organization_name", organizationName.trim());
+      searchBody.q_organization_name = organizationName.trim();
     }
 
-    // Seniority filters
-    for (const seniority of SENIORITY) {
-      searchParams.append("person_seniorities[]", seniority);
-    }
-
-    // Title filters (top priorities only to avoid too broad)
-    const priorityTitles = ["owner", "executive director", "administrator", "ceo", "president", "founder"];
-    for (const title of priorityTitles) {
-      searchParams.append("person_titles[]", title);
-    }
-
-    searchParams.append("page", "1");
-    searchParams.append("per_page", "5"); // Get a few candidates
-
-    const searchUrl = `${APOLLO_BASE_URL}/mixed_people/api_search?${searchParams.toString()}`;
+    const searchUrl = `${APOLLO_BASE_URL}/mixed_people/api_search`;
 
     const searchResponse = await fetch(searchUrl, {
       method: "POST",
       headers: {
-        "x-api-key": key,
+        "X-Api-Key": key,
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(searchBody),
       signal: controller.signal,
     });
 
@@ -174,7 +169,9 @@ export async function findDecisionMaker(
       };
     }
 
+    // Enrichment endpoint uses query parameters (not JSON body)
     const enrichParams = new URLSearchParams();
+    enrichParams.append("reveal_personal_emails", "true");
     if (bestMatch.first_name) enrichParams.append("first_name", bestMatch.first_name);
     if (bestMatch.last_name) enrichParams.append("last_name", bestMatch.last_name);
     if (!bestMatch.first_name && !bestMatch.last_name && bestMatch.name) {
@@ -182,14 +179,13 @@ export async function findDecisionMaker(
     }
     if (domain) enrichParams.append("domain", extractDomain(domain));
     if (bestMatch.organization?.name) enrichParams.append("organization_name", bestMatch.organization.name);
-    enrichParams.append("reveal_personal_emails", "true");
 
     const enrichUrl = `${APOLLO_BASE_URL}/people/match?${enrichParams.toString()}`;
 
     const enrichResponse = await fetch(enrichUrl, {
       method: "POST",
       headers: {
-        "x-api-key": key,
+        "X-Api-Key": key,
         "Content-Type": "application/json",
       },
       signal: controller.signal,

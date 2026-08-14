@@ -52,17 +52,23 @@ This is the account's main silent-drift vector. It is what re-enables AI Max, re
 
 ## Phase 1 — Build the sweep list (no browser)
 
-**Targeted mode:** resolve each argument to a campaign ID (registry below, or the campaigns page), confirm it is the flight TJ means, and skip the rest of this phase. Still run Phase 0 — auto-apply drift is account-wide, and one campaign is enough to notice it.
+**Targeted mode:** run the same query filtered to that provider — you still need the row `id`, `campaign_tag`, and `flight_start_date` for the Phase 5 write-back — then resolve to the Google campaign ID and go. Skip only the prioritization. Still run Phase 0; auto-apply drift is account-wide, and one campaign is enough to catch it.
+
+**There is no Google campaign ID column on this table.** The mapping is by campaign name / `campaign_tag` against the registry, which is why the registry has to be maintained by hand.
 
 Query prod `ad_campaign_requests` (service-role key is in `.env.local`; never ask TJ for it):
 
 ```sql
-select display_name, provider_slug, campaign_tag, status, flight_end_date,
-       admin_note, created_at, ended_at
+select id, display_name, provider_slug, campaign_tag, status,
+       flight_start_date, flight_end_date, admin_note,
+       ad_clicks, ad_impressions, ad_spend_cents, ad_budget_cents,
+       created_at, ended_at
 from ad_campaign_requests
 where status in ('live','scheduled') and deleted_at is null
 order by flight_end_date asc nulls last;
 ```
+
+**Days-in-flight is measured from `flight_start_date`, never `created_at`.** `created_at` is when the provider requested, which routinely runs weeks ahead of launch (Legacy Haven requested Jul 1 for a Jul 6 flight). Using it silently misprioritizes the whole sweep. If `flight_start_date` is null on a live row, that is itself a data gap worth reporting.
 
 Then map each row to its Google campaign ID. **The registry lives at the bottom of `/ad-boost-setup` Phase 2** (HomeWell `24052308622` · Legacy Haven `24062146484` · Miracle-Lightstar `23998344651` · Impact `23998367469` · Abode `23981427299` · Rosemonte `24126008389`). Anything not listed: read `/aw/campaigns?ocid=984737409`, match on campaign name `{Provider} – {City} – {Mon YYYY}`, and **write the new ID back into that table in `ad-boost-setup.md`** so the next sweep doesn't re-derive it.
 
@@ -91,11 +97,13 @@ For each campaign, pull the same fixed set so verdicts are comparable across the
 
 **Targeted mode adds** — pull these only when the campaign is the subject, they are too expensive for a sweep:
 
-- **Ad-level performance** (`/aw/ads?campaignId={id}`): a campaign can look fine while one disapproved or under-serving ad drags it.
-- **Change history** (`/aw/changehistory?ocid=984737409`): the fastest answer to "why did this change?" — including changes Google made on its own.
-- **Geo report** (`/aw/geo?campaignId={id}`): out-of-market cities in the search terms usually mean the radius or Presence setting drifted.
-- **Ad schedule / device split** (`/aw/devices?campaignId={id}`) — read only. **Never set a device bid adjustment**; see the locked invariant in `/ad-boost-setup`.
+- **Change history** (`/aw/changehistory?ocid=984737409` — verified): the fastest answer to "why did this change?", including changes Google made on its own.
+- **Device split** (`/aw/devices?campaignId={id}&ocid=984737409` — verified) — read only. **Never set a device bid adjustment**; see the locked invariant in `/ad-boost-setup`.
+- **Ad-level performance**: a campaign can look fine while one disapproved or under-serving ad drags it. **URL not verified** — reach it via in-app nav (Campaigns → Ads), and once you have the working URL, add it to the direct-URL table in `/ad-boost-setup`.
+- **Geo report**: out-of-market cities in the search terms usually mean the radius or Presence setting drifted. **URL not verified** — same rule as above.
 - **Live landing page**: load the provider page with the campaign's exact Final URL and confirm it renders, the UTM lands, and the inquiry CTA works. Clicks paid for a broken page are the worst outcome available and no Google-side report will ever show it.
+
+Do not guess Google Ads URLs. That direct-URL table exists because the in-app nav hides or 404s most of these, and a guessed URL costs a live browser session. Derive once, verify, record.
 
 ## Phase 3 — Diagnose
 
@@ -127,23 +135,36 @@ Rules, all non-negotiable:
 
 Pasting: the negative-keyword box is a `<textarea>`, so the JS native-setter trick works. `material-checkbox` and material-inputs do **not** accept synthetic clicks — use the real chrome-devtools `click` tool with snapshot uids. If a click reports success but nothing changes, check `document.elementFromPoint(x,y)` for a stuck `IPL-PROGRESS-INDICATOR` overlay and fix it with a `navigate_page` reload.
 
-## Phase 5 — Record the sweep
+## Phase 5 — Write the numbers back (do NOT skip — this is half the value)
 
-For each campaign touched, append a dated line to `admin_note` on the request row:
+Every metric read in Phase 2 has a real column. **Reading Google and not writing back is the single most wasteful thing this command can do**, because those columns are load-bearing:
+
+| Column | What it drives |
+|---|---|
+| `ad_clicks`, `ad_impressions` | The CLICKS column in `/admin/ad-boost`; the provider receipt (`lib/ad-boost/receipts.server.ts`) |
+| `ad_spend_cents` | Receipt spend line; wrap-up and end-of-flight emails |
+| `ad_clicks` / `ad_spend_cents` > 0 | **Fires the traction email.** `lib/ad-boost/admin-communications.ts` gates it on exactly this. A live campaign with unwritten metrics sits on "Watching metrics" forever and the provider hears nothing |
+| `flight_start_date`, `flight_end_date` | Days-in-flight for the next sweep's prioritization; auto-end scheduler |
+
+Write via `PATCH /api/admin/ad-boost` (fields `ad_clicks`, `ad_impressions`, `ad_spend_cents`, `ad_budget_cents`) or the `/admin/ad-boost` UI. **Cents, not dollars** — $33.02 is `3302`.
+
+Then append a dated narrative line to `admin_note`:
 
 ```
-[2026-08-14 harvest] 47 terms read · CTR 3.03% · avg CPC $2.36 · $33.02/$50 spent
+[2026-08-14 harvest] 47 terms read · CTR 3.03% · avg CPC $2.36
 · +18 campaign negatives (12 local brands, 6 wrong-category) · +3 to shared list
 ```
 
-The next sweep reads this to decide priority, and it is the only record of what a campaign has already had done to it. **Also record final numbers here before any revive** — flight 1 and flight 2 metrics blend inside a revived campaign and become unseparable otherwise.
+**`admin_note` has no append — the PATCH handler replaces it wholesale.** Read the current value, concatenate, write the whole thing back. Blind-writing destroys every prior note including the ones TJ wrote by hand.
+
+Keep the split clean: **numbers go in columns, narrative goes in the note.** The note explains what was done and why; it should not be the only place a metric exists. **Record final numbers before any revive** — flight 1 and flight 2 blend inside a revived campaign and become unseparable.
 
 ## Phase 6 — Flights that are ending
 
 A flight at its end date does **not** get optimized. It gets:
 
 1. A final search-terms harvest at **All time** — those terms are the entire input to flight 2.
-2. Final numbers written to `admin_note`.
+2. Final numbers written to the **columns** (`ad_clicks`, `ad_impressions`, `ad_spend_cents`) per Phase 5, plus a closing `admin_note` line. The end-of-flight receipt and wrap-up email read the columns; if they are null the provider gets a receipt with blanks in it.
 3. Wrap-up recorded so the outcome flow can ask the provider what actually happened. We are otherwise blind to conversions (see `project_adboost_outcome_blindness`: Franchil spent $36.50 and produced 1 confirmed client the platform never saw).
 
 If the provider has requested again, **do not build a new campaign** — go to `/ad-boost-setup` Phase 3.6 and revive. Quality Score and ad history are per-campaign, and QS is exactly what throttles these campaigns; a fresh build throws it away and restarts learning.

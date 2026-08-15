@@ -132,6 +132,8 @@ interface TrackingRow {
   // Apollo.io decision-maker enrichment
   apollo_contact: ApolloContactData | null;
   confirmed_by: string | null;
+  // Email source tracking
+  email_source: string | null;
 }
 
 export interface OutreachProvider {
@@ -203,6 +205,8 @@ export interface OutreachProvider {
     linkedin_url: string | null;
     found_at: string;
   } | null;
+  // Email source: 'organization' (scraped/manual) or 'decision_maker' (Apollo)
+  email_source?: "organization" | "decision_maker" | null;
 }
 
 /**
@@ -725,7 +729,7 @@ async function getNotContactedProviders(
   // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
     .eq("state", state);
 
   if (trackingError) {
@@ -840,14 +844,21 @@ async function getNotContactedProviders(
         confirmed_by: tracking?.confirmed_by ?? null,
         // Apollo.io decision-maker enrichment
         apollo_contact: tracking?.apollo_contact ?? null,
+        // Email source: 'organization' or 'decision_maker'
+        email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
       };
     });
 
   // Step 6: Apply email filter if specified (for Needs Email / Ready tabs)
+  // A provider "has email" if they have EITHER a generic email OR an Apollo email
   if (emailFilter === "needs_email") {
-    result = result.filter((p) => !p.email || !p.email.trim());
+    result = result.filter((p) =>
+      (!p.email || !p.email.trim()) && !p.apollo_contact?.email
+    );
   } else if (emailFilter === "has_email") {
-    result = result.filter((p) => p.email && p.email.trim());
+    result = result.filter((p) =>
+      (p.email && p.email.trim()) || p.apollo_contact?.email
+    );
   }
 
   return result.sort((a, b) => a.provider_name.localeCompare(b.provider_name));
@@ -1328,7 +1339,7 @@ async function searchProviders(
   // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
@@ -1501,6 +1512,8 @@ async function searchProviders(
       confirmed_by: tracking?.confirmed_by ?? null,
       // Apollo.io decision-maker enrichment
       apollo_contact: tracking?.apollo_contact ?? null,
+      // Email source: 'organization' or 'decision_maker'
+      email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
     };
   });
 

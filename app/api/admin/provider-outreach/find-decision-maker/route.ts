@@ -151,7 +151,10 @@ export async function POST(request: NextRequest) {
       // Update existing tracking record
       await db
         .from("provider_outreach_tracking")
-        .update({ apollo_contact: apolloContactData })
+        .update({
+          apollo_contact: apolloContactData,
+          email_source: "decision_maker",
+        })
         .eq("id", existingTracking.id);
     } else {
       // Create new tracking record with Apollo contact
@@ -161,6 +164,7 @@ export async function POST(request: NextRequest) {
         city: provider.city,
         state: provider.state,
         apollo_contact: apolloContactData,
+        email_source: "decision_maker",
       });
     }
 

@@ -78,6 +78,20 @@ of founder attention for the decision itself. The model may recommend zero.
 is intentional: War Room should spend most of its compute eliminating bad work
 before the founder sees it.
 
+Migration 179 separates those durable company conditions from individual
+interventions. Each investigation now records competing hypotheses, the next
+bounded read-only probe, explicit resolution criteria, evidence changes, and an
+append-only progress trail. Rejecting or superseding a proposal retires that
+intervention only. Completing an intervention moves the condition to outcome
+monitoring; it does not declare the condition solved.
+
+The deterministic reasoning boundary in `lib/war-room/reasoning.ts` is shared by
+production and the replay harness. Run `npm run check:war-room:replay` to verify
+the six strategic failure classes that previously produced false-empty scans:
+provider liquidity, monetization, traffic attribution, stale operational data,
+rejected interventions, and a genuinely clear ten-lens read. Replays do not call
+the model or write to Supabase.
+
 The company read uses two separate answers: whether a founder decision is ready
 and whether unresolved work exists. A scan with no agenda proposal may still be
 actively investigating or monitoring structural risk. If no dossier survives,

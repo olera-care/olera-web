@@ -30,6 +30,14 @@ function dossier(overrides: Partial<InvestigationDraft> = {}): InvestigationDraf
     existingCapabilities: ["Olera already captures questions and provider responses."],
     capabilityEvidenceIds: [],
     unknowns: ["How much loss occurs at each contact and response stage?"],
+    hypotheses: ["Unusable contact records may prevent provider notification."],
+    nextProbe: {
+      kind: "query",
+      question: "Where does the provider response funnel lose the most reachable questions?",
+      method: "Segment current questions by contactability, notification state, and provider response outcome.",
+      expectedInformationGain: "Identify whether contact data, delivery, or post-delivery participation is the binding constraint.",
+    },
+    resolutionCriteria: ["The binding response-stage constraint is measured for the current provider cohort."],
     options: [
       {
         actionKind: "operations",

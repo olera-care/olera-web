@@ -621,7 +621,7 @@ export default function WarRoomDashboard() {
             <div className="grid gap-5 sm:grid-cols-4">
               <Count label="Decisions waiting" value={payload.counts.waiting} />
               <Count label="Approved / working" value={payload.counts.working} />
-              <Count label="Quietly investigating" value={payload.counts.investigating ?? 0} />
+              <Count label="Open investigations" value={payload.counts.investigating ?? 0} />
               <Count label="Watchlist" value={payload.counts.watchlist ?? 0} />
             </div>
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-gray-400">
@@ -662,7 +662,7 @@ export default function WarRoomDashboard() {
           {groups.waiting.length ? <ProposalSection title="Needs your call" detail="One decision at a time. Pass leaves the proposal untouched so you can come back to it." proposals={groups.waiting} busyId={busyId} onAction={act} paged /> : null}
           {groups.active.length ? <ProposalSection title="Working" detail="You approved the direction. Code goes to the guarded executor; human plans remain human-controlled." proposals={groups.active} busyId={busyId} onAction={act} /> : null}
 
-          {groups.investigating.length ? <InvestigationSection title="Quietly investigating" detail="These are unresolved company questions, not tasks. War Room keeps working until the cause and intervention are decision-ready." investigations={groups.investigating} /> : null}
+          {groups.investigating.length ? <InvestigationSection title="Active investigations" detail="These are unresolved company conditions, not tasks. Each case records what is known and the next read-only question that should advance it." investigations={groups.investigating} /> : null}
           {groups.watchlist.length ? <InvestigationSection title="Watchlist" detail="Real enough to remember; not important or proven enough to consume your attention yet." investigations={groups.watchlist} /> : null}
 
           {discoveryActive && payload?.latestDiscovery ? (
@@ -703,7 +703,7 @@ export default function WarRoomDashboard() {
               </h2>
               <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-600">
                 {groups.investigating.length || groups.watchlist.length
-                  ? "War Room is working the unresolved cases above. It will interrupt only when one becomes decision-ready."
+                  ? "War Room is preserving the unresolved cases above and will interrupt only when one becomes decision-ready."
                   : "This scan did not preserve a sufficiently supported private investigation. That is an evidence limitation—not proof that Olera has nothing important to do."}
               </p>
             </section>
@@ -841,6 +841,14 @@ function InvestigationSection({
                   <ul className="mt-2 grid gap-2 text-xs leading-5 text-gray-600 sm:grid-cols-2">
                     {investigation.unknowns.map((unknown) => <li key={unknown}>• {unknown}</li>)}
                   </ul>
+                </div>
+              ) : null}
+              {investigation.next_probe ? (
+                <div className="mt-5 rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-700">Next read-only probe</p>
+                  <p className="mt-2 text-sm font-semibold text-gray-900">{investigation.next_probe.question}</p>
+                  <p className="mt-1 text-xs leading-5 text-gray-600">{investigation.next_probe.method}</p>
+                  <p className="mt-2 text-[11px] leading-5 text-violet-800">Expected learning: {investigation.next_probe.expectedInformationGain}</p>
                 </div>
               ) : null}
             </div>

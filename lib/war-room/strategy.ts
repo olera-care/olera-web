@@ -15,6 +15,10 @@ export const WAR_ROOM_ACTION_KINDS: WarRoomActionKind[] = [
   "code", "research", "operations", "business_development", "content", "decision",
 ];
 
+const WAR_ROOM_PROBE_KINDS = [
+  "analysis", "query", "repository", "source_search", "external_research",
+] as const;
+
 export const DEFAULT_COMPANY_MODEL: WarRoomCompanyModel = {
   key: "olera",
   purpose: "Help families find and act on trustworthy senior-care options while building a durable, efficient company.",
@@ -76,6 +80,14 @@ export type InvestigationDraft = {
   existingCapabilities: string[];
   capabilityEvidenceIds: string[];
   unknowns: string[];
+  hypotheses: string[];
+  nextProbe: {
+    kind: "analysis" | "query" | "repository" | "source_search" | "external_research";
+    question: string;
+    method: string;
+    expectedInformationGain: string;
+  } | null;
+  resolutionCriteria: string[];
   options: Array<{
     actionKind: WarRoomActionKind;
     title: string;
@@ -112,6 +124,21 @@ export type StrategicLensReview = {
   urgency: "now" | "soon" | "monitor";
   strategicFit: "central" | "adjacent" | "peripheral";
 };
+
+export function requireCompleteStrategicLensCoverage(reviews: StrategicLensReview[]) {
+  const counts = new Map<WarRoomDomain, number>(WAR_ROOM_DOMAINS.map((domain) => [domain, 0]));
+  for (const review of reviews) {
+    if (WAR_ROOM_DOMAINS.includes(review.domain)) {
+      counts.set(review.domain, (counts.get(review.domain) ?? 0) + 1);
+    }
+  }
+  const missing = WAR_ROOM_DOMAINS.filter((domain) => counts.get(domain) === 0);
+  const duplicates = WAR_ROOM_DOMAINS.filter((domain) => (counts.get(domain) ?? 0) > 1);
+  if (reviews.length !== WAR_ROOM_DOMAINS.length || missing.length || duplicates.length) {
+    throw new Error(`war_room_incomplete_lens_coverage:missing=${missing.join(",") || "none"};duplicates=${duplicates.join(",") || "none"}`);
+  }
+  return reviews;
+}
 
 export type CompanyReadDraft = WarRoomCompanyRead;
 
@@ -176,6 +203,22 @@ export function validateInvestigations(
       && cleanExecutiveText(option.logic).length >= 20
       && cleanExecutiveText(option.downside).length >= 8,
     );
+    draft.hypotheses = (draft.hypotheses ?? []).map(cleanExecutiveText).filter(Boolean).slice(0, 6);
+    draft.resolutionCriteria = (draft.resolutionCriteria ?? []).map(cleanExecutiveText).filter(Boolean).slice(0, 5);
+    if (draft.nextProbe) {
+      const nextProbe = {
+        ...draft.nextProbe,
+        question: cleanExecutiveText(draft.nextProbe.question),
+        method: cleanExecutiveText(draft.nextProbe.method),
+        expectedInformationGain: cleanExecutiveText(draft.nextProbe.expectedInformationGain),
+      };
+      draft.nextProbe = WAR_ROOM_PROBE_KINDS.includes(nextProbe.kind)
+        && nextProbe.question.length >= 12
+        && nextProbe.method.length >= 20
+        && nextProbe.expectedInformationGain.length >= 20
+        ? nextProbe
+        : null;
+    }
     const distinctOptions = new Set(draft.options.map((option) =>
       `${option.actionKind}:${cleanExecutiveText(option.title).toLowerCase()}`,
     ));
@@ -236,7 +279,6 @@ export function retainStrategicLensInvestigations(
     ) continue;
     const evidenceIds = uniqueValid(review.evidenceIds, validEvidenceIds).filter((id) =>
       !id.startsWith("capability:")
-      && !id.startsWith("source:")
       && !id.startsWith("decision:"),
     );
     if (evidenceIds.length < 2) continue;
@@ -252,6 +294,16 @@ export function retainStrategicLensInvestigations(
       existingCapabilities: [],
       capabilityEvidenceIds: [],
       unknowns: [cleanExecutiveText(review.unresolvedQuestion)].filter(Boolean),
+      hypotheses: [],
+      nextProbe: cleanExecutiveText(review.unresolvedQuestion) ? {
+        kind: "analysis",
+        question: cleanExecutiveText(review.unresolvedQuestion),
+        method: "Use the next fresh read-only company evidence to separate the leading explanations before recommending an intervention.",
+        expectedInformationGain: "Narrow the condition to a supported cause or identify the specific missing source required to continue.",
+      } : null,
+      resolutionCriteria: [
+        "Current evidence contradicts the condition, or a measured intervention resolves it for the affected cohort.",
+      ],
       options: [],
       evidenceIds,
       counterEvidence: "The current evidence may not capture every relevant channel or cohort; causal conclusions remain open.",
@@ -326,6 +378,7 @@ export function normalizeCompanyRead(
   investigations: InvestigationDraft[],
   assessments: InvestigationAssessment[],
   evidenceCatalog: WarRoomProposalEvidence[],
+  lensCoverage?: { complete: boolean; allClear: boolean },
 ): WarRoomCompanyRead {
   const validEvidenceIds = new Set(evidenceCatalog.map((item) => item.id));
   const activeAssessments = assessments.filter((assessment) => assessment.disposition !== "drop");
@@ -341,6 +394,15 @@ export function normalizeCompanyRead(
   );
 
   if (!investigations.length) {
+    if (lensCoverage?.complete && lensCoverage.allClear) {
+      return {
+        summary: "No founder decision is supported today. All ten company lenses were reviewed and the supplied evidence did not establish a material unresolved condition.",
+        stance: "stable",
+        investigationFingerprints: [],
+        evidenceIds: [...new Set((draft?.evidenceIds ?? []).filter((id) => validEvidenceIds.has(id)))].slice(0, 10),
+        unresolvedQuestions: (draft?.unresolvedQuestions ?? []).map(cleanExecutiveText).filter(Boolean).slice(0, 5),
+      };
+    }
     return {
       summary: "No founder decision is supported today, and this scan did not form a sufficiently evidenced private investigation. That is an evidence limitation, not proof that Olera has no important work.",
       stance: "stable",

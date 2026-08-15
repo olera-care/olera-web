@@ -228,7 +228,6 @@ export function buildWarRoomFactPack(snapshot: WarRoomSnapshot) {
       note: decision.note,
       created_at: decision.created_at,
     })),
-    deterministicFallback: snapshot.recommendation,
     evidenceCatalog: citations,
   };
 }

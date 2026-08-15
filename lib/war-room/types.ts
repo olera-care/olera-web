@@ -222,12 +222,19 @@ export interface WarRoomInvestigationOption {
   downside: string;
 }
 
+export interface WarRoomInvestigationProbe {
+  kind: "analysis" | "query" | "repository" | "source_search" | "external_research";
+  question: string;
+  method: string;
+  expectedInformationGain: string;
+}
+
 export interface WarRoomInvestigation {
   id: string;
   discovery_run_id: string | null;
   proposal_id: string | null;
   fingerprint: string;
-  status: "investigating" | "watchlist" | "decision_ready" | "closed" | "superseded";
+  status: "investigating" | "watchlist" | "decision_ready" | "resolved" | "invalidated" | "paused" | "closed" | "superseded";
   domain: WarRoomDomain;
   title: string;
   situation: string;
@@ -236,6 +243,13 @@ export interface WarRoomInvestigation {
   cause_confidence: "high" | "medium" | "low";
   existing_capabilities: string[];
   unknowns: string[];
+  hypotheses: string[];
+  next_probe: WarRoomInvestigationProbe | null;
+  resolution_criteria: string[];
+  resolution_evidence: WarRoomProposalEvidence[];
+  progress_summary: string;
+  last_progress_at: string | null;
+  evidence_hash: string | null;
   options: WarRoomInvestigationOption[];
   evidence: WarRoomProposalEvidence[];
   counter_evidence: string;
@@ -339,6 +353,11 @@ export interface WarRoomDiscoveryRun {
   proposal_count: number;
   input_tokens: number | null;
   output_tokens: number | null;
+  fact_pack_hash: string | null;
+  prompt_version: string | null;
+  raw_investigator_output: Record<string, unknown> | null;
+  raw_council_output: Record<string, unknown> | null;
+  validation_trace: Record<string, unknown>;
   error_message: string | null;
   started_at: string | null;
   completed_at: string | null;

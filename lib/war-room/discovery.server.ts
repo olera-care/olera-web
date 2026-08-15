@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
 import { buildWarRoomFactPack } from "@/lib/war-room/analyst.server";
@@ -20,20 +21,19 @@ import {
   applyAgendaGate,
   cleanExecutiveText,
   DEFAULT_COMPANY_MODEL,
-  normalizeCompanyRead,
-  normalizeInvestigationAssessments,
-  retainStrategicLensInvestigations,
-  validateInvestigations,
-  type AgendaProposalDraft,
-  type CompanyReadDraft,
   type InvestigationAssessment,
   type InvestigationDraft,
-  type StrategicLensReview,
 } from "@/lib/war-room/strategy";
+import {
+  evaluateWarRoomReasoning,
+  type WarRoomCouncilOutput,
+  type WarRoomInvestigatorOutput,
+} from "@/lib/war-room/reasoning";
 
 export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
   || process.env.WAR_ROOM_MODEL
   || "claude-opus-5";
+export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v3-investigation-loop";
 
 const REQUEST_OPTIONS = { timeout: 100_000, maxRetries: 0 };
 const ACTIVE_PROPOSAL_STATUSES = ["proposed", "approved", "dispatching", "executing", "review_ready"];
@@ -51,6 +51,7 @@ Rules:
 - If the cause is unclear, keep the dossier investigating. If real but not worth founder attention, put it on the watchlist. Do not turn research into a disguised task.
 - A flat but dangerous level remains dangerous. Do not discard a structural constraint merely because it did not worsen during the comparison window.
 - Missing evidence is itself an investigation boundary, not evidence that the underlying condition is harmless. Preserve a supported condition while identifying the cheapest next evidence needed.
+- Every private dossier must name competing hypotheses, explicit resolution criteria, and one bounded next read-only probe. The probe should maximize information gain, not merely collect more data.
 - Mark a lens investigate when a high-impact, central condition is supported but its cause or intervention is unresolved. "Clear" means current evidence affirmatively supports no material unresolved condition; it does not mean the evidence is incomplete.
 - Consider code, research, operations, business development, content, and founder decisions. The best intervention is often not software.
 - Compare opportunity cost. Ask why this deserves resources instead of Olera's current bets or the next-best option.
@@ -150,6 +151,19 @@ const DOSSIER_SCHEMA = {
     existingCapabilities: { type: "array", maxItems: 8, items: { type: "string", maxLength: 300 } },
     capabilityEvidenceIds: { type: "array", maxItems: 8, items: { type: "string" } },
     unknowns: { type: "array", maxItems: 8, items: { type: "string", maxLength: 300 } },
+    hypotheses: { type: "array", maxItems: 6, items: { type: "string", maxLength: 300 } },
+    nextProbe: {
+      type: ["object", "null"],
+      additionalProperties: false,
+      properties: {
+        kind: { type: "string", enum: ["analysis", "query", "repository", "source_search", "external_research"] },
+        question: { type: "string", maxLength: 350 },
+        method: { type: "string", maxLength: 500 },
+        expectedInformationGain: { type: "string", maxLength: 400 },
+      },
+      required: ["kind", "question", "method", "expectedInformationGain"],
+    },
+    resolutionCriteria: { type: "array", maxItems: 5, items: { type: "string", maxLength: 350 } },
     options: {
       type: "array",
       minItems: 0,
@@ -177,7 +191,8 @@ const DOSSIER_SCHEMA = {
   },
   required: [
     "fingerprint", "domain", "title", "situation", "whyItMatters", "likelyCause", "causeConfidence",
-    "existingCapabilities", "capabilityEvidenceIds", "unknowns", "options", "evidenceIds", "counterEvidence",
+    "existingCapabilities", "capabilityEvidenceIds", "unknowns", "hypotheses", "nextProbe", "resolutionCriteria",
+    "options", "evidenceIds", "counterEvidence",
     "readiness", "readinessReason", "impact", "urgency", "strategicFit", "founderAttentionMinutes",
   ],
 } as const;
@@ -278,19 +293,14 @@ const COUNCIL_TOOL = {
   },
 } as const;
 
-type InvestigatorOutput = { dossiers: InvestigationDraft[]; lensReviews: StrategicLensReview[]; portfolioRead: string };
+type InvestigatorOutput = WarRoomInvestigatorOutput;
 type OutcomeDraft = {
   proposalId: string;
   status: "validated" | "missed" | "inconclusive";
   note: string;
   evidenceIds: string[];
 };
-type CouncilOutput = {
-  challenge: string;
-  companyRead: CompanyReadDraft;
-  rejectedReasons: string[];
-  assessments: InvestigationAssessment[];
-  proposals: AgendaProposalDraft[];
+type CouncilOutput = WarRoomCouncilOutput & {
   outcomes: OutcomeDraft[];
 };
 type DiscoveryStage =
@@ -304,6 +314,10 @@ function toolInput<T>(response: Anthropic.Messages.Message, name: string): T {
   const block = response.content.find((item) => item.type === "tool_use" && item.name === name);
   if (!block || block.type !== "tool_use") throw new Error(`war_room_missing_${name}`);
   return block.input as T;
+}
+
+function stableHash(value: unknown) {
+  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
 async function analyzePortfolio(
@@ -359,6 +373,14 @@ async function analyzePortfolio(
       likelyCause: investigation.likely_cause,
       causeConfidence: investigation.cause_confidence,
       readinessReason: investigation.readiness_reason,
+      hypotheses: investigation.hypotheses,
+      unknowns: investigation.unknowns,
+      nextProbe: investigation.next_probe,
+      resolutionCriteria: investigation.resolution_criteria,
+      progressSummary: investigation.progress_summary,
+      lastProgressAt: investigation.last_progress_at,
+      evidence: investigation.evidence,
+      counterEvidence: investigation.counter_evidence,
       lastSeenAt: investigation.last_seen_at,
       occurrenceCount: investigation.occurrence_count,
     })),
@@ -374,12 +396,23 @@ async function analyzePortfolio(
     messages: [{ role: "user", content: `Review all ten company lenses, preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Do not optimize for producing a founder task:\n${JSON.stringify(operatingPack)}` }],
   }, REQUEST_OPTIONS);
   const investigatorOutput = toolInput<InvestigatorOutput>(investigator, INVESTIGATOR_TOOL.name);
-  const detailedInvestigations = validateInvestigations(investigatorOutput.dossiers ?? [], evidenceCatalog);
-  const investigations = retainStrategicLensInvestigations(
-    detailedInvestigations,
-    investigatorOutput.lensReviews ?? [],
+  const provisionalInvestigations = evaluateWarRoomReasoning({
     evidenceCatalog,
-  );
+    investigator: investigatorOutput,
+    council: {
+      challenge: "Investigator pass only.",
+      companyRead: {
+        summary: "Investigator pass only.",
+        stance: "investigating",
+        investigationFingerprints: [],
+        evidenceIds: [],
+        unresolvedQuestions: [],
+      },
+      rejectedReasons: [],
+      assessments: [],
+      proposals: [],
+    },
+  }).investigations;
 
   await onStage?.("challenging_candidates");
   const councilContext = {
@@ -398,30 +431,16 @@ async function analyzePortfolio(
     tool_choice: { type: "tool", name: COUNCIL_TOOL.name },
     messages: [{
       role: "user",
-      content: `COUNCIL CONTEXT:\n${JSON.stringify(councilContext)}\n\nCHIEF-OF-STAFF READ:\n${investigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(investigations)}`,
+      content: `COUNCIL CONTEXT:\n${JSON.stringify(councilContext)}\n\nCHIEF-OF-STAFF READ:\n${investigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(provisionalInvestigations)}`,
     }],
   }, REQUEST_OPTIONS);
   const review = toolInput<CouncilOutput>(council, COUNCIL_TOOL.name);
-  const initialAssessments = normalizeInvestigationAssessments(investigations, review.assessments ?? []);
-  const agendaFingerprints = new Set(initialAssessments
-    .filter((assessment) => assessment.disposition === "agenda")
-    .map((assessment) => assessment.fingerprint));
-  const proposals = applyAgendaGate(
-    (review.proposals ?? []).filter((proposal) => agendaFingerprints.has(proposal.sourceInvestigationFingerprint)),
-    investigations,
+  const reasoning = evaluateWarRoomReasoning({
     evidenceCatalog,
-  )
-    .map((proposal) => ({
-      ...proposal,
-      adminHref: proposal.adminHref?.startsWith("/admin/") ? proposal.adminHref : null,
-    }));
-  const acceptedAgendaFingerprints = new Set(proposals.map((proposal) => proposal.sourceInvestigationFingerprint));
-  const assessments = normalizeInvestigationAssessments(
-    investigations,
-    initialAssessments,
-    acceptedAgendaFingerprints,
-  );
-  const companyRead = normalizeCompanyRead(review.companyRead, investigations, assessments, evidenceCatalog);
+    investigator: investigatorOutput,
+    council: review,
+  });
+  const { proposals, investigations, assessments, companyRead } = reasoning;
   const validEvidenceIds = new Set(evidenceCatalog.map((item) => item.id));
   const dueIds = new Set(proposalMemory.filter((proposal) =>
     proposal.status === "completed"
@@ -442,12 +461,15 @@ async function analyzePortfolio(
       rejectedReasons: review.rejectedReasons,
       portfolioRead: investigatorOutput.portfolioRead,
       lensReviews: investigatorOutput.lensReviews,
-      detailedInvestigationCount: detailedInvestigations.length,
+      detailedInvestigationCount: reasoning.detailedInvestigations.length,
       companyRead,
       companyVerdict: companyRead.summary,
       assessments,
     },
     evidenceCatalog,
+    rawInvestigatorOutput: investigatorOutput,
+    rawCouncilOutput: review,
+    validationTrace: reasoning.validationTrace,
     inputTokens: investigator.usage.input_tokens + council.usage.input_tokens,
     outputTokens: investigator.usage.output_tokens + council.usage.output_tokens,
   };
@@ -477,6 +499,30 @@ async function saveOutcomes(
       details: { status: outcome.status, evidence_ids: outcome.evidenceIds },
     });
     if (eventError) throw eventError;
+    const conditionStatus = outcome.status === "validated" ? "watchlist" : "investigating";
+    const progressSummary = outcome.status === "validated"
+      ? `The linked intervention met its success measure. Continue monitoring the underlying condition before declaring it resolved.`
+      : `The linked intervention outcome was ${outcome.status}. Reopen the underlying condition and investigate the remaining cause.`;
+    const { data: investigations, error: investigationError } = await db.from("war_room_investigations").update({
+      status: conditionStatus,
+      progress_summary: progressSummary,
+      last_progress_at: now,
+      resolution_evidence: outcome.status === "validated" ? evidence : [],
+      readiness_reason: progressSummary,
+      updated_at: now,
+    }).eq("proposal_id", outcome.proposalId).select("id");
+    if (investigationError) throw investigationError;
+    if (investigations?.length) {
+      const { error: investigationEventError } = await db.from("war_room_investigation_events").insert(
+        investigations.map((investigation) => ({
+          investigation_id: investigation.id,
+          event_type: "outcome_measured",
+          actor: "war-room",
+          details: { proposal_id: outcome.proposalId, status: outcome.status, evidence_ids: outcome.evidenceIds },
+        })),
+      );
+      if (investigationEventError) throw investigationEventError;
+    }
   }
 }
 
@@ -501,19 +547,31 @@ async function saveInvestigations(
   let saved = 0;
   for (const draft of drafts) {
     const prior = existing.get(draft.fingerprint);
-    // Closed means the founder rejected the case or the intervention was
-    // carried out. Repeating the same fingerprint cannot silently reopen it;
-    // a materially changed condition must earn a new fingerprint.
-    if (prior?.status === "closed") continue;
     const assessment = dispositions.get(draft.fingerprint);
     const selected = selectedProposalFingerprints.has(draft.fingerprint);
+    const droppedStatus = assessment?.reasonCode === "resolved"
+      ? "resolved"
+      : assessment?.reasonCode === "contradicted"
+        ? "invalidated"
+        : "paused";
     const status = selected
       ? "decision_ready"
       : assessment?.disposition === "drop"
-        ? "closed"
+        ? droppedStatus
         : assessment?.disposition === "watchlist" || draft.readiness === "watchlist"
           ? "watchlist"
           : "investigating";
+    const now = new Date().toISOString();
+    const conditionEvidence = evidenceCatalog.filter((item) =>
+      [...draft.evidenceIds, ...draft.capabilityEvidenceIds].includes(item.id));
+    const evidenceHash = stableHash(conditionEvidence.map((item) => ({
+      id: item.id,
+      detail: item.detail,
+      freshness: item.freshness ?? null,
+      occurredAt: item.occurredAt ?? null,
+    })));
+    const evidenceChanged = Boolean(prior?.evidence_hash && prior.evidence_hash !== evidenceHash);
+    const probeChanged = stableHash(prior?.next_probe ?? null) !== stableHash(draft.nextProbe ?? null);
     const values = {
       discovery_run_id: runId,
       status,
@@ -525,48 +583,88 @@ async function saveInvestigations(
       cause_confidence: draft.causeConfidence,
       existing_capabilities: draft.existingCapabilities.map(cleanExecutiveText).filter(Boolean),
       unknowns: draft.unknowns.map(cleanExecutiveText).filter(Boolean),
+      hypotheses: (draft.hypotheses ?? []).map(cleanExecutiveText).filter(Boolean),
+      next_probe: draft.nextProbe ? {
+        ...draft.nextProbe,
+        question: cleanExecutiveText(draft.nextProbe.question),
+        method: cleanExecutiveText(draft.nextProbe.method),
+        expectedInformationGain: cleanExecutiveText(draft.nextProbe.expectedInformationGain),
+      } : null,
+      resolution_criteria: (draft.resolutionCriteria ?? []).map(cleanExecutiveText).filter(Boolean),
       options: draft.options.map((option) => ({
         ...option,
         title: cleanExecutiveText(option.title),
         logic: cleanExecutiveText(option.logic),
         downside: cleanExecutiveText(option.downside),
       })),
-      evidence: evidenceCatalog.filter((item) => [...draft.evidenceIds, ...draft.capabilityEvidenceIds].includes(item.id)),
+      evidence: conditionEvidence,
       counter_evidence: cleanExecutiveText(draft.counterEvidence),
       readiness_reason: cleanExecutiveText(assessment?.reason || draft.readinessReason),
       impact: draft.impact,
       urgency: draft.urgency,
       strategic_fit: draft.strategicFit,
       founder_attention_minutes: draft.founderAttentionMinutes,
-      last_seen_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      progress_summary: draft.nextProbe
+        ? `Next probe: ${cleanExecutiveText(draft.nextProbe.question)}`
+        : prior?.progress_summary || "The condition is preserved while War Room identifies the next useful read-only probe.",
+      evidence_hash: evidenceHash,
+      last_progress_at: evidenceChanged || probeChanged ? now : prior?.last_progress_at ?? null,
+      last_seen_at: now,
+      updated_at: now,
     };
+    let investigationId: string;
     if (prior) {
-      const { error: updateError } = await db.from("war_room_investigations").update({
+      const { data: updated, error: updateError } = await db.from("war_room_investigations").update({
         ...values,
         occurrence_count: prior.occurrence_count + 1,
-      }).eq("id", prior.id);
+      }).eq("id", prior.id).select("id").single();
       if (updateError) throw updateError;
+      investigationId = updated.id;
     } else {
-      const { error: insertError } = await db.from("war_room_investigations").insert({
+      const { data: inserted, error: insertError } = await db.from("war_room_investigations").insert({
         ...values,
         fingerprint: draft.fingerprint,
-      });
+      }).select("id").single();
       if (insertError) throw insertError;
+      investigationId = inserted.id;
     }
+    const events: Array<Record<string, unknown>> = [{
+      investigation_id: investigationId,
+      discovery_run_id: runId,
+      event_type: status === "resolved"
+        ? "resolved"
+        : status === "invalidated"
+          ? "invalidated"
+          : status === "watchlist" || status === "paused"
+            ? "monitoring"
+            : prior && ["resolved", "invalidated", "closed", "superseded", "paused"].includes(prior.status)
+          ? "reopened"
+          : evidenceChanged
+            ? "evidence_changed"
+            : "observed",
+      actor: "war-room",
+      details: { evidence_hash: values.evidence_hash, previous_status: prior?.status ?? null },
+    }];
+    if (draft.nextProbe && (!prior || probeChanged)) events.push({
+      investigation_id: investigationId,
+      discovery_run_id: runId,
+      event_type: "probe_planned",
+      actor: "war-room",
+      details: { probe: values.next_probe, evidence_hash: values.evidence_hash },
+    });
+    const { error: eventError } = await db.from("war_room_investigation_events").insert(events);
+    if (eventError) throw eventError;
     saved += 1;
   }
 
-  // A private dossier should earn its place by continuing to appear in fresh
-  // evidence. Retire quiet investigations after a week so the watchlist cannot
-  // become a second backlog. Decision-ready and authorized work are never aged
-  // out here; a retired fingerprint can also reopen if later evidence revives it.
-  const staleBefore = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  // Silence is not resolution. A case absent from recent scans moves out of the
+  // active queue, but remains durable until evidence resolves or contradicts it.
+  const staleBefore = new Date(Date.now() - 14 * 86_400_000).toISOString();
   const { error: staleError } = await db.from("war_room_investigations").update({
-    status: "superseded",
-    readiness_reason: "Fresh discovery runs did not reproduce this issue during the last seven days.",
+    status: "watchlist",
+    readiness_reason: "Recent scans did not reproduce this condition. It remains on the watchlist until evidence resolves or contradicts it.",
     updated_at: new Date().toISOString(),
-  }).in("status", ["investigating", "watchlist"]).lt("last_seen_at", staleBefore);
+  }).eq("status", "investigating").lt("last_seen_at", staleBefore);
   if (staleError) throw staleError;
 
   return saved;
@@ -597,6 +695,7 @@ export async function queueWarRoomDiscovery(
     trigger,
     requested_by: requestedBy,
     model: WAR_ROOM_DISCOVERY_MODEL,
+    prompt_version: WAR_ROOM_PROMPT_VERSION,
   }).select("*").single();
   if (error?.code === "23505") {
     const { data: raced, error: racedError } = await db.from("war_room_discovery_runs")
@@ -630,12 +729,25 @@ async function saveProposals(
       updated_at: new Date().toISOString(),
     }).eq("id", waiting.id).eq("status", "proposed");
     if (error) throw error;
-    const { error: investigationError } = await db.from("war_room_investigations").update({
-      status: "superseded",
-      readiness_reason: "A later company scan no longer selected this case for the founder agenda.",
+    const { data: retiredInvestigations, error: investigationError } = await db.from("war_room_investigations").update({
+      status: "investigating",
+      proposal_id: null,
+      readiness_reason: "A later scan retired this intervention from the founder agenda. The underlying condition remains open.",
       updated_at: new Date().toISOString(),
-    }).eq("proposal_id", waiting.id).eq("status", "decision_ready");
+    }).eq("proposal_id", waiting.id).eq("status", "decision_ready").select("id");
     if (investigationError) throw investigationError;
+    if (retiredInvestigations?.length) {
+      const { error: eventError } = await db.from("war_room_investigation_events").insert(
+        retiredInvestigations.map((investigation) => ({
+          investigation_id: investigation.id,
+          discovery_run_id: runId,
+          event_type: "intervention_rejected",
+          actor: "war-room",
+          details: { proposal_id: waiting.id, reason: "later_scan_retired_intervention" },
+        })),
+      );
+      if (eventError) throw eventError;
+    }
   }
 
   let existingRows: WarRoomProposal[] = [];
@@ -747,12 +859,23 @@ async function linkInvestigationsToProposals(db: SupabaseClient, drafts: ReturnT
       .maybeSingle();
     if (error) throw error;
     if (!data || !ACTIVE_PROPOSAL_STATUSES.includes(data.status)) continue;
-    const { error: linkError } = await db.from("war_room_investigations").update({
+    const { data: linkedInvestigations, error: linkError } = await db.from("war_room_investigations").update({
       proposal_id: data.id,
       status: "decision_ready",
       updated_at: new Date().toISOString(),
-    }).eq("fingerprint", draft.sourceInvestigationFingerprint);
+    }).eq("fingerprint", draft.sourceInvestigationFingerprint).select("id");
     if (linkError) throw linkError;
+    if (linkedInvestigations?.length) {
+      const { error: eventError } = await db.from("war_room_investigation_events").insert(
+        linkedInvestigations.map((investigation) => ({
+          investigation_id: investigation.id,
+          event_type: "intervention_proposed",
+          actor: "war-room",
+          details: { proposal_id: data.id, proposal_fingerprint: draft.fingerprint },
+        })),
+      );
+      if (eventError) throw eventError;
+    }
   }
 }
 
@@ -823,9 +946,23 @@ export async function executeWarRoomDiscovery(runId: string) {
       if (proposal.id) memoryById.set(proposal.id, proposal);
     }
     const factPack = buildWarRoomFactPack(snapshot);
+    const factPackHash = stableHash([
+      ...factPack.evidenceCatalog,
+      ...warRoomCapabilityEvidence(),
+      ...externalEvidence,
+    ].map((item) => ({
+      id: item.id,
+      detail: item.detail,
+      source: item.source,
+      href: item.href ?? null,
+      occurredAt: "occurredAt" in item ? item.occurredAt ?? null : null,
+      freshness: "freshness" in item ? item.freshness ?? null : null,
+    })));
     Object.assign(sourceSummary, {
       external_evidence_count: externalEvidence.length,
       internal_evidence_count: factPack.evidenceCatalog.length,
+      fact_pack_hash: factPackHash,
+      prompt_version: WAR_ROOM_PROMPT_VERSION,
     });
     await setStage("forming_candidates");
     const result = await analyzePortfolio(
@@ -862,6 +999,11 @@ export async function executeWarRoomDiscovery(runId: string) {
       candidate_count: result.investigations.length,
       proposal_count: saved,
       critic_review: result.review,
+      fact_pack_hash: factPackHash,
+      prompt_version: WAR_ROOM_PROMPT_VERSION,
+      raw_investigator_output: result.rawInvestigatorOutput,
+      raw_council_output: result.rawCouncilOutput,
+      validation_trace: result.validationTrace,
       input_tokens: result.inputTokens,
       output_tokens: result.outputTokens,
       completed_at: new Date().toISOString(),

@@ -287,12 +287,27 @@ export async function POST(request: NextRequest) {
         details: { note: body.note?.trim().slice(0, 1_000) || null },
       });
       if (eventError) throw eventError;
-      const { error: investigationError } = await db.from("war_room_investigations").update({
-        status: "closed",
-        readiness_reason: `Founder rejected the linked proposal${body.note?.trim() ? `: ${body.note.trim().slice(0, 500)}` : "."}`,
+      const rejectionReason = body.note?.trim().slice(0, 500) || "No reason supplied.";
+      const { data: investigations, error: investigationError } = await db.from("war_room_investigations").update({
+        status: "investigating",
+        proposal_id: null,
+        progress_summary: `The linked intervention was rejected. The underlying condition remains open: ${rejectionReason}`,
+        readiness_reason: `The proposed intervention was rejected, not the underlying condition: ${rejectionReason}`,
+        last_progress_at: now,
         updated_at: now,
-      }).eq("proposal_id", proposal.id);
+      }).eq("proposal_id", proposal.id).select("id");
       if (investigationError && !["42P01", "PGRST205"].includes(investigationError.code ?? "")) throw investigationError;
+      if (investigations?.length) {
+        const { error: investigationEventError } = await db.from("war_room_investigation_events").insert(
+          investigations.map((investigation) => ({
+            investigation_id: investigation.id,
+            event_type: "intervention_rejected",
+            actor: auth.admin.email,
+            details: { proposal_id: proposal.id, reason: rejectionReason },
+          })),
+        );
+        if (investigationEventError) throw investigationEventError;
+      }
       await logAuditAction({
         adminUserId: auth.admin.id,
         action: "war_room_proposal_rejected",
@@ -329,12 +344,25 @@ export async function POST(request: NextRequest) {
         details: { outcome_measurement: "pending" },
       });
       if (eventError) throw eventError;
-      const { error: investigationError } = await db.from("war_room_investigations").update({
-        status: "closed",
-        readiness_reason: "The approved intervention was carried out; outcome measurement now owns the learning loop.",
+      const { data: investigations, error: investigationError } = await db.from("war_room_investigations").update({
+        status: "watchlist",
+        progress_summary: "The linked intervention was completed. The condition remains open while War Room measures the outcome.",
+        readiness_reason: "Intervention completion is not condition resolution. Wait for measured outcome evidence.",
+        last_progress_at: now,
         updated_at: now,
-      }).eq("proposal_id", proposal.id);
+      }).eq("proposal_id", proposal.id).select("id");
       if (investigationError && !["42P01", "PGRST205"].includes(investigationError.code ?? "")) throw investigationError;
+      if (investigations?.length) {
+        const { error: investigationEventError } = await db.from("war_room_investigation_events").insert(
+          investigations.map((investigation) => ({
+            investigation_id: investigation.id,
+            event_type: "intervention_completed",
+            actor: auth.admin.email,
+            details: { proposal_id: proposal.id, outcome_measurement: "pending" },
+          })),
+        );
+        if (investigationEventError) throw investigationEventError;
+      }
       return NextResponse.json({ proposal: data });
     }
 

@@ -2645,6 +2645,9 @@ function FollowUpProviderRow({
   const [addressNotFound, setAddressNotFound] = useState(false);
   // Confirmation checkbox state
   const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
+  // Reset to Ready state
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resettingToReady, setResettingToReady] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -2674,6 +2677,9 @@ function FollowUpProviderRow({
       // Reset Apollo state
       setFindingDecisionMaker(false);
       setApolloError(null);
+      // Reset "Reset to Ready" state
+      setShowResetConfirm(false);
+      setResettingToReady(false);
     }
   }, [isExpanded]);
 
@@ -2781,6 +2787,55 @@ function FollowUpProviderRow({
       }
     } finally {
       setFindingDecisionMaker(false);
+    }
+  };
+
+  // Reset provider from Follow-Up back to Ready (when Apollo finds a new email)
+  const handleResetToReady = async () => {
+    if (!localApolloContact?.email) return;
+
+    const sessionAtStart = editingSessionRef.current;
+    setResettingToReady(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: "decision_maker",
+          use_apollo_email: true,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        const data = await res.json();
+        // Show warning if email update failed (but stage was still changed)
+        if (data.warning && stillValid) {
+          setError(data.warning);
+        }
+        // Provider was moved to Ready - trigger refresh (delayed if showing warning)
+        if (data.warning) {
+          setTimeout(() => onOutcomeRecorded(true), 2000);
+        } else {
+          onOutcomeRecorded(true);
+        }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to reset provider");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setResettingToReady(false);
+        setShowResetConfirm(false);
+      }
     }
   };
 
@@ -3527,19 +3582,62 @@ function FollowUpProviderRow({
 
                 {/* Apollo Decision Maker section */}
                 {localApolloContact ? (
-                  <div className="flex items-center gap-2 mt-2 pl-4 border-l-2 border-purple-200">
-                    <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
-                      Apollo
-                    </span>
-                    {(localApolloContact.first_name || localApolloContact.last_name) && (
-                      <span className="text-sm font-medium text-gray-900">
-                        {[localApolloContact.first_name, localApolloContact.last_name].filter(Boolean).join(" ")}
+                  <div className="mt-2 pl-4 border-l-2 border-purple-200">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                        Apollo
                       </span>
+                      {(localApolloContact.first_name || localApolloContact.last_name) && (
+                        <span className="text-sm font-medium text-gray-900">
+                          {[localApolloContact.first_name, localApolloContact.last_name].filter(Boolean).join(" ")}
+                        </span>
+                      )}
+                      {localApolloContact.title && (
+                        <span className="text-xs text-gray-500">{localApolloContact.title}</span>
+                      )}
+                      <span className="text-sm text-purple-600">{localApolloContact.email}</span>
+                    </div>
+                    {/* Reset to Ready action */}
+                    {showResetConfirm ? (
+                      <div className="flex items-center gap-2 mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
+                        <span className="text-xs text-gray-700">
+                          Move back to Ready tab with this email?
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleResetToReady();
+                          }}
+                          disabled={resettingToReady}
+                          className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {resettingToReady ? "Moving..." : "Confirm"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowResetConfirm(false);
+                          }}
+                          disabled={resettingToReady}
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowResetConfirm(true);
+                        }}
+                        className="mt-2 text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                      >
+                        ↩ Reset to Ready with this email
+                      </button>
                     )}
-                    {localApolloContact.title && (
-                      <span className="text-xs text-gray-500">{localApolloContact.title}</span>
-                    )}
-                    <span className="text-sm text-purple-600">{localApolloContact.email}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 mt-2">

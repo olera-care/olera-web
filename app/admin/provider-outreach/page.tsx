@@ -2776,8 +2776,13 @@ function FollowUpProviderRow({
           found_at: new Date().toISOString(),
         };
         setLocalApolloContact(contact);
-        // Update parent state with Apollo contact and email_source
-        onProviderUpdated({ apollo_contact: contact, email_source: "decision_maker" });
+        // Update parent state with Apollo contact, email_source, and email
+        // Backend now saves Apollo email to olera-providers, so sync locally too
+        onProviderUpdated({
+          apollo_contact: contact,
+          email_source: "decision_maker",
+          email: contact.email,
+        });
       } else {
         setApolloError("No decision-maker found");
       }
@@ -7545,12 +7550,18 @@ export default function ProviderOutreachPage() {
                             ready: prev.ready + 1,
                           }));
                         } else {
-                          // On Ready tab: update apollo_contact and email_source
+                          // On Ready tab: update apollo_contact, email_source, and email
                           // This moves the provider to Decision Maker sub-tab
+                          // Also sync email since backend now saves Apollo email to olera-providers
                           setProviders((prev) =>
                             prev.map((p) =>
                               p.provider_id === providerId
-                                ? { ...p, apollo_contact: apolloContact, email_source: "decision_maker" }
+                                ? {
+                                    ...p,
+                                    apollo_contact: apolloContact,
+                                    email_source: "decision_maker",
+                                    email: apolloContact?.email || p.email,
+                                  }
                                 : p
                             )
                           );

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { findDecisionMaker, isApolloConfigured } from "@/lib/apollo/client";
+import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
 /**
  * POST /api/admin/provider-outreach/find-decision-maker
@@ -61,10 +62,10 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Fetch provider data - include email for domain fallback
+    // Fetch provider data - include email for domain fallback, slug for notifications
     const { data: provider, error: providerError } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, website, email, city, state")
+      .select("provider_id, provider_name, website, email, city, state, slug")
       .eq("provider_id", provider_id)
       .single();
 
@@ -168,6 +169,69 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Save Apollo email to directory level (olera-providers)
+    // This ensures pending questions/leads can be sent to this email
+    const apolloEmail = result.contact.email;
+    const { error: providerEmailError } = await db
+      .from("olera-providers")
+      .update({ email: apolloEmail })
+      .eq("provider_id", provider_id);
+
+    if (providerEmailError) {
+      console.error("[find-decision-maker] Error updating provider email:", providerEmailError);
+      // Non-fatal - continue with the rest
+    }
+
+    // Sync to business_profiles if linked (with claimed account protection)
+    const { data: linkedProfile } = await db
+      .from("business_profiles")
+      .select("id, slug, account_id, email")
+      .eq("source_provider_id", provider_id)
+      .maybeSingle();
+
+    if (linkedProfile?.id) {
+      const isClaimed = !!linkedProfile.account_id;
+      const hasEmail = !!linkedProfile.email;
+
+      if (isClaimed && hasEmail) {
+        // Don't overwrite claimed account's email
+        console.log(`[find-decision-maker] Skipping business_profile sync for claimed account ${linkedProfile.id}`);
+      } else {
+        // Safe to sync: either unclaimed, or claimed but no email yet
+        await db
+          .from("business_profiles")
+          .update({ email: apolloEmail })
+          .eq("id", linkedProfile.id);
+      }
+    }
+
+    // Send deferred notifications for any pending questions/leads
+    const providerSlug = provider.slug || linkedProfile?.slug || provider_id;
+    const additionalSlugVariants: string[] = [];
+    if (provider.slug && provider.slug !== providerSlug) {
+      additionalSlugVariants.push(provider.slug);
+    }
+    if (linkedProfile?.slug && linkedProfile.slug !== providerSlug) {
+      additionalSlugVariants.push(linkedProfile.slug);
+    }
+    if (provider_id !== providerSlug) {
+      additionalSlugVariants.push(provider_id);
+    }
+
+    let notificationResult = { leadEmailsSent: 0, questionEmailsSent: 0, leadsSkipped: 0 };
+    try {
+      notificationResult = await sendDeferredNotificationsForProvider({
+        profileId: linkedProfile?.id || "",
+        email: apolloEmail,
+        providerName: provider.provider_name || providerSlug,
+        providerSlug,
+        additionalSlugVariants,
+      });
+    } catch (notifErr) {
+      // Log but don't fail - Apollo contact was saved successfully
+      console.error("[find-decision-maker] Deferred notification error:", notifErr);
+    }
+
     // Log touchpoint
     await db.from("provider_outreach_touchpoints").insert({
       provider_id: provider_id,
@@ -178,12 +242,16 @@ export async function POST(request: NextRequest) {
         name: `${result.contact.first_name || ""} ${result.contact.last_name || ""}`.trim(),
         title: result.contact.title,
         credits_used: result.credits_used,
+        directory_synced: !providerEmailError,
+        notifications_sent: notificationResult.leadEmailsSent + notificationResult.questionEmailsSent,
       },
     });
 
     return NextResponse.json({
       contact: result.contact,
       credits_used: result.credits_used,
+      directory_synced: !providerEmailError,
+      notifications_sent: notificationResult.leadEmailsSent + notificationResult.questionEmailsSent,
     });
   } catch (error) {
     console.error("[find-decision-maker] Error:", error);

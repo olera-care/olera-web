@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-15 — War Room operating agent (`codex/war-room-operating-agent`)
+
+Replaced the passive War Room dashboard with a supervisor inbox: a daily Opus scout plus separate critic reads bounded product data and explicitly allowlisted Slack/Notion context, proposes zero to three evidence-cited repository changes, and waits for an admin's **Build this** authorization. Approved scope is frozen and dispatched to a GitHub runner that may edit files and open a review PR against `staging`, but has no shell tool, persisted checkout credential, merge, deploy, production-data, messaging, billing, permission, or secrets authority. Completed work enters a seven-day outcome-measurement loop; rejected work remains memory instead of returning every morning.
+
+Pre-test fixed a nonexistent GitHub action output that prevented PR creation, duplicate-dispatch races and ambiguous retry idempotency, prompt-only runner boundaries, stuck discovery/execution polling, static evidence freshness, older outcomes falling out of memory, approval provenance drift, callback/branch validation, and an unbounded Notion refresh that could exceed Vercel's runtime. Admin login remains isolated; War Room only reads its small precomputed queue when the route is opened. **Migration 177 is applied.** **Files:** War Room supervisor UI/types, proposal/discovery/source/executor APIs and libraries, Slack + runner callbacks, daily cron/registry, GitHub workflow, env example, deployment runbook, and migration 177. **Validation:** TypeScript, targeted ESLint, 33-cron parity, workflow YAML, diff checks, plus Slack-signature, dynamic-freshness, and single-dispatch behavioral smokes pass. **Next:** preview source-health states, run one discovery, approve one harmless code proposal, and confirm exactly one review-only PR returns against `staging`; merge only after TJ approval.
+
 ### 2026-08-14 — The benefits funnel read one spouse's income as the household's (`benefits-household-income-guard`, PR #1599)
 
 Started as one support email and turned into a real bug. **Gerald Dunn** (thread `6fc415dd`, profile `a86383a6`, SC, 83) ran the benefits finder Aug 9 and emailed `support@olera.care` **12 minutes later** with his actual numbers, asking whether his wife qualifies for QI. Her income is $980/mo. The household's is $4,680. He answered the intake's *"About how much is their monthly income?"* for **her**, landed in the `under1500` band, and the funnel treated that as the figure a means test would weigh.

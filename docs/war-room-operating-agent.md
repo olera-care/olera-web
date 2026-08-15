@@ -31,6 +31,9 @@ work: branch, tests, and a PR against `staging`. It cannot merge or deploy.
 Rejecting a proposal may include a blunt reason such as "this already exists."
 That note remains visible in memory and is included in later discovery context,
 so the same fingerprint stays rejected instead of being repackaged every day.
+The waiting inbox presents one proposal at a time. **Pass for now** advances the
+local decision queue without changing proposal state; previous/next controls
+make every passed proposal immediately recoverable.
 
 ## Required migration
 

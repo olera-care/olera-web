@@ -7,6 +7,8 @@ import {
   Bot,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   CircleAlert,
   Clock3,
   ExternalLink,
@@ -132,10 +134,12 @@ function ProposalCard({
   proposal,
   busy,
   onAction,
+  onPass,
 }: {
   proposal: WarRoomProposal;
   busy: boolean;
   onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
+  onPass?: () => void;
 }) {
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -315,6 +319,16 @@ function ProposalCard({
             ) : null}
             {isWaiting ? (
               <>
+                {onPass ? (
+                  <button
+                    type="button"
+                    onClick={onPass}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-950 disabled:opacity-50"
+                  >
+                    Pass for now <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => setShowRejectReason((visible) => !visible)}
@@ -539,7 +553,7 @@ export default function WarRoomDashboard() {
           </section>
 
           {groups.review.length ? <ProposalSection title="The work is back" detail="Review the PR. Shipping is still your decision." proposals={groups.review} busyId={busyId} onAction={act} /> : null}
-          {groups.waiting.length ? <ProposalSection title="Needs your call" detail="These survived the evidence check and a separate skeptical review." proposals={groups.waiting} busyId={busyId} onAction={act} /> : null}
+          {groups.waiting.length ? <ProposalSection title="Needs your call" detail="One decision at a time. Pass leaves the proposal untouched so you can come back to it." proposals={groups.waiting} busyId={busyId} onAction={act} paged /> : null}
           {groups.active.length ? <ProposalSection title="Working" detail="You approved the scope. The agent owns the build until it returns or reports a blocker." proposals={groups.active} busyId={busyId} onAction={act} /> : null}
 
           {discoveryActive && payload?.latestDiscovery ? (
@@ -614,19 +628,56 @@ function ProposalSection({
   proposals,
   busyId,
   onAction,
+  paged = false,
 }: {
   title: string;
   detail: string;
   proposals: WarRoomProposal[];
   busyId: string | null;
   onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
+  paged?: boolean;
 }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  useEffect(() => {
+    setActiveIndex((current) => Math.min(current, Math.max(0, proposals.length - 1)));
+  }, [proposals.length]);
+  const selectedIndex = Math.min(activeIndex, Math.max(0, proposals.length - 1));
+  const visibleProposals = paged ? proposals.slice(selectedIndex, selectedIndex + 1) : proposals;
+  const showPager = paged && proposals.length > 1;
+  const previous = () => setActiveIndex((current) => (current - 1 + proposals.length) % proposals.length);
+  const next = () => setActiveIndex((current) => (current + 1) % proposals.length);
+
   return (
     <section className="mt-10">
-      <h2 className="font-serif text-2xl font-bold text-gray-950">{title}</h2>
-      <p className="mt-1 text-sm text-gray-500">{detail}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-gray-950">{title}</h2>
+          <p className="mt-1 text-sm text-gray-500">{detail}</p>
+        </div>
+        {showPager ? (
+          <div className="flex items-center gap-2">
+            <span className="mr-1 text-xs font-semibold tabular-nums text-gray-400">
+              {selectedIndex + 1} of {proposals.length}
+            </span>
+            <button type="button" onClick={previous} aria-label="Previous proposal" className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-white hover:text-gray-950">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={next} aria-label="Next proposal" className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-white hover:text-gray-950">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        ) : null}
+      </div>
       <div className="mt-4 space-y-5">
-        {proposals.map((proposal) => <ProposalCard key={proposal.id} proposal={proposal} busy={busyId === proposal.id} onAction={onAction} />)}
+        {visibleProposals.map((proposal) => (
+          <ProposalCard
+            key={proposal.id}
+            proposal={proposal}
+            busy={busyId === proposal.id}
+            onAction={onAction}
+            onPass={showPager ? next : undefined}
+          />
+        ))}
       </div>
     </section>
   );

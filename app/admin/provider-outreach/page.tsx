@@ -2614,6 +2614,10 @@ function FollowUpProviderRow({
   const [findingDecisionMaker, setFindingDecisionMaker] = useState(false);
   const [apolloError, setApolloError] = useState<string | null>(null);
   const [localApolloContact, setLocalApolloContact] = useState<OutreachProvider["apollo_contact"]>(provider.apollo_contact);
+  // Sync localApolloContact with props when provider data changes
+  useEffect(() => {
+    setLocalApolloContact(provider.apollo_contact);
+  }, [provider.apollo_contact]);
   // Inline email editing state (for "Wrong Contact" flow)
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");

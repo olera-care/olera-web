@@ -115,9 +115,6 @@ export async function findDecisionMaker(
       per_page: 10,
     };
 
-    console.log("[apollo] Searching domain:", searchDomain);
-    console.log("[apollo] Search request:", JSON.stringify(searchBody));
-
     const searchUrl = `${APOLLO_BASE_URL}/mixed_people/api_search`;
 
     const searchResponse = await fetch(searchUrl, {
@@ -149,12 +146,7 @@ export async function findDecisionMaker(
     }
 
     const searchData = await searchResponse.json();
-
-    // Log full response for debugging
-    console.log("[apollo] Full response:", JSON.stringify(searchData));
-
     const people = searchData.people || [];
-    console.log("[apollo] Search returned", people.length, "people");
 
     if (people.length === 0) {
       clearTimeout(timeoutId);
@@ -162,9 +154,7 @@ export async function findDecisionMaker(
     }
 
     // Step 2: Enrich the best match to get email (costs 1 credit)
-    // Docs: https://docs.apollo.io/reference/people-enrichment
     const bestMatch = people[0];
-    console.log("[apollo] Best match:", JSON.stringify(bestMatch));
 
     // Apollo returns last_name_obfuscated, not last_name
     // Extract whatever name info we have
@@ -174,7 +164,6 @@ export async function findDecisionMaker(
 
     // Need some name to enrich
     if (!firstName && !lastName && !fullName) {
-      console.log("[apollo] No name found on best match, skipping enrichment");
       clearTimeout(timeoutId);
       return {
         contact: {
@@ -187,8 +176,6 @@ export async function findDecisionMaker(
         credits_used: 0,
       };
     }
-
-    console.log("[apollo] Attempting enrichment for:", firstName, lastName || fullName);
 
     // Enrichment endpoint uses query parameters (not JSON body)
     const enrichParams = new URLSearchParams();
@@ -208,7 +195,6 @@ export async function findDecisionMaker(
     if (bestMatch.id) enrichParams.append("id", bestMatch.id);
 
     const enrichUrl = `${APOLLO_BASE_URL}/people/match?${enrichParams.toString()}`;
-    console.log("[apollo] Enrichment URL:", enrichUrl);
 
     const enrichResponse = await fetch(enrichUrl, {
       method: "POST",

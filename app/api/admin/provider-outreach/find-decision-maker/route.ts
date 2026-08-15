@@ -100,11 +100,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log("[find-decision-maker] Provider:", provider.provider_name);
-    console.log("[find-decision-maker] Website field:", provider.website);
-    console.log("[find-decision-maker] Email field:", provider.email);
-    console.log("[find-decision-maker] Extracted domain:", domain);
-
     // Apollo requires a domain - can't search by company name alone
     if (!domain) {
       return NextResponse.json({

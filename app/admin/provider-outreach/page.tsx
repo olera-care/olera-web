@@ -2610,6 +2610,10 @@ function FollowUpProviderRow({
   // LinkedIn finder state
   const [findingLinkedIn, setFindingLinkedIn] = useState(false);
   const [linkedInResult, setLinkedInResult] = useState<{ linkedin_url: string | null; source_url: string | null } | null>(null);
+  // Apollo decision-maker finder state
+  const [findingDecisionMaker, setFindingDecisionMaker] = useState(false);
+  const [apolloError, setApolloError] = useState<string | null>(null);
+  const [localApolloContact, setLocalApolloContact] = useState<OutreachProvider["apollo_contact"]>(provider.apollo_contact);
   // Inline email editing state (for "Wrong Contact" flow)
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -2663,6 +2667,9 @@ function FollowUpProviderRow({
       setFindingAddress(false);
       setAddressNotFound(false);
       setConfirmedWithProvider(false);
+      // Reset Apollo state
+      setFindingDecisionMaker(false);
+      setApolloError(null);
     }
   }, [isExpanded]);
 
@@ -2731,6 +2738,45 @@ function FollowUpProviderRow({
       }
     } finally {
       setFindingLinkedIn(false);
+    }
+  };
+
+  // Find decision-maker via Apollo
+  const handleFindDecisionMaker = async () => {
+    setFindingDecisionMaker(true);
+    setApolloError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (!isExpandedRef.current) return; // Row collapsed, ignore result
+
+      if (data.error) {
+        setApolloError(data.error);
+      } else if (data.contact?.email) {
+        const contact = {
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        };
+        setLocalApolloContact(contact);
+        // Update parent state with Apollo contact and email_source
+        onProviderUpdated({ apollo_contact: contact, email_source: "decision_maker" });
+      } else {
+        setApolloError("No decision-maker found");
+      }
+    } catch {
+      if (isExpandedRef.current) {
+        setApolloError("Lookup failed");
+      }
+    } finally {
+      setFindingDecisionMaker(false);
     }
   };
 
@@ -3472,6 +3518,39 @@ function FollowUpProviderRow({
                     >
                       Edit
                     </button>
+                  </div>
+                )}
+
+                {/* Apollo Decision Maker section */}
+                {localApolloContact ? (
+                  <div className="flex items-center gap-2 mt-2 pl-4 border-l-2 border-purple-200">
+                    <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                      Apollo
+                    </span>
+                    {(localApolloContact.first_name || localApolloContact.last_name) && (
+                      <span className="text-sm font-medium text-gray-900">
+                        {[localApolloContact.first_name, localApolloContact.last_name].filter(Boolean).join(" ")}
+                      </span>
+                    )}
+                    {localApolloContact.title && (
+                      <span className="text-xs text-gray-500">{localApolloContact.title}</span>
+                    )}
+                    <span className="text-sm text-purple-600">{localApolloContact.email}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFindDecisionMaker();
+                      }}
+                      disabled={findingDecisionMaker}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
+                    >
+                      {findingDecisionMaker ? "Finding..." : "🎯 Find Decision Maker"}
+                    </button>
+                    {apolloError && <span className="text-xs text-amber-600">{apolloError}</span>}
                   </div>
                 )}
               </div>
@@ -7353,12 +7432,31 @@ export default function ProviderOutreachPage() {
                         );
                       }}
                       onApolloContactFound={(providerId, apolloContact) => {
-                        // Update local providers state with Apollo contact
-                        setProviders((prev) =>
-                          prev.map((p) =>
-                            p.provider_id === providerId ? { ...p, apollo_contact: apolloContact } : p
-                          )
-                        );
+                        // On Needs Email tab: Apollo found email, provider moves to Ready tab
+                        if (activeTab === "needs_email") {
+                          // Remove provider from Needs Email list (they now belong in Ready → Decision Maker)
+                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                          // Optimistically update tab counts
+                          setStageCounts((prev) => ({
+                            ...prev,
+                            needs_email: Math.max(0, prev.needs_email - 1),
+                            ready: prev.ready + 1,
+                          }));
+                        } else {
+                          // On Ready tab: update apollo_contact and email_source
+                          // This moves the provider to Decision Maker sub-tab
+                          setProviders((prev) =>
+                            prev.map((p) =>
+                              p.provider_id === providerId
+                                ? { ...p, apollo_contact: apolloContact, email_source: "decision_maker" }
+                                : p
+                            )
+                          );
+                        }
+                        // Refresh cities to update counts
+                        if (isNotContactedTab(activeTab)) {
+                          fetchCities();
+                        }
                       }}
                       onOpenActionModal={setActionModalProvider}
                       onOpenNotesModal={(provider) => {

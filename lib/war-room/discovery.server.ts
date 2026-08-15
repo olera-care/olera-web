@@ -26,6 +26,7 @@ import {
 } from "@/lib/war-room/strategy";
 import {
   evaluateWarRoomReasoning,
+  reconcilePersistedWarRoomAgenda,
   type WarRoomCouncilOutput,
   type WarRoomInvestigatorOutput,
 } from "@/lib/war-room/reasoning";
@@ -151,9 +152,9 @@ const DOSSIER_SCHEMA = {
     existingCapabilities: { type: "array", maxItems: 8, items: { type: "string", maxLength: 300 } },
     capabilityEvidenceIds: { type: "array", maxItems: 8, items: { type: "string" } },
     unknowns: { type: "array", maxItems: 8, items: { type: "string", maxLength: 300 } },
-    hypotheses: { type: "array", maxItems: 6, items: { type: "string", maxLength: 300 } },
+    hypotheses: { type: "array", minItems: 2, maxItems: 6, items: { type: "string", maxLength: 300 } },
     nextProbe: {
-      type: ["object", "null"],
+      type: "object",
       additionalProperties: false,
       properties: {
         kind: { type: "string", enum: ["analysis", "query", "repository", "source_search", "external_research"] },
@@ -163,7 +164,7 @@ const DOSSIER_SCHEMA = {
       },
       required: ["kind", "question", "method", "expectedInformationGain"],
     },
-    resolutionCriteria: { type: "array", maxItems: 5, items: { type: "string", maxLength: 350 } },
+    resolutionCriteria: { type: "array", minItems: 1, maxItems: 5, items: { type: "string", maxLength: 350 } },
     options: {
       type: "array",
       minItems: 0,
@@ -208,7 +209,7 @@ const LENS_REVIEW_SCHEMA = {
     finding: { type: "string", maxLength: 600 },
     whyItMatters: { type: "string", maxLength: 500 },
     unresolvedQuestion: { type: "string", maxLength: 350 },
-    evidenceIds: { type: "array", minItems: 0, maxItems: 8, items: { type: "string" } },
+    evidenceIds: { type: "array", minItems: 1, maxItems: 8, items: { type: "string" } },
     impact: { type: "string", enum: ["high", "medium", "low"] },
     urgency: { type: "string", enum: ["now", "soon", "monitor"] },
     strategicFit: { type: "string", enum: ["central", "adjacent", "peripheral"] },
@@ -326,6 +327,7 @@ async function analyzePortfolio(
   companyModel: WarRoomCompanyModel,
   proposalMemory: Array<Partial<WarRoomProposal>>,
   investigationMemory: Array<Partial<WarRoomInvestigation>>,
+  blockedInterventionFingerprints: ReadonlySet<string>,
   onStage?: (stage: DiscoveryStage) => Promise<void>,
 ) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
@@ -439,6 +441,7 @@ async function analyzePortfolio(
     evidenceCatalog,
     investigator: investigatorOutput,
     council: review,
+    blockedInterventionFingerprints,
   });
   const { proposals, investigations, assessments, companyRead } = reasoning;
   const validEvidenceIds = new Set(evidenceCatalog.map((item) => item.id));
@@ -572,6 +575,12 @@ async function saveInvestigations(
     })));
     const evidenceChanged = Boolean(prior?.evidence_hash && prior.evidence_hash !== evidenceHash);
     const probeChanged = stableHash(prior?.next_probe ?? null) !== stableHash(draft.nextProbe ?? null);
+    const terminal = status === "resolved" || status === "invalidated";
+    const progressSummary = terminal
+      ? `${status === "resolved" ? "Resolved" : "Invalidated"}: ${cleanExecutiveText(assessment?.reason || draft.readinessReason)}`
+      : draft.nextProbe
+        ? `Next probe: ${cleanExecutiveText(draft.nextProbe.question)}`
+        : prior?.progress_summary || "The condition is preserved while War Room identifies the next useful read-only probe.";
     const values = {
       discovery_run_id: runId,
       status,
@@ -584,13 +593,14 @@ async function saveInvestigations(
       existing_capabilities: draft.existingCapabilities.map(cleanExecutiveText).filter(Boolean),
       unknowns: draft.unknowns.map(cleanExecutiveText).filter(Boolean),
       hypotheses: (draft.hypotheses ?? []).map(cleanExecutiveText).filter(Boolean),
-      next_probe: draft.nextProbe ? {
+      next_probe: !terminal && draft.nextProbe ? {
         ...draft.nextProbe,
         question: cleanExecutiveText(draft.nextProbe.question),
         method: cleanExecutiveText(draft.nextProbe.method),
         expectedInformationGain: cleanExecutiveText(draft.nextProbe.expectedInformationGain),
       } : null,
       resolution_criteria: (draft.resolutionCriteria ?? []).map(cleanExecutiveText).filter(Boolean),
+      resolution_evidence: terminal ? conditionEvidence : prior?.resolution_evidence ?? [],
       options: draft.options.map((option) => ({
         ...option,
         title: cleanExecutiveText(option.title),
@@ -604,11 +614,9 @@ async function saveInvestigations(
       urgency: draft.urgency,
       strategic_fit: draft.strategicFit,
       founder_attention_minutes: draft.founderAttentionMinutes,
-      progress_summary: draft.nextProbe
-        ? `Next probe: ${cleanExecutiveText(draft.nextProbe.question)}`
-        : prior?.progress_summary || "The condition is preserved while War Room identifies the next useful read-only probe.",
+      progress_summary: progressSummary,
       evidence_hash: evidenceHash,
-      last_progress_at: evidenceChanged || probeChanged ? now : prior?.last_progress_at ?? null,
+      last_progress_at: terminal || evidenceChanged || probeChanged ? now : prior?.last_progress_at ?? null,
       last_seen_at: now,
       updated_at: now,
     };
@@ -643,9 +651,13 @@ async function saveInvestigations(
             ? "evidence_changed"
             : "observed",
       actor: "war-room",
-      details: { evidence_hash: values.evidence_hash, previous_status: prior?.status ?? null },
+      details: {
+        evidence_hash: values.evidence_hash,
+        evidence_ids: conditionEvidence.map((item) => item.id),
+        previous_status: prior?.status ?? null,
+      },
     }];
-    if (draft.nextProbe && (!prior || probeChanged)) events.push({
+    if (values.next_probe && (!prior || probeChanged)) events.push({
       investigation_id: investigationId,
       discovery_run_id: runId,
       event_type: "probe_planned",
@@ -660,12 +672,24 @@ async function saveInvestigations(
   // Silence is not resolution. A case absent from recent scans moves out of the
   // active queue, but remains durable until evidence resolves or contradicts it.
   const staleBefore = new Date(Date.now() - 14 * 86_400_000).toISOString();
-  const { error: staleError } = await db.from("war_room_investigations").update({
+  const { data: staleInvestigations, error: staleError } = await db.from("war_room_investigations").update({
     status: "watchlist",
     readiness_reason: "Recent scans did not reproduce this condition. It remains on the watchlist until evidence resolves or contradicts it.",
     updated_at: new Date().toISOString(),
-  }).eq("status", "investigating").lt("last_seen_at", staleBefore);
+  }).eq("status", "investigating").lt("last_seen_at", staleBefore).select("id");
   if (staleError) throw staleError;
+  if (staleInvestigations?.length) {
+    const { error: eventError } = await db.from("war_room_investigation_events").insert(
+      staleInvestigations.map((investigation) => ({
+        investigation_id: investigation.id,
+        discovery_run_id: runId,
+        event_type: "monitoring",
+        actor: "war-room",
+        details: { reason: "not_reproduced_for_14_days" },
+      })),
+    );
+    if (eventError) throw eventError;
+  }
 
   return saved;
 }
@@ -717,6 +741,7 @@ async function saveProposals(
   drafts: ReturnType<typeof applyAgendaGate>,
   evidenceCatalog: WarRoomProposalEvidence[],
 ) {
+  const acceptedDrafts: typeof drafts = [];
   const draftFingerprints = new Set(drafts.map((draft) => draft.fingerprint));
   const { data: waitingRows, error: waitingError } = await db.from("war_room_proposals")
     .select("id, fingerprint")
@@ -741,7 +766,7 @@ async function saveProposals(
         retiredInvestigations.map((investigation) => ({
           investigation_id: investigation.id,
           discovery_run_id: runId,
-          event_type: "intervention_rejected",
+          event_type: "intervention_superseded",
           actor: "war-room",
           details: { proposal_id: waiting.id, reason: "later_scan_retired_intervention" },
         })),
@@ -828,6 +853,7 @@ async function saveProposals(
         details: { run_id: runId, occurrence_count: prior.occurrence_count + 1 },
       });
       if (eventError) throw eventError;
+      acceptedDrafts.push(draft);
       saved += 1;
       continue;
     }
@@ -846,9 +872,10 @@ async function saveProposals(
     });
     if (eventError) throw eventError;
     slots -= 1;
+    acceptedDrafts.push(draft);
     saved += 1;
   }
-  return saved;
+  return { saved, acceptedDrafts };
 }
 
 async function linkInvestigationsToProposals(db: SupabaseClient, drafts: ReturnType<typeof applyAgendaGate>) {
@@ -920,7 +947,7 @@ export async function executeWarRoomDiscovery(runId: string) {
     ]);
     Object.assign(sourceSummary, { slack, notion });
     await setStage("building_operating_pack");
-    const [snapshot, externalEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult] = await Promise.all([
+    const [snapshot, externalEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
       buildWarRoomSnapshot(db, 30),
       loadExternalEvidence(db),
       loadCompanyModel(db),
@@ -934,10 +961,14 @@ export async function executeWarRoomDiscovery(runId: string) {
         .lte("measurement_due_at", new Date().toISOString())
         .order("measurement_due_at", { ascending: true })
         .limit(5),
+      db.from("war_room_proposals")
+        .select("fingerprint, status")
+        .in("status", ["rejected", "completed", "failed", "superseded"]),
     ]);
     if (memoryResult.error) throw memoryResult.error;
     if (investigationMemoryResult.error) throw investigationMemoryResult.error;
     if (dueOutcomeResult.error) throw dueOutcomeResult.error;
+    if (blockedInterventionResult.error) throw blockedInterventionResult.error;
     const memoryById = new Map<string, Partial<WarRoomProposal>>();
     for (const proposal of [
       ...((memoryResult.data ?? []) as Array<Partial<WarRoomProposal>>),
@@ -971,39 +1002,61 @@ export async function executeWarRoomDiscovery(runId: string) {
       companyModel,
       [...memoryById.values()],
       (investigationMemoryResult.data ?? []) as Array<Partial<WarRoomInvestigation>>,
+      new Set((blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint)),
       setStage,
     );
     await setStage("saving_decisions");
-    const selectedInvestigationFingerprints = new Set(result.proposals.map((proposal) => proposal.sourceInvestigationFingerprint));
+    const proposalSave = await saveProposals(db, runId, result.proposals, result.evidenceCatalog);
+    const selectedInvestigationFingerprints = new Set(
+      proposalSave.acceptedDrafts.map((proposal) => proposal.sourceInvestigationFingerprint),
+    );
+    const persistedAgenda = reconcilePersistedWarRoomAgenda({
+      investigations: result.investigations,
+      assessments: result.assessments,
+      companyRead: result.rawCouncilOutput.companyRead,
+      evidenceCatalog: result.evidenceCatalog,
+      lensReviews: result.rawInvestigatorOutput.lensReviews,
+      acceptedInvestigationFingerprints: selectedInvestigationFingerprints,
+    });
+    const persistedAssessments = persistedAgenda.assessments;
+    const persistedCompanyRead = persistedAgenda.companyRead;
     const investigationsSaved = await saveInvestigations(
       db,
       runId,
       result.investigations,
-      result.assessments,
+      persistedAssessments,
       selectedInvestigationFingerprints,
       result.evidenceCatalog,
     );
-    const saved = await saveProposals(db, runId, result.proposals, result.evidenceCatalog);
-    await linkInvestigationsToProposals(db, result.proposals);
+    await linkInvestigationsToProposals(db, proposalSave.acceptedDrafts);
     await saveOutcomes(db, result.outcomes, result.evidenceCatalog);
     const { error: finishError } = await db.from("war_room_discovery_runs").update({
       status: "completed",
       source_summary: {
         ...sourceSummary,
         stage: "completed",
-        company_verdict: result.review.companyVerdict,
-        company_read: result.review.companyRead,
+        company_verdict: persistedCompanyRead.summary,
+        company_read: persistedCompanyRead,
         investigation_count: investigationsSaved,
-        watchlist_count: result.assessments.filter((assessment) => assessment.disposition === "watchlist").length,
+        watchlist_count: persistedAssessments.filter((assessment) => assessment.disposition === "watchlist").length,
       },
       candidate_count: result.investigations.length,
-      proposal_count: saved,
-      critic_review: result.review,
+      proposal_count: proposalSave.saved,
+      critic_review: {
+        ...result.review,
+        companyRead: persistedCompanyRead,
+        companyVerdict: persistedCompanyRead.summary,
+        assessments: persistedAssessments,
+      },
       fact_pack_hash: factPackHash,
       prompt_version: WAR_ROOM_PROMPT_VERSION,
       raw_investigator_output: result.rawInvestigatorOutput,
       raw_council_output: result.rawCouncilOutput,
-      validation_trace: result.validationTrace,
+      validation_trace: {
+        ...result.validationTrace,
+        persistedAgendaItems: proposalSave.acceptedDrafts.length,
+        persistenceBlockedInterventions: result.proposals.length - proposalSave.acceptedDrafts.length,
+      },
       input_tokens: result.inputTokens,
       output_tokens: result.outputTokens,
       completed_at: new Date().toISOString(),

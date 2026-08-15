@@ -39,9 +39,36 @@ export type WarRoomReasoningResult = {
     lensReviews: number;
     retainedInvestigations: number;
     requestedAgendaItems: number;
+    blockedInterventions: number;
     acceptedAgendaItems: number;
   };
 };
+
+export function reconcilePersistedWarRoomAgenda(input: {
+  investigations: InvestigationDraft[];
+  assessments: InvestigationAssessment[];
+  companyRead: CompanyReadDraft;
+  evidenceCatalog: WarRoomProposalEvidence[];
+  lensReviews: StrategicLensReview[];
+  acceptedInvestigationFingerprints: ReadonlySet<string>;
+}) {
+  const assessments = normalizeInvestigationAssessments(
+    input.investigations,
+    input.assessments,
+    input.acceptedInvestigationFingerprints,
+  );
+  const companyRead = normalizeCompanyRead(
+    input.companyRead,
+    input.investigations,
+    assessments,
+    input.evidenceCatalog,
+    {
+      complete: true,
+      allClear: input.lensReviews.every((review) => review.status === "clear"),
+    },
+  );
+  return { assessments, companyRead };
+}
 
 /**
  * Run model output through the exact deterministic contract used in production.
@@ -52,15 +79,18 @@ export function evaluateWarRoomReasoning(input: {
   evidenceCatalog: WarRoomProposalEvidence[];
   investigator: WarRoomInvestigatorOutput;
   council: WarRoomCouncilOutput;
+  blockedInterventionFingerprints?: ReadonlySet<string>;
 }): WarRoomReasoningResult {
   const { evidenceCatalog, investigator, council } = input;
-  const lensReviews = requireCompleteStrategicLensCoverage(investigator.lensReviews ?? []);
+  const lensReviews = requireCompleteStrategicLensCoverage(investigator.lensReviews ?? [], evidenceCatalog);
   const detailedInvestigations = validateInvestigations(investigator.dossiers ?? [], evidenceCatalog);
   const investigations = retainStrategicLensInvestigations(
     detailedInvestigations,
     lensReviews,
     evidenceCatalog,
   );
+  const eligibleProposals = (council.proposals ?? []).filter((proposal) =>
+    !input.blockedInterventionFingerprints?.has(proposal.fingerprint));
   const initialAssessments = normalizeInvestigationAssessments(
     investigations,
     council.assessments ?? [],
@@ -69,7 +99,7 @@ export function evaluateWarRoomReasoning(input: {
     .filter((assessment) => assessment.disposition === "agenda")
     .map((assessment) => assessment.fingerprint));
   const proposals = applyAgendaGate(
-    (council.proposals ?? []).filter((proposal) =>
+    eligibleProposals.filter((proposal) =>
       requestedAgendaFingerprints.has(proposal.sourceInvestigationFingerprint)),
     investigations,
     evidenceCatalog,
@@ -105,6 +135,7 @@ export function evaluateWarRoomReasoning(input: {
       lensReviews: lensReviews.length,
       retainedInvestigations: investigations.length,
       requestedAgendaItems: council.proposals?.length ?? 0,
+      blockedInterventions: (council.proposals?.length ?? 0) - eligibleProposals.length,
       acceptedAgendaItems: proposals.length,
     },
   };

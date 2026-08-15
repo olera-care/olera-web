@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS war_room_investigation_events (
   discovery_run_id      uuid REFERENCES war_room_discovery_runs(id) ON DELETE SET NULL,
   event_type            text NOT NULL CHECK (event_type IN (
     'observed', 'evidence_changed', 'probe_planned', 'probe_completed',
-    'intervention_proposed', 'intervention_rejected', 'intervention_completed',
+    'intervention_proposed', 'intervention_rejected', 'intervention_superseded', 'intervention_completed',
     'outcome_measured', 'monitoring', 'resolved', 'invalidated', 'reopened'
   )),
   actor                 text NOT NULL DEFAULT 'war-room',

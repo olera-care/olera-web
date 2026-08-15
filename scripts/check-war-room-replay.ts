@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { evaluateWarRoomReasoning, type WarRoomCouncilOutput, type WarRoomInvestigatorOutput } from "../lib/war-room/reasoning";
+import { evaluateWarRoomReasoning, reconcilePersistedWarRoomAgenda, type WarRoomCouncilOutput, type WarRoomInvestigatorOutput } from "../lib/war-room/reasoning";
 import {
   WAR_ROOM_DOMAINS,
   type InvestigationDraft,
@@ -8,6 +8,12 @@ import {
 import type { WarRoomDomain, WarRoomProposalEvidence } from "../lib/war-room/types";
 
 const evidence: WarRoomProposalEvidence[] = [
+  ...WAR_ROOM_DOMAINS.map((domain) => ({
+    id: `coverage:${domain}`,
+    label: `${domain} replay coverage`,
+    detail: `The replay fixture includes a current evidence boundary for the ${domain} lens.`,
+    source: "Replay coverage fixture",
+  })),
   { id: "metric:questions", label: "Questions", detail: "2,540 family questions arrived in 30 days.", source: "Olera product data" },
   { id: "metric:answers", label: "Answers", detail: "112 questions received an answer.", source: "Olera product data" },
   { id: "signal:contactability", label: "Provider contactability", detail: "327 providers need a usable email.", source: "Olera provider-contactability cohort" },
@@ -18,6 +24,7 @@ const evidence: WarRoomProposalEvidence[] = [
   { id: "growth:search-clicks", label: "Search clicks", detail: "Search clicks did not fall with provider page views.", source: "Canonical Search Console" },
   { id: "metric:support-backlog", label: "Support backlog", detail: "The inbox reports 899 threads needing attention.", source: "Olera product data", freshness: "aging" },
   { id: "source:support", label: "Support source", detail: "The support source is backfilling and may include stale threads.", source: "Source-health check", freshness: "stale" },
+  { id: "voice:provider-contact", label: "Provider contact friction", detail: "Current outreach records repeatedly identify unusable provider contact details.", source: "Care inquiry" },
 ];
 
 function clearLens(domain: WarRoomDomain): StrategicLensReview {
@@ -29,7 +36,7 @@ function clearLens(domain: WarRoomDomain): StrategicLensReview {
     finding: "The supplied evidence does not establish a material unresolved condition for this lens.",
     whyItMatters: "A clear result protects founder attention without erasing conditions supported elsewhere.",
     unresolvedQuestion: "",
-    evidenceIds: [],
+    evidenceIds: [`coverage:${domain}`],
     impact: "low",
     urgency: "monitor",
     strategicFit: "peripheral",
@@ -188,10 +195,106 @@ assert.equal(stable.investigations.length, 0);
 assert.equal(stable.companyRead.stance, "stable");
 assert.doesNotMatch(stable.companyRead.summary, /evidence limitation/i);
 
+const decisionDossier: InvestigationDraft = {
+  ...providerDossier,
+  fingerprint: "provider-contact-repair-condition",
+  likelyCause: "Current evidence supports unusable provider contact records as a material constraint on reaching eligible supply.",
+  causeConfidence: "medium",
+  readiness: "decision_ready",
+  readinessReason: "The condition, cause, alternatives, and outcome measure are supported.",
+  evidenceIds: ["metric:questions", "signal:contactability", "voice:provider-contact"],
+  options: [
+    {
+      actionKind: "operations",
+      title: "Repair the highest-value contact cohort",
+      logic: "Prioritize contact repair for providers attached to current unanswered family demand.",
+      downside: "Manual repair may not improve provider participation after successful contact.",
+    },
+    {
+      actionKind: "business_development",
+      title: "Recruit replacement reachable supply",
+      logic: "Recruit providers in the affected demand cohorts instead of repairing every legacy record.",
+      downside: "New recruitment may cost more and take longer than repairing current supply.",
+    },
+  ],
+};
+const approvedIntervention = {
+  sourceInvestigationFingerprint: decisionDossier.fingerprint,
+  fingerprint: "repair-current-demand-provider-contacts",
+  actionKind: "operations" as const,
+  domain: "provider" as const,
+  title: "Repair provider contacts attached to current family demand",
+  finding: "Unusable contact records materially limit Olera's ability to reach eligible providers for current questions.",
+  whyNow: "Current unanswered demand creates a bounded cohort where contact repair can produce measurable family outcomes.",
+  proposedSolution: "Repair usable contact details for the providers attached to the highest-value current unanswered demand cohort.",
+  decisionRequired: "Authorize a bounded provider-contact repair sprint for the current demand cohort.",
+  whyBetterThanAlternatives: "It is faster and more reversible than broad provider recruitment while directly testing whether contactability is the binding constraint.",
+  cheapestFalsification: "Stop if repaired contacts do not produce successful delivery or provider responses in the bounded cohort.",
+  existingCapabilities: ["Olera already records provider contactability and the questions associated with eligible provider supply."],
+  executionPlan: [
+    { label: "Prioritize", detail: "Rank providers by current unanswered family demand and contact repairability." },
+    { label: "Repair and measure", detail: "Repair the bounded cohort and measure successful delivery and submitted answers." },
+  ],
+  evidenceIds: ["metric:questions", "signal:contactability", "voice:provider-contact"],
+  capabilityEvidenceIds: [],
+  counterEvidence: "Some contacted providers may still decline to participate, which would point to a value or motivation constraint.",
+  successMeasure: "Within 30 days, measure repaired contacts, successful deliveries, and submitted answers for the bounded cohort.",
+  risk: "Contact repair may consume operations time without improving provider participation.",
+  rollbackPlan: "Stop after the bounded cohort and retain only verified contact corrections.",
+  confidence: "high" as const,
+  impact: "high" as const,
+  effort: "small" as const,
+  urgency: "soon" as const,
+  strategicFit: "central" as const,
+  reversibility: "high" as const,
+  founderAttentionMinutes: 10,
+  evaluationWindowDays: 30,
+  adminHref: "/admin/email-verifier",
+};
+const decisionCouncil = council({
+  assessments: [{ fingerprint: decisionDossier.fingerprint, disposition: "agenda", reasonCode: "agenda", reason: "The bounded decision clears the founder gate." }],
+  proposals: [approvedIntervention],
+});
+const unblockedDecision = evaluateWarRoomReasoning({
+  evidenceCatalog: evidence,
+  investigator: { dossiers: [decisionDossier], lensReviews: tenLenses(), portfolioRead: "A bounded provider-contact decision is ready." },
+  council: decisionCouncil,
+});
+assert.equal(unblockedDecision.proposals.length, 1, "the fixture must prove it can clear the founder gate before testing intervention memory");
+const blockedDecision = evaluateWarRoomReasoning({
+  evidenceCatalog: evidence,
+  investigator: { dossiers: [decisionDossier], lensReviews: tenLenses(), portfolioRead: "The same intervention was already rejected." },
+  council: decisionCouncil,
+  blockedInterventionFingerprints: new Set([approvedIntervention.fingerprint]),
+});
+assert.equal(blockedDecision.proposals.length, 0, "a rejected intervention fingerprint must not re-enter the founder queue");
+assert.equal(blockedDecision.assessments[0].disposition, "investigate", "blocking an intervention must return its condition to investigation");
+assert.equal(blockedDecision.validationTrace.blockedInterventions, 1);
+const lostPersistenceRace = reconcilePersistedWarRoomAgenda({
+  investigations: unblockedDecision.investigations,
+  assessments: unblockedDecision.assessments,
+  companyRead: decisionCouncil.companyRead,
+  evidenceCatalog: evidence,
+  lensReviews: tenLenses(),
+  acceptedInvestigationFingerprints: new Set(),
+});
+assert.equal(lostPersistenceRace.assessments[0].disposition, "investigate", "a proposal rejected during a scan must not leave a phantom agenda item");
+assert.equal(lostPersistenceRace.companyRead.stance, "investigating");
+
 assert.throws(() => evaluateWarRoomReasoning({
   evidenceCatalog: evidence,
   investigator: { dossiers: [], lensReviews: tenLenses().slice(0, 9), portfolioRead: "Incomplete." },
   council: council(),
 }), /war_room_incomplete_lens_coverage/, "a partial scan must fail honestly instead of reporting a false empty result");
 
-console.log("War Room replay checks passed across 6 strategic scenarios.");
+assert.throws(() => evaluateWarRoomReasoning({
+  evidenceCatalog: evidence,
+  investigator: {
+    dossiers: [],
+    lensReviews: tenLenses().map((review) => ({ ...review, evidenceIds: [] })),
+    portfolioRead: "Unsupported clear result.",
+  },
+  council: council(),
+}), /unsupported=/, "ten unsupported clear labels must fail instead of manufacturing stability");
+
+console.log("War Room replay checks passed across 7 strategic scenarios.");

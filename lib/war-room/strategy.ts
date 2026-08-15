@@ -125,17 +125,23 @@ export type StrategicLensReview = {
   strategicFit: "central" | "adjacent" | "peripheral";
 };
 
-export function requireCompleteStrategicLensCoverage(reviews: StrategicLensReview[]) {
+export function requireCompleteStrategicLensCoverage(
+  reviews: StrategicLensReview[],
+  evidenceCatalog: WarRoomProposalEvidence[],
+) {
   const counts = new Map<WarRoomDomain, number>(WAR_ROOM_DOMAINS.map((domain) => [domain, 0]));
+  const validEvidenceIds = new Set(evidenceCatalog.map((item) => item.id));
+  const unsupported: WarRoomDomain[] = [];
   for (const review of reviews) {
     if (WAR_ROOM_DOMAINS.includes(review.domain)) {
       counts.set(review.domain, (counts.get(review.domain) ?? 0) + 1);
+      if (!(review.evidenceIds ?? []).some((id) => validEvidenceIds.has(id))) unsupported.push(review.domain);
     }
   }
   const missing = WAR_ROOM_DOMAINS.filter((domain) => counts.get(domain) === 0);
   const duplicates = WAR_ROOM_DOMAINS.filter((domain) => (counts.get(domain) ?? 0) > 1);
-  if (reviews.length !== WAR_ROOM_DOMAINS.length || missing.length || duplicates.length) {
-    throw new Error(`war_room_incomplete_lens_coverage:missing=${missing.join(",") || "none"};duplicates=${duplicates.join(",") || "none"}`);
+  if (reviews.length !== WAR_ROOM_DOMAINS.length || missing.length || duplicates.length || unsupported.length) {
+    throw new Error(`war_room_incomplete_lens_coverage:missing=${missing.join(",") || "none"};duplicates=${duplicates.join(",") || "none"};unsupported=${[...new Set(unsupported)].join(",") || "none"}`);
   }
   return reviews;
 }
@@ -327,7 +333,7 @@ export function retainStrategicLensInvestigations(
 export function normalizeInvestigationAssessments(
   investigations: InvestigationDraft[],
   assessments: InvestigationAssessment[],
-  acceptedAgendaFingerprints?: Set<string>,
+  acceptedAgendaFingerprints?: ReadonlySet<string>,
 ) {
   const supplied = new Map(assessments.map((assessment) => [assessment.fingerprint, assessment]));
   return investigations.map((investigation): InvestigationAssessment => {

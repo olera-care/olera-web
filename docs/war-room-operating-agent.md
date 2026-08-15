@@ -87,9 +87,9 @@ monitoring; it does not declare the condition solved.
 
 The deterministic reasoning boundary in `lib/war-room/reasoning.ts` is shared by
 production and the replay harness. Run `npm run check:war-room:replay` to verify
-the six strategic failure classes that previously produced false-empty scans:
+the seven strategic failure classes that previously produced false-empty scans:
 provider liquidity, monetization, traffic attribution, stale operational data,
-rejected interventions, and a genuinely clear ten-lens read. Replays do not call
+rejected conditions, blocked repeat interventions, and a genuinely clear ten-lens read. Replays do not call
 the model or write to Supabase.
 
 The company read uses two separate answers: whether a founder decision is ready

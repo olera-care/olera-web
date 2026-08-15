@@ -13,13 +13,16 @@ import {
   Clock3,
   ExternalLink,
   GitPullRequest,
+  Layers3,
   RefreshCw,
+  Search,
   ShieldCheck,
   Sparkles,
   ThumbsDown,
 } from "lucide-react";
 import type {
   WarRoomIntegrationStatus,
+  WarRoomInvestigation,
   WarRoomProposal,
   WarRoomProposalStatus,
   WarRoomSupervisorPayload,
@@ -84,19 +87,19 @@ const discoveryStages: Record<string, { button: string; title: string; detail: s
     detail: "Combining product, customer, revenue, reliability, and source evidence into one frozen operating picture.",
   },
   forming_candidates: {
-    button: "Finding the work",
-    title: "Finding the highest-leverage work",
-    detail: "The scout is investigating likely constraints and writing bounded, executable proposals.",
+    button: "Forming cases",
+    title: "Building private opportunity cases",
+    detail: "The chief-of-staff pass is comparing customers, providers, growth, revenue, product, content, operations, market risk, and data without assuming the answer is code.",
   },
   challenging_candidates: {
-    button: "Attacking weak ideas",
-    title: "Trying to kill the weak ideas",
-    detail: "A separate skeptical pass is checking evidence, causality, scope, risk, and opportunity cost.",
+    button: "Applying agenda gate",
+    title: "Protecting your attention",
+    detail: "The CEO council is checking materiality, causality, what already exists, alternative interventions, opportunity cost, and whether any decision deserves to interrupt you.",
   },
   saving_decisions: {
-    button: "Saving survivors",
-    title: "Saving the survivors",
-    detail: "The review is complete. War Room is recording only the proposals that survived it.",
+    button: "Saving the company read",
+    title: "Separating decisions from watchlist",
+    detail: "The review is recording private investigations and watchlist items. At most one case can enter the founder agenda.",
   },
 };
 
@@ -130,6 +133,24 @@ const sourceTone: Record<WarRoomIntegrationStatus["status"], string> = {
   missing: "bg-gray-300",
 };
 
+const actionLabel: Record<WarRoomProposal["action_kind"], string> = {
+  code: "Product / code",
+  research: "Research",
+  operations: "Operations",
+  business_development: "Business development",
+  content: "Content",
+  decision: "Founder decision",
+};
+
+const approvalLabel: Record<WarRoomProposal["action_kind"], string> = {
+  code: "Build this",
+  research: "Approve research",
+  operations: "Approve plan",
+  business_development: "Approve BD plan",
+  content: "Approve content plan",
+  decision: "Back this decision",
+};
+
 function ProposalCard({
   proposal,
   busy,
@@ -144,7 +165,9 @@ function ProposalCard({
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const isWaiting = proposal.status === "proposed";
-  const isAwaitingExecutor = proposal.status === "approved" || (proposal.status === "failed" && Boolean(proposal.approved_at));
+  const isCode = proposal.action_kind === "code";
+  const isAwaitingExecutor = isCode && (proposal.status === "approved" || (proposal.status === "failed" && Boolean(proposal.approved_at)));
+  const isHumanApproved = !isCode && proposal.status === "approved";
   const isActive = ["dispatching", "executing"].includes(proposal.status);
   const isReviewReady = proposal.status === "review_ready";
   return (
@@ -155,10 +178,13 @@ function ProposalCard({
             <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${statusTone[proposal.status]}`}>
               {statusLabel[proposal.status]}
             </span>
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600">
-              {proposal.impact} impact · {proposal.effort} build
+            <span className="rounded-full bg-violet-50 px-3 py-1 text-[11px] font-semibold text-violet-700">
+              {actionLabel[proposal.action_kind] ?? "Company action"}
             </span>
-            <span className="text-[11px] font-semibold text-gray-400">Priority {proposal.priority_score}</span>
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600">
+              {proposal.impact} impact · {proposal.effort} effort
+            </span>
+            <span className="text-[11px] font-semibold capitalize text-gray-400">{proposal.domain ?? "company"}</span>
           </div>
           <span className="text-xs text-gray-400">Found {relative(proposal.first_seen_at)}</span>
         </div>
@@ -197,7 +223,7 @@ function ProposalCard({
 
         <details className="group mt-5 rounded-2xl border border-gray-200 bg-gray-50/70">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700">
-            See the detailed analysis and build plan
+            See the detailed case and action plan
             <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
           </summary>
           <div className="border-t border-gray-200 px-5 py-5">
@@ -207,8 +233,25 @@ function ProposalCard({
               <div><p className="font-semibold text-gray-950">Why now</p><p className="mt-1">{proposal.why_now}</p></div>
             </div>
 
+            {(proposal.why_better_than_alternatives || proposal.decision_required || proposal.cheapest_falsification) ? (
+              <div className="mt-6 grid gap-4 border-t border-gray-200 pt-5 text-sm leading-6 text-gray-600 lg:grid-cols-3">
+                <div><p className="font-semibold text-gray-950">Why this beats the alternatives</p><p className="mt-1">{proposal.why_better_than_alternatives || "Not recorded on this legacy proposal."}</p></div>
+                <div><p className="font-semibold text-gray-950">Your decision</p><p className="mt-1">{proposal.decision_required || "Approve or reject the proposed direction."}</p></div>
+                <div><p className="font-semibold text-gray-950">Cheapest way to prove it wrong</p><p className="mt-1">{proposal.cheapest_falsification || "Not recorded on this legacy proposal."}</p></div>
+              </div>
+            ) : null}
+
+            {proposal.existing_capabilities?.length ? (
+              <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700">What Olera already has</p>
+                <ul className="mt-2 space-y-1 text-xs leading-5 text-gray-700">
+                  {proposal.existing_capabilities.map((capability) => <li key={capability}>• {capability}</li>)}
+                </ul>
+              </div>
+            ) : null}
+
             <div className="mt-6 border-t border-gray-200 pt-5">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400">Technical execution plan</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400">Action plan</p>
               <ol className="mt-3 grid gap-3 lg:grid-cols-2">
                 {proposal.execution_plan.map((step, index) => (
                   <li key={`${step.label}:${index}`} className="flex gap-3 rounded-2xl border border-gray-200 bg-white p-4">
@@ -309,7 +352,9 @@ function ProposalCard({
         <div className="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3 text-xs text-gray-400">
             <ShieldCheck className="h-4 w-4" />
-            Branch + PR only. Never merge, deploy, send, spend, or touch production data.
+            {isCode
+              ? "Branch + PR only. Never merge, deploy, send, spend, or touch production data."
+              : "Approval records the direction. External action, sends, spend, and production changes remain human-controlled."}
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             {proposal.admin_href ? (
@@ -343,7 +388,7 @@ function ProposalCard({
                   disabled={busy}
                   className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-5 py-2.5 text-xs font-bold text-white hover:bg-gray-800 disabled:opacity-50"
                 >
-                  <Bot className="h-4 w-4" /> {busy ? "Authorizing…" : "Build this"}
+                  <Bot className="h-4 w-4" /> {busy ? "Authorizing…" : (approvalLabel[proposal.action_kind] ?? "Approve")}
                 </button>
               </>
             ) : null}
@@ -360,6 +405,16 @@ function ProposalCard({
                 className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-2.5 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} /> Retry executor
+              </button>
+            ) : null}
+            {isHumanApproved ? (
+              <button
+                type="button"
+                onClick={() => onAction(proposal, "complete")}
+                disabled={busy}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-300 px-4 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+              >
+                <Check className="h-4 w-4" /> Mark carried out
               </button>
             ) : null}
             {isReviewReady && proposal.execution_url ? (
@@ -426,6 +481,7 @@ export default function WarRoomDashboard() {
 
   const groups = useMemo(() => {
     const proposals = payload?.proposals ?? [];
+    const investigations = payload?.investigations ?? [];
     return {
       waiting: proposals.filter((proposal) => proposal.status === "proposed").sort((a, b) => b.priority_score - a.priority_score),
       active: proposals.filter((proposal) =>
@@ -437,8 +493,10 @@ export default function WarRoomDashboard() {
         ["completed", "rejected", "superseded"].includes(proposal.status)
         || (proposal.status === "failed" && !proposal.approved_at),
       ).slice(0, 6),
+      investigating: investigations.filter((investigation) => investigation.status === "investigating").slice(0, 6),
+      watchlist: investigations.filter((investigation) => investigation.status === "watchlist").slice(0, 6),
     };
-  }, [payload?.proposals]);
+  }, [payload?.investigations, payload?.proposals]);
 
   async function scan() {
     setScanBusy(true);
@@ -490,7 +548,7 @@ export default function WarRoomDashboard() {
           </div>
           <h1 className="mt-2 font-serif text-4xl font-bold tracking-tight text-gray-950 sm:text-5xl">War Room</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 sm:text-base">
-            I find the work. You decide whether it gets done. I come back with a reviewable result.
+            I investigate the company. I interrupt you only when a decision can materially improve Olera&apos;s odds.
           </p>
         </div>
         <button
@@ -520,30 +578,39 @@ export default function WarRoomDashboard() {
 
       {payload ? (
         <>
-          <section className="mt-7 grid gap-3 sm:grid-cols-3">
-            {payload.integrations.map((integration) => (
-              <div key={integration.key} className="rounded-2xl border border-gray-200 bg-white p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-gray-900">{integration.label}</p>
-                  <span className={`h-2.5 w-2.5 rounded-full ${sourceTone[integration.status]}`} />
+          <details className="group mt-7 rounded-2xl border border-gray-200 bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700">
+              <span className="flex items-center gap-3">
+                Evidence coverage
+                <span className="flex items-center gap-1.5">
+                  {payload.integrations.map((integration) => <span key={integration.key} title={`${integration.label}: ${integration.status}`} className={`h-2 w-2 rounded-full ${sourceTone[integration.status]}`} />)}
+                </span>
+              </span>
+              <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="grid gap-3 border-t border-gray-100 p-4 sm:grid-cols-3">
+              {payload.integrations.map((integration) => (
+                <div key={integration.key} className="rounded-xl bg-gray-50 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-gray-900">{integration.label}</p>
+                    <span className={`h-2.5 w-2.5 rounded-full ${sourceTone[integration.status]}`} />
+                  </div>
+                  <p className="mt-1 text-xs leading-5 text-gray-500">{integration.detail}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{integration.status}{integration.updatedAt ? ` · ${relative(integration.updatedAt)}` : ""}</p>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-gray-500">{integration.detail}</p>
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                  {integration.status}{integration.updatedAt ? ` · ${relative(integration.updatedAt)}` : ""}
-                </p>
-              </div>
-            ))}
-          </section>
+              ))}
+            </div>
+          </details>
 
           <section className="mt-8 rounded-[1.75rem] bg-gray-950 px-6 py-6 text-white sm:px-8">
             <div className="grid gap-5 sm:grid-cols-4">
               <Count label="Decisions waiting" value={payload.counts.waiting} />
               <Count label="Approved / working" value={payload.counts.working} />
-              <Count label="Ready to review" value={payload.counts.reviewReady} />
-              <Count label="Outcomes measuring" value={payload.counts.measuring} />
+              <Count label="Quietly investigating" value={payload.counts.investigating ?? 0} />
+              <Count label="Watchlist" value={payload.counts.watchlist ?? 0} />
             </div>
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-gray-400">
-              <span className="inline-flex items-center gap-2"><Clock3 className="h-3.5 w-3.5" /> Runs daily before the US workday</span>
+              <span className="inline-flex items-center gap-2"><Clock3 className="h-3.5 w-3.5" /> Investigates daily · maximum one founder interruption per scan</span>
               <span>
                 {payload.latestDiscovery
                   ? `Last discovery ${payload.latestDiscovery.status} · ${relative(payload.latestDiscovery.completed_at || payload.latestDiscovery.created_at)}`
@@ -552,9 +619,24 @@ export default function WarRoomDashboard() {
             </div>
           </section>
 
+          {payload.companyVerdict ? (
+            <section className="mt-5 rounded-2xl border border-gray-200 bg-white px-5 py-5 sm:px-6">
+              <div className="flex gap-3">
+                <Layers3 className="mt-0.5 h-5 w-5 shrink-0 text-gray-400" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Company read</p>
+                  <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-gray-800">{payload.companyVerdict}</p>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
           {groups.review.length ? <ProposalSection title="The work is back" detail="Review the PR. Shipping is still your decision." proposals={groups.review} busyId={busyId} onAction={act} /> : null}
           {groups.waiting.length ? <ProposalSection title="Needs your call" detail="One decision at a time. Pass leaves the proposal untouched so you can come back to it." proposals={groups.waiting} busyId={busyId} onAction={act} paged /> : null}
-          {groups.active.length ? <ProposalSection title="Working" detail="You approved the scope. The agent owns the build until it returns or reports a blocker." proposals={groups.active} busyId={busyId} onAction={act} /> : null}
+          {groups.active.length ? <ProposalSection title="Working" detail="You approved the direction. Code goes to the guarded executor; human plans remain human-controlled." proposals={groups.active} busyId={busyId} onAction={act} /> : null}
+
+          {groups.investigating.length ? <InvestigationSection title="Quietly investigating" detail="These are unresolved company questions, not tasks. War Room keeps working until the cause and intervention are decision-ready." investigations={groups.investigating} /> : null}
+          {groups.watchlist.length ? <InvestigationSection title="Watchlist" detail="Real enough to remember; not important or proven enough to consume your attention yet." investigations={groups.watchlist} /> : null}
 
           {discoveryActive && payload?.latestDiscovery ? (
             <section className="mt-8 overflow-hidden rounded-[1.75rem] border border-violet-200 bg-violet-50/70 px-6 py-8 sm:px-8">
@@ -677,6 +759,59 @@ function ProposalSection({
             onAction={onAction}
             onPass={showPager ? next : undefined}
           />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InvestigationSection({
+  title,
+  detail,
+  investigations,
+}: {
+  title: string;
+  detail: string;
+  investigations: WarRoomInvestigation[];
+}) {
+  return (
+    <section className="mt-10">
+      <h2 className="font-serif text-2xl font-bold text-gray-950">{title}</h2>
+      <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-500">{detail}</p>
+      <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {investigations.map((investigation, index) => (
+          <details key={investigation.id} className={`group ${index ? "border-t border-gray-100" : ""}`}>
+            <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 hover:bg-gray-50/70">
+              <div className="flex min-w-0 gap-3">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+                  <Search className="h-3.5 w-3.5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-gray-900">{investigation.title}</p>
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold capitalize text-gray-500">{investigation.domain}</span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">{investigation.readiness_reason}</p>
+                </div>
+              </div>
+              <ChevronDown className="mt-2 h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-gray-100 bg-gray-50/50 px-5 py-5">
+              <div className="grid gap-5 text-xs leading-5 text-gray-600 lg:grid-cols-3">
+                <div><p className="font-semibold text-gray-900">What we see</p><p className="mt-1">{investigation.situation}</p></div>
+                <div><p className="font-semibold text-gray-900">Current causal read</p><p className="mt-1">{investigation.likely_cause}</p><p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{investigation.cause_confidence} confidence</p></div>
+                <div><p className="font-semibold text-gray-900">Why it could matter</p><p className="mt-1">{investigation.why_it_matters}</p></div>
+              </div>
+              {investigation.unknowns?.length ? (
+                <div className="mt-5 border-t border-gray-200 pt-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">What War Room still needs to resolve</p>
+                  <ul className="mt-2 grid gap-2 text-xs leading-5 text-gray-600 sm:grid-cols-2">
+                    {investigation.unknowns.map((unknown) => <li key={unknown}>• {unknown}</li>)}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          </details>
         ))}
       </div>
     </section>

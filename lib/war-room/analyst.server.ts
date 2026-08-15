@@ -153,7 +153,34 @@ function citationCatalog(snapshot: WarRoomSnapshot): WarRoomCitation[] {
       ].join("; "),
       href: "/admin/organic-growth",
       source: "Canonical GA4, Search Console, and Supabase weekly snapshot",
+    }, {
+      id: "growth:distribution-mix",
+      label: `Distribution mix · week ending ${snapshot.growth.latest.weekEnd}`,
+      detail: [
+        `channels: ${Object.entries(snapshot.growth.latest.channels).map(([channel, sessions]) => `${channel} ${sessions} sessions`).join(", ") || "unavailable"}`,
+        `top organic landing pages: ${snapshot.growth.latest.organicLandingPages.slice(0, 8).map((page) => `${page.path} (${page.sessions} sessions)`).join(", ") || "unavailable"}`,
+        `top search pages: ${snapshot.growth.latest.searchTopPages.slice(0, 8).map((page) => `${page.label} (${page.clicks} clicks)`).join(", ") || "unavailable"}`,
+        snapshot.growth.latest.brandedSearchShare == null
+          ? "branded search share unavailable"
+          : `${(snapshot.growth.latest.brandedSearchShare * 100).toFixed(1)}% of classified search clicks were branded`,
+      ].join("; "),
+      href: "/admin/organic-growth",
+      source: "Canonical acquisition-distribution snapshot",
     }] : []),
+    {
+      id: "provider:question-contactability",
+      label: `Provider question reachability · ${snapshot.windowDays} days`,
+      detail: [
+        `${snapshot.providerQuestionHealth.submitted} submitted`,
+        `${snapshot.providerQuestionHealth.answered} answered overall`,
+        `${snapshot.providerQuestionHealth.intentionallyExcluded} intentionally excluded because the provider was archived, not interested, or marked no contact`,
+        `${snapshot.providerQuestionHealth.needsEmail} flagged as needing a usable provider email`,
+        `${snapshot.providerQuestionHealth.deadEmail} carrying a known dead-email marker`,
+        `${snapshot.providerQuestionHealth.reachableAnswered} answered among ${snapshot.providerQuestionHealth.reachableEligible} questions currently classified as reachable and eligible`,
+      ].join("; "),
+      href: "/admin/questions",
+      source: "Olera provider-contactability cohort",
+    },
     ...snapshot.customerVoice.map((item) => ({
       id: `voice:${item.id}`,
       label: item.title,

@@ -580,7 +580,7 @@ export const CRON_REGISTRY: CronJob[] = [
     id: "war-room-discovery",
     name: "War Room autonomous discovery",
     description:
-      "Before the US workday, refreshes allowlisted Slack and Notion context, investigates company evidence with an analyst plus skeptical critic, and maintains a maximum-three proposal inbox. It never executes or changes external state; founder approval is a separate authorization.",
+      "Before the US workday, refreshes allowlisted Slack and Notion context, builds private company investigations, and allows at most one material decision through the founder-interruption gate. It never executes or changes external state; founder approval is a separate authorization.",
     recipientCohort: "(No recipients — read-only company observation and proposal generation.)",
     audience: "Data & maintenance",
     fn: "refresh",
@@ -588,7 +588,7 @@ export const CRON_REGISTRY: CronJob[] = [
     humanSchedule: "Daily, 10:30 UTC (~5:30–6:30 AM ET)",
     path: "/api/cron/war-room-discovery",
     emailTypes: [],
-    successSignal: "At most three evidence-cited, executable proposals reach the founder; empty days are allowed.",
+    successSignal: "At most one evidence-cited, decision-ready proposal reaches the founder; empty days are expected and allowed.",
     relatedAdminPath: "/admin/war-room",
   },
   {

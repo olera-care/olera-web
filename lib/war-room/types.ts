@@ -49,6 +49,10 @@ export interface WarRoomGrowthWeek {
   questions: number;
   benefitsCompleted: number;
   anomalies: string[];
+  channels: Record<string, number>;
+  organicLandingPages: Array<{ path: string; users: number; sessions: number }>;
+  searchTopPages: Array<{ label: string; clicks: number; impressions: number; ctr: number; position: number }>;
+  brandedSearchShare: number | null;
 }
 
 export interface WarRoomAction {
@@ -141,6 +145,15 @@ export interface WarRoomSnapshot {
     latest: WarRoomGrowthWeek | null;
     prior: WarRoomGrowthWeek | null;
   };
+  providerQuestionHealth: {
+    submitted: number;
+    answered: number;
+    intentionallyExcluded: number;
+    needsEmail: number;
+    deadEmail: number;
+    reachableEligible: number;
+    reachableAnswered: number;
+  };
   signals: WarRoomSignal[];
   customerVoice: Array<{
     id: string;
@@ -167,6 +180,93 @@ export type WarRoomProposalStatus =
   | "failed"
   | "superseded";
 
+export type WarRoomDomain =
+  | "company"
+  | "customer"
+  | "provider"
+  | "growth"
+  | "revenue"
+  | "product"
+  | "content"
+  | "operations"
+  | "market"
+  | "data";
+
+export type WarRoomActionKind =
+  | "code"
+  | "research"
+  | "operations"
+  | "business_development"
+  | "content"
+  | "decision";
+
+export interface WarRoomCompanyModel {
+  key: string;
+  purpose: string;
+  stage: string;
+  north_star: string;
+  current_priorities: string[];
+  strategic_bets: string[];
+  constraints: string[];
+  guardrails: string[];
+  strategic_questions: string[];
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WarRoomInvestigationOption {
+  actionKind: WarRoomActionKind;
+  title: string;
+  logic: string;
+  downside: string;
+}
+
+export interface WarRoomInvestigation {
+  id: string;
+  discovery_run_id: string | null;
+  proposal_id: string | null;
+  fingerprint: string;
+  status: "investigating" | "watchlist" | "decision_ready" | "closed" | "superseded";
+  domain: WarRoomDomain;
+  title: string;
+  situation: string;
+  why_it_matters: string;
+  likely_cause: string;
+  cause_confidence: "high" | "medium" | "low";
+  existing_capabilities: string[];
+  unknowns: string[];
+  options: WarRoomInvestigationOption[];
+  evidence: WarRoomProposalEvidence[];
+  counter_evidence: string;
+  readiness_reason: string;
+  impact: "high" | "medium" | "low";
+  urgency: "now" | "soon" | "monitor";
+  strategic_fit: "central" | "adjacent" | "peripheral";
+  founder_attention_minutes: number;
+  occurrence_count: number;
+  first_seen_at: string;
+  last_seen_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WarRoomStrategicCase {
+  diagnosisConfidence?: "high" | "medium" | "low";
+  urgency?: "now" | "soon" | "monitor";
+  strategicFit?: "central" | "adjacent" | "peripheral";
+  reversibility?: "high" | "medium" | "low";
+  founderAttentionMinutes?: number;
+  evaluationWindowDays?: number;
+  agendaGate?: {
+    material: boolean;
+    causeSupported: boolean;
+    existingStateVerified: boolean;
+    beatsAlternatives: boolean;
+    measurable: boolean;
+  };
+}
+
 export interface WarRoomProposalEvidence {
   id: string;
   label: string;
@@ -182,7 +282,8 @@ export interface WarRoomProposal {
   discovery_run_id: string | null;
   fingerprint: string;
   status: WarRoomProposalStatus;
-  action_kind: "code" | "operations" | "research";
+  action_kind: WarRoomActionKind;
+  domain: WarRoomDomain;
   title: string;
   finding: string;
   why_now: string;
@@ -193,6 +294,11 @@ export interface WarRoomProposal {
   success_measure: string;
   risk: string;
   rollback_plan: string;
+  decision_required: string | null;
+  why_better_than_alternatives: string | null;
+  cheapest_falsification: string | null;
+  existing_capabilities: string[];
+  strategic_case: WarRoomStrategicCase;
   confidence: "high" | "medium" | "low";
   impact: "high" | "medium" | "low";
   effort: "small" | "medium" | "large";
@@ -240,7 +346,7 @@ export interface WarRoomDiscoveryRun {
 }
 
 export interface WarRoomIntegrationStatus {
-  key: "slack" | "notion" | "executor";
+  key: "slack" | "notion" | "repository" | "economics" | "market" | "executor";
   label: string;
   status: "live" | "stale" | "missing";
   detail: string;
@@ -250,6 +356,9 @@ export interface WarRoomIntegrationStatus {
 export interface WarRoomSupervisorPayload {
   generatedAt: string;
   proposals: WarRoomProposal[];
+  investigations: WarRoomInvestigation[];
+  companyModel: WarRoomCompanyModel | null;
+  companyVerdict: string | null;
   latestDiscovery: WarRoomDiscoveryRun | null;
   integrations: WarRoomIntegrationStatus[];
   counts: {
@@ -257,5 +366,7 @@ export interface WarRoomSupervisorPayload {
     working: number;
     reviewReady: number;
     measuring: number;
+    investigating: number;
+    watchlist: number;
   };
 }

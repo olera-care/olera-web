@@ -1,32 +1,47 @@
 # War Room operating agent
 
-War Room is a read-first control plane. It autonomously discovers and
-investigates work, but no state-changing executor starts until an admin approves
-one exact proposal. The first executor is deliberately limited to repository
-work: branch, tests, and a PR against `staging`. It cannot merge or deploy.
+War Room is a read-first CEO operating system. It investigates the company
+across customers, providers, growth, revenue, product, content, operations,
+market risk, and data. Most observations remain private investigations or a
+watchlist. At most one case per scan may clear the founder-interruption gate.
+
+No state-changing executor starts until an admin approves one exact proposal.
+The automated executor remains deliberately limited to repository work: branch,
+edits, and a PR against `staging`, with ordinary PR CI providing executable
+verification. It cannot merge or deploy. Research,
+operations, business-development, content, and founder-decision proposals record
+an approved direction but remain human-controlled.
 
 ## Runtime shape
 
 1. `/api/cron/war-room-discovery` runs daily at 10:30 UTC.
 2. It refreshes bounded, allowlisted Slack and Notion evidence and freezes the
    existing company fact pack.
-3. An Opus scout forms zero to three repository proposals. A separate critic
-   may lower confidence, rewrite, or delete every proposal.
-   Until repository evidence is connected to discovery, a truthfulness gate
-   rejects conditional "if this does not exist" work and any proposal that
-   leaves auditing or locating the current implementation to the executor.
-4. `/admin/war-room` reads only the precomputed proposal rows. Admin login and
+3. A chief-of-staff pass forms zero to eight **private opportunity dossiers**.
+   Each separates the situation, likely cause, counter-evidence, existing
+   capabilities, unknowns, and at least two different interventions.
+4. A CEO agenda council classifies every dossier as investigate, watchlist,
+   drop, or agenda. At most one agenda case survives. A deterministic gate then
+   requires all of the following: high materiality and central strategic fit;
+   supported cause; multiple evidence families; verified existing state for
+   code work; a real comparison against alternatives; a measurable outcome;
+   and no unfinished audit or conditional build.
+5. A repository-owned capability index supplies positive evidence for systems
+   that models commonly rediscover. It proves presence, never absence. Until a
+   live repository reader exists, code proposals may improve an indexed system
+   but may not claim that an unindexed feature is missing.
+6. `/admin/war-room` reads only precomputed rows. Admin login and
    page load never wait for source sync or AI. Each proposal opens as a
-   CEO-length decision brief; evidence and the technical execution plan stay in
-   an explicit drill-down.
-5. **Build this** records a durable authorization and emits the
-   `war-room-approved` repository dispatch.
-6. `.github/workflows/war-room-agent.yml` runs Claude Code in an isolated GitHub
+   CEO-length decision brief; private investigations and watchlist cases stay
+   compact and do not masquerade as work.
+7. Approving code emits the `war-room-approved` repository dispatch. Approving
+   any other action kind records the decision without taking external action.
+8. `.github/workflows/war-room-agent.yml` runs Claude Code in an isolated GitHub
    runner and may create a branch + ready PR against `staging`. It reports the
    result back to the proposal. There is no merge or deployment permission.
-7. When shipped work is marked complete, the next evidence cycle measures the
-   stated outcome after seven days and records validated, missed, or
-   inconclusive.
+9. When work is marked complete, the next evidence cycle measures the stated
+   outcome after the proposal-specific evaluation window and records validated,
+   missed, or inconclusive.
 
 Rejecting a proposal may include a blunt reason such as "this already exists."
 That note remains visible in memory and is included in later discovery context,
@@ -35,10 +50,26 @@ The waiting inbox presents one proposal at a time. **Pass for now** advances the
 local decision queue without changing proposal state; previous/next controls
 make every passed proposal immediately recoverable.
 
-## Required migration
+## Required migrations
 
 Apply `supabase/migrations/177_war_room_operating_agent.sql` before opening the
-new supervisor inbox.
+supervisor inbox. Apply `178_war_room_ceo_operating_system.sql` before running
+the CEO discovery pipeline.
+
+## Company model and interruption standard
+
+`war_room_company_models` stores Olera's purpose, stage, north star, current
+priorities, strategic bets, constraints, guardrails, and open strategic
+questions. It is operating context, not an excuse to fabricate facts.
+
+A founder-facing proposal must be more than useful. It must be material to the
+company, causally supported, verified against existing capabilities, better than
+the considered alternatives, measurable, and bounded to no more than 30 minutes
+of founder attention for the decision itself. The model may recommend zero.
+
+`war_room_investigations` stores the cases that do not clear that standard. This
+is intentional: War Room should spend most of its compute eliminating bad work
+before the founder sees it.
 
 ## Slack reader
 
@@ -93,9 +124,11 @@ and ordinary PR CI performs executable verification after the branch is created.
 
 ## Hard boundaries
 
-- Automatic: observe, retrieve, compare, investigate, criticize, propose, and
-  later measure.
-- Founder-approved: create a repository branch, edit code, run checks, and open
-  a PR against `staging`.
+- Automatic: observe, retrieve, compare, form private dossiers, investigate,
+  challenge, maintain a watchlist, propose at most one decision, and later
+  measure.
+- Founder-approved: record a strategic direction; for code only, create a
+  repository branch, edit code, and open a PR against `staging` for ordinary CI
+  and human review.
 - Never automatic: merge, deploy, production-data mutation, customer messages,
   spending, deletion, secrets, permissions, or repository settings.

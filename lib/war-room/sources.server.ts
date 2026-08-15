@@ -95,7 +95,7 @@ async function writeSourceState(
   values: { cursor?: string | null; error?: string | null; success?: boolean; metadata?: Record<string, unknown> },
 ) {
   const now = new Date().toISOString();
-  await db.from("war_room_source_state").upsert({
+  const { error } = await db.from("war_room_source_state").upsert({
     source_key: sourceKey,
     ...(values.cursor !== undefined ? { cursor: values.cursor } : {}),
     last_synced_at: now,
@@ -104,6 +104,7 @@ async function writeSourceState(
     metadata: values.metadata ?? {},
     updated_at: now,
   }, { onConflict: "source_key" });
+  if (error) throw error;
 }
 
 function slackMessageUrl(channel: string, ts: string) {
@@ -348,7 +349,7 @@ export async function syncNotionEvidence(db: SupabaseClient) {
         }),
       }, remaining);
       const pages = ((payload.results as Array<Record<string, unknown>> | undefined) ?? [])
-        .filter((page) => page.object === "page");
+        .filter((page) => page.object === "page" && !page.archived && !page.in_trash);
       const items = await mapWithConcurrency(pages, 2, async (page): Promise<SourceItemInput> => {
         const id = String(page.id);
         const properties = (page.properties as Record<string, unknown> | undefined) ?? {};
@@ -413,17 +414,25 @@ type StoredSourceItem = {
   occurred_at: string;
   last_edited_at: string | null;
   freshness: "current" | "aging" | "stale";
+  metadata: { archived?: boolean; in_trash?: boolean } | null;
 };
 
 export async function loadExternalEvidence(db: SupabaseClient): Promise<WarRoomProposalEvidence[]> {
   const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
   const { data, error } = await db.from("war_room_source_items")
-    .select("id, source, source_group, source_kind, title, content, source_url, occurred_at, last_edited_at, freshness")
+    .select("id, source, source_group, source_kind, title, content, source_url, occurred_at, last_edited_at, freshness, metadata")
     .or(`occurred_at.gte.${since},last_edited_at.gte.${since}`)
     .order("occurred_at", { ascending: false })
-    .limit(60);
+    .limit(120);
   if (error) throw error;
-  return ((data ?? []) as StoredSourceItem[]).map((item) => ({
+  // A recently edited meeting note can have an old creation timestamp. Sort
+  // the bounded candidate set by the freshest meaningful timestamp in memory
+  // so current Notion context is not pushed out by newer-but-irrelevant rows.
+  const rows = ((data ?? []) as StoredSourceItem[])
+    .filter((item) => item.metadata?.archived !== true && item.metadata?.in_trash !== true)
+    .sort((a, b) => (b.last_edited_at ?? b.occurred_at).localeCompare(a.last_edited_at ?? a.occurred_at))
+    .slice(0, 60);
+  return rows.map((item) => ({
     id: `external:${item.id}`,
     label: `${item.source === "slack" ? "Slack" : "Notion"} · ${item.title}`,
     detail: bounded(item.content, 900),
@@ -474,6 +483,27 @@ export async function integrationStatuses(db: SupabaseClient): Promise<WarRoomIn
       status: statusFor(notionConfigured, notionUpdated),
       detail: notionConfigured ? `${notionSources().length} allowlisted data source${notionSources().length === 1 ? "" : "s"}; stale rows remain context only` : "Share Meeting Notes and Action Items with a read-only connection",
       updatedAt: notionUpdated,
+    },
+    {
+      key: "repository",
+      label: "Repository capabilities",
+      status: "live",
+      detail: "A conservative repository-owned capability index prevents War Room from rediscovering known product, analytics, outreach, content, and revenue systems",
+      updatedAt: null,
+    },
+    {
+      key: "economics",
+      label: "Company economics",
+      status: "missing",
+      detail: "Ad Boost revenue is connected; company-wide revenue, cost, burn, and runway are not consolidated, so financial conclusions stay bounded",
+      updatedAt: null,
+    },
+    {
+      key: "market",
+      label: "External market",
+      status: "missing",
+      detail: "No approved competitor, regulatory, demographic, or search-platform feed is connected; outsider-risk questions remain explicit unknowns",
+      updatedAt: null,
     },
     {
       key: "executor",

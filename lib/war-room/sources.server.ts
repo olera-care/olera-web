@@ -66,6 +66,12 @@ function notionSources(): NotionSourceConfig[] {
     .filter((entry) => /^[a-f0-9-]{32,36}$/i.test(entry.id));
 }
 
+function githubRepositoryConfigured() {
+  return /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(
+    process.env.WAR_ROOM_GITHUB_REPOSITORY ?? "",
+  );
+}
+
 async function upsertSourceItems(db: SupabaseClient, items: SourceItemInput[]) {
   if (!items.length) return 0;
   const now = new Date().toISOString();
@@ -449,7 +455,11 @@ export async function integrationStatuses(db: SupabaseClient): Promise<WarRoomIn
   const notionConfigured = Boolean((process.env.NOTION_API_KEY || process.env.NOTION_TOKEN) && notionSources().length);
   const slackUpdated = latestFor("slack") || stateFor("slack")?.last_success_at || null;
   const notionUpdated = latestFor("notion") || stateFor("notion:")?.last_success_at || null;
-  const executorConfigured = Boolean(process.env.WAR_ROOM_GITHUB_TOKEN && process.env.WAR_ROOM_GITHUB_REPOSITORY);
+  const executorConfigured = Boolean(
+    process.env.WAR_ROOM_GITHUB_TOKEN
+    && githubRepositoryConfigured()
+    && process.env.WAR_ROOM_RUNNER_CALLBACK_SECRET,
+  );
   return [
     {
       key: "slack",
@@ -469,7 +479,9 @@ export async function integrationStatuses(db: SupabaseClient): Promise<WarRoomIn
       key: "executor",
       label: "Repository executor",
       status: executorConfigured ? "live" : "missing",
-      detail: executorConfigured ? "Approved code work can dispatch to an isolated GitHub runner" : "Approval is recorded, but no GitHub dispatch token is configured",
+      detail: executorConfigured
+        ? "Approved code work can dispatch to an isolated GitHub runner"
+        : "Approval is recorded, but the GitHub repository, dispatch token, or callback secret is missing",
       updatedAt: null,
     },
   ];

@@ -39,7 +39,12 @@ function executionPrompt(proposal: WarRoomProposal) {
 export async function dispatchApprovedProposal(db: SupabaseClient, proposal: WarRoomProposal) {
   const token = process.env.WAR_ROOM_GITHUB_TOKEN;
   const repository = githubRepository();
-  if (!token || !repository) {
+  // Do not start work that cannot report its result. The GitHub workflow uses
+  // this same value to authenticate its callback; without the Vercel-side
+  // secret every callback is rejected and the proposal sits in `dispatching`
+  // until the lease expires.
+  const callbackSecret = process.env.WAR_ROOM_RUNNER_CALLBACK_SECRET;
+  if (!token || !repository || !callbackSecret) {
     return { dispatched: false, detail: "Repository executor is not configured" };
   }
   if (proposal.action_kind !== "code") {

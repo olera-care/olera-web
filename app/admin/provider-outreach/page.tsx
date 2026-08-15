@@ -860,6 +860,8 @@ interface OutreachProvider {
     linkedin_url: string | null;
     found_at: string;
   } | null;
+  // Email source: 'organization' (scraped/manual) or 'decision_maker' (Apollo)
+  email_source?: "organization" | "decision_maker" | null;
 }
 
 interface ActiveState {

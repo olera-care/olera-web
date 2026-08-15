@@ -101,7 +101,6 @@ const PROPOSAL_SCHEMA = {
     existingCapabilities: { type: "array", items: { type: "string", maxLength: 240 } },
     executionPlan: {
       type: "array",
-      minItems: 2,
       items: {
         type: "object",
         additionalProperties: false,
@@ -112,7 +111,7 @@ const PROPOSAL_SCHEMA = {
         required: ["label", "detail"],
       },
     },
-    evidenceIds: { type: "array", minItems: 2, items: { type: "string" } },
+    evidenceIds: { type: "array", items: { type: "string" } },
     capabilityEvidenceIds: { type: "array", items: { type: "string" } },
     counterEvidence: { type: "string", maxLength: 600 },
     successMeasure: { type: "string", maxLength: 450 },
@@ -151,7 +150,7 @@ const DOSSIER_SCHEMA = {
     existingCapabilities: { type: "array", items: { type: "string", maxLength: 300 } },
     capabilityEvidenceIds: { type: "array", items: { type: "string" } },
     unknowns: { type: "array", items: { type: "string", maxLength: 300 } },
-    hypotheses: { type: "array", minItems: 2, items: { type: "string", maxLength: 300 } },
+    hypotheses: { type: "array", items: { type: "string", maxLength: 300 } },
     nextProbe: {
       type: "object",
       additionalProperties: false,
@@ -179,7 +178,7 @@ const DOSSIER_SCHEMA = {
         required: ["actionKind", "title", "logic", "downside"],
       },
     },
-    evidenceIds: { type: "array", minItems: 2, items: { type: "string" } },
+    evidenceIds: { type: "array", items: { type: "string" } },
     counterEvidence: { type: "string", maxLength: 700 },
     readiness: { type: "string", enum: ["investigating", "watchlist", "decision_ready"] },
     readinessReason: { type: "string", maxLength: 500 },
@@ -227,7 +226,7 @@ const INVESTIGATOR_TOOL = {
     additionalProperties: false,
     properties: {
       dossiers: { type: "array", minItems: 0, items: DOSSIER_SCHEMA },
-      lensReviews: { type: "array", minItems: 10, items: LENS_REVIEW_SCHEMA },
+      lensReviews: { type: "array", items: LENS_REVIEW_SCHEMA },
       portfolioRead: { type: "string", maxLength: 900 },
     },
     required: ["dossiers", "lensReviews", "portfolioRead"],
@@ -291,6 +290,10 @@ const COUNCIL_TOOL = {
     required: ["challenge", "companyRead", "rejectedReasons", "assessments", "proposals", "outcomes"],
   },
 } as const satisfies Anthropic.Messages.Tool;
+
+// Export the exact objects submitted to Anthropic so the compatibility check
+// cannot drift away from production's strict schemas.
+export const WAR_ROOM_STRICT_TOOLS = [INVESTIGATOR_TOOL, COUNCIL_TOOL] as const;
 
 type InvestigatorOutput = WarRoomInvestigatorOutput;
 type OutcomeDraft = {

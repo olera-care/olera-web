@@ -247,6 +247,10 @@ export function validateInvestigations(
       draft.readiness = "investigating";
       draft.readinessReason = "The likely cause is still a hypothesis, so this remains a private investigation.";
     }
+    if (draft.hypotheses.length < 2 && draft.readiness === "decision_ready") {
+      draft.readiness = "investigating";
+      draft.readinessReason = "Competing explanations have not been developed, so this remains a private investigation.";
+    }
     if (draft.impact !== "high" && draft.readiness === "decision_ready") {
       draft.readiness = "watchlist";
       draft.readinessReason = "The issue may be real, but it is not material enough to interrupt the founder.";

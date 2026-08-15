@@ -54,6 +54,9 @@ function discoveryFailureMessage(message: string | null) {
   if (message.startsWith("war_room_missing_submit_")) {
     return "The AI did not return the required structured review. War Room rejected the run, and nothing was saved.";
   }
+  if (message.includes("invalid_request_error") || message.includes("tools.0.custom")) {
+    return "The AI provider rejected the structured review contract before analysis began. Nothing was saved.";
+  }
   return message;
 }
 

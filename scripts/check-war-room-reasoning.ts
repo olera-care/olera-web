@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { WAR_ROOM_STRICT_TOOLS } from "../lib/war-room/discovery.server";
 import {
   normalizeCompanyRead,
   normalizeInvestigationAssessments,
@@ -9,6 +10,25 @@ import {
   type StrategicLensReview,
 } from "../lib/war-room/strategy";
 import type { WarRoomProposalEvidence } from "../lib/war-room/types";
+
+function assertAnthropicStrictSchemaCompatibility(value: unknown, path = "tools") {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertAnthropicStrictSchemaCompatibility(item, `${path}[${index}]`));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  for (const [key, nested] of Object.entries(value)) {
+    assert.notEqual(key, "maxItems", `${path}.${key} is not supported by Anthropic strict tools`);
+    assert.notEqual(key, "minimum", `${path}.${key} is not supported by Anthropic strict tools`);
+    assert.notEqual(key, "maximum", `${path}.${key} is not supported by Anthropic strict tools`);
+    if (key === "minItems") {
+      assert.ok(nested === 0 || nested === 1, `${path}.${key} must be 0 or 1 for Anthropic strict tools`);
+    }
+    assertAnthropicStrictSchemaCompatibility(nested, `${path}.${key}`);
+  }
+}
+
+assertAnthropicStrictSchemaCompatibility(WAR_ROOM_STRICT_TOOLS);
 
 const evidence: WarRoomProposalEvidence[] = [
   { id: "metric:questions", label: "Questions", detail: "2,540 questions arrived", source: "Olera product data" },
@@ -67,6 +87,24 @@ function dossier(overrides: Partial<InvestigationDraft> = {}): InvestigationDraf
 const [preserved] = validateInvestigations([dossier()], evidence);
 assert.ok(preserved, "a supported condition must survive weak-option validation");
 assert.equal(preserved.readiness, "investigating", "weak options must demote, not delete, a dossier");
+
+const [singleHypothesis] = validateInvestigations([dossier({
+  options: [
+    {
+      actionKind: "operations",
+      title: "Repair reachable provider cohorts",
+      logic: "Prioritize recovery of contact records for providers with current demand.",
+      downside: "Manual enrichment may not improve participation.",
+    },
+    {
+      actionKind: "business_development",
+      title: "Recruit replacement reachable supply",
+      logic: "Recruit providers for affected demand cohorts instead of repairing every legacy record.",
+      downside: "New recruitment may cost more and take longer than repairing current supply.",
+    },
+  ],
+})], evidence);
+assert.equal(singleHypothesis.readiness, "investigating", "a single causal theory must not become decision-ready");
 
 const unsupportedDrop: InvestigationAssessment = {
   fingerprint: preserved.fingerprint,

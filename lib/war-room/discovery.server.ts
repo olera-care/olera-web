@@ -223,6 +223,7 @@ const LENS_REVIEW_SCHEMA = {
 const INVESTIGATOR_TOOL = {
   name: "submit_opportunity_dossiers",
   description: "Submit private cross-company opportunity dossiers. These are not founder tasks.",
+  strict: true,
   input_schema: {
     type: "object",
     additionalProperties: false,
@@ -233,11 +234,12 @@ const INVESTIGATOR_TOOL = {
     },
     required: ["dossiers", "lensReviews", "portfolioRead"],
   },
-} as const;
+} as const satisfies Anthropic.Messages.Tool;
 
 const COUNCIL_TOOL = {
   name: "submit_ceo_agenda",
   description: "Submit the CEO agenda after applying the founder-interruption standard.",
+  strict: true,
   input_schema: {
     type: "object",
     additionalProperties: false,
@@ -292,7 +294,7 @@ const COUNCIL_TOOL = {
     },
     required: ["challenge", "companyRead", "rejectedReasons", "assessments", "proposals", "outcomes"],
   },
-} as const;
+} as const satisfies Anthropic.Messages.Tool;
 
 type InvestigatorOutput = WarRoomInvestigatorOutput;
 type OutcomeDraft = {
@@ -329,6 +331,12 @@ async function analyzePortfolio(
   investigationMemory: Array<Partial<WarRoomInvestigation>>,
   blockedInterventionFingerprints: ReadonlySet<string>,
   onStage?: (stage: DiscoveryStage) => Promise<void>,
+  onCheckpoint?: (checkpoint: {
+    rawInvestigatorOutput: InvestigatorOutput;
+    rawCouncilOutput?: CouncilOutput;
+    inputTokens: number;
+    outputTokens: number;
+  }) => Promise<void>,
 ) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -393,11 +401,16 @@ async function analyzePortfolio(
     model: WAR_ROOM_DISCOVERY_MODEL,
     max_tokens: 7_000,
     system: INVESTIGATOR_SYSTEM,
-    tools: [INVESTIGATOR_TOOL as unknown as Anthropic.Messages.Tool],
+    tools: [INVESTIGATOR_TOOL],
     tool_choice: { type: "tool", name: INVESTIGATOR_TOOL.name },
     messages: [{ role: "user", content: `Review all ten company lenses, preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Do not optimize for producing a founder task:\n${JSON.stringify(operatingPack)}` }],
   }, REQUEST_OPTIONS);
   const investigatorOutput = toolInput<InvestigatorOutput>(investigator, INVESTIGATOR_TOOL.name);
+  await onCheckpoint?.({
+    rawInvestigatorOutput: investigatorOutput,
+    inputTokens: investigator.usage.input_tokens,
+    outputTokens: investigator.usage.output_tokens,
+  });
   const provisionalInvestigations = evaluateWarRoomReasoning({
     evidenceCatalog,
     investigator: investigatorOutput,
@@ -429,7 +442,7 @@ async function analyzePortfolio(
     model: WAR_ROOM_DISCOVERY_MODEL,
     max_tokens: 7_000,
     system: COUNCIL_SYSTEM,
-    tools: [COUNCIL_TOOL as unknown as Anthropic.Messages.Tool],
+    tools: [COUNCIL_TOOL],
     tool_choice: { type: "tool", name: COUNCIL_TOOL.name },
     messages: [{
       role: "user",
@@ -437,6 +450,12 @@ async function analyzePortfolio(
     }],
   }, REQUEST_OPTIONS);
   const review = toolInput<CouncilOutput>(council, COUNCIL_TOOL.name);
+  await onCheckpoint?.({
+    rawInvestigatorOutput: investigatorOutput,
+    rawCouncilOutput: review,
+    inputTokens: investigator.usage.input_tokens + council.usage.input_tokens,
+    outputTokens: investigator.usage.output_tokens + council.usage.output_tokens,
+  });
   const reasoning = evaluateWarRoomReasoning({
     evidenceCatalog,
     investigator: investigatorOutput,
@@ -1004,6 +1023,15 @@ export async function executeWarRoomDiscovery(runId: string) {
       (investigationMemoryResult.data ?? []) as Array<Partial<WarRoomInvestigation>>,
       new Set((blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint)),
       setStage,
+      async (checkpoint) => {
+        const { error } = await db.from("war_room_discovery_runs").update({
+          raw_investigator_output: checkpoint.rawInvestigatorOutput,
+          raw_council_output: checkpoint.rawCouncilOutput ?? null,
+          input_tokens: checkpoint.inputTokens,
+          output_tokens: checkpoint.outputTokens,
+        }).eq("id", runId).eq("status", "running");
+        if (error) throw error;
+      },
     );
     await setStage("saving_decisions");
     const proposalSave = await saveProposals(db, runId, result.proposals, result.evidenceCatalog);

@@ -46,6 +46,17 @@ function elapsedMilliseconds(startedAt: string | null, nowIso: string) {
   return Math.max(0, new Date(nowIso).getTime() - new Date(startedAt).getTime());
 }
 
+function discoveryFailureMessage(message: string | null) {
+  if (!message) return "No proposals were changed. Scan again after fixing the source or model failure.";
+  if (message.startsWith("war_room_incomplete_lens_coverage")) {
+    return "The AI returned an incomplete company review, so War Room rejected it instead of inventing an all-clear. No decision or investigation was saved.";
+  }
+  if (message.startsWith("war_room_missing_submit_")) {
+    return "The AI did not return the required structured review. War Room rejected the run, and nothing was saved.";
+  }
+  return message;
+}
+
 function elapsed(startedAt: string | null, nowIso: string) {
   if (!startedAt) return "less than a minute";
   const seconds = Math.floor(elapsedMilliseconds(startedAt, nowIso) / 1_000);
@@ -587,7 +598,7 @@ export default function WarRoomDashboard() {
       {!error && payload?.latestDiscovery?.status === "failed" ? (
         <div className="mt-6 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
           <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-          <div><p className="font-semibold">The last discovery run failed honestly.</p><p className="mt-0.5">{payload.latestDiscovery.error_message || "No proposals were changed. Scan again after fixing the source or model failure."}</p></div>
+          <div className="min-w-0"><p className="font-semibold">The last discovery run failed honestly.</p><p className="mt-0.5 break-words">{discoveryFailureMessage(payload.latestDiscovery.error_message)}</p></div>
         </div>
       ) : null}
 

@@ -17,9 +17,12 @@ an approved direction but remain human-controlled.
 1. `/api/cron/war-room-discovery` runs daily at 10:30 UTC.
 2. It refreshes bounded, allowlisted Slack and Notion evidence and freezes the
    existing company fact pack.
-3. A chief-of-staff pass forms zero to eight **private opportunity dossiers**.
-   Each separates the situation, likely cause, counter-evidence, existing
-   capabilities, unknowns, and at least two different interventions.
+3. A chief-of-staff pass explicitly reviews all ten company lenses, then forms
+   zero to eight **private opportunity dossiers**. A private investigation needs
+   a supported material condition and a consequential unresolved question; it
+   does not need a finished causal theory or two pre-baked solutions. Richer
+   dossiers separate the situation, likely cause, counter-evidence, existing
+   capabilities, unknowns, and alternative interventions.
 4. A CEO agenda council classifies every dossier as investigate, watchlist,
    drop, or agenda. At most one agenda case survives. A deterministic gate then
    requires all of the following: high materiality and central strategic fit;
@@ -27,8 +30,9 @@ an approved direction but remain human-controlled.
    code work; a real comparison against alternatives; a measurable outcome;
    and no unfinished audit or conditional build.
    The council may drop a central, high-impact case only when current evidence
-   proves it duplicated, resolved, or contradicted. Missing evidence demotes a
-   case to private investigation; it does not erase the case.
+   proves it resolved or contradicted. Missing evidence demotes a case to private
+   investigation; it does not erase the case. A rejected or superseded proposal
+   retires that intervention, not the underlying business condition.
 5. A repository-owned capability index supplies positive evidence for systems
    that models commonly rediscover. It proves presence, never absence. Until a
    live repository reader exists, code proposals may improve an indexed system

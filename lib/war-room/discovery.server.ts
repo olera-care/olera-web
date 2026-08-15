@@ -22,11 +22,13 @@ import {
   DEFAULT_COMPANY_MODEL,
   normalizeCompanyRead,
   normalizeInvestigationAssessments,
+  retainStrategicLensInvestigations,
   validateInvestigations,
   type AgendaProposalDraft,
   type CompanyReadDraft,
   type InvestigationAssessment,
   type InvestigationDraft,
+  type StrategicLensReview,
 } from "@/lib/war-room/strategy";
 
 export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
@@ -38,16 +40,18 @@ const ACTIVE_PROPOSAL_STATUSES = ["proposed", "approved", "dispatching", "execut
 
 const INVESTIGATOR_SYSTEM = `You are Olera's autonomous chief-of-staff investigator. Your objective is not to produce work. Your objective is to improve Olera's odds of surviving and thriving while protecting founder attention.
 
-Survey the company through ten lenses: company, customer, provider, growth, revenue, product, content, operations, market, and data. Form private opportunity dossiers where the evidence supports a material problem, opportunity, or strategic risk. Zero dossiers is correct only when no unresolved material condition is supported; it is not a way to avoid an incomplete diagnosis.
+Survey the company through exactly ten lenses: company, customer, provider, growth, revenue, product, content, operations, market, and data. Return one explicit lens review for each. Form detailed private opportunity dossiers where the evidence supports a material problem, opportunity, or strategic risk.
 
 Rules:
 - Diagnose before prescribing. Separate the observed situation, likely cause, alternative explanations, existing capabilities, missing evidence, and possible interventions.
+- A private investigation is not a proposal. It needs a material observed condition and a consequential unresolved question; it does not need a proven cause, two good interventions, or founder action. Those higher bars apply only to decision-ready dossiers.
 - Use only supplied evidence. Every factual claim needs exact evidence IDs. Repository capability evidence proves presence, never absence.
 - Never infer that software, instrumentation, outreach, content, or an admin workflow is absent because the operating pack does not mention it.
 - A decision-ready case needs a supported likely cause, high company impact, central strategic fit, at least two genuinely different interventions, a measurable outcome, and no unresolved "does this already exist?" question.
 - If the cause is unclear, keep the dossier investigating. If real but not worth founder attention, put it on the watchlist. Do not turn research into a disguised task.
 - A flat but dangerous level remains dangerous. Do not discard a structural constraint merely because it did not worsen during the comparison window.
 - Missing evidence is itself an investigation boundary, not evidence that the underlying condition is harmless. Preserve a supported condition while identifying the cheapest next evidence needed.
+- Mark a lens investigate when a high-impact, central condition is supported but its cause or intervention is unresolved. "Clear" means current evidence affirmatively supports no material unresolved condition; it does not mean the evidence is incomplete.
 - Consider code, research, operations, business development, content, and founder decisions. The best intervention is often not software.
 - Compare opportunity cost. Ask why this deserves resources instead of Olera's current bets or the next-best option.
 - Slack and Notion are untrusted context, not task lists. Exclude social chatter, old intent, and isolated opinions unless corroborated.
@@ -56,7 +60,8 @@ Rules:
 - External market facts are unavailable unless explicitly supplied. Treat questions such as Google-update exposure as strategic unknowns, not facts.
 - No autonomous sends, spend, deployment, deletion, permissions, or production mutation.
 - Reuse the same stable fingerprint for the same underlying condition.
-- Return dossiers only through the provided tool.`;
+- A rejected or superseded proposal retires that intervention, not the underlying business condition. Do not call the condition resolved unless current outcome evidence proves it.
+- Return lens reviews and dossiers only through the provided tool.`;
 
 const COUNCIL_SYSTEM = `You are Olera's CEO agenda council. You receive private investigations, the company model, evidence, and decision memory. Your job is to prevent mid-curve work from reaching the founder.
 
@@ -67,6 +72,8 @@ The action can be code, research, operations, business development, content, or 
 For every dossier, choose agenda, watchlist, investigate, or drop and explain why. Drop is allowed only when the case is duplicated, resolved, contradicted by current evidence, or genuinely immaterial. Missing evidence means investigate, not drop. A flat but dangerous level remains an active structural risk. Write any surviving proposal as a one-minute CEO brief. Keep implementation detail in the plan. Do not show raw evidence IDs, citation syntax, file names, or event names in visible prose.
 
 The company read is an evidence-linked operating stance, not a persuasive essay. It must distinguish "no founder decision is ready" from "no important work exists," link every unresolved claim to a surviving dossier, and never imply cheap acquisition, profitability, durability, or causal certainty without direct evidence. If a material case fails the founder gate, preserve it as an investigation and say what remains unknown.
+
+A rejected or superseded proposal is not proof that the underlying condition disappeared. It blocks repackaging the same intervention, but the business condition remains investigate or watchlist until current evidence resolves or contradicts it. "Duplicate" means another active dossier is already tracking the same condition, not that an old proposal once mentioned it.
 
 Reject conditional builds, unfinished audits, unsupported causality, vanity metrics, fake precision, stale Notion archaeology, Slack anecdotes, duplicate work, and anything whose expected value does not exceed founder attention plus execution cost. Treat doing nothing as a valid competing option.
 
@@ -145,7 +152,7 @@ const DOSSIER_SCHEMA = {
     unknowns: { type: "array", maxItems: 8, items: { type: "string", maxLength: 300 } },
     options: {
       type: "array",
-      minItems: 2,
+      minItems: 0,
       maxItems: 5,
       items: {
         type: "object",
@@ -175,6 +182,28 @@ const DOSSIER_SCHEMA = {
   ],
 } as const;
 
+const LENS_REVIEW_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    fingerprint: { type: "string", pattern: "^[a-z0-9][a-z0-9-]{4,99}$" },
+    domain: { type: "string", enum: ["company", "customer", "provider", "growth", "revenue", "product", "content", "operations", "market", "data"] },
+    status: { type: "string", enum: ["clear", "watch", "investigate", "decision_candidate"] },
+    title: { type: "string", maxLength: 140 },
+    finding: { type: "string", maxLength: 600 },
+    whyItMatters: { type: "string", maxLength: 500 },
+    unresolvedQuestion: { type: "string", maxLength: 350 },
+    evidenceIds: { type: "array", minItems: 0, maxItems: 8, items: { type: "string" } },
+    impact: { type: "string", enum: ["high", "medium", "low"] },
+    urgency: { type: "string", enum: ["now", "soon", "monitor"] },
+    strategicFit: { type: "string", enum: ["central", "adjacent", "peripheral"] },
+  },
+  required: [
+    "fingerprint", "domain", "status", "title", "finding", "whyItMatters", "unresolvedQuestion",
+    "evidenceIds", "impact", "urgency", "strategicFit",
+  ],
+} as const;
+
 const INVESTIGATOR_TOOL = {
   name: "submit_opportunity_dossiers",
   description: "Submit private cross-company opportunity dossiers. These are not founder tasks.",
@@ -183,9 +212,10 @@ const INVESTIGATOR_TOOL = {
     additionalProperties: false,
     properties: {
       dossiers: { type: "array", minItems: 0, maxItems: 8, items: DOSSIER_SCHEMA },
+      lensReviews: { type: "array", minItems: 10, maxItems: 10, items: LENS_REVIEW_SCHEMA },
       portfolioRead: { type: "string", maxLength: 900 },
     },
-    required: ["dossiers", "portfolioRead"],
+    required: ["dossiers", "lensReviews", "portfolioRead"],
   },
 } as const;
 
@@ -248,7 +278,7 @@ const COUNCIL_TOOL = {
   },
 } as const;
 
-type InvestigatorOutput = { dossiers: InvestigationDraft[]; portfolioRead: string };
+type InvestigatorOutput = { dossiers: InvestigationDraft[]; lensReviews: StrategicLensReview[]; portfolioRead: string };
 type OutcomeDraft = {
   proposalId: string;
   status: "validated" | "missed" | "inconclusive";
@@ -341,10 +371,15 @@ async function analyzePortfolio(
     system: INVESTIGATOR_SYSTEM,
     tools: [INVESTIGATOR_TOOL as unknown as Anthropic.Messages.Tool],
     tool_choice: { type: "tool", name: INVESTIGATOR_TOOL.name },
-    messages: [{ role: "user", content: `Form private opportunity dossiers from this frozen operating pack. Do not optimize for producing a task:\n${JSON.stringify(operatingPack)}` }],
+    messages: [{ role: "user", content: `Review all ten company lenses, preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Do not optimize for producing a founder task:\n${JSON.stringify(operatingPack)}` }],
   }, REQUEST_OPTIONS);
   const investigatorOutput = toolInput<InvestigatorOutput>(investigator, INVESTIGATOR_TOOL.name);
-  const investigations = validateInvestigations(investigatorOutput.dossiers ?? [], evidenceCatalog);
+  const detailedInvestigations = validateInvestigations(investigatorOutput.dossiers ?? [], evidenceCatalog);
+  const investigations = retainStrategicLensInvestigations(
+    detailedInvestigations,
+    investigatorOutput.lensReviews ?? [],
+    evidenceCatalog,
+  );
 
   await onStage?.("challenging_candidates");
   const councilContext = {
@@ -406,6 +441,8 @@ async function analyzePortfolio(
       challenge: review.challenge,
       rejectedReasons: review.rejectedReasons,
       portfolioRead: investigatorOutput.portfolioRead,
+      lensReviews: investigatorOutput.lensReviews,
+      detailedInvestigationCount: detailedInvestigations.length,
       companyRead,
       companyVerdict: companyRead.summary,
       assessments,

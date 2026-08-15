@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import {
   normalizeCompanyRead,
   normalizeInvestigationAssessments,
+  retainStrategicLensInvestigations,
   validateInvestigations,
   type InvestigationAssessment,
   type InvestigationDraft,
+  type StrategicLensReview,
 } from "../lib/war-room/strategy";
 import type { WarRoomProposalEvidence } from "../lib/war-room/types";
 
@@ -12,6 +14,8 @@ const evidence: WarRoomProposalEvidence[] = [
   { id: "metric:questions", label: "Questions", detail: "2,540 questions arrived", source: "Olera product data" },
   { id: "metric:answers", label: "Answers", detail: "112 questions were answered", source: "Olera product data" },
   { id: "signal:contactability", label: "Contactability", detail: "327 providers need usable email", source: "Olera provider-contactability cohort" },
+  { id: "metric:ad-boost-mrr", label: "Ad Boost MRR", detail: "$0 MRR", source: "Olera product data" },
+  { id: "comparison:ad-boost-campaigns", label: "Campaign outcomes", detail: "Five campaigns ended unpaid", source: "Olera period comparison" },
 ];
 
 function dossier(overrides: Partial<InvestigationDraft> = {}): InvestigationDraft {
@@ -75,9 +79,11 @@ const duplicateDrop: InvestigationAssessment = {
 };
 assert.equal(
   normalizeInvestigationAssessments([preserved], [duplicateDrop])[0].disposition,
-  "drop",
-  "a proven duplicate may be dropped",
+  "investigate",
+  "an old duplicate intervention cannot erase a material underlying condition",
 );
+const immaterialDuplicate = { ...preserved, impact: "medium" as const, strategicFit: "adjacent" as const };
+assert.equal(normalizeInvestigationAssessments([immaterialDuplicate], [duplicateDrop])[0].disposition, "drop");
 
 const agendaAssessment: InvestigationAssessment = {
   ...unsupportedDrop,
@@ -103,5 +109,23 @@ assert.doesNotMatch(companyRead.summary, /nothing changed enough/i);
 
 const noDossierRead = normalizeCompanyRead(undefined, [], [], evidence);
 assert.match(noDossierRead.summary, /evidence limitation/i);
+
+const revenueLens: StrategicLensReview = {
+  fingerprint: "ad-boost-monetization-unproven",
+  domain: "revenue",
+  status: "investigate",
+  title: "Olera has not yet proven provider monetization",
+  finding: "Ad Boost remains at zero recurring revenue across the observed campaign outcomes.",
+  whyItMatters: "Olera needs a repeatable revenue mechanism to become durable.",
+  unresolvedQuestion: "Is the binding constraint provider value, packaging, pricing, or sales execution?",
+  evidenceIds: ["metric:ad-boost-mrr", "comparison:ad-boost-campaigns"],
+  impact: "high",
+  urgency: "soon",
+  strategicFit: "central",
+};
+const retainedLens = retainStrategicLensInvestigations([], [revenueLens], evidence);
+assert.equal(retainedLens.length, 1, "a material lens finding must survive even without a full dossier");
+assert.equal(retainedLens[0].readiness, "investigating");
+assert.equal(retainedLens[0].options.length, 0, "private investigation does not require pre-baked solutions");
 
 console.log("War Room reasoning-gate checks passed.");

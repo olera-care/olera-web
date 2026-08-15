@@ -99,6 +99,20 @@ export type InvestigationAssessment = {
   reason: string;
 };
 
+export type StrategicLensReview = {
+  fingerprint: string;
+  domain: WarRoomDomain;
+  status: "clear" | "watch" | "investigate" | "decision_candidate";
+  title: string;
+  finding: string;
+  whyItMatters: string;
+  unresolvedQuestion: string;
+  evidenceIds: string[];
+  impact: "high" | "medium" | "low";
+  urgency: "now" | "soon" | "monitor";
+  strategicFit: "central" | "adjacent" | "peripheral";
+};
+
 export type CompanyReadDraft = WarRoomCompanyRead;
 
 export type AgendaProposalDraft = {
@@ -188,10 +202,71 @@ export function validateInvestigations(
 }
 
 const PROVEN_DROP_REASONS = new Set<InvestigationAssessment["reasonCode"]>([
-  "duplicate",
   "resolved",
   "contradicted",
 ]);
+
+/**
+ * A private investigation needs a supported material condition, not a finished
+ * causal theory or a ready intervention. Lens reviews are the investigator's
+ * explicit company coverage; promote high/central unresolved reviews when the
+ * richer dossier pass abstains or fails validation.
+ */
+export function retainStrategicLensInvestigations(
+  existing: InvestigationDraft[],
+  reviews: StrategicLensReview[],
+  evidenceCatalog: WarRoomProposalEvidence[],
+) {
+  const validEvidenceIds = new Set(evidenceCatalog.map((item) => item.id));
+  const seenFingerprints = new Set(existing.map((item) => item.fingerprint));
+  const seenDomains = new Set<WarRoomDomain>(existing.map((item) => item.domain));
+  const retained = [...existing];
+
+  for (const review of reviews) {
+    if (seenDomains.has(review.domain)) continue;
+    seenDomains.add(review.domain);
+    const shouldRetain = review.status === "decision_candidate"
+      || review.status === "investigate" && (review.impact === "high" || review.strategicFit === "central")
+      || review.status === "watch" && review.impact === "high" && review.strategicFit === "central";
+    if (
+      !shouldRetain
+      || seenFingerprints.has(review.fingerprint)
+      || !WAR_ROOM_DOMAINS.includes(review.domain)
+      || !/^[a-z0-9][a-z0-9-]{4,99}$/.test(review.fingerprint)
+    ) continue;
+    const evidenceIds = uniqueValid(review.evidenceIds, validEvidenceIds).filter((id) =>
+      !id.startsWith("capability:")
+      && !id.startsWith("source:")
+      && !id.startsWith("decision:"),
+    );
+    if (evidenceIds.length < 2) continue;
+
+    retained.push({
+      fingerprint: review.fingerprint,
+      domain: review.domain,
+      title: cleanExecutiveText(review.title),
+      situation: cleanExecutiveText(review.finding),
+      whyItMatters: cleanExecutiveText(review.whyItMatters),
+      likelyCause: "The current evidence establishes the condition, but not yet its cause.",
+      causeConfidence: "low",
+      existingCapabilities: [],
+      capabilityEvidenceIds: [],
+      unknowns: [cleanExecutiveText(review.unresolvedQuestion)].filter(Boolean),
+      options: [],
+      evidenceIds,
+      counterEvidence: "The current evidence may not capture every relevant channel or cohort; causal conclusions remain open.",
+      readiness: review.status === "watch" ? "watchlist" : "investigating",
+      readinessReason: "This is a material unresolved company condition. War Room is keeping it private until the cause and intervention are decision-ready.",
+      impact: review.impact,
+      urgency: review.urgency,
+      strategicFit: review.strategicFit,
+      founderAttentionMinutes: 0,
+    });
+    seenFingerprints.add(review.fingerprint);
+  }
+
+  return retained.slice(0, 8);
+}
 
 /**
  * The council may control founder attention, but it cannot erase unresolved
@@ -225,7 +300,7 @@ export function normalizeInvestigationAssessments(
         fingerprint: investigation.fingerprint,
         disposition: investigation.readiness === "watchlist" ? "watchlist" : "investigate",
         reasonCode: investigation.readiness === "watchlist" ? "monitor" : "needs_evidence",
-        reason: `The council did not prove this material condition was resolved, contradicted, or duplicated. ${reason}`.trim(),
+        reason: `The council did not prove this material condition was resolved or contradicted. ${reason}`.trim(),
       };
     }
 

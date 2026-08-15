@@ -704,7 +704,11 @@ export default function WarRoomDashboard() {
             </section>
           ) : null}
 
-          {!discoveryActive && !groups.waiting.length && !groups.active.length && !groups.review.length ? (
+          {!discoveryActive
+          && payload.latestDiscovery?.status !== "failed"
+          && !groups.waiting.length
+          && !groups.active.length
+          && !groups.review.length ? (
             <section className="mt-8 rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-12 text-center">
               <Check className="mx-auto h-6 w-6 text-emerald-600" />
               <h2 className="mt-3 font-serif text-2xl font-bold text-gray-950">

@@ -4860,6 +4860,10 @@ export default function ProviderOutreachPage() {
   type ChannelFilter = "all" | "email" | "fax" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
+  // Ready tab filter state (Organization vs Decision Maker)
+  type ReadyFilter = "all" | "organization" | "decision_maker";
+  const [selectedReadyFilter, setSelectedReadyFilter] = useState<ReadyFilter>("all");
+
   // All admins for name lookup (fetched once)
   interface AdminUser {
     id: string;
@@ -6476,6 +6480,10 @@ export default function ProviderOutreachPage() {
                   if (tab.value !== "re_engage") {
                     setSelectedChannelFilter("all");
                   }
+                  // Reset ready filter when leaving Ready tab
+                  if (tab.value !== "ready") {
+                    setSelectedReadyFilter("all");
+                  }
                 }}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.value
@@ -7215,6 +7223,38 @@ export default function ProviderOutreachPage() {
               </details>
             )}
 
+            {/* Ready tab sub-tabs: Organization vs Decision Maker */}
+            {activeTab === "ready" && (
+              <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+                <span className="text-xs text-gray-500 mr-1">Email Source:</span>
+                {(["all", "organization", "decision_maker"] as const).map((filter) => {
+                  const count = filter === "all"
+                    ? providers.length
+                    : providers.filter((p) => (p.email_source || "organization") === filter).length;
+                  const label = filter === "all" ? "All" :
+                    filter === "organization" ? "Organization" : "Decision Maker";
+                  const isSelected = selectedReadyFilter === filter;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setSelectedReadyFilter(filter)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                        isSelected
+                          ? filter === "decision_maker"
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-800 text-white"
+                          : filter === "decision_maker"
+                            ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {label} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
               <div className="w-5" />
@@ -7227,8 +7267,15 @@ export default function ProviderOutreachPage() {
               // otherwise compute from providers (which are already filtered by assigned_to)
               // but merge in sequence stats from API for conversion tracking
               // For other stages: always compute from providers
+              // Filter providers by email_source when Ready tab sub-filter is active
+              const filteredProviders = activeTab === "ready" && selectedReadyFilter !== "all"
+                ? providers.filter((p) => (p.email_source || "organization") === selectedReadyFilter)
+                : providers;
+
               const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
-              let displayCities = useApiCities ? cities : computeCityStatsFromProviders(providers);
+              // When Ready filter is active, recompute city stats from filtered providers
+              const shouldRecomputeCities = activeTab === "ready" && selectedReadyFilter !== "all";
+              let displayCities = (useApiCities && !shouldRecomputeCities) ? cities : computeCityStatsFromProviders(filteredProviders);
               if (activeTab === "needs_email") {
                 displayCities = displayCities.filter((c) => c.needs_email > 0);
               } else if (activeTab === "ready") {
@@ -7264,7 +7311,7 @@ export default function ProviderOutreachPage() {
                       activeTab={activeTab}
                       isExpanded={expandedCities.has(city.city)}
                       onToggle={() => toggleCity(city.city)}
-                      providers={providers}
+                      providers={filteredProviders}
                       loadingProviders={loadingProviders}
                       selectedProviders={selectedProviders}
                       onToggleProvider={toggleProvider}

@@ -1604,15 +1604,18 @@ async function getStageCounts(
 
   // Step 3: Get all tracking rows for this state (small set, filtered by state)
   // Include admin_hidden to filter out hidden providers from counts
+  // Include apollo_contact to check for decision-maker emails in ready count
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, stage, admin_hidden")
+    .select("provider_id, stage, admin_hidden, apollo_contact")
     .eq("state", state);
 
   // Collect all tracked provider IDs and their stages
   const trackedProviderIds = new Set<string>();
   // Track hidden providers separately (to exclude from not_contacted counts)
   const hiddenProviderIds = new Set<string>();
+  // Track apollo_contact emails for not_contacted providers (for ready count)
+  const apolloEmailMap = new Map<string, string>();
   const stageCounts: Record<string, number> = {};
 
   if (trackingRows) {
@@ -1624,6 +1627,14 @@ async function getStageCounts(
       if (isHidden) {
         hiddenProviderIds.add(row.provider_id);
         continue; // Skip counting hidden providers entirely
+      }
+
+      // For not_contacted providers, track apollo_contact email (for ready count)
+      if (stage === "not_contacted") {
+        const apolloContact = row.apollo_contact as { email?: string } | null;
+        if (apolloContact?.email) {
+          apolloEmailMap.set(row.provider_id, apolloContact.email);
+        }
       }
 
       // Skip not_contacted and claimed - they're calculated separately
@@ -1773,9 +1784,10 @@ async function getStageCounts(
   if (providersWithEmail) {
     for (const p of providersWithEmail) {
       if (excludedIds.has(p.provider_id)) continue;
-      // Also check if they're in tracking with not_contacted stage (those are still "not contacted")
-      // But we already filtered these out via existingTrackedIds which excludes not_contacted
-      if (p.email && p.email.trim()) {
+      // Provider "has email" if they have generic email OR apollo_contact email
+      const hasGenericEmail = p.email && p.email.trim();
+      const hasApolloEmail = apolloEmailMap.has(p.provider_id);
+      if (hasGenericEmail || hasApolloEmail) {
         counts.ready++;
       } else {
         counts.needs_email++;

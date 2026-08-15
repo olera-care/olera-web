@@ -200,15 +200,21 @@ export function validateInvestigations(
   return drafts.filter((draft) => {
     if (!/^[a-z0-9][a-z0-9-]{4,99}$/.test(draft.fingerprint) || seen.has(draft.fingerprint)) return false;
     if (!WAR_ROOM_DOMAINS.includes(draft.domain)) return false;
-    draft.evidenceIds = uniqueValid(draft.evidenceIds, validIds);
+    draft.evidenceIds = uniqueValid(draft.evidenceIds, validIds).slice(0, 12);
     draft.capabilityEvidenceIds = uniqueValid(draft.capabilityEvidenceIds, validIds)
-      .filter((id) => id.startsWith("capability:"));
+      .filter((id) => id.startsWith("capability:"))
+      .slice(0, 8);
     draft.options = draft.options.filter((option) =>
       WAR_ROOM_ACTION_KINDS.includes(option.actionKind)
       && cleanExecutiveText(option.title).length >= 8
       && cleanExecutiveText(option.logic).length >= 20
       && cleanExecutiveText(option.downside).length >= 8,
-    );
+    ).slice(0, 5);
+    draft.existingCapabilities = (draft.existingCapabilities ?? [])
+      .map(cleanExecutiveText)
+      .filter(Boolean)
+      .slice(0, 8);
+    draft.unknowns = (draft.unknowns ?? []).map(cleanExecutiveText).filter(Boolean).slice(0, 8);
     draft.hypotheses = (draft.hypotheses ?? []).map(cleanExecutiveText).filter(Boolean).slice(0, 6);
     draft.resolutionCriteria = (draft.resolutionCriteria ?? []).map(cleanExecutiveText).filter(Boolean).slice(0, 5);
     if (draft.nextProbe) {
@@ -483,18 +489,22 @@ export function applyAgendaGate(
 
   return proposals.flatMap((proposal) => {
     const investigation = investigationByFingerprint.get(proposal.sourceInvestigationFingerprint);
-    proposal.evidenceIds = uniqueValid(proposal.evidenceIds, validIds);
+    proposal.evidenceIds = uniqueValid(proposal.evidenceIds, validIds).slice(0, 10);
     proposal.capabilityEvidenceIds = uniqueValid(proposal.capabilityEvidenceIds, validIds)
-      .filter((id) => id.startsWith("capability:"));
+      .filter((id) => id.startsWith("capability:"))
+      .slice(0, 8);
     proposal.founderAttentionMinutes = Math.max(0, Math.min(240, Math.round(proposal.founderAttentionMinutes)));
     proposal.evaluationWindowDays = Math.max(1, Math.min(180, Math.round(proposal.evaluationWindowDays)));
-    const cleanedExistingCapabilities = proposal.existingCapabilities.map(cleanExecutiveText).filter(Boolean);
+    const cleanedExistingCapabilities = proposal.existingCapabilities
+      .map(cleanExecutiveText)
+      .filter(Boolean)
+      .slice(0, 8);
     const cleanedWhyBetter = cleanExecutiveText(proposal.whyBetterThanAlternatives);
     const cleanedSuccessMeasure = cleanExecutiveText(proposal.successMeasure);
     const cleanedExecutionPlan = proposal.executionPlan.map((step) => ({
       label: cleanExecutiveText(step.label),
       detail: cleanExecutiveText(step.detail),
-    })).filter((step) => step.label.length >= 3 && step.detail.length >= 12);
+    })).filter((step) => step.label.length >= 3 && step.detail.length >= 12).slice(0, 5);
     // Capability rows prove that Olera already has a system. They do not prove
     // that the diagnosed company problem exists, so they cannot supply an
     // "independent source" or satisfy the diagnosis-evidence minimum.

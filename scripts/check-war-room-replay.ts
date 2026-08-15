@@ -261,6 +261,43 @@ const unblockedDecision = evaluateWarRoomReasoning({
   council: decisionCouncil,
 });
 assert.equal(unblockedDecision.proposals.length, 1, "the fixture must prove it can clear the founder gate before testing intervention memory");
+assert.equal(unblockedDecision.proposals[0].executionPlan.length, 2, "valid bounded plans must survive normalization");
+
+const oversizedDecision = evaluateWarRoomReasoning({
+  evidenceCatalog: evidence,
+  investigator: {
+    dossiers: [{
+      ...decisionDossier,
+      existingCapabilities: Array.from({ length: 12 }, (_, index) => `Existing capability ${index + 1} is already available for the bounded provider workflow.`),
+      unknowns: Array.from({ length: 12 }, (_, index) => `Unknown ${index + 1} still needs a bounded read-only answer.`),
+      options: Array.from({ length: 7 }, (_, index) => ({
+        actionKind: index % 2 === 0 ? "operations" as const : "business_development" as const,
+        title: `Bounded alternative ${index + 1}`,
+        logic: `Alternative ${index + 1} provides a materially distinct way to address the supported provider condition.`,
+        downside: `Alternative ${index + 1} may consume scarce operating capacity.`,
+      })),
+    }],
+    lensReviews: tenLenses(),
+    portfolioRead: "A bounded provider-contact decision is ready.",
+  },
+  council: {
+    ...decisionCouncil,
+    proposals: [{
+      ...approvedIntervention,
+      existingCapabilities: Array.from({ length: 12 }, (_, index) => `Existing capability ${index + 1} is already available for this bounded workflow.`),
+      executionPlan: Array.from({ length: 7 }, (_, index) => ({
+        label: `Step ${index + 1}`,
+        detail: `Execute bounded step ${index + 1} and retain its measurable result for review.`,
+      })),
+    }],
+  },
+});
+assert.equal(oversizedDecision.investigations[0].existingCapabilities.length, 8, "investigation capability lists must be bounded server-side");
+assert.equal(oversizedDecision.investigations[0].unknowns.length, 8, "investigation unknowns must be bounded server-side");
+assert.equal(oversizedDecision.investigations[0].options.length, 5, "investigation alternatives must be bounded server-side");
+assert.equal(oversizedDecision.proposals[0].existingCapabilities.length, 8, "proposal capability lists must be bounded server-side");
+assert.equal(oversizedDecision.proposals[0].executionPlan.length, 5, "proposal execution plans must be bounded server-side");
+
 const blockedDecision = evaluateWarRoomReasoning({
   evidenceCatalog: evidence,
   investigator: { dossiers: [decisionDossier], lensReviews: tenLenses(), portfolioRead: "The same intervention was already rejected." },

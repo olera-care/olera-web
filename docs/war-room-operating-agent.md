@@ -78,7 +78,7 @@ of founder attention for the decision itself. The model may recommend zero.
 is intentional: War Room should spend most of its compute eliminating bad work
 before the founder sees it.
 
-Migration 179 separates those durable company conditions from individual
+Migrations 179 and 180 separate those durable company conditions from individual
 interventions. Each investigation now records competing hypotheses, the next
 bounded read-only probe, explicit resolution criteria, evidence changes, and an
 append-only progress trail. Rejecting or superseding a proposal retires that

@@ -12,8 +12,13 @@ work: branch, tests, and a PR against `staging`. It cannot merge or deploy.
    existing company fact pack.
 3. An Opus scout forms zero to three repository proposals. A separate critic
    may lower confidence, rewrite, or delete every proposal.
+   Until repository evidence is connected to discovery, a truthfulness gate
+   rejects conditional "if this does not exist" work and any proposal that
+   leaves auditing or locating the current implementation to the executor.
 4. `/admin/war-room` reads only the precomputed proposal rows. Admin login and
-   page load never wait for source sync or AI.
+   page load never wait for source sync or AI. Each proposal opens as a
+   CEO-length decision brief; evidence and the technical execution plan stay in
+   an explicit drill-down.
 5. **Build this** records a durable authorization and emits the
    `war-room-approved` repository dispatch.
 6. `.github/workflows/war-room-agent.yml` runs Claude Code in an isolated GitHub
@@ -22,6 +27,10 @@ work: branch, tests, and a PR against `staging`. It cannot merge or deploy.
 7. When shipped work is marked complete, the next evidence cycle measures the
    stated outcome after seven days and records validated, missed, or
    inconclusive.
+
+Rejecting a proposal may include a blunt reason such as "this already exists."
+That note remains visible in memory and is included in later discovery context,
+so the same fingerprint stays rejected instead of being repackaged every day.
 
 ## Required migration
 

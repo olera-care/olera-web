@@ -49,6 +49,22 @@ function elapsed(startedAt: string | null, nowIso: string) {
   return `${minutes}m ${remainder.toString().padStart(2, "0")}s`;
 }
 
+function concise(value: string, maxLength: number) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (clean.length <= maxLength) return clean;
+  const sentences = clean.match(/.*?[.!?](?:\s|$)/g) ?? [];
+  let result = "";
+  for (const sentence of sentences) {
+    const candidate = `${result} ${sentence.trim()}`.trim();
+    if (candidate.length > maxLength) break;
+    result = candidate;
+  }
+  if (result) return result;
+  const clipped = clean.slice(0, maxLength - 1);
+  const lastSpace = clipped.lastIndexOf(" ");
+  return `${clipped.slice(0, Math.max(lastSpace, maxLength - 40)).trim()}…`;
+}
+
 const discoveryStages: Record<string, { button: string; title: string; detail: string }> = {
   queued: {
     button: "Starting scan",
@@ -119,8 +135,10 @@ function ProposalCard({
 }: {
   proposal: WarRoomProposal;
   busy: boolean;
-  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete") => Promise<void>;
+  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
 }) {
+  const [showRejectReason, setShowRejectReason] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const isWaiting = proposal.status === "proposed";
   const isAwaitingExecutor = proposal.status === "approved" || (proposal.status === "failed" && Boolean(proposal.approved_at));
   const isActive = ["dispatching", "executing"].includes(proposal.status);
@@ -144,44 +162,64 @@ function ProposalCard({
         <h2 className="mt-5 max-w-4xl font-serif text-2xl font-bold leading-tight tracking-tight text-gray-950 sm:text-3xl">
           {proposal.title}
         </h2>
-        <p className="mt-3 max-w-4xl text-sm leading-6 text-gray-600 sm:text-base sm:leading-7">
-          {proposal.finding}
-        </p>
+        <div className="mt-4 max-w-4xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-rose-600">Bottom line</p>
+          <p className="mt-2 text-base font-medium leading-7 text-gray-800 sm:text-lg">
+            {concise(proposal.finding, 360)}
+          </p>
+        </div>
 
         <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_0.72fr]">
           <div className="rounded-2xl bg-gray-950 p-5 text-white">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">What I propose</p>
-            <p className="mt-2 text-sm leading-6 text-gray-200">{proposal.proposed_solution}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">My recommendation</p>
+            <p className="mt-2 text-sm leading-6 text-gray-200">{concise(proposal.proposed_solution, 440)}</p>
           </div>
           <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-600">Why now</p>
-            <p className="mt-2 text-sm leading-6 text-gray-700">{proposal.why_now}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-600">Why this matters to Olera</p>
+            <p className="mt-2 text-sm leading-6 text-gray-700">{concise(proposal.why_now, 360)}</p>
           </div>
         </div>
 
-        <div className="mt-6">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400">Approved execution plan</p>
-          <ol className="mt-3 grid gap-3 lg:grid-cols-2">
-            {proposal.execution_plan.map((step, index) => (
-              <li key={`${step.label}:${index}`} className="flex gap-3 rounded-2xl border border-gray-200 p-4">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-950 text-[11px] font-bold text-white">{index + 1}</span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-950">{step.label}</p>
-                  <p className="mt-1 text-xs leading-5 text-gray-500">{step.detail}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-gray-200 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">Expected impact</p>
+            <p className="mt-2 text-xs leading-5 text-gray-600">{concise(proposal.success_measure, 280)}</p>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">Main risk</p>
+            <p className="mt-2 text-xs leading-5 text-gray-700">{concise(proposal.risk, 280)}</p>
+          </div>
         </div>
 
         <details className="group mt-5 rounded-2xl border border-gray-200 bg-gray-50/70">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700">
-            Evidence, doubt, and safety
+            See the detailed analysis and build plan
             <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
           </summary>
           <div className="border-t border-gray-200 px-5 py-5">
+            <div className="grid gap-4 text-sm leading-6 text-gray-600 lg:grid-cols-3">
+              <div><p className="font-semibold text-gray-950">The issue</p><p className="mt-1">{proposal.finding}</p></div>
+              <div><p className="font-semibold text-gray-950">Proposed solution</p><p className="mt-1">{proposal.proposed_solution}</p></div>
+              <div><p className="font-semibold text-gray-950">Why now</p><p className="mt-1">{proposal.why_now}</p></div>
+            </div>
+
+            <div className="mt-6 border-t border-gray-200 pt-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400">Technical execution plan</p>
+              <ol className="mt-3 grid gap-3 lg:grid-cols-2">
+                {proposal.execution_plan.map((step, index) => (
+                  <li key={`${step.label}:${index}`} className="flex gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-950 text-[11px] font-bold text-white">{index + 1}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-950">{step.label}</p>
+                      <p className="mt-1 text-xs leading-5 text-gray-500">{step.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
             <div className="grid gap-5 lg:grid-cols-3">
-              <div>
+              <div className="mt-6 border-t border-gray-200 pt-5">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Evidence</p>
                 <div className="mt-2 space-y-2">
                   {proposal.evidence.map((evidence) => {
@@ -200,11 +238,11 @@ function ProposalCard({
                   })}
                 </div>
               </div>
-              <div className="space-y-4 text-xs leading-5 text-gray-600">
+              <div className="mt-6 space-y-4 border-t border-gray-200 pt-5 text-xs leading-5 text-gray-600">
                 <div><p className="font-semibold text-gray-900">Counter-evidence</p><p className="mt-1">{proposal.counter_evidence}</p></div>
                 <div><p className="font-semibold text-gray-900">What success means</p><p className="mt-1">{proposal.success_measure}</p></div>
               </div>
-              <div className="space-y-4 text-xs leading-5 text-gray-600">
+              <div className="mt-6 space-y-4 border-t border-gray-200 pt-5 text-xs leading-5 text-gray-600">
                 <div><p className="font-semibold text-gray-900">Risk</p><p className="mt-1">{proposal.risk}</p></div>
                 <div><p className="font-semibold text-gray-900">Rollback</p><p className="mt-1">{proposal.rollback_plan}</p></div>
               </div>
@@ -216,6 +254,51 @@ function ProposalCard({
           <div className="mt-4 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
             <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
             {proposal.execution_error}
+          </div>
+        ) : null}
+
+        {isWaiting && showRejectReason ? (
+          <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
+            <label htmlFor={`reject-${proposal.id}`} className="text-sm font-semibold text-gray-950">
+              What did War Room get wrong?
+            </label>
+            <p className="mt-1 text-xs leading-5 text-gray-600">
+              This becomes memory for later scans. Be blunt. “Already exists” is more useful than a polite rejection.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["This already exists", "The evidence is wrong or outdated", "This is not important enough"].map((reason) => (
+                <button
+                  key={reason}
+                  type="button"
+                  onClick={() => setRejectReason(reason)}
+                  className="rounded-full border border-rose-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-rose-700 hover:border-rose-300"
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <textarea
+              id={`reject-${proposal.id}`}
+              value={rejectReason}
+              onChange={(event) => setRejectReason(event.target.value)}
+              maxLength={1_000}
+              rows={3}
+              placeholder="What should the next scan understand?"
+              className="mt-3 w-full resize-y rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-rose-400"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" onClick={() => setShowRejectReason(false)} disabled={busy} className="rounded-full px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 disabled:opacity-50">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => onAction(proposal, "reject", rejectReason.trim())}
+                disabled={busy || !rejectReason.trim()}
+                className="rounded-full bg-rose-700 px-4 py-2 text-xs font-bold text-white hover:bg-rose-800 disabled:opacity-50"
+              >
+                {busy ? "Saving…" : "Reject and teach War Room"}
+              </button>
+            </div>
           </div>
         ) : null}
 
@@ -234,7 +317,7 @@ function ProposalCard({
               <>
                 <button
                   type="button"
-                  onClick={() => onAction(proposal, "reject")}
+                  onClick={() => setShowRejectReason((visible) => !visible)}
                   disabled={busy}
                   className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
                 >
@@ -362,14 +445,14 @@ export default function WarRoomDashboard() {
     }
   }
 
-  async function act(proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete") {
+  async function act(proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) {
     setBusyId(proposal.id);
     setError(null);
     try {
       const response = await fetch("/api/admin/war-room/proposals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, proposalId: proposal.id }),
+        body: JSON.stringify({ action, proposalId: proposal.id, note }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not save this decision");
@@ -507,6 +590,7 @@ export default function WarRoomDashboard() {
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{proposal.title}</p>
                       <p className="mt-1 text-xs text-gray-400">Last seen {relative(proposal.last_seen_at)} · {proposal.occurrence_count} observation{proposal.occurrence_count === 1 ? "" : "s"}</p>
+                      {proposal.rejection_note ? <p className="mt-2 max-w-3xl text-xs leading-5 text-gray-600">Why we rejected it: {proposal.rejection_note}</p> : null}
                       {proposal.outcome_note ? <p className="mt-2 max-w-3xl text-xs leading-5 text-gray-600">Outcome: {proposal.outcome_note}</p> : null}
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
@@ -535,7 +619,7 @@ function ProposalSection({
   detail: string;
   proposals: WarRoomProposal[];
   busyId: string | null;
-  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete") => Promise<void>;
+  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
 }) {
   return (
     <section className="mt-10">

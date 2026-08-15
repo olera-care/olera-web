@@ -1,5 +1,6 @@
 import type {
   WarRoomActionKind,
+  WarRoomCompanyRead,
   WarRoomCompanyModel,
   WarRoomDomain,
   WarRoomProposalEvidence,
@@ -91,6 +92,15 @@ export type InvestigationDraft = {
   founderAttentionMinutes: number;
 };
 
+export type InvestigationAssessment = {
+  fingerprint: string;
+  disposition: "agenda" | "watchlist" | "investigate" | "drop";
+  reasonCode: "agenda" | "needs_evidence" | "monitor" | "duplicate" | "resolved" | "contradicted" | "not_material";
+  reason: string;
+};
+
+export type CompanyReadDraft = WarRoomCompanyRead;
+
 export type AgendaProposalDraft = {
   sourceInvestigationFingerprint: string;
   fingerprint: string;
@@ -155,8 +165,15 @@ export function validateInvestigations(
     const distinctOptions = new Set(draft.options.map((option) =>
       `${option.actionKind}:${cleanExecutiveText(option.title).toLowerCase()}`,
     ));
-    if (draft.evidenceIds.length < 2 || distinctOptions.size < 2) return false;
+    if (draft.evidenceIds.length < 2) return false;
     draft.founderAttentionMinutes = Math.max(0, Math.min(240, Math.round(draft.founderAttentionMinutes)));
+    // Weak alternatives mean the case is not decision-ready. They do not make
+    // the observed company condition disappear. Preserve it as private work so
+    // the next scan can improve the diagnosis and intervention set.
+    if (distinctOptions.size < 2 && draft.readiness === "decision_ready") {
+      draft.readiness = "investigating";
+      draft.readinessReason = "The condition is supported, but the intervention set is not yet strong enough for a founder decision.";
+    }
     if (draft.causeConfidence === "low" && draft.readiness === "decision_ready") {
       draft.readiness = "investigating";
       draft.readinessReason = "The likely cause is still a hypothesis, so this remains a private investigation.";
@@ -168,6 +185,131 @@ export function validateInvestigations(
     seen.add(draft.fingerprint);
     return true;
   }).slice(0, 8);
+}
+
+const PROVEN_DROP_REASONS = new Set<InvestigationAssessment["reasonCode"]>([
+  "duplicate",
+  "resolved",
+  "contradicted",
+]);
+
+/**
+ * The council may control founder attention, but it cannot erase unresolved
+ * company reality. Missing evidence is a reason to investigate, not to drop.
+ */
+export function normalizeInvestigationAssessments(
+  investigations: InvestigationDraft[],
+  assessments: InvestigationAssessment[],
+  acceptedAgendaFingerprints?: Set<string>,
+) {
+  const supplied = new Map(assessments.map((assessment) => [assessment.fingerprint, assessment]));
+  return investigations.map((investigation): InvestigationAssessment => {
+    const fallbackDisposition = investigation.readiness === "watchlist" ? "watchlist" : "investigate";
+    const fallback: InvestigationAssessment = {
+      fingerprint: investigation.fingerprint,
+      disposition: fallbackDisposition,
+      reasonCode: fallbackDisposition === "watchlist" ? "monitor" : "needs_evidence",
+      reason: cleanExecutiveText(investigation.readinessReason)
+        || "The case remains unresolved and needs more evidence before it can reach the founder.",
+    };
+    const candidate = supplied.get(investigation.fingerprint) ?? fallback;
+    const reason = cleanExecutiveText(candidate.reason) || fallback.reason;
+
+    const isMaterialStructuralCase = investigation.impact === "high" && investigation.strategicFit === "central";
+    if (
+      candidate.disposition === "drop"
+      && isMaterialStructuralCase
+      && !PROVEN_DROP_REASONS.has(candidate.reasonCode)
+    ) {
+      return {
+        fingerprint: investigation.fingerprint,
+        disposition: investigation.readiness === "watchlist" ? "watchlist" : "investigate",
+        reasonCode: investigation.readiness === "watchlist" ? "monitor" : "needs_evidence",
+        reason: `The council did not prove this material condition was resolved, contradicted, or duplicated. ${reason}`.trim(),
+      };
+    }
+
+    if (
+      candidate.disposition === "agenda"
+      && acceptedAgendaFingerprints
+      && !acceptedAgendaFingerprints.has(investigation.fingerprint)
+    ) {
+      return {
+        fingerprint: investigation.fingerprint,
+        disposition: "investigate",
+        reasonCode: "needs_evidence",
+        reason: "The founder-interruption gate did not clear. Keep investigating the case instead of pretending it vanished.",
+      };
+    }
+
+    return { ...candidate, reason };
+  });
+}
+
+export function normalizeCompanyRead(
+  draft: CompanyReadDraft | undefined,
+  investigations: InvestigationDraft[],
+  assessments: InvestigationAssessment[],
+  evidenceCatalog: WarRoomProposalEvidence[],
+): WarRoomCompanyRead {
+  const validEvidenceIds = new Set(evidenceCatalog.map((item) => item.id));
+  const activeAssessments = assessments.filter((assessment) => assessment.disposition !== "drop");
+  const activeFingerprints = new Set(activeAssessments.map((assessment) => assessment.fingerprint));
+  const investigationByFingerprint = new Map(investigations.map((investigation) => [investigation.fingerprint, investigation]));
+  const linked = [...new Set((draft?.investigationFingerprints ?? [])
+    .filter((fingerprint) => activeFingerprints.has(fingerprint)))];
+  for (const assessment of activeAssessments) {
+    if (!linked.includes(assessment.fingerprint)) linked.push(assessment.fingerprint);
+  }
+  const linkedEvidenceIds = linked.flatMap((fingerprint) =>
+    investigationByFingerprint.get(fingerprint)?.evidenceIds ?? [],
+  );
+
+  if (!investigations.length) {
+    return {
+      summary: "No founder decision is supported today, and this scan did not form a sufficiently evidenced private investigation. That is an evidence limitation, not proof that Olera has no important work.",
+      stance: "stable",
+      investigationFingerprints: [],
+      evidenceIds: [],
+      unresolvedQuestions: [],
+    };
+  }
+
+  const hasAgenda = activeAssessments.some((assessment) => assessment.disposition === "agenda");
+  const hasInvestigation = activeAssessments.some((assessment) => assessment.disposition === "investigate");
+  const stance: WarRoomCompanyRead["stance"] = hasAgenda
+    ? "decision_required"
+    : hasInvestigation
+      ? "investigating"
+      : activeAssessments.length
+        ? "monitoring"
+        : "stable";
+  const suppliedSummary = cleanExecutiveText(draft?.summary ?? "");
+  const boundedSummary = suppliedSummary
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => !(
+      activeAssessments.length
+      && /\b(?:nothing (?:here )?(?:has|is|was|moved|changed|worth)|hold founder attention|no (?:important )?(?:action|work|issue|risk))\b/i.test(sentence)
+    ))
+    .join(" ");
+  const stanceLead = stance === "decision_required"
+    ? "A founder decision is ready."
+    : stance === "investigating"
+      ? `No founder decision is ready today. War Room is actively investigating ${activeAssessments.length} unresolved case${activeAssessments.length === 1 ? "" : "s"}.`
+      : stance === "monitoring"
+        ? `No founder decision is needed today. War Room is monitoring ${activeAssessments.length} unresolved case${activeAssessments.length === 1 ? "" : "s"}.`
+        : "No founder decision is supported today.";
+
+  return {
+    summary: `${stanceLead} ${boundedSummary || (!activeAssessments.length
+      ? "The cases in this scan were resolved, contradicted, duplicated, or not material."
+      : "The unresolved cases remain visible below.")}`.trim(),
+    stance,
+    investigationFingerprints: linked.slice(0, 8),
+    evidenceIds: [...new Set([...(draft?.evidenceIds ?? []), ...linkedEvidenceIds]
+      .filter((id) => validEvidenceIds.has(id)))].slice(0, 10),
+    unresolvedQuestions: (draft?.unresolvedQuestions ?? []).map(cleanExecutiveText).filter(Boolean).slice(0, 5),
+  };
 }
 
 function containsUnfinishedInvestigation(proposal: AgendaProposalDraft) {

@@ -26,6 +26,9 @@ an approved direction but remain human-controlled.
    supported cause; multiple evidence families; verified existing state for
    code work; a real comparison against alternatives; a measurable outcome;
    and no unfinished audit or conditional build.
+   The council may drop a central, high-impact case only when current evidence
+   proves it duplicated, resolved, or contradicted. Missing evidence demotes a
+   case to private investigation; it does not erase the case.
 5. A repository-owned capability index supplies positive evidence for systems
    that models commonly rediscover. It proves presence, never absence. Until a
    live repository reader exists, code proposals may improve an indexed system
@@ -70,6 +73,13 @@ of founder attention for the decision itself. The model may recommend zero.
 `war_room_investigations` stores the cases that do not clear that standard. This
 is intentional: War Room should spend most of its compute eliminating bad work
 before the founder sees it.
+
+The company read uses two separate answers: whether a founder decision is ready
+and whether unresolved work exists. A scan with no agenda proposal may still be
+actively investigating or monitoring structural risk. If no dossier survives,
+the UI describes that as an evidence limitation rather than claiming Olera has
+nothing important to do. Flat but dangerous levels remain active until resolved;
+they do not disappear merely because a comparison window was unchanged.
 
 ## Slack reader
 

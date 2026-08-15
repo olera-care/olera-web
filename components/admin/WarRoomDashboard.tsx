@@ -21,6 +21,7 @@ import {
   ThumbsDown,
 } from "lucide-react";
 import type {
+  WarRoomCompanyRead,
   WarRoomIntegrationStatus,
   WarRoomInvestigation,
   WarRoomProposal,
@@ -131,6 +132,20 @@ const sourceTone: Record<WarRoomIntegrationStatus["status"], string> = {
   live: "bg-emerald-500",
   stale: "bg-amber-500",
   missing: "bg-gray-300",
+};
+
+const companyReadLabel: Record<WarRoomCompanyRead["stance"], string> = {
+  decision_required: "Decision required",
+  investigating: "Investigating",
+  monitoring: "Monitoring",
+  stable: "No decision today",
+};
+
+const companyReadTone: Record<WarRoomCompanyRead["stance"], string> = {
+  decision_required: "bg-rose-50 text-rose-700",
+  investigating: "bg-violet-50 text-violet-700",
+  monitoring: "bg-amber-50 text-amber-800",
+  stable: "bg-gray-100 text-gray-600",
 };
 
 const actionLabel: Record<WarRoomProposal["action_kind"], string> = {
@@ -623,9 +638,21 @@ export default function WarRoomDashboard() {
             <section className="mt-5 rounded-2xl border border-gray-200 bg-white px-5 py-5 sm:px-6">
               <div className="flex gap-3">
                 <Layers3 className="mt-0.5 h-5 w-5 shrink-0 text-gray-400" />
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Company read</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Company read</p>
+                    {payload.companyRead ? (
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${companyReadTone[payload.companyRead.stance]}`}>
+                        {companyReadLabel[payload.companyRead.stance]}
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-gray-800">{payload.companyVerdict}</p>
+                  {payload.companyRead?.investigationFingerprints.length ? (
+                    <p className="mt-2 text-xs text-gray-500">
+                      Following {payload.companyRead.investigationFingerprints.length} unresolved case{payload.companyRead.investigationFingerprints.length === 1 ? "" : "s"} below.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </section>
@@ -669,9 +696,15 @@ export default function WarRoomDashboard() {
           {!discoveryActive && !groups.waiting.length && !groups.active.length && !groups.review.length ? (
             <section className="mt-8 rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-12 text-center">
               <Check className="mx-auto h-6 w-6 text-emerald-600" />
-              <h2 className="mt-3 font-serif text-2xl font-bold text-gray-950">Nothing worth interrupting you for.</h2>
+              <h2 className="mt-3 font-serif text-2xl font-bold text-gray-950">
+                {groups.investigating.length || groups.watchlist.length
+                  ? "No decision needed from you today."
+                  : "No founder decision is supported today."}
+              </h2>
               <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-600">
-                Empty is a valid answer. War Room will look again tomorrow instead of manufacturing chores.
+                {groups.investigating.length || groups.watchlist.length
+                  ? "War Room is working the unresolved cases above. It will interrupt only when one becomes decision-ready."
+                  : "This scan did not preserve a sufficiently supported private investigation. That is an evidence limitation—not proof that Olera has nothing important to do."}
               </p>
             </section>
           ) : null}

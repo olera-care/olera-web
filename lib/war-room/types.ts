@@ -353,11 +353,21 @@ export interface WarRoomIntegrationStatus {
   updatedAt: string | null;
 }
 
+export interface WarRoomCompanyRead {
+  summary: string;
+  stance: "decision_required" | "investigating" | "monitoring" | "stable";
+  investigationFingerprints: string[];
+  evidenceIds: string[];
+  unresolvedQuestions: string[];
+}
+
 export interface WarRoomSupervisorPayload {
   generatedAt: string;
   proposals: WarRoomProposal[];
   investigations: WarRoomInvestigation[];
   companyModel: WarRoomCompanyModel | null;
+  companyRead: WarRoomCompanyRead | null;
+  /** Legacy summary retained while older discovery runs remain visible. */
   companyVerdict: string | null;
   latestDiscovery: WarRoomDiscoveryRun | null;
   integrations: WarRoomIntegrationStatus[];

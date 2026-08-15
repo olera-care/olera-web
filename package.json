@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "check:crons": "node scripts/check-cron-registry.js",
+    "check:war-room": "npx tsx scripts/check-war-room-reasoning.ts",
     "metrics": "npx tsx scripts/growth/pull-weekly-metrics.ts",
     "metrics:import-airtable": "npx tsx scripts/growth/import-airtable-history.ts",
     "metrics:backfill-pages": "npx tsx scripts/growth/backfill-page-metrics.ts",

@@ -12,6 +12,7 @@ import {
 import { dispatchApprovedProposal } from "@/lib/war-room/executor.server";
 import { integrationStatuses } from "@/lib/war-room/sources.server";
 import type {
+  WarRoomCompanyRead,
   WarRoomCompanyModel,
   WarRoomDiscoveryRun,
   WarRoomInvestigation,
@@ -20,6 +21,24 @@ import type {
 } from "@/lib/war-room/types";
 
 export const maxDuration = 300;
+
+function parseCompanyRead(run: WarRoomDiscoveryRun | null): WarRoomCompanyRead | null {
+  const value = run?.source_summary?.company_read;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Partial<WarRoomCompanyRead>;
+  const validStances = new Set<WarRoomCompanyRead["stance"]>([
+    "decision_required", "investigating", "monitoring", "stable",
+  ]);
+  if (
+    typeof candidate.summary !== "string"
+    || !candidate.stance
+    || !validStances.has(candidate.stance)
+    || !Array.isArray(candidate.investigationFingerprints)
+    || !Array.isArray(candidate.evidenceIds)
+    || !Array.isArray(candidate.unresolvedQuestions)
+  ) return null;
+  return candidate as WarRoomCompanyRead;
+}
 
 async function requireAdmin() {
   const user = await getAuthUser();
@@ -91,14 +110,16 @@ export async function GET() {
     const proposals = (proposalResult.data ?? []) as WarRoomProposal[];
     const investigations = (investigationResult.data ?? []) as WarRoomInvestigation[];
     const latestDiscovery = discoveryResult.data as WarRoomDiscoveryRun | null;
+    const companyRead = parseCompanyRead(latestDiscovery);
     const payload: WarRoomSupervisorPayload = {
       generatedAt: new Date().toISOString(),
       proposals,
       investigations,
       companyModel: companyModelResult.data as WarRoomCompanyModel | null,
-      companyVerdict: typeof latestDiscovery?.source_summary?.company_verdict === "string"
+      companyRead,
+      companyVerdict: companyRead?.summary ?? (typeof latestDiscovery?.source_summary?.company_verdict === "string"
         ? latestDiscovery.source_summary.company_verdict
-        : null,
+        : null),
       latestDiscovery,
       integrations,
       counts: {

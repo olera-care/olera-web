@@ -35,6 +35,53 @@ function relative(iso: string | null) {
   return days === 1 ? "yesterday" : `${days}d ago`;
 }
 
+function elapsedMilliseconds(startedAt: string | null, nowIso: string) {
+  if (!startedAt) return 0;
+  return Math.max(0, new Date(nowIso).getTime() - new Date(startedAt).getTime());
+}
+
+function elapsed(startedAt: string | null, nowIso: string) {
+  if (!startedAt) return "less than a minute";
+  const seconds = Math.floor(elapsedMilliseconds(startedAt, nowIso) / 1_000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}m ${remainder.toString().padStart(2, "0")}s`;
+}
+
+const discoveryStages: Record<string, { button: string; title: string; detail: string }> = {
+  queued: {
+    button: "Starting scan",
+    title: "Starting the investigation",
+    detail: "The run is queued and claiming its server worker.",
+  },
+  refreshing_sources: {
+    button: "Reading evidence",
+    title: "Reading the company evidence",
+    detail: "Refreshing connected sources and separating current signals from stale context.",
+  },
+  building_operating_pack: {
+    button: "Checking facts",
+    title: "Cross-checking the facts",
+    detail: "Combining product, customer, revenue, reliability, and source evidence into one frozen operating picture.",
+  },
+  forming_candidates: {
+    button: "Finding the work",
+    title: "Finding the highest-leverage work",
+    detail: "The scout is investigating likely constraints and writing bounded, executable proposals.",
+  },
+  challenging_candidates: {
+    button: "Attacking weak ideas",
+    title: "Trying to kill the weak ideas",
+    detail: "A separate skeptical pass is checking evidence, causality, scope, risk, and opportunity cost.",
+  },
+  saving_decisions: {
+    button: "Saving survivors",
+    title: "Saving the survivors",
+    detail: "The review is complete. War Room is recording only the proposals that survived it.",
+  },
+};
+
 const statusLabel: Record<WarRoomProposalStatus, string> = {
   proposed: "Needs your call",
   approved: "Approved",
@@ -263,6 +310,17 @@ export default function WarRoomDashboard() {
     payload?.latestDiscovery && ["queued", "running"].includes(payload.latestDiscovery.status)
     || payload?.proposals.some((proposal) => ["dispatching", "executing"].includes(proposal.status)),
   );
+  const discoveryActive = Boolean(
+    payload?.latestDiscovery && ["queued", "running"].includes(payload.latestDiscovery.status),
+  );
+  const discoveryStageKey = payload?.latestDiscovery?.status === "queued"
+    ? "queued"
+    : typeof payload?.latestDiscovery?.source_summary?.stage === "string"
+      ? payload.latestDiscovery.source_summary.stage
+      : "forming_candidates";
+  const discoveryStage = discoveryStages[discoveryStageKey] ?? discoveryStages.forming_candidates;
+  const discoveryStartedAt = payload?.latestDiscovery?.started_at || payload?.latestDiscovery?.created_at || null;
+  const discoveryElapsedMs = payload ? elapsedMilliseconds(discoveryStartedAt, payload.generatedAt) : 0;
   useEffect(() => {
     if (!shouldPoll) return;
     const timer = window.setInterval(() => load(true), 5_000);
@@ -345,7 +403,7 @@ export default function WarRoomDashboard() {
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-gray-950 px-5 py-3 text-xs font-bold text-white hover:bg-gray-800 disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${scanBusy || shouldPoll && payload?.latestDiscovery?.status !== "completed" ? "animate-spin" : ""}`} />
-          {payload?.latestDiscovery && ["queued", "running"].includes(payload.latestDiscovery.status) ? "Investigating" : "Scan now"}
+          {discoveryActive ? discoveryStage.button : "Scan now"}
         </button>
       </header>
 
@@ -401,7 +459,35 @@ export default function WarRoomDashboard() {
           {groups.waiting.length ? <ProposalSection title="Needs your call" detail="These survived the evidence check and a separate skeptical review." proposals={groups.waiting} busyId={busyId} onAction={act} /> : null}
           {groups.active.length ? <ProposalSection title="Working" detail="You approved the scope. The agent owns the build until it returns or reports a blocker." proposals={groups.active} busyId={busyId} onAction={act} /> : null}
 
-          {!groups.waiting.length && !groups.active.length && !groups.review.length ? (
+          {discoveryActive && payload?.latestDiscovery ? (
+            <section className="mt-8 overflow-hidden rounded-[1.75rem] border border-violet-200 bg-violet-50/70 px-6 py-8 sm:px-8">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex gap-4">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-950 text-white">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">Still working</p>
+                    <h2 className="mt-1 font-serif text-2xl font-bold text-gray-950">{discoveryStage.title}</h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">{discoveryStage.detail}</p>
+                  </div>
+                </div>
+                <div className="shrink-0 rounded-2xl border border-violet-200 bg-white/80 px-5 py-3 text-left sm:text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Elapsed</p>
+                  <p className="mt-0.5 text-lg font-semibold tabular-nums text-gray-950">
+                    {elapsed(discoveryStartedAt, payload.generatedAt)}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-5 border-t border-violet-200/70 pt-4 text-xs leading-5 text-gray-500">
+                {discoveryElapsedMs > 4 * 60_000
+                  ? "This is slower than normal. War Room will report a failure instead of spinning forever."
+                  : "War Room uses two independent deep-reasoning passes. Most runs take 2–4 minutes; the answer appears here automatically."}
+              </p>
+            </section>
+          ) : null}
+
+          {!discoveryActive && !groups.waiting.length && !groups.active.length && !groups.review.length ? (
             <section className="mt-8 rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-12 text-center">
               <Check className="mx-auto h-6 w-6 text-emerald-600" />
               <h2 className="mt-3 font-serif text-2xl font-bold text-gray-950">Nothing worth interrupting you for.</h2>

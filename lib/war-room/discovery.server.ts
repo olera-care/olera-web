@@ -162,6 +162,12 @@ type OutcomeDraft = {
   evidenceIds: string[];
 };
 type CriticOutput = { challenge: string; rejectedReasons: string[]; proposals: ProposalDraft[]; outcomes: OutcomeDraft[] };
+type DiscoveryStage =
+  | "refreshing_sources"
+  | "building_operating_pack"
+  | "forming_candidates"
+  | "challenging_candidates"
+  | "saving_decisions";
 
 function toolInput<T>(response: Anthropic.Messages.Message, name: string): T {
   const block = response.content.find((item) => item.type === "tool_use" && item.name === name);
@@ -195,6 +201,7 @@ async function analyzePortfolio(
   factPack: ReturnType<typeof buildWarRoomFactPack>,
   externalEvidence: WarRoomProposalEvidence[],
   proposalMemory: Array<Partial<WarRoomProposal>>,
+  onStage?: (stage: DiscoveryStage) => Promise<void>,
 ) {
   if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -241,6 +248,7 @@ async function analyzePortfolio(
   const scoutOutput = toolInput<ScoutOutput>(scout, SCOUT_TOOL.name);
   const candidates = validateProposals(scoutOutput.candidates ?? [], evidenceCatalog);
 
+  await onStage?.("challenging_candidates");
   const critic = await anthropic.messages.create({
     model: WAR_ROOM_DISCOVERY_MODEL,
     max_tokens: 7_000,
@@ -446,9 +454,23 @@ async function saveProposals(
 
 export async function executeWarRoomDiscovery(runId: string) {
   const db = getServiceClient();
+  const sourceSummary: Record<string, unknown> = { stage: "refreshing_sources" };
+  const setStage = async (stage: DiscoveryStage) => {
+    sourceSummary.stage = stage;
+    const { error } = await db.from("war_room_discovery_runs")
+      .update({ source_summary: sourceSummary })
+      .eq("id", runId)
+      .eq("status", "running");
+    if (error) throw error;
+  };
   try {
     const { data: run, error: runError } = await db.from("war_room_discovery_runs")
-      .update({ status: "running", started_at: new Date().toISOString(), error_message: null })
+      .update({
+        status: "running",
+        started_at: new Date().toISOString(),
+        error_message: null,
+        source_summary: sourceSummary,
+      })
       .eq("id", runId)
       .eq("status", "queued")
       .select("*")
@@ -460,6 +482,8 @@ export async function executeWarRoomDiscovery(runId: string) {
       syncSlackHistoryEvidence(db),
       syncNotionEvidence(db),
     ]);
+    Object.assign(sourceSummary, { slack, notion });
+    await setStage("building_operating_pack");
     const [snapshot, externalEvidence, memoryResult, dueOutcomeResult] = await Promise.all([
       buildWarRoomSnapshot(db, 30),
       loadExternalEvidence(db),
@@ -483,20 +507,25 @@ export async function executeWarRoomDiscovery(runId: string) {
       if (proposal.id) memoryById.set(proposal.id, proposal);
     }
     const factPack = buildWarRoomFactPack(snapshot);
+    Object.assign(sourceSummary, {
+      external_evidence_count: externalEvidence.length,
+      internal_evidence_count: factPack.evidenceCatalog.length,
+    });
+    await setStage("forming_candidates");
     const result = await analyzePortfolio(
       factPack,
       externalEvidence,
       [...memoryById.values()],
+      setStage,
     );
+    await setStage("saving_decisions");
     const saved = await saveProposals(db, runId, result.proposals, result.evidenceCatalog);
     await saveOutcomes(db, result.outcomes, result.evidenceCatalog);
     const { error: finishError } = await db.from("war_room_discovery_runs").update({
       status: "completed",
       source_summary: {
-        slack,
-        notion,
-        external_evidence_count: externalEvidence.length,
-        internal_evidence_count: factPack.evidenceCatalog.length,
+        ...sourceSummary,
+        stage: "completed",
       },
       candidate_count: result.proposals.length,
       proposal_count: saved,

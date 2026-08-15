@@ -22,6 +22,30 @@ import type {
 
 export const maxDuration = 300;
 
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+  return "";
+}
+
+function supervisorActionError(error: unknown, action?: string) {
+  const rawMessage = errorMessage(error);
+  if (/war_room_investigation_events_event_type_check|intervention_superseded/i.test(rawMessage)) {
+    return "War Room database is missing migration 180. Apply migration 180, then scan again.";
+  }
+  if (
+    /prompt_version|fact_pack_hash|raw_investigator_output|raw_council_output|validation_trace|war_room_investigation_events|hypotheses|next_probe|resolution_criteria|resolution_evidence|progress_summary|last_progress_at|evidence_hash/i
+      .test(rawMessage)
+  ) {
+    return "War Room database is missing migration 179. Apply migrations 179 and 180, then scan again.";
+  }
+  return action === "discover"
+    ? "War Room could not start this scan. No work was queued."
+    : "War Room could not save this decision.";
+}
+
 function parseCompanyRead(run: WarRoomDiscoveryRun | null): WarRoomCompanyRead | null {
   const value = run?.source_summary?.company_read;
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -146,12 +170,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
+  let requestedAction: string | undefined;
   try {
     const body = await request.json() as {
       action?: "discover" | "approve" | "retry" | "reject" | "complete";
       proposalId?: string;
       note?: string;
     };
+    requestedAction = body.action;
     const db = getServiceClient();
     if (body.action === "discover") {
       const queued = await queueWarRoomDiscovery(db, "manual", auth.admin.email);
@@ -369,6 +395,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unknown proposal action" }, { status: 400 });
   } catch (error) {
     console.error("[war-room] supervisor action failed:", error);
-    return NextResponse.json({ error: "War Room could not save this decision." }, { status: 500 });
+    return NextResponse.json({ error: supervisorActionError(error, requestedAction) }, { status: 500 });
   }
 }

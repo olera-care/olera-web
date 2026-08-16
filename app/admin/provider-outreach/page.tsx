@@ -1935,6 +1935,8 @@ interface CityRowProps {
   onOpenActionModal: (provider: OutreachProvider) => void;
   onOpenNotesModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
+  // Move to Ready (for Not Interested tab)
+  onMoveToReady?: (providerId: string) => void;
   // City assignment
   cityOwnerId: string | null;
   cityOwnerName: string | null;
@@ -1963,6 +1965,7 @@ function CityRow({
   onOpenActionModal,
   onOpenNotesModal,
   onRemoveProvider,
+  onMoveToReady,
   cityOwnerId,
   cityOwnerName,
   isEditingAssignment,
@@ -1986,6 +1989,9 @@ function CityRow({
   const [confirmedProviders, setConfirmedProviders] = useState<Set<string>>(new Set());
   const [confirmingProvider, setConfirmingProvider] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  // Move to Ready state (for Not Interested tab)
+  const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
+  const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
   const cityProviders = useMemo(
@@ -2544,6 +2550,54 @@ function CityRow({
                                 >
                                   {provider.profile_completeness}% complete
                                 </span>
+                              )}
+                            </div>
+                          )}
+                          {/* Not Interested providers: Move to Ready button */}
+                          {provider.stage === "not_interested" && provider.email && onMoveToReady && (
+                            <div className="flex items-center gap-2">
+                              {showMoveToReadyConfirmId === provider.provider_id ? (
+                                <div className="flex items-center gap-2 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded">
+                                  <span className="text-xs text-gray-700">Move to Ready?</span>
+                                  <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      setMovingToReadyId(provider.provider_id);
+                                      try {
+                                        await onMoveToReady(provider.provider_id);
+                                      } finally {
+                                        setMovingToReadyId(null);
+                                        setShowMoveToReadyConfirmId(null);
+                                      }
+                                    }}
+                                    disabled={movingToReadyId === provider.provider_id}
+                                    className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                                  >
+                                    {movingToReadyId === provider.provider_id ? "..." : "Yes"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setShowMoveToReadyConfirmId(null);
+                                    }}
+                                    className="text-xs text-gray-500 hover:text-gray-700"
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowMoveToReadyConfirmId(provider.provider_id);
+                                  }}
+                                  className="px-2 py-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded transition"
+                                >
+                                  Move to Ready
+                                </button>
                               )}
                             </div>
                           )}
@@ -8157,6 +8211,33 @@ export default function ProviderOutreachPage() {
                           stage: provider.stage,
                         });
                       }}
+                      onMoveToReady={activeTab === "not_interested" ? async (providerId) => {
+                        try {
+                          const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              provider_ids: [providerId],
+                              stage: "not_contacted",
+                            }),
+                          });
+                          if (res.ok) {
+                            // Remove from current list and update counts
+                            setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                            setStageCounts((prev) => ({
+                              ...prev,
+                              not_interested: Math.max(0, prev.not_interested - 1),
+                              ready: prev.ready + 1,
+                            }));
+                            showToast("Moved to Ready", "success");
+                          } else {
+                            const err = await res.json();
+                            showToast(err.error || "Failed to move provider", "error");
+                          }
+                        } catch {
+                          showToast("Network error", "error");
+                        }
+                      } : undefined}
                       cityOwnerId={cityOwners.get(city.city)?.owner_id || null}
                       cityOwnerName={cityOwners.get(city.city)?.owner_name || null}
                       isEditingAssignment={editingCityAssignment === city.city}

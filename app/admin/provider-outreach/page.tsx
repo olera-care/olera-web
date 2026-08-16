@@ -2675,7 +2675,6 @@ function FollowUpProviderRow({
   const [resettingToReady, setResettingToReady] = useState(false);
   // Use Apollo Email (without moving to Ready) state
   const [savingApolloEmail, setSavingApolloEmail] = useState(false);
-  const [apolloEmailSaved, setApolloEmailSaved] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -2710,7 +2709,6 @@ function FollowUpProviderRow({
       setResettingToReady(false);
       // Reset "Use Apollo Email" state
       setSavingApolloEmail(false);
-      setApolloEmailSaved(false);
     }
   }, [isExpanded]);
 
@@ -2847,10 +2845,8 @@ function FollowUpProviderRow({
       const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
 
       if (res.ok) {
-        if (stillValid) {
-          setApolloEmailSaved(true);
-        }
         // Update local state with new email
+        // The UI will show "Email saved" because emails now match
         onProviderUpdated({
           email: localApolloContact.email,
           email_source: "decision_maker",
@@ -3684,7 +3680,7 @@ function FollowUpProviderRow({
                     {/* Action buttons */}
                     <div className="flex items-center gap-3 mt-2">
                       {/* Use This Email button - updates email but stays in Follow Up */}
-                      {apolloEmailSaved || localApolloContact.email?.toLowerCase() === provider.email?.toLowerCase() ? (
+                      {localApolloContact.email?.toLowerCase() === provider.email?.toLowerCase() ? (
                         <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />

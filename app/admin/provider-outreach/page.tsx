@@ -2801,12 +2801,11 @@ function FollowUpProviderRow({
           found_at: new Date().toISOString(),
         };
         setLocalApolloContact(contact);
-        // Update parent state with Apollo contact, email_source, and email
-        // Backend now saves Apollo email to olera-providers, so sync locally too
+        // Only save apollo_contact to parent state for display
+        // Do NOT update email or email_source here - user must click
+        // "Reset to Ready with this email" to confirm
         onProviderUpdated({
           apollo_contact: contact,
-          email_source: "decision_maker",
-          email: contact.email,
         });
       } else {
         setApolloError("No decision-maker found");

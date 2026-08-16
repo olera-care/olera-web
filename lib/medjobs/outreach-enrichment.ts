@@ -105,10 +105,11 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-/** Cost meter shared across a batch run. Google details ≈ $0.017/call; Sonar ≈ $0.008/call. */
+/** Cost meter shared across a batch run. Google details ≈ $0.017/call; Sonar ≈ $0.008/call; Apollo ≈ $0.01/credit. */
 export class CostTracker {
   google = 0;
   perplexity = 0;
+  apollo = 0;
   private startTime = Date.now();
   addGoogle(n = 1) {
     this.google += n;
@@ -116,8 +117,11 @@ export class CostTracker {
   addPerplexity(n = 1) {
     this.perplexity += n;
   }
+  addApollo(n = 1) {
+    this.apollo += n;
+  }
   get cost(): number {
-    return this.google * 0.017 + this.perplexity * 0.008;
+    return this.google * 0.017 + this.perplexity * 0.008 + this.apollo * 0.01;
   }
   get elapsed(): number {
     return (Date.now() - this.startTime) / 1000;
@@ -130,7 +134,11 @@ export class CostTracker {
         : s < 3600
           ? `${(s / 60).toFixed(1)}m`
           : `${Math.floor(s / 3600)}h${Math.floor((s % 3600) / 60)}m`;
-    return `$${this.cost.toFixed(2)} (${this.google} Google, ${this.perplexity} Perplexity, ${t})`;
+    const parts = [];
+    if (this.google > 0) parts.push(`${this.google} Google`);
+    if (this.perplexity > 0) parts.push(`${this.perplexity} Perplexity`);
+    if (this.apollo > 0) parts.push(`${this.apollo} Apollo`);
+    return `$${this.cost.toFixed(2)} (${parts.join(", ")}, ${t})`;
   }
 }
 

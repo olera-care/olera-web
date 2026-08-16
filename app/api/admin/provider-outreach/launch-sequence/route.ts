@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_ids, dry_run = true, assigned_to } = body;
+    const { provider_ids, dry_run = true, assigned_to, use_apollo_email } = body;
 
     // Resolve assigned_to: default to current admin if not specified
     const assignedToId = assigned_to || adminUser.id;
@@ -411,7 +411,12 @@ export async function POST(request: NextRequest) {
       // 1. Get or create tracking records and move to in_sequence
       const launchedProviders: string[] = [];
       const failedProviders: Array<{ provider_id: string; error: string }> = [];
-      const trackingRecords: Map<string, { trackingId: string; preview: typeof validPreviews[0]; variantAssignment?: VariantAssignment }> = new Map();
+      const trackingRecords: Map<string, {
+        trackingId: string;
+        preview: typeof validPreviews[0];
+        variantAssignment?: VariantAssignment;
+        apolloEmail?: string | null;
+      }> = new Map();
 
       for (const preview of validPreviews) {
         try {
@@ -431,7 +436,7 @@ export async function POST(request: NextRequest) {
           // Check if tracking record exists
           const { data: existingTracking } = await db
             .from("provider_outreach_tracking")
-            .select("id, stage, assigned_to, smartlead_data")
+            .select("id, stage, assigned_to, smartlead_data, apollo_contact")
             .eq("provider_id", preview.provider_id)
             .maybeSingle();
 
@@ -523,7 +528,9 @@ export async function POST(request: NextRequest) {
 
           // Store variant assignment with tracking record for later use
           const variantAssignment = variantAssignments.get(preview.provider_id);
-          trackingRecords.set(preview.provider_id, { trackingId, preview, variantAssignment });
+          // Get Apollo contact email if available from existing tracking
+          const apolloEmail = existingTracking?.apollo_contact?.email ?? null;
+          trackingRecords.set(preview.provider_id, { trackingId, preview, variantAssignment, apolloEmail });
         } catch (err) {
           console.error(`Failed to create tracking for ${preview.provider_id}:`, err);
           failedProviders.push({
@@ -539,18 +546,21 @@ export async function POST(request: NextRequest) {
         // Group providers by state for per-state campaigns
         const providersByState = new Map<string, ProviderBridgeRow[]>();
 
-        for (const [providerId, { trackingId, preview }] of trackingRecords) {
+        for (const [providerId, { trackingId, preview, apolloEmail }] of trackingRecords) {
           const state = preview.state || "OTHER";
 
           // Get the provider data needed for SmartLead
           const provider = providers?.find((p) => p.provider_id === providerId);
           if (!provider) continue;
 
+          // Use Apollo email if requested and available, otherwise use provider's generic email
+          const effectiveEmail = (use_apollo_email && apolloEmail) ? apolloEmail : provider.email;
+
           // Build context for URL generation
           const context = buildContextFromProvider({
             provider_id: providerId,
             name: provider.provider_name,
-            email: provider.email,
+            email: effectiveEmail,
             city: provider.city,
             state: provider.state,
             category: provider.provider_category,
@@ -576,7 +586,7 @@ export async function POST(request: NextRequest) {
             tracking_id: trackingId,
             provider_id: providerId,
             provider_name: provider.provider_name,
-            email: provider.email,
+            email: effectiveEmail,
             city: provider.city,
             state: provider.state,
             category: provider.provider_category,
@@ -732,11 +742,14 @@ export async function POST(request: NextRequest) {
       }
 
       // Legacy: Create tasks for each cadence step (when SmartLead not configured)
-      for (const [providerId, { trackingId, preview, variantAssignment }] of trackingRecords) {
+      for (const [providerId, { trackingId, preview, variantAssignment, apolloEmail }] of trackingRecords) {
         try {
+          // Use Apollo email if requested and available, otherwise use provider's generic email
+          const effectiveEmail = (use_apollo_email && apolloEmail) ? apolloEmail : preview.email;
+
           const taskRows = schedule.map((step) => {
             const payload: Record<string, unknown> = {
-              recipient_email: preview.email,
+              recipient_email: effectiveEmail,
               provider_name: preview.provider_name,
               city: preview.city,
               state: preview.state,

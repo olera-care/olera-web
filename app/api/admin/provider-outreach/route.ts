@@ -87,6 +87,17 @@ interface ProviderRow {
   slug: string | null;
 }
 
+// Apollo contact structure stored in JSONB
+interface ApolloContactData {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  title: string | null;
+  linkedin_url: string | null;
+  found_at: string;
+  credits_used?: number;
+}
+
 interface TrackingRow {
   id: string;
   provider_id: string;
@@ -118,7 +129,11 @@ interface TrackingRow {
   generic_email_skipped_at: string | null;
   // Confirmation state (Ready tab)
   confirmed_at: string | null;
+  // Apollo.io decision-maker enrichment
+  apollo_contact: ApolloContactData | null;
   confirmed_by: string | null;
+  // Email source tracking
+  email_source: string | null;
 }
 
 export interface OutreachProvider {
@@ -181,6 +196,17 @@ export interface OutreachProvider {
   // Questions and leads context
   questions_count?: number;
   leads_count?: number;
+  // Apollo.io decision-maker enrichment
+  apollo_contact?: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    title: string | null;
+    linkedin_url: string | null;
+    found_at: string;
+  } | null;
+  // Email source: 'organization' (scraped/manual) or 'decision_maker' (Apollo)
+  email_source?: "organization" | "decision_maker" | null;
 }
 
 /**
@@ -654,6 +680,8 @@ export async function GET(request: NextRequest) {
           // Generic email warning state (persisted for page refresh)
           generic_email_called_at: t.generic_email_called_at ?? null,
           generic_email_skipped_at: t.generic_email_skipped_at ?? null,
+          // Apollo.io decision-maker enrichment
+          apollo_contact: t.apollo_contact ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -701,7 +729,7 @@ async function getNotContactedProviders(
   // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
     .eq("state", state);
 
   if (trackingError) {
@@ -814,14 +842,23 @@ async function getNotContactedProviders(
         // Confirmation state (Ready tab)
         confirmed_at: tracking?.confirmed_at ?? null,
         confirmed_by: tracking?.confirmed_by ?? null,
+        // Apollo.io decision-maker enrichment
+        apollo_contact: tracking?.apollo_contact ?? null,
+        // Email source: 'organization' or 'decision_maker'
+        email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
       };
     });
 
   // Step 6: Apply email filter if specified (for Needs Email / Ready tabs)
+  // A provider "has email" if they have EITHER a generic email OR an Apollo email
   if (emailFilter === "needs_email") {
-    result = result.filter((p) => !p.email || !p.email.trim());
+    result = result.filter((p) =>
+      (!p.email || !p.email.trim()) && !p.apollo_contact?.email
+    );
   } else if (emailFilter === "has_email") {
-    result = result.filter((p) => p.email && p.email.trim());
+    result = result.filter((p) =>
+      (p.email && p.email.trim()) || p.apollo_contact?.email
+    );
   }
 
   return result.sort((a, b) => a.provider_name.localeCompare(b.provider_name));
@@ -1043,6 +1080,8 @@ async function getHiddenProviders(
         // Generic email warning state (persisted for page refresh)
         generic_email_called_at: t.generic_email_called_at ?? null,
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
+        // Apollo.io decision-maker enrichment
+        apollo_contact: t.apollo_contact ?? null,
       };
     })
     .filter((p): p is OutreachProvider => p !== null)
@@ -1138,6 +1177,8 @@ async function getArchivedProviders(
         // Generic email warning state
         generic_email_called_at: t.generic_email_called_at ?? null,
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
+        // Apollo.io decision-maker enrichment
+        apollo_contact: t.apollo_contact ?? null,
       });
     }
   }
@@ -1298,7 +1339,7 @@ async function searchProviders(
   // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
@@ -1469,6 +1510,10 @@ async function searchProviders(
       // Confirmation state (Ready tab)
       confirmed_at: tracking?.confirmed_at ?? null,
       confirmed_by: tracking?.confirmed_by ?? null,
+      // Apollo.io decision-maker enrichment
+      apollo_contact: tracking?.apollo_contact ?? null,
+      // Email source: 'organization' or 'decision_maker'
+      email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
     };
   });
 
@@ -1559,15 +1604,18 @@ async function getStageCounts(
 
   // Step 3: Get all tracking rows for this state (small set, filtered by state)
   // Include admin_hidden to filter out hidden providers from counts
+  // Include apollo_contact to check for decision-maker emails in ready count
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, stage, admin_hidden")
+    .select("provider_id, stage, admin_hidden, apollo_contact")
     .eq("state", state);
 
   // Collect all tracked provider IDs and their stages
   const trackedProviderIds = new Set<string>();
   // Track hidden providers separately (to exclude from not_contacted counts)
   const hiddenProviderIds = new Set<string>();
+  // Track apollo_contact emails for not_contacted providers (for ready count)
+  const apolloEmailMap = new Map<string, string>();
   const stageCounts: Record<string, number> = {};
 
   if (trackingRows) {
@@ -1579,6 +1627,14 @@ async function getStageCounts(
       if (isHidden) {
         hiddenProviderIds.add(row.provider_id);
         continue; // Skip counting hidden providers entirely
+      }
+
+      // For not_contacted providers, track apollo_contact email (for ready count)
+      if (stage === "not_contacted") {
+        const apolloContact = row.apollo_contact as { email?: string } | null;
+        if (apolloContact?.email) {
+          apolloEmailMap.set(row.provider_id, apolloContact.email);
+        }
       }
 
       // Skip not_contacted and claimed - they're calculated separately
@@ -1728,9 +1784,10 @@ async function getStageCounts(
   if (providersWithEmail) {
     for (const p of providersWithEmail) {
       if (excludedIds.has(p.provider_id)) continue;
-      // Also check if they're in tracking with not_contacted stage (those are still "not contacted")
-      // But we already filtered these out via existingTrackedIds which excludes not_contacted
-      if (p.email && p.email.trim()) {
+      // Provider "has email" if they have generic email OR apollo_contact email
+      const hasGenericEmail = p.email && p.email.trim();
+      const hasApolloEmail = apolloEmailMap.has(p.provider_id);
+      if (hasGenericEmail || hasApolloEmail) {
         counts.ready++;
       } else {
         counts.needs_email++;

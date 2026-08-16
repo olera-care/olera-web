@@ -7709,9 +7709,15 @@ export default function ProviderOutreachPage() {
                   )
                 );
               }}
-              onResetToReady={() => {
-                // Refresh the list - provider moved to Ready tab
-                fetchCities();
+              onResetToReady={(providerId) => {
+                // Optimistically remove provider from list (they moved to Ready tab)
+                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                // Also update stage counts
+                setStageCounts((prev) => ({
+                  ...prev,
+                  re_engage: Math.max(0, prev.re_engage - 1),
+                  ready: prev.ready + 1,
+                }));
               }}
               adminNameLookup={adminNameLookup}
             />

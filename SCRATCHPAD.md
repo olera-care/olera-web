@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-16 — Care-seeker comms timeline (`codex/care-seeker-comms-timeline`)
+
+Replaced the care-seeker detail page's email-only block with the same interleaved comms model used for providers: family email/SMS rows plus meaningful `seeker_activity`, chronological lifecycle statuses, expandable message previews, honest totals, Email Log deep-linking, and mobile horizontal scrolling. Extracted the provider renderer into a shared `CommsTimeline` without changing its data source. The care-seeker API matches current recipient email, stable `metadata.family_profile_id`, and the family-SMS profile key; it also recovers profile-less save-signup conversions by exact `metadata.user_email`. Pre-test fixed those two identity omissions plus a stale-response race that could show the wrong body after rapidly switching previews. No migration.
+
+**Files:** `app/admin/care-seekers/[seekerId]/page.tsx`, `app/api/admin/care-seekers/[seekerId]/comms-timeline/route.ts`, `components/admin/{CommsTimeline,CareSeekerCommsTimeline,ProviderCommsTimeline}.tsx`. **Validation:** TypeScript, targeted ESLint (including the care-seeker page with inline config disabled around its known missing-rule directive), diff check, PostgREST filter-shape smoke test, and 32-cron registry pass; Next production compilation passed before static export hit the unrelated missing-local-Supabase-env blocker. **Branch/PR:** `codex/care-seeker-comms-timeline`, ready-for-review PR #1606 → `staging`. **Next:** preview a history-rich care seeker, an activity-only/no-email seeker, SMS icon/count behavior, rapid preview switching, mobile scrolling, and one provider timeline regression check; merge only after TJ approval.
+
 ### 2026-08-14 — The benefits funnel read one spouse's income as the household's (`benefits-household-income-guard`, PR #1599)
 
 Started as one support email and turned into a real bug. **Gerald Dunn** (thread `6fc415dd`, profile `a86383a6`, SC, 83) ran the benefits finder Aug 9 and emailed `support@olera.care` **12 minutes later** with his actual numbers, asking whether his wife qualifies for QI. Her income is $980/mo. The household's is $4,680. He answered the intake's *"About how much is their monthly income?"* for **her**, landed in the `under1500` band, and the funnel treated that as the figure a means test would weigh.

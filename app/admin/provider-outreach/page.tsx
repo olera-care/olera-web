@@ -1708,13 +1708,16 @@ function ApolloContactRow({
   provider,
   onUseEmail,
   onContactFound,
+  onEmailSourceChanged,
 }: {
   provider: OutreachProvider;
   onUseEmail: (email: string, emailSource?: "decision_maker") => void;
   onContactFound: (contact: OutreachProvider["apollo_contact"]) => void;
+  onEmailSourceChanged?: (emailSource: "organization" | "decision_maker") => void;
 }) {
   const [finding, setFinding] = useState(false);
   const [using, setUsing] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const apolloContact = provider.apollo_contact;
@@ -1791,6 +1794,33 @@ function ApolloContactRow({
     }
   }
 
+  // Switch from Decision Maker back to Organization
+  async function handleSwitchToOrganization() {
+    if (switching) return;
+    setSwitching(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email-source", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: "organization",
+        }),
+      });
+      if (res.ok) {
+        onEmailSourceChanged?.("organization");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to switch");
+      }
+    } catch (err) {
+      setError("Failed to switch");
+    } finally {
+      setSwitching(false);
+    }
+  }
+
   // If no Apollo contact yet, show the Find button
   if (!apolloContact) {
     return (
@@ -1844,12 +1874,28 @@ function ApolloContactRow({
       )}
       {/* Show appropriate action based on state */}
       {isConfirmed ? (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded">
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-          </svg>
-          Active
-        </span>
+        <>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+            Active
+          </span>
+          {onEmailSourceChanged && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSwitchToOrganization();
+              }}
+              disabled={switching}
+              className="px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition disabled:opacity-50"
+              title="Switch to use organization email instead"
+            >
+              {switching ? "..." : "Use Org Email"}
+            </button>
+          )}
+        </>
       ) : (
         <button
           type="button"
@@ -1885,6 +1931,7 @@ interface CityRowProps {
   onEmailSaved: (providerId: string, newEmail: string, emailSource?: "decision_maker") => void;
   onPhoneSaved: (providerId: string, newPhone: string | null) => void;
   onApolloContactFound: (providerId: string, apolloContact: OutreachProvider["apollo_contact"]) => void;
+  onEmailSourceChanged: (providerId: string, emailSource: "organization" | "decision_maker") => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
   onOpenNotesModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
@@ -1912,6 +1959,7 @@ function CityRow({
   onEmailSaved,
   onPhoneSaved,
   onApolloContactFound,
+  onEmailSourceChanged,
   onOpenActionModal,
   onOpenNotesModal,
   onRemoveProvider,
@@ -2417,6 +2465,7 @@ function CityRow({
                                   }}
                                   onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
                                   onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
+                                  onEmailSourceChanged={activeTab === "ready" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
                                 />
                               )}
                             </>
@@ -7913,6 +7962,16 @@ export default function ProviderOutreachPage() {
                         if (isNotContactedTab(activeTab)) {
                           fetchCities();
                         }
+                      }}
+                      onEmailSourceChanged={(providerId, emailSource) => {
+                        // Update email_source in local state (provider moves between Organization/Decision Maker sub-tabs)
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId
+                              ? { ...p, email_source: emailSource }
+                              : p
+                          )
+                        );
                       }}
                       onOpenActionModal={setActionModalProvider}
                       onOpenNotesModal={(provider) => {

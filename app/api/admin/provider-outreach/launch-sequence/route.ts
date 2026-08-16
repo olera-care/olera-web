@@ -163,7 +163,12 @@ export async function POST(request: NextRequest) {
       .select("provider_id, apollo_contact")
       .in("provider_id", validProviderIds);
 
-    const apolloContactMap = new Map<string, { first_name?: string; email?: string }>();
+    const apolloContactMap = new Map<string, {
+      first_name?: string;
+      last_name?: string | null;
+      title?: string | null;
+      email?: string;
+    }>();
     for (const row of trackingData ?? []) {
       if (row.apollo_contact) {
         apolloContactMap.set(row.provider_id, row.apollo_contact as { first_name?: string; email?: string });
@@ -260,8 +265,8 @@ export async function POST(request: NextRequest) {
       const apolloContact = apolloContactMap.get(providerId);
       const decisionMaker = apolloContact?.first_name ? {
         first_name: apolloContact.first_name,
-        last_name: null,
-        title: null,
+        last_name: apolloContact.last_name ?? null,
+        title: apolloContact.title ?? null,
       } : undefined;
 
       // Build context and render emails

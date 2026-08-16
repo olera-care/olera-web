@@ -209,7 +209,11 @@ export async function executeProviderOutreachTask(taskId: string): Promise<Execu
   }
 
   // Extract Apollo contact for personalized greeting
-  const apolloContact = tracking.apollo_contact as { first_name?: string } | null;
+  const apolloContact = tracking.apollo_contact as {
+    first_name?: string;
+    last_name?: string | null;
+    title?: string | null;
+  } | null;
 
   // 3. Check if email is suppressed
   if (!recipientEmail) {
@@ -254,8 +258,8 @@ export async function executeProviderOutreachTask(taskId: string): Promise<Execu
     // Build decision_maker for personalized greeting
     const decisionMaker = apolloContact?.first_name ? {
       first_name: apolloContact.first_name,
-      last_name: null,
-      title: null,
+      last_name: apolloContact.last_name ?? null,
+      title: apolloContact.title ?? null,
     } : undefined;
 
     const context = buildContextFromProvider(

@@ -4560,6 +4560,8 @@ interface ReEngageQueueProps {
   onArchive: (provider: OutreachProvider) => void;
   onNotInterested: (provider: OutreachProvider, reason: string) => void;
   onOpenNotesModal: (provider: OutreachProvider) => void;
+  onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
+  onResetToReady: (providerId: string) => void;
   adminNameLookup: Map<string, string>;
 }
 
@@ -4578,8 +4580,131 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenNotesModal, adminNameLookup }: ReEngageQueueProps) {
+function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenNotesModal, onProviderUpdated, onResetToReady, adminNameLookup }: ReEngageQueueProps) {
   // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
+
+  // Apollo Decision Maker state
+  const [apolloContactMap, setApolloContactMap] = useState<Map<string, OutreachProvider["apollo_contact"]>>(new Map());
+  const [findingApolloId, setFindingApolloId] = useState<string | null>(null);
+  const [apolloErrorMap, setApolloErrorMap] = useState<Map<string, string>>(new Map());
+  const [savingApolloEmailId, setSavingApolloEmailId] = useState<string | null>(null);
+  const [resettingToReadyId, setResettingToReadyId] = useState<string | null>(null);
+  const [showResetConfirmId, setShowResetConfirmId] = useState<string | null>(null);
+
+  // Initialize apolloContactMap from provider data
+  useEffect(() => {
+    const newMap = new Map<string, OutreachProvider["apollo_contact"]>();
+    for (const p of providers) {
+      if (p.apollo_contact) {
+        newMap.set(p.provider_id, p.apollo_contact);
+      }
+    }
+    setApolloContactMap(newMap);
+  }, [providers]);
+
+  // Apollo handlers
+  const handleFindDecisionMaker = useCallback(async (providerId: string) => {
+    setFindingApolloId(providerId);
+    setApolloErrorMap((prev) => {
+      const next = new Map(prev);
+      next.delete(providerId);
+      return next;
+    });
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        setApolloErrorMap((prev) => new Map(prev).set(providerId, data.error));
+      } else if (data.contact?.email) {
+        const contact = {
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        };
+        setApolloContactMap((prev) => new Map(prev).set(providerId, contact));
+        onProviderUpdated(providerId, { apollo_contact: contact });
+      } else {
+        setApolloErrorMap((prev) => new Map(prev).set(providerId, "No decision-maker found"));
+      }
+    } catch {
+      setApolloErrorMap((prev) => new Map(prev).set(providerId, "Lookup failed"));
+    } finally {
+      setFindingApolloId(null);
+    }
+  }, [onProviderUpdated]);
+
+  const handleUseApolloEmail = useCallback(async (providerId: string) => {
+    const apolloContact = apolloContactMap.get(providerId);
+    if (!apolloContact?.email) return;
+
+    setSavingApolloEmailId(providerId);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email: apolloContact.email,
+          confirm_apollo: true,
+        }),
+      });
+
+      if (res.ok) {
+        onProviderUpdated(providerId, {
+          email: apolloContact.email,
+          email_source: "decision_maker",
+        });
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to update email");
+      }
+    } catch {
+      alert("Network error updating email");
+    } finally {
+      setSavingApolloEmailId(null);
+    }
+  }, [apolloContactMap, onProviderUpdated]);
+
+  const handleResetToReady = useCallback(async (providerId: string) => {
+    const apolloContact = apolloContactMap.get(providerId);
+    if (!apolloContact?.email) return;
+
+    setResettingToReadyId(providerId);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email_source: "decision_maker",
+          use_apollo_email: true,
+        }),
+      });
+
+      if (res.ok) {
+        setShowResetConfirmId(null);
+        onResetToReady(providerId);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to reset provider");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setResettingToReadyId(null);
+    }
+  }, [apolloContactMap, onResetToReady]);
 
   // Send Claim Link state
   const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
@@ -4885,6 +5010,98 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                   showUnassigned={true}
                 />
               </div>
+
+              {/* Row 3.5: Apollo Decision Maker */}
+              {(() => {
+                const apolloContact = apolloContactMap.get(provider.provider_id);
+                const apolloError = apolloErrorMap.get(provider.provider_id);
+                const isFinding = findingApolloId === provider.provider_id;
+                const isSavingEmail = savingApolloEmailId === provider.provider_id;
+                const isResetting = resettingToReadyId === provider.provider_id;
+                const showResetConfirm = showResetConfirmId === provider.provider_id;
+                const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
+
+                if (apolloContact) {
+                  const fullName = [apolloContact.first_name, apolloContact.last_name].filter(Boolean).join(" ");
+                  return (
+                    <div className="mt-2 mb-2 pl-3 border-l-2 border-purple-200">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                          Apollo
+                        </span>
+                        {fullName && <span className="text-sm font-medium text-gray-900">{fullName}</span>}
+                        {apolloContact.title && <span className="text-xs text-gray-500">{apolloContact.title}</span>}
+                        {!emailsMatch && <span className="text-sm text-purple-600">{apolloContact.email}</span>}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        {/* Use This Email */}
+                        {emailsMatch ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Email saved
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleUseApolloEmail(provider.provider_id)}
+                            disabled={isSavingEmail}
+                            className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                          >
+                            {isSavingEmail ? "Saving..." : "Use This Email"}
+                          </button>
+                        )}
+                        {/* Move to Ready Tab */}
+                        {showResetConfirm ? (
+                          <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
+                            <span className="text-xs text-gray-700">Move to Ready tab?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleResetToReady(provider.provider_id)}
+                              disabled={isResetting}
+                              className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              {isResetting ? "Moving..." : "Yes, Move"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowResetConfirmId(null)}
+                              disabled={isResetting}
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowResetConfirmId(provider.provider_id)}
+                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                          >
+                            Move to Ready Tab
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+
+                // No Apollo contact yet - show Find button
+                return (
+                  <div className="flex items-center gap-2 mt-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFindDecisionMaker(provider.provider_id)}
+                      disabled={isFinding}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
+                    >
+                      {isFinding ? "Finding..." : "🎯 Find Decision Maker"}
+                    </button>
+                    {apolloError && <span className="text-xs text-amber-600">{apolloError}</span>}
+                  </div>
+                );
+              })()}
 
               {/* Row 4: Channel tracking analytics */}
               <ChannelTracking
@@ -7484,6 +7701,17 @@ export default function ProviderOutreachPage() {
                   id: provider.provider_id,
                   name: provider.provider_name,
                 });
+              }}
+              onProviderUpdated={(providerId, updates) => {
+                setProviders((prev) =>
+                  prev.map((p) =>
+                    p.provider_id === providerId ? { ...p, ...updates } : p
+                  )
+                );
+              }}
+              onResetToReady={() => {
+                // Refresh the list - provider moved to Ready tab
+                fetchCities();
               }}
               adminNameLookup={adminNameLookup}
             />

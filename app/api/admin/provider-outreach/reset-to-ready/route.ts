@@ -4,9 +4,9 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 /**
  * POST /api/admin/provider-outreach/reset-to-ready
  *
- * Reset a provider from Follow-Up (needs_call) back to Ready (not_contacted).
- * Used when admin finds a new email (via Apollo or manual edit) and wants to
- * restart the outreach sequence.
+ * Reset a provider from Follow-Up (needs_call) or Alternative Channels (re_engage)
+ * back to Ready (not_contacted). Used when admin finds a new email (via Apollo or
+ * manual edit) and wants to restart the outreach sequence.
  *
  * Body:
  *   - provider_id: string (required)
@@ -14,7 +14,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *   - use_apollo_email?: boolean - If true, copy apollo_contact.email to olera-providers.email
  *
  * Actions:
- *   1. Change stage from needs_call to not_contacted
+ *   1. Change stage from needs_call/re_engage to not_contacted
  *   2. Set email_source
  *   3. Clear Follow-Up related fields (due_date, needs_call_reason, etc.)
  *   4. Optionally copy Apollo email to main email field
@@ -65,10 +65,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Provider not found in outreach tracking" }, { status: 404 });
     }
 
-    // Verify provider is in needs_call stage
-    if (tracking.stage !== "needs_call") {
+    // Verify provider is in a stage that can be reset to Ready
+    // Allowed: needs_call (Follow Up) or re_engage (Alternative Channels)
+    const allowedStages = ["needs_call", "re_engage"];
+    if (!allowedStages.includes(tracking.stage)) {
       return NextResponse.json(
-        { error: `Provider is in '${tracking.stage}' stage, not 'needs_call'` },
+        { error: `Provider is in '${tracking.stage}' stage, cannot reset to Ready` },
         { status: 400 }
       );
     }
@@ -82,18 +84,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update tracking record: reset to not_contacted, clear follow-up fields
+    // Update tracking record: reset to not_contacted, clear follow-up and re_engage fields
     const { error: updateError } = await db
       .from("provider_outreach_tracking")
       .update({
         stage: "not_contacted",
         stage_changed_at: new Date().toISOString(),
         email_source: email_source,
-        // Clear follow-up related fields
+        // Clear follow-up related fields (needs_call stage)
         due_date: null,
         needs_call_reason: null,
         no_answer_count: 0,
         resend_count: 0,
+        // Clear alternative channels fields (re_engage stage)
+        re_engage_channel: null,
+        re_engage_entered_at: null,
         // Keep apollo_contact (useful reference)
         // Keep notes (preserve history)
       })

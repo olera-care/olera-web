@@ -4618,7 +4618,7 @@ interface ReEngageQueueProps {
 // Tracking Constants and Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DIRECT_MAIL_EXPIRY_DAYS = 18; // Days in direct_mail before prompting action
+const DIRECT_MAIL_EXPIRY_DAYS = 30; // Days in alternative channels before prompting action
 
 // Helper: calculate days since a date
 function daysSince(dateString: string | null): number {
@@ -4631,6 +4631,16 @@ function daysSince(dateString: string | null): number {
 
 function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenNotesModal, onProviderUpdated, onResetToReady, adminNameLookup }: ReEngageQueueProps) {
   // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
+
+  // Email editing state
+  const [editingEmailId, setEditingEmailId] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [savingEmailId, setSavingEmailId] = useState<string | null>(null);
+  const [emailSavedIds, setEmailSavedIds] = useState<Set<string>>(new Set());
+
+  // Move to Ready state (for non-Apollo moves)
+  const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
+  const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
 
   // Apollo Decision Maker state
   const [apolloContactMap, setApolloContactMap] = useState<Map<string, OutreachProvider["apollo_contact"]>>(new Map());
@@ -4754,6 +4764,70 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
       setResettingToReadyId(null);
     }
   }, [apolloContactMap, onResetToReady]);
+
+  // Email save handler
+  const handleSaveEmail = useCallback(async (providerId: string, newEmail: string) => {
+    if (!newEmail.trim()) return;
+    setSavingEmailId(providerId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email: newEmail.trim(),
+        }),
+      });
+      if (res.ok) {
+        onProviderUpdated(providerId, { email: newEmail.trim() });
+        setEditingEmailId(null);
+        setEmailInput("");
+        setEmailSavedIds((prev) => new Set([...prev, providerId]));
+        // Clear saved indicator after 3 seconds
+        setTimeout(() => {
+          setEmailSavedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(providerId);
+            return next;
+          });
+        }, 3000);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to save email");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setSavingEmailId(null);
+    }
+  }, [onProviderUpdated]);
+
+  // Move to Ready handler (without Apollo - uses current email)
+  const handleMoveToReady = useCallback(async (providerId: string) => {
+    setMovingToReadyId(providerId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email_source: "organization",
+          use_apollo_email: false,
+        }),
+      });
+      if (res.ok) {
+        setShowMoveToReadyConfirmId(null);
+        onResetToReady(providerId);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to move provider");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setMovingToReadyId(null);
+    }
+  }, [onResetToReady]);
 
   // Send Claim Link state
   const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
@@ -4966,30 +5040,27 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
       {sorted.map((provider) => {
         const waitDays = daysSince(provider.re_engage_entered_at);
 
-        // Check if direct_mail has expired (18+ days without claim)
-        const mailSentAt = mailAnalyticsMap.get(provider.provider_id)?.sent_at;
-        const mailExpired = provider.re_engage_channel === "direct_mail"
-          && mailSentAt
-          && daysSince(mailSentAt) >= DIRECT_MAIL_EXPIRY_DAYS
+        // Check if provider has been in Alternative Channels for 30+ days without claim
+        const isExpired = waitDays >= DIRECT_MAIL_EXPIRY_DAYS
           && !claimedMap.get(provider.provider_id)?.claimed;
 
         return (
           <div key={provider.provider_id} className="border-b border-gray-100">
-            {/* 18-day expiry action bar for direct_mail */}
-            {mailExpired && (
+            {/* 30-day expiry action bar - prompt to mark as Not Interested */}
+            {isExpired && (
               <div className="mx-5 mt-3 flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                 <span className="text-xs text-amber-800 font-medium flex-1">
-                  No response after {daysSince(mailSentAt)} days.
+                  No response after {waitDays} days.
                 </span>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onArchive(provider);
+                    setConfirmingNotInterested(provider);
                   }}
                   className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition"
                 >
-                  Archive
+                  Not Interested
                 </button>
               </div>
             )}
@@ -5005,7 +5076,7 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 </span>
               </div>
 
-              {/* Row 2: Category, location, email + channel badges */}
+              {/* Row 2: Category, location + channel badges */}
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-1 flex-wrap">
                 {provider.provider_category && (
                   <span className="truncate max-w-[200px]">{provider.provider_category}</span>
@@ -5014,8 +5085,6 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 {provider.city && (
                   <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
                 )}
-                {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                {provider.email && <span>{provider.email}</span>}
                 {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
@@ -5040,13 +5109,114 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                   </span>
                 )}
                 {/* Questions and leads context pills */}
-                {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                {(provider.provider_category || provider.city) && <span>·</span>}
                 <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                   {provider.questions_count ?? 0} Q
                 </span>
                 <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                   {provider.leads_count ?? 0} Leads
                 </span>
+              </div>
+
+              {/* Row 2.5: Email with edit capability + Move to Ready */}
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {editingEmailId === provider.provider_id ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="Enter email..."
+                      className="flex-1 max-w-xs px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSaveEmail(provider.provider_id, emailInput);
+                        } else if (e.key === "Escape") {
+                          setEditingEmailId(null);
+                          setEmailInput("");
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEmail(provider.provider_id, emailInput)}
+                      disabled={savingEmailId === provider.provider_id || !emailInput.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {savingEmailId === provider.provider_id ? "..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingEmailId(null);
+                        setEmailInput("");
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 flex-1">
+                    {provider.email ? (
+                      <span className="text-sm">{provider.email}</span>
+                    ) : (
+                      <span className="text-sm text-gray-400 italic">No email</span>
+                    )}
+                    {emailSavedIds.has(provider.provider_id) ? (
+                      <span className="text-xs text-emerald-600 font-medium">✓ Saved</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingEmailId(provider.provider_id);
+                          setEmailInput(provider.email || "");
+                        }}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {/* Move to Ready button - only show if provider has email */}
+                    {provider.email && (
+                      <>
+                        <span className="text-gray-300">|</span>
+                        {showMoveToReadyConfirmId === provider.provider_id ? (
+                          <div className="flex items-center gap-2 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded">
+                            <span className="text-xs text-gray-700">Move to Ready?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveToReady(provider.provider_id)}
+                              disabled={movingToReadyId === provider.provider_id}
+                              className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              {movingToReadyId === provider.provider_id ? "..." : "Yes"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowMoveToReadyConfirmId(null)}
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowMoveToReadyConfirmId(provider.provider_id)}
+                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                          >
+                            Move to Ready
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Row 3: Assignment */}

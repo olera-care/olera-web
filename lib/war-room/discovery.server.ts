@@ -13,6 +13,7 @@ import {
 import type {
   WarRoomCompanyModel,
   WarRoomDiscoveryRun,
+  WarRoomDomain,
   WarRoomInvestigation,
   WarRoomProposal,
   WarRoomProposalEvidence,
@@ -21,8 +22,10 @@ import {
   applyAgendaGate,
   cleanExecutiveText,
   DEFAULT_COMPANY_MODEL,
+  WAR_ROOM_DOMAINS,
   type InvestigationAssessment,
   type InvestigationDraft,
+  type StrategicLensReview,
 } from "@/lib/war-room/strategy";
 import {
   evaluateWarRoomReasoning,
@@ -34,7 +37,7 @@ import {
 export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
   || process.env.WAR_ROOM_MODEL
   || "claude-opus-5";
-export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v3-investigation-loop";
+export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v4-required-lenses";
 
 // Model calls run inside independently retryable Workflow steps. Give Opus a
 // realistic per-step budget while leaving retries to the durable orchestrator;
@@ -221,6 +224,37 @@ const LENS_REVIEW_SCHEMA = {
   ],
 } as const;
 
+function lensReviewSchema(domain: WarRoomDomain) {
+  return {
+    ...LENS_REVIEW_SCHEMA,
+    properties: {
+      ...LENS_REVIEW_SCHEMA.properties,
+      domain: { type: "string", enum: [domain] },
+    },
+  } as const;
+}
+
+// Anthropic strict tools allow minItems only at 0 or 1, so an array cannot
+// express "exactly ten reviews." Make omission structurally impossible by
+// requiring one named field per company lens, then normalize it internally.
+const REQUIRED_LENS_REVIEWS_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    company: lensReviewSchema("company"),
+    customer: lensReviewSchema("customer"),
+    provider: lensReviewSchema("provider"),
+    growth: lensReviewSchema("growth"),
+    revenue: lensReviewSchema("revenue"),
+    product: lensReviewSchema("product"),
+    content: lensReviewSchema("content"),
+    operations: lensReviewSchema("operations"),
+    market: lensReviewSchema("market"),
+    data: lensReviewSchema("data"),
+  },
+  required: WAR_ROOM_DOMAINS,
+} as const;
+
 const INVESTIGATOR_TOOL = {
   name: "submit_opportunity_dossiers",
   description: "Submit private cross-company opportunity dossiers. These are not founder tasks.",
@@ -230,7 +264,7 @@ const INVESTIGATOR_TOOL = {
     additionalProperties: false,
     properties: {
       dossiers: { type: "array", minItems: 0, items: DOSSIER_SCHEMA },
-      lensReviews: { type: "array", items: LENS_REVIEW_SCHEMA },
+      lensReviews: REQUIRED_LENS_REVIEWS_SCHEMA,
       portfolioRead: { type: "string", maxLength: 900 },
     },
     required: ["dossiers", "lensReviews", "portfolioRead"],
@@ -300,6 +334,9 @@ const COUNCIL_TOOL = {
 export const WAR_ROOM_STRICT_TOOLS = [INVESTIGATOR_TOOL, COUNCIL_TOOL] as const;
 
 type InvestigatorOutput = WarRoomInvestigatorOutput;
+type InvestigatorToolOutput = Omit<InvestigatorOutput, "lensReviews"> & {
+  lensReviews: StrategicLensReview[] | Record<WarRoomDomain, StrategicLensReview>;
+};
 type OutcomeDraft = {
   proposalId: string;
   status: "validated" | "missed" | "inconclusive";
@@ -320,6 +357,18 @@ function toolInput<T>(response: Anthropic.Messages.Message, name: string): T {
   const block = response.content.find((item) => item.type === "tool_use" && item.name === name);
   if (!block || block.type !== "tool_use") throw new Error(`war_room_missing_${name}`);
   return block.input as T;
+}
+
+function normalizeInvestigatorToolOutput(input: InvestigatorToolOutput): InvestigatorOutput {
+  if (Array.isArray(input.lensReviews)) return input as InvestigatorOutput;
+  const reviewMap = input.lensReviews;
+  return {
+    ...input,
+    lensReviews: WAR_ROOM_DOMAINS.map((domain) => ({
+      ...reviewMap[domain],
+      domain,
+    })),
+  };
 }
 
 function stableHash(value: unknown) {
@@ -406,9 +455,11 @@ async function runInvestigatorPass(operatingPack: ReturnType<typeof buildOperati
     system: INVESTIGATOR_SYSTEM,
     tools: [INVESTIGATOR_TOOL],
     tool_choice: { type: "tool", name: INVESTIGATOR_TOOL.name },
-    messages: [{ role: "user", content: `Review all ten company lenses, preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Do not optimize for producing a founder task:\n${JSON.stringify(operatingPack)}` }],
+    messages: [{ role: "user", content: `Review all ten company lenses and populate every required named field inside lensReviews. Preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Do not optimize for producing a founder task:\n${JSON.stringify(operatingPack)}` }],
   }, REQUEST_OPTIONS).finalMessage();
-  const investigatorOutput = toolInput<InvestigatorOutput>(investigator, INVESTIGATOR_TOOL.name);
+  const investigatorOutput = normalizeInvestigatorToolOutput(
+    toolInput<InvestigatorToolOutput>(investigator, INVESTIGATOR_TOOL.name),
+  );
   const provisionalInvestigations = evaluateWarRoomReasoning({
     evidenceCatalog: operatingPack.evidenceCatalog,
     investigator: investigatorOutput,

@@ -30,6 +30,22 @@ function assertAnthropicStrictSchemaCompatibility(value: unknown, path = "tools"
 
 assertAnthropicStrictSchemaCompatibility(WAR_ROOM_STRICT_TOOLS);
 
+const investigatorSchema = WAR_ROOM_STRICT_TOOLS[0].input_schema;
+const lensReviewSchema = investigatorSchema.properties.lensReviews;
+assert.equal(lensReviewSchema.type, "object", "strategic lenses must be required fields, not an optional-length array");
+assert.deepEqual(
+  [...lensReviewSchema.required].sort(),
+  ["company", "content", "customer", "data", "growth", "market", "operations", "product", "provider", "revenue"],
+  "the investigator contract must require every strategic lens",
+);
+for (const domain of lensReviewSchema.required) {
+  assert.deepEqual(
+    lensReviewSchema.properties[domain].properties.domain.enum,
+    [domain],
+    `the ${domain} lens field must identify itself as ${domain}`,
+  );
+}
+
 const evidence: WarRoomProposalEvidence[] = [
   { id: "metric:questions", label: "Questions", detail: "2,540 questions arrived", source: "Olera product data" },
   { id: "metric:answers", label: "Answers", detail: "112 questions were answered", source: "Olera product data" },

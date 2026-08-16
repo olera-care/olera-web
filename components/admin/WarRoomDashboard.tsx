@@ -48,10 +48,10 @@ function elapsedMilliseconds(startedAt: string | null, nowIso: string) {
 
 function discoveryFailureMessage(message: string | null) {
   if (!message) return "No proposals were changed. Scan again after fixing the source or model failure.";
-  if (message.startsWith("war_room_incomplete_lens_coverage")) {
+  if (message.includes("war_room_incomplete_lens_coverage")) {
     return "The AI returned an incomplete company review, so War Room rejected it instead of inventing an all-clear. No decision or investigation was saved.";
   }
-  if (message.startsWith("war_room_missing_submit_")) {
+  if (message.includes("war_room_missing_submit_")) {
     return "The AI did not return the required structured review. War Room rejected the run, and nothing was saved.";
   }
   if (message.includes("invalid_request_error") || message.includes("tools.0.custom")) {

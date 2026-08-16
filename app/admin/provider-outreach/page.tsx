@@ -8222,6 +8222,8 @@ export default function ProviderOutreachPage() {
                             }),
                           });
                           if (res.ok) {
+                            // Mark as recently moved to filter from stale API responses
+                            markAsRecentlyMoved(providerId);
                             // Remove from current list and update counts
                             setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
                             setStageCounts((prev) => ({

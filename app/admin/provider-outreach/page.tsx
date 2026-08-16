@@ -1710,7 +1710,7 @@ function ApolloContactRow({
   onContactFound,
 }: {
   provider: OutreachProvider;
-  onUseEmail: (email: string) => void;
+  onUseEmail: (email: string, emailSource?: "decision_maker") => void;
   onContactFound: (contact: OutreachProvider["apollo_contact"]) => void;
 }) {
   const [finding, setFinding] = useState(false);
@@ -1718,6 +1718,12 @@ function ApolloContactRow({
   const [error, setError] = useState<string | null>(null);
 
   const apolloContact = provider.apollo_contact;
+
+  // Check if Apollo email matches provider's current email
+  const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
+
+  // Check if already confirmed (email_source is decision_maker)
+  const isConfirmed = provider.email_source === "decision_maker";
 
   async function handleFind() {
     setFinding(true);
@@ -1733,6 +1739,7 @@ function ApolloContactRow({
         setError(data.error);
       } else if (data.contact?.email) {
         // Pass the found contact data up to update state
+        // If auto_confirmed (provider had no email), also set email_source
         onContactFound({
           email: data.contact.email,
           first_name: data.contact.first_name,
@@ -1741,6 +1748,10 @@ function ApolloContactRow({
           linkedin_url: data.contact.linkedin_url,
           found_at: new Date().toISOString(),
         });
+        // If auto-confirmed by backend (provider had no email), update email_source in parent
+        if (data.auto_confirmed) {
+          onUseEmail(data.contact.email, "decision_maker");
+        }
       } else {
         setError("No decision-maker found");
       }
@@ -1751,8 +1762,8 @@ function ApolloContactRow({
     }
   }
 
-  // "Use This" - persist Apollo email as the provider's primary email
-  async function handleUseEmail() {
+  // "Confirm" or "Use This" - set email_source to decision_maker (and update email if different)
+  async function handleConfirm() {
     if (!apolloContact?.email || using) return;
     setUsing(true);
     setError(null);
@@ -1763,17 +1774,18 @@ function ApolloContactRow({
         body: JSON.stringify({
           provider_id: provider.provider_id,
           email: apolloContact.email,
+          confirm_apollo: true, // This sets email_source = 'decision_maker'
         }),
       });
       if (res.ok) {
-        // Update local state after successful API call
-        onUseEmail(apolloContact.email);
+        // Update local state with email and email_source
+        onUseEmail(apolloContact.email, "decision_maker");
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to update email");
+        setError(data.error || "Failed to confirm");
       }
     } catch (err) {
-      setError("Failed to update email");
+      setError("Failed to confirm");
     } finally {
       setUsing(false);
     }
@@ -1815,7 +1827,10 @@ function ApolloContactRow({
       {apolloContact.title && (
         <span className="text-xs text-gray-500">{apolloContact.title}</span>
       )}
-      <span className="text-sm text-purple-600">{apolloContact.email}</span>
+      {/* Only show email if it differs from provider's email */}
+      {!emailsMatch && (
+        <span className="text-sm text-purple-600">{apolloContact.email}</span>
+      )}
       {apolloContact.linkedin_url && (
         <a
           href={apolloContact.linkedin_url}
@@ -1827,17 +1842,27 @@ function ApolloContactRow({
           LinkedIn
         </a>
       )}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleUseEmail();
-        }}
-        disabled={using}
-        className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
-      >
-        {using ? "..." : "Use This"}
-      </button>
+      {/* Show appropriate action based on state */}
+      {isConfirmed ? (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          Active
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleConfirm();
+          }}
+          disabled={using}
+          className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
+        >
+          {using ? "..." : emailsMatch ? "Confirm" : "Use This"}
+        </button>
+      )}
       {error && <span className="text-xs text-amber-600">{error}</span>}
     </div>
   );
@@ -1857,7 +1882,7 @@ interface CityRowProps {
   selectedProviders: Set<string>;
   onToggleProvider: (providerId: string) => void;
   onSelectAllInCity: (providerIds: string[]) => void;
-  onEmailSaved: (providerId: string, newEmail: string) => void;
+  onEmailSaved: (providerId: string, newEmail: string, emailSource?: "decision_maker") => void;
   onPhoneSaved: (providerId: string, newPhone: string | null) => void;
   onApolloContactFound: (providerId: string, apolloContact: OutreachProvider["apollo_contact"]) => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
@@ -2390,7 +2415,7 @@ function CityRow({
                                     // Use session-found email if available
                                     email: provider.email || foundEmails.get(provider.provider_id)?.email || null,
                                   }}
-                                  onUseEmail={(email) => onEmailSaved(provider.provider_id, email)}
+                                  onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
                                   onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
                                 />
                               )}
@@ -7504,7 +7529,7 @@ export default function ProviderOutreachPage() {
                       selectedProviders={selectedProviders}
                       onToggleProvider={toggleProvider}
                       onSelectAllInCity={selectAllInCity}
-                      onEmailSaved={(providerId, newEmail) => {
+                      onEmailSaved={(providerId, newEmail, emailSource) => {
                         // Update local providers state
                         // On "Needs Email" tab, remove the provider (it now has email, belongs in "Ready")
                         // On other tabs, just update the email field
@@ -7518,9 +7543,18 @@ export default function ProviderOutreachPage() {
                           }));
                         } else {
                           // Reset confirmed_at since contact info changed (API also resets it)
+                          // Also update email_source if provided (for Apollo confirmation)
                           setProviders((prev) =>
                             prev.map((p) =>
-                              p.provider_id === providerId ? { ...p, email: newEmail, confirmed_at: null, confirmed_by: null } : p
+                              p.provider_id === providerId
+                                ? {
+                                    ...p,
+                                    email: newEmail,
+                                    confirmed_at: null,
+                                    confirmed_by: null,
+                                    ...(emailSource && { email_source: emailSource }),
+                                  }
+                                : p
                             )
                           );
                         }
@@ -7540,6 +7574,7 @@ export default function ProviderOutreachPage() {
                       }}
                       onApolloContactFound={(providerId, apolloContact) => {
                         // On Needs Email tab: Apollo found email, provider moves to Ready tab
+                        // Backend auto-confirms (sets email_source, updates email) when provider has no email
                         if (activeTab === "needs_email") {
                           // Remove provider from Needs Email list (they now belong in Ready → Decision Maker)
                           setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
@@ -7550,17 +7585,16 @@ export default function ProviderOutreachPage() {
                             ready: prev.ready + 1,
                           }));
                         } else {
-                          // On Ready tab: update apollo_contact, email_source, and email
-                          // This moves the provider to Decision Maker sub-tab
-                          // Also sync email since backend now saves Apollo email to olera-providers
+                          // On Ready tab: just save apollo_contact for review
+                          // User must click "Confirm" to set email_source and move to Decision Maker tab
+                          // Backend no longer auto-confirms when provider already has email
                           setProviders((prev) =>
                             prev.map((p) =>
                               p.provider_id === providerId
                                 ? {
                                     ...p,
                                     apollo_contact: apolloContact,
-                                    email_source: "decision_maker",
-                                    email: apolloContact?.email || p.email,
+                                    // Don't set email_source here - wait for user confirmation
                                   }
                                 : p
                             )

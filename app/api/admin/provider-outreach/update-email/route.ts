@@ -12,6 +12,8 @@ import { getLeadByEmail, updateLeadInCampaign } from "@/lib/smartlead";
  * Body:
  *   - provider_id: string (required)
  *   - email: string (required) - new email to set
+ *   - confirm_apollo: boolean (optional) - if true, also sets email_source = 'decision_maker'
+ *     Use this when confirming an Apollo contact to move provider to Decision Maker tab
  */
 export async function PATCH(request: NextRequest) {
   try {
@@ -26,7 +28,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, email } = body;
+    const { provider_id, email, confirm_apollo } = body;
 
     if (!provider_id) {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -168,14 +170,34 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Reset confirmation status since contact info changed
+    // Also set email_source if confirming Apollo contact
     if (tracking) {
+      const trackingUpdate: Record<string, unknown> = {
+        confirmed_at: null,
+        confirmed_by: null,
+      };
+      if (confirm_apollo) {
+        trackingUpdate.email_source = "decision_maker";
+      }
       await db
         .from("provider_outreach_tracking")
-        .update({
-          confirmed_at: null,
-          confirmed_by: null,
-        })
+        .update(trackingUpdate)
         .eq("id", tracking.id);
+    } else if (confirm_apollo) {
+      // Create tracking record if it doesn't exist (shouldn't happen normally)
+      const { data: provider } = await db
+        .from("olera-providers")
+        .select("city, state")
+        .eq("provider_id", provider_id)
+        .single();
+
+      await db.from("provider_outreach_tracking").insert({
+        provider_id,
+        stage: "not_contacted",
+        city: provider?.city,
+        state: provider?.state,
+        email_source: "decision_maker",
+      });
     }
 
     // Build slug variants for deferred notifications
@@ -257,6 +279,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       email: trimmedEmail,
+      email_source: confirm_apollo ? "decision_maker" : undefined,
       notificationsSent: notificationResult.leadEmailsSent + notificationResult.questionEmailsSent,
       smartleadSynced,
       smartleadError,

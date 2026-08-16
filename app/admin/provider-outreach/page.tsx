@@ -2673,6 +2673,9 @@ function FollowUpProviderRow({
   // Reset to Ready state
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resettingToReady, setResettingToReady] = useState(false);
+  // Use Apollo Email (without moving to Ready) state
+  const [savingApolloEmail, setSavingApolloEmail] = useState(false);
+  const [apolloEmailSaved, setApolloEmailSaved] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -2705,6 +2708,9 @@ function FollowUpProviderRow({
       // Reset "Reset to Ready" state
       setShowResetConfirm(false);
       setResettingToReady(false);
+      // Reset "Use Apollo Email" state
+      setSavingApolloEmail(false);
+      setApolloEmailSaved(false);
     }
   }, [isExpanded]);
 
@@ -2816,6 +2822,51 @@ function FollowUpProviderRow({
       }
     } finally {
       setFindingDecisionMaker(false);
+    }
+  };
+
+  // Use Apollo email without moving to Ready (stay in Follow Up)
+  const handleUseApolloEmail = async () => {
+    if (!localApolloContact?.email) return;
+
+    const sessionAtStart = editingSessionRef.current;
+    setSavingApolloEmail(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email: localApolloContact.email,
+          confirm_apollo: true, // Sets email_source = 'decision_maker'
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        if (stillValid) {
+          setApolloEmailSaved(true);
+        }
+        // Update local state with new email
+        onProviderUpdated({
+          email: localApolloContact.email,
+          email_source: "decision_maker",
+        });
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to update email");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingApolloEmail(false);
+      }
     }
   };
 
@@ -3612,7 +3663,7 @@ function FollowUpProviderRow({
                 {/* Apollo Decision Maker section */}
                 {localApolloContact ? (
                   <div className="mt-2 pl-4 border-l-2 border-purple-200">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
                         Apollo
                       </span>
@@ -3624,49 +3675,78 @@ function FollowUpProviderRow({
                       {localApolloContact.title && (
                         <span className="text-xs text-gray-500">{localApolloContact.title}</span>
                       )}
-                      <span className="text-sm text-purple-600">{localApolloContact.email}</span>
+                      {/* Only show email if different from current */}
+                      {localApolloContact.email?.toLowerCase() !== provider.email?.toLowerCase() && (
+                        <span className="text-sm text-purple-600">{localApolloContact.email}</span>
+                      )}
                     </div>
-                    {/* Reset to Ready action */}
-                    {showResetConfirm ? (
-                      <div className="flex items-center gap-2 mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
-                        <span className="text-xs text-gray-700">
-                          Move back to Ready tab with this email?
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-3 mt-2">
+                      {/* Use This Email button - updates email but stays in Follow Up */}
+                      {apolloEmailSaved || localApolloContact.email?.toLowerCase() === provider.email?.toLowerCase() ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Email saved
                         </span>
+                      ) : (
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleResetToReady();
+                            handleUseApolloEmail();
                           }}
-                          disabled={resettingToReady}
-                          className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                          disabled={savingApolloEmail}
+                          className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
                         >
-                          {resettingToReady ? "Moving..." : "Confirm"}
+                          {savingApolloEmail ? "Saving..." : "Use This Email"}
                         </button>
+                      )}
+
+                      {/* Move to Ready Tab button */}
+                      {showResetConfirm ? (
+                        <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
+                          <span className="text-xs text-gray-700">
+                            Move to Ready tab?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResetToReady();
+                            }}
+                            disabled={resettingToReady}
+                            className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            {resettingToReady ? "Moving..." : "Yes, Move"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowResetConfirm(false);
+                            }}
+                            disabled={resettingToReady}
+                            className="text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setShowResetConfirm(false);
+                            setShowResetConfirm(true);
                           }}
-                          disabled={resettingToReady}
-                          className="text-xs text-gray-500 hover:text-gray-700"
+                          className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
                         >
-                          Cancel
+                          Move to Ready Tab
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowResetConfirm(true);
-                        }}
-                        className="mt-2 text-xs text-emerald-600 hover:text-emerald-700 font-medium"
-                      >
-                        ↩ Reset to Ready with this email
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 mt-2">

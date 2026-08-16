@@ -82,17 +82,22 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Failed to update email source" }, { status: 500 });
     }
 
-    // Log touchpoint
-    await db.from("provider_outreach_touchpoints").insert({
-      provider_id,
-      touchpoint_type: "email_source_changed",
-      admin_user_id: adminUser.id,
-      details: {
-        old_source: tracking.email_source || "organization",
-        new_source: email_source,
-      },
-      created_at: new Date().toISOString(),
-    });
+    // Log touchpoint (non-fatal - don't fail the request if this fails)
+    try {
+      await db.from("provider_outreach_touchpoints").insert({
+        provider_id,
+        touchpoint_type: "email_source_changed",
+        admin_user_id: adminUser.id,
+        details: {
+          old_source: tracking.email_source || "organization",
+          new_source: email_source,
+        },
+        created_at: new Date().toISOString(),
+      });
+    } catch (touchpointErr) {
+      console.error("[update-email-source] Touchpoint logging failed:", touchpointErr);
+      // Continue - main operation succeeded
+    }
 
     return NextResponse.json({
       success: true,

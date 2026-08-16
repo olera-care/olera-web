@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { WAR_ROOM_STRICT_TOOLS } from "../lib/war-room/discovery.server";
+import { WAR_ROOM_PROBE_IDS, warRoomProbeMenu } from "../lib/war-room/probes.server";
 import {
+  WAR_ROOM_PROBE_KINDS,
   normalizeCompanyRead,
   normalizeInvestigationAssessments,
   retainStrategicLensInvestigations,
@@ -76,6 +78,32 @@ for (const tool of sweepTools) {
   }
 }
 
+// The probe id list appears in three places: the runnable registry, the
+// deterministic validator, and the provider-facing dossier schema. If they
+// drift, the model can plan a probe nothing executes, which is exactly the
+// failure the probe executor was built to end. Keep them identical.
+const dossierTool = WAR_ROOM_STRICT_TOOLS.find((tool) => tool.name === "submit_opportunity_dossiers");
+assert.ok(dossierTool, "the dossier tool must exist");
+const wireProbeKinds = (dossierTool!.input_schema as {
+  properties: { dossiers: { items: { properties: { nextProbe: { properties: { kind: { enum: string[] } } } } } } };
+}).properties.dossiers.items.properties.nextProbe.properties.kind.enum;
+
+assert.deepEqual(
+  [...wireProbeKinds].sort(),
+  [...WAR_ROOM_PROBE_IDS].sort(),
+  "the dossier schema's probe kinds must match the runnable probe registry",
+);
+assert.deepEqual(
+  [...WAR_ROOM_PROBE_KINDS].sort(),
+  [...WAR_ROOM_PROBE_IDS].sort(),
+  "the deterministic validator's probe kinds must match the runnable probe registry",
+);
+assert.deepEqual(
+  [...warRoomProbeMenu().map((probe) => probe.id)].sort(),
+  [...WAR_ROOM_PROBE_IDS].sort(),
+  "every probe offered to the model must exist in the registry",
+);
+
 // Compiled-grammar size is NOT statically checkable: it depends on provider
 // internals, and every shape below was accepted or rejected only by asking.
 // `npm run check:war-room:contract` is the check that proves the live provider
@@ -103,7 +131,7 @@ function dossier(overrides: Partial<InvestigationDraft> = {}): InvestigationDraf
     unknowns: ["How much loss occurs at each contact and response stage?"],
     hypotheses: ["Unusable contact records may prevent provider notification."],
     nextProbe: {
-      kind: "query",
+      kind: "question_to_claim_conversion",
       question: "Where does the provider response funnel lose the most reachable questions?",
       method: "Segment current questions by contactability, notification state, and provider response outcome.",
       expectedInformationGain: "Identify whether contact data, delivery, or post-delivery participation is the binding constraint.",

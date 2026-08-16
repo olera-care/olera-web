@@ -956,6 +956,16 @@ function InvestigationSection({
                   </ul>
                 </div>
               ) : null}
+              {investigation.progress_summary
+                && investigation.progress_summary !== "No investigation probe has completed yet." ? (
+                  <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700">Last probe answer</p>
+                    <p className="mt-2 text-sm leading-6 text-gray-900">{investigation.progress_summary}</p>
+                    {investigation.last_progress_at ? (
+                      <p className="mt-2 text-[11px] text-emerald-800">Measured {relative(investigation.last_progress_at)}</p>
+                    ) : null}
+                  </div>
+                ) : null}
               {investigation.next_probe ? (
                 <div className="mt-5 rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-700">Next read-only probe</p>

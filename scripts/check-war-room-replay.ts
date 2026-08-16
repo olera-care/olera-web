@@ -94,7 +94,7 @@ const providerDossier: InvestigationDraft = {
     "Providers receive notifications but do not perceive enough value to answer.",
   ],
   nextProbe: {
-    kind: "query",
+    kind: "question_to_claim_conversion",
     question: "At which provider response stage does current family demand lose the most eligible supply?",
     method: "Segment questions by provider contactability, notification delivery, open, and submitted-answer state.",
     expectedInformationGain: "Separate contact-data failure from delivery failure and post-delivery participation failure.",
@@ -124,7 +124,7 @@ const provider = run("provider liquidity", {
 assert.equal(provider.investigations.length, 1);
 assert.equal(provider.assessments[0].disposition, "investigate");
 assert.equal(provider.companyRead.stance, "investigating");
-assert.equal(provider.investigations[0].nextProbe?.kind, "query");
+assert.equal(provider.investigations[0].nextProbe?.kind, "question_to_claim_conversion");
 
 const revenueReview = lens({
   fingerprint: "provider-monetization-unproven",

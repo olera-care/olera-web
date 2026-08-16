@@ -83,6 +83,21 @@ async function persistDiscoveryStep(
 }
 persistDiscoveryStep.maxRetries = 2;
 
+// Runs after persistence, against the conditions this scan just saved. Probe
+// answers land in the event trail and become evidence for the next scan, which
+// is how a condition's cause confidence can rise instead of resetting daily.
+// A probe failure must never fail a scan that already produced a company read.
+async function runProbesStep(runId: string) {
+  "use step";
+  const { runWarRoomInvestigationProbes } = await import("@/lib/war-room/discovery.server");
+  try {
+    return await runWarRoomInvestigationProbes(runId);
+  } catch (error) {
+    return { executed: [], failed: [{ probeId: "all", reason: error instanceof Error ? error.message : String(error) }] };
+  }
+}
+runProbesStep.maxRetries = 1;
+
 async function recordDiscoveryFailureStep(runId: string, message: string) {
   "use step";
   const { failWarRoomDiscovery } = await import("@/lib/war-room/discovery.server");
@@ -99,7 +114,9 @@ export async function warRoomDiscoveryWorkflow(runId: string) {
     const investigator = await investigateCompanyStep(runId, prepared, sweep);
     const triage = await triageAgendaStep(runId, prepared, investigator);
     const council = await challengeCompanyStep(runId, prepared, investigator, triage);
-    return await persistDiscoveryStep(runId, prepared, investigator, council);
+    const persisted = await persistDiscoveryStep(runId, prepared, investigator, council);
+    const probes = await runProbesStep(runId);
+    return { ...persisted, probes };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await recordDiscoveryFailureStep(runId, message || "Unknown durable discovery failure");

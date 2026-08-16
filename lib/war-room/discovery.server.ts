@@ -4,6 +4,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
 import { buildWarRoomFactPack } from "@/lib/war-room/analyst.server";
 import { warRoomCapabilityEvidence } from "@/lib/war-room/capabilities";
+import {
+  isWarRoomProbeId,
+  runWarRoomProbe,
+  warRoomProbeMenu,
+  type WarRoomProbeId,
+} from "@/lib/war-room/probes.server";
 import { buildWarRoomSnapshot } from "@/lib/war-room/snapshot.server";
 import {
   loadExternalEvidence,
@@ -23,6 +29,7 @@ import {
   cleanExecutiveText,
   DEFAULT_COMPANY_MODEL,
   WAR_ROOM_DOMAINS,
+  WAR_ROOM_OPERATING_MECHANICS,
   type AgendaProposalDraft,
   type InvestigationAssessment,
   type InvestigationDraft,
@@ -243,7 +250,14 @@ const DOSSIER_SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        kind: { type: "string", enum: ["analysis", "query", "repository", "source_search", "external_research"] },
+        // Must be a probe the server can actually run. See lib/war-room/probes.server.ts.
+        kind: {
+          type: "string",
+          enum: [
+            "question_to_claim_conversion", "question_inventory_health", "provider_contactability",
+            "traffic_by_page_family", "revenue_by_product", "support_backlog_composition", "none",
+          ],
+        },
         question: { type: "string", maxLength: 350 },
         method: { type: "string", maxLength: 500 },
         expectedInformationGain: { type: "string", maxLength: 400 },
@@ -649,6 +663,11 @@ function buildOperatingPack(
   const operatingPack = {
     generatedAt: factPack.generatedAt,
     companyModel,
+    // Stated mechanics and the runnable probe menu. Without the mechanics the
+    // agent infers a business model from raw counts and gets it wrong; without
+    // the menu it plans probes nothing can execute.
+    operatingMechanics: WAR_ROOM_OPERATING_MECHANICS,
+    availableProbes: warRoomProbeMenu(),
     operatingContract: {
       objective: "Improve Olera's probability of durable success, not the volume of completed tasks.",
       founderInterruptionBudget: "At most one decision per scan; zero is preferred to a merely useful task.",
@@ -1500,9 +1519,10 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
     syncNotionEvidence(db),
   ]);
   await updateDiscoveryStage(db, runId, "building_operating_pack", { slack, notion, stage_attempt: attempt });
-  const [snapshot, externalEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
+  const [snapshot, sourceEvidence, probeEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
     buildWarRoomSnapshot(db, 30),
     loadExternalEvidence(db),
+    loadProbeEvidence(db),
     loadCompanyModel(db),
     db.from("war_room_proposals").select("*").order("last_seen_at", { ascending: false }).limit(30),
     db.from("war_room_investigations").select("*").order("last_seen_at", { ascending: false }).limit(30),
@@ -1516,6 +1536,9 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
       .select("fingerprint, status")
       .in("status", ["rejected", "completed", "failed", "superseded"]),
   ]);
+  // Answered probes are evidence like any other source, so the next scan
+  // reasons with the answer instead of re-planning the same probe.
+  const externalEvidence = [...sourceEvidence, ...probeEvidence];
   if (memoryResult.error) throw memoryResult.error;
   if (investigationMemoryResult.error) throw investigationMemoryResult.error;
   if (dueOutcomeResult.error) throw dueOutcomeResult.error;
@@ -1543,7 +1566,8 @@ export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promi
   const sourceSummary = {
     slack,
     notion,
-    external_evidence_count: externalEvidence.length,
+    external_evidence_count: sourceEvidence.length,
+    probe_evidence_count: probeEvidence.length,
     internal_evidence_count: factPack.evidenceCatalog.length,
     fact_pack_hash: factPackHash,
     prompt_version: WAR_ROOM_PROMPT_VERSION,
@@ -1902,6 +1926,126 @@ export async function persistWarRoomDiscovery(
   }).eq("id", runId).eq("status", "running");
   if (finishError) throw finishError;
   return { completed: true, proposals: proposalSave.saved, investigations: investigationsSaved };
+}
+
+/**
+ * Run the probes open investigations asked for.
+ *
+ * This is the step that lets the investigation loop close. Each open condition
+ * names a probe from a fixed menu; this executes it, appends the answer to the
+ * condition's event trail, and records it so the next scan reasons with the
+ * answer instead of re-deriving the same unknown. Bounded per run: probes are
+ * deduplicated by id, so ten conditions asking the same question cost one query
+ * pass, and a probe failure never fails the scan that produced it.
+ */
+export async function runWarRoomInvestigationProbes(runId: string, limit = 6) {
+  const db = getServiceClient();
+  const { data, error } = await db.from("war_room_investigations")
+    .select("id, fingerprint, next_probe, progress_summary")
+    .in("status", ["investigating", "watchlist", "decision_ready"])
+    .not("next_probe", "is", null)
+    .order("last_seen_at", { ascending: false })
+    .limit(30);
+  if (error) throw error;
+
+  const investigations = (data ?? []) as Array<{
+    id: string;
+    fingerprint: string;
+    next_probe: { kind?: unknown; question?: unknown } | null;
+  }>;
+
+  // One execution per distinct probe, shared by every condition that asked.
+  const wanted = new Map<WarRoomProbeId, string[]>();
+  for (const investigation of investigations) {
+    const kind = investigation.next_probe?.kind;
+    if (!isWarRoomProbeId(kind) || kind === "none") continue;
+    const ids = wanted.get(kind) ?? [];
+    ids.push(investigation.id);
+    wanted.set(kind, ids);
+  }
+
+  const executed: Array<{ probeId: string; investigations: number }> = [];
+  const failed: Array<{ probeId: string; reason: string }> = [];
+  const skipped: Array<{ probeId: string; investigations: number }> = [];
+  // Most-wanted first. Insertion order would drop the probe the largest number
+  // of conditions are waiting on, which is the opposite of what a bound is for.
+  const ordered = [...wanted.entries()].sort((a, b) => b[1].length - a[1].length);
+  for (const [probeId, investigationIds] of ordered.slice(limit)) {
+    skipped.push({ probeId, investigations: investigationIds.length });
+  }
+  for (const [probeId, investigationIds] of ordered.slice(0, limit)) {
+    let result;
+    try {
+      result = await runWarRoomProbe(db, probeId);
+    } catch (probeError) {
+      // A broken probe is a defect in our query, not evidence about the
+      // company. Record it and leave the condition unresolved.
+      failed.push({ probeId, reason: probeError instanceof Error ? probeError.message : String(probeError) });
+      continue;
+    }
+    const { error: eventError } = await db.from("war_room_investigation_events").insert(
+      investigationIds.map((investigationId) => ({
+        investigation_id: investigationId,
+        discovery_run_id: runId,
+        event_type: "probe_completed",
+        actor: "war-room",
+        details: {
+          probe_id: result.probeId,
+          headline: result.headline,
+          detail: result.detail,
+          rows: result.rows.slice(0, 20),
+          caveat: result.caveat,
+          measured_at: result.measuredAt,
+        },
+      })),
+    );
+    if (eventError) throw eventError;
+    const { error: updateError } = await db.from("war_room_investigations").update({
+      progress_summary: result.headline,
+      last_progress_at: result.measuredAt,
+      updated_at: result.measuredAt,
+    }).in("id", investigationIds);
+    if (updateError) throw updateError;
+    executed.push({ probeId: result.probeId, investigations: investigationIds.length });
+  }
+
+  // Record what was deliberately not run. A silent cap reads as "nothing else
+  // to ask", which is the failure mode this whole module exists to remove.
+  await mergeSourceSummary(db, runId, {
+    probes: { executed, failed, skipped, ranAt: new Date().toISOString() },
+  });
+  return { executed, failed, skipped };
+}
+
+/**
+ * Completed probe answers become first-class evidence for the next scan. This
+ * is what converts a one-off measurement into rising cause confidence instead
+ * of a fact the model has to rediscover every morning.
+ */
+async function loadProbeEvidence(db: SupabaseClient): Promise<WarRoomProposalEvidence[]> {
+  const { data, error } = await db.from("war_room_investigation_events")
+    .select("details, created_at")
+    .eq("event_type", "probe_completed")
+    .order("created_at", { ascending: false })
+    .limit(40);
+  if (error) throw error;
+  const seen = new Set<string>();
+  const evidence: WarRoomProposalEvidence[] = [];
+  for (const row of (data ?? []) as Array<{ details: Record<string, unknown> | null; created_at: string }>) {
+    const probeId = typeof row.details?.probe_id === "string" ? row.details.probe_id : null;
+    const headline = typeof row.details?.headline === "string" ? row.details.headline : null;
+    if (!probeId || !headline || seen.has(probeId)) continue;
+    seen.add(probeId);
+    const caveat = typeof row.details?.caveat === "string" && row.details.caveat ? ` Caveat: ${row.details.caveat}` : "";
+    const detail = typeof row.details?.detail === "string" ? ` ${row.details.detail}` : "";
+    evidence.push({
+      id: `probe:${probeId}`,
+      label: `Probe: ${probeId.replace(/_/g, " ")}`,
+      detail: `${headline}${detail}${caveat}`,
+      source: `Olera investigation probe, measured ${row.created_at.slice(0, 10)}`,
+    });
+  }
+  return evidence;
 }
 
 export async function failWarRoomDiscovery(runId: string, message: string) {

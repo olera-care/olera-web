@@ -72,6 +72,63 @@ defect, not something production would magically fix. Missing preview Slack or
 Notion credentials should reduce evidence coverage honestly; they should never
 change the orchestration model or produce a false all-clear.
 
+## The investigation probe executor
+
+War Room could always *design* the next probe for an open condition and never
+run it. Nothing in the codebase emitted `probe_completed`. Because
+`applyAgendaGate` requires `readiness === "decision_ready"`, and
+`validateInvestigations` demotes any case whose `causeConfidence` is `low`, and
+cause confidence only rises when a probe resolves a hypothesis, the loop had no
+exit. Zero founder proposals was not a judgement. It was the only reachable
+output, every day, forever.
+
+`lib/war-room/probes.server.ts` closes it. A fixed menu of read-only,
+row-capped, window-bounded queries the investigation loop can actually execute:
+
+| Probe | Question it answers |
+|---|---|
+| `question_to_claim_conversion` | Does question volume on a page actually pull that provider into claiming? |
+| `question_inventory_health` | Is the question inventory usable as provider-acquisition demand? |
+| `provider_contactability` | Can Olera reach the providers holding unanswered questions? |
+| `traffic_by_page_family` | Which page family gained or lost organic reach? |
+| `revenue_by_product` | Where does the Ad Boost funnel stop? |
+| `support_backlog_composition` | What is actually in the support backlog? |
+
+The model never writes a query. It picks a probe id from an enum, and
+`nextProbe.kind` *is* that id. A condition raised by the lens sweep has no
+model-chosen probe, so its domain maps to one. `none` is a valid, honest answer.
+
+Probes run in their own durable step after persistence, deduplicated across
+conditions and ordered by how many conditions are waiting on each, so a bound
+never silently drops the most-wanted probe. Anything the bound does drop is
+recorded under `source_summary.probes.skipped`. Answers are appended to the
+condition's event trail as `probe_completed` and become `probe:<id>` evidence in
+the next scan, so a question is answered once rather than re-asked every
+morning. A probe failure never fails the scan that produced it.
+
+The probe id list exists in three places (the runnable registry, the
+deterministic validator, and the dossier wire schema).
+`npm run check:war-room` asserts all three are identical, because drift
+reintroduces exactly the "plans a probe nobody runs" defect.
+
+**Pagination must carry a stable total order.** Range paging without
+`.order("id")` lets Postgres return a different row order per page, silently
+skipping and duplicating rows. An unordered scan of the provider directory
+undercounted it by a third while this module was being written.
+
+## What Olera actually sells
+
+`WAR_ROOM_OPERATING_MECHANICS` in `lib/war-room/strategy.ts` states the funnel
+explicitly, because the agent otherwise infers a business model from raw counts
+and gets it wrong. A care-seeker question is **provider-acquisition inventory**,
+not a support ticket: the path is question lands on a provider page, provider is
+notified, provider claims the page to answer, claimed provider can be sold
+Ad Boost. Only about 3% of askers leave an email, so answering a question is
+usually not a way to reach that family, and the answer rate is not a
+customer-service metric. Without this stated, the ten-lens sweep read a 4%
+answer rate as a trust failure and proposed that the founder answer questions
+personally, which burns the demand signal and does not scale.
+
 ## Provider tool contract
 
 Anthropic compiles every `strict` tool schema into a decoding grammar and

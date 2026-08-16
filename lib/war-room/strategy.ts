@@ -15,8 +15,17 @@ export const WAR_ROOM_ACTION_KINDS: WarRoomActionKind[] = [
   "code", "research", "operations", "business_development", "content", "decision",
 ];
 
-const WAR_ROOM_PROBE_KINDS = [
-  "analysis", "query", "repository", "source_search", "external_research",
+// A probe kind is now the id of a probe the server can actually execute, not a
+// free-form description of one. An investigation that plans a probe nobody can
+// run is how every case stayed at low cause confidence forever.
+export const WAR_ROOM_PROBE_KINDS = [
+  "question_to_claim_conversion",
+  "question_inventory_health",
+  "provider_contactability",
+  "traffic_by_page_family",
+  "revenue_by_product",
+  "support_backlog_composition",
+  "none",
 ] as const;
 
 export const DEFAULT_COMPANY_MODEL: WarRoomCompanyModel = {
@@ -25,22 +34,23 @@ export const DEFAULT_COMPANY_MODEL: WarRoomCompanyModel = {
   stage: "Early-stage marketplace proving repeatable family acquisition, provider participation, and revenue.",
   north_star: "More families successfully connect with appropriate care while Olera learns a repeatable, economically durable way to create that outcome.",
   current_priorities: [
+    "Convert family demand into claimed provider pages, then into paid provider products",
+    "Repair provider reachability so demand can be delivered to a provider at all",
     "Increase useful family outcomes",
-    "Improve reachable and responsive provider supply",
-    "Find repeatable revenue",
     "Protect distribution resilience",
   ],
   strategic_bets: [
     "Provider pages",
+    "Care-seeker questions as provider-acquisition demand",
     "Benefits guidance",
     "Editorial content",
-    "Provider participation",
     "Ad Boost and other provider revenue",
   ],
   constraints: [
     "Founder attention is scarce",
     "Company-wide revenue and cost data are not yet consolidated",
     "Some provider contact information is missing or stale",
+    "Founder time spent answering care-seeker questions directly does not scale and is not the intended mechanism",
   ],
   guardrails: [
     "Protect families and providers",
@@ -51,13 +61,32 @@ export const DEFAULT_COMPANY_MODEL: WarRoomCompanyModel = {
   strategic_questions: [
     "Which acquisition loops are durable beyond Google?",
     "Where does family demand exceed reachable provider supply?",
-    "Why do providers fail to engage?",
+    "Does question volume on a provider page actually convert that provider into a claim, controlling for page traffic?",
     "Which value can Olera reliably monetize?",
   ],
   updated_by: null,
   created_at: new Date(0).toISOString(),
   updated_at: new Date(0).toISOString(),
 };
+
+/**
+ * How Olera actually makes money, stated plainly so the agent stops inferring a
+ * different business from raw counts. Without this the ten-lens sweep reads a
+ * low answer rate as a customer-service failure, when unanswered questions are
+ * the demand signal that pulls providers into claiming a page.
+ */
+export const WAR_ROOM_OPERATING_MECHANICS = {
+  questionLoop: [
+    "A care-seeker question on a provider page is provider-acquisition inventory, not a support ticket.",
+    "The intended path is: question lands on a provider page, the provider is notified, the provider claims the page to respond, and a claimed provider can then be sold Ad Boost and other products.",
+    "Only a small minority of askers leave an email, so answering a question is usually not a way to reach that family. Do not treat the answer rate as a customer-service metric or recommend that the founder answer questions personally.",
+    "A low answer rate is therefore only a problem where it breaks the provider loop: questions on unreachable providers, questions on pages that do not resolve to a live directory row, or questions on already-claimed providers that cannot produce a new claim.",
+  ],
+  measurement: [
+    "provider_questions.provider_id holds the directory slug. provider_activity.provider_id holds the canonical provider id. Any question-to-claim measurement must translate through olera-providers.slug.",
+    "Ad Boost is the only consolidated revenue line. Absence of other revenue in the pack is not evidence that other revenue is zero.",
+  ],
+} as const;
 
 /** Keep evidence IDs in attached evidence, never in the CEO-facing prose. */
 export function cleanExecutiveText(value: string) {
@@ -82,7 +111,7 @@ export type InvestigationDraft = {
   unknowns: string[];
   hypotheses: string[];
   nextProbe: {
-    kind: "analysis" | "query" | "repository" | "source_search" | "external_research";
+    kind: (typeof WAR_ROOM_PROBE_KINDS)[number];
     question: string;
     method: string;
     expectedInformationGain: string;
@@ -271,6 +300,22 @@ const PROVEN_DROP_REASONS = new Set<InvestigationAssessment["reasonCode"]>([
  * explicit company coverage; promote high/central unresolved reviews when the
  * richer dossier pass abstains or fails validation.
  */
+// A condition raised by the lens sweep has no model-chosen probe, so map its
+// domain onto the probe most likely to advance it. "none" is honest when no
+// runnable probe applies; it is not a failure.
+function lensProbeFor(domain: WarRoomDomain): (typeof WAR_ROOM_PROBE_KINDS)[number] {
+  switch (domain) {
+    case "provider": return "provider_contactability";
+    case "customer":
+    case "product": return "question_inventory_health";
+    case "growth":
+    case "content": return "traffic_by_page_family";
+    case "revenue": return "revenue_by_product";
+    case "operations": return "support_backlog_composition";
+    default: return "none";
+  }
+}
+
 export function retainStrategicLensInvestigations(
   existing: InvestigationDraft[],
   reviews: StrategicLensReview[],
@@ -312,7 +357,7 @@ export function retainStrategicLensInvestigations(
       unknowns: [cleanExecutiveText(review.unresolvedQuestion)].filter(Boolean),
       hypotheses: [],
       nextProbe: cleanExecutiveText(review.unresolvedQuestion) ? {
-        kind: "analysis",
+        kind: lensProbeFor(review.domain),
         question: cleanExecutiveText(review.unresolvedQuestion),
         method: "Use the next fresh read-only company evidence to separate the leading explanations before recommending an intervention.",
         expectedInformationGain: "Narrow the condition to a supported cause or identify the specific missing source required to continue.",

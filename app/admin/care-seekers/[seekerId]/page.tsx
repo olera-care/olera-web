@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
-import EmailTimeline from "@/components/admin/EmailTimeline";
+import CareSeekerCommsTimeline from "@/components/admin/CareSeekerCommsTimeline";
 import type { FamilyMetadata } from "@/lib/types";
 
 const TIMELINE_LABELS: Record<string, string> = {
@@ -320,13 +320,9 @@ export default function AdminCareSeekerDetailPage() {
           )}
         </Section>
 
-        {/* Automated emails */}
-        <Section title="Automated emails">
-          {seeker.email ? (
-            <EmailTimeline recipient={seeker.email} viewAllHref={`/admin/emails?search=${encodeURIComponent(seeker.email)}`} />
-          ) : (
-            <p className="text-sm text-gray-400">No email on file — nothing to show.</p>
-          )}
+        {/* Comms timeline — emails + meaningful on-site activity, interleaved */}
+        <Section title="Comms timeline">
+          <CareSeekerCommsTimeline seekerId={seekerId} email={seeker.email} />
         </Section>
 
         {/* Danger Zone */}

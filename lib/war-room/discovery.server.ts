@@ -202,8 +202,12 @@ const PROPOSAL_PROPERTIES = {
 
 // Ten properties per group keeps both objects inside the compiled-grammar
 // budget while still asking the model for the whole decision brief in one call.
+// `fingerprint` is deliberately absent: the intervention identity is derived
+// from the condition it addresses plus the kind of action taken. Asking the
+// model for it produced a fingerprint identical to the condition's, which would
+// make rejecting one intervention retire the whole business condition.
 const AGENDA_BRIEF_KEYS = [
-  "fingerprint", "actionKind", "title", "finding", "whyNow", "proposedSolution",
+  "actionKind", "title", "finding", "whyNow", "proposedSolution",
   "decisionRequired", "whyBetterThanAlternatives", "cheapestFalsification", "evidenceIds",
 ] as const;
 const AGENDA_EXECUTION_KEYS = [
@@ -454,14 +458,11 @@ export const WAR_ROOM_STRICT_TOOLS = [
   PROPOSAL_TOOL,
 ].map((tool) => toWireSchema(tool) as Anthropic.Messages.Tool);
 
-const [
-  LENS_SWEEP_CORE_TOOL,
-  LENS_SWEEP_EXECUTION_TOOL,
-  WIRE_DOSSIER_TOOL,
-  WIRE_TRIAGE_TOOL,
-  WIRE_PROPOSAL_TOOL,
-] = WAR_ROOM_STRICT_TOOLS;
-const WIRE_LENS_SWEEP_TOOLS = [LENS_SWEEP_CORE_TOOL, LENS_SWEEP_EXECUTION_TOOL];
+// Sliced by group count rather than destructured positionally: adding a lens
+// group must not silently shift the dossier, triage, and proposal tools.
+const WIRE_LENS_SWEEP_TOOLS = WAR_ROOM_STRICT_TOOLS.slice(0, WAR_ROOM_LENS_SWEEP_GROUPS.length);
+const [WIRE_DOSSIER_TOOL, WIRE_TRIAGE_TOOL, WIRE_PROPOSAL_TOOL] =
+  WAR_ROOM_STRICT_TOOLS.slice(WAR_ROOM_LENS_SWEEP_GROUPS.length);
 
 type InvestigatorOutput = WarRoomInvestigatorOutput;
 type LensSweepToolOutput = {
@@ -610,6 +611,18 @@ function normalizeFingerprint(value: unknown, fallback: string): string {
   return /^[a-z0-9][a-z0-9-]{4,99}$/.test(slug) ? slug : fallback;
 }
 
+/**
+ * An intervention is identified by the condition it addresses plus the kind of
+ * action it takes. Rejecting a research approach therefore blocks that approach
+ * from being repackaged, while leaving a later code or operations approach to
+ * the same condition open — which is exactly what the decision memory promises.
+ */
+function interventionFingerprint(conditionFingerprint: string, actionKind: unknown) {
+  const condition = conditionFingerprint.slice(0, 70);
+  const kind = String(actionKind ?? "decision");
+  return normalizeFingerprint(`${condition}-${kind}`, `${condition}-intervention`);
+}
+
 function toolInput<T>(response: Anthropic.Messages.Message, name: string): T {
   const block = response.content.find((item) => item.type === "tool_use" && item.name === name);
   if (!block || block.type !== "tool_use") throw new Error(`war_room_missing_${name}`);
@@ -740,6 +753,9 @@ async function callWarRoomTool<T>(input: {
       outputTokens: message.usage.output_tokens,
     };
   } catch (error) {
+    // The truncation check above throws from inside this try. Re-wrapping it
+    // would discard the category and detail it just built.
+    if (error instanceof WarRoomProviderError) throw error;
     if (error instanceof Error && error.message.startsWith("war_room_missing_")) throw error;
     const diagnostic = describeProviderFailure(error, { stage: input.stage, tool: input.tool.name });
     throw new WarRoomProviderError(
@@ -863,7 +879,7 @@ async function runProposalPass(
     proposal: {
       ...brief,
       ...execution,
-      fingerprint: normalizeFingerprint(brief?.fingerprint, `${nominated.fingerprint}-intervention`),
+      fingerprint: interventionFingerprint(nominated.fingerprint, brief?.actionKind),
       sourceInvestigationFingerprint: nominated.fingerprint,
       domain: nominated.domain,
       impact: nominated.impact,

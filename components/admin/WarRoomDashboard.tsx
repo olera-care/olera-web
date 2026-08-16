@@ -73,6 +73,9 @@ function discoveryFailureMessage(message: string | null, failure?: DiscoveryFail
   if (failure?.category === "contract_validation") {
     return "The AI answered, but the answer failed War Room's own completeness contract, so it was rejected instead of being turned into a false all-clear. The raw answer was kept for diagnosis. Nothing was saved.";
   }
+  if (failure?.category === "provider_output_truncated") {
+    return "The AI ran out of room mid-answer, so War Room rejected the half-finished review rather than treating it as complete. Nothing was saved. Scanning again should succeed.";
+  }
   if (failure?.category === "rate_limited") {
     return "The AI provider rate-limited this scan. Nothing was saved. Scanning again later should succeed.";
   }
@@ -80,6 +83,17 @@ function discoveryFailureMessage(message: string | null, failure?: DiscoveryFail
     return "The AI provider was unavailable or too slow to finish this stage. Nothing was saved. Scanning again should succeed.";
   }
   if (!message) return "No proposals were changed. Scan again after fixing the source or model failure.";
+  // Message-level fallbacks, for the case where the structured diagnostic could
+  // not be written before the run was marked failed.
+  if (message.includes("war_room_truncated_tool_output")) {
+    return "The AI ran out of room mid-answer, so War Room rejected the half-finished review rather than treating it as complete. Nothing was saved. Scanning again should succeed.";
+  }
+  if (message.includes("tool_schema_grammar_limit") || message.includes("compiled grammar is too large")) {
+    return "The AI provider refused War Room's structured review contract before any analysis ran, because the tool schema is too large for it to compile. This is a code defect, not a data problem. Nothing was saved.";
+  }
+  if (message.includes("war_room_empty_lens_reviews")) {
+    return "The AI returned an incomplete company review, so War Room rejected it instead of inventing an all-clear. No decision or investigation was saved.";
+  }
   if (message.includes("war_room_incomplete_lens_coverage")) {
     return "The AI returned an incomplete company review, so War Room rejected it instead of inventing an all-clear. No decision or investigation was saved.";
   }

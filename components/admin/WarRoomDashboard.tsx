@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight,
   Bot,
@@ -46,7 +46,39 @@ function elapsedMilliseconds(startedAt: string | null, nowIso: string) {
   return Math.max(0, new Date(nowIso).getTime() - new Date(startedAt).getTime());
 }
 
-function discoveryFailureMessage(message: string | null) {
+/** Sanitized forensics recorded by the failing model call. Never carries prompts, evidence, or credentials. */
+type DiscoveryFailure = {
+  stage?: string;
+  tool?: string;
+  promptVersion?: string;
+  model?: string;
+  status?: number | null;
+  requestId?: string | null;
+  providerErrorType?: string | null;
+  category?: string;
+  detail?: string;
+};
+
+function discoveryFailure(sourceSummary: unknown): DiscoveryFailure | null {
+  if (!sourceSummary || typeof sourceSummary !== "object") return null;
+  const failure = (sourceSummary as { failure?: unknown }).failure;
+  if (!failure || typeof failure !== "object") return null;
+  return failure as DiscoveryFailure;
+}
+
+function discoveryFailureMessage(message: string | null, failure?: DiscoveryFailure | null) {
+  if (failure?.category === "tool_schema_grammar_limit") {
+    return "The AI provider refused War Room's structured review contract before any analysis ran, because the tool schema is too large for it to compile. This is a code defect, not a data problem. Nothing was saved.";
+  }
+  if (failure?.category === "contract_validation") {
+    return "The AI answered, but the answer failed War Room's own completeness contract, so it was rejected instead of being turned into a false all-clear. The raw answer was kept for diagnosis. Nothing was saved.";
+  }
+  if (failure?.category === "rate_limited") {
+    return "The AI provider rate-limited this scan. Nothing was saved. Scanning again later should succeed.";
+  }
+  if (failure?.category === "provider_unavailable" || failure?.category === "provider_timeout") {
+    return "The AI provider was unavailable or too slow to finish this stage. Nothing was saved. Scanning again should succeed.";
+  }
   if (!message) return "No proposals were changed. Scan again after fixing the source or model failure.";
   if (message.includes("war_room_incomplete_lens_coverage")) {
     return "The AI returned an incomplete company review, so War Room rejected it instead of inventing an all-clear. No decision or investigation was saved.";
@@ -101,10 +133,20 @@ const discoveryStages: Record<string, { button: string; title: string; detail: s
     title: "Cross-checking the facts",
     detail: "Combining product, customer, revenue, reliability, and source evidence into one frozen operating picture.",
   },
+  sweeping_lenses: {
+    button: "Sweeping lenses",
+    title: "Reviewing all ten company lenses",
+    detail: "Company, customer, provider, growth, revenue, product, content, operations, market, and data are each getting an explicit review before any case is formed.",
+  },
   forming_candidates: {
     button: "Forming cases",
     title: "Building private opportunity cases",
     detail: "The chief-of-staff pass is comparing customers, providers, growth, revenue, product, content, operations, market risk, and data without assuming the answer is code.",
+  },
+  drafting_decision: {
+    button: "Writing the brief",
+    title: "Writing the one decision brief",
+    detail: "A single case cleared the founder-interruption standard. It is being written up as a CEO-length brief.",
   },
   challenging_candidates: {
     button: "Applying agenda gate",
@@ -601,12 +643,43 @@ export default function WarRoomDashboard() {
         </div>
       ) : null}
 
-      {!error && payload?.latestDiscovery?.status === "failed" ? (
-        <div className="mt-6 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="min-w-0"><p className="font-semibold">The last discovery run failed honestly.</p><p className="mt-0.5 break-words">{discoveryFailureMessage(payload.latestDiscovery.error_message)}</p></div>
-        </div>
-      ) : null}
+      {!error && payload?.latestDiscovery?.status === "failed" ? (() => {
+        const failure = discoveryFailure(payload.latestDiscovery.source_summary);
+        // Forensics, not a stack trace: enough to reproduce and report the
+        // failure without putting company evidence or prompts in the browser.
+        const forensics = [
+          failure?.stage ? ["Stage", failure.stage] : null,
+          failure?.tool ? ["Contract", failure.tool] : null,
+          failure?.category ? ["Category", failure.category] : null,
+          typeof failure?.status === "number" ? ["Provider status", String(failure.status)] : null,
+          failure?.requestId ? ["Provider request", failure.requestId] : null,
+          failure?.promptVersion ? ["Prompt version", failure.promptVersion] : null,
+          failure?.model ? ["Model", failure.model] : null,
+        ].filter((entry): entry is [string, string] => Boolean(entry));
+        return (
+          <div className="mt-6 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0">
+              <p className="font-semibold">The last discovery run failed honestly.</p>
+              <p className="mt-0.5 break-words">{discoveryFailureMessage(payload.latestDiscovery.error_message, failure)}</p>
+              {forensics.length ? (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-semibold text-amber-800">Diagnostic detail</summary>
+                  <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-xs text-amber-800">
+                    {forensics.map(([label, value]) => (
+                      <Fragment key={label}>
+                        <dt className="font-semibold">{label}</dt>
+                        <dd className="break-all font-mono">{value}</dd>
+                      </Fragment>
+                    ))}
+                  </dl>
+                  {failure?.detail ? <p className="mt-2 break-words font-mono text-xs text-amber-800">{failure.detail}</p> : null}
+                </details>
+              ) : null}
+            </div>
+          </div>
+        );
+      })() : null}
 
       {payload ? (
         <>

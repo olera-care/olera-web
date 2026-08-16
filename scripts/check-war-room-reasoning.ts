@@ -30,21 +30,56 @@ function assertAnthropicStrictSchemaCompatibility(value: unknown, path = "tools"
 
 assertAnthropicStrictSchemaCompatibility(WAR_ROOM_STRICT_TOOLS);
 
-const investigatorSchema = WAR_ROOM_STRICT_TOOLS[0].input_schema;
-const lensReviewSchema = investigatorSchema.properties.lensReviews;
-assert.equal(lensReviewSchema.type, "object", "strategic lenses must be required fields, not an optional-length array");
-assert.deepEqual(
-  [...lensReviewSchema.required].sort(),
-  ["company", "content", "customer", "data", "growth", "market", "operations", "product", "provider", "revenue"],
-  "the investigator contract must require every strategic lens",
-);
-for (const domain of lensReviewSchema.required) {
+// The ten-lens sweep is split across more than one tool because the provider
+// cannot compile a single strict schema covering all ten. What must stay true
+// is that the split still partitions the ten lenses exactly: every lens is a
+// `required` named field of exactly one sweep tool. Anything less reintroduces
+// the silent-omission failure the object contract was built to prevent.
+const sweepTools = WAR_ROOM_STRICT_TOOLS.filter((tool) => tool.name.startsWith("submit_lens_sweep"));
+assert.ok(sweepTools.length > 0, "at least one lens sweep tool must exist");
+
+const sweptLenses: string[] = [];
+for (const tool of sweepTools) {
+  const schema = tool.input_schema as {
+    required: string[];
+    properties: { lensReviews: { type: string; required: string[]; properties: Record<string, unknown> } };
+  };
+  assert.deepEqual(schema.required, ["lensReviews"], `${tool.name} must require lensReviews`);
+  const lensReviews = schema.properties.lensReviews;
+  assert.equal(lensReviews.type, "object", "strategic lenses must be required named fields, not an optional-length array");
   assert.deepEqual(
-    lensReviewSchema.properties[domain].properties.domain.enum,
-    [domain],
-    `the ${domain} lens field must identify itself as ${domain}`,
+    [...lensReviews.required].sort(),
+    Object.keys(lensReviews.properties).sort(),
+    `${tool.name} must require every lens field it declares`,
   );
+  sweptLenses.push(...lensReviews.required);
 }
+
+assert.deepEqual(
+  [...sweptLenses].sort(),
+  ["company", "content", "customer", "data", "growth", "market", "operations", "product", "provider", "revenue"],
+  "the lens sweep tools together must require every strategic lens exactly once",
+);
+assert.equal(new Set(sweptLenses).size, sweptLenses.length, "no lens may be reviewed by two sweep tools");
+
+// `domain` is deliberately absent from the wire schema — it is stamped from the
+// property name the model filled, so a mislabelled lens is not expressible.
+for (const tool of sweepTools) {
+  const lensReviews = (tool.input_schema as {
+    properties: { lensReviews: { properties: Record<string, { properties: Record<string, unknown> }> } };
+  }).properties.lensReviews;
+  for (const [domain, lens] of Object.entries(lensReviews.properties)) {
+    assert.ok(
+      !("domain" in lens.properties),
+      `the ${domain} lens must not restate its own domain; the server stamps it`,
+    );
+  }
+}
+
+// Compiled-grammar size is NOT statically checkable: it depends on provider
+// internals, and every shape below was accepted or rejected only by asking.
+// `npm run check:war-room:contract` is the check that proves the live provider
+// still accepts these exact tools. Passing this file does not.
 
 const evidence: WarRoomProposalEvidence[] = [
   { id: "metric:questions", label: "Questions", detail: "2,540 questions arrived", source: "Olera product data" },

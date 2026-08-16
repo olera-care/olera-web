@@ -18,10 +18,11 @@ an approved direction but remain human-controlled.
 2. The cron and the admin **Scan now** action only queue a run and start a
    Vercel Workflow. They do not hold an HTTP request open while Claude reasons.
 3. The workflow checkpoints source refresh, operating-pack preparation, the
-   chief-of-staff pass, the council pass, and persistence as separate durable
-   steps. A transient timeout retries only the failed step; completed model
-   calls are read from their database checkpoints instead of being purchased
-   twice. The admin page may be closed while a scan runs.
+   ten-lens sweep, the dossier pass, agenda triage, decision drafting, and
+   persistence as separate durable steps. A transient timeout retries only the
+   failed step; completed model calls are read from their database checkpoints
+   instead of being purchased twice. The admin page may be closed while a scan
+   runs.
 4. Source preparation refreshes bounded, allowlisted Slack and Notion evidence
    and freezes the existing company fact pack for the rest of that run.
 5. A chief-of-staff pass explicitly reviews all ten company lenses, then forms
@@ -71,11 +72,60 @@ defect, not something production would magically fix. Missing preview Slack or
 Notion credentials should reduce evidence coverage honestly; they should never
 change the orchestration model or produce a false all-clear.
 
+## Provider tool contract
+
+Anthropic compiles every `strict` tool schema into a decoding grammar and
+refuses the request when that grammar is too large or too slow to compile. The
+refusal happens **before any inference**, so it is invisible to prompt design
+and to every offline test. Three things were measured directly against
+`claude-opus-5`, not inferred:
+
+- **Ten sibling lens objects in one call are rejected in half a second**, no
+  matter how small each lens body is. A five-property body fails exactly as fast
+  as a ten-property one. Five sibling lens objects compile in about twenty
+  seconds. That is why the sweep is two tool calls.
+- **A single object carrying all 27 proposal properties never compiles**, and
+  regrouping the same 27 into nested sub-objects does not help. Two sibling
+  groups of ten do compile, which is the shape `submit_agenda_proposal` uses.
+- **`maxLength` and `pattern` are expensive and enforce nothing.** Strict tool
+  use ignores string constraints, but they still compile into bounded
+  repetition, and near the budget they are the difference between a twenty-
+  second compile and `Grammar compilation timed out`. `toWireSchema` strips
+  them from every request; the declarations keep them only as the documented
+  budget, and fingerprints are normalized on the server instead.
+
+The compiled-grammar budget is not derivable from the schema and no static
+check can prove a schema will be accepted. `npm run check:war-room:contract`
+sends every production tool object to the production model with synthetic input
+and `max_tokens: 1`. It writes no Olera state and starts no scan. Run it
+whenever a War Room tool schema changes — a contract regression otherwise
+surfaces only when someone presses **Scan now**.
+
+A failed run records sanitized forensics on the run row: stage, contract name,
+failure category, provider status, provider request id, prompt version, and
+model. Those reach the admin page under **Diagnostic detail**. Prompts,
+evidence, company facts, and credentials never do.
+
+Raw model output is checkpointed **before** the deterministic contract runs, so
+a scan rejected by our own completeness gate leaves the answer behind for
+diagnosis instead of discarding it and re-purchasing Opus blind.
+
 ## Required migrations
 
 Apply `supabase/migrations/177_war_room_operating_agent.sql` before opening the
 supervisor inbox. Apply `178_war_room_ceo_operating_system.sql` before running
 the CEO discovery pipeline.
+
+`staging` independently used the numbers 177 and 178 for
+`provider_outreach_apollo_contact` and `provider_outreach_email_source`. The
+prefixes collide; the migrations do not. They alter
+`provider_outreach_tracking`, which no War Room migration touches, and this
+repository has carried duplicate migration prefixes since 003. All four War
+Room migrations are idempotent (`IF NOT EXISTS`, `DROP CONSTRAINT IF EXISTS`,
+`ON CONFLICT DO NOTHING`), and both sets are already applied to the shared
+Supabase instance. Renumbering the War Room files after the fact would
+misrepresent what was applied, so the filenames stay as they are and no
+reconciliation migration is needed.
 
 ## Company model and interruption standard
 

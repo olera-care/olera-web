@@ -15,15 +15,22 @@ an approved direction but remain human-controlled.
 ## Runtime shape
 
 1. `/api/cron/war-room-discovery` runs daily at 10:30 UTC.
-2. It refreshes bounded, allowlisted Slack and Notion evidence and freezes the
-   existing company fact pack.
-3. A chief-of-staff pass explicitly reviews all ten company lenses, then forms
+2. The cron and the admin **Scan now** action only queue a run and start a
+   Vercel Workflow. They do not hold an HTTP request open while Claude reasons.
+3. The workflow checkpoints source refresh, operating-pack preparation, the
+   chief-of-staff pass, the council pass, and persistence as separate durable
+   steps. A transient timeout retries only the failed step; completed model
+   calls are read from their database checkpoints instead of being purchased
+   twice. The admin page may be closed while a scan runs.
+4. Source preparation refreshes bounded, allowlisted Slack and Notion evidence
+   and freezes the existing company fact pack for the rest of that run.
+5. A chief-of-staff pass explicitly reviews all ten company lenses, then forms
    zero to eight **private opportunity dossiers**. A private investigation needs
    a supported material condition and a consequential unresolved question; it
    does not need a finished causal theory or two pre-baked solutions. Richer
    dossiers separate the situation, likely cause, counter-evidence, existing
    capabilities, unknowns, and alternative interventions.
-4. A CEO agenda council classifies every dossier as investigate, watchlist,
+6. A CEO agenda council classifies every dossier as investigate, watchlist,
    drop, or agenda. At most one agenda case survives. A deterministic gate then
    requires all of the following: high materiality and central strategic fit;
    supported cause; multiple evidence families; verified existing state for
@@ -33,20 +40,20 @@ an approved direction but remain human-controlled.
    proves it resolved or contradicted. Missing evidence demotes a case to private
    investigation; it does not erase the case. A rejected or superseded proposal
    retires that intervention, not the underlying business condition.
-5. A repository-owned capability index supplies positive evidence for systems
+7. A repository-owned capability index supplies positive evidence for systems
    that models commonly rediscover. It proves presence, never absence. Until a
    live repository reader exists, code proposals may improve an indexed system
    but may not claim that an unindexed feature is missing.
-6. `/admin/war-room` reads only precomputed rows. Admin login and
+8. `/admin/war-room` reads only precomputed rows. Admin login and
    page load never wait for source sync or AI. Each proposal opens as a
    CEO-length decision brief; private investigations and watchlist cases stay
    compact and do not masquerade as work.
-7. Approving code emits the `war-room-approved` repository dispatch. Approving
+9. Approving code emits the `war-room-approved` repository dispatch. Approving
    any other action kind records the decision without taking external action.
-8. `.github/workflows/war-room-agent.yml` runs Claude Code in an isolated GitHub
+10. `.github/workflows/war-room-agent.yml` runs Claude Code in an isolated GitHub
    runner and may create a branch + ready PR against `staging`. It reports the
    result back to the proposal. There is no merge or deployment permission.
-9. When work is marked complete, the next evidence cycle measures the stated
+11. When work is marked complete, the next evidence cycle measures the stated
    outcome after the proposal-specific evaluation window and records validated,
    missed, or inconclusive.
 
@@ -56,6 +63,13 @@ so the same fingerprint stays rejected instead of being repackaged every day.
 The waiting inbox presents one proposal at a time. **Pass for now** advances the
 local decision queue without changing proposal state; previous/next controls
 make every passed proposal immediately recoverable.
+
+The execution architecture is intentionally identical on preview and main.
+Main has richer credentials and live evidence, but it does not receive a longer
+or more reliable request budget. A preview timeout is therefore a real runtime
+defect, not something production would magically fix. Missing preview Slack or
+Notion credentials should reduce evidence coverage honestly; they should never
+change the orchestration model or produce a false all-clear.
 
 ## Required migrations
 

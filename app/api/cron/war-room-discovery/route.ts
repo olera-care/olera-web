@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { start } from "workflow/api";
 import { getServiceClient } from "@/lib/admin";
 import { withCronRun } from "@/lib/crons/run";
 import {
-  executeWarRoomDiscovery,
+  failWarRoomDiscovery,
   queueWarRoomDiscovery,
 } from "@/lib/war-room/discovery.server";
+import { warRoomDiscoveryWorkflow } from "@/workflows/war-room-discovery";
 
 export const maxDuration = 300;
 
@@ -15,19 +17,22 @@ export async function GET(request: NextRequest) {
   return withCronRun("war-room-discovery", async () => {
     const queued = await queueWarRoomDiscovery(getServiceClient(), "scheduled", "cron");
     if (!queued.reused) {
-      await executeWarRoomDiscovery(queued.run.id);
-      const { data: finished, error } = await getServiceClient().from("war_room_discovery_runs")
-        .select("status, proposal_count, error_message")
-        .eq("id", queued.run.id)
-        .single();
-      if (error) throw error;
-      if (finished.status === "failed") throw new Error(finished.error_message || "War Room discovery failed");
+      let workflowRun;
+      try {
+        workflowRun = await start(warRoomDiscoveryWorkflow, [queued.run.id]);
+      } catch (startError) {
+        await failWarRoomDiscovery(
+          queued.run.id,
+          startError instanceof Error ? startError.message : "Durable workflow could not start",
+        );
+        throw startError;
+      }
       return {
         ok: true,
         run_id: queued.run.id,
+        workflow_run_id: workflowRun.runId,
         reused: false,
-        status: finished.status,
-        proposals: finished.proposal_count,
+        status: "queued",
       };
     }
     return {

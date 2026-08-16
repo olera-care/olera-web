@@ -36,7 +36,11 @@ export const WAR_ROOM_DISCOVERY_MODEL = process.env.WAR_ROOM_DISCOVERY_MODEL
   || "claude-opus-5";
 export const WAR_ROOM_PROMPT_VERSION = "war-room-ceo-v3-investigation-loop";
 
-const REQUEST_OPTIONS = { timeout: 100_000, maxRetries: 0 };
+// Model calls run inside independently retryable Workflow steps. Give Opus a
+// realistic per-step budget while leaving retries to the durable orchestrator;
+// SDK-level retries would be invisible to our step telemetry and can duplicate
+// a costly request inside one attempt.
+const REQUEST_OPTIONS = { timeout: 240_000, maxRetries: 0 };
 const ACTIVE_PROPOSAL_STATUSES = ["proposed", "approved", "dispatching", "executing", "review_ready"];
 
 const INVESTIGATOR_SYSTEM = `You are Olera's autonomous chief-of-staff investigator. Your objective is not to produce work. Your objective is to improve Olera's odds of surviving and thriving while protecting founder attention.
@@ -322,23 +326,16 @@ function stableHash(value: unknown) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-async function analyzePortfolio(
+type ProposalMemory = Array<Partial<WarRoomProposal>>;
+type InvestigationMemory = Array<Partial<WarRoomInvestigation>>;
+
+function buildOperatingPack(
   factPack: ReturnType<typeof buildWarRoomFactPack>,
   externalEvidence: WarRoomProposalEvidence[],
   companyModel: WarRoomCompanyModel,
-  proposalMemory: Array<Partial<WarRoomProposal>>,
-  investigationMemory: Array<Partial<WarRoomInvestigation>>,
-  blockedInterventionFingerprints: ReadonlySet<string>,
-  onStage?: (stage: DiscoveryStage) => Promise<void>,
-  onCheckpoint?: (checkpoint: {
-    rawInvestigatorOutput: InvestigatorOutput;
-    rawCouncilOutput?: CouncilOutput;
-    inputTokens: number;
-    outputTokens: number;
-  }) => Promise<void>,
+  proposalMemory: ProposalMemory,
+  investigationMemory: InvestigationMemory,
 ) {
-  if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const { evidenceCatalog: internalEvidence, ...companyFacts } = factPack;
   const capabilityEvidence = warRoomCapabilityEvidence();
   const evidenceCatalog = [...internalEvidence, ...capabilityEvidence, ...externalEvidence];
@@ -396,22 +393,24 @@ async function analyzePortfolio(
     evidenceCatalog,
   };
 
-  const investigator = await anthropic.messages.create({
+  return operatingPack;
+}
+
+async function runInvestigatorPass(operatingPack: ReturnType<typeof buildOperatingPack>) {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  const investigator = await anthropic.messages.stream({
     model: WAR_ROOM_DISCOVERY_MODEL,
     max_tokens: 7_000,
     system: INVESTIGATOR_SYSTEM,
     tools: [INVESTIGATOR_TOOL],
     tool_choice: { type: "tool", name: INVESTIGATOR_TOOL.name },
     messages: [{ role: "user", content: `Review all ten company lenses, preserve material unresolved conditions as private investigations, and form detailed dossiers only where earned. Do not optimize for producing a founder task:\n${JSON.stringify(operatingPack)}` }],
-  }, REQUEST_OPTIONS);
+  }, REQUEST_OPTIONS).finalMessage();
   const investigatorOutput = toolInput<InvestigatorOutput>(investigator, INVESTIGATOR_TOOL.name);
-  await onCheckpoint?.({
-    rawInvestigatorOutput: investigatorOutput,
-    inputTokens: investigator.usage.input_tokens,
-    outputTokens: investigator.usage.output_tokens,
-  });
   const provisionalInvestigations = evaluateWarRoomReasoning({
-    evidenceCatalog,
+    evidenceCatalog: operatingPack.evidenceCatalog,
     investigator: investigatorOutput,
     council: {
       challenge: "Investigator pass only.",
@@ -428,16 +427,30 @@ async function analyzePortfolio(
     },
   }).investigations;
 
-  await onStage?.("challenging_candidates");
+  return {
+    rawInvestigatorOutput: investigatorOutput,
+    provisionalInvestigations,
+    inputTokens: investigator.usage.input_tokens,
+    outputTokens: investigator.usage.output_tokens,
+  };
+}
+
+async function runCouncilPass(
+  operatingPack: ReturnType<typeof buildOperatingPack>,
+  investigator: Awaited<ReturnType<typeof runInvestigatorPass>>,
+) {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   const councilContext = {
     generatedAt: operatingPack.generatedAt,
     companyModel: operatingPack.companyModel,
     operatingContract: operatingPack.operatingContract,
     proposalMemory: operatingPack.proposalMemory,
     investigationMemory: operatingPack.investigationMemory,
-    evidenceCatalog,
+    evidenceCatalog: operatingPack.evidenceCatalog,
   };
-  const council = await anthropic.messages.create({
+  const council = await anthropic.messages.stream({
     model: WAR_ROOM_DISCOVERY_MODEL,
     max_tokens: 7_000,
     system: COUNCIL_SYSTEM,
@@ -445,16 +458,28 @@ async function analyzePortfolio(
     tool_choice: { type: "tool", name: COUNCIL_TOOL.name },
     messages: [{
       role: "user",
-      content: `COUNCIL CONTEXT:\n${JSON.stringify(councilContext)}\n\nCHIEF-OF-STAFF READ:\n${investigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(provisionalInvestigations)}`,
+      content: `COUNCIL CONTEXT:\n${JSON.stringify(councilContext)}\n\nCHIEF-OF-STAFF READ:\n${investigator.rawInvestigatorOutput.portfolioRead}\n\nPRIVATE DOSSIERS:\n${JSON.stringify(investigator.provisionalInvestigations)}`,
     }],
-  }, REQUEST_OPTIONS);
+  }, REQUEST_OPTIONS).finalMessage();
   const review = toolInput<CouncilOutput>(council, COUNCIL_TOOL.name);
-  await onCheckpoint?.({
-    rawInvestigatorOutput: investigatorOutput,
+
+  return {
     rawCouncilOutput: review,
-    inputTokens: investigator.usage.input_tokens + council.usage.input_tokens,
-    outputTokens: investigator.usage.output_tokens + council.usage.output_tokens,
-  });
+    inputTokens: council.usage.input_tokens,
+    outputTokens: council.usage.output_tokens,
+  };
+}
+
+function evaluatePortfolio(
+  operatingPack: ReturnType<typeof buildOperatingPack>,
+  investigator: Awaited<ReturnType<typeof runInvestigatorPass>>,
+  council: Awaited<ReturnType<typeof runCouncilPass>>,
+  proposalMemory: ProposalMemory,
+  blockedInterventionFingerprints: ReadonlySet<string>,
+) {
+  const investigatorOutput = investigator.rawInvestigatorOutput;
+  const review = council.rawCouncilOutput;
+  const evidenceCatalog = operatingPack.evidenceCatalog;
   const reasoning = evaluateWarRoomReasoning({
     evidenceCatalog,
     investigator: investigatorOutput,
@@ -491,8 +516,8 @@ async function analyzePortfolio(
     rawInvestigatorOutput: investigatorOutput,
     rawCouncilOutput: review,
     validationTrace: reasoning.validationTrace,
-    inputTokens: investigator.usage.input_tokens + council.usage.input_tokens,
-    outputTokens: investigator.usage.output_tokens + council.usage.output_tokens,
+    inputTokens: investigator.inputTokens + council.inputTokens,
+    outputTokens: investigator.outputTokens + council.outputTokens,
   };
 }
 
@@ -640,6 +665,13 @@ async function saveInvestigations(
     };
     let investigationId: string;
     if (prior) {
+      // A durable persistence step may be retried after the database accepted
+      // the write but before the worker acknowledged it. Do not count or emit
+      // the same observation twice for one discovery run.
+      if (prior.discovery_run_id === runId) {
+        saved += 1;
+        continue;
+      }
       const { data: updated, error: updateError } = await db.from("war_room_investigations").update({
         ...values,
         occurrence_count: prior.occurrence_count + 1,
@@ -717,10 +749,10 @@ export async function queueWarRoomDiscovery(
   trigger: "scheduled" | "manual",
   requestedBy: string,
 ): Promise<{ run: WarRoomDiscoveryRun; reused: boolean }> {
-  const staleBefore = new Date(Date.now() - 12 * 60_000).toISOString();
+  const staleBefore = new Date(Date.now() - 2 * 60 * 60_000).toISOString();
   await db.from("war_room_discovery_runs").update({
     status: "failed",
-    error_message: "Discovery exceeded its 12-minute lease.",
+    error_message: "Durable discovery made no terminal progress within its two-hour lease.",
     completed_at: new Date().toISOString(),
   }).in("status", ["queued", "running"]).lt("created_at", staleBefore);
 
@@ -852,6 +884,11 @@ async function saveProposals(
       // same task every morning. A genuinely different condition needs a new
       // fingerprint and a new proposal.
       if (!ACTIVE_PROPOSAL_STATUSES.includes(prior.status)) continue;
+      if (prior.discovery_run_id === runId) {
+        acceptedDrafts.push(draft);
+        saved += 1;
+        continue;
+      }
       // Approval freezes the authorized title, solution, scope, and plan. A
       // later discovery may record that the condition still exists, but it may
       // never silently widen work already handed to an executor.
@@ -896,7 +933,11 @@ async function saveProposals(
   return { saved, acceptedDrafts };
 }
 
-async function linkInvestigationsToProposals(db: SupabaseClient, drafts: ReturnType<typeof applyAgendaGate>) {
+async function linkInvestigationsToProposals(
+  db: SupabaseClient,
+  runId: string,
+  drafts: ReturnType<typeof applyAgendaGate>,
+) {
   for (const draft of drafts) {
     const { data, error } = await db.from("war_room_proposals")
       .select("id, status")
@@ -908,12 +949,13 @@ async function linkInvestigationsToProposals(db: SupabaseClient, drafts: ReturnT
       proposal_id: data.id,
       status: "decision_ready",
       updated_at: new Date().toISOString(),
-    }).eq("fingerprint", draft.sourceInvestigationFingerprint).select("id");
+    }).eq("fingerprint", draft.sourceInvestigationFingerprint).is("proposal_id", null).select("id");
     if (linkError) throw linkError;
     if (linkedInvestigations?.length) {
       const { error: eventError } = await db.from("war_room_investigation_events").insert(
         linkedInvestigations.map((investigation) => ({
           investigation_id: investigation.id,
+          discovery_run_id: runId,
           event_type: "intervention_proposed",
           actor: "war-room",
           details: { proposal_id: data.id, proposal_fingerprint: draft.fingerprint },
@@ -933,168 +975,334 @@ async function loadCompanyModel(db: SupabaseClient): Promise<WarRoomCompanyModel
   return data as WarRoomCompanyModel;
 }
 
-export async function executeWarRoomDiscovery(runId: string) {
+export type WarRoomPreparedDiscovery = {
+  factPack: ReturnType<typeof buildWarRoomFactPack>;
+  externalEvidence: WarRoomProposalEvidence[];
+  companyModel: WarRoomCompanyModel;
+  proposalMemory: ProposalMemory;
+  investigationMemory: InvestigationMemory;
+  blockedInterventionFingerprints: string[];
+  factPackHash: string;
+  sourceSummary: Record<string, unknown>;
+};
+
+export type WarRoomInvestigatorCheckpoint = Awaited<ReturnType<typeof runInvestigatorPass>>;
+export type WarRoomCouncilCheckpoint = Awaited<ReturnType<typeof runCouncilPass>>;
+
+async function updateDiscoveryStage(
+  db: SupabaseClient,
+  runId: string,
+  stage: DiscoveryStage | "completed" | "failed",
+  details: Record<string, unknown> = {},
+) {
+  const { data, error } = await db.from("war_room_discovery_runs")
+    .select("status, source_summary")
+    .eq("id", runId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data || data.status === "completed" || data.status === "failed") return;
+  const sourceSummary = data.source_summary && typeof data.source_summary === "object"
+    ? data.source_summary as Record<string, unknown>
+    : {};
+  const { error: updateError } = await db.from("war_room_discovery_runs").update({
+    source_summary: {
+      ...sourceSummary,
+      ...details,
+      stage,
+      stage_started_at: new Date().toISOString(),
+      last_heartbeat_at: new Date().toISOString(),
+    },
+  }).eq("id", runId).eq("status", "running");
+  if (updateError) throw updateError;
+}
+
+export async function prepareWarRoomDiscovery(runId: string, attempt = 1): Promise<WarRoomPreparedDiscovery> {
   const db = getServiceClient();
-  const sourceSummary: Record<string, unknown> = { stage: "refreshing_sources" };
-  const setStage = async (stage: DiscoveryStage) => {
-    sourceSummary.stage = stage;
-    const { error } = await db.from("war_room_discovery_runs")
-      .update({ source_summary: sourceSummary })
-      .eq("id", runId)
-      .eq("status", "running");
-    if (error) throw error;
-  };
-  try {
+  const { data: current, error: currentError } = await db.from("war_room_discovery_runs")
+    .select("*")
+    .eq("id", runId)
+    .maybeSingle();
+  if (currentError) throw currentError;
+  if (!current) throw new Error("War Room discovery run does not exist");
+  if (current.status === "completed") throw new Error("War Room discovery run is already complete");
+  if (current.status === "failed") throw new Error("War Room discovery run is already failed");
+  if (current.status === "queued") {
     const { data: run, error: runError } = await db.from("war_room_discovery_runs")
       .update({
         status: "running",
-        started_at: new Date().toISOString(),
+        started_at: current.started_at ?? new Date().toISOString(),
         error_message: null,
-        source_summary: sourceSummary,
+        source_summary: {
+          ...(current.source_summary ?? {}),
+          stage: "refreshing_sources",
+          stage_attempt: attempt,
+          last_heartbeat_at: new Date().toISOString(),
+        },
       })
       .eq("id", runId)
       .eq("status", "queued")
       .select("*")
       .maybeSingle();
     if (runError) throw runError;
-    if (!run) return;
-
-    const [slack, notion] = await Promise.all([
-      syncSlackHistoryEvidence(db),
-      syncNotionEvidence(db),
-    ]);
-    Object.assign(sourceSummary, { slack, notion });
-    await setStage("building_operating_pack");
-    const [snapshot, externalEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
-      buildWarRoomSnapshot(db, 30),
-      loadExternalEvidence(db),
-      loadCompanyModel(db),
-      db.from("war_room_proposals").select("*").order("last_seen_at", { ascending: false }).limit(30),
-      db.from("war_room_investigations").select("*").order("last_seen_at", { ascending: false }).limit(30),
-      // Outcome measurement must not silently stop once newer proposals push a
-      // completed item out of the general 30-row memory window.
-      db.from("war_room_proposals").select("*")
-        .eq("status", "completed")
-        .eq("outcome_status", "pending")
-        .lte("measurement_due_at", new Date().toISOString())
-        .order("measurement_due_at", { ascending: true })
-        .limit(5),
-      db.from("war_room_proposals")
-        .select("fingerprint, status")
-        .in("status", ["rejected", "completed", "failed", "superseded"]),
-    ]);
-    if (memoryResult.error) throw memoryResult.error;
-    if (investigationMemoryResult.error) throw investigationMemoryResult.error;
-    if (dueOutcomeResult.error) throw dueOutcomeResult.error;
-    if (blockedInterventionResult.error) throw blockedInterventionResult.error;
-    const memoryById = new Map<string, Partial<WarRoomProposal>>();
-    for (const proposal of [
-      ...((memoryResult.data ?? []) as Array<Partial<WarRoomProposal>>),
-      ...((dueOutcomeResult.data ?? []) as Array<Partial<WarRoomProposal>>),
-    ]) {
-      if (proposal.id) memoryById.set(proposal.id, proposal);
-    }
-    const factPack = buildWarRoomFactPack(snapshot);
-    const factPackHash = stableHash([
-      ...factPack.evidenceCatalog,
-      ...warRoomCapabilityEvidence(),
-      ...externalEvidence,
-    ].map((item) => ({
-      id: item.id,
-      detail: item.detail,
-      source: item.source,
-      href: item.href ?? null,
-      occurredAt: "occurredAt" in item ? item.occurredAt ?? null : null,
-      freshness: "freshness" in item ? item.freshness ?? null : null,
-    })));
-    Object.assign(sourceSummary, {
-      external_evidence_count: externalEvidence.length,
-      internal_evidence_count: factPack.evidenceCatalog.length,
-      fact_pack_hash: factPackHash,
-      prompt_version: WAR_ROOM_PROMPT_VERSION,
-    });
-    await setStage("forming_candidates");
-    const result = await analyzePortfolio(
-      factPack,
-      externalEvidence,
-      companyModel,
-      [...memoryById.values()],
-      (investigationMemoryResult.data ?? []) as Array<Partial<WarRoomInvestigation>>,
-      new Set((blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint)),
-      setStage,
-      async (checkpoint) => {
-        const { error } = await db.from("war_room_discovery_runs").update({
-          raw_investigator_output: checkpoint.rawInvestigatorOutput,
-          raw_council_output: checkpoint.rawCouncilOutput ?? null,
-          input_tokens: checkpoint.inputTokens,
-          output_tokens: checkpoint.outputTokens,
-        }).eq("id", runId).eq("status", "running");
-        if (error) throw error;
-      },
-    );
-    await setStage("saving_decisions");
-    const proposalSave = await saveProposals(db, runId, result.proposals, result.evidenceCatalog);
-    const selectedInvestigationFingerprints = new Set(
-      proposalSave.acceptedDrafts.map((proposal) => proposal.sourceInvestigationFingerprint),
-    );
-    const persistedAgenda = reconcilePersistedWarRoomAgenda({
-      investigations: result.investigations,
-      assessments: result.assessments,
-      companyRead: result.rawCouncilOutput.companyRead,
-      evidenceCatalog: result.evidenceCatalog,
-      lensReviews: result.rawInvestigatorOutput.lensReviews,
-      acceptedInvestigationFingerprints: selectedInvestigationFingerprints,
-    });
-    const persistedAssessments = persistedAgenda.assessments;
-    const persistedCompanyRead = persistedAgenda.companyRead;
-    const investigationsSaved = await saveInvestigations(
-      db,
-      runId,
-      result.investigations,
-      persistedAssessments,
-      selectedInvestigationFingerprints,
-      result.evidenceCatalog,
-    );
-    await linkInvestigationsToProposals(db, proposalSave.acceptedDrafts);
-    await saveOutcomes(db, result.outcomes, result.evidenceCatalog);
-    const { error: finishError } = await db.from("war_room_discovery_runs").update({
-      status: "completed",
-      source_summary: {
-        ...sourceSummary,
-        stage: "completed",
-        company_verdict: persistedCompanyRead.summary,
-        company_read: persistedCompanyRead,
-        investigation_count: investigationsSaved,
-        watchlist_count: persistedAssessments.filter((assessment) => assessment.disposition === "watchlist").length,
-      },
-      candidate_count: result.investigations.length,
-      proposal_count: proposalSave.saved,
-      critic_review: {
-        ...result.review,
-        companyRead: persistedCompanyRead,
-        companyVerdict: persistedCompanyRead.summary,
-        assessments: persistedAssessments,
-      },
-      fact_pack_hash: factPackHash,
-      prompt_version: WAR_ROOM_PROMPT_VERSION,
-      raw_investigator_output: result.rawInvestigatorOutput,
-      raw_council_output: result.rawCouncilOutput,
-      validation_trace: {
-        ...result.validationTrace,
-        persistedAgendaItems: proposalSave.acceptedDrafts.length,
-        persistenceBlockedInterventions: result.proposals.length - proposalSave.acceptedDrafts.length,
-      },
-      input_tokens: result.inputTokens,
-      output_tokens: result.outputTokens,
-      completed_at: new Date().toISOString(),
-    }).eq("id", runId);
-    if (finishError) throw finishError;
-  } catch (error) {
-    console.error("[war-room] discovery failed:", error);
-    await db.from("war_room_discovery_runs").update({
-      status: "failed",
-      error_message: error instanceof Error ? error.message.slice(0, 1_000) : "Unknown discovery failure",
-      completed_at: new Date().toISOString(),
-    }).eq("id", runId);
+    if (!run) throw new Error("War Room discovery run was claimed by another worker");
+  } else {
+    await updateDiscoveryStage(db, runId, "refreshing_sources", { stage_attempt: attempt });
   }
+
+  const [slack, notion] = await Promise.all([
+    syncSlackHistoryEvidence(db),
+    syncNotionEvidence(db),
+  ]);
+  await updateDiscoveryStage(db, runId, "building_operating_pack", { slack, notion, stage_attempt: attempt });
+  const [snapshot, externalEvidence, companyModel, memoryResult, investigationMemoryResult, dueOutcomeResult, blockedInterventionResult] = await Promise.all([
+    buildWarRoomSnapshot(db, 30),
+    loadExternalEvidence(db),
+    loadCompanyModel(db),
+    db.from("war_room_proposals").select("*").order("last_seen_at", { ascending: false }).limit(30),
+    db.from("war_room_investigations").select("*").order("last_seen_at", { ascending: false }).limit(30),
+    db.from("war_room_proposals").select("*")
+      .eq("status", "completed")
+      .eq("outcome_status", "pending")
+      .lte("measurement_due_at", new Date().toISOString())
+      .order("measurement_due_at", { ascending: true })
+      .limit(5),
+    db.from("war_room_proposals")
+      .select("fingerprint, status")
+      .in("status", ["rejected", "completed", "failed", "superseded"]),
+  ]);
+  if (memoryResult.error) throw memoryResult.error;
+  if (investigationMemoryResult.error) throw investigationMemoryResult.error;
+  if (dueOutcomeResult.error) throw dueOutcomeResult.error;
+  if (blockedInterventionResult.error) throw blockedInterventionResult.error;
+  const memoryById = new Map<string, Partial<WarRoomProposal>>();
+  for (const proposal of [
+    ...((memoryResult.data ?? []) as Array<Partial<WarRoomProposal>>),
+    ...((dueOutcomeResult.data ?? []) as Array<Partial<WarRoomProposal>>),
+  ]) {
+    if (proposal.id) memoryById.set(proposal.id, proposal);
+  }
+  const factPack = buildWarRoomFactPack(snapshot);
+  const factPackHash = stableHash([
+    ...factPack.evidenceCatalog,
+    ...warRoomCapabilityEvidence(),
+    ...externalEvidence,
+  ].map((item) => ({
+    id: item.id,
+    detail: item.detail,
+    source: item.source,
+    href: item.href ?? null,
+    occurredAt: "occurredAt" in item ? item.occurredAt ?? null : null,
+    freshness: "freshness" in item ? item.freshness ?? null : null,
+  })));
+  const sourceSummary = {
+    slack,
+    notion,
+    external_evidence_count: externalEvidence.length,
+    internal_evidence_count: factPack.evidenceCatalog.length,
+    fact_pack_hash: factPackHash,
+    prompt_version: WAR_ROOM_PROMPT_VERSION,
+  };
+  await updateDiscoveryStage(db, runId, "forming_candidates", sourceSummary);
+  return {
+    factPack,
+    externalEvidence,
+    companyModel,
+    proposalMemory: [...memoryById.values()],
+    investigationMemory: (investigationMemoryResult.data ?? []) as InvestigationMemory,
+    blockedInterventionFingerprints: (blockedInterventionResult.data ?? []).map((proposal) => proposal.fingerprint),
+    factPackHash,
+    sourceSummary,
+  };
+}
+
+export async function investigateWarRoomDiscovery(
+  runId: string,
+  prepared: WarRoomPreparedDiscovery,
+  attempt = 1,
+): Promise<WarRoomInvestigatorCheckpoint> {
+  const db = getServiceClient();
+  const operatingPack = buildOperatingPack(
+    prepared.factPack,
+    prepared.externalEvidence,
+    prepared.companyModel,
+    prepared.proposalMemory,
+    prepared.investigationMemory,
+  );
+  const { data: run, error } = await db.from("war_room_discovery_runs")
+    .select("raw_investigator_output, input_tokens, output_tokens")
+    .eq("id", runId)
+    .single();
+  if (error) throw error;
+  if (run.raw_investigator_output) {
+    const rawInvestigatorOutput = run.raw_investigator_output as InvestigatorOutput;
+    return {
+      rawInvestigatorOutput,
+      provisionalInvestigations: evaluateWarRoomReasoning({
+        evidenceCatalog: operatingPack.evidenceCatalog,
+        investigator: rawInvestigatorOutput,
+        council: {
+          challenge: "Investigator pass only.",
+          companyRead: { summary: "Investigator pass only.", stance: "investigating", investigationFingerprints: [], evidenceIds: [], unresolvedQuestions: [] },
+          rejectedReasons: [], assessments: [], proposals: [],
+        },
+      }).investigations,
+      inputTokens: run.input_tokens ?? 0,
+      outputTokens: run.output_tokens ?? 0,
+    };
+  }
+  await updateDiscoveryStage(db, runId, "forming_candidates", { stage_attempt: attempt });
+  const checkpoint = await runInvestigatorPass(operatingPack);
+  const { error: checkpointError } = await db.from("war_room_discovery_runs").update({
+    raw_investigator_output: checkpoint.rawInvestigatorOutput,
+    input_tokens: checkpoint.inputTokens,
+    output_tokens: checkpoint.outputTokens,
+  }).eq("id", runId).eq("status", "running");
+  if (checkpointError) throw checkpointError;
+  return checkpoint;
+}
+
+export async function challengeWarRoomDiscovery(
+  runId: string,
+  prepared: WarRoomPreparedDiscovery,
+  investigator: WarRoomInvestigatorCheckpoint,
+  attempt = 1,
+): Promise<WarRoomCouncilCheckpoint> {
+  const db = getServiceClient();
+  const operatingPack = buildOperatingPack(
+    prepared.factPack,
+    prepared.externalEvidence,
+    prepared.companyModel,
+    prepared.proposalMemory,
+    prepared.investigationMemory,
+  );
+  const { data: run, error } = await db.from("war_room_discovery_runs")
+    .select("raw_council_output, input_tokens, output_tokens")
+    .eq("id", runId)
+    .single();
+  if (error) throw error;
+  if (run.raw_council_output) {
+    return {
+      rawCouncilOutput: run.raw_council_output as CouncilOutput,
+      inputTokens: Math.max(0, (run.input_tokens ?? 0) - investigator.inputTokens),
+      outputTokens: Math.max(0, (run.output_tokens ?? 0) - investigator.outputTokens),
+    };
+  }
+  await updateDiscoveryStage(db, runId, "challenging_candidates", { stage_attempt: attempt });
+  const checkpoint = await runCouncilPass(operatingPack, investigator);
+  const { error: checkpointError } = await db.from("war_room_discovery_runs").update({
+    raw_council_output: checkpoint.rawCouncilOutput,
+    input_tokens: investigator.inputTokens + checkpoint.inputTokens,
+    output_tokens: investigator.outputTokens + checkpoint.outputTokens,
+  }).eq("id", runId).eq("status", "running");
+  if (checkpointError) throw checkpointError;
+  return checkpoint;
+}
+
+export async function persistWarRoomDiscovery(
+  runId: string,
+  prepared: WarRoomPreparedDiscovery,
+  investigator: WarRoomInvestigatorCheckpoint,
+  council: WarRoomCouncilCheckpoint,
+  attempt = 1,
+) {
+  const db = getServiceClient();
+  const { data: existing, error: existingError } = await db.from("war_room_discovery_runs")
+    .select("status")
+    .eq("id", runId)
+    .single();
+  if (existingError) throw existingError;
+  if (existing.status === "completed") return { completed: true };
+  await updateDiscoveryStage(db, runId, "saving_decisions", { stage_attempt: attempt });
+  const operatingPack = buildOperatingPack(
+    prepared.factPack,
+    prepared.externalEvidence,
+    prepared.companyModel,
+    prepared.proposalMemory,
+    prepared.investigationMemory,
+  );
+  const result = evaluatePortfolio(
+    operatingPack,
+    investigator,
+    council,
+    prepared.proposalMemory,
+    new Set(prepared.blockedInterventionFingerprints),
+  );
+  const proposalSave = await saveProposals(db, runId, result.proposals, result.evidenceCatalog);
+  const selectedInvestigationFingerprints = new Set(
+    proposalSave.acceptedDrafts.map((proposal) => proposal.sourceInvestigationFingerprint),
+  );
+  const persistedAgenda = reconcilePersistedWarRoomAgenda({
+    investigations: result.investigations,
+    assessments: result.assessments,
+    companyRead: result.rawCouncilOutput.companyRead,
+    evidenceCatalog: result.evidenceCatalog,
+    lensReviews: result.rawInvestigatorOutput.lensReviews,
+    acceptedInvestigationFingerprints: selectedInvestigationFingerprints,
+  });
+  const persistedAssessments = persistedAgenda.assessments;
+  const persistedCompanyRead = persistedAgenda.companyRead;
+  const investigationsSaved = await saveInvestigations(
+    db,
+    runId,
+    result.investigations,
+    persistedAssessments,
+    selectedInvestigationFingerprints,
+    result.evidenceCatalog,
+  );
+  await linkInvestigationsToProposals(db, runId, proposalSave.acceptedDrafts);
+  await saveOutcomes(db, result.outcomes, result.evidenceCatalog);
+  const { error: finishError } = await db.from("war_room_discovery_runs").update({
+    status: "completed",
+    source_summary: {
+      ...prepared.sourceSummary,
+      stage: "completed",
+      last_heartbeat_at: new Date().toISOString(),
+      company_verdict: persistedCompanyRead.summary,
+      company_read: persistedCompanyRead,
+      investigation_count: investigationsSaved,
+      watchlist_count: persistedAssessments.filter((assessment) => assessment.disposition === "watchlist").length,
+    },
+    candidate_count: result.investigations.length,
+    proposal_count: proposalSave.saved,
+    critic_review: {
+      ...result.review,
+      companyRead: persistedCompanyRead,
+      companyVerdict: persistedCompanyRead.summary,
+      assessments: persistedAssessments,
+    },
+    fact_pack_hash: prepared.factPackHash,
+    prompt_version: WAR_ROOM_PROMPT_VERSION,
+    raw_investigator_output: result.rawInvestigatorOutput,
+    raw_council_output: result.rawCouncilOutput,
+    validation_trace: {
+      ...result.validationTrace,
+      persistedAgendaItems: proposalSave.acceptedDrafts.length,
+      persistenceBlockedInterventions: result.proposals.length - proposalSave.acceptedDrafts.length,
+    },
+    input_tokens: result.inputTokens,
+    output_tokens: result.outputTokens,
+    completed_at: new Date().toISOString(),
+  }).eq("id", runId).eq("status", "running");
+  if (finishError) throw finishError;
+  return { completed: true, proposals: proposalSave.saved, investigations: investigationsSaved };
+}
+
+export async function failWarRoomDiscovery(runId: string, message: string) {
+  const db = getServiceClient();
+  const { data, error: readError } = await db.from("war_room_discovery_runs")
+    .select("source_summary")
+    .eq("id", runId)
+    .maybeSingle();
+  if (readError) throw readError;
+  const { error: updateError } = await db.from("war_room_discovery_runs").update({
+    status: "failed",
+    source_summary: {
+      ...((data?.source_summary as Record<string, unknown> | null) ?? {}),
+      stage: "failed",
+      failed_at: new Date().toISOString(),
+    },
+    error_message: message.slice(0, 1_000),
+    completed_at: new Date().toISOString(),
+  }).eq("id", runId).in("status", ["queued", "running"]);
+  if (updateError) throw updateError;
 }

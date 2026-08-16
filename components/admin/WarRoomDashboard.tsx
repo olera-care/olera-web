@@ -500,6 +500,9 @@ export default function WarRoomDashboard() {
       ? payload.latestDiscovery.source_summary.stage
       : "forming_candidates";
   const discoveryStage = discoveryStages[discoveryStageKey] ?? discoveryStages.forming_candidates;
+  const discoveryStageAttempt = typeof payload?.latestDiscovery?.source_summary?.stage_attempt === "number"
+    ? payload.latestDiscovery.source_summary.stage_attempt
+    : 1;
   const discoveryStartedAt = payload?.latestDiscovery?.started_at || payload?.latestDiscovery?.created_at || null;
   const discoveryElapsedMs = payload ? elapsedMilliseconds(discoveryStartedAt, payload.generatedAt) : 0;
   useEffect(() => {
@@ -690,6 +693,11 @@ export default function WarRoomDashboard() {
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">Still working</p>
                     <h2 className="mt-1 font-serif text-2xl font-bold text-gray-950">{discoveryStage.title}</h2>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">{discoveryStage.detail}</p>
+                    {discoveryStageAttempt > 1 ? (
+                      <p className="mt-2 text-xs font-semibold text-violet-700">
+                        Durable retry {discoveryStageAttempt - 1} — completed stages were not repeated.
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <div className="shrink-0 rounded-2xl border border-violet-200 bg-white/80 px-5 py-3 text-left sm:text-right">
@@ -701,8 +709,8 @@ export default function WarRoomDashboard() {
               </div>
               <p className="mt-5 border-t border-violet-200/70 pt-4 text-xs leading-5 text-gray-500">
                 {discoveryElapsedMs > 4 * 60_000
-                  ? "This is slower than normal. War Room will report a failure instead of spinning forever."
-                  : "War Room uses two independent deep-reasoning passes. Most runs take 2–4 minutes; the answer appears here automatically."}
+                  ? "Deep reasoning is taking longer than usual. It is safe to leave this page: the durable run will retry or resume from its last completed stage."
+                  : "War Room uses two checkpointed deep-reasoning passes. You can leave this page; the result appears here automatically."}
               </p>
             </section>
           ) : null}

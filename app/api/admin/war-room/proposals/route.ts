@@ -1,4 +1,5 @@
-import { after, NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { start } from "workflow/api";
 import {
   getAdminUser,
   getAuthUser,
@@ -6,9 +7,10 @@ import {
   logAuditAction,
 } from "@/lib/admin";
 import {
-  executeWarRoomDiscovery,
+  failWarRoomDiscovery,
   queueWarRoomDiscovery,
 } from "@/lib/war-room/discovery.server";
+import { warRoomDiscoveryWorkflow } from "@/workflows/war-room-discovery";
 import { dispatchApprovedProposal } from "@/lib/war-room/executor.server";
 import { integrationStatuses } from "@/lib/war-room/sources.server";
 import type {
@@ -74,12 +76,12 @@ async function requireAdmin() {
 
 async function expireStaleWork(db: ReturnType<typeof getServiceClient>) {
   const now = new Date().toISOString();
-  const discoveryLease = new Date(Date.now() - 12 * 60_000).toISOString();
+  const discoveryLease = new Date(Date.now() - 2 * 60 * 60_000).toISOString();
   const executionLease = new Date(Date.now() - 60 * 60_000).toISOString();
   const [discoveryResult, executionResult] = await Promise.all([
     db.from("war_room_discovery_runs").update({
       status: "failed",
-      error_message: "Discovery exceeded its 12-minute lease.",
+      error_message: "Durable discovery made no terminal progress within its two-hour lease.",
       completed_at: now,
     }).in("status", ["queued", "running"]).lt("created_at", discoveryLease),
     db.from("war_room_proposals").update({
@@ -181,7 +183,27 @@ export async function POST(request: NextRequest) {
     const db = getServiceClient();
     if (body.action === "discover") {
       const queued = await queueWarRoomDiscovery(db, "manual", auth.admin.email);
-      if (!queued.reused) after(() => executeWarRoomDiscovery(queued.run.id));
+      let workflowRunId: string | null = null;
+      if (!queued.reused) {
+        try {
+          const workflowRun = await start(warRoomDiscoveryWorkflow, [queued.run.id]);
+          workflowRunId = workflowRun.runId;
+          const { error: workflowIdError } = await db.from("war_room_discovery_runs").update({
+            source_summary: {
+              ...(queued.run.source_summary ?? {}),
+              stage: "queued",
+              workflow_run_id: workflowRunId,
+            },
+          }).eq("id", queued.run.id).eq("status", "queued");
+          if (workflowIdError) console.warn("[war-room] could not record workflow run id:", workflowIdError);
+        } catch (startError) {
+          await failWarRoomDiscovery(
+            queued.run.id,
+            startError instanceof Error ? startError.message : "Durable workflow could not start",
+          );
+          throw startError;
+        }
+      }
       await logAuditAction({
         adminUserId: auth.admin.id,
         action: "war_room_discovery_started",
@@ -189,7 +211,7 @@ export async function POST(request: NextRequest) {
         targetId: queued.run.id,
         details: { reused: queued.reused },
       });
-      return NextResponse.json(queued, { status: queued.reused ? 200 : 202 });
+      return NextResponse.json({ ...queued, workflowRunId }, { status: queued.reused ? 200 : 202 });
     }
 
     if (!body.proposalId || !body.action) {

@@ -489,10 +489,11 @@ export function adBoostTractionEmail(opts: {
     ? `Answer ${questionsUnanswered.toLocaleString()} ${questionsUnanswered === 1 ? "question" : "questions"}`
     : "View performance";
   const primaryCtaUrl = hasUnansweredQuestions ? opts.questionsUrl! : opts.ctaUrl;
+  const visitorCount = `${opts.visitors.toLocaleString()} ${opts.visitors === 1 ? "visitor" : "visitors"}`;
   const preheader =
     questionsReceived > 0
-      ? `${opts.visitors.toLocaleString()} visitors and ${questionsReceived.toLocaleString()} questions so far.`
-      : `${opts.visitors.toLocaleString()} visitors and ${opts.leads.toLocaleString()} leads so far.`;
+      ? `${visitorCount} and ${questionsReceived.toLocaleString()} ${questionsReceived === 1 ? "question" : "questions"} so far.`
+      : `${visitorCount} and ${opts.leads.toLocaleString()} ${opts.leads === 1 ? "lead" : "leads"} so far.`;
 
   return layout(
     `

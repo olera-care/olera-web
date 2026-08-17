@@ -7,6 +7,26 @@
 
 ## Current Focus
 
+### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
+
+**Zero code changes.** The only file touched is this log. The real artifacts live in Google Ads and Supabase.
+
+**LumiWell Home Care – Fresno – Aug 2026 is LIVE.** Serving campaign **`24145321901`** (status `Pending`, normal at launch), built fresh from draft `10209503898`. Search-only, Maximize clicks **$2.50 cap read back post-publish**, 20 mi around Fresno CA / Presence-only, EN+ES, AI Max off (all three toggles), **12** phrase keywords, 6 headlines + 3 descriptions, display path `Home-Care/Fresno`, business name `Olera`, campaign total **$50.00**, flight **Aug 17–30**. Shared negative list `provider managed ads negative keywords` attached at List level; account auto-apply verified **0/7 and 0/14** before and after. Policy audit clean on all 9 assets. TJ clicked Publish.
+
+**Root cause of the Aug 15 block: the keyword `"24 hour home care fresno"`, tripping *Health in personalized advertising*.** Remove it and Review flips to "ready to publish" with a Publish button; put it back and the block returns. Clean causal test. **The Vercel Firewall/AdsBot theory was wrong** — the WAF was genuinely broken and the fix is genuinely good (AdsBot was locked out account-wide, worth keeping), but it was never this blocker. Two days were spent on it.
+
+**Why the rebuild was necessary even though the fix is one deletion.** Old draft `10209366585` only ever rendered *"This doesn't meet editorial guidelines"* — no detail, no action link, no flagged field, no Publish button. The new draft named the policy, named the keyword **in red**, and offered "request an exception". Same underlying block; one wizard instance surfaces it and the other does not. We would not have found this by waiting for a re-crawl.
+
+**Two theories killed by control tests, both cheaply, both worth not re-running.** (1) *Cached editorial verdict from the 429 era* — predicted the flag would clear by Aug 17; it did not. (2) *Sensitive health content on the landing page* — LumiWell's page carries 18 "memory care" / 4 "dementia" mentions, but **HomeWell (live, serving fine) carries 10 and 3 plus 3 "Alzheimer's"**, and Pacesetter and Legacy Haven likewise. It is template-wide across every Olera provider page, so it cannot explain why LumiWell alone was blocked. Note Policy Manager (`/aw/policymanager/issues`, *not* `/aw/policymanager`, which 404s) shows *Health in personalized advertising* already biting 2 live campaigns at **Approved (limited)** — real, but a milder state than a publish block.
+
+**Also found: the Aug 15 handoff and `admin_note` are both wrong on a load-bearing point.** Both claim the draft was *"RESTORED to the full 13 headlines / 4 descriptions"* and *"publish-ready"*. It was not — it had been sitting in the stripped 3-headline / 2-description bisect state with an empty display path since Aug 15, and Ad strength "Poor". The other 10 headlines and 2 descriptions were never written down verbatim anywhere and are gone.
+
+**Two SOP corrections, both of which cost real time today.** (1) The Review summary's **"Ads: None" is a lie in the *other* direction** — the ad editor held all 6 headlines, 3 descriptions, Final URL, both paths and the business name, and Google said "ready to publish". The existing note says the Overview is unreliable; it under-sells it. Verify on the step, never on the summary, in both directions. (2) **The wizard drops keywords, ad assets and budget on any draft *resume*** — only campaign settings and the bid survive; the resumed `cmpnInfo` comes back without the Final URL keys. Build in one continuous pass and do not hand-build wizard URLs (dropping `cmpnInfo` loads a blank editing session against a healthy draft and looks exactly like data loss).
+
+**Verified at the edge:** AdsBot-Google and Googlebot both `200` on `olera.care`, and the exact ad Final URL returns `200 / 171KB / index,follow`. Firewall fix 2-of-2 (the rule reorder) did land, despite `admin_note` still saying it was outstanding.
+
+**Notion:** `LumiWell Ad Boost + AdsBot firewall fix — Handoff (2026-08-15)`, page `3bd5903a-0ffe-8164-90aa-d900b5e19d5a`, still marked `Paused` and still blames the firewall.
+
 ### 2026-08-17 — Actionable Ad Boost traction email (`codex/ad-boost-traction-questions`)
 
 Reworked the one-time early-traction email around the Graceful Homecare result: the grid now shows visitors, questions, leads, clicks, spend, and CPC; unanswered questions become the primary CTA into `/provider/qna`, with campaign performance kept as a secondary link. The lifecycle sender supplies tracked question/performance URLs plus received/unanswered counts, and the admin metrics form now warns and requires confirmation before a live metric save triggers the provider email. The message-journey sample uses Graceful's 94 visitors, 7 questions (6 unanswered), 101 clicks, $35.66 spend, and 0 leads. **Files:** `app/admin/ad-boost/[id]/page.tsx`, `lib/ad-boost/lifecycle-notifications.server.ts`, `lib/email-{samples,templates}.tsx`. **Validation:** TypeScript, diff check, 33-cron registry, focused email edge assertions, and rendered-email visual QA pass. **Next:** preview the Graceful sample and admin send-confirmation gate; merge only after TJ approval.
@@ -3641,6 +3661,15 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 - ⏳ **Backfill `max_income_couple` once household income is actually collected** — 0 of 528 active `sbf_state_programs` rows carry one. Do **not** do it before then; a couple limit compared against a single-person figure is worse than no couple limit. Fold in the stale SC row (`max_income_single: 1305` is the 2024/2025 QMB figure; 2026 QI single is $1,816) and the three duplicate SC MSP rows at the same time.
 - ⏳ **The intake question wording is the root cause and is untouched.** *"About how much is their monthly income?"* asks for the recipient's income while every means test counts the household. The guard stops us acting on the mismatch; it does not fix the question. `components/waiver-library/ProgramBenefitsCard.tsx:843`, `components/benefits/FactChips.tsx:80`.
 
+**LumiWell — added 2026-08-17, campaign `24145321901` published:**
+- 🔴 **Flip request `cd0077d6-ea0f-4f58-b5c2-0198aae29945` to `live` via the `/admin/ad-boost` UI, not the DB.** Still `scheduled`. The UI transition fires the once-guarded "campaign is live" email; a DB flip silently skips it. **LumiWell has been told nothing** — `launched_email_sent_at` and `launched_email_scheduled_at` are both null, and nothing auto-fires (the launch scheduler requires `status='live'` AND a non-null scheduled time; no cron writes `status='live'`).
+- 🔴 **Correct the record in two places, both currently misleading.** The Notion handoff (`3bd5903a-0ffe-8164-90aa-d900b5e19d5a`) and the `admin_note` on the request row both blame the Vercel Firewall and both claim the draft was restored to 13 headlines / 4 descriptions. The cause was the keyword `"24 hour home care fresno"` under *Health in personalized advertising*; the draft was never restored.
+- 🟡 **Delete old draft `10209366585`.** Two same-named LumiWell drafts now sit in the account (Overview → Draft campaigns → Remove). Its 13-keyword set still contains the offending term, so do not revive it as-is.
+- 🟡 **Aug 20–22 — first search-terms harvest** (`/aw/keywords/searchterms?campaignId=24145321901`). Day 3–5 of a 14-day flight. Expect Fresno/Clovis home-care competitor brands and wrong-category terms.
+- 🟡 **Ask Pa Vue for 1–2 real care/setting photos** (`pa_vue@lumiwellhomecare.org` — **not** `info@lumiwellhomecare.org`, which ZeroBounce flags do_not_mail / role_based_catch_all). Gallery is a logo plus one team photo. Ad strength is "Poor" partly for want of images and sitelinks; it serves fine, but this helps both the ad and the landing page.
+- ⏳ **Audit the other live campaigns' keyword sets for `"24 hour ..."` variants.** If one keyword can silently block a publish with an unnamed error, the same term may be sitting in campaigns that published before Google tightened this.
+- ⏳ **Lost IS (rank) watch is still open and still unanswered.** Aug 15–16 post-firewall-fix window read **66.56%** vs 68.70% all-time, but that is 104 impressions over two days straddling the fix — noise, not a read. Needs 1–2 weeks with no other change. Per-campaign all-time is unmoved (HomeWell 83.14%, Pacesetter 71.50%, Legacy Haven 72.49%, Abode 74.50%, Edmonds >90%).
+
 **Ad Boost — added 2026-08-10, both campaigns live:**
 - 🔴 **Flip Rosemonte + HomeWell to `live` via the `/admin/ad-boost` UI, not the DB.** Both sit at `scheduled`. The UI transition fires the once-guarded "campaign is live" provider email; a DB flip silently skips it.
 - 🔴 **Aug 12 — read HomeWell's CTR** (`/aw/keywords/searchterms?campaignId=24052308622`). This is the one number that decides whether the 71 new negatives worked. Baseline is **3.03%** over flight 1. If it moved, leave the keywords alone. If it did not, rebuild the keyword set. Do not rebuild on a hunch, and do not change keywords and negatives in the same pass or the read is unattributable.
@@ -3847,6 +3876,24 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-08-17 — LumiWell published; the Aug 15 blocker was one keyword, and the firewall theory was wrong
+
+Operations session, no code. Reviewed the Aug 15 Notion handoff, checked the live state, and finished the job it left open.
+
+**The finding.** The Aug 15 draft was blocked by `"24 hour home care fresno"` under Google's *Health in personalized advertising* policy. Removing that one keyword flips Review from blocked to publishable; restoring it re-blocks. Everything the previous session concluded about the Vercel Firewall causing the editorial flag was wrong. The firewall was independently broken and the fix is worth keeping — AdsBot could not crawl any Olera landing page — but it never explained this block, and the firewall theory's own prediction (that the flag would clear on a re-crawl by Aug 17) failed.
+
+**Why nobody could see it.** Draft `10209366585` rendered only *"This doesn't meet editorial guidelines"*: no detail text, no action link, no per-asset flag, no Publish button anywhere in the DOM. A brand-new draft with the same keywords, same Final URL and same account rendered the full Policy details panel — policy named, keyword in red, "request an exception" offered. That asymmetry is the whole reason the rebuild was worth doing; the fix itself is a single deletion.
+
+**What shipped.** `LumiWell Home Care – Fresno – Aug 2026`, campaign **`24145321901`**, published by TJ. Search-only, Maximize clicks $2.50 (read back post-publish — the check that caught Edmonds at $0.50), 20mi Fresno/Presence, EN+ES, AI Max off, 12 keywords, 6 headlines + 3 descriptions, $50 total, Aug 17–30. Shared negative list attached; auto-apply 0/7 + 0/14 verified.
+
+**Two theories killed by control tests.** The "cached 429-era verdict" theory failed its own deadline. The "sensitive health content on the landing page" theory looked strong — LumiWell's page has 18 "memory care" and 4 "dementia" mentions — until HomeWell, live and serving, came back with 10, 3 and **3 "Alzheimer's"**. It is template-wide across every provider page, so it cannot single out LumiWell. Cheap to run, worth not re-running.
+
+**Also discovered: the previous session's own record is wrong.** Both the Notion handoff and the `admin_note` state the draft was restored to 13 headlines / 4 descriptions and was publish-ready. It had been sitting in the stripped 3-headline / 2-description bisect state since Aug 15. Ten headlines and two descriptions were never recorded verbatim and are unrecoverable. Both records still need correcting — they will mislead the next person.
+
+**Two runbook corrections.** (1) The Review Overview lies in *both* directions — the Aug 10 entry records it inventing values that were fine; today it reported **"Ads: None"** while the ad editor held all six headlines and Google said "ready to publish". Verify on the step, never the summary, either way. (2) **Draft resume drops keywords, ad assets and budget**; only settings and bid survive, and the reconstructed `cmpnInfo` comes back without the Final URL keys. Build in one continuous pass. Hand-building a wizard URL without `cmpnInfo` loads a blank session against a healthy draft and is indistinguishable from data loss — cost about an hour chasing that.
+
+**Useful URL:** Policy Manager is `/aw/policymanager/issues?ocid=...`. `/aw/policymanager` and `/aw/policymanager/ads` both 404.
 
 ### 2026-08-17 — Ad Boost setup expanded to Google + Nextdoor
 

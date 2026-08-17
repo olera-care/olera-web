@@ -2320,23 +2320,31 @@ function CityRow({
                             </Link>
                             {/* Sequence progress badge - only show in In Sequence tab */}
                             {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
-                              <div className="flex flex-col items-start">
-                                <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                  provider.sequence_status?.failed_step !== undefined
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-blue-100 text-blue-700"
-                                }`}>
-                                  {provider.emails_sent}/4
-                                </span>
-                                {/* Sequence sublabel (recency or failure) */}
-                                {(() => {
-                                  const sublabel = getSequenceSublabel(provider);
-                                  return (
-                                    <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
-                                      {sublabel.text}
-                                    </span>
-                                  );
-                                })()}
+                              <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-start">
+                                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                    provider.sequence_status?.failed_step !== undefined
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-blue-100 text-blue-700"
+                                  }`}>
+                                    {provider.emails_sent}/4
+                                  </span>
+                                  {/* Sequence sublabel (recency or failure) */}
+                                  {(() => {
+                                    const sublabel = getSequenceSublabel(provider);
+                                    return (
+                                      <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                                        {sublabel.text}
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                                {/* Engagement indicator - show if provider opened emails */}
+                                {provider.engagement && provider.engagement.opens > 0 && (
+                                  <span className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-700">
+                                    Opened {provider.engagement.opens}x
+                                  </span>
+                                )}
                               </div>
                             )}
                             {/* Confirm button - only show in Ready tab */}

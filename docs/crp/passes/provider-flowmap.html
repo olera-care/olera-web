@@ -20,237 +20,281 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--paper);color:var(--ink);
        font:16px/1.55 Seravek,'Segoe UI',system-ui,-apple-system,sans-serif}
-  .wrap{max-width:1120px;margin:0 auto;padding:40px 28px 90px}
+  .wrap{max-width:1150px;margin:0 auto;padding:40px 28px 90px}
   h1,h2,h3{font-family:Charter,Georgia,'Times New Roman',serif;line-height:1.2;text-wrap:balance;margin:0}
   h1{font-size:2.1rem;font-weight:700}
   h2{font-size:1.45rem;margin:0 0 6px}
-  h3{font-size:1.08rem;margin:0 0 4px}
   section{margin-top:54px}
   p{max-width:70ch}
   .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
-  .thesis{font-family:Charter,Georgia,serif;font-size:1.16rem;line-height:1.6;max-width:62ch;
+  .thesis{font-family:Charter,Georgia,serif;font-size:1.13rem;line-height:1.62;max-width:64ch;
           border-left:3px solid var(--moss);padding-left:18px;margin-top:18px}
   .keyrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;font-size:.8rem}
   .key{display:inline-flex;align-items:center;gap:7px;color:var(--muted)}
   .sw{width:14px;height:14px;border-radius:3px;flex:none}
   .sw.research{background:var(--mosssoft);border:1.5px solid var(--moss)}
   .sw.commerce{background:var(--goldsoft);border:1.5px solid var(--gold)}
-  .sw.tbd{background:var(--tbdsoft);border:1.5px dashed var(--tbd)}
   figure{margin:24px 0 0}
-  figcaption{font-size:.85rem;color:var(--muted);margin-top:10px;max-width:75ch}
+  figcaption{font-size:.85rem;color:var(--muted);margin-top:10px;max-width:78ch}
   .diagram{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:14px}
-  .diagram svg{display:block;min-width:1150px;width:100%;height:auto}
+  .diagram svg{display:block;min-width:1170px;width:100%;height:auto}
   svg text{font-family:Seravek,'Segoe UI',system-ui,sans-serif;fill:var(--ink)}
   svg .t-muted{fill:var(--muted)} svg .t-strong{font-weight:700}
   svg .t-spruce{fill:var(--spruce);font-weight:700} svg .t-gold{fill:var(--gold);font-weight:700}
   svg .t-moss{fill:var(--moss);font-weight:700}
-  svg .bx{fill:var(--card);stroke:var(--line);stroke-width:1.2}
-  svg .bx-research{fill:var(--mosssoft);stroke:var(--moss)}
-  svg .bx-commerce{fill:var(--goldsoft);stroke:var(--gold)}
-  svg .geo{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:5 4}
-  svg .flow{stroke:var(--spruce);stroke-width:1.8;fill:none}
-  svg .flow-dash{stroke-dasharray:6 4}
-  table{width:100%;border-collapse:collapse;font-size:.87rem;line-height:1.45}
+  svg .cell{fill:var(--card);stroke:var(--line);stroke-width:1}
+  svg .cell-research{fill:var(--mosssoft);stroke:var(--moss)}
+  svg .cell-commerce{fill:var(--goldsoft);stroke:var(--gold)}
+  svg .gateband{fill:var(--card);stroke:var(--spruce);stroke-width:1.6}
+  svg .phase{stroke:var(--line);stroke-width:1;fill:none}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;line-height:1.45}
   th{background:var(--spruce);color:var(--thtext);text-align:left;padding:7px 10px;font-weight:600;font-size:.78rem;letter-spacing:.03em}
   td{border:1px solid var(--line);padding:7px 10px;vertical-align:top;background:var(--card)}
+  td.q{font-weight:700;width:21%;background:var(--paper)}
   .tablewrap{overflow-x:auto;margin-top:16px}
+  .tablewrap table{min-width:1000px}
   .chip{display:inline-block;font-size:.72rem;font-weight:600;border-radius:100px;padding:1px 9px;white-space:nowrap}
   .chip.research{background:var(--mosssoft);color:var(--moss)}
   .chip.commerce{background:var(--goldsoft);color:var(--gold)}
-  .chip.tbd{background:var(--tbdsoft);color:var(--tbd);border:1px dashed var(--tbd)}
-  .note{background:var(--tbdsoft);border:1px dashed var(--tbd);border-radius:8px;padding:14px 18px;font-size:.92rem;max-width:82ch;margin-top:18px}
-  .stagetable td:first-child{font-weight:700;white-space:nowrap}
+  .note{background:var(--tbdsoft);border:1px dashed var(--tbd);border-radius:8px;padding:14px 18px;font-size:.92rem;max-width:84ch;margin-top:18px}
 </style>
 
 <div class="wrap">
-  <div class="eyebrow">Olera CRP · Aims 2–3 · converged architecture, 2026-08-18</div>
+  <div class="eyebrow">Olera CRP · Aims 2–3 · the whole system · 2026-08-18</div>
   <h1>Provider Flowmap</h1>
-  <p class="thesis">Build it correctly → show that it creates value → estimate whether providers
-  might pay enough for it → make them actually pay → determine whether the economics work.
-  Each of the three products moves through that pipeline on its own schedule; Aim 2 owns the
-  first three steps, Aim 3 owns the last two.</p>
+  <p class="thesis">We first build enough family, provider, and student activity in selected
+  counties for the products to work. In Aim 2, we make the products available free and determine
+  whether they actually create provider value — using real-world platform data plus a smaller
+  research cohort that tells us about usability, perceived value, and willingness to pay.
+  Products that demonstrate enough value and plausible economics move into Aim 3, where new
+  providers encounter real prices. We then measure whether they actually buy, keep using the
+  products, receive value, and generate sustainable economics.</p>
 
   <div class="keyrow">
-    <span class="key"><span class="sw commerce"></span> ordinary product &amp; commercial operations (operational data)</span>
+    <span class="key"><span class="sw commerce"></span> the company operating — building, acquiring, selling, billing (operational data)</span>
     <span class="key"><span class="sw research"></span> consented human-subjects research (IRB)</span>
-    <span class="key"><span class="sw tbd"></span> threshold/number not yet locked</span>
   </div>
 
   <section>
-    <h2>The pipeline</h2>
+    <h2>The machine, in one view</h2>
     <figure>
       <div class="diagram">
-      <svg viewBox="0 0 1240 560" role="img" aria-label="The product pipeline: build and verify each product; launch it free so all providers generate real-world operational evidence while a consented never-user cohort provides usability, perceived value, and willingness-to-pay evidence; a commercial plausibility check per product decides whether it is priced; Aim 3 launches the priced offering to new customers and to free-base upgrades, with focused interviews layered on; twelve months of real billing yield the actual economics, independently verified.">
+      <svg viewBox="0 0 1240 700" role="img" aria-label="Five lanes across time. The marketplace lane builds and keeps running: families, providers, and students concentrated in twelve counties. The products lane: three products verified, then live free, then priced if they pass. The operational evidence lane: platform-recorded usage, hires, inquiries, admissions, then purchases, retention, revenue, and margin. The human-subjects lane: a consented never-user cohort and students in Aim 2, focused interviews in Aim 3. The commercial lane: everything free in Aim 2, a per-product decision at mid-Year 2, real prices in Aim 3, sustainable economics at award end.">
         <defs>
           <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6.5" markerHeight="6.5" orient="auto">
             <path d="M0 0L8 4L0 8z" fill="var(--spruce)"/></marker>
         </defs>
 
-        <!-- geography lane -->
-        <text x="24" y="26" font-size="11" class="t-muted" font-weight="700" letter-spacing="1.5">GEOGRAPHY</text>
-        <rect x="240" y="12" width="560" height="24" rx="12" class="geo"/>
-        <text x="520" y="28" font-size="11.5" text-anchor="middle" class="t-muted">12 study counties (family demand concentrated by Aim 1) · free products live nationally</text>
-        <rect x="760" y="44" width="440" height="24" rx="12" class="geo"/>
-        <text x="980" y="60" font-size="11.5" text-anchor="middle" class="t-muted">priced launch: same 12 counties + ~6 new counties + national self-serve</text>
+        <!-- phase headers -->
+        <g font-size="12.5">
+          <text x="284" y="30" text-anchor="middle" class="t-gold">BUILD THE MARKETPLACE</text>
+          <text x="284" y="47" text-anchor="middle" font-size="10.5" class="t-muted">from Year 1 — and it keeps running underneath everything</text>
+          <text x="560" y="30" text-anchor="middle" class="t-spruce">AIM 2 · FREE VALUE TEST</text>
+          <text x="560" y="47" text-anchor="middle" font-size="10.5" class="t-muted">Year 1 → mid-Year 2</text>
+          <text x="766" y="30" text-anchor="middle" class="t-spruce">DECISION</text>
+          <text x="766" y="47" text-anchor="middle" font-size="10.5" class="t-muted">mid-Year 2</text>
+          <text x="985" y="30" text-anchor="middle" class="t-gold">AIM 3 · PAID TEST</text>
+          <text x="985" y="47" text-anchor="middle" font-size="10.5" class="t-muted">mid-Year 2 → Year 3</text>
+          <text x="1178" y="30" text-anchor="middle" class="t-spruce">AWARD END</text>
+        </g>
 
-        <!-- S1 build/verify -->
-        <rect x="24" y="150" width="180" height="120" rx="8" class="bx bx-commerce"/>
-        <text x="114" y="176" font-size="12.5" text-anchor="middle" class="t-strong">1 · Build + verify</text>
-        <text x="114" y="196" font-size="11" text-anchor="middle">complete each product;</text>
-        <text x="114" y="211" font-size="11" text-anchor="middle">prove its full path runs</text>
-        <text x="114" y="226" font-size="11" text-anchor="middle">end-to-end, counts checked</text>
-        <text x="114" y="248" font-size="10.5" text-anchor="middle" class="t-muted">engineering, not research</text>
+        <!-- lane labels -->
+        <g font-size="10" class="t-muted" font-weight="700" letter-spacing="1">
+          <text x="14" y="112">MARKETPLACE</text>
+          <text x="14" y="127" font-size="9" letter-spacing="0">families · providers · students</text>
+          <text x="14" y="238">PRODUCTS</text>
+          <text x="14" y="253" font-size="9" letter-spacing="0">the three tools</text>
+          <text x="14" y="356">OPERATIONAL</text>
+          <text x="14" y="369">EVIDENCE</text>
+          <text x="14" y="384" font-size="9" letter-spacing="0">what the platform records</text>
+          <text x="14" y="480">HUMAN-SUBJECTS</text>
+          <text x="14" y="493" font-size="9" letter-spacing="0">consented research</text>
+          <text x="14" y="590">COMMERCIAL</text>
+          <text x="14" y="605" font-size="9" letter-spacing="0">free → priced → sustainable</text>
+        </g>
 
-        <path d="M204 185 C 224 185, 224 165, 244 160" class="flow" marker-end="url(#ah)"/>
-        <path d="M204 235 C 224 235, 224 300, 244 305" class="flow" marker-end="url(#ah)"/>
+        <!-- LANE 1: marketplace (continuous band) -->
+        <rect x="160" y="62" width="1070" height="100" rx="8" class="cell cell-commerce"/>
+        <text x="176" y="84" font-size="11.5" class="t-strong">12 counties, chosen by data: families already arriving · provider density · state aid rules · a campus nearby</text>
+        <text x="176" y="103" font-size="11">Families: national SEO engine (running today) + paid media, AAA/Alzheimer's partnerships, outreach (Aim 1 builds this side)</text>
+        <text x="176" y="120" font-size="11">Providers: profile claiming + brand/association outreach · Students: campus pipelines (Aim 2 builds these sides)</text>
+        <text x="176" y="141" font-size="10.5" class="t-muted">counties open in waves; liquidity grows all award — this lane never stops; it is the infrastructure the products are tested inside</text>
+        <text x="1096" y="103" font-size="11" class="t-gold">Aim 3 adds ~6 new</text>
+        <text x="1096" y="118" font-size="11" class="t-gold">counties + national</text>
+        <text x="1096" y="133" font-size="11" class="t-gold">self-serve</text>
 
-        <!-- S2 free launch + validate -->
-        <text x="248" y="118" font-size="12.5" class="t-spruce">2 · Launch free — two evidence streams</text>
-        <rect x="244" y="132" width="330" height="130" rx="8" class="bx bx-commerce"/>
-        <text x="409" y="154" font-size="12" text-anchor="middle" class="t-strong">Real-world use — every provider</text>
-        <text x="409" y="172" font-size="11" text-anchor="middle">whoever activates it, in-county or national</text>
-        <text x="409" y="190" font-size="11" text-anchor="middle">activation · usage · repeat use · hires ·</text>
-        <text x="409" y="205" font-size="11" text-anchor="middle">inquiries · admissions · cost to deliver</text>
-        <text x="409" y="227" font-size="10.5" text-anchor="middle" class="t-muted">what happens — at scale, with pre-specified</text>
-        <text x="409" y="241" font-size="10.5" text-anchor="middle" class="t-muted">value definitions and denominators</text>
+        <!-- LANE 2: products -->
+        <rect x="160" y="180" width="248" height="92" rx="8" class="cell cell-commerce"/>
+        <text x="284" y="203" font-size="11.5" text-anchor="middle" class="t-strong">Build + verify</text>
+        <text x="284" y="221" font-size="11" text-anchor="middle">each product's full path runs</text>
+        <text x="284" y="236" font-size="11" text-anchor="middle">end-to-end, counts checked</text>
+        <text x="284" y="256" font-size="10.5" text-anchor="middle" class="t-muted">engineering, not research</text>
 
-        <rect x="244" y="278" width="330" height="120" rx="8" class="bx bx-research"/>
-        <text x="409" y="300" font-size="12" text-anchor="middle" class="t-strong">Validation cohort — ~30–40 never-users</text>
-        <text x="409" y="318" font-size="11" text-anchor="middle">free access; consented; structured first use,</text>
-        <text x="409" y="333" font-size="11" text-anchor="middle">then months of instrumented field use</text>
-        <text x="409" y="353" font-size="11" text-anchor="middle">usability · perceived value · barriers ·</text>
-        <text x="409" y="368" font-size="11" text-anchor="middle">would you keep it · what would you pay</text>
-        <text x="409" y="388" font-size="10.5" text-anchor="middle" class="t-muted">why — the part analytics cannot see (+ students)</text>
+        <rect x="424" y="180" width="288" height="92" rx="8" class="cell"/>
+        <text x="568" y="203" font-size="11.5" text-anchor="middle" class="t-strong">All three live, free</text>
+        <text x="568" y="221" font-size="11" text-anchor="middle">Staffing · Visibility/Boost · Conversion</text>
+        <text x="568" y="239" font-size="10.5" text-anchor="middle" class="t-muted">Conversion arrives last: built during the award,</text>
+        <text x="568" y="253" font-size="10.5" text-anchor="middle" class="t-muted">and it needs the demand density Aim 1 is building</text>
 
-        <path d="M574 197 C 600 197, 600 230, 622 240" class="flow" marker-end="url(#ah)"/>
-        <path d="M574 338 C 600 338, 600 290, 622 280" class="flow" marker-end="url(#ah)"/>
+        <rect x="820" y="180" width="330" height="92" rx="8" class="cell"/>
+        <text x="985" y="203" font-size="11.5" text-anchor="middle" class="t-strong">Passed → priced tier + bundle</text>
+        <text x="985" y="221" font-size="11" text-anchor="middle">Not yet → stays free, keeps improving,</text>
+        <text x="985" y="236" font-size="11" text-anchor="middle">re-checked at the second pricing round</text>
+        <text x="985" y="256" font-size="10.5" text-anchor="middle" class="t-muted">value still measured for every product, priced or free</text>
 
-        <!-- S3 gate -->
-        <rect x="626" y="196" width="130" height="150" rx="10" class="bx" style="stroke:var(--spruce);stroke-width:1.8"/>
-        <text x="691" y="220" font-size="11.5" text-anchor="middle" class="t-spruce">3 · Worth pricing?</text>
-        <text x="691" y="240" font-size="10.5" text-anchor="middle">per product:</text>
-        <text x="691" y="256" font-size="10.5" text-anchor="middle">value shown?</text>
-        <text x="691" y="271" font-size="10.5" text-anchor="middle">providers want it?</text>
-        <text x="691" y="286" font-size="10.5" text-anchor="middle">discounted stated WTP</text>
-        <text x="691" y="300" font-size="10.5" text-anchor="middle">− cost to deliver</text>
-        <text x="691" y="314" font-size="10.5" text-anchor="middle">clears the bar?</text>
-        <text x="691" y="329" font-size="10.5" text-anchor="middle" class="t-moss">yes → price it</text>
-        <text x="691" y="342" font-size="10.5" text-anchor="middle" class="t-moss">no → fix or stop</text>
+        <!-- LANE 3: operational evidence -->
+        <rect x="160" y="300" width="248" height="100" rx="8" class="cell cell-commerce"/>
+        <text x="284" y="323" font-size="11.5" text-anchor="middle" class="t-strong">Baseline, measured today</text>
+        <text x="284" y="341" font-size="11" text-anchor="middle">15.5K visitors/mo · 2,400 leads/mo</text>
+        <text x="284" y="356" font-size="11" text-anchor="middle">725 claimed providers (+150/mo)</text>
+        <text x="284" y="376" font-size="10.5" text-anchor="middle" class="t-muted">county-level baseline pull selects the 12</text>
 
-        <path d="M756 250 L784 220" class="flow" marker-end="url(#ah)"/>
-        <text x="691" y="366" font-size="10" text-anchor="middle" class="t-muted">"no" products can re-enter at</text>
-        <text x="691" y="379" font-size="10" text-anchor="middle" class="t-muted">the second pricing round</text>
+        <rect x="424" y="300" width="288" height="100" rx="8" class="cell cell-commerce"/>
+        <text x="568" y="323" font-size="11.5" text-anchor="middle" class="t-strong">Every activated provider counts</text>
+        <text x="568" y="341" font-size="11" text-anchor="middle">usage · repeat use · hires · inquiries ·</text>
+        <text x="568" y="356" font-size="11" text-anchor="middle">admissions · cost to deliver · CAC</text>
+        <text x="568" y="376" font-size="10.5" text-anchor="middle" class="t-muted">pre-specified definitions + denominators; hundreds of accounts</text>
 
-        <!-- S4 Aim 3 -->
-        <text x="788" y="118" font-size="12.5" class="t-gold">4 · Priced launch — Aim 3</text>
-        <rect x="784" y="132" width="330" height="78" rx="8" class="bx bx-commerce"/>
-        <text x="949" y="154" font-size="12" text-anchor="middle" class="t-strong">New customers</text>
-        <text x="949" y="171" font-size="11" text-anchor="middle">meet the priced offer at first contact —</text>
-        <text x="949" y="186" font-size="11" text-anchor="middle">~6 new counties + continuing acquisition</text>
-        <text x="949" y="202" font-size="10.5" text-anchor="middle" class="t-muted">the clean test: no free months first</text>
+        <rect x="820" y="300" width="330" height="100" rx="8" class="cell cell-commerce"/>
+        <text x="985" y="323" font-size="11.5" text-anchor="middle" class="t-strong">Everything above, plus money</text>
+        <text x="985" y="341" font-size="11" text-anchor="middle">who buys · prices paid · retention/churn ·</text>
+        <text x="985" y="356" font-size="11" text-anchor="middle">revenue per account · CAC · cost to serve · margin</text>
+        <text x="985" y="376" font-size="10.5" text-anchor="middle" class="t-muted">value delivery still tracked after purchase</text>
 
-        <rect x="784" y="224" width="330" height="66" rx="8" class="bx bx-commerce"/>
-        <text x="949" y="245" font-size="12" text-anchor="middle" class="t-strong">Free-base upgrades</text>
-        <text x="949" y="262" font-size="11" text-anchor="middle">existing free users (never research subjects)</text>
-        <text x="949" y="277" font-size="11" text-anchor="middle">offered paid plans — the self-serve motion</text>
+        <rect x="1166" y="300" width="64" height="100" rx="8" class="cell"/>
+        <text x="1198" y="330" font-size="10.5" text-anchor="middle" class="t-strong">CPA</text>
+        <text x="1198" y="345" font-size="10.5" text-anchor="middle" class="t-strong">rebuilds</text>
+        <text x="1198" y="360" font-size="10.5" text-anchor="middle" class="t-strong">it all,</text>
+        <text x="1198" y="375" font-size="10.5" text-anchor="middle" class="t-strong">by product</text>
 
-        <rect x="784" y="304" width="330" height="40" rx="8" class="bx bx-research"/>
-        <text x="949" y="321" font-size="10.5" text-anchor="middle" class="t-moss">research layer: interviews — didn't buy · left · stayed</text>
-        <text x="949" y="336" font-size="10.5" text-anchor="middle" class="t-moss">· high-value — plus consented surveys</text>
+        <!-- LANE 4: human subjects -->
+        <rect x="424" y="428" width="288" height="104" rx="8" class="cell cell-research"/>
+        <text x="568" y="450" font-size="11.5" text-anchor="middle" class="t-strong">Never-user cohort · ~30–40 + students</text>
+        <text x="568" y="468" font-size="11" text-anchor="middle">consented; free access; structured first use,</text>
+        <text x="568" y="483" font-size="11" text-anchor="middle">then months of real field use</text>
+        <text x="568" y="501" font-size="11" text-anchor="middle">usability · perceived value · barriers ·</text>
+        <text x="568" y="516" font-size="11" text-anchor="middle">what would you pay · interviews (incl. quitters)</text>
 
-        <text x="949" y="398" font-size="10.5" text-anchor="middle" class="t-muted">validation cohort + early adopters: grandfathered free (their use stays operational evidence)</text>
+        <rect x="820" y="428" width="330" height="104" rx="8" class="cell cell-research"/>
+        <text x="985" y="452" font-size="11.5" text-anchor="middle" class="t-strong">Focused interviews + surveys</text>
+        <text x="985" y="470" font-size="11" text-anchor="middle">didn't buy · bought and left · stayed · high-value</text>
+        <text x="985" y="488" font-size="11" text-anchor="middle">explaining why the commercial numbers</text>
+        <text x="985" y="503" font-size="11" text-anchor="middle">happened; person-linked analysis under IRB</text>
+        <text x="985" y="521" font-size="10.5" text-anchor="middle" class="t-muted">cohort + early adopters: grandfathered free</text>
 
-        <path d="M1114 240 L1146 240" class="flow" marker-end="url(#ah)"/>
+        <text x="284" y="482" font-size="10.5" text-anchor="middle" class="t-muted">(no human-subjects work in the build phase;</text>
+        <text x="284" y="496" font-size="10.5" text-anchor="middle" class="t-muted">IRB approvals prepared)</text>
 
-        <!-- S5 economics -->
-        <rect x="1146" y="132" width="80" height="212" rx="8" class="bx" style="stroke:var(--spruce);stroke-width:1.6"/>
-        <text x="1186" y="156" font-size="11.5" text-anchor="middle" class="t-spruce">5 · Do the</text>
-        <text x="1186" y="171" font-size="11.5" text-anchor="middle" class="t-spruce">economics</text>
-        <text x="1186" y="186" font-size="11.5" text-anchor="middle" class="t-spruce">work?</text>
-        <text x="1186" y="210" font-size="10.5" text-anchor="middle">buy?</text>
-        <text x="1186" y="226" font-size="10.5" text-anchor="middle">stay?</text>
-        <text x="1186" y="242" font-size="10.5" text-anchor="middle">revenue</text>
-        <text x="1186" y="258" font-size="10.5" text-anchor="middle">CAC · serve</text>
-        <text x="1186" y="274" font-size="10.5" text-anchor="middle">margin</text>
-        <text x="1186" y="296" font-size="10.5" text-anchor="middle" class="t-strong">CPA-verified,</text>
-        <text x="1186" y="311" font-size="10.5" text-anchor="middle" class="t-strong">by product</text>
-        <text x="1186" y="332" font-size="10" text-anchor="middle" class="t-muted">→ CP break-even</text>
+        <!-- LANE 5: commercial -->
+        <rect x="424" y="560" width="288" height="56" rx="8" class="cell"/>
+        <text x="568" y="583" font-size="11.5" text-anchor="middle" class="t-strong">Everything is free</text>
+        <text x="568" y="601" font-size="10.5" text-anchor="middle" class="t-muted">value first; no prices anywhere yet</text>
 
-        <!-- aim brackets -->
-        <path d="M24 452 L24 460 L756 460 L756 452" style="stroke:var(--muted);fill:none;stroke-width:1"/>
-        <text x="390" y="480" font-size="12" text-anchor="middle" class="t-spruce">AIM 2 · Year 1 → mid-Year 2 · everything free</text>
-        <path d="M784 452 L784 460 L1226 460 L1226 452" style="stroke:var(--muted);fill:none;stroke-width:1"/>
-        <text x="1005" y="480" font-size="12" text-anchor="middle" class="t-gold">AIM 3 · mid-Year 2 → Year 3 · real prices, real billing</text>
-        <text x="24" y="520" font-size="11" class="t-muted">Aim 2 asks: "would this appear worth paying for?" — established with behavior at scale plus consented depth.</text>
-        <text x="24" y="538" font-size="11" class="t-muted">Aim 3 asks: "will providers actually pay?" — answered by commerce itself, with research explaining why.</text>
+        <rect x="820" y="556" width="330" height="60" rx="8" class="cell cell-commerce"/>
+        <text x="985" y="574" font-size="11.5" text-anchor="middle" class="t-strong">Real prices, real billing</text>
+        <text x="985" y="591" font-size="10.5" text-anchor="middle">new providers meet the offer cold ·</text>
+        <text x="985" y="605" font-size="10.5" text-anchor="middle">existing free base offered upgrades</text>
+
+        <rect x="1166" y="560" width="64" height="56" rx="8" class="cell"/>
+        <text x="1198" y="583" font-size="10.5" text-anchor="middle" class="t-strong">Do the</text>
+        <text x="1198" y="597" font-size="10.5" text-anchor="middle" class="t-strong">economics</text>
+        <text x="1198" y="611" font-size="10.5" text-anchor="middle" class="t-strong">work?</text>
+
+        <!-- DECISION gate band -->
+        <rect x="728" y="180" width="76" height="436" rx="10" class="gateband"/>
+        <text x="766" y="205" font-size="11" text-anchor="middle" class="t-spruce">Per product:</text>
+        <text x="766" y="228" font-size="10.5" text-anchor="middle">enough</text>
+        <text x="766" y="242" font-size="10.5" text-anchor="middle">evidence</text>
+        <text x="766" y="256" font-size="10.5" text-anchor="middle">of value,</text>
+        <text x="766" y="276" font-size="10.5" text-anchor="middle">and plausible</text>
+        <text x="766" y="290" font-size="10.5" text-anchor="middle">economics</text>
+        <text x="766" y="304" font-size="10.5" text-anchor="middle">(discounted</text>
+        <text x="766" y="318" font-size="10.5" text-anchor="middle">stated WTP −</text>
+        <text x="766" y="332" font-size="10.5" text-anchor="middle">cost, + CAC),</text>
+        <text x="766" y="352" font-size="10.5" text-anchor="middle">to justify a</text>
+        <text x="766" y="366" font-size="10.5" text-anchor="middle">real price?</text>
+        <text x="766" y="394" font-size="10.5" text-anchor="middle" class="t-moss">yes → price it</text>
+        <text x="766" y="410" font-size="10.5" text-anchor="middle" class="t-moss">not yet → free,</text>
+        <text x="766" y="424" font-size="10.5" text-anchor="middle" class="t-moss">round 2</text>
+        <text x="766" y="452" font-size="10.5" text-anchor="middle" class="t-muted">evidence in:</text>
+        <text x="766" y="466" font-size="10.5" text-anchor="middle" class="t-muted">both lanes</text>
+        <text x="766" y="480" font-size="10.5" text-anchor="middle" class="t-muted">above ↑</text>
+
+        <path d="M712 226 L726 226" class="phase" style="stroke:var(--spruce);stroke-width:1.8" marker-end="url(#ah)"/>
+        <path d="M806 226 L818 226" class="phase" style="stroke:var(--spruce);stroke-width:1.8" marker-end="url(#ah)"/>
+
+        <!-- time axis -->
+        <line x1="160" y1="648" x2="1230" y2="648" style="stroke:var(--muted);stroke-width:1"/>
+        <g font-size="10.5" class="t-muted">
+          <text x="180" y="668">Year 1</text>
+          <text x="620" y="668">Year 2</text>
+          <text x="1010" y="668">Year 3</text>
+          <text x="742" y="686" class="t-spruce" font-weight="700">↑ mid-Year 2 gate</text>
+        </g>
+        <line x1="766" y1="642" x2="766" y2="654" style="stroke:var(--spruce);stroke-width:2"/>
       </svg>
       </div>
-      <figcaption><b>One pipeline, three products, two colors.</b> Gold is a company operating — building,
-      launching, selling, billing. Green is consented research — the cohort, the students, the interviews.
-      Every product passes the same five stations; they pass them at different times.</figcaption>
+      <figcaption><b>Five lanes, one machine.</b> The marketplace lane runs continuously underneath —
+      it is infrastructure, not a side project. The decision gate at mid-Year 2 cuts across every lane:
+      it reads the two evidence lanes above it and changes only one thing — whether a product carries a
+      price. Value measurement never stops; payment measurement begins.</figcaption>
     </figure>
   </section>
 
   <section>
-    <h2>Each product moves on its own schedule</h2>
-    <p>The Suite story stays simple because the <em>pipeline</em> is the story — three products at
-    different stations, not three synchronized studies. Sequencing below is illustrative
-    <span class="chip tbd">timing TBD</span>.</p>
-    <div class="tablewrap">
-      <table class="stagetable">
-        <tr><th>Product</th><th>Year 1, first half</th><th>Year 1, second half</th><th>Year 2, first half</th><th>Year 2, second half → 3</th></tr>
-        <tr><td>Staffing</td><td>verify (largely built; paid-pilot precedent)</td><td>free launch + validation cohort</td><td>plausibility check → <b>priced, round 1</b></td><td>real economics accrue</td></tr>
-        <tr><td>Visibility</td><td>assemble into one product; verify</td><td>free launch + validation cohort</td><td>plausibility check → <b>priced, round 1</b></td><td>real economics accrue</td></tr>
-        <tr><td>Conversion</td><td><b>build</b> (components exist; product does not — stated plainly as sequencing)</td><td>verify</td><td>free launch + validation cohort</td><td>plausibility check → <b>round 2</b> if it clears</td></tr>
-      </table>
-    </div>
-  </section>
-
-  <section>
-    <h2>What is operations, what is research</h2>
+    <h2>Point at any product, answer all ten questions</h2>
     <div class="tablewrap">
       <table>
-        <tr><th>Activity</th><th>Kind</th><th>Why</th></tr>
-        <tr><td>Building, integrating, verifying products</td><td><span class="chip commerce">operations</span></td><td>engineering QA; no human subjects</td></tr>
-        <tr><td>Free launch; platform instrumentation of all users; aggregate value/usage analysis</td><td><span class="chip commerce">operations</span></td><td>ordinary product analytics under the privacy policy, analyzed to a pre-specified plan</td></tr>
-        <tr><td>Validation cohort: consent, structured use, surveys, field follow-up, interviews</td><td><span class="chip research">research</span></td><td>identifiable people answering research questions</td></tr>
-        <tr><td>Student caregivers: surveys, interviews, follow-up</td><td><span class="chip research">research</span></td><td>consented; employment kept separate from research (existing protections kept)</td></tr>
-        <tr><td>Aim 3 selling, pricing, billing, account-level conversion/retention/margin analytics</td><td><span class="chip commerce">operations</span></td><td>commerce; the solicitation itself notes a scientific hypothesis is not required for commercialization activities</td></tr>
-        <tr><td>Aim 3 interviews (didn't buy / bought-and-left / stayed / high-value) + surveys + any person-linked analysis</td><td><span class="chip research">research</span></td><td>the "why" layer; runs under IRB with study IDs — already the structure in the current draft</td></tr>
+        <tr><th style="width:21%"></th><th>Staffing</th><th>Visibility / Boost</th><th>Conversion</th></tr>
+        <tr><td class="q">1 · What must exist in the marketplace for a fair test?</td>
+          <td>an activated campus pipeline in the county + providers with declared vacancies</td>
+          <td>family search activity in-county + complete provider profiles (+ ad budget — external ad reach is budget-limited, not traffic-limited)</td>
+          <td>providers with live inquiry flow — the density Aim 1 builds</td></tr>
+        <tr><td class="q">2 · What happens during Aim 2?</td>
+          <td>free use: students apply, providers interview and hire, shifts verified</td>
+          <td>free use: profiles completed, reviews generated, campaigns run</td>
+          <td>built, verified, then free use: leads qualified, followed up, tracked to outcome</td></tr>
+        <tr><td class="q">3 · Evidence from ordinary platform use <span class="chip commerce">ops</span></td>
+          <td>applicants, hires, first verified paid shifts, 30/90-day retention</td>
+          <td>attributable qualified inquiries, posted reviews, repeat use</td>
+          <td>assessments scheduled, admissions from tracked leads</td></tr>
+        <tr><td class="q">4 · Evidence only research can give <span class="chip research">HS</span></td>
+          <td colspan="3">from the same never-user cohort for all three: can they use it, do they perceive value, what blocks adoption, would they continue, what would they pay — plus interviews with providers who quit, and student experience</td></tr>
+        <tr><td class="q">5 · What we know at the end of Aim 2</td>
+          <td>whether providers hire real caregivers through it, at what workload, and what they'd pay</td>
+          <td>whether it produces qualified interest providers can feel, and what they'd pay</td>
+          <td>whether it turns inquiries into admissions, and what they'd pay — likely on less evidence (it started last)</td></tr>
+        <tr><td class="q">6 · What decides advancement?</td>
+          <td colspan="3">one pre-registered rule, same for all three: value shown in both evidence lanes + plausible economics (discounted stated willingness-to-pay minus measured cost to deliver, acquisition cost included) → priced; otherwise → stays free, improves, re-checked at the second pricing round</td></tr>
+        <tr><td class="q">7 · What changes entering Aim 3?</td>
+          <td colspan="3">one thing: a real price. Nothing else about the product or its measurement changes — value delivery is still tracked; payment behavior starts being tracked</td></tr>
+        <tr><td class="q">8 · Who uses it in Aim 3?</td>
+          <td colspan="3">new providers who meet the priced offer at first contact (~6 new counties + continuing acquisition) · existing free-base providers offered upgrades · the research cohort and early adopters stay free (their use remains operational evidence)</td></tr>
+        <tr><td class="q">9 · What Aim 3 measures that Aim 2 could not</td>
+          <td colspan="3">actual purchase at a real price · price actually paid · retention under billing · revenue per account · acquisition cost of a paying customer · margin — stated intentions become observed behavior</td></tr>
+        <tr><td class="q">10 · Award-end evidence of commercial readiness</td>
+          <td>hires delivered + paying staffing accounts with measured retention and margin</td>
+          <td>inquiries delivered + paying visibility accounts with measured retention and margin</td>
+          <td>admissions delivered + either paying accounts (round 2) or an honest "not yet," with its components folded into the paid tiers</td></tr>
       </table>
     </div>
   </section>
 
   <section>
-    <h2>The plausibility check, honestly stated</h2>
+    <h2>Flags raised by drawing it</h2>
     <div class="note">
-      The gate combines three things per product: <b>(1) value shown</b> — the product reached its value
-      endpoint at credible rates in both streams; <b>(2) providers want it</b> — continued use and stated
-      willingness to continue; <b>(3) the arithmetic is plausible</b> — stated willingness-to-pay,
-      <em>discounted by a pre-registered haircut</em> (stated WTP routinely overstates real payment),
-      minus measured cost to deliver, clears the bar — with acquisition cost from the Aim 2 outreach
-      channels included, because a product can carry a delivery margin and still cost too much to sell.
-      <br><br>
-      <b>What it cannot establish:</b> actual conversion, actual retention, actual revenue — Aim 3's job,
-      and the proposal should say so in one sentence. <b>On the 20% threshold:</b> it appears nowhere in
-      the current Research Strategy or Commercialization Plan — the existing concepts are the <em>derived
-      sustainability threshold</em> (measured under Aim 3 and CPA-verified), 3:1 LTV:CAC, and 12-month
-      payback; the CP's per-account model implies a ~60% contribution margin. Recommendation: derive the
-      gate's bar from the CP sustainability model at reconciliation, don't inherit a round number.
-      <span class="chip tbd">bar TBD</span>
-    </div>
-  </section>
-
-  <section>
-    <h2>Against the current Research Strategy (Qiping's design)</h2>
-    <div class="tablewrap">
-      <table>
-        <tr><th>Disposition</th><th>Element</th></tr>
-        <tr><td><b>Preserve</b></td><td>Task 2.1 verification with outside-record reconciliation · the formative usability design (roles, SUS, AIM/IAM/FIM, saturation rule, disengager sampling) as the cohort's evaluation phase · student protections and research/employment separation · Task 2.3 acquisition channels, wave discipline, cost models · Aim 3's pricing experiments (matched-county arms, pre-registered rules, second round), survival-model retention, LTV with confidence intervals, CPA rebuild, interview sampling frames</td></tr>
-        <tr><td><b>Simplify</b></td><td>The ~80-account prospective field study becomes: the operational stream (all activated accounts, pre-specified analysis) + the cohort's field phase. GEE machinery survives only where the observational plan needs it. Readiness states → one plain advancement question.</td></tr>
-        <tr><td><b>Move</b></td><td>Stated willingness-to-pay / price-sensitivity collection (Van Westendorp) moves from Aim 3 into the Aim 2 cohort — it seeds Aim 3's price points; an optional short refresh can precede the arms.</td></tr>
-        <tr><td><b>Remove</b></td><td>Per-module statistical graduation gates · "4 of 4 modules" counts · the referral network as a paid module (free base layer) · the "conversion cohort" as a research construct (research participants are grandfathered; the upgrade offer goes to the non-research free base as commerce)</td></tr>
-      </table>
+      <b>1 · The marketplace lane crosses aim boundaries.</b> Aim 1 builds the family side; Aim 2 builds
+      the provider and student sides — but they are one marketplace. The RS prose must cross-reference
+      this cleanly so a reviewer sees one infrastructure, not an acquisition project bolted beside the
+      research. <br><br>
+      <b>2 · Conversion's evidence window is structurally short.</b> Built during Year 1, dependent on
+      Year-2 demand density, judged at mid-Year 2 — it will likely reach the gate with less evidence than
+      the other two. The proposal should present this as deliberate sequencing (build → verify → validate
+      → price later, with the second round as its natural entry), not as a product falling behind.<br><br>
+      <b>3 · The gate reads two lanes but changes only one.</b> Worth stating in the prose exactly as the
+      diagram shows it: the decision changes whether a product carries a price — never whether its value
+      keeps being measured. That single sentence prevents the "what happens to failed products?" reviewer
+      question entirely.
     </div>
   </section>
 </div>

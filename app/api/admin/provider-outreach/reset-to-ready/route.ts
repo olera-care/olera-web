@@ -20,7 +20,7 @@ import { pauseLeadInCampaign } from "@/lib/smartlead";
  *   2. Change stage to not_contacted
  *   3. Set email_source
  *   4. Clear Follow-Up and re_engage related fields
- *   5. Clear sequence-related fields (sequence_started_at, smartlead_data)
+ *   5. Clear sequence-related fields (sequence_started_at, sequenced_with_source, smartlead_data)
  *   6. Optionally copy Apollo email to main email field
  *   7. Log touchpoint
  */
@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
         email_source: email_source,
         // Clear sequence fields (in_sequence stage)
         sequence_started_at: null,
+        sequenced_with_source: null, // Clear so next sequence captures fresh source
         smartlead_data: null,
         // Clear follow-up related fields (needs_call stage)
         due_date: null,

@@ -6566,10 +6566,10 @@ export default function ProviderOutreachPage() {
     fetchClaimsDashboard();
   }, [emailStatsExpanded, claimsDashboard]);
 
-  // Effect: fetch sequence conversion stats when either section is expanded
-  // (Sequence Conv. and Email Source both use the same API data)
+  // Effect: fetch sequence conversion stats when any analytics section is expanded
+  // (Outreach Funnel, Sequence Conv., and Email Source all use the same API data)
   useEffect(() => {
-    const needsData = conversionExpanded || emailSourceExpanded;
+    const needsData = statsExpanded || conversionExpanded || emailSourceExpanded;
     if (!needsData || conversionStats || !selectedState) return;
 
     const fetchConversionStats = async () => {
@@ -6591,7 +6591,7 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchConversionStats();
-  }, [conversionExpanded, emailSourceExpanded, conversionStats, selectedState]);
+  }, [statsExpanded, conversionExpanded, emailSourceExpanded, conversionStats, selectedState]);
 
   // Reset conversion stats when state changes
   useEffect(() => {
@@ -7558,21 +7558,13 @@ export default function ProviderOutreachPage() {
                 />
                 <FunnelStat
                   label="Claimed"
-                  value={stageCounts.claimed}
+                  value={conversionStats?.totals.claimed ?? 0}
                   highlight
-                  subtitle="success"
+                  subtitle="from sequence"
                 />
                 <FunnelStat
                   label="Claim Rate"
-                  value={
-                    stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed > 0
-                      ? Math.round(
-                          (stageCounts.claimed /
-                            (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed)) *
-                            100
-                        )
-                      : 0
-                  }
+                  value={conversionStats?.totals.rate ?? 0}
                   format="percent"
                   subtitle="of providers who entered sequence"
                 />

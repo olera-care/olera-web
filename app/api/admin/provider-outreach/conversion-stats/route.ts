@@ -17,7 +17,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *     - rate: Conversion rate as percentage (0-100)
  *   - totals: { in_sequence, claimed, rate } - state-level totals
  *   - by_email_source: { organization: {...}, decision_maker: {...} }
- *     - Breakdown by email_source for comparing org vs decision-maker performance
+ *     - Breakdown by sequenced_with_source for comparing org vs decision-maker performance
  */
 export async function GET(request: NextRequest) {
   try {
@@ -41,10 +41,11 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Get all providers that have ever been in sequence in this state
-    // Include email_source for org vs decision-maker breakdown
+    // Use sequenced_with_source (captured at sequence start) for accurate org vs decision-maker breakdown
+    // Falls back to "organization" for legacy records without sequenced_with_source
     const { data: sequencedProviders, error: seqError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, city, state, email_source")
+      .select("provider_id, city, state, sequenced_with_source")
       .eq("state", state)
       .not("sequence_started_at", "is", null);
 
@@ -109,13 +110,16 @@ export async function GET(request: NextRequest) {
     const totalRate = totalInSequence > 0 ? Math.round((totalClaimed / totalInSequence) * 100) : 0;
 
     // Calculate email source breakdown (org vs decision-maker)
+    // Use sequenced_with_source which captures the source AT THE TIME of sequencing
+    // Legacy records without this field default to "organization"
     const emailSourceStats = {
       organization: { in_sequence: 0, claimed: 0, rate: 0 },
       decision_maker: { in_sequence: 0, claimed: 0, rate: 0 },
     };
 
     for (const p of sequencedProviders) {
-      const source = (p.email_source === "decision_maker") ? "decision_maker" : "organization";
+      // Use sequenced_with_source, default to "organization" for legacy records
+      const source = (p.sequenced_with_source === "decision_maker") ? "decision_maker" : "organization";
       emailSourceStats[source].in_sequence++;
       if (claimedProviderIds.has(p.provider_id)) {
         emailSourceStats[source].claimed++;

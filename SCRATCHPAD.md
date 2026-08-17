@@ -7,6 +7,20 @@
 
 ## Current Focus
 
+### 2026-08-17 — Provider reachability: War Room's 333 closed to 285, and question emails stopped blasting
+
+**War Room probe moved 333/1408 → 285/1394 unreachable.** 43 providers newly reachable, 58 held questions delivered, $4.61 spend, 0 bounces. PRs #1614, #1615, #1616 (`vibrant-kepler`).
+
+**/benefits-pipeline was the wrong tool and its contact finder does not transfer.** It finds benefit-*program* application doors (phone, apply URL) via Perplexity prompts written for government programs. The provider-side finder already existed — `lib/medjobs/outreach-enrichment.ts` `findEmail()` (scrape → Perplexity → ZeroBounce) with a batch driver at `scripts/enrich-outreach-emails.ts`. It just could not be aimed at this cohort and threw away most of what it found.
+
+**Three bugs in the existing enricher.** (1) It gated on ZeroBounce's RAW verdict, dropping `invalid`/`role_based` — a marketing-policy verdict on `info@`/`admin@`, not a dead mailbox, and exactly what provider sites publish. `effectiveStatus()` existed for this and the send path already applied it (`lib/email.ts:514`); the enricher never called it. In a 30-provider sample, **5 of 7 finds would have been discarded**. This also explains the old College Station log ("6 found → 3 written"). (2) Targeting required a website on file, skipping **137 of 282** — `resolveWebsite()` already resolves a `place_id` through Places. (3) A written email was inert: it never flushed the questions held *because* the column was empty.
+
+**The repeats are a demand tally, not junk — do not delete them.** `app/provider/[slug]/page.tsx:391` reads every question ever asked on a provider, any status, to build `suggestionStats`, which renders **"N people asked this"** (`components/providers/QASectionV2.tsx:681`) and ranks the suggested chips. `willow-bend-villas` holds 55 pending questions carrying **14 distinct texts**. Deleting the repeats turns "16 people asked this" into "1". Suppression (`metadata.email_suppressed_at`) stops the mail, keeps the tally, and reverses cleanly. **845 swept** across 202 providers; deliberately spared: 877 already emailed (live one-click links point at those row ids), 181 not pending, 72 answered, 65 with an asker email.
+
+**Claim conversion was unmeasurable, now instrumented.** `business_profiles.claimed_at` was null on all 3,734 rows and `provider_activity` has no claim event, so 789 claimed orgs could not be attributed to anything. Migration `181_business_profile_claimed_at.sql` adds a trigger (10+ call sites set `claim_state='claimed'`; a trigger cannot be forgotten) and backfills the 159 real dates from `provider_outreach_tracking`. **Applied to prod 2026-08-17, verified.**
+
+**Answer rate is 7.4% and that is the wrong metric.** 5,331 questions were emailed to a provider; 395 answered. Median time-to-answer 33 hours, p90 **782 hours**. TJ's correction: questions are a provider-onboarding tool, not a Q&A service — families do not leave emails (440 of 12,514 = 3.5%) and do not come back. So claim conversion is the KPI, which is why the timestamp had to exist first.
+
 ### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
 
 **Zero code changes.** The only file touched is this log. The real artifacts live in Google Ads and Supabase.
@@ -3654,6 +3668,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+**Provider reachability / question flush — added 2026-08-17 (PRs #1614, #1615 merged; #1616 open):**
+- 🔴 **Merge #1616.** It carries the claimed_at migration (already applied to prod), the flush cap at 2, and three pre-test fixes. Two of those fixes correct defects introduced by #1615, which is already live — nothing has fired through that path yet because the admin session predates it, but the next flush would hit them.
+- 🟡 **Check bounces on the 58 enrichment sends.** 0 so far but the run finished 2026-08-17; bounces take hours. First real test of role addresses at volume. `email_log` where `email_type='question_received'`.
+- 🟡 **Let `claimed_at` accumulate for a week before analysing.** Today's 43 newly-reachable providers are a clean cohort. Do not read the 8 same-day claims as causal: all 8 are outreach-program providers taking fax/mail/LinkedIn touches too, `provider_outreach_tracking.claimed_at` may be detection rather than click time, and only 2 fall inside the enrichment run's window.
+- ⏳ **Do not invest further in reachability breadth.** 225 of the 278 attempted providers have no findable email at all, and the remaining 285 are the hardest. Hit rate came in at **15.5%**, below the 23% the n=30 sample suggested — the sample was optimistic, budget off the 15.5%.
+- ⏳ **2 addresses were written as catch-all "risky".** The probe counts them reachable; the cold lane will always suppress them. Matches the probe's own caveat that a present address is not proof of deliverability. Inflates the improvement by 2.
+- ⏳ **Wire `findEmail()` into the city pipeline** so new cities ship with emails instead of being backfilled forever. `scripts/enrich-city.js` still has no email finder — that gap is what `scripts/enrich-outreach-emails.ts` was built to paper over.
+
 **Benefits household-income guard — added 2026-08-14 (PR #1599):**
 - 🔴 **Kill or rewrite the pending Navigator draft on profile `a86383a6`** before any send sweep runs. Status is `pending` and manual-send only, so nothing has gone out, but as written it tells an 83-year-old *"an income under $1,500 a month is in the range they look at"* and quotes $2,435/yr. It would send him to a hotline for a denial.
 - 🔴 **Merge #1599 only after review.** Contains the pre-test fix to `getProgramsForFamily`, which is the one that actually moves the family-facing quiz payoff screen.
@@ -3876,6 +3898,26 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-08-17 — Reached the providers holding unanswered questions; found the flush was blasting them
+
+Started from the War Room card: *333 of 1408 provider pages holding unanswered questions have no usable email*. TJ asked whether `/benefits-pipeline` or its contact finder could close it.
+
+**It could not, and the right tool already existed.** The benefits pipeline finds government-program application doors, not business emails. `lib/medjobs/outreach-enrichment.ts` already had the provider finder. Fixed three things in `scripts/enrich-outreach-emails.ts`: judge on `effectiveStatus()` not the raw ZeroBounce verdict (role addresses are the whole unlock — 5 of 7 sampled finds were being discarded), drop the website requirement (137 of 282 providers have only a `place_id`), and call `sendDeferredNotificationsForProvider()` on write so the held questions actually go. PR #1614.
+
+**TJ's steer changed the design: dedupe the repeats.** Families pick from the same suggested chips, so providers accumulate identical texts — `willow-bend-villas` 55 questions / 14 texts, `briarwood` 52 / 8. Every caller sent all of them. Dedupe landed in the shared function so all ~16 callers benefit, including `/api/admin/flush-deferred-backlog` whose `perProvider` default of 100 was the only thing between those backlogs and the inbox.
+
+**Suppress, not delete.** TJ asked to purge the repeats ("families don't leave their email anyway" — true, 3.5%). But `app/provider/[slug]/page.tsx:391` counts every row sharing a text to render "N people asked this" and rank the chips. Deleting would zero that on exactly the questions families care most about. Swept 845 with `metadata.email_suppressed_at`, sparing already-emailed / answered / asker-email / non-pending rows. Tally verified intact afterwards.
+
+**Ran it: 278 targets → 43 emails written, 58 questions delivered, $4.61, 0 bounces.** Probe moved to 285/1394. Hit rate 15.5%, below the 23% the n=30 sample implied — small-sample optimism, worth remembering. Skipped the 25-provider pilot I had proposed after TJ questioned it: every address is ZeroBounce-verified at write and re-verified at send, and 130 emails cannot move a 4% account-wide threshold. Replaced it with a 3-provider smoke test of the untested write→notify path, which is the part you cannot unsend.
+
+**Then TJ corrected the strategy.** I recommended answering the questions ourselves (7.4% answer rate, 33h median, 782h p90). Wrong frame: questions are a provider-onboarding instrument, not a Q&A service. So the KPI is claim conversion — which turned out to be **unmeasurable**: `claimed_at` null on all 3,734 rows, no claim event in `provider_activity`. Migration `181` adds a trigger and backfills the 159 real dates from `provider_outreach_tracking`. TJ applied it; verified end to end.
+
+**Found the flush blasting providers.** Investigating a same-day claim signal surfaced 583 question emails after my run — a person working the admin Questions tab (372 actions, 12:30–14:00 UTC). Shape: 6 emails to one inbox **inside one second**, 9 to another, 55 providers with 4+. Cause: `maxQuestions: undefined` meant "send all", and only 2 of ~16 call sites passed a cap. `DEFAULT_QUESTION_FLUSH_CAP = 2` now lives in the shared function; `email-override` 5→2 and `flush-deferred-backlog` 100→2.
+
+**`/pre-test` earned its place — three real bugs.** (1) The asker-email carve-out never registered its text, so an anonymous copy elected itself and sent the same question twice, spending the whole cap on one question. (2) Several reachable families asking the same text each got their own email; now one copy per call, siblings left unnotified rather than suppressed so nobody is dropped. (3) **My own regression**: dropping `perProvider` 100→2 broke the invariant `flush-deferred-backlog`'s no-cursor design rests on — served providers no longer fall out of the alphabetically-sorted list, so every re-run would re-serve the same prefix and starve the tail. Providers now sit out 24h after being served.
+
+**Verification habits that paid.** `dryRunQuestions` (added for this) previews a flush without sending. The first dedupe test passed only because the cap truncated the list before duplicates collided — re-running it uncapped exposed bug (2). And an early "0% claim conversion" result was an artifact of `claimed_at` being unpopulated, not a finding.
 
 ### 2026-08-17 — LumiWell published; the Aug 15 blocker was one keyword, and the firewall theory was wrong
 

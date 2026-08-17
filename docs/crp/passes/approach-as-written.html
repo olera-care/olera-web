@@ -1,0 +1,286 @@
+<title>The Approach As Written</title>
+<style>
+  :root{
+    --paper:#faf9f5; --card:#ffffff; --ink:#20281f; --muted:#5b675d; --line:#d9d6ca;
+    --spruce:#1d4d38; --moss:#2e7d5b; --gold:#8a6a2f;
+    --mosssoft:#e7f1ea; --goldsoft:#f4ecd9; --tbd:#a05e1c; --tbdsoft:#f6ead9; --thtext:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#111713; --card:#1a231c; --ink:#e4e8e1; --muted:#9cab9e; --line:#2f3a32;
+      --spruce:#93c7ab; --moss:#6fb08d; --gold:#cfa96a;
+      --mosssoft:#1d2c23; --goldsoft:#2b2519; --tbd:#db9d58; --tbdsoft:#2e2416; --thtext:#0e1411;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#111713; --card:#1a231c; --ink:#e4e8e1; --muted:#9cab9e; --line:#2f3a32;
+    --spruce:#93c7ab; --moss:#6fb08d; --gold:#cfa96a;
+    --mosssoft:#1d2c23; --goldsoft:#2b2519; --tbd:#db9d58; --tbdsoft:#2e2416; --thtext:#0e1411;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:16px/1.55 Seravek,'Segoe UI',system-ui,-apple-system,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 28px 90px}
+  h1,h2,h3{font-family:Charter,Georgia,'Times New Roman',serif;line-height:1.2;text-wrap:balance;margin:0}
+  h1{font-size:2.1rem;font-weight:700}
+  h2{font-size:1.45rem;margin:0 0 6px}
+  h3{font-size:1.05rem;margin:18px 0 4px}
+  section{margin-top:54px}
+  p{max-width:72ch}
+  .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+  .thesis{font-family:Charter,Georgia,serif;font-size:1.1rem;line-height:1.6;max-width:66ch;
+          border-left:3px solid var(--gold);padding-left:18px;margin-top:18px}
+  figure{margin:24px 0 0}
+  figcaption{font-size:.85rem;color:var(--muted);margin-top:10px;max-width:78ch}
+  .diagram{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:14px}
+  .diagram svg{display:block;min-width:1040px;width:100%;height:auto}
+  svg text{font-family:Seravek,'Segoe UI',system-ui,sans-serif;fill:var(--ink)}
+  svg .t-muted{fill:var(--muted)} svg .t-strong{font-weight:700}
+  svg .t-spruce{fill:var(--spruce);font-weight:700}
+  svg .t-gold{fill:var(--gold);font-weight:700}
+  svg .t-moss{fill:var(--moss)}
+  svg .t-warn{fill:var(--tbd);font-weight:700}
+  svg .aim{fill:var(--card);stroke:var(--spruce);stroke-width:1.5}
+  svg .rail{fill:var(--goldsoft);stroke:var(--gold);stroke-width:1;opacity:.85}
+  svg .railr{fill:var(--mosssoft);stroke:var(--moss);stroke-width:1;opacity:.9}
+  svg .flow{stroke:var(--spruce);stroke-width:1.8;fill:none}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;line-height:1.45}
+  th{background:var(--spruce);color:var(--thtext);text-align:left;padding:7px 10px;font-weight:600;font-size:.78rem;letter-spacing:.03em}
+  td{border:1px solid var(--line);padding:7px 10px;vertical-align:top;background:var(--card)}
+  .tablewrap{overflow-x:auto;margin-top:14px}
+  .chip{display:inline-block;font-size:.72rem;font-weight:600;border-radius:100px;padding:1px 9px;white-space:nowrap}
+  .chip.ok{background:var(--mosssoft);color:var(--moss)}
+  .chip.assume{background:var(--goldsoft);color:var(--gold)}
+  .chip.ph{background:var(--tbdsoft);color:var(--tbd);border:1px dashed var(--tbd)}
+  .note{background:var(--tbdsoft);border:1px dashed var(--tbd);border-radius:8px;padding:14px 18px;font-size:.92rem;max-width:84ch;margin-top:18px}
+  ol.tight{max-width:78ch} ol.tight li{margin-bottom:10px}
+  .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:14px;font-size:.82rem}
+  .pipeline .cell{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:10px 12px}
+  .pipeline .cell b{display:block;margin-bottom:4px;color:var(--spruce)}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Olera CRP · reconstruction exercise · 2026-08-19</div>
+  <h1>The Approach As Written</h1>
+  <p class="thesis">If we changed absolutely nothing, this is the study we are currently proposing:
+  concentrate family and provider recruitment in twelve markets chosen to differ in family demand.
+  In Years 1–2, Aim 1 verifies and validates the family-facing CareNavigator and builds active family
+  acquisition with measured costs, while Aim 2 verifies and validates a four-module Provider Growth
+  Suite with ~80 provider accounts and ~100 students, building provider and student acquisition in the
+  same markets. Each offering graduates individually into Aim 3 when it meets its readiness endpoint.
+  Aim 3 (Years 2–3) then prices the graduated offerings through pre-registered experiments on two
+  cohorts — converted free pilots and new providers acquired in new markets under paid terms — and
+  measures conversion, retention, and unit economics, independently rebuilt by a CPA, against
+  pre-registered bars.</p>
+
+  <section>
+    <h2>The current design, at low resolution</h2>
+    <figure>
+      <div class="diagram">
+      <svg viewBox="0 0 1100 800" role="img" aria-label="The Approach as currently written: three aim boxes in sequence, each showing who enters, what happens, what evidence is produced, and what the next aim inherits; five continuous infrastructure rails run alongside all three aims: family acquisition owned by Aim 1, provider and student acquisition owned by Aim 2, marketplace activity, and product development. Warning markers show inconsistencies in the current text.">
+        <defs>
+          <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6.5" markerHeight="6.5" orient="auto">
+            <path d="M0 0L8 4L0 8z" fill="var(--spruce)"/></marker>
+        </defs>
+
+        <!-- ===== AIM 1 ===== -->
+        <rect x="24" y="52" width="640" height="196" rx="10" class="aim"/>
+        <text x="40" y="78" font-size="13.5" class="t-spruce">AIM 1 · Years 1–2 — CareNavigator for families</text>
+        <text x="40" y="102" font-size="11"><tspan class="t-strong">Enters:</tspan> family caregivers — national organic + active channels in 12 markets</text>
+        <text x="40" y="124" font-size="11"><tspan class="t-strong">Does:</tspan> 1.1 expert-panel verification <tspan class="t-gold">(ops)</tspan> · 1.2 ADRD-caregiver study, n=25, SUS/trust <tspan class="t-moss">(research)</tspan></text>
+        <text x="76" y="141" font-size="11">1.3 active family acquisition + instrumented funnels, cost models <tspan class="t-gold">(ops)</tspan></text>
+        <text x="40" y="165" font-size="11"><tspan class="t-strong">Produces:</tspan> verified accuracy · validated usability/trust · cost to acquire &amp; serve a family ·</text>
+        <text x="113" y="181" font-size="11">families reaching "aid or care established" · family market-entry playbook</text>
+        <text x="40" y="205" font-size="11" class="t-muted">families never pay — Aim 1's economics enter Aim 3 as the cost side of the ledger</text>
+        <text x="40" y="230" font-size="10.5" class="t-warn">⚠ n=25 rationale thin · ⚠ family→provider handoff stated only via the opt-in referral sentence</text>
+
+        <path d="M344 248 L344 286" class="flow" marker-end="url(#ah)"/>
+        <text x="356" y="272" font-size="10.5" class="t-muted">inherits: opted-in family demand · seeded provider arrivals</text>
+
+        <!-- ===== AIM 2 ===== -->
+        <rect x="24" y="292" width="640" height="204" rx="10" class="aim"/>
+        <text x="40" y="318" font-size="13.5" class="t-spruce">AIM 2 · Years 1–2 — Growth Suite for providers</text>
+        <text x="40" y="342" font-size="11"><tspan class="t-strong">Enters:</tspan> ~80 provider accounts + ~100 students, recruited in the same 12 markets</text>
+        <text x="40" y="364" font-size="11"><tspan class="t-strong">Does:</tspan> 2.1 verify 4 modules end-to-end <tspan class="t-gold">(ops)</tspan> · 2.2 usability study 30+20, then</text>
+        <text x="76" y="381" font-size="11">prospective field test with GEE analysis <tspan class="t-moss">(research)</tspan> · 2.3 provider + student</text>
+        <text x="76" y="398" font-size="11">acquisition, pre-registered waves, cost dictionary <tspan class="t-gold">(ops)</tspan></text>
+        <text x="40" y="422" font-size="11"><tspan class="t-strong">Produces:</tspan> validated staffing workflow · module readiness statuses · activated provider</text>
+        <text x="113" y="438" font-size="11">base · provider market-entry playbook with channel rules and costs</text>
+        <text x="40" y="462" font-size="10.5" class="t-warn">⚠ four modules vs three products ("[SETTLE: three or four]" is in the text) · ⚠ sampling</text>
+        <text x="40" y="477" font-size="10.5" class="t-warn">grid implies 45–60, N=30 · ⚠ no willingness-to-pay is collected anywhere in Aim 2</text>
+
+        <path d="M344 496 L344 534" class="flow" marker-end="url(#ah)"/>
+        <text x="356" y="514" font-size="10.5" class="t-muted">inherits: modules graduate individually on their endpoints;</text>
+        <text x="356" y="528" font-size="10.5" class="t-muted">the activated base becomes the conversion cohort</text>
+
+        <!-- ===== AIM 3 ===== -->
+        <rect x="24" y="540" width="640" height="204" rx="10" class="aim"/>
+        <text x="40" y="566" font-size="13.5" class="t-spruce">AIM 3 · Years 2–3 — the provider-funded revenue model</text>
+        <text x="40" y="590" font-size="11"><tspan class="t-strong">Enters:</tspan> conversion cohort (Aim 2 free pilots offered paid plans) + paid-entry cohort</text>
+        <text x="90" y="606" font-size="11">(new providers, paid from first contact, in new markets) — ≈200 accounts total</text>
+        <text x="40" y="630" font-size="11"><tspan class="t-strong">Does:</tspan> Van Westendorp survey (~120) seeds pre-registered price/packaging arms across</text>
+        <text x="76" y="647" font-size="11">matched markets <tspan class="t-gold">(ops+experiment)</tspan> · unit-economics &amp; survival-model retention ·</text>
+        <text x="76" y="664" font-size="11">~30 explanatory interviews <tspan class="t-moss">(research)</tspan> · CPA rebuild <tspan class="t-gold">(ops)</tspan></text>
+        <text x="40" y="688" font-size="11"><tspan class="t-strong">Final outcome:</tspan> conversion, retention, revenue, CAC, cost to serve, margin vs bars</text>
+        <text x="146" y="704" font-size="11">(payback ≤12 mo · LTV:CAC ≥3:1 · margin ≥ derived threshold · cross-side coverage)</text>
+        <text x="40" y="728" font-size="10.5" class="t-warn">⚠ paid-entry "new markets": count never specified in the RS (the "~6" exists only in the CP) ·</text>
+        <text x="40" y="743" font-size="10.5" class="t-warn">⚠ planning estimate 300 × $200 ≈ $720K conflicts with the CP model</text>
+
+        <!-- ===== infrastructure rails ===== -->
+        <text x="690" y="44" font-size="10" class="t-muted" font-weight="700" letter-spacing="1">CONTINUOUS INFRASTRUCTURE (runs across all aims)</text>
+
+        <rect x="690" y="52" width="74" height="692" rx="8" class="rail"/>
+        <text x="727" y="74" font-size="10" text-anchor="middle" class="t-strong">Family</text>
+        <text x="727" y="87" font-size="10" text-anchor="middle" class="t-strong">acquisition</text>
+        <text x="727" y="104" font-size="9" text-anchor="middle" class="t-muted">owned: Aim 1</text>
+        <text x="727" y="117" font-size="9" text-anchor="middle" class="t-muted">(Task 1.3A)</text>
+        <text x="727" y="400" font-size="9" text-anchor="middle">seeds provider</text>
+        <text x="727" y="412" font-size="9" text-anchor="middle">arrivals (2.3A)</text>
+        <text x="727" y="640" font-size="9" text-anchor="middle">cost side of</text>
+        <text x="727" y="652" font-size="9" text-anchor="middle">the Aim 3 ledger</text>
+
+        <rect x="772" y="52" width="74" height="692" rx="8" class="rail"/>
+        <text x="809" y="74" font-size="10" text-anchor="middle" class="t-strong">Provider</text>
+        <text x="809" y="87" font-size="10" text-anchor="middle" class="t-strong">acquisition</text>
+        <text x="809" y="104" font-size="9" text-anchor="middle" class="t-muted">owned: Aim 2</text>
+        <text x="809" y="117" font-size="9" text-anchor="middle" class="t-muted">(Task 2.3A)</text>
+        <text x="809" y="640" font-size="9" text-anchor="middle">continues as</text>
+        <text x="809" y="652" font-size="9" text-anchor="middle">paid-entry sales</text>
+
+        <rect x="854" y="52" width="74" height="692" rx="8" class="rail"/>
+        <text x="891" y="74" font-size="10" text-anchor="middle" class="t-strong">Student</text>
+        <text x="891" y="87" font-size="10" text-anchor="middle" class="t-strong">acquisition</text>
+        <text x="891" y="104" font-size="9" text-anchor="middle" class="t-muted">owned: Aim 2</text>
+        <text x="891" y="117" font-size="9" text-anchor="middle" class="t-muted">(campus channels)</text>
+        <text x="891" y="400" font-size="9" text-anchor="middle">semester</text>
+        <text x="891" y="412" font-size="9" text-anchor="middle">cohorts</text>
+
+        <rect x="936" y="52" width="74" height="692" rx="8" class="rail"/>
+        <text x="973" y="74" font-size="10" text-anchor="middle" class="t-strong">Marketplace</text>
+        <text x="973" y="87" font-size="10" text-anchor="middle" class="t-strong">activity</text>
+        <text x="973" y="104" font-size="9" text-anchor="middle" class="t-muted">no single home —</text>
+        <text x="973" y="117" font-size="9" text-anchor="middle" class="t-muted">stated in 4 places</text>
+        <text x="973" y="400" font-size="9" text-anchor="middle">leads · arrivals ·</text>
+        <text x="973" y="412" font-size="9" text-anchor="middle">liquidity ⚠</text>
+
+        <rect x="1018" y="52" width="74" height="692" rx="8" class="rail"/>
+        <text x="1055" y="74" font-size="10" text-anchor="middle" class="t-strong">Product dev +</text>
+        <text x="1055" y="87" font-size="10" text-anchor="middle" class="t-strong">instrumentation</text>
+        <text x="1055" y="104" font-size="9" text-anchor="middle" class="t-muted">in aim preambles</text>
+        <text x="1055" y="117" font-size="9" text-anchor="middle" class="t-muted">(loops · modules)</text>
+
+        <text x="690" y="775" font-size="10" class="t-muted">gold rails = operational infrastructure · <tspan class="t-moss">green</tspan> = consented research · ⚠ = flagged in the audit below</text>
+      </svg>
+      </div>
+      <figcaption><b>Faithful to the current text</b> — four modules, both gates, Van Westendorp in Aim 3,
+      no willingness-to-pay in Aim 2, and the acquisition rails owned where the tasks put them. The ⚠ marks
+      are the audit, not edits.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Number audit: justified · assumption · placeholder</h2>
+    <div class="tablewrap">
+      <table>
+        <tr><th>Number / choice</th><th>Where</th><th>Classification</th><th>Basis</th></tr>
+        <tr><td><b>12 markets</b></td><td>RS throughout; Aims; CP</td><td><span class="chip assume">ratified assumption</span></td><td>Deliberately approved (decision D1, 2026-08-11) and *accommodated* by Aim 3 ("with twelve markets, arm-level contrasts estimated rather than significance-tested" — a limitation statement, not a derivation). Needs re-derivation from: pricing-arm cluster count, demand-variation needs, ops capacity, budget.</td></tr>
+        <tr><td><b>~6 paid-first markets</b></td><td>CP §7, §11 only — <b>never in the RS</b></td><td><span class="chip ph">placeholder</span></td><td>Vestige of D1's "≈6 paid-only (Y3)"; the RS's paid-entry cohort says "new markets" with no count. Open until Aim 3 redesign + budget.</td></tr>
+        <tr><td><b>18 markets by end-Y2</b></td><td>CP §9 (v0.24 model)</td><td><span class="chip assume">derived, provisional premises</span></td><td>Derived to land break-even at award end — but from the 12+6 inputs above; moves if they move.</td></tr>
+        <tr><td>n=25 ADRD caregivers (1.2)</td><td>RS Aim 1</td><td><span class="chip assume">assumption</span></td><td>"informed by prior literature and preliminary work" — thin for a methodologist; population choice needs its defense written (decided earlier).</td></tr>
+        <tr><td>30 + 20 formative (2.2A)</td><td>RS Aim 2</td><td><span class="chip ph">broken arithmetic</span></td><td>"≥5 users per module per role" implies 45–60 with N=30.</td></tr>
+        <tr><td>80 accounts · ≥20/module · 100 students · 20% attrition</td><td>RS Aim 2</td><td><span class="chip assume">assumption</span></td><td>Plausible, undeived; our converged design re-bases value evidence on the operational stream anyway.</td></tr>
+        <tr><td>≈200 accounts · 60–100 churn events · CI ≤7 pts</td><td>RS Aim 3</td><td><span class="chip ok">justified</span></td><td>Real sizing logic (churn events for survival models; precision targets) — contingent on retention assumptions, but derived.</td></tr>
+        <tr><td>120 VW · 150–250 surveys · ~30 interviews · ≥6/group</td><td>RS Aim 3</td><td><span class="chip assume">convention-based</span></td><td>Reasonable norms; fine.</td></tr>
+        <tr><td>Payback ≤12 mo · LTV:CAC ≥3:1</td><td>RS Aim 3; CP</td><td><span class="chip ok">justified</span></td><td>External benchmark, cited as guideline, pre-registered.</td></tr>
+        <tr><td>SUS ≥72 · TIAS ≥5 · agreement ≥85% · funnel ≥90% · kappa</td><td>RS Aims 1–2</td><td><span class="chip ok">mostly justified</span></td><td>Anchored to instrument benchmarks / panel-vs-panel logic.</td></tr>
+        <tr><td>≥70% value endpoint · ≥50% repeat use</td><td>RS Aim 2</td><td><span class="chip assume">assumption</span></td><td>Not derived; flagged earlier as floor-vs-aspiration question for the biostatistician.</td></tr>
+        <tr><td>300 accounts × $200 ≈ $720K ARR</td><td>RS Aim 3 decision point</td><td><span class="chip ph">placeholder (self-declared)</span></td><td>"Planning estimates… updated by measured results"; conflicts with CP §9 ($0.87M run rate) and CP §11 ($0.5M/$0.7M).</td></tr>
+        <tr><td>15,530 visitors · 2,400 leads/mo · 725 providers · 15× lead-day</td><td>RS Preliminary</td><td><span class="chip ok">measured</span></td><td>Instrumented; refresh near submission (evidence ledger).</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where marketplace-building currently lives</h2>
+    <p>Four places, no single home: the Approach preamble ("we concentrate family and provider
+    recruitment in twelve markets that differ in family demand"); Task 1.3A (family channels + the
+    market-selection criteria: families arriving · providers · aid rules · campus); Task 2.3A
+    (provider and student channels + "Aim 1's funnels seed local family demand"); and
+    Problems-and-alternatives ("insufficient family liquidity in a market: reallocate or increase
+    Aim 1 family acquisition"). The concept is present and consistent in spirit — but it is
+    described piecemeal, never named as one system, and the liquidity each product needs is
+    nowhere specified.</p>
+  </section>
+
+  <section>
+    <h2>Reconciliation: the converged improvements against this baseline</h2>
+
+    <h3>What already fits</h3>
+    <p>More than expected. Both aims already run build/verify → validate → adopt (the task
+    structure *is* the pipeline). Aim 3 already prices what graduates, on two cohorts, with a
+    pre-registered second round. Acquisition is already operational discipline, not research.
+    Per-offering graduation already exists. The 12-county concentration with demand variation is
+    already the design's spine. Our converged model is a simplification of this text, not a
+    replacement.</p>
+
+    <h3>What conflicts</h3>
+    <p>Five things: four modules vs three products; the 80-account prospective field study as the
+    *only* value evidence (vs the operational stream carrying it); no willingness-to-pay anywhere
+    in Aim 2 — which means the current design decides what to price with no commercial-plausibility
+    screen at all; the conversion cohort built from research pilots (vs grandfathering them and
+    offering upgrades to the non-research free base); and the referral network priced as a module
+    while the CP declares leads free.</p>
+
+    <h3>What is unnecessarily complicated</h3>
+    <p>Per-module statistical graduation gates; the module × role sampling grid; some of 2.2B's
+    trial machinery (GEE as primary rather than as a tool inside an observational plan); NASA-TLX
+    scoped to a module that is leaving the Suite; and marketplace prose repeated in four places.</p>
+
+    <h3>What is genuinely missing</h3>
+    <p>Willingness-to-pay collection in Aim 2; the plausibility screen at the gate; the
+    operational-stream analysis plan (value definitions and denominators); a named marketplace
+    infrastructure block with per-product liquidity prerequisites; the paid-entry cohort's market
+    count and geography in the RS; and the single reconciled number chain (counties → accounts →
+    payers → revenue → sustainability).</p>
+
+    <h3>Where Aim 1 fits — the unifying insight</h3>
+    <p>Aim 1 is not a sibling study bolted on; it is the same pipeline applied to the family side
+    of the marketplace, with one difference: its commercial test is not payment but <b>cost</b>.
+    Families never pay; Aim 1 proves the demand engine works and measures what a family costs to
+    acquire and serve — the number Aim 3's cross-side bar divides provider revenue by. One
+    sentence tells the whole Approach:</p>
+    <div class="pipeline">
+      <div class="cell"><b>Aim 1</b>proves we can create family demand, affordably, and establish care</div>
+      <div class="cell"><b>Marketplace</b>that demand + provider and student acquisition = liquidity in 12 counties</div>
+      <div class="cell"><b>Aim 2</b>proves the products turn that liquidity into provider value, free</div>
+      <div class="cell"><b>Gate</b>value + plausible economics → a real price</div>
+      <div class="cell"><b>Aim 3</b>proves providers pay more than the whole system costs</div>
+    </div>
+
+    <h3>Where ongoing acquisition should live</h3>
+    <p>Keep channel detail where it is (families in 1.3A, providers and students in 2.3A — each
+    aim owns its side's machinery), and add <b>one</b> short marketplace block in the Approach
+    preamble that names the shared infrastructure, states county selection and build order, and
+    defines each product's liquidity prerequisite. The tasks then cross-reference it. One home,
+    two owners, no repetition.</p>
+
+    <h3>What would make the three aims one continuous story</h3>
+    <ol class="tight">
+      <li>State the shared pipeline once in the preamble and map each aim onto it (the strip above).</li>
+      <li>Name the marketplace as continuous infrastructure with per-product prerequisites.</li>
+      <li>Migrate Aim 2 to the three products; free referral layer stated as such.</li>
+      <li>Move willingness-to-pay into Aim 2's cohort; add the plausibility screen at the gate.</li>
+      <li>Make Aim 3's entry explicit: what is priced, who is offered what, where — including a
+          derived (not inherited) market count for paid entry.</li>
+      <li>Reconcile the number chain once, at the end, across RS, CP, and Aims.</li>
+    </ol>
+    <p>Six changes. Everything else in the current Approach survives — most of it verbatim.</p>
+
+    <div class="note"><b>Honest finding from this exercise:</b> we were not over-complicating the
+    *architecture* in recent turns so much as designing it bottom-up — Aim 2 and Aim 3 first,
+    without Aim 1 in frame. The current text's own preamble already contains the top of the story
+    ("concentrate recruitment in twelve markets that differ in family demand"); what it lacks is
+    the pipeline framing, the marketplace named as one system, and the six changes above. The
+    converged design and the existing text are closer than either of us assumed.</div>
+  </section>
+</div>

@@ -97,6 +97,22 @@ function pct(part: number, whole: number) {
   return whole > 0 ? `${((100 * part) / whole).toFixed(2)}%` : "n/a";
 }
 
+/**
+ * Counts inside headline and detail prose.
+ *
+ * The brief renders a probe's headline directly above its own rows, and the
+ * rows are separator-formatted at render time. A raw interpolation puts "1408"
+ * three lines above "1,408" and makes one measurement look like two.
+ */
+function n(value: number) {
+  return value.toLocaleString("en-US");
+}
+
+/** Dollar amounts from cent-denominated columns, separated the same way. */
+function usd(cents: number) {
+  return (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
   /**
    * Does unanswered question volume actually pull providers into claiming?
@@ -149,8 +165,8 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
     const buckets: Array<[string, number, number]> = [["1", 1, 1], ["2-4", 2, 4], ["5-9", 5, 9], ["10+", 10, Infinity]];
     const rows = buckets.map(([label, lo, hi]) => {
       const group = withQuestions.filter((id) => {
-        const n = questionProviders.get(id)!.count;
-        return n >= lo && n <= hi;
+        const asked = questionProviders.get(id)!.count;
+        return asked >= lo && asked <= hi;
       });
       const claimed = group.filter((id) => claimFirst.has(id)).length;
       return { questions_on_page: label, providers: group.length, claimed, claim_rate: pct(claimed, group.length) };
@@ -168,7 +184,7 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
 
     return {
       headline: `Providers with questions claim at ${pct(converted.length, withQuestions.length)} versus ${pct(claimsWithoutQuestions, withoutQuestions)} without, a ${lift}x difference over ${WINDOW_DAYS} days.`,
-      detail: `${questions.rows.length} questions across ${withQuestions.length} resolvable providers; ${converted.length} of those providers claimed, and ${questionFirst.length} of the ${converted.length} received their first question before claiming. ${unresolved} question rows (${pct(unresolved, questions.rows.length)}) could not be resolved to a live directory provider.`,
+      detail: `${n(questions.rows.length)} questions across ${n(withQuestions.length)} resolvable providers; ${n(converted.length)} of those providers claimed, and ${n(questionFirst.length)} of the ${n(converted.length)} received their first question before claiming. ${n(unresolved)} question rows (${pct(unresolved, questions.rows.length)}) could not be resolved to a live directory provider.`,
       rows,
       caveat: "Association, not proof of cause. Providers with more questions also tend to have more page traffic, and traffic may independently drive claiming. Treat the dose-response shape as suggestive until a traffic-matched comparison runs.",
     };
@@ -194,8 +210,8 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
 
     const count = total.count ?? 0;
     return {
-      headline: `${count} questions in 30 days; ${orphaned} of ${slugs.length} distinct provider pages holding them do not resolve to a live directory row.`,
-      detail: `Only ${withEmail.count ?? 0} askers (${pct(withEmail.count ?? 0, count)}) left an email, so answering is not a way to reach the family. ${onClaimed.count ?? 0} (${pct(onClaimed.count ?? 0, count)}) sit on already-claimed providers, where they cannot pull a new claim. ${answered.count ?? 0} were answered.`,
+      headline: `${n(count)} questions in 30 days; ${n(orphaned)} of ${n(slugs.length)} distinct provider pages holding them do not resolve to a live directory row.`,
+      detail: `Only ${n(withEmail.count ?? 0)} askers (${pct(withEmail.count ?? 0, count)}) left an email, so answering is not a way to reach the family. ${n(onClaimed.count ?? 0)} (${pct(onClaimed.count ?? 0, count)}) sit on already-claimed providers, where they cannot pull a new claim. ${n(answered.count ?? 0)} were answered.`,
       rows: [
         { measure: "questions (30d)", value: count },
         { measure: "asker left an email", value: withEmail.count ?? 0 },
@@ -232,7 +248,7 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
       }
     }
     return {
-      headline: `${unreachable} of ${reachable + unreachable} provider pages holding unanswered questions have no usable email on file.`,
+      headline: `${n(unreachable)} of ${n(reachable + unreachable)} provider pages holding unanswered questions have no usable email on file.`,
       detail: `Unanswered questions on an unreachable provider cannot be used to prompt a claim, so that share of demand inventory is inert until contact data is repaired. Examples: ${missing.slice(0, 5).join(", ") || "none"}.`,
       rows: [
         { measure: "pages with unanswered questions", value: reachable + unreachable },
@@ -313,8 +329,8 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
       if (c.provider_reported_outcome) reportedOutcomes += 1;
     }
     return {
-      headline: `${campaigns.length} Ad Boost campaigns in 180 days, $${(spend / 100).toFixed(2)} of tracked ad spend, ${reportedOutcomes} with a provider-reported outcome.`,
-      detail: `Status mix: ${[...byStatus.entries()].map(([s, n]) => `${s} ${n}`).join(", ") || "none"}. Ad Boost is the only consolidated revenue line, so this does not describe company-wide revenue.`,
+      headline: `${n(campaigns.length)} Ad Boost campaigns in 180 days, $${usd(spend)} of tracked ad spend, ${n(reportedOutcomes)} with a provider-reported outcome.`,
+      detail: `Status mix: ${[...byStatus.entries()].map(([status, count]) => `${status} ${n(count)}`).join(", ") || "none"}. Ad Boost is the only consolidated revenue line, so this does not describe company-wide revenue.`,
       rows: [...byStatus.entries()].map(([status, count]) => ({ status, campaigns: count })),
       caveat: "Ad spend is what the campaign reports, not Olera revenue. Subscription and other lines are not consolidated here.",
     };
@@ -339,8 +355,8 @@ const RUNNERS: Record<Exclude<WarRoomProbeId, "none">, ProbeRunner> = {
       if (t.last_message_at && t.last_message_at < cutoff) stale += 1;
     }
     return {
-      headline: `${threads.length} unhandled support threads, ${stale} with no message in the last 30 days.`,
-      detail: `Priority mix: ${[...byPriority.entries()].map(([p, n]) => `${p} ${n}`).join(", ") || "none"}. A thread untouched for a month is unlikely to still be a live customer conversation, so the headline backlog probably overstates live obligation.`,
+      headline: `${n(threads.length)} unhandled support threads, ${n(stale)} with no message in the last 30 days.`,
+      detail: `Priority mix: ${[...byPriority.entries()].map(([priority, count]) => `${priority} ${n(count)}`).join(", ") || "none"}. A thread untouched for a month is unlikely to still be a live customer conversation, so the headline backlog probably overstates live obligation.`,
       rows: [...byCategory.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([category, count]) => ({ category, threads: count })),
       caveat: "Capped at 2,000 threads. The mailbox source has been backfilling, so duplicates are possible.",
     };

@@ -17,11 +17,13 @@ import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-
  * stay suppressed (logged failed, no mail). So this is safe to run broadly —
  * it can't send to a bad address the gate would block.
  *
- * Paced two ways: a per-provider question cap (perProvider) so no single
- * provider gets blasted, and a wall-clock deadline per invocation (mirrors the
- * cron pattern). No offset cursor — a successful flush stamps email_sent_at, so
- * flushed providers drop out of the freshly-queried backlog; if a run hits the
- * deadline, just re-run the same URL and it picks up the remainder.
+ * Paced three ways: a per-provider question cap (perProvider) so no single
+ * provider gets blasted, a 24h sit-out for providers already served, and a
+ * wall-clock deadline per invocation (mirrors the cron pattern). No offset
+ * cursor — served providers drop out of the freshly-queried backlog, either
+ * permanently (all their questions stamped email_sent_at) or for 24h (the cap
+ * left some behind); if a run hits the deadline, just re-run the same URL and
+ * it picks up the remainder.
  *
  * GET / POST (admin auth, browser-triggerable):
  *   ?dryRun=1        count the target providers/questions, send nothing
@@ -38,6 +40,9 @@ const DEADLINE_MS = 250_000; // ~50s headroom under maxDuration for the final wr
 // whole backlog"; with question-text dedupe in place a single provider could
 // still take 14 emails in one run. ?perProvider=N raises it deliberately.
 const DEFAULT_PER_PROVIDER = 2;
+// How long a provider sits out after being served, so a capped run still walks
+// the whole backlog across re-runs instead of re-serving the same prefix.
+const SERVED_RECENTLY_HOURS = 24;
 
 type Resolved = {
   email: string | null;
@@ -92,13 +97,33 @@ async function handle(params: {
     }
   }
 
+  // 2b) Providers already served in the last day drop out of this run.
+  //
+  // This restores the invariant the no-cursor design below depends on. That
+  // design assumed a flush clears a provider's whole backlog so they fall out
+  // of the freshly-queried list. With DEFAULT_PER_PROVIDER at 2 that is no
+  // longer true: a provider holding five distinct questions stays in the list
+  // for three runs. Since the list is sorted alphabetically, without this every
+  // re-run would re-serve the same prefix and the tail would never be reached.
+  const servedSince = new Date(Date.now() - SERVED_RECENTLY_HOURS * 3_600_000).toISOString();
+  const { data: recentSends } = await db
+    .from("email_log")
+    .select("provider_id")
+    .eq("email_type", "question_received")
+    .gte("created_at", servedSince);
+  const servedRecently = new Set(
+    (recentSends ?? []).map((r) => r.provider_id as string | null).filter(Boolean) as string[],
+  );
+
   // 3) Resolve email/name for the providers we're about to process. Batch the
   // lookups (slug / source_provider_id on business_profiles; provider_id / slug
   // on olera-providers) instead of per-provider round trips.
   //
-  // No offset cursor: a successful flush stamps email_sent_at, so flushed
-  // providers fall OUT of this (freshly-queried) backlog on the next call. The
-  // list shrinks as we go, so we always process from the start — a plain re-run
+  // No offset cursor: flushed providers fall OUT of this (freshly-queried)
+  // backlog on the next call — fully, when their last questions get stamped
+  // email_sent_at, or for SERVED_RECENTLY_HOURS via the served-recently filter
+  // above when the per-provider cap left some behind. Either way the list
+  // shrinks as we go, so we always process from the start and a plain re-run
   // continues where the last one stopped. An index cursor would skip providers
   // here precisely because the list it indexes into keeps shrinking.
   const slice = providerIds;
@@ -160,6 +185,15 @@ async function handle(params: {
     return map;
   };
 
+  // email_log stamps provider_id as `profileId || slug`, so a provider can be
+  // recorded under any of its identifiers. Check them all before concluding we
+  // have not served them.
+  const wasServedRecently = (id: string, r: Resolved | undefined): boolean =>
+    servedRecently.has(id) ||
+    (!!r?.profileId && servedRecently.has(r.profileId)) ||
+    (!!r?.sourceProviderId && servedRecently.has(r.sourceProviderId)) ||
+    (!!r?.bpSlug && servedRecently.has(r.bpSlug));
+
   // Dry run: just count the target (deliverable) providers + their questions.
   if (dryRun) {
     const resolved = await resolveBatch(slice);
@@ -172,6 +206,7 @@ async function handle(params: {
       const email = r?.email?.toLowerCase();
       if (!email) continue;
       if (deliverable && !deliverable.has(email)) continue;
+      if (wasServedRecently(id, r)) continue;
       targetProviders++;
       targetQuestions += Math.min(pendingByProvider.get(id) ?? 0, perProvider);
     }
@@ -206,6 +241,7 @@ async function handle(params: {
     const email = r?.email?.toLowerCase();
     if (!email) continue;
     if (deliverable && !deliverable.has(email)) continue;
+    if (wasServedRecently(id, r)) continue;
 
     const variantSet = new Set<string>();
     if (r!.sourceProviderId && r!.sourceProviderId !== id) variantSet.add(r!.sourceProviderId);

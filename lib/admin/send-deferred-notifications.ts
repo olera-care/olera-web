@@ -431,6 +431,16 @@ export async function sendDeferredNotificationsForProvider(
   // call (another surface, another enrichment run) never resurrects them.
   const unnotifiedQuestions: QuestionRow[] = [];
   const newestByKey = new Map<string, string>();
+  // Which texts have at least one asker we can reach. An anonymous repeat of
+  // such a text is redundant: the reachable instance carries it, and that one
+  // is never suppressed, so the provider still gets asked.
+  const reachableAskerByKey = new Map<string, string>();
+  for (const q of gathered) {
+    if (q.asker_email) {
+      const k = questionKey(q.question);
+      if (k && !reachableAskerByKey.has(k)) reachableAskerByKey.set(k, q.id);
+    }
+  }
   for (const q of gathered) {
     const key = questionKey(q.question);
     // An asker who left an email is a family we can actually reach, so this
@@ -438,11 +448,30 @@ export async function sendDeferredNotificationsForProvider(
     // that family's question never reaches the provider and never gets
     // answered, while an anonymous instance of the same text does. Always send
     // it. (scripts/suppress-duplicate-questions.ts carves out the same rows.)
+    //
+    // Register the key on the way past, so an anonymous copy of this same text
+    // still dedupes against it. Without that, an anonymous repeat would find no
+    // survivor recorded, elect itself, and send the identical question twice —
+    // which under DEFAULT_QUESTION_FLUSH_CAP would burn the provider's whole
+    // allowance on one question.
     if (q.asker_email) {
+      // ...but only ONE copy of a text goes out per call, even when several
+      // reachable families asked it. Three identical emails read the same as
+      // one email sent three times, and under the cap they would spend the
+      // provider's whole allowance on a single question. The siblings are NOT
+      // suppressed — they stay unnotified, so once this one is stamped sent the
+      // next takes its turn on a later flush and no family is silently dropped.
+      if (key && newestByKey.has(key)) continue;
+      if (key) newestByKey.set(key, q.id);
       unnotifiedQuestions.push(q);
       continue;
     }
-    const firstId = newestByKey.get(key);
+    // Suppress against an already-elected survivor OR against a reachable
+    // asker's copy of the same text, even when that copy is older than this
+    // one. The reachable instance is never suppressed, so the provider is still
+    // asked; sending the anonymous copy too would just spend the cap twice on
+    // one question.
+    const firstId = newestByKey.get(key) ?? reachableAskerByKey.get(key);
     if (key && firstId) {
       if (!dryRunQuestions) {
         const meta = (q.metadata as Record<string, unknown>) || {};

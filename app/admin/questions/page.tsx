@@ -722,7 +722,7 @@ function ApolloContactRow({
       if (data.error) {
         setError(data.error);
       } else if (data.contact?.email) {
-        // Pass the found contact data up
+        // Pass the found contact data up - admin can then click "Use This" to apply
         onContactFound({
           email: data.contact.email,
           first_name: data.contact.first_name,
@@ -731,11 +731,6 @@ function ApolloContactRow({
           linkedin_url: data.contact.linkedin_url,
           found_at: new Date().toISOString(),
         });
-        // If auto-confirmed by backend (provider had no email), show success
-        // Don't refresh immediately - let user see the result first
-        if (data.auto_confirmed) {
-          onApplied();
-        }
       } else {
         setError(data.message || "No decision-maker found");
       }

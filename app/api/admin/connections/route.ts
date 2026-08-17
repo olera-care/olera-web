@@ -431,6 +431,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load connections" }, { status: 500 });
     }
 
+    // DEBUG: Check if rows are being fetched correctly
+    const rowsWithSlug = (rows ?? []).filter(r => {
+      const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
+      return provider?.slug;
+    });
+    console.log(`[connections DEBUG] rows: ${rows?.length ?? 0}, with slug: ${rowsWithSlug.length}`);
+
     // CRITICAL FIX: Fetch missing provider emails from olera-providers table
     // This ensures email display matches email sending logic (which checks both tables)
     const providerEmailFallback = new Map<string, string>();
@@ -838,6 +845,9 @@ export async function GET(request: NextRequest) {
         )
       : visible;
 
+    // DEBUG: Log connection counts through pipeline
+    console.log(`[connections DEBUG] pipeline: all=${all.length}, visible=${visible.length}, searched=${searched.length}`);
+
     // Build provider keys for engagement lookup
     const allProviderKeys = [...new Set(
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
@@ -938,6 +948,17 @@ export async function GET(request: NextRequest) {
         // Only connection-specific lead_opened events (with connection_id) count.
       }
     }
+
+    // DEBUG: Check how many connections have lead_opened after processing
+    const connectionsWithLeadOpened = Array.from(connectionEngagement.entries()).filter(([_, eng]) => eng.lead_opened);
+    console.log(`[connections DEBUG] connections with lead_opened: ${connectionsWithLeadOpened.length}`);
+    if (connectionsWithLeadOpened.length > 0) {
+      const sampleConn = connectionsWithLeadOpened[0];
+      console.log(`[connections DEBUG] sample lead_opened: connection_id=${sampleConn[0]}`);
+    }
+    // Check specific test connection
+    const testConnEng = connectionEngagement.get("cf2fa0d0-4ada-4938-8362-becd8a9388bf");
+    console.log(`[connections DEBUG] test connection cf2fa0d0... exists: ${!!testConnEng}, lead_opened: ${testConnEng?.lead_opened ?? "N/A"}`);
 
     // Query for connections with failed email delivery to provider
     // This catches: bounced, suppressed (invalid address), or send errors

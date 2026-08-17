@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ad Boost Setup"
+  short_description: "Set up Google and Nextdoor Ad Boost campaigns"
+  default_prompt: "Use $ad-boost-setup to prepare an Ad Boost campaign, choose Google, Nextdoor, or both, and allocate the budget."

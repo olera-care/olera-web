@@ -431,12 +431,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load connections" }, { status: 500 });
     }
 
-    // DEBUG: Check if rows are being fetched correctly
-    const rowsWithSlug = (rows ?? []).filter(r => {
-      const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
-      return provider?.slug;
-    });
-    console.log(`[connections DEBUG] rows: ${rows?.length ?? 0}, with slug: ${rowsWithSlug.length}`);
 
     // CRITICAL FIX: Fetch missing provider emails from olera-providers table
     // This ensures email display matches email sending logic (which checks both tables)
@@ -845,16 +839,11 @@ export async function GET(request: NextRequest) {
         )
       : visible;
 
-    // DEBUG: Log connection counts through pipeline
-    console.log(`[connections DEBUG] pipeline: all=${all.length}, visible=${visible.length}, searched=${searched.length}`);
-
     // Build provider keys for engagement lookup
     const allProviderKeys = [...new Set(
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
-    // DEBUG: Log provider keys to trace viewed count issue
-    console.log(`[connections DEBUG] allProviderKeys count: ${allProviderKeys.length}, sample: ${allProviderKeys.slice(0, 5).join(", ")}, includes mill-run: ${allProviderKeys.includes("mill-run")}`);
 
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
@@ -917,19 +906,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const actEvents = allActEvents;
-
-      // DEBUG: Log activity events query results
-      const leadOpenedEvents = actEvents?.filter(e => e.event_type === "lead_opened") ?? [];
-      const eventsWithConnId = leadOpenedEvents.filter(e => (e.metadata as Record<string, unknown>)?.connection_id || (e.metadata as Record<string, unknown>)?.lead_id);
-      console.log(`[connections DEBUG] actEvents total: ${actEvents?.length ?? 0}, lead_opened: ${leadOpenedEvents.length}, with connection_id: ${eventsWithConnId.length}`);
-      if (eventsWithConnId.length > 0) {
-        const sample = eventsWithConnId[0];
-        const meta = sample.metadata as Record<string, unknown>;
-        console.log(`[connections DEBUG] sample event: provider_id=${sample.provider_id}, connection_id=${meta?.connection_id || meta?.lead_id}`);
-      }
-
-      for (const ev of actEvents ?? []) {
+      for (const ev of allActEvents) {
         const meta = ev.metadata as Record<string, unknown> | null;
         // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)
         const connectionId = (meta?.connection_id || meta?.lead_id) as string | undefined;
@@ -969,17 +946,6 @@ export async function GET(request: NextRequest) {
         // Only connection-specific lead_opened events (with connection_id) count.
       }
     }
-
-    // DEBUG: Check how many connections have lead_opened after processing
-    const connectionsWithLeadOpened = Array.from(connectionEngagement.entries()).filter(([_, eng]) => eng.lead_opened);
-    console.log(`[connections DEBUG] connections with lead_opened: ${connectionsWithLeadOpened.length}`);
-    if (connectionsWithLeadOpened.length > 0) {
-      const sampleConn = connectionsWithLeadOpened[0];
-      console.log(`[connections DEBUG] sample lead_opened: connection_id=${sampleConn[0]}`);
-    }
-    // Check specific test connection
-    const testConnEng = connectionEngagement.get("cf2fa0d0-4ada-4938-8362-becd8a9388bf");
-    console.log(`[connections DEBUG] test connection cf2fa0d0... exists: ${!!testConnEng}, lead_opened: ${testConnEng?.lead_opened ?? "N/A"}`);
 
     // Query for connections with failed email delivery to provider
     // This catches: bounced, suppressed (invalid address), or send errors
@@ -1406,14 +1372,15 @@ export async function GET(request: NextRequest) {
         }
 
         // Funnel stats (based on provider engagement)
+        // Exclude declined/archived providers - they're no longer active connections
         // Viewed = opened lead drawer
-        if (eng?.lead_opened) providerViewedCount++;
+        if (eng?.lead_opened && !isProviderDeclined && !belongsToArchivedTab) providerViewedCount++;
         // Count as responded if provider sent a message
-        if (c.responded) respondedCount++;
-        if (c.familyRepliedAfterProvider) connectedCount++;
+        if (c.responded && !isProviderDeclined && !belongsToArchivedTab) respondedCount++;
+        if (c.familyRepliedAfterProvider && !isProviderDeclined && !belongsToArchivedTab) connectedCount++;
         // Provider action counts (per-connection)
-        if (eng?.phone_copied || eng?.phone_clicked) copiedPhoneCount++;
-        if (eng?.email_copied || eng?.email_link_clicked) copiedEmailCount++;
+        if ((eng?.phone_copied || eng?.phone_clicked) && !isProviderDeclined && !belongsToArchivedTab) copiedPhoneCount++;
+        if ((eng?.email_copied || eng?.email_link_clicked) && !isProviderDeclined && !belongsToArchivedTab) copiedEmailCount++;
         // Declined = provider explicitly declined (has archive reason, not admin-archived)
         if (isProviderDeclined && !isAdminArchived) declinedCount++;
       }

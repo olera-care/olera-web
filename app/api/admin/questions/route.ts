@@ -709,6 +709,50 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Fetch apollo_contact from provider_outreach_tracking for Apollo decision-maker lookup
+      // This is keyed by provider_id (olera-providers.provider_id), so we need to map via providerEditorIds
+      const apolloContactLookup: Record<string, {
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        title: string | null;
+        linkedin_url: string | null;
+        found_at: string;
+      }> = {};
+      const apolloEmailSourceLookup: Record<string, string> = {};
+
+      const providerIdsForApollo = [...new Set(
+        Object.values(providerEditorIds).filter(Boolean)
+      )];
+
+      if (providerIdsForApollo.length > 0) {
+        const { data: outreachData } = await db
+          .from("provider_outreach_tracking")
+          .select("provider_id, apollo_contact, email_source")
+          .in("provider_id", providerIdsForApollo);
+
+        // Build lookup map from provider_id to outreach data
+        const outreachByProviderId = new Map<string, { apollo_contact: unknown; email_source: string | null }>();
+        for (const d of outreachData ?? []) {
+          if (d.provider_id) {
+            outreachByProviderId.set(d.provider_id, { apollo_contact: d.apollo_contact, email_source: d.email_source });
+          }
+        }
+
+        // Populate lookup for ALL slug variants that map to each provider_id
+        for (const [slug, editorId] of Object.entries(providerEditorIds)) {
+          if (editorId) {
+            const outreach = outreachByProviderId.get(editorId);
+            if (outreach?.apollo_contact) {
+              apolloContactLookup[slug] = outreach.apollo_contact as typeof apolloContactLookup[string];
+            }
+            if (outreach?.email_source) {
+              apolloEmailSourceLookup[slug] = outreach.email_source;
+            }
+          }
+        }
+      }
+
       const enriched = questions.map((q) => ({
         ...q,
         provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
@@ -717,6 +761,8 @@ export async function GET(request: NextRequest) {
         provider_phone: providerPhones[q.provider_id] || null,
         is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
         verification_state: providerVerificationState[q.provider_id] || null,
+        apollo_contact: apolloContactLookup[q.provider_id] || null,
+        email_source: apolloEmailSourceLookup[q.provider_id] || null,
       }));
 
       return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
@@ -922,6 +968,49 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Fetch apollo_contact from provider_outreach_tracking for Apollo decision-maker lookup
+      const apolloContactLookup: Record<string, {
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        title: string | null;
+        linkedin_url: string | null;
+        found_at: string;
+      }> = {};
+      const apolloEmailSourceLookup: Record<string, string> = {};
+
+      const providerIdsForApollo = [...new Set(
+        Object.values(providerEditorIds).filter(Boolean)
+      )];
+
+      if (providerIdsForApollo.length > 0) {
+        const { data: outreachData } = await db
+          .from("provider_outreach_tracking")
+          .select("provider_id, apollo_contact, email_source")
+          .in("provider_id", providerIdsForApollo);
+
+        // Build lookup map from provider_id to outreach data
+        const outreachByProviderId = new Map<string, { apollo_contact: unknown; email_source: string | null }>();
+        for (const d of outreachData ?? []) {
+          if (d.provider_id) {
+            outreachByProviderId.set(d.provider_id, { apollo_contact: d.apollo_contact, email_source: d.email_source });
+          }
+        }
+
+        // Populate lookup for ALL slug variants that map to each provider_id
+        for (const [slug, editorId] of Object.entries(providerEditorIds)) {
+          if (editorId) {
+            const outreach = outreachByProviderId.get(editorId);
+            if (outreach?.apollo_contact) {
+              apolloContactLookup[slug] = outreach.apollo_contact as typeof apolloContactLookup[string];
+            }
+            if (outreach?.email_source) {
+              apolloEmailSourceLookup[slug] = outreach.email_source;
+            }
+          }
+        }
+      }
+
       const enriched = questions.map((q) => ({
         ...q,
         provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
@@ -931,6 +1020,8 @@ export async function GET(request: NextRequest) {
         is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
         verification_state: providerVerificationState[q.provider_id] || null,
         provider_email_history: providerEmailHistory[q.provider_id] || [],
+        apollo_contact: apolloContactLookup[q.provider_id] || null,
+        email_source: apolloEmailSourceLookup[q.provider_id] || null,
       }));
 
       return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });

@@ -959,8 +959,11 @@ export default function AdminQuestionsPage() {
     }
   }
 
-  const fetchQuestions = useCallback(async () => {
-    setLoading(true);
+  const fetchQuestions = useCallback(async (silent = false) => {
+    // Silent mode: refresh data without showing loading spinner (used after email apply)
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const params = new URLSearchParams({
@@ -997,7 +1000,9 @@ export default function AdminQuestionsPage() {
     } catch {
       setError("Failed to load questions");
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [activeTab, page, range, debouncedSearch]);
 
@@ -1722,6 +1727,8 @@ export default function AdminQuestionsPage() {
                             }}
                             onApplied={() => {
                               setSessionAppliedProviders((prev) => new Set(prev).add(providerId));
+                              // Silent refresh after brief delay so provider disappears from list
+                              setTimeout(() => fetchQuestions(true), 1500);
                             }}
                           />
                         )}

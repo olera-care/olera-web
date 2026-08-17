@@ -1992,6 +1992,10 @@ function CityRow({
   const [confirmedProviders, setConfirmedProviders] = useState<Set<string>>(new Set());
   const [confirmingProvider, setConfirmingProvider] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  // Track providers being unconfirmed
+  const [unconfirmingProvider, setUnconfirmingProvider] = useState<string | null>(null);
+  // Track providers that admin has unconfirmed this session (to override confirmed_at from DB)
+  const [unconfirmedProviders, setUnconfirmedProviders] = useState<Set<string>>(new Set());
   // Move to Ready state (for Not Interested tab)
   const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
   const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
@@ -2278,12 +2282,47 @@ function CityRow({
                             )}
                             {/* Confirm button - only show in Ready tab */}
                             {activeTab === "ready" && (
-                              provider.confirmed_at || confirmedProviders.has(provider.provider_id) ? (
-                                <span className="text-blue-500" title="Confirmed">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                                  </svg>
-                                </span>
+                              // Check if confirmed: has confirmed_at OR in confirmedProviders, AND NOT in unconfirmedProviders
+                              ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setUnconfirmingProvider(provider.provider_id);
+                                    try {
+                                      const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                        method: "DELETE",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ provider_id: provider.provider_id }),
+                                      });
+                                      if (res.ok) {
+                                        // Remove from confirmed sets, add to unconfirmed set
+                                        setConfirmedProviders(prev => {
+                                          const next = new Set(prev);
+                                          next.delete(provider.provider_id);
+                                          return next;
+                                        });
+                                        setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                      }
+                                    } catch {
+                                      // Silent fail - user can retry
+                                    } finally {
+                                      setUnconfirmingProvider(null);
+                                    }
+                                  }}
+                                  disabled={unconfirmingProvider === provider.provider_id}
+                                  className="text-blue-500 hover:text-blue-400 transition-colors disabled:opacity-50"
+                                  title="Click to unconfirm"
+                                >
+                                  {unconfirmingProvider === provider.provider_id ? (
+                                    <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </button>
                               ) : (
                                 <>
                                   <button
@@ -2301,6 +2340,12 @@ function CityRow({
                                         });
                                         if (res.ok) {
                                           setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                          // Clear from unconfirmed set if re-confirming
+                                          setUnconfirmedProviders(prev => {
+                                            const next = new Set(prev);
+                                            next.delete(provider.provider_id);
+                                            return next;
+                                          });
                                         } else {
                                           setConfirmError(provider.provider_id);
                                         }

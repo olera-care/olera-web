@@ -214,6 +214,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Block Apollo lookup for claimed accounts - they should update their own email
+    // Check this BEFORE calling Apollo to avoid wasting credits
+    if (businessProfile?.account_id) {
+      return NextResponse.json({
+        contact: null,
+        credits_used: 0,
+        error: "Cannot look up decision-maker for claimed accounts",
+      });
+    }
+
     // Extract domain from website, or fall back to email domain
     let domain: string | null = null;
 

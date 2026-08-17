@@ -233,6 +233,10 @@ export async function POST(request: NextRequest) {
 
     if (iosError) {
       console.error("[use-apollo-email] Error updating olera-providers:", iosError);
+      return NextResponse.json(
+        { error: "Failed to update provider email" },
+        { status: 500 }
+      );
     }
 
     // Sync to business_profiles if linked

@@ -60,13 +60,19 @@ function formatUsd(value: number) {
  * A hand-written formatter per probe would drift the moment a probe changes.
  */
 function splitProbeRow(row: Record<string, string | number>) {
-  const values: string[] = [];
-  const labels: string[] = [];
-  for (const cell of Object.values(row)) {
-    if (typeof cell === "number") values.push(cell.toLocaleString("en-US"));
-    else if (cell) labels.push(cell);
+  const values: Array<[string, string]> = [];
+  const labels: Array<[string, string]> = [];
+  for (const [key, cell] of Object.entries(row)) {
+    if (typeof cell === "number") values.push([key, cell.toLocaleString("en-US")]);
+    else if (cell) labels.push([key, cell]);
   }
-  return { label: labels.join(" · "), value: values.join(" · ") };
+  // A single number needs no key -- the label already says what it counts. Two
+  // or more are ambiguous without one: "2,663 · 1,496" does not say which half
+  // of the window is which.
+  const render = (entries: Array<[string, string]>) => entries
+    .map(([key, text]) => (entries.length > 1 ? `${key.replace(/_/g, " ")} ${text}` : text))
+    .join(" · ");
+  return { label: render(labels), value: render(values) };
 }
 
 function elapsedMilliseconds(startedAt: string | null, nowIso: string) {

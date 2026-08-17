@@ -46,6 +46,8 @@ const PROBE_LABELS: Record<string, { label: string; question: string }> = {
   },
 };
 
+type ProbeEventRow = { details: Record<string, unknown> | null; created_at: string };
+
 function humanizeProbeId(probeId: string) {
   return probeId.replace(/_/g, " ").replace(/^./, (character) => character.toUpperCase());
 }
@@ -72,18 +74,27 @@ function readRows(value: unknown): Array<Record<string, string | number>> {
  * the business instead of a log.
  */
 export async function loadWarRoomBriefing(db: SupabaseClient): Promise<WarRoomProbeReading[]> {
-  const { data, error } = await db.from("war_room_investigation_events")
-    .select("details, created_at")
-    .eq("event_type", "probe_completed")
-    .order("created_at", { ascending: false })
-    .limit(60);
   // A brief is a bonus surface on a page that must still load. A missing
-  // migration 179 should cost the reader the brief, not the dashboard.
-  if (error) return [];
+  // migration 179 or a dropped connection should cost the reader the brief,
+  // not the proposal queue -- and the two failures arrive differently: a query
+  // error comes back on `error`, a transport failure rejects. Catching only the
+  // first would let a network blip 500 the whole dashboard.
+  let data: ProbeEventRow[] = [];
+  try {
+    const result = await db.from("war_room_investigation_events")
+      .select("details, created_at")
+      .eq("event_type", "probe_completed")
+      .order("created_at", { ascending: false })
+      .limit(60);
+    if (result.error) return [];
+    data = (result.data ?? []) as ProbeEventRow[];
+  } catch {
+    return [];
+  }
 
   const seen = new Set<string>();
   const readings: WarRoomProbeReading[] = [];
-  for (const row of (data ?? []) as Array<{ details: Record<string, unknown> | null; created_at: string }>) {
+  for (const row of data) {
     const details = row.details ?? {};
     const probeId = typeof details.probe_id === "string" ? details.probe_id : null;
     const headline = typeof details.headline === "string" ? details.headline : null;

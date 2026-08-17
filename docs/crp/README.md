@@ -105,6 +105,18 @@ written; rendering rules govern the docx/PDF surfaces.
   "Family-side navigation:" lacks the italic+underline its three sibling categories
   have; two em dashes remain in the CP; two stray non-Arial runs remain in the RS.
 
+### Page discipline
+
+- NIH page limits (confirmed 2026-08-19 against the NIH page-limits table for
+  SBIR/STTR R44 activity codes): **Research Strategy 12 pages · Commercialization
+  Plan 12 pages · Specific Aims 1 page**. NOFO instructions supersede the table;
+  final confirmation against the governing NOFO is owed before submission (the NOFO
+  number is not yet recorded in this workspace).
+- Page budget is part of house style: every figure, table, and paragraph has an
+  opportunity cost. Orientation blocks stay well under one page; the detailed aim
+  protocols get the overwhelming majority of the Approach budget. Measure with
+  `tools/print_check.py` (or `tools/render_pdf.py` + pymupdf) before any export.
+
 ## 7. Provisional claims (flag, never silently harmonize)
 
 - **End-state numbers** (market count 12 vs 18; award-end payers/revenue/run-rate —

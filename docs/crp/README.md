@@ -59,7 +59,53 @@ Visibility/Boost, Conversion** (profiles sit under Visibility; no fourth product
 family/caregiver · provider · market = county · commercial readiness · sustainability.
 Flag semantic drift on sight.
 
-## 6. Provisional claims (flag, never silently harmonize)
+## 6. House style (canonical, ratified 2026-08-17)
+
+Measured from the Drive RS and CP docx files; where memory and document disagree, the
+documents win. Two rule sets: content rules govern all application prose wherever it is
+written; rendering rules govern the docx/PDF surfaces.
+
+### Content and prose rules
+
+- Voice: clear, thoughtful, direct, concise, mature, professional, simple. Dense pages,
+  readable paragraphs.
+- **No em dashes, ever.** Use commas, colons, semicolons, parentheses, or separate
+  sentences. En dashes only in numeric ranges ("Years 4–5").
+- Captions: one line where possible; "Figure N:" / "Table N:" bold lead, regular text
+  after. Caption states the figure's argument, not a description of its parts.
+
+### Document rendering rules
+
+- Page: Letter portrait, 0.5in margins on all four sides.
+- Type: Arial throughout. Body 11pt, justified. Tables and figure captions 9pt.
+- Spacing: single line spacing; 0–2pt after body paragraphs; ~8pt before headings;
+  never blank-paragraph spacing.
+- Heading hierarchy (RS forms shown; the CP numbers its major sections):
+  1. Major section: ALL CAPS bold, left-aligned, own line, body size ("APPROACH";
+     CP: "9. REVENUE STREAMS").
+  2. Named paragraph and aim: bold run-in ending in a period or colon ("Specific
+     Aim 2:", "Overall design and timetable.", "Key Innovation 1:", "Aim N decision
+     point and deliverable.").
+  3. Task: bold run-in with colon ("Task 2.2: Title.").
+  4. Subtask: italic run-in ("(Task 1.3A) Title:").
+  5. Block and category headings: italic + underlined ("The CareNavigator Platform.",
+     "Referral marketplaces:").
+  6. Component and method run-ins: italic ("The matching agents (live).", "Design,
+     participants, and recruitment.").
+  7. Metrics lines: italic + underlined, left-aligned ("Metrics for Success for
+     Validation (Task 1.2):"); each metric item below gets a bold label run-in
+     ("Accuracy:").
+- Figures: wrap vs. full width is decided per figure by legibility, never by which
+  document it sits in. Narrow figures (about 3.0–3.5in) wrap square beside justified
+  text; dense or wide figures run full text width (up to 7.5in) inline. Internal figure
+  text must be legible in print. RS captions are separate 9pt paragraphs below the
+  figure; CP figure captions are drawn inside the artwork; CP table captions are
+  centered paragraphs.
+- Known normalizations to apply on next touch: "Task 1.1" is missing its colon;
+  "Family-side navigation:" lacks the italic+underline its three sibling categories
+  have; two em dashes remain in the CP; two stray non-Arial runs remain in the RS.
+
+## 7. Provisional claims (flag, never silently harmonize)
 
 - **End-state numbers** (market count 12 vs 18; award-end payers/revenue/run-rate —
   three versions in circulation) — locked only after the Aim 3 redesign, then
@@ -72,7 +118,7 @@ Flag semantic drift on sight.
 - Unsourced CP additions ("~3 families converted/month"; "+50K profiles annually").
 - Full register: `evidence-ledger.md`.
 
-## 7. September 1 go/no-go
+## 8. September 1 go/no-go
 
 No postponement decision now; two-week sprint. TJ's estimate ~35 impact score → target
 **≤30 by Sept 1**, aspiring toward 10. On Sept 1: genuinely competitive → submit;
@@ -81,7 +127,7 @@ revision is judged by "does this materially reduce a likely reviewer concern," a
 section must be: clear for a tired reviewer · rigorous for a scientist · concrete for an
 investor · true to what Olera has built · connected to commercial readiness.
 
-## 8. Current priority
+## 9. Current priority
 
 **72-hour goal (from 2026-08-17): Research Strategy Marcia-ready.** Pass order:
 **Aim 2 (active)** → Aim 3 → Preliminary Work → Aim 1 → Significance/Innovation →

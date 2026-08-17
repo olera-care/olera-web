@@ -1,11 +1,11 @@
-<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Overview of the Approach. Aim 1 completes, verifies, and validates the free family-facing CareNavigator and grows family demand. Aim 2 completes, verifies, and validates the three provider products and grows the provider and student base. Both feed a marketplace concentrated in selected counties where Olera is already strongest. In Aim 3, from mid-Year 2, products that proved their value carry real prices, new providers buy as ordinary customers, and the project measures whether providers buy, stay, and generate real revenue targeting the break-even needed for post-award operations — producing the evidence investors require, so private capital accelerates growth rather than sustains operations.">
+<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Overview of the Approach. Aim 1 completes, verifies, and validates the free family-facing CareNavigator and grows family demand. Aim 2 completes, verifies, and validates the three provider products and grows the provider and student base. Both feed a marketplace concentrated in selected counties where Olera is already strongest. In Aim 3, from mid-Year 2, products that proved their value carry real prices, new providers buy as ordinary customers, and the project measures whether providers buy, stay, and generate real revenue targeting the break-even needed for post-award operations, producing the evidence investors require, so private capital accelerates growth rather than sustains operations.">
   <defs>
     <marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5a6660"/></marker>
     <marker id="t" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#0f9b8e"/></marker>
   </defs>
 
   <!-- ===== AIM 1 pipeline (top) ===== -->
-  <text x="30" y="30" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 1 · FAMILIES <tspan fill="#6b7280" font-weight="400" letter-spacing="0">— always free</tspan></text>
+  <text x="30" y="30" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 1 · FAMILIES <tspan fill="#6b7280" font-weight="400" letter-spacing="0">· always free</tspan></text>
   <rect x="30" y="42" width="130" height="58" rx="7" fill="#1e2a38"/>
   <text x="95" y="66" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Complete + verify</text>
   <text x="95" y="82" font-size="9" fill="#c9d2da" text-anchor="middle">the CareNavigator</text>
@@ -28,7 +28,7 @@
   <path d="M503 310 L503 262" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
 
   <rect x="30" y="142" width="548" height="116" rx="9" fill="#e6f4f2" stroke="#0f9b8e" stroke-width="1.4"/>
-  <text x="304" y="168" font-size="11.5" fill="#0b6e65" text-anchor="middle" font-weight="700">THE MARKETPLACE — selected counties</text>
+  <text x="304" y="168" font-size="11.5" fill="#0b6e65" text-anchor="middle" font-weight="700">THE MARKETPLACE: selected counties</text>
   <text x="304" y="186" font-size="9.5" fill="#155e56" text-anchor="middle">chosen where Olera's national platform is already strongest</text>
   <text x="304" y="212" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">families seeking care · providers serving them · students staffing them</text>
   <text x="304" y="232" font-size="9.5" fill="#155e56" text-anchor="middle">all three sides grown together, in the same counties, until there is</text>
@@ -74,6 +74,6 @@
   <text x="679" y="299" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="700">investor-ready evidence</text>
 
   <!-- ===== bottom note ===== -->
-  <text x="30" y="386" font-size="9" fill="#6b7280">Verify → validate → grow is the order of evidence for each product; the three streams run in parallel from Year 1. Families never pay — the provider side funds the platform.</text>
+  <text x="30" y="386" font-size="9" fill="#6b7280">Verify → validate → grow is the order of evidence for each product; the three streams run in parallel from Year 1. Families never pay; the provider side funds the platform.</text>
   <text x="30" y="399" font-size="9" fill="#6b7280">If Aim 3 succeeds, revenue supports operations after the award, and private capital becomes a way to expand faster rather than a requirement to operate.</text>
 </svg>

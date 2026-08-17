@@ -469,17 +469,30 @@ export function adBoostCampaignLaunchedEmail(opts: {
 export function adBoostTractionEmail(opts: {
   providerName: string;
   ctaUrl: string;
+  questionsUrl?: string | null;
   visitors: number;
   leads: number;
   clicks?: number | null;
   spendCents?: number | null;
   questionsReceived?: number | null;
+  questionsUnanswered?: number | null;
 }): string {
   const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : null;
-  const costPerFamily =
-    opts.spendCents != null && opts.spendCents > 0 && opts.leads > 0
-      ? `$${(opts.spendCents / 100 / opts.leads).toFixed(0)}`
+  const costPerClick =
+    opts.spendCents != null && opts.spendCents > 0 && opts.clicks != null && opts.clicks > 0
+      ? `$${(opts.spendCents / 100 / opts.clicks).toFixed(2)}`
       : "—";
+  const questionsReceived = opts.questionsReceived ?? 0;
+  const questionsUnanswered = opts.questionsUnanswered ?? 0;
+  const hasUnansweredQuestions = questionsUnanswered > 0 && Boolean(opts.questionsUrl);
+  const primaryCtaLabel = hasUnansweredQuestions
+    ? `Answer ${questionsUnanswered.toLocaleString()} ${questionsUnanswered === 1 ? "question" : "questions"}`
+    : "View performance";
+  const primaryCtaUrl = hasUnansweredQuestions ? opts.questionsUrl! : opts.ctaUrl;
+  const preheader =
+    questionsReceived > 0
+      ? `${opts.visitors.toLocaleString()} visitors and ${questionsReceived.toLocaleString()} questions so far.`
+      : `${opts.visitors.toLocaleString()} visitors and ${opts.leads.toLocaleString()} leads so far.`;
 
   return layout(
     `
@@ -493,12 +506,12 @@ export function adBoostTractionEmail(opts: {
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Families</p>
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${questionsReceived.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
-          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${(opts.questionsReceived ?? 0).toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
+          <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Leads</p>
         </td>
       </tr>
       <tr>
@@ -511,22 +524,29 @@ export function adBoostTractionEmail(opts: {
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad spend</p>
         </td>
         <td style="padding:14px;">
-          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${costPerFamily}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / family</p>
+          <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${costPerClick}</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / click</p>
         </td>
       </tr>
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
-      (opts.questionsReceived ?? 0) > 0
-        ? "Questions are a win on their own: every answer stays on your page, builds your visibility in search, and helps families beyond the one who asked. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
+      questionsUnanswered > 0
+        ? `${questionsUnanswered.toLocaleString()} ${questionsUnanswered === 1 ? "question is" : "questions are"} waiting for your response. Every answer stays on your page, builds trust, and helps future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.`
+        : questionsReceived > 0
+          ? "Your answers stay on your page, build trust, and help future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
         : "We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
     }</p>
-    <div>${button("View performance", opts.ctaUrl)}</div>
+    <div>${button(primaryCtaLabel, primaryCtaUrl)}</div>
+    ${
+      hasUnansweredQuestions
+        ? `<p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.5;"><a href="${opts.ctaUrl}" style="color:${BRAND_COLOR};text-decoration:underline;">View campaign performance</a></p>`
+        : ""
+    }
     ${adBoostAuthorBylineBlock({ topBorder: true })}
     <div style="margin:26px 0 0;padding:14px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">More details: <a href="${BASE_URL}/managed-ads-terms" style="color:#9ca3af;text-decoration:underline;">Managed Ads terms</a></p>
     </div>`,
-    `${opts.visitors.toLocaleString()} visitors and ${opts.leads.toLocaleString()} families so far.`,
+    preheader,
   );
 }
 

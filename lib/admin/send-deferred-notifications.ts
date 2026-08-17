@@ -23,6 +23,7 @@ interface QuestionRow {
   id: string;
   question: string;
   asker_name: string | null;
+  asker_email: string | null;
   metadata: unknown;
   created_at: string | null;
   /** Which slug variant this row was filed under (set at gather time). */
@@ -388,7 +389,7 @@ export async function sendDeferredNotificationsForProvider(
   for (const slug of Array.from(slugVariants)) {
     const { data: pendingQuestions } = await db
       .from("provider_questions")
-      .select("id, question, asker_name, metadata, created_at")
+      .select("id, question, asker_name, asker_email, metadata, created_at")
       .eq("provider_id", slug)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
@@ -413,6 +414,15 @@ export async function sendDeferredNotificationsForProvider(
   const newestByKey = new Map<string, string>();
   for (const q of gathered) {
     const key = questionKey(q.question);
+    // An asker who left an email is a family we can actually reach, so this
+    // repeat is not inert the way an anonymous one is: suppressing it means
+    // that family's question never reaches the provider and never gets
+    // answered, while an anonymous instance of the same text does. Always send
+    // it. (scripts/suppress-duplicate-questions.ts carves out the same rows.)
+    if (q.asker_email) {
+      unnotifiedQuestions.push(q);
+      continue;
+    }
     const firstId = newestByKey.get(key);
     if (key && firstId) {
       if (!dryRunQuestions) {

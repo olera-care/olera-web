@@ -7430,87 +7430,124 @@ export default function ProviderOutreachPage() {
         />
       )}
 
-      {/* Collapsible Funnel Stats - only show when a state is selected */}
+      {/* Analytics Sections - Horizontal Row of Toggles */}
       {selectedState && (
         <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => setStatsExpanded(!statsExpanded)}
-            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <svg
-              className={`w-4 h-4 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* Horizontal row of toggle buttons */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Outreach Funnel toggle */}
+            <button
+              type="button"
+              onClick={() => setStatsExpanded(!statsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                statsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span>Outreach Funnel</span>
-          </button>
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Outreach Funnel</span>
+            </button>
 
+            <span className="text-gray-300">|</span>
+
+            {/* Email Performance toggle */}
+            <button
+              type="button"
+              onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                emailStatsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Email Performance</span>
+              {claimsDashboard && (
+                <span className="text-xs text-gray-400">
+                  ({claimsDashboard.totals.claimed} claims)
+                </span>
+              )}
+            </button>
+
+            <span className="text-gray-300">|</span>
+
+            {/* Sequence Conversion toggle */}
+            <button
+              type="button"
+              onClick={() => setConversionExpanded(!conversionExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                conversionExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${conversionExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Sequence Conv.</span>
+              {conversionStats && conversionStats.totals.in_sequence > 0 && (
+                <span className="text-xs text-gray-400">
+                  ({conversionStats.totals.rate}%)
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Outreach Funnel expanded content */}
           {statsExpanded && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <FunnelStat
-                label="In Sequence"
-                value={stageCounts.in_sequence}
-                subtitle="actively receiving emails"
-              />
-              <FunnelStat
-                label="Follow Up"
-                value={stageCounts.needs_call}
-                subtitle="sequence complete"
-              />
-              <FunnelStat
-                label="Claimed"
-                value={stageCounts.claimed}
-                highlight
-                subtitle="success"
-              />
-              <FunnelStat
-                label="Claim Rate"
-                value={
-                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed > 0
-                    ? Math.round(
-                        (stageCounts.claimed /
-                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed)) *
-                          100
-                      )
-                    : 0
-                }
-                format="percent"
-                subtitle="of providers who entered sequence"
-              />
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <FunnelStat
+                  label="In Sequence"
+                  value={stageCounts.in_sequence}
+                  subtitle="actively receiving emails"
+                />
+                <FunnelStat
+                  label="Follow Up"
+                  value={stageCounts.needs_call}
+                  subtitle="sequence complete"
+                />
+                <FunnelStat
+                  label="Claimed"
+                  value={stageCounts.claimed}
+                  highlight
+                  subtitle="success"
+                />
+                <FunnelStat
+                  label="Claim Rate"
+                  value={
+                    stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed > 0
+                      ? Math.round(
+                          (stageCounts.claimed /
+                            (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed)) *
+                            100
+                        )
+                      : 0
+                  }
+                  format="percent"
+                  subtitle="of providers who entered sequence"
+                />
+              </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Email Performance Section */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span>Email Performance</span>
-          {claimsDashboard && (
-            <span className="text-xs text-gray-400">
-              ({claimsDashboard.totals.claimed} claims · {claimsDashboard.totals.conversion_rate}% rate)
-            </span>
-          )}
-        </button>
-
-        {emailStatsExpanded && (
-          <div className="mt-4 space-y-6">
+          {/* Email Performance expanded content */}
+          {emailStatsExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg space-y-6">
             {/* Claims Dashboard */}
             {claimsDashboardLoading ? (
               <div className="text-sm text-gray-500">Loading claims data...</div>
@@ -7641,84 +7678,62 @@ export default function ProviderOutreachPage() {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Sequence Conversion Section */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setConversionExpanded(!conversionExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${conversionExpanded ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span>Sequence Conversion</span>
-          {conversionStats && conversionStats.totals.in_sequence > 0 && (
-            <span className="text-xs text-gray-400">
-              ({conversionStats.totals.claimed}/{conversionStats.totals.in_sequence} claimed · {conversionStats.totals.rate}%)
-            </span>
-          )}
-        </button>
-
-        {conversionExpanded && (
-          <div className="mt-4">
-            {conversionLoading ? (
-              <div className="text-sm text-gray-500">Loading conversion stats...</div>
-            ) : conversionError ? (
-              <div className="flex items-center gap-3 text-sm">
-                <span className="text-red-600">Failed to load conversion stats</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConversionStats(null);
-                    setConversionError(false);
-                  }}
-                  className="text-teal-700 hover:underline"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : conversionStats && conversionStats.cities.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 pr-4 font-medium text-gray-600">City</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Sequenced</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Claimed</th>
-                      <th className="text-right py-2 pl-3 font-medium text-gray-600">Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {conversionStats.cities.map((c) => (
-                      <tr key={c.city} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 text-gray-900">{c.city}</td>
-                        <td className="py-2 px-3 text-right text-gray-700 tabular-nums">{c.in_sequence}</td>
-                        <td className="py-2 px-3 text-right text-emerald-600 font-medium tabular-nums">{c.claimed}</td>
-                        <td className="py-2 pl-3 text-right text-gray-700 tabular-nums">{c.rate}%</td>
+          {/* Sequence Conversion expanded content */}
+          {conversionExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              {conversionLoading ? (
+                <div className="text-sm text-gray-500">Loading conversion stats...</div>
+              ) : conversionError ? (
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-red-600">Failed to load conversion stats</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConversionStats(null);
+                      setConversionError(false);
+                    }}
+                    className="text-teal-700 hover:underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : conversionStats && conversionStats.cities.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 pr-4 font-medium text-gray-600">City</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">Sequenced</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">Claimed</th>
+                        <th className="text-right py-2 pl-3 font-medium text-gray-600">Rate</th>
                       </tr>
-                    ))}
-                    <tr className="font-medium bg-gray-50">
-                      <td className="py-2 pr-4 text-gray-900">Total</td>
-                      <td className="py-2 px-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.in_sequence}</td>
-                      <td className="py-2 px-3 text-right text-emerald-700 tabular-nums">{conversionStats.totals.claimed}</td>
-                      <td className="py-2 pl-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.rate}%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-sm text-gray-500">No sequence data yet. Start a sequence to see conversion stats.</div>
-            )}
-          </div>
-        )}
-      </div>
+                    </thead>
+                    <tbody>
+                      {conversionStats.cities.map((c) => (
+                        <tr key={c.city} className="border-b border-gray-100">
+                          <td className="py-2 pr-4 text-gray-900">{c.city}</td>
+                          <td className="py-2 px-3 text-right text-gray-700 tabular-nums">{c.in_sequence}</td>
+                          <td className="py-2 px-3 text-right text-emerald-600 font-medium tabular-nums">{c.claimed}</td>
+                          <td className="py-2 pl-3 text-right text-gray-700 tabular-nums">{c.rate}%</td>
+                        </tr>
+                      ))}
+                      <tr className="font-medium bg-gray-50">
+                        <td className="py-2 pr-4 text-gray-900">Total</td>
+                        <td className="py-2 px-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.in_sequence}</td>
+                        <td className="py-2 px-3 text-right text-emerald-700 tabular-nums">{conversionStats.totals.claimed}</td>
+                        <td className="py-2 pl-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.rate}%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No sequence data yet. Start a sequence to see conversion stats.</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Action Bar (when items selected) - hidden during search since providers may be from different stages */}
       {selectedProviders.size > 0 && !isSearchResult && (

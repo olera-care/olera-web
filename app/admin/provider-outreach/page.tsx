@@ -2441,7 +2441,12 @@ function CityRow({
                           {provider.stage === "claimed" ? (
                             <>
                               {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                              {provider.email && <span>{provider.email}</span>}
+                              {provider.email && (
+                                <>
+                                  <span>{provider.email}</span>
+                                  <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                                </>
+                              )}
                               {provider.email && provider.phone && <span>·</span>}
                               {provider.phone && (
                                 <a
@@ -3782,13 +3787,16 @@ function FollowUpProviderRow({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                       {provider.email ? (
-                        <a
-                          href={`mailto:${provider.email}`}
-                          className="text-sm text-primary-600 hover:underline truncate"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {provider.email}
-                        </a>
+                        <>
+                          <a
+                            href={`mailto:${provider.email}`}
+                            className="text-sm text-primary-600 hover:underline truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {provider.email}
+                          </a>
+                          <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                        </>
                       ) : (
                         <span className="text-sm text-gray-400 italic">No email</span>
                       )}
@@ -5265,7 +5273,10 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 ) : (
                   <div className="flex items-center gap-2 flex-1">
                     {provider.email ? (
-                      <span className="text-sm">{provider.email}</span>
+                      <>
+                        <span className="text-sm">{provider.email}</span>
+                        <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                      </>
                     ) : (
                       <span className="text-sm text-gray-400 italic">No email</span>
                     )}
@@ -7862,7 +7873,12 @@ export default function ProviderOutreachPage() {
                           {provider.provider_category && provider.city && <span>·</span>}
                           {provider.city && <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>}
                           {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                          {provider.email && <span>{provider.email}</span>}
+                          {provider.email && (
+                            <>
+                              <span>{provider.email}</span>
+                              <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                            </>
+                          )}
                           {/* Questions and leads context pills */}
                           {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
                           <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
-import { pauseLeadInCampaign, getLeadByEmail } from "@/lib/smartlead";
+import { pauseLeadInCampaign } from "@/lib/smartlead";
 
 /**
  * POST /api/admin/provider-outreach/reset-to-ready
@@ -97,29 +97,21 @@ export async function POST(request: NextRequest) {
 
       // 2. Pause SmartLead campaign if active
       const smartleadData = tracking.smartlead_data as {
-        campaign_id?: string;
-        lead_id?: string;
+        campaign_id?: number;
+        lead_id?: number;
         lead_email?: string;
       } | null;
 
-      if (smartleadData?.campaign_id) {
+      if (smartleadData?.campaign_id && smartleadData?.lead_id) {
         try {
-          // Try to get lead_id - it may not be stored, so look up by email
-          let leadId = smartleadData.lead_id;
-          if (!leadId && smartleadData.lead_email) {
-            const leadLookup = await getLeadByEmail(smartleadData.campaign_id, smartleadData.lead_email);
-            if (leadLookup.ok && leadLookup.lead) {
-              leadId = leadLookup.lead.id;
-            }
-          }
-
-          if (leadId) {
-            const pauseResult = await pauseLeadInCampaign(smartleadData.campaign_id, leadId);
-            if (pauseResult.ok) {
-              console.log(`[reset-to-ready] Paused SmartLead lead ${leadId} in campaign ${smartleadData.campaign_id}`);
-            } else {
-              console.error(`[reset-to-ready] Failed to pause SmartLead lead:`, pauseResult.error);
-            }
+          const pauseResult = await pauseLeadInCampaign(
+            smartleadData.campaign_id,
+            smartleadData.lead_id
+          );
+          if (pauseResult.ok) {
+            console.log(`[reset-to-ready] Paused SmartLead lead ${smartleadData.lead_id} in campaign ${smartleadData.campaign_id}`);
+          } else {
+            console.error(`[reset-to-ready] Failed to pause SmartLead lead:`, pauseResult.error);
           }
         } catch (err) {
           console.error("[reset-to-ready] Error pausing SmartLead lead:", err);

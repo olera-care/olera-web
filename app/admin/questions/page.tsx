@@ -689,25 +689,25 @@ function ApolloContactRow({
   apolloContact,
   providerEmail,
   isAccountClaimed,
+  wasApplied,
   onContactFound,
-  onEmailApplied,
+  onApplied,
 }: {
   providerSlug: string;
   providerEditorId?: string | null;
   apolloContact?: ApolloContact | null;
   providerEmail?: string | null;
   isAccountClaimed?: boolean;
+  wasApplied?: boolean;
   onContactFound: (contact: ApolloContact) => void;
-  onEmailApplied: () => void;
+  onApplied: () => void;
 }) {
   const [finding, setFinding] = useState(false);
   const [using, setUsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Track if email was just applied in this session (shows checkmark without page refresh)
-  const [justApplied, setJustApplied] = useState(false);
 
-  // Check if Apollo email matches provider's current email
-  const emailsMatch = justApplied || apolloContact?.email?.toLowerCase() === providerEmail?.toLowerCase();
+  // Check if Apollo email matches provider's current email (or was just applied this session)
+  const emailsMatch = wasApplied || apolloContact?.email?.toLowerCase() === providerEmail?.toLowerCase();
 
   async function handleFind() {
     setFinding(true);
@@ -734,7 +734,7 @@ function ApolloContactRow({
         // If auto-confirmed by backend (provider had no email), show success
         // Don't refresh immediately - let user see the result first
         if (data.auto_confirmed) {
-          setJustApplied(true);
+          onApplied();
         }
       } else {
         setError(data.message || "No decision-maker found");
@@ -762,7 +762,7 @@ function ApolloContactRow({
         setError(data.error === "claimed_account" ? data.message : data.error);
       } else {
         // Show success without immediate refresh - let user see the result
-        setJustApplied(true);
+        onApplied();
       }
     } catch (err) {
       setError("Failed to apply email");
@@ -905,6 +905,8 @@ export default function AdminQuestionsPage() {
   const [pendingDelete, setPendingDelete] = useState<{ providerId: string; providerName: string; questionCount: number } | null>(null);
   // Track Apollo contacts found during session (augments what comes from API)
   const [sessionApolloContacts, setSessionApolloContacts] = useState<Map<string, ApolloContact>>(new Map());
+  // Track providers where Apollo email was applied (persists across component remounts)
+  const [sessionAppliedProviders, setSessionAppliedProviders] = useState<Set<string>>(new Set());
 
   // Chart and stats UI state
   const [chartExpanded, setChartExpanded] = useState(false);
@@ -1712,6 +1714,7 @@ export default function AdminQuestionsPage() {
                             apolloContact={sessionApolloContacts.get(providerId) || firstQ.apollo_contact}
                             providerEmail={firstQ.provider_email}
                             isAccountClaimed={firstQ.is_account_claimed}
+                            wasApplied={sessionAppliedProviders.has(providerId)}
                             onContactFound={(contact) => {
                               setSessionApolloContacts((prev) => {
                                 const next = new Map(prev);
@@ -1719,7 +1722,9 @@ export default function AdminQuestionsPage() {
                                 return next;
                               });
                             }}
-                            onEmailApplied={fetchQuestions}
+                            onApplied={() => {
+                              setSessionAppliedProviders((prev) => new Set(prev).add(providerId));
+                            }}
                           />
                         )}
                       </div>

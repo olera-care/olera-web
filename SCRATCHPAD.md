@@ -3844,6 +3844,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Session Log
 
+### 2026-08-17 — Ad Boost setup expanded to Google + Nextdoor
+
+Updated `.claude/commands/ad-boost-setup.md` so every setup starts with an explicit Google/Nextdoor/both decision, one total authorized budget, an exact cross-channel allocation, aligned flight dates, and a learning goal. Added Nextdoor build/review/post-flight instructions, shared campaign-tag and platform-specific UTM rules, truthful aggregate-vs-platform reporting, and guards against silently doubling the $50 intro budget or drifting Admin dates/tags from the live ads. Added `.agents/skills/ad-boost-setup/` as a thin Codex wrapper so Claude and Codex execute the same canonical command instead of maintaining duplicate runbooks. Validation: skill validator, targeted command/skill assertions, and `git diff --check` pass. Branch: `codex/ad-boost-multichannel-command`. Next: review the staging PR; no application deploy is expected because this is agent-workflow documentation only.
+
 ### 2026-08-10 — Two Ad Boost campaigns live (Rosemonte new, HomeWell revived) + hardened the runbook
 
 Shipped both providers in the Requested queue. **Rosemonte Assisted Living – Phoenix** (new build, Google campaign `24126008389`) and **HomeWell East Tennessee – Oak Ridge** (flight 2, revived campaign `24052308622`). Only code change: `.claude/commands/ad-boost-setup.md`.

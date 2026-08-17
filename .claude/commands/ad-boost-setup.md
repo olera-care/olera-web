@@ -1,45 +1,95 @@
-# Ad Boost Campaign Setup (Browser-Driven)
+# Ad Boost Campaign Setup — Google + Nextdoor (Browser-Driven)
 
-Input: $ARGUMENTS — provider name(s), OR nothing if TJ attached a screenshot of the `/admin/ad-boost` Requested queue. A screenshot identifies WHICH providers to set up; the `ad_campaign_requests` table in prod is always the source of truth for their data.
+Input: $ARGUMENTS — provider name(s), optionally followed by channel, budget allocation, and flight dates; OR nothing if TJ attached a screenshot of the `/admin/ad-boost` Requested queue. A screenshot identifies WHICH providers to set up; the `ad_campaign_requests` table in prod is always the source of truth for their data.
 
 ## Purpose
 
-Take one or more Ad Boost providers from "Requested" to published, policy-audited Google Ads campaigns — driving ads.google.com directly through the chrome-devtools MCP, with TJ approving each Publish click. This encodes the flow proven on Miracle-Lightstar + Impact (2026-07-05).
+Take one or more Ad Boost providers from "Requested" to published, policy-audited campaigns on **Google, Nextdoor, or both**. Drive the selected ad manager directly through the visible browser, with TJ approving every final Publish/Create action. The Google track encodes the flow proven on Miracle-Lightstar + Impact (2026-07-05); the Nextdoor track encodes the Graceful Homecare pilot (2026-08-14).
 
 Canonical references (read if uncertain, don't re-derive):
-- Notion SOP: "SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup (any provider)" (id `38d5903a-0ffe-818f-a75b-db0951f7b178`). **Append a Worked Example entry for each provider when done.**
+
+- Notion SOP: "SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup (any provider)" (id `38d5903a-0ffe-818f-a75b-db0951f7b178`). It remains authoritative for the Google track. **Append a Worked Example entry for each provider when done.**
 - Memory: `project_managed_ads_setup_sop` (locked invariants + browser-automation gotchas).
 
-## Locked invariants (never re-derive, never ask)
+## Phase 0 — Channel + allocation gate (MANDATORY, before DB or browser work)
 
-- Google Search only at **$50 campaign total** (skip Meta even if they requested "both"), **2-week flight** starting next Monday-ish (Mon → Sun, 14 days, match the setup-week convention in the request row). TJ set this 2026-08-02: two weeks means we learn faster and providers don't lose interest waiting a month for results. Campaigns launched before that date keep their original 4-week flights — do not shorten live campaigns.
+If `$ARGUMENTS` does not already answer these, ask TJ once, compactly, **for each provider**:
+
+1. **Channel:** Google, Nextdoor, or both?
+2. **Budget:** total authorized dollars for this flight.
+3. **Allocation:** when both, exact Google dollars + exact Nextdoor dollars. They must sum to the total.
+4. **Flight:** start and end dates. A comparison should use the same dates on both platforms.
+5. **Learning goal:** cheapest qualified traffic, direct leads, or an apples-to-apples channel comparison?
+
+Then present the proposed packet and wait for confirmation:
+
+| Provider | Channel(s) | Total | Google | Nextdoor | Flight | Shared campaign tag | Goal |
+|---|---|---:|---:|---:|---|---|---|
+
+**Budget safety:** the historical free intro is **$50 total per provider**, not $50 per platform. Never silently turn “both” into a $100 commitment. For one channel, propose the usual $50. For both, ask for the split; an even split may be offered as a neutral starting point, but never selected without TJ confirming it.
+
+**Decision framing:** Google is the higher-intent, higher-CPC search channel. Nextdoor is the lower-CPC local-discovery channel. “Both” is the cleanest traffic-efficiency comparison, but the current Ad Boost row stores one campaign tag and one aggregate performance triplet. Therefore use one shared campaign tag across both platforms, use platform-specific `utm_medium`, keep the dollar/campaign-ID breakdown in `admin_note`, and say plainly that Olera’s downstream questions/leads are combined while each ad manager keeps its own spend/click totals. Do not pretend Olera can assign a downstream conversion to one platform when both share a flight.
+
+Do not touch either ad account or change the request status until this gate is resolved.
+
+## Locked invariants
+
+### Shared across Google + Nextdoor
+
+- Canonical final URL: `https://olera.care/provider/{slug}?utm_source=olera_managed&utm_medium={medium}&utm_campaign={tag}` where `medium=paid_search` for Google and `medium=paid_social` for Nextdoor. Tag = `{stub}-{city}-{mon}{yy}` and must match `ad_campaign_requests.campaign_tag` **character-for-character before launch**. Never let the ad URL use a friendly tag while Olera stores the request UUID again.
+- One selected channel → `channel='google'` or `channel='nextdoor'`; both → `channel='both'`.
+- Budget fields must describe a real control, not a wish: one lifetime-capped platform (or two lifetime caps whose sum is the whole-flight envelope) → store the total with `ad_budget_type='lifetime'`; Google-only daily fallback → store the actual daily amount with `ad_budget_type='daily'` and put the planned total/end-date envelope in `admin_note`; mixed daily + lifetime controls → leave the aggregate budget pair blank rather than lie, and record both exact controls plus the total authorization in `admin_note`.
+- Store the real platform start/end dates in `flight_start_date` and `flight_end_date`. Re-read them from each ad manager before launch and again during handoff; the Olera end date must not drift beyond the paid flight.
+- Use the same provider page, core value proposition, geography, and dates when the goal is an apples-to-apples channel comparison. Adapt only the format constraints native to each platform.
+- Never install a third-party pixel/tag during setup. Olera attribution is the managed UTM → first-party page/event trail.
+- **Every platform has a publish gate.** Stop at the final review with the complete configuration and wait for TJ to say “publish” or “create.”
+
+### Google-specific (never re-derive)
+
+- Google Search only at the **confirmed Google allocation**, normally a **2-week flight** starting next Monday-ish (Mon → Sun, 14 days, match the setup-week convention in the request row). TJ set the 2-week default on 2026-08-02 so we learn faster and providers don't lose interest waiting a month. Campaigns launched before that date keep their original 4-week flights — do not shorten live campaigns.
 - **Maximize clicks with $2.50 max CPC cap** — never Maximize conversions.
 - Search-only: Search Partners OFF, Display Network OFF.
 - Geo: provider's city + **20 mi radius**, **Presence only** (not presence-or-interest). If the provider's address is far from the city center (check lat/lng), center on their **ZIP + 20mi** instead.
 - Languages: English + Spanish. AI Max **OFF** (verify again post-publish — it can silently re-enable, and its URL expansion strips `utm_campaign`).
-- Final URL: `https://olera.care/provider/{slug}?utm_source=olera_managed&utm_campaign={tag}`, tag = `{stub}-{city}-{mon}{yy}`. Display path: `Home-Care` / `{City}`.
+- Final URL uses the shared invariant with `utm_medium=paid_search`. Display path: `Home-Care` / `{City}`.
 - Campaign name: `{Provider} – {City} – {Mon YYYY}`.
 - **Account-level auto-apply stays OFF, all 15 types.** Verify at the start of every session (Phase 1 step 0). This is the account's main silent-drift vector — it is what re-enables AI Max, reverts keywords to Google defaults, and re-adds the "Olera.care" headline.
 - **NEVER set a device bid adjustment.** Paid traffic is already ~87% mobile on its own (desktop = 9.2% of clicks AND 9.2% of spend, measured 2026-07-25). Excluding desktop saves <$10/mo and only narrows the auction. Do not confuse this with the site's ORGANIC provider-page traffic, which is 71% desktop — different population, different problem, owned by Esther.
 - **No bare "near me" phrase keywords.** Measured across HomeWell + Legacy Haven: `"home care near me"`, `"in home care near me"`, `"caregivers near me"` drew **zero impressions**. They are dead slots. Use `{service} {city}` and `{service} {suburb}` instead.
 - **Assisted-living / senior-living providers get a DIFFERENT negative list.** Never apply the home-care shared list to them — it contains `"assisted living"`, `"senior living"`, `"retirement community"` etc., which are their core intent. Build them a campaign-level list instead (home-care terms + home-care brands + senior-living operator brands + brokers).
 
+### Nextdoor-specific (Graceful pilot baseline)
+
+- Objective = **Increase website visits**; optimization = **Clicks**. Do not choose Promote your business or a Nextdoor lead form for the apples-to-apples provider-page test.
+- Use the confirmed Nextdoor allocation as an **exact lifetime cap**. Re-read the cap on the final review; do not infer it from a daily suggestion.
+- Target the provider’s actual service city/ZIP and only the area they can serve. For a comparison, align it as closely as Nextdoor permits with Google’s presence-only service area and document unavoidable geo differences.
+- The Special ad category box stays unchecked for senior/home-care services; it is for regulated housing listings, job postings, and credit offers—not ordinary care-service advertising.
+- Use the verified provider logo and provider-owned/approved imagery only. If website-image import is enabled, inspect every imported image before review.
+- Campaign name: `{Provider} – {City} – {Mon YYYY} – Nextdoor`. Ad group: `{City} — ${allocation} Lifetime`. Give each creative a clear provider/city name.
+- Keep automatic placements for the first flight unless TJ explicitly asks for a placement test. Graceful’s pilot strongly favored **Conversations** (93/101 clicks at $0.33 CPC) over Newsfeed (5 at $0.44) and For Sale & Free (3 at $1.01), but one pilot is not enough to hard-disable inventory globally.
+- Nextdoor may report zero “Conversions” because no Nextdoor pixel is installed. That is not proof of zero Olera outcomes. Judge delivery using Nextdoor spend/impressions/clicks plus Olera tagged visitors, questions, direct leads, and contact-intent events.
+
 ### Expectation-setting (say this out loud, don't quietly over-promise)
 
-$50 ÷ ~$2.00 CPC = **~25 clicks total for the whole flight**. At the measured ~3% mobile landing conversion that is **~0.7 expected leads**, so **roughly half of correctly-built campaigns will show zero leads.** That is arithmetic, not a defect. TJ has explicitly rejected raising the budget (8+ providers, none paying, unproven product). So the only levers are **clicks-per-dollar** (Quality Score → lower CPC) and **conversion-per-click**. Optimize those; don't promise leads.
+- **Google baseline:** $50 ÷ ~$2.00 CPC = **~25 clicks total for the whole flight**. At the measured ~3% mobile landing conversion that is **~0.7 expected direct leads**, so roughly half of correctly-built campaigns will show zero leads.
+- **Nextdoor baseline (Graceful, through 2026-08-16):** $35.66 bought 101 clicks at $0.35 CPC; 92 unique tagged Olera visitors produced 7 anonymous question submissions from 7 sessions, but **0 contactable/direct leads**. Cheap relevant traffic is proven once—not lead generation.
+- **Both:** compare CPC, click→tagged-visitor delivery, question rate, direct leads, and contact-intent rate. Never compare only the ad platforms’ “Conversions” columns.
+
+The budget is intentionally small and the product is still unproven. Optimize **clicks-per-dollar** and **conversion-per-click**; do not promise leads or raise spend without explicit approval.
 
 ## Phase 1 — Prep (DB + hygiene, no browser yet)
 
-**Step 0 — account-level guard (do ONCE per session, before anything else).** Open `https://ads.google.com/aw/recommendations/autoapply?ocid=984737409` and confirm both cards read **"0 of 7 selected"** and **"0 of 14 selected"**. If anything is on, uncheck it. **The save is a leave-confirmation modal, NOT an inline button** — uncheck everything, then navigate away and click **Save** in the "Save changes to your auto-apply settings?" dialog. The `Save` button visible at the top of the page is the filters/workspace save and does nothing for auto-apply. Reload to confirm it stuck.
+**Step 0 — Google account-level guard (Google selected only; do ONCE per session).** Open `https://ads.google.com/aw/recommendations/autoapply?ocid=984737409` and confirm both cards read **"0 of 7 selected"** and **"0 of 14 selected"**. If anything is on, uncheck it. **The save is a leave-confirmation modal, NOT an inline button** — uncheck everything, then navigate away and click **Save** in the "Save changes to your auto-apply settings?" dialog. The `Save` button visible at the top of the page is the filters/workspace save and does nothing for auto-apply. Reload to confirm it stuck.
 
 For each provider (from screenshot or $ARGUMENTS, matched against `ad_campaign_requests` where status='requested'):
 
 1. **Pre-flight**: provider is verified OR `verification_state='not_required'` (both deliver leads); has photos (`metadata.images`) — if none, note "ask provider for 1-2 photos" as a TJ follow-up and eyeball the live page; has non-null lat/lng (geocode if missing — organic Find Families matching depends on it).
 2. **ZeroBounce** the contact email (key in analysis scripts). Do NOT write results to `email_validity` (CHECK constraint only allows delivery outcomes).
-3. **Flip the request row to `scheduled`** with `channel='google'`, the campaign tag, and admin notes. If they requested more than $50/mo, note it as the step-up conversation — still run the $50 intro.
-4. **Build the campaign packet**: 12-13 phrase-match keywords ("home care {city}", "in home care {city}", "home health aide {city}", "senior home care {city}", 1-2 nearby suburbs, plus the standard near-me set), 13 headlines (provider name first; all ≤30 chars), 4 descriptions (≤90 chars). Only claim ratings if substantiated (e.g. "5-Star Rated" needs a real 5.0★ profile).
+3. **Flip the request row to `scheduled`** with the confirmed `channel`, exact shared campaign tag, actual flight dates, authorized total budget/control, and `admin_note` containing the per-platform allocation and planned campaign names. Do this through `/admin/ad-boost` so validation runs. If the row’s tag does not exactly match the ad URL, stop and correct it before any publish.
+4. **Google selected:** build the Google packet: 12-13 phrase-match keywords ("home care {city}", "in home care {city}", "home health aide {city}", "senior home care {city}", plus 1-2 nearby suburbs; no bare near-me phrases), 13 headlines (provider name first; all ≤30 chars), 4 descriptions (≤90 chars). Only claim ratings if substantiated (e.g. "5-Star Rated" needs a real 5.0★ profile).
+5. **Nextdoor selected:** build the Nextdoor packet: provider logo/image, short local headline, plain-language body, CTA to the same tagged provider page, exact service-area target, allocation, and flight. Keep the proposition aligned with the Google packet when comparing channels.
 
-## Phase 2 — Build in Google Ads (chrome-devtools MCP)
+## Phase 2G — Build in Google Ads (Google selected only; chrome-devtools MCP)
 
 ### Step A — prove the window is REAL and VISIBLE before touching the wizard (do this every session)
 
@@ -87,8 +137,8 @@ Wizard path: Create campaign → New campaign → **Create a campaign without gu
 - **Campaign settings**: uncheck both networks; Custom locations → Advanced search → **Radius** → city or ZIP, 20 mi; Location options → **Presence**; add Spanish.
 - **AI Max**: leave OFF. **Keyword/asset generation**: Skip.
 - **Keywords and ads**: paste keywords; set display paths; **replace every prefilled asset** — Google prefills an "Olera.care" headline (URL in ad text = the classic past denial) and sometimes wrong-city descriptions. Add headline slots to reach 13.
-- **Budget**: Campaign total, $50, start/end dates.
-  - **If campaign-total refuses to publish, fall back to a daily budget.** A draft can get stuck showing `Add a budget: To publish your campaign, enter a budget` with **no Publish button**, even with `$50.00` and both dates entered and rendering correctly in the Overview. Re-entering, blurring, and re-saving does not clear it. Switching to **Average daily budget → Set custom budget → $50 ÷ flight days** (14d ⇒ `$3.57`) clears it instantly. Same spend envelope; the differences are that daily can flex up to 2× on a given day and the stop is enforced by the **end date** rather than a hard total cap — so after switching, **confirm the end date survived** (Campaign settings → More settings), because the dates live on the campaign-total widget and vanish from the Overview when you switch. This is draft-specific, NOT account-wide: existing campaigns run on campaign-total fine, and reviving one (below) can still use it.
+- **Budget**: Campaign total = the confirmed Google allocation, with the confirmed start/end dates.
+  - **If campaign-total refuses to publish, fall back to a daily budget.** A draft can get stuck showing `Add a budget: To publish your campaign, enter a budget` with **no Publish button**, even with the amount and both dates entered and rendering correctly in the Overview. Re-entering, blurring, and re-saving does not clear it. Switching to **Average daily budget → Set custom budget → Google allocation ÷ flight days** (e.g. $50 ÷ 14d ⇒ `$3.57`) clears it instantly. Same planned spend envelope; the differences are that daily can flex up to 2× on a given day and the stop is enforced by the **end date** rather than a hard total cap — so after switching, **confirm the end date survived** (Campaign settings → More settings), because the dates live on the campaign-total widget and vanish from the Overview when you switch. This is draft-specific, NOT account-wide: existing campaigns run on campaign-total fine, and reviving one (below) can still use it.
 
 ### Mandatory policy audit (TJ requirement — do this before Review, every time)
 
@@ -132,11 +182,61 @@ Note `/aw/sharedlibrary/negativekeywordlists` and `/aw/campaigns/settings` both 
 
 All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "No recent conversions"; others Inactive / Needs attention / Misconfigured). At ~72 clicks/month account-wide we will never reach the 15-30 conversions Smart Bidding needs, so **the "switch to Maximize Conversions once data accrues" plan is unreachable at this budget.** Leave campaigns on Maximize Clicks. Don't spend a session fixing tracking until volume justifies it.
 
-### Publish gate
+### Google publish gate
 
 **STOP at the Review screen and present the full config summary + audit result. TJ says "publish" → click Publish campaign.** Never publish without his explicit go. Record the campaign ID from the post-publish URL.
 
-## Phase 3 — Post-publish (immediately, per campaign)
+## Phase 2N — Build in Nextdoor Ads (Nextdoor selected only)
+
+Use the same visible browser requirement as Phase 2G Step A. Open `https://ads.nextdoor.com/v2` and confirm the selected advertiser account belongs to the provider being built. **Never put another provider’s campaign inside the Graceful Homecare advertiser account.** If a new advertiser account or payment method is required, prepare everything else and hand TJ the account-creation/card step; do not invent billing details.
+
+### Step A — objective + campaign shell
+
+1. Create campaign → choose **Increase website visits**.
+2. Leave **Special ad category** unchecked.
+3. Enter the provider’s tagged Olera URL using `utm_medium=paid_social` and the exact shared tag already saved in Ad Boost.
+4. Campaign name = `{Provider} – {City} – {Mon YYYY} – Nextdoor`.
+5. Ad group name = `{City} — ${allocation} Lifetime`.
+
+### Step B — audience, creative, and budget
+
+1. **Location:** target the confirmed city/ZIP/service area. Read the final location label back verbatim; do not assume a radius was accepted merely because it was typed.
+2. **Creative:** use the approved provider logo/image and the packet copy. Inspect auto-imported website imagery before accepting it. Avoid medical-condition targeting/claims, guarantees, unverifiable rankings, URLs/phone numbers in ad text, or wording that implies Nextdoor endorses the provider.
+3. **CTA/destination:** website visits to the tagged provider page—not a generic Olera page and not the provider’s own website.
+4. **Budget control:** exact **Lifetime cap** equal to the confirmed Nextdoor allocation.
+5. **Flight:** exact confirmed dates. For a two-channel comparison, these must match Google.
+6. Leave automatic placements on for the first flight unless the confirmed packet says otherwise.
+
+### Nextdoor review audit
+
+Before the final action, read back and present:
+
+- advertiser account + account ID;
+- objective = Website visits / Clicks;
+- campaign, ad-group, and creative names;
+- target geography;
+- full tagged URL and exact campaign tag;
+- flight start/end;
+- exact lifetime cap;
+- logo/image + final headline/body;
+- Special ad category unchecked;
+- payment saved/available (never display card details).
+
+### Nextdoor known gotchas
+
+- Quick Create may preselect **Promote your business**. Explicitly select Increase website visits.
+- The final button may say **Create**, then immediately submit the campaign for review. Treat it as the publish/spend gate even if the word “Publish” never appears.
+- A post-create modal saying “Your campaign is under review” is success, not a draft. Do not create a duplicate.
+- The Ads tab displays one row per placement; do not sum the campaign total and the placement rows together. Conversations + Newsfeed + For Sale & Free should equal the campaign total.
+- Dashboard preset ranges generally end on the latest completed reporting day. Label partial/lagged data honestly.
+- Zero in Nextdoor’s Conversions column is expected without its pixel. Verify Olera tagged landings before diagnosing the ad as broken.
+- If the tab closes during setup, reopen `/v2/campaign/quick-create` and inspect whether a draft already exists before rebuilding.
+
+### Nextdoor publish gate
+
+**STOP at the final review and present the full audit above. TJ says “create” or “publish” → perform the final action.** Never submit without that explicit instruction. Record the campaign/account IDs and the confirmation state (`under review`, `active`, or `rejected`).
+
+## Phase 3G — Google post-publish (immediately, per campaign)
 
 0. **Re-open Settings → Bidding and read the Maximum CPC bid limit back. It must be `2.50`.** Edmonds Villa published at **$0.50** (2026-08-03) and nobody noticed for 11 days: 4 impressions, 0 clicks, $0.00 of $50 spent, >90% lost impression share to Ad Rank. A 5x-low cap cannot win auctions, and every downstream number looks like "low search volume" instead of a build error. The wizard's Review screen does not surface this. One read at publish time prevents a wasted flight.
 1. Skip the Google-tag interstitial (attribution = UTM → provider-page cookie, PR #1239 — never install gtag).
@@ -144,11 +244,11 @@ All 6 lead conversion actions read **0.00** ("Provider inquiry (lead form)" = "N
 3. Open campaign Settings and **verify the AI Max toggle is still aria-checked=false**.
 4. **Re-verify account auto-apply is still 0/7 and 0/14** (Phase 1 step 0). Publishing is exactly when Google likes to suggest re-enabling.
 
-## Phase 3.5 — Search-terms harvest (MANDATORY, 3-5 days after launch — on a 2-week flight, day 7 is already halfway through)
+## Phase 3G.5 — Google search-terms harvest (MANDATORY, 3-5 days after launch — on a 2-week flight, day 7 is already halfway through)
 
 **Do not skip this. It is where the actual money is being lost, and it is the single highest-value recurring chore in the whole product.**
 
-> **Running this across the whole live book rather than for one new campaign? Use `/ad-boost-optimize`.** It sweeps every live campaign, prioritizes by days-in-flight and last-harvest date, and logs each sweep to `admin_note`. This phase and Phase 3.6 are its core.
+> **Running this across the whole live book rather than for one new campaign? Use `/ad-boost-optimize`.** It sweeps every live campaign, prioritizes by days-in-flight and last-harvest date, and logs each sweep to `admin_note`. This phase and Phase 3G.6 are its core.
 
 Open `https://ads.google.com/aw/keywords/searchterms?campaignId={id}&ocid=984737409`, set **Show rows: 50**, and read every term.
 
@@ -170,35 +270,58 @@ Add local brands at **campaign level**; add anything nationally reusable to the 
 |---|---|---|
 | High lost IS (rank), low CTR | Brand/wrong-category matching tanking Quality Score | Negatives (this phase) |
 | "Eligible (Limited) — Missing enough relevant keywords" | Too few live keywords; some have 0 impressions | Rebuild keyword set |
-| Campaign badly underspending its $50 | Losing auctions, not a budget problem (check lost IS budget is low) | Negatives first, then consider CPC cap |
-| Zero leads on a clean campaign | Just the $50 math (~0.7 expected leads) | Nothing. Do not thrash. |
+| Campaign badly underspending its allocation | Losing auctions, not a budget problem (check lost IS budget is low) | Negatives first, then consider CPC cap |
+| Zero leads on a clean campaign | Often just the small-budget expectation math | Nothing. Do not thrash. |
 
 **Sequence matters:** fix negatives first, wait 48h, then re-read CTR. Only rebuild keywords if CTR did not move. One number decides; do not rebuild on a hunch.
 
-## Phase 3.6 — Repeat customers (flight 2+): REVIVE, don't rebuild
+## Phase 3G.6 — Google repeat customers (flight 2+): REVIVE, don't rebuild
 
 **Always check `ad_campaign_requests` for prior rows on the same `provider_id` before building anything.** A provider whose earlier flight `ended` and who has requested again does NOT need a new campaign. Quality Score and ad history are per-campaign, and QS/Ad Rank is the thing throttling these campaigns — a fresh build throws that away and restarts learning. TJ chose revive on 2026-08-10 (HomeWell flight 2).
 
 Revive order matters — **fix the config first, turn spend on last:**
 
-1. **Harvest the prior flight's search terms first** (Phase 3.5) — an ended campaign's terms are the whole point of flight 2. Set the date range to **All time**; the default window is empty for an ended campaign.
+1. **Harvest the prior flight's search terms first** (Phase 3G.5) — an ended campaign's terms are the whole point of flight 2. Set the date range to **All time**; the default window is empty for an ended campaign.
 2. **Check what negatives already exist** before pasting. The shared list is usually already attached; you only need the delta. Read the `Level` column — a shared list shows as `List`, everything else as `Campaign`.
 3. **Read the live keywords before writing negatives** (`/aw/keywords?campaignId=X`). A phrase negative blocks any query containing it, so it can silently kill a live keyword — e.g. negating `"home health"` kills the live `"home health aide {city}"`. Negate the specific variants instead (`"home health care"`, `"home health {city}"`, `"home health agencies"`, branded ones).
 4. **Never negate the provider's own brand.** It will appear in the search terms and it is the cheapest, highest-intent traffic they get.
 5. **Update the ad's Final URL `utm_campaign`** to the new flight tag (`{stub}-{city}-{mon}{yy}`) or attribution merges both flights. Hover the ad row → the `Edit this Ad` pencil (`.ess-edit-icon`) only appears on hover. **This edit re-triggers the `AD_FINAL_URL` re-auth** — see Known blockers.
-6. **Raise the campaign total budget** to `already-spent + 50` (HomeWell: $33.02 spent ⇒ $83) so the flight gets a real $50 of runway.
+6. **Raise the campaign total budget** to `already-spent + confirmed Google allocation` (HomeWell’s $50 example: $33.02 spent ⇒ $83) so the new flight gets its authorized runway.
 7. **Extend the end date LAST** — that is what flips `Ended → Eligible` and turns spend back on.
 
-Then run Phase 3 checks (AI Max off, auto-apply 0/7 + 0/14) as normal.
+Then run Phase 3G checks (AI Max off, auto-apply 0/7 + 0/14) as normal.
 
 **Reporting caveat to tell TJ:** flight 1 and flight 2 metrics blend inside the revived campaign. Record flight 1's final numbers in `admin_note` before reviving so the flights stay separable.
 
 **Don't change keywords in the same pass as negatives.** Per the diagnosis table, negatives first → wait 48h → re-read CTR. Changing both makes the read unattributable. Dead `"near me"` keywords can stay; they draw zero impressions and cost nothing.
 
+## Phase 3N — Nextdoor post-publish + results check
+
+Immediately after creation:
+
+1. Verify the campaign exists once and is `under review` or `active`—not duplicated.
+2. Re-open the campaign/ad-group settings and read back the exact lifetime cap, geography, flight, objective, and final URL.
+3. Confirm `utm_campaign` exactly matches the Ad Boost row. Fix either side before traffic begins if it does not.
+4. Record Nextdoor account ID, campaign/ad-group/creative names or IDs, allocation, and review state in `admin_note`.
+
+Once serving:
+
+1. Read the **campaign total** for impressions, clicks, spend, CTR, CPC, and conversions for the exact flight window.
+2. Read the placement rows separately to diagnose delivery; do not double-count them.
+3. Reconcile ad clicks with Olera tagged page views + unique visitors using the exact campaign tag.
+4. Read Olera questions, direct leads, benefits completions, saves, and contact-intent events. Anonymous questions are engagement signals, **not contactable leads**.
+5. If Nextdoor is the only channel, save its exact impressions/clicks/spend in the Ad Boost performance fields. If both channels ran, save the combined totals there and preserve the per-platform breakdown in `admin_note`.
+6. On or after the end date, verify the paid campaign actually stopped. Never extend Olera’s `flight_end_date` beyond the ad-manager end date unless TJ explicitly extends spend.
+
+Graceful interpretation rule: $0.35 CPC and a 91% click→unique-landing rate proved cheap delivery; 7 questions from 7 sessions proved relevant curiosity; 0 contactable leads meant the lead-generation hypothesis was still unproven. Use that layered language—do not collapse every question into a lead or every zero platform conversion into failure.
+
 ## Phase 4 — Handoff (TJ-gated, do NOT do automatically)
 
 Present as a checklist, don't execute:
-- Flip request rows → **live via the `/admin/ad-boost` UI** once serving starts (auto-sends the once-guarded "campaign is live" email; a DB flip silently skips it).
+
+- Reconcile channel, shared tag, flight dates, authorized total/control, and the platform allocation/campaign IDs in `admin_note`.
+- Flip request rows → **live via the `/admin/ad-boost` UI** only once every selected platform is serving (auto-sends the once-guarded "campaign is live" email; a DB flip silently skips it).
+- For both-channel tests, state that Ad Boost’s onsite outcomes are combined and include the separate Google/Nextdoor spend-click table in the handoff.
 - Any photo/profile asks for the provider.
 
 Then: log the session to SCRATCHPAD.md (campaign IDs, deviations, lessons) and append the Worked Example to the Notion SOP.

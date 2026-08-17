@@ -1950,6 +1950,14 @@ function ApolloContactRow({
             Cancel
           </button>
         </div>
+      ) : isInSequence && emailsMatch ? (
+        // In sequence + emails already match: no action needed, just show passive indicator
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-50 rounded">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          Using
+        </span>
       ) : (
         <button
           type="button"

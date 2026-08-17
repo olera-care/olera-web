@@ -9,6 +9,7 @@ import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
+import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1516,6 +1517,8 @@ function ProviderContactEditor({
           // Display mode: show email + verification badge + Edit button
           <>
             <span className="text-sm text-gray-700">{email}</span>
+            {/* Email history popover */}
+            <EmailHistoryPopover providerId={providerId} currentEmail={email} />
             {/* Email verification status and override */}
             {isOverridden ? (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-600">

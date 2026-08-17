@@ -1712,18 +1712,24 @@ function ApolloContactRow({
   onUseEmail,
   onContactFound,
   onEmailSourceChanged,
+  onResetToReady,
+  stage,
 }: {
   provider: OutreachProvider;
   onUseEmail: (email: string, emailSource?: "decision_maker") => void;
   onContactFound: (contact: OutreachProvider["apollo_contact"]) => void;
   onEmailSourceChanged?: (emailSource: "organization" | "decision_maker") => void;
+  onResetToReady?: (providerId: string) => Promise<boolean>;
+  stage?: string;
 }) {
   const [finding, setFinding] = useState(false);
   const [using, setUsing] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const apolloContact = provider.apollo_contact;
+  const isInSequence = stage === "in_sequence";
 
   // Check if Apollo email matches provider's current email
   const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
@@ -1769,26 +1775,45 @@ function ApolloContactRow({
   }
 
   // "Confirm" or "Use This" - set email_source to decision_maker (and update email if different)
+  // For In Sequence: show confirmation first, then reset to ready
   async function handleConfirm() {
     if (!apolloContact?.email || using) return;
+
+    // For In Sequence, show confirmation dialog first
+    if (isInSequence && !showResetConfirm) {
+      setShowResetConfirm(true);
+      return;
+    }
+
     setUsing(true);
     setError(null);
+    setShowResetConfirm(false);
+
     try {
-      const res = await fetch("/api/admin/provider-outreach/update-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          email: apolloContact.email,
-          confirm_apollo: true, // This sets email_source = 'decision_maker'
-        }),
-      });
-      if (res.ok) {
-        // Update local state with email and email_source
-        onUseEmail(apolloContact.email, "decision_maker");
+      if (isInSequence && onResetToReady) {
+        // In Sequence: call reset-to-ready which cancels sequence and moves to Ready
+        const success = await onResetToReady(provider.provider_id);
+        if (!success) {
+          setError("Failed to reset");
+        }
       } else {
-        const data = await res.json();
-        setError(data.error || "Failed to confirm");
+        // Normal flow: just update email
+        const res = await fetch("/api/admin/provider-outreach/update-email", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            email: apolloContact.email,
+            confirm_apollo: true, // This sets email_source = 'decision_maker'
+          }),
+        });
+        if (res.ok) {
+          // Update local state with email and email_source
+          onUseEmail(apolloContact.email, "decision_maker");
+        } else {
+          const data = await res.json();
+          setError(data.error || "Failed to confirm");
+        }
       }
     } catch (err) {
       setError("Failed to confirm");
@@ -1899,6 +1924,32 @@ function ApolloContactRow({
             </button>
           )}
         </>
+      ) : showResetConfirm ? (
+        // Confirmation dialog for In Sequence reset
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-amber-600">Cancel sequence & move to Ready?</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleConfirm();
+            }}
+            disabled={using}
+            className="px-2 py-0.5 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded transition disabled:opacity-50"
+          >
+            {using ? "..." : "Yes, Reset"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowResetConfirm(false);
+            }}
+            className="px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 rounded transition"
+          >
+            Cancel
+          </button>
+        </div>
       ) : (
         <button
           type="button"
@@ -1907,9 +1958,13 @@ function ApolloContactRow({
             handleConfirm();
           }}
           disabled={using}
-          className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
+          className={`px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+            isInSequence
+              ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+              : "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+          }`}
         >
-          {using ? "..." : emailsMatch ? "Confirm" : "Use This"}
+          {using ? "..." : isInSequence ? "Reset & Use" : emailsMatch ? "Confirm" : "Use This"}
         </button>
       )}
       {error && <span className="text-xs text-amber-600">{error}</span>}
@@ -1940,6 +1995,8 @@ interface CityRowProps {
   onRemoveProvider: (provider: OutreachProvider) => void;
   // Move to Ready (for Not Interested tab)
   onMoveToReady?: (providerId: string) => void;
+  // Reset to Ready with Apollo email (for In Sequence tab)
+  onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // City assignment
   cityOwnerId: string | null;
   cityOwnerName: string | null;
@@ -1969,6 +2026,7 @@ function CityRow({
   onOpenNotesModal,
   onRemoveProvider,
   onMoveToReady,
+  onResetToReadyWithApollo,
   cityOwnerId,
   cityOwnerName,
   isEditingAssignment,
@@ -2005,6 +2063,7 @@ function CityRow({
     () => providers.filter((p) => (p.city || "(No City)") === city.city),
     [providers, city.city]
   );
+
 
   // Auto email lookup when city is expanded
   useEffect(() => {
@@ -2509,12 +2568,14 @@ function CityRow({
                                 </span>
                               )}
                               {/* Apollo decision-maker contact row */}
-                              {/* Show on Ready tab (when has email) OR on Needs Email tab (always available) */}
+                              {/* Show on Ready tab (when has email), Needs Email tab, or In Sequence tab */}
                               {(
                                 // Ready tab: show when provider has email (find decision-maker as upgrade)
                                 ((provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready") ||
                                 // Needs Email tab: always show Apollo option alongside scraping
-                                activeTab === "needs_email"
+                                activeTab === "needs_email" ||
+                                // In Sequence tab: allow finding decision maker and resetting with new email
+                                activeTab === "in_sequence"
                               ) && (
                                 <ApolloContactRow
                                   provider={{
@@ -2525,6 +2586,8 @@ function CityRow({
                                   onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
                                   onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
                                   onEmailSourceChanged={activeTab === "ready" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
+                                  stage={activeTab === "in_sequence" ? "in_sequence" : undefined}
+                                  onResetToReady={activeTab === "in_sequence" ? onResetToReadyWithApollo : undefined}
                                 />
                               )}
                             </>
@@ -8302,6 +8365,47 @@ export default function ProviderOutreachPage() {
                           }
                         } catch {
                           showToast("Network error", "error");
+                        }
+                      } : undefined}
+                      onResetToReadyWithApollo={activeTab === "in_sequence" ? async (providerId) => {
+                        // Find provider to get Apollo contact
+                        const provider = providers.find(p => p.provider_id === providerId);
+                        const apolloContact = provider?.apollo_contact;
+                        if (!apolloContact?.email) {
+                          showToast("No Apollo email found", "error");
+                          return false;
+                        }
+                        try {
+                          const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              provider_id: providerId,
+                              email_source: "decision_maker",
+                              use_apollo_email: true,
+                            }),
+                          });
+                          if (res.ok) {
+                            // Mark as recently moved to filter from stale API responses
+                            markAsRecentlyMoved(providerId);
+                            // Remove from In Sequence list
+                            setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                            // Update stage counts
+                            setStageCounts((prev) => ({
+                              ...prev,
+                              in_sequence: Math.max(0, prev.in_sequence - 1),
+                              ready: prev.ready + 1,
+                            }));
+                            showToast("Reset to Ready with Apollo email", "success");
+                            return true;
+                          } else {
+                            const err = await res.json();
+                            showToast(err.error || "Failed to reset provider", "error");
+                            return false;
+                          }
+                        } catch {
+                          showToast("Network error", "error");
+                          return false;
                         }
                       } : undefined}
                       cityOwnerId={cityOwners.get(city.city)?.owner_id || null}

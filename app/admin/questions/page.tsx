@@ -703,9 +703,11 @@ function ApolloContactRow({
   const [finding, setFinding] = useState(false);
   const [using, setUsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Track if email was just applied in this session (shows checkmark without page refresh)
+  const [justApplied, setJustApplied] = useState(false);
 
   // Check if Apollo email matches provider's current email
-  const emailsMatch = apolloContact?.email?.toLowerCase() === providerEmail?.toLowerCase();
+  const emailsMatch = justApplied || apolloContact?.email?.toLowerCase() === providerEmail?.toLowerCase();
 
   async function handleFind() {
     setFinding(true);
@@ -729,9 +731,10 @@ function ApolloContactRow({
           linkedin_url: data.contact.linkedin_url,
           found_at: new Date().toISOString(),
         });
-        // If auto-confirmed by backend (provider had no email), refresh
+        // If auto-confirmed by backend (provider had no email), show success
+        // Don't refresh immediately - let user see the result first
         if (data.auto_confirmed) {
-          onEmailApplied();
+          setJustApplied(true);
         }
       } else {
         setError(data.message || "No decision-maker found");
@@ -758,7 +761,8 @@ function ApolloContactRow({
       if (data.error) {
         setError(data.error === "claimed_account" ? data.message : data.error);
       } else {
-        onEmailApplied();
+        // Show success without immediate refresh - let user see the result
+        setJustApplied(true);
       }
     } catch (err) {
       setError("Failed to apply email");

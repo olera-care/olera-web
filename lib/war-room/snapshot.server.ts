@@ -45,6 +45,9 @@ function redactContactDetails(value: string) {
 
 function growthWeek(snapshot: GrowthSnapshot | undefined): WarRoomGrowthWeek | null {
   if (!snapshot) return null;
+  const brandedClicks = snapshot.gsc?.query_mix.branded_clicks ?? 0;
+  const nonBrandedClicks = snapshot.gsc?.query_mix.non_branded_clicks ?? 0;
+  const classifiedClicks = brandedClicks + nonBrandedClicks;
   return {
     weekStart: snapshot.week_start,
     weekEnd: snapshot.week_end,
@@ -57,6 +60,10 @@ function growthWeek(snapshot: GrowthSnapshot | undefined): WarRoomGrowthWeek | n
     questions: snapshot.marketplace.questions_asked,
     benefitsCompleted: snapshot.marketplace.benefits_completed,
     anomalies: snapshot.anomalies.map((anomaly) => anomaly.label),
+    channels: snapshot.ga4.channels,
+    organicLandingPages: snapshot.ga4.organic.landing_pages.slice(0, 12),
+    searchTopPages: snapshot.gsc?.top_pages.slice(0, 12) ?? [],
+    brandedSearchShare: classifiedClicks > 0 ? brandedClicks / classifiedClicks : null,
   };
 }
 
@@ -85,6 +92,7 @@ export async function buildWarRoomSnapshot(
     recentQuestionResult,
     recentInquiryResult,
     decisionResult,
+    questionHealthResult,
   ] = await Promise.all([
     db.from("provider_activity").select("id", { count: "exact", head: true })
       .eq("event_type", "page_view").gte("created_at", from)
@@ -142,6 +150,11 @@ export async function buildWarRoomSnapshot(
       .select("id, recommendation_key, recommendation_title, decision, note, decided_by, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
+    db.from("provider_questions")
+      .select("id, status, answer, metadata")
+      .gte("created_at", from)
+      .order("created_at", { ascending: false })
+      .limit(50_000),
   ]);
 
   if (providerActivity.error) {
@@ -164,6 +177,26 @@ export async function buildWarRoomSnapshot(
   const supportAvailable = !supportResult.error && !supportCountResult.error && !supportUrgentResult.error;
   const supportRows = supportAvailable ? supportResult.data ?? [] : [];
   const mail = mailboxResult.error ? null : mailboxResult.data;
+  if (questionHealthResult.error) throw new Error(`provider question health: ${questionHealthResult.error.message}`);
+  const questionRows = (questionHealthResult.data ?? []) as Array<{
+    status: string | null;
+    answer: string | null;
+    metadata: Record<string, unknown> | null;
+  }>;
+  if (questionRows.length >= 50_000) throw new Error("provider question health exceeded the 50,000-row safety cap");
+  const questionExcluded = (row: typeof questionRows[number]) =>
+    row.status === "archived"
+    || row.status === "rejected"
+    || row.metadata?.provider_not_interested === true
+    || row.metadata?.provider_no_contact === true;
+  const questionNeedsEmail = (row: typeof questionRows[number]) => row.metadata?.needs_provider_email === true;
+  const questionHasDeadEmail = (row: typeof questionRows[number]) => row.metadata?.email_dead === true;
+  const questionAnswered = (row: typeof questionRows[number]) => Boolean(row.answer?.trim());
+  const reachableQuestionRows = questionRows.filter((row) =>
+    !questionExcluded(row)
+    && !questionNeedsEmail(row)
+    && !questionHasDeadEmail(row),
+  );
 
   const facts: WarRoomFacts = {
     windowDays,
@@ -310,6 +343,15 @@ export async function buildWarRoomSnapshot(
     growth: {
       latest: growthWeek(latestGrowth ?? undefined),
       prior: growthWeek(priorGrowth ?? undefined),
+    },
+    providerQuestionHealth: {
+      submitted: questionRows.length,
+      answered: questionRows.filter(questionAnswered).length,
+      intentionallyExcluded: questionRows.filter(questionExcluded).length,
+      needsEmail: questionRows.filter(questionNeedsEmail).length,
+      deadEmail: questionRows.filter(questionHasDeadEmail).length,
+      reachableEligible: reachableQuestionRows.length,
+      reachableAnswered: reachableQuestionRows.filter(questionAnswered).length,
     },
     signals: buildWarRoomSignals(facts),
     customerVoice,

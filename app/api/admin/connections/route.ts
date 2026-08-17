@@ -431,6 +431,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load connections" }, { status: 500 });
     }
 
+
     // CRITICAL FIX: Fetch missing provider emails from olera-providers table
     // This ensures email display matches email sending logic (which checks both tables)
     const providerEmailFallback = new Map<string, string>();
@@ -843,6 +844,7 @@ export async function GET(request: NextRequest) {
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
+
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
     // Each connection has its own engagement data based on events with matching connection_id
@@ -875,17 +877,36 @@ export async function GET(request: NextRequest) {
 
     // Fetch engagement events filtered by CONNECTION_ID in metadata
     // This ensures each connection shows only its own engagement, not provider-wide
+    // NOTE: Supabase .in() has a limit (~300 items), so we batch the query
 
     if (allProviderKeys.length > 0) {
-      const { data: actEvents } = await db
-        .from("provider_activity")
-        .select("provider_id, event_type, created_at, metadata")
-        .in("provider_id", allProviderKeys)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
-        .order("created_at", { ascending: false })
-        .limit(10000);
+      // Batch provider keys to avoid Supabase .in() limit (Bad Request error)
+      const BATCH_SIZE = 200;
+      const allActEvents: Array<{
+        provider_id: string;
+        event_type: string;
+        created_at: string;
+        metadata: unknown;
+      }> = [];
 
-      for (const ev of actEvents ?? []) {
+      for (let i = 0; i < allProviderKeys.length; i += BATCH_SIZE) {
+        const batch = allProviderKeys.slice(i, i + BATCH_SIZE);
+        const { data: batchEvents, error: batchError } = await db
+          .from("provider_activity")
+          .select("provider_id, event_type, created_at, metadata")
+          .in("provider_id", batch)
+          .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
+          .order("created_at", { ascending: false })
+          .limit(10000);
+
+        if (batchError) {
+          console.error(`[connections] activity batch ${i / BATCH_SIZE} error:`, batchError.message);
+        } else if (batchEvents) {
+          allActEvents.push(...batchEvents);
+        }
+      }
+
+      for (const ev of allActEvents) {
         const meta = ev.metadata as Record<string, unknown> | null;
         // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)
         const connectionId = (meta?.connection_id || meta?.lead_id) as string | undefined;
@@ -1351,14 +1372,15 @@ export async function GET(request: NextRequest) {
         }
 
         // Funnel stats (based on provider engagement)
+        // Exclude declined/archived providers - they're no longer active connections
         // Viewed = opened lead drawer
-        if (eng?.lead_opened) providerViewedCount++;
+        if (eng?.lead_opened && !isProviderDeclined && !belongsToArchivedTab) providerViewedCount++;
         // Count as responded if provider sent a message
-        if (c.responded) respondedCount++;
-        if (c.familyRepliedAfterProvider) connectedCount++;
+        if (c.responded && !isProviderDeclined && !belongsToArchivedTab) respondedCount++;
+        if (c.familyRepliedAfterProvider && !isProviderDeclined && !belongsToArchivedTab) connectedCount++;
         // Provider action counts (per-connection)
-        if (eng?.phone_copied || eng?.phone_clicked) copiedPhoneCount++;
-        if (eng?.email_copied || eng?.email_link_clicked) copiedEmailCount++;
+        if ((eng?.phone_copied || eng?.phone_clicked) && !isProviderDeclined && !belongsToArchivedTab) copiedPhoneCount++;
+        if ((eng?.email_copied || eng?.email_link_clicked) && !isProviderDeclined && !belongsToArchivedTab) copiedEmailCount++;
         // Declined = provider explicitly declined (has archive reason, not admin-archived)
         if (isProviderDeclined && !isAdminArchived) declinedCount++;
       }

@@ -9,6 +9,7 @@ import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
+import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1516,6 +1517,8 @@ function ProviderContactEditor({
           // Display mode: show email + verification badge + Edit button
           <>
             <span className="text-sm text-gray-700">{email}</span>
+            {/* Email history popover */}
+            <EmailHistoryPopover providerId={providerId} currentEmail={email} />
             {/* Email verification status and override */}
             {isOverridden ? (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
@@ -1709,18 +1712,24 @@ function ApolloContactRow({
   onUseEmail,
   onContactFound,
   onEmailSourceChanged,
+  onResetToReady,
+  stage,
 }: {
   provider: OutreachProvider;
   onUseEmail: (email: string, emailSource?: "decision_maker") => void;
   onContactFound: (contact: OutreachProvider["apollo_contact"]) => void;
   onEmailSourceChanged?: (emailSource: "organization" | "decision_maker") => void;
+  onResetToReady?: (providerId: string) => Promise<boolean>;
+  stage?: string;
 }) {
   const [finding, setFinding] = useState(false);
   const [using, setUsing] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const apolloContact = provider.apollo_contact;
+  const isInSequence = stage === "in_sequence";
 
   // Check if Apollo email matches provider's current email
   const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
@@ -1766,26 +1775,45 @@ function ApolloContactRow({
   }
 
   // "Confirm" or "Use This" - set email_source to decision_maker (and update email if different)
+  // For In Sequence: show confirmation first, then reset to ready
   async function handleConfirm() {
     if (!apolloContact?.email || using) return;
+
+    // For In Sequence, show confirmation dialog first
+    if (isInSequence && !showResetConfirm) {
+      setShowResetConfirm(true);
+      return;
+    }
+
     setUsing(true);
     setError(null);
+    setShowResetConfirm(false);
+
     try {
-      const res = await fetch("/api/admin/provider-outreach/update-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          email: apolloContact.email,
-          confirm_apollo: true, // This sets email_source = 'decision_maker'
-        }),
-      });
-      if (res.ok) {
-        // Update local state with email and email_source
-        onUseEmail(apolloContact.email, "decision_maker");
+      if (isInSequence && onResetToReady) {
+        // In Sequence: call reset-to-ready which cancels sequence and moves to Ready
+        const success = await onResetToReady(provider.provider_id);
+        if (!success) {
+          setError("Failed to reset");
+        }
       } else {
-        const data = await res.json();
-        setError(data.error || "Failed to confirm");
+        // Normal flow: just update email
+        const res = await fetch("/api/admin/provider-outreach/update-email", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            email: apolloContact.email,
+            confirm_apollo: true, // This sets email_source = 'decision_maker'
+          }),
+        });
+        if (res.ok) {
+          // Update local state with email and email_source
+          onUseEmail(apolloContact.email, "decision_maker");
+        } else {
+          const data = await res.json();
+          setError(data.error || "Failed to confirm");
+        }
       }
     } catch (err) {
       setError("Failed to confirm");
@@ -1896,6 +1924,32 @@ function ApolloContactRow({
             </button>
           )}
         </>
+      ) : showResetConfirm ? (
+        // Confirmation dialog for In Sequence reset
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-amber-600">Cancel sequence & move to Ready?</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleConfirm();
+            }}
+            disabled={using}
+            className="px-2 py-0.5 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded transition disabled:opacity-50"
+          >
+            {using ? "..." : "Yes, Reset"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowResetConfirm(false);
+            }}
+            className="px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 rounded transition"
+          >
+            Cancel
+          </button>
+        </div>
       ) : (
         <button
           type="button"
@@ -1904,9 +1958,13 @@ function ApolloContactRow({
             handleConfirm();
           }}
           disabled={using}
-          className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
+          className={`px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+            isInSequence
+              ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+              : "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+          }`}
         >
-          {using ? "..." : emailsMatch ? "Confirm" : "Use This"}
+          {using ? "..." : isInSequence ? "Reset & Use" : emailsMatch ? "Confirm" : "Use This"}
         </button>
       )}
       {error && <span className="text-xs text-amber-600">{error}</span>}
@@ -1937,6 +1995,8 @@ interface CityRowProps {
   onRemoveProvider: (provider: OutreachProvider) => void;
   // Move to Ready (for Not Interested tab)
   onMoveToReady?: (providerId: string) => void;
+  // Reset to Ready with Apollo email (for In Sequence tab)
+  onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // City assignment
   cityOwnerId: string | null;
   cityOwnerName: string | null;
@@ -1966,6 +2026,7 @@ function CityRow({
   onOpenNotesModal,
   onRemoveProvider,
   onMoveToReady,
+  onResetToReadyWithApollo,
   cityOwnerId,
   cityOwnerName,
   isEditingAssignment,
@@ -1989,6 +2050,10 @@ function CityRow({
   const [confirmedProviders, setConfirmedProviders] = useState<Set<string>>(new Set());
   const [confirmingProvider, setConfirmingProvider] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  // Track providers being unconfirmed
+  const [unconfirmingProvider, setUnconfirmingProvider] = useState<string | null>(null);
+  // Track providers that admin has unconfirmed this session (to override confirmed_at from DB)
+  const [unconfirmedProviders, setUnconfirmedProviders] = useState<Set<string>>(new Set());
   // Move to Ready state (for Not Interested tab)
   const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
   const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
@@ -1998,6 +2063,7 @@ function CityRow({
     () => providers.filter((p) => (p.city || "(No City)") === city.city),
     [providers, city.city]
   );
+
 
   // Auto email lookup when city is expanded
   useEffect(() => {
@@ -2254,33 +2320,76 @@ function CityRow({
                             </Link>
                             {/* Sequence progress badge - only show in In Sequence tab */}
                             {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
-                              <div className="flex flex-col items-start">
-                                <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                  provider.sequence_status?.failed_step !== undefined
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-blue-100 text-blue-700"
-                                }`}>
-                                  {provider.emails_sent}/4
-                                </span>
-                                {/* Sequence sublabel (recency or failure) */}
-                                {(() => {
-                                  const sublabel = getSequenceSublabel(provider);
-                                  return (
-                                    <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
-                                      {sublabel.text}
-                                    </span>
-                                  );
-                                })()}
+                              <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-start">
+                                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                    provider.sequence_status?.failed_step !== undefined
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-blue-100 text-blue-700"
+                                  }`}>
+                                    {provider.emails_sent}/4
+                                  </span>
+                                  {/* Sequence sublabel (recency or failure) */}
+                                  {(() => {
+                                    const sublabel = getSequenceSublabel(provider);
+                                    return (
+                                      <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                                        {sublabel.text}
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                                {/* Engagement indicator - show if provider opened emails */}
+                                {provider.engagement && provider.engagement.opens > 0 && (
+                                  <span className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-700">
+                                    Opened {provider.engagement.opens}x
+                                  </span>
+                                )}
                               </div>
                             )}
                             {/* Confirm button - only show in Ready tab */}
                             {activeTab === "ready" && (
-                              provider.confirmed_at || confirmedProviders.has(provider.provider_id) ? (
-                                <span className="text-blue-500" title="Confirmed">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                                  </svg>
-                                </span>
+                              // Check if confirmed: has confirmed_at OR in confirmedProviders, AND NOT in unconfirmedProviders
+                              ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setUnconfirmingProvider(provider.provider_id);
+                                    try {
+                                      const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                        method: "DELETE",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ provider_id: provider.provider_id }),
+                                      });
+                                      if (res.ok) {
+                                        // Remove from confirmed sets, add to unconfirmed set
+                                        setConfirmedProviders(prev => {
+                                          const next = new Set(prev);
+                                          next.delete(provider.provider_id);
+                                          return next;
+                                        });
+                                        setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                      }
+                                    } catch {
+                                      // Silent fail - user can retry
+                                    } finally {
+                                      setUnconfirmingProvider(null);
+                                    }
+                                  }}
+                                  disabled={unconfirmingProvider === provider.provider_id}
+                                  className="text-blue-500 hover:text-blue-400 transition-colors disabled:opacity-50"
+                                  title="Click to unconfirm"
+                                >
+                                  {unconfirmingProvider === provider.provider_id ? (
+                                    <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </button>
                               ) : (
                                 <>
                                   <button
@@ -2298,6 +2407,12 @@ function CityRow({
                                         });
                                         if (res.ok) {
                                           setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                          // Clear from unconfirmed set if re-confirming
+                                          setUnconfirmedProviders(prev => {
+                                            const next = new Set(prev);
+                                            next.delete(provider.provider_id);
+                                            return next;
+                                          });
                                         } else {
                                           setConfirmError(provider.provider_id);
                                         }
@@ -2333,17 +2448,17 @@ function CityRow({
                           </div>
                           {/* Hover actions */}
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                            {/* Notes button */}
+                            {/* Notes button - filled when provider has notes */}
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onOpenNotesModal(provider);
                               }}
-                              className="p-1 text-gray-300 hover:text-amber-500"
+                              className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                               title="Notes"
                             >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                               </svg>
                             </button>
@@ -2393,7 +2508,12 @@ function CityRow({
                           {provider.stage === "claimed" ? (
                             <>
                               {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                              {provider.email && <span>{provider.email}</span>}
+                              {provider.email && (
+                                <>
+                                  <span>{provider.email}</span>
+                                  <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                                </>
+                              )}
                               {provider.email && provider.phone && <span>·</span>}
                               {provider.phone && (
                                 <a
@@ -2456,12 +2576,14 @@ function CityRow({
                                 </span>
                               )}
                               {/* Apollo decision-maker contact row */}
-                              {/* Show on Ready tab (when has email) OR on Needs Email tab (always available) */}
+                              {/* Show on Ready tab (when has email), Needs Email tab, or In Sequence tab */}
                               {(
                                 // Ready tab: show when provider has email (find decision-maker as upgrade)
                                 ((provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready") ||
                                 // Needs Email tab: always show Apollo option alongside scraping
-                                activeTab === "needs_email"
+                                activeTab === "needs_email" ||
+                                // In Sequence tab: allow finding decision maker and resetting with new email
+                                activeTab === "in_sequence"
                               ) && (
                                 <ApolloContactRow
                                   provider={{
@@ -2472,6 +2594,8 @@ function CityRow({
                                   onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
                                   onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
                                   onEmailSourceChanged={activeTab === "ready" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
+                                  stage={activeTab === "in_sequence" ? "in_sequence" : undefined}
+                                  onResetToReady={activeTab === "in_sequence" ? onResetToReadyWithApollo : undefined}
                                 />
                               )}
                             </>
@@ -3002,6 +3126,48 @@ function FollowUpProviderRow({
         } else {
           onOutcomeRecorded(true);
         }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to reset provider");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setResettingToReady(false);
+        setShowResetConfirm(false);
+      }
+    }
+  };
+
+  // Handle reset to Ready with current email (non-Apollo flow)
+  // Used when user manually edited email and wants to restart sequence
+  const handleResetToReadyWithCurrentEmail = async () => {
+    const sessionAtStart = editingSessionRef.current;
+    setResettingToReady(true);
+    setError(null);
+
+    // Use provider's current email_source, default to "organization"
+    const emailSource = provider.email_source || "organization";
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: emailSource,
+          use_apollo_email: false, // Keep current email
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        // Provider was moved to Ready - trigger refresh
+        onOutcomeRecorded(true);
       } else if (stillValid) {
         const data = await res.json();
         setError(data.error || "Failed to reset provider");
@@ -3557,17 +3723,17 @@ function FollowUpProviderRow({
 
               {/* Hover actions (notes + three dots + trash) */}
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {/* Notes button */}
+                {/* Notes button - filled when provider has notes */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onOpenNotesModal();
                   }}
-                  className="p-1 text-gray-300 hover:text-amber-500"
+                  className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                   title="Notes"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                   </svg>
                 </button>
@@ -3734,13 +3900,16 @@ function FollowUpProviderRow({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                       {provider.email ? (
-                        <a
-                          href={`mailto:${provider.email}`}
-                          className="text-sm text-primary-600 hover:underline truncate"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {provider.email}
-                        </a>
+                        <>
+                          <a
+                            href={`mailto:${provider.email}`}
+                            className="text-sm text-primary-600 hover:underline truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {provider.email}
+                          </a>
+                          <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                        </>
                       ) : (
                         <span className="text-sm text-gray-400 italic">No email</span>
                       )}
@@ -3982,6 +4151,52 @@ function FollowUpProviderRow({
                     <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
                     Finding...
                   </span>
+                )}
+              </div>
+            )}
+
+            {/* Reset to Ready option - when no Apollo or user wants to restart sequence */}
+            {!localApolloContact && (
+              <div className="flex items-center gap-2 mb-3">
+                {showResetConfirm ? (
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-md">
+                    <span className="text-xs text-gray-700">
+                      Reset to Ready tab with current email?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleResetToReadyWithCurrentEmail();
+                      }}
+                      disabled={resettingToReady}
+                      className="px-2 py-1 text-xs font-medium text-white bg-gray-700 rounded hover:bg-gray-800 disabled:opacity-50"
+                    >
+                      {resettingToReady ? "Resetting..." : "Yes, Reset"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowResetConfirm(false);
+                      }}
+                      disabled={resettingToReady}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowResetConfirm(true);
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Reset to Ready
+                  </button>
                 )}
               </div>
             )}
@@ -5217,7 +5432,10 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 ) : (
                   <div className="flex items-center gap-2 flex-1">
                     {provider.email ? (
-                      <span className="text-sm">{provider.email}</span>
+                      <>
+                        <span className="text-sm">{provider.email}</span>
+                        <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                      </>
                     ) : (
                       <span className="text-sm text-gray-400 italic">No email</span>
                     )}
@@ -5399,7 +5617,7 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 className="px-3 py-1.5 text-sm font-medium text-amber-600 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 hover:border-amber-400 transition-colors"
                 title="Notes"
               >
-                <svg className="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-4 h-4 inline-block" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
               </button>
@@ -5785,9 +6003,16 @@ export default function ProviderOutreachPage() {
       claimed: number;
       rate: number;
     };
+    by_email_source?: {
+      organization: { in_sequence: number; claimed: number; rate: number };
+      decision_maker: { in_sequence: number; claimed: number; rate: number };
+    };
   } | null>(null);
   const [conversionLoading, setConversionLoading] = useState(false);
   const [conversionError, setConversionError] = useState(false);
+
+  // Email source comparison (org vs Apollo decision-maker)
+  const [emailSourceExpanded, setEmailSourceExpanded] = useState(false);
 
   // Email template preview
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -6429,9 +6654,11 @@ export default function ProviderOutreachPage() {
     fetchClaimsDashboard();
   }, [emailStatsExpanded, claimsDashboard]);
 
-  // Effect: fetch sequence conversion stats when section is expanded
+  // Effect: fetch sequence conversion stats when any analytics section is expanded
+  // (Outreach Funnel, Sequence Conv., and Email Source all use the same API data)
   useEffect(() => {
-    if (!conversionExpanded || conversionStats || !selectedState) return;
+    const needsData = statsExpanded || conversionExpanded || emailSourceExpanded;
+    if (!needsData || conversionStats || !selectedState) return;
 
     const fetchConversionStats = async () => {
       setConversionLoading(true);
@@ -6452,7 +6679,7 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchConversionStats();
-  }, [conversionExpanded, conversionStats, selectedState]);
+  }, [statsExpanded, conversionExpanded, emailSourceExpanded, conversionStats, selectedState]);
 
   // Reset conversion stats when state changes
   useEffect(() => {
@@ -7300,87 +7527,142 @@ export default function ProviderOutreachPage() {
         />
       )}
 
-      {/* Collapsible Funnel Stats - only show when a state is selected */}
+      {/* Analytics Sections - Horizontal Row of Toggles */}
       {selectedState && (
         <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => setStatsExpanded(!statsExpanded)}
-            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <svg
-              className={`w-4 h-4 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* Horizontal row of toggle buttons */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Outreach Funnel toggle */}
+            <button
+              type="button"
+              onClick={() => setStatsExpanded(!statsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                statsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span>Outreach Funnel</span>
-          </button>
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Outreach Funnel</span>
+            </button>
 
+            <span className="text-gray-300">|</span>
+
+            {/* Email Performance toggle */}
+            <button
+              type="button"
+              onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                emailStatsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Email Performance</span>
+              {claimsDashboard && (
+                <span className="text-xs text-gray-400">
+                  ({claimsDashboard.totals.claimed} claims)
+                </span>
+              )}
+            </button>
+
+            <span className="text-gray-300">|</span>
+
+            {/* Sequence Conversion toggle */}
+            <button
+              type="button"
+              onClick={() => setConversionExpanded(!conversionExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                conversionExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${conversionExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Sequence Conv.</span>
+              {conversionStats && conversionStats.totals.in_sequence > 0 && (
+                <span className="text-xs text-gray-400">
+                  ({conversionStats.totals.rate}%)
+                </span>
+              )}
+            </button>
+
+            <span className="text-gray-300">|</span>
+
+            {/* Email Source toggle (Apollo vs Org) */}
+            <button
+              type="button"
+              onClick={() => setEmailSourceExpanded(!emailSourceExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                emailSourceExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${emailSourceExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Email Source</span>
+              {conversionStats?.by_email_source && (
+                <span className="text-xs text-gray-400">
+                  (Apollo {conversionStats.by_email_source.decision_maker.rate}%)
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Outreach Funnel expanded content */}
           {statsExpanded && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <FunnelStat
-                label="In Sequence"
-                value={stageCounts.in_sequence}
-                subtitle="actively receiving emails"
-              />
-              <FunnelStat
-                label="Follow Up"
-                value={stageCounts.needs_call}
-                subtitle="sequence complete"
-              />
-              <FunnelStat
-                label="Claimed"
-                value={stageCounts.claimed}
-                highlight
-                subtitle="success"
-              />
-              <FunnelStat
-                label="Claim Rate"
-                value={
-                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed > 0
-                    ? Math.round(
-                        (stageCounts.claimed /
-                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed)) *
-                          100
-                      )
-                    : 0
-                }
-                format="percent"
-                subtitle="of providers who entered sequence"
-              />
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <FunnelStat
+                  label="In Sequence"
+                  value={stageCounts.in_sequence}
+                  subtitle="actively receiving emails"
+                />
+                <FunnelStat
+                  label="Follow Up"
+                  value={stageCounts.needs_call}
+                  subtitle="sequence complete"
+                />
+                <FunnelStat
+                  label="Claimed"
+                  value={conversionStats?.totals.claimed ?? 0}
+                  highlight
+                  subtitle="from sequence"
+                />
+                <FunnelStat
+                  label="Claim Rate"
+                  value={conversionStats?.totals.rate ?? 0}
+                  format="percent"
+                  subtitle="of providers who entered sequence"
+                />
+              </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Email Performance Section */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span>Email Performance</span>
-          {claimsDashboard && (
-            <span className="text-xs text-gray-400">
-              ({claimsDashboard.totals.claimed} claims · {claimsDashboard.totals.conversion_rate}% rate)
-            </span>
-          )}
-        </button>
-
-        {emailStatsExpanded && (
-          <div className="mt-4 space-y-6">
+          {/* Email Performance expanded content */}
+          {emailStatsExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg space-y-6">
             {/* Claims Dashboard */}
             {claimsDashboardLoading ? (
               <div className="text-sm text-gray-500">Loading claims data...</div>
@@ -7511,84 +7793,169 @@ export default function ProviderOutreachPage() {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Sequence Conversion Section */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setConversionExpanded(!conversionExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${conversionExpanded ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span>Sequence Conversion</span>
-          {conversionStats && conversionStats.totals.in_sequence > 0 && (
-            <span className="text-xs text-gray-400">
-              ({conversionStats.totals.claimed}/{conversionStats.totals.in_sequence} claimed · {conversionStats.totals.rate}%)
-            </span>
-          )}
-        </button>
-
-        {conversionExpanded && (
-          <div className="mt-4">
-            {conversionLoading ? (
-              <div className="text-sm text-gray-500">Loading conversion stats...</div>
-            ) : conversionError ? (
-              <div className="flex items-center gap-3 text-sm">
-                <span className="text-red-600">Failed to load conversion stats</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConversionStats(null);
-                    setConversionError(false);
-                  }}
-                  className="text-teal-700 hover:underline"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : conversionStats && conversionStats.cities.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 pr-4 font-medium text-gray-600">City</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Sequenced</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Claimed</th>
-                      <th className="text-right py-2 pl-3 font-medium text-gray-600">Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {conversionStats.cities.map((c) => (
-                      <tr key={c.city} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 text-gray-900">{c.city}</td>
-                        <td className="py-2 px-3 text-right text-gray-700 tabular-nums">{c.in_sequence}</td>
-                        <td className="py-2 px-3 text-right text-emerald-600 font-medium tabular-nums">{c.claimed}</td>
-                        <td className="py-2 pl-3 text-right text-gray-700 tabular-nums">{c.rate}%</td>
+          {/* Sequence Conversion expanded content */}
+          {conversionExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              {conversionLoading ? (
+                <div className="text-sm text-gray-500">Loading conversion stats...</div>
+              ) : conversionError ? (
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-red-600">Failed to load conversion stats</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConversionStats(null);
+                      setConversionError(false);
+                    }}
+                    className="text-teal-700 hover:underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : conversionStats && conversionStats.cities.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 pr-4 font-medium text-gray-600">City</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">Sequenced</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">Claimed</th>
+                        <th className="text-right py-2 pl-3 font-medium text-gray-600">Rate</th>
                       </tr>
-                    ))}
-                    <tr className="font-medium bg-gray-50">
-                      <td className="py-2 pr-4 text-gray-900">Total</td>
-                      <td className="py-2 px-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.in_sequence}</td>
-                      <td className="py-2 px-3 text-right text-emerald-700 tabular-nums">{conversionStats.totals.claimed}</td>
-                      <td className="py-2 pl-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.rate}%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-sm text-gray-500">No sequence data yet. Start a sequence to see conversion stats.</div>
-            )}
-          </div>
-        )}
-      </div>
+                    </thead>
+                    <tbody>
+                      {conversionStats.cities.map((c) => (
+                        <tr key={c.city} className="border-b border-gray-100">
+                          <td className="py-2 pr-4 text-gray-900">{c.city}</td>
+                          <td className="py-2 px-3 text-right text-gray-700 tabular-nums">{c.in_sequence}</td>
+                          <td className="py-2 px-3 text-right text-emerald-600 font-medium tabular-nums">{c.claimed}</td>
+                          <td className="py-2 pl-3 text-right text-gray-700 tabular-nums">{c.rate}%</td>
+                        </tr>
+                      ))}
+                      <tr className="font-medium bg-gray-50">
+                        <td className="py-2 pr-4 text-gray-900">Total</td>
+                        <td className="py-2 px-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.in_sequence}</td>
+                        <td className="py-2 px-3 text-right text-emerald-700 tabular-nums">{conversionStats.totals.claimed}</td>
+                        <td className="py-2 pl-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.rate}%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No sequence data yet. Start a sequence to see conversion stats.</div>
+              )}
+            </div>
+          )}
+
+          {/* Email Source expanded content (Apollo vs Org comparison) */}
+          {emailSourceExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              {conversionLoading ? (
+                <div className="text-sm text-gray-500">Loading email source data...</div>
+              ) : conversionError ? (
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-red-600">Failed to load data</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConversionStats(null);
+                      setConversionError(false);
+                    }}
+                    className="text-teal-700 hover:underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : conversionStats?.by_email_source ? (
+                <div className="space-y-4">
+                  <div className="text-sm font-medium text-gray-700">Which email type converts better?</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Organization Email Stats */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Organization Emails</div>
+                          <div className="text-xs text-gray-500">info@, contact@, etc.</div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Sequenced</span>
+                          <span className="font-medium text-gray-900 tabular-nums">{conversionStats.by_email_source.organization.in_sequence}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Claimed</span>
+                          <span className="font-medium text-emerald-600 tabular-nums">{conversionStats.by_email_source.organization.claimed}</span>
+                        </div>
+                        <div className="flex justify-between text-sm border-t border-gray-100 pt-2 mt-2">
+                          <span className="text-gray-700 font-medium">Conversion</span>
+                          <span className="font-semibold text-gray-900 tabular-nums text-lg">{conversionStats.by_email_source.organization.rate}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Decision-Maker (Apollo) Email Stats */}
+                    <div className="bg-white border border-purple-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Apollo Decision-Makers</div>
+                          <div className="text-xs text-gray-500">Personal emails, addressed by name</div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Sequenced</span>
+                          <span className="font-medium text-gray-900 tabular-nums">{conversionStats.by_email_source.decision_maker.in_sequence}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Claimed</span>
+                          <span className="font-medium text-emerald-600 tabular-nums">{conversionStats.by_email_source.decision_maker.claimed}</span>
+                        </div>
+                        <div className="flex justify-between text-sm border-t border-gray-100 pt-2 mt-2">
+                          <span className="text-gray-700 font-medium">Conversion</span>
+                          <span className="font-semibold text-purple-700 tabular-nums text-lg">{conversionStats.by_email_source.decision_maker.rate}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Insight line */}
+                  {conversionStats.by_email_source.organization.in_sequence > 0 && conversionStats.by_email_source.decision_maker.in_sequence > 0 && (
+                    <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-lg p-3">
+                      {conversionStats.by_email_source.decision_maker.rate > conversionStats.by_email_source.organization.rate ? (
+                        <span>
+                          <span className="font-medium text-purple-700">Apollo decision-makers convert {conversionStats.by_email_source.decision_maker.rate - conversionStats.by_email_source.organization.rate}% better</span>
+                          {" "}than organization emails. Personalized outreach pays off.
+                        </span>
+                      ) : conversionStats.by_email_source.organization.rate > conversionStats.by_email_source.decision_maker.rate ? (
+                        <span>
+                          <span className="font-medium text-blue-700">Organization emails convert {conversionStats.by_email_source.organization.rate - conversionStats.by_email_source.decision_maker.rate}% better</span>
+                          {" "}than Apollo decision-makers.
+                        </span>
+                      ) : (
+                        <span>Both email types have the same conversion rate.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No email source data yet. Start sequences to compare org vs Apollo performance.</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Action Bar (when items selected) - hidden during search since providers may be from different stages */}
       {selectedProviders.size > 0 && !isSearchResult && (
@@ -7753,7 +8120,7 @@ export default function ProviderOutreachPage() {
                             </div>
                             {/* Hover actions */}
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {/* Notes button */}
+                              {/* Notes button - filled when provider has notes */}
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -7763,10 +8130,10 @@ export default function ProviderOutreachPage() {
                                     name: provider.provider_name,
                                   });
                                 }}
-                                className="p-1 text-gray-300 hover:text-amber-500"
+                                className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                                 title="Notes"
                               >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                 </svg>
                               </button>
@@ -7814,7 +8181,12 @@ export default function ProviderOutreachPage() {
                           {provider.provider_category && provider.city && <span>·</span>}
                           {provider.city && <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>}
                           {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                          {provider.email && <span>{provider.email}</span>}
+                          {provider.email && (
+                            <>
+                              <span>{provider.email}</span>
+                              <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                            </>
+                          )}
                           {/* Questions and leads context pills */}
                           {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
                           <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
@@ -8238,6 +8610,47 @@ export default function ProviderOutreachPage() {
                           }
                         } catch {
                           showToast("Network error", "error");
+                        }
+                      } : undefined}
+                      onResetToReadyWithApollo={activeTab === "in_sequence" ? async (providerId) => {
+                        // Find provider to get Apollo contact
+                        const provider = providers.find(p => p.provider_id === providerId);
+                        const apolloContact = provider?.apollo_contact;
+                        if (!apolloContact?.email) {
+                          showToast("No Apollo email found", "error");
+                          return false;
+                        }
+                        try {
+                          const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              provider_id: providerId,
+                              email_source: "decision_maker",
+                              use_apollo_email: true,
+                            }),
+                          });
+                          if (res.ok) {
+                            // Mark as recently moved to filter from stale API responses
+                            markAsRecentlyMoved(providerId);
+                            // Remove from In Sequence list
+                            setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                            // Update stage counts
+                            setStageCounts((prev) => ({
+                              ...prev,
+                              in_sequence: Math.max(0, prev.in_sequence - 1),
+                              ready: prev.ready + 1,
+                            }));
+                            showToast("Reset to Ready with Apollo email", "success");
+                            return true;
+                          } else {
+                            const err = await res.json();
+                            showToast(err.error || "Failed to reset provider", "error");
+                            return false;
+                          }
+                        } catch {
+                          showToast("Network error", "error");
+                          return false;
                         }
                       } : undefined}
                       cityOwnerId={cityOwners.get(city.city)?.owner_id || null}

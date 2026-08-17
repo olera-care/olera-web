@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-08-17 — Actionable Ad Boost traction email (`codex/ad-boost-traction-questions`)
+
+Reworked the one-time early-traction email around the Graceful Homecare result: the grid now shows visitors, questions, leads, clicks, spend, and CPC; unanswered questions become the primary CTA into `/provider/qna`, with campaign performance kept as a secondary link. The lifecycle sender supplies tracked question/performance URLs plus received/unanswered counts, and the admin metrics form now warns and requires confirmation before a live metric save triggers the provider email. The message-journey sample uses Graceful's 94 visitors, 7 questions (6 unanswered), 101 clicks, $35.66 spend, and 0 leads. **Files:** `app/admin/ad-boost/[id]/page.tsx`, `lib/ad-boost/lifecycle-notifications.server.ts`, `lib/email-{samples,templates}.tsx`. **Validation:** TypeScript, diff check, 33-cron registry, focused email edge assertions, and rendered-email visual QA pass. **Next:** preview the Graceful sample and admin send-confirmation gate; merge only after TJ approval.
+
 ### 2026-08-16 — Care-seeker comms timeline (`codex/care-seeker-comms-timeline`)
 
 Replaced the care-seeker detail page's email-only block with the same interleaved comms model used for providers: family email/SMS rows plus meaningful `seeker_activity`, chronological lifecycle statuses, expandable message previews, honest totals, Email Log deep-linking, and mobile horizontal scrolling. Extracted the provider renderer into a shared `CommsTimeline` without changing its data source. The care-seeker API matches current recipient email, stable `metadata.family_profile_id`, and the family-SMS profile key; it also recovers profile-less save-signup conversions by exact `metadata.user_email`. Pre-test fixed those two identity omissions plus a stale-response race that could show the wrong body after rapidly switching previews. No migration.

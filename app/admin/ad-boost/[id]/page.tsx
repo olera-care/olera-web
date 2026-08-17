@@ -230,6 +230,10 @@ function Detail({
     (request.ad_spend_cents != null ? request.ad_spend_cents / 100 : null) !== spendNum ||
     (request.ad_clicks ?? null) !== clicksNum ||
     (request.ad_impressions ?? null) !== impressionsNum;
+  const willSendTractionEmail =
+    request.status === "live" &&
+    !request.traction_email_sent_at &&
+    ((spendNum ?? 0) > 0 || (clicksNum ?? 0) > 0);
 
   // The schedule field only participates in dirty/save while its block is
   // shown (live + email unsent) — otherwise a time typed before switching
@@ -333,6 +337,14 @@ function Detail({
     }
     if (impressionsNum != null && (!Number.isInteger(impressionsNum) || impressionsNum < 0)) {
       setMsg("Impressions must be a non-negative whole number");
+      return;
+    }
+    if (
+      willSendTractionEmail &&
+      !window.confirm(
+        `Saving these metrics will immediately email ${name} their one-time Early traction update. Send it now?`,
+      )
+    ) {
       return;
     }
     setSavingPerf(true);
@@ -1039,11 +1051,18 @@ function Detail({
           >
             {savingPerf ? "Saving…" : "Save metrics"}
           </button>
-          <span className="text-xs text-gray-400">
-            Enter spend, clicks &amp; impressions from the Google, Meta, or Nextdoor dashboard.
-            Impressions top the provider&apos;s demand receipt; cost per family is
-            computed against delivered families.
-          </span>
+          {willSendTractionEmail ? (
+            <span className="text-xs text-amber-700">
+              Saving will immediately send the provider&apos;s one-time Early traction email.
+              You&apos;ll confirm before it sends.
+            </span>
+          ) : (
+            <span className="text-xs text-gray-400">
+              Enter spend, clicks &amp; impressions from the Google, Meta, or Nextdoor dashboard.
+              Impressions top the provider&apos;s demand receipt; cost per family is
+              computed against delivered families.
+            </span>
+          )}
         </div>
       </section>
 

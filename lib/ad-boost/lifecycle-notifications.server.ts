@@ -162,6 +162,8 @@ export async function sendAdBoostLifecycleEmail(opts: {
     ad_boost_lifecycle_kind: opts.kind,
     visitors: stats.visitors,
     leads: stats.leads,
+    questions_received: questions.received,
+    questions_unanswered: questions.unanswered,
     ad_spend_cents: opts.request.ad_spend_cents,
     ad_clicks: opts.request.ad_clicks,
   };
@@ -176,6 +178,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
   });
 
   const ctaUrl = appendTrackingParams(`${getSiteUrl()}/provider/boost`, emailLogId);
+  const questionsUrl = appendTrackingParams(`${getSiteUrl()}/provider/qna`, emailLogId);
 
   // Campaign-level outcome chips, only on a zero-lead wrap-up. That's the case
   // the per-lead sensor structurally cannot reach — sendDueLeadOutcomePings
@@ -202,11 +205,13 @@ export async function sendAdBoostLifecycleEmail(opts: {
         ? adBoostTractionEmail({
             providerName: recipient.name,
             ctaUrl,
+            questionsUrl,
             visitors: stats.visitors,
             leads: stats.leads,
             clicks: opts.request.ad_clicks,
             spendCents: opts.request.ad_spend_cents,
             questionsReceived: questions.received,
+            questionsUnanswered: questions.unanswered,
           })
         : adBoostPromoCompleteEmail({
             providerName: recipient.name,

@@ -12,8 +12,9 @@ readiness states, or cross-side terminology. The rigor sits underneath, in the t
 > costs. Aim 2 proves that Olera's three provider tools deliver real results — hires
 > made, inquiries generated, clients admitted — and are worth paying for. Aim 3 puts
 > real prices on the tools that proved themselves and measures whether providers buy,
-> stay, and generate enough revenue to sustain the whole platform — including keeping
-> it free for families.
+> stay, and generate real revenue — targeting the break-even needed to run the
+> platform after the award, and producing the evidence investors need to fund
+> faster growth.
 
 ## The Approach-opening paragraphs (candidate prose, ~210 words)
 
@@ -35,10 +36,12 @@ readiness states, or cross-side terminology. The rigor sits underneath, in the t
 > Aim 3 is the test the entire project builds toward: in counties that now have
 > enough real activity, the products that proved their value are offered at real
 > prices. New providers encounter them as ordinary customers. We measure who buys, at
-> what price, who stays, and whether provider revenue exceeds everything the platform
-> costs to run — including free family navigation. If it does, Olera exits the award
-> self-sustaining, with the economics rebuilt and verified by an independent
-> accountant.
+> what price, who stays, and whether revenue is on track to reach the break-even
+> level required to support operations after the award. Aim 3 also completes the
+> evidence our investment advisors have told us they would need to evaluate Olera
+> for growth investment. If the model succeeds, Olera continues on its own revenue
+> after the award, and private capital becomes a way to expand faster rather than a
+> requirement to survive.
 
 ## Notes
 

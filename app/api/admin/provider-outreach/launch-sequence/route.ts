@@ -466,7 +466,7 @@ export async function POST(request: NextRequest) {
           // Check if tracking record exists
           const { data: existingTracking } = await db
             .from("provider_outreach_tracking")
-            .select("id, stage, assigned_to, smartlead_data, apollo_contact")
+            .select("id, stage, assigned_to, smartlead_data, apollo_contact, email_source")
             .eq("provider_id", preview.provider_id)
             .maybeSingle();
 
@@ -499,9 +499,11 @@ export async function POST(request: NextRequest) {
 
             // Update to in_sequence with fresh sequence_started_at
             // Clear smartlead_data for fresh enrollment
+            // Capture current email_source as sequenced_with_source for accurate conversion tracking
             const updateFields: Record<string, unknown> = {
               stage: "in_sequence",
               sequence_started_at: new Date().toISOString(),
+              sequenced_with_source: existingTracking.email_source || "organization",
               assigned_to: newAssignedTo,
               smartlead_data: null, // Clear for fresh SmartLead enrollment
             };
@@ -530,12 +532,14 @@ export async function POST(request: NextRequest) {
             const variantAssignment = variantAssignments.get(preview.provider_id);
 
             // Create new tracking record in in_sequence stage
+            // New records default to "organization" for sequenced_with_source
             const insertFields: Record<string, unknown> = {
               provider_id: preview.provider_id,
               stage: "in_sequence",
               city: preview.city,
               state: preview.state,
               sequence_started_at: new Date().toISOString(),
+              sequenced_with_source: "organization",
               assigned_to: effectiveAssignedTo,
             };
 

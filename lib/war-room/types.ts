@@ -380,10 +380,40 @@ export interface WarRoomCompanyRead {
   unresolvedQuestions: string[];
 }
 
+/**
+ * One answered probe, ready to read.
+ *
+ * A probe answer is the most useful thing a scan produces, and until now it
+ * only existed inside an investigation's event trail. This is the same answer
+ * addressed to the founder instead of to the reasoning loop.
+ */
+export interface WarRoomProbeReading {
+  probeId: string;
+  label: string;
+  question: string;
+  headline: string;
+  detail: string;
+  rows: Array<Record<string, string | number>>;
+  caveat: string | null;
+  measuredAt: string;
+}
+
+/** What the last scan cost, priced from the run's recorded token counts. */
+export interface WarRoomScanCost {
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  /** Null when the model has no published price in the table. */
+  usd: number | null;
+}
+
 export interface WarRoomSupervisorPayload {
   generatedAt: string;
   proposals: WarRoomProposal[];
   investigations: WarRoomInvestigation[];
+  /** The read-only probe answers from the most recent scans. */
+  briefing: WarRoomProbeReading[];
+  scanCost: WarRoomScanCost | null;
   companyModel: WarRoomCompanyModel | null;
   companyRead: WarRoomCompanyRead | null;
   /** Legacy summary retained while older discovery runs remain visible. */

@@ -116,6 +116,36 @@ reintroduces exactly the "plans a probe nobody runs" defect.
 skipping and duplicating rows. An unordered scan of the provider directory
 undercounted it by a third while this module was being written.
 
+## The daily brief
+
+Probe answers were only ever addressed to the next scan. They landed in
+`war_room_investigation_events` as `probe_completed` and became `probe:<id>`
+evidence, and a person had to read a JSONB blob under a case marked "not ready
+for the founder" to see them.
+
+`lib/war-room/briefing.server.ts` addresses the same rows to the founder.
+`loadWarRoomBriefing` returns the latest answer per probe id, newest first,
+deduplicated so a re-run supersedes rather than stacks. `/admin/war-room`
+renders them as **Today's read**, above the company verdict and the decision
+queue.
+
+This is a deliberate inversion of what the page leads with. Founder proposals
+are rare by design — the agenda gate is twelve conjunctive conditions and at
+most one case per scan may clear it — so a page that surfaces only proposals
+reads as "War Room found nothing" on days when it measured a great deal. The
+brief is the primary output; a proposal is the exception.
+
+The brief re-measures nothing. It is exactly as fresh as the last scan, and each
+reading states the date it was measured. A missing migration costs the reader
+the brief, not the dashboard: `loadWarRoomBriefing` returns an empty list on a
+read error rather than failing the page.
+
+`warRoomScanCost` prices the run row's existing `input_tokens` /
+`output_tokens` against a small published-price table and shows the result in
+the brief header. An unknown model reports its token counts with no dollar
+figure rather than guessing one. A daily cron that buys a full reasoning pass
+should not be an unknown number on the founder's own dashboard.
+
 ## What Olera actually sells
 
 `WAR_ROOM_OPERATING_MECHANICS` in `lib/war-room/strategy.ts` states the funnel

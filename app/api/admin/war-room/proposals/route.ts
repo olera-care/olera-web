@@ -12,6 +12,7 @@ import {
 } from "@/lib/war-room/discovery.server";
 import { warRoomDiscoveryWorkflow } from "@/workflows/war-room-discovery";
 import { dispatchApprovedProposal } from "@/lib/war-room/executor.server";
+import { loadWarRoomBriefing, warRoomScanCost } from "@/lib/war-room/briefing.server";
 import { integrationStatuses } from "@/lib/war-room/sources.server";
 import type {
   WarRoomCompanyRead,
@@ -112,7 +113,7 @@ export async function GET() {
   try {
     const db = getServiceClient();
     await expireStaleWork(db);
-    const [proposalResult, investigationResult, companyModelResult, discoveryResult, integrations] = await Promise.all([
+    const [proposalResult, investigationResult, companyModelResult, discoveryResult, integrations, briefing] = await Promise.all([
       db.from("war_room_proposals").select("*")
         .order("last_seen_at", { ascending: false })
         .limit(30),
@@ -126,6 +127,7 @@ export async function GET() {
         .limit(1)
         .maybeSingle(),
       integrationStatuses(db),
+      loadWarRoomBriefing(db),
     ]);
     if (proposalResult.error) throw proposalResult.error;
     if (discoveryResult.error) throw discoveryResult.error;
@@ -141,6 +143,8 @@ export async function GET() {
       generatedAt: new Date().toISOString(),
       proposals,
       investigations,
+      briefing,
+      scanCost: warRoomScanCost(latestDiscovery),
       companyModel: companyModelResult.data as WarRoomCompanyModel | null,
       companyRead,
       companyVerdict: companyRead?.summary ?? (typeof latestDiscovery?.source_summary?.company_verdict === "string"

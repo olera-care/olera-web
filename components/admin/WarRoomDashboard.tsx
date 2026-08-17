@@ -24,8 +24,10 @@ import type {
   WarRoomCompanyRead,
   WarRoomIntegrationStatus,
   WarRoomInvestigation,
+  WarRoomProbeReading,
   WarRoomProposal,
   WarRoomProposalStatus,
+  WarRoomScanCost,
   WarRoomSupervisorPayload,
 } from "@/lib/war-room/types";
 
@@ -39,6 +41,32 @@ function relative(iso: string | null) {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return days === 1 ? "yesterday" : `${days}d ago`;
+}
+
+/** Admin timestamps read in US Eastern regardless of where the operator is. */
+function measuredOn(iso: string) {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "recently";
+  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
+}
+
+function formatUsd(value: number) {
+  return value >= 1 ? `$${value.toFixed(2)}` : `$${value.toFixed(3)}`;
+}
+
+/**
+ * Probe rows carry different shapes per probe, so render them structurally
+ * rather than per-probe: numbers are the measurement, strings are what it is of.
+ * A hand-written formatter per probe would drift the moment a probe changes.
+ */
+function splitProbeRow(row: Record<string, string | number>) {
+  const values: string[] = [];
+  const labels: string[] = [];
+  for (const cell of Object.values(row)) {
+    if (typeof cell === "number") values.push(cell.toLocaleString("en-US"));
+    else if (cell) labels.push(cell);
+  }
+  return { label: labels.join(" · "), value: values.join(" · ") };
 }
 
 function elapsedMilliseconds(startedAt: string | null, nowIso: string) {
@@ -738,6 +766,8 @@ export default function WarRoomDashboard() {
             </div>
           </section>
 
+          {payload.briefing?.length ? <BriefingSection readings={payload.briefing} scanCost={payload.scanCost} /> : null}
+
           {payload.companyVerdict ? (
             <section className="mt-5 rounded-2xl border border-gray-200 bg-white px-5 py-5 sm:px-6">
               <div className="flex gap-3">
@@ -847,6 +877,79 @@ export default function WarRoomDashboard() {
         </>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The scan's primary output.
+ *
+ * Founder proposals are rare by design, so a page that only surfaces proposals
+ * reads as "War Room found nothing" on days when it measured a great deal. The
+ * brief is what it measured, stated plainly and without a recommendation
+ * attached — every number here is a bounded read-only query, not a judgement.
+ */
+function BriefingSection({
+  readings,
+  scanCost,
+}: {
+  readings: WarRoomProbeReading[];
+  scanCost: WarRoomScanCost | null;
+}) {
+  return (
+    <section className="mt-8">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-gray-950">Today&apos;s read</h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+            What the last scans actually measured. Facts, not recommendations — nothing here is asking you to decide anything.
+          </p>
+        </div>
+        {scanCost ? (
+          <p className="text-xs text-gray-400">
+            Last scan{scanCost.usd != null ? ` cost ${formatUsd(scanCost.usd)}` : ""}
+            {" · "}
+            {scanCost.inputTokens.toLocaleString("en-US")} in / {scanCost.outputTokens.toLocaleString("en-US")} out
+            {scanCost.usd == null ? ` on ${scanCost.model}` : ""}
+          </p>
+        ) : null}
+      </div>
+      <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {readings.map((reading, index) => (
+          <article key={reading.probeId} className={`px-5 py-5 sm:px-6 ${index ? "border-t border-gray-100" : ""}`}>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">{reading.label}</p>
+              <span className="text-[11px] text-gray-400">measured {measuredOn(reading.measuredAt)}</span>
+            </div>
+            {reading.question ? (
+              <p className="mt-1.5 max-w-2xl text-xs leading-5 text-gray-400">{reading.question}</p>
+            ) : null}
+            <p className="mt-2 max-w-3xl text-[15px] font-semibold leading-6 text-gray-950">{reading.headline}</p>
+            {reading.detail ? (
+              <p className="mt-1.5 max-w-3xl text-sm leading-6 text-gray-600">{reading.detail}</p>
+            ) : null}
+            {reading.rows.length ? (
+              <dl className="mt-3 max-w-lg">
+                {reading.rows.map((row, rowIndex) => {
+                  const { label, value } = splitProbeRow(row);
+                  return (
+                    <div
+                      key={`${reading.probeId}-${rowIndex}`}
+                      className={`flex items-baseline justify-between gap-4 py-1.5 ${rowIndex ? "border-t border-gray-100" : ""}`}
+                    >
+                      <dt className="text-sm leading-5 text-gray-600">{label || "—"}</dt>
+                      <dd className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">{value || "—"}</dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            ) : null}
+            {reading.caveat ? (
+              <p className="mt-3 max-w-3xl text-xs leading-5 text-gray-400">{reading.caveat}</p>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 

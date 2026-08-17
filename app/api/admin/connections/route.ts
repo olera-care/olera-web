@@ -843,6 +843,9 @@ export async function GET(request: NextRequest) {
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
+    // DEBUG: Log provider keys to trace viewed count issue
+    console.log(`[connections DEBUG] allProviderKeys count: ${allProviderKeys.length}, sample: ${allProviderKeys.slice(0, 5).join(", ")}, includes mill-run: ${allProviderKeys.includes("mill-run")}`);
+
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
     // Each connection has its own engagement data based on events with matching connection_id
@@ -877,13 +880,23 @@ export async function GET(request: NextRequest) {
     // This ensures each connection shows only its own engagement, not provider-wide
 
     if (allProviderKeys.length > 0) {
-      const { data: actEvents } = await db
+      const { data: actEvents, error: actError } = await db
         .from("provider_activity")
         .select("provider_id, event_type, created_at, metadata")
         .in("provider_id", allProviderKeys)
         .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
         .order("created_at", { ascending: false })
         .limit(10000);
+
+      // DEBUG: Log activity events query results
+      const leadOpenedEvents = actEvents?.filter(e => e.event_type === "lead_opened") ?? [];
+      const eventsWithConnId = leadOpenedEvents.filter(e => (e.metadata as Record<string, unknown>)?.connection_id || (e.metadata as Record<string, unknown>)?.lead_id);
+      console.log(`[connections DEBUG] actEvents total: ${actEvents?.length ?? 0}, lead_opened: ${leadOpenedEvents.length}, with connection_id: ${eventsWithConnId.length}, error: ${actError?.message ?? "none"}`);
+      if (eventsWithConnId.length > 0) {
+        const sample = eventsWithConnId[0];
+        const meta = sample.metadata as Record<string, unknown>;
+        console.log(`[connections DEBUG] sample event: provider_id=${sample.provider_id}, connection_id=${meta?.connection_id || meta?.lead_id}`);
+      }
 
       for (const ev of actEvents ?? []) {
         const meta = ev.metadata as Record<string, unknown> | null;

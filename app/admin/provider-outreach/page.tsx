@@ -3142,6 +3142,48 @@ function FollowUpProviderRow({
     }
   };
 
+  // Handle reset to Ready with current email (non-Apollo flow)
+  // Used when user manually edited email and wants to restart sequence
+  const handleResetToReadyWithCurrentEmail = async () => {
+    const sessionAtStart = editingSessionRef.current;
+    setResettingToReady(true);
+    setError(null);
+
+    // Use provider's current email_source, default to "organization"
+    const emailSource = provider.email_source || "organization";
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: emailSource,
+          use_apollo_email: false, // Keep current email
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        // Provider was moved to Ready - trigger refresh
+        onOutcomeRecorded(true);
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to reset provider");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setResettingToReady(false);
+        setShowResetConfirm(false);
+      }
+    }
+  };
+
   // Handle inline email save (for "Wrong Contact" / "Fix Email" flow)
   const handleSaveEmail = async () => {
     const trimmedEmail = newEmail.trim();
@@ -4109,6 +4151,52 @@ function FollowUpProviderRow({
                     <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
                     Finding...
                   </span>
+                )}
+              </div>
+            )}
+
+            {/* Reset to Ready option - when no Apollo or user wants to restart sequence */}
+            {!localApolloContact && (
+              <div className="flex items-center gap-2 mb-3">
+                {showResetConfirm ? (
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-md">
+                    <span className="text-xs text-gray-700">
+                      Reset to Ready tab with current email?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleResetToReadyWithCurrentEmail();
+                      }}
+                      disabled={resettingToReady}
+                      className="px-2 py-1 text-xs font-medium text-white bg-gray-700 rounded hover:bg-gray-800 disabled:opacity-50"
+                    >
+                      {resettingToReady ? "Resetting..." : "Yes, Reset"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowResetConfirm(false);
+                      }}
+                      disabled={resettingToReady}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowResetConfirm(true);
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Reset to Ready
+                  </button>
                 )}
               </div>
             )}

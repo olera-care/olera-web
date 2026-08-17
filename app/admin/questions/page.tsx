@@ -808,10 +808,8 @@ function ApolloContactRow({
       {apolloContact.title && (
         <span className="text-xs text-gray-500">{apolloContact.title}</span>
       )}
-      {/* Only show email if it differs from provider's email */}
-      {!emailsMatch && (
-        <span className="text-sm text-purple-600">{apolloContact.email}</span>
-      )}
+      {/* Always show the Apollo email so user knows what was found */}
+      <span className="text-sm text-purple-600">{apolloContact.email}</span>
       {apolloContact.linkedin_url && (
         <a
           href={apolloContact.linkedin_url}

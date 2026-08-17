@@ -1,0 +1,27 @@
+<svg viewBox="0 10 320 149" role="img" aria-label="Organic monthly visitors to the CareNavigator platform, from about 400 per month in 2023 to more than 15,000 per month in 2026, with zero paid acquisition.">
+      <g font-family="Arial" font-size="8.5" fill="#4a554f">
+        <text x="10" y="22" font-size="9.5" font-weight="700" fill="#141414">Organic visitors per month</text>
+        <text x="10" y="34" font-size="8" fill="#6b7770">zero paid acquisition · search infrastructure built from zero</text>
+      </g>
+      <!-- axes -->
+      <line x1="42" y1="48" x2="42" y2="142" stroke="#c7cecb" stroke-width="1"/>
+      <line x1="42" y1="142" x2="306" y2="142" stroke="#c7cecb" stroke-width="1"/>
+      <g font-family="Arial" font-size="7.5" fill="#6b7770">
+        <text x="38" y="52" text-anchor="end">15K</text>
+        <text x="38" y="97" text-anchor="end">7.5K</text>
+        <text x="38" y="145" text-anchor="end">0</text>
+        <text x="60" y="152" text-anchor="middle">2023</text>
+        <text x="142" y="152" text-anchor="middle">2024</text>
+        <text x="224" y="152" text-anchor="middle">2025</text>
+        <text x="298" y="152" text-anchor="middle">2026</text>
+      </g>
+      <!-- curve: 2023 ~400 -> 2026 25000 (compounding) -->
+      <path d="M60 139.5 C 130 138.4, 180 131.4, 224 114.2 C 258 98.3, 284 71.8, 298 48.7" fill="none" stroke="#2f5850" stroke-width="2"/>
+      <circle cx="60" cy="139.5" r="3" fill="#2f5850"/>
+      <circle cx="298" cy="49" r="3.5" fill="#2f5850"/>
+      <g font-family="Arial" font-size="8" fill="#141414">
+        <text x="66" y="121" font-weight="700">≈400/mo</text>
+        <text x="66" y="131" font-size="7.5" fill="#4a554f">reported in Phase IIB plan (2023)</text>
+        <text x="288" y="47" text-anchor="end" font-weight="700">15,000+/mo (2026)</text>
+      </g>
+    </svg>

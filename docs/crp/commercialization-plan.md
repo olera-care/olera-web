@@ -4,9 +4,8 @@ folder, file 1VutumddG9xH-UO3UBklUKsLvMnw0drwn), snapshot taken 2026-08-17 (last
 modification 2026-08-17 11:20 UTC). This is the CANONICAL CP working text per Logan's
 2026-08-17 instruction: the Drive version is the starting source of truth. It is a
 team-edited, condensed derivative that incorporates the v0.24 Revenue Streams rebuild
-(award-end break-even model) into human-rewritten Sections 1-8 and 11. Figures are
-referenced by caption only — the export carries no images; figure artwork lives in
-commercialization-plan-staging-v0.24.html. Known internal inconsistencies are logged in
+(award-end break-even model) into human-rewritten Sections 1-8 and 11. Figure artwork lives in
+figures/commercialization-plan/ (SVG source; see figures/MANIFEST.md). Known internal inconsistencies are logged in
 README.md and evidence-ledger.md — flag, do not silently harmonize.
 -->
 
@@ -207,7 +206,8 @@ One mature market and the national channel. Revenue comes through two channels: 
 
 How the projection is built. One market is one county, and Table 9 gives its economics: entering costs ≈$30,000 (provider outreach and onboarding, launch marketing, and campus-partner setup), serving costs ≈$1,000 a month (account management and provider support), and a market reaches its mature revenue of ≈$2,500 a month over about 18 months. Figure 10 is those economics repeated on a schedule, plus the national self-serve channel, minus operating costs [CPA to confirm]. The CRP opens all 18 markets early: 5 in Year 1 and the rest by the end of Year 2, with the final six opening as soon as Aim 3 pricing begins, so that every market is at or near mature revenue when the award ends. Paid conversion begins mid-Year 2, and churn is assumed offset by continuing conversion of the activated pool, an Aim 3 hypothesis.
 
-Figure 10: Revenue and operating costs, 2027–2037
+![Figure 10](figures/commercialization-plan/fig-10.svg)
+*Figure 10: Revenue and operating costs, 2027–2037*
 
 Reading the projection. The award funds three years of operating costs while the 18 markets are built and the model is validated. Commercial revenue grows through Years 2 and 3 as markets mature, and by the end of the award it runs at ≈$0.87 million a year, enough to cover the entire post-award cost of the company and its 18 markets. The CRP is sequenced to produce exactly this handoff: award funding carries Olera through validation, commercial revenue grows during the award, and the business pays for itself from the day the award ends, with no financing gap. If Aim 3's measured economics come in weaker than assumed, the sustainability gate measures the true threshold and expansion waits until margin allows it.
 

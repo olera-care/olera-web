@@ -1,0 +1,67 @@
+<svg style="width:100%;max-width:6.1in;display:block;margin:0 auto" viewBox="0 6 720 216" role="img" aria-label="Financing plan by phase: cash flow dips through a Valley of Death during the CRP, crossed by three numbered commercialization requirements: one, concentrate family participation; two, concentrate provider and workforce participation; three, convert the resulting value into recurring revenue. NIH SBIR programs fund the crossing publicly; the ascent out of the valley is labeled recurring revenue leading to financial sustainability; on the far side, commercialization is a repeatable market model financed privately by revenue, investors, and partnerships. Olera today stands at the edge of the valley.">
+      <defs><marker id="vh" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5a6660"/></marker></defs>
+      <!-- phase headings -->
+      <g font-family="Arial" font-size="10" font-weight="700" fill="#141414" text-anchor="middle">
+        <text x="104" y="20">Phase I-IIB (complete)</text>
+        <text x="370" y="20">CRP (this award)</text>
+        <text x="600" y="20">Commercialization</text>
+      </g>
+      <g font-family="Arial" font-size="8.5" fill="#4a554f" text-anchor="middle">
+        <text x="104" y="32">nationally deployed technology</text>
+        <text x="104" y="42">+ national demand</text>
+        <text x="370" y="32">the &quot;Valley of Death&quot;: three commercialization requirements</text>
+        <text x="606" y="32">repeatable market model</text>
+      </g>
+      <line x1="180" y1="48" x2="180" y2="184" stroke="#c7cecb" stroke-width="1" stroke-dasharray="4 3"/>
+      <line x1="560" y1="48" x2="560" y2="184" stroke="#c7cecb" stroke-width="1" stroke-dasharray="4 3"/>
+      <!-- axis -->
+      <line x1="28" y1="110" x2="700" y2="110" stroke="#9aa39c" stroke-width="1.2"/>
+      <text x="20" y="80" font-family="Arial" font-size="9" fill="#4a554f" transform="rotate(-90 20 80)" text-anchor="middle">Cash flow</text>
+      <!-- shaded valley -->
+      <path d="M180 110 C 240 160, 300 174, 370 174 C 440 172, 505 140, 560 110 Z" fill="#e9efec"/>
+      <!-- curve -->
+      <path d="M36 116 C 90 114, 140 110, 180 110 C 240 160, 300 174, 370 174 C 440 172, 505 140, 560 110 C 585 90, 610 68, 640 52" fill="none" stroke="#2f5850" stroke-width="2.2"/>
+      <!-- branches -->
+      <path d="M640 52 C 660 45, 678 41, 696 37" fill="none" stroke="#2f5850" stroke-width="1.6" marker-end="url(#vh)"/>
+      <path d="M575 95 C 615 105, 655 115, 692 126" fill="none" stroke="#8a9891" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#vh)"/>
+      <g font-family="Arial" font-size="8.5" fill="#4a554f">
+        <text x="696" y="23" text-anchor="end" font-weight="700" fill="#2f5850">successful</text>
+        <text x="696" y="134" text-anchor="end">unsuccessful: no commercial model</text>
+      </g>
+      <!-- output of the crossing -->
+      <g font-family="Arial" font-size="8" font-weight="700" fill="#2f5850" text-anchor="middle">
+        <text x="648" y="84">recurring revenue &#8594;</text>
+        <text x="648" y="93">financial sustainability</text>
+      </g>
+      <!-- Olera today marker -->
+      <circle cx="180" cy="110" r="4.5" fill="#b0761c"/>
+      <text x="180" y="98" font-family="Arial" font-size="9" font-weight="700" fill="#6b4c12" text-anchor="middle">Olera today</text>
+      <!-- three requirement stones across the valley -->
+      <g>
+        <rect x="188" y="128" width="108" height="40" rx="5" fill="#fbfcfc" stroke="#2e7d5b" stroke-width="1"/>
+        <rect x="316" y="128" width="108" height="40" rx="5" fill="#fbfcfc" stroke="#2e7d5b" stroke-width="1"/>
+        <rect x="444" y="128" width="108" height="40" rx="5" fill="#fbfcfc" stroke="#2e7d5b" stroke-width="1"/>
+        <g font-family="Arial" font-size="8" font-weight="700" fill="#1d4d3a" text-anchor="middle">
+          <text x="242" y="145">1. Concentrate family</text>
+          <text x="370" y="145">2. Concentrate provider</text>
+          <text x="498" y="145">3. Convert value into</text>
+        </g>
+        <g font-family="Arial" font-size="8" fill="#2c3a35" text-anchor="middle">
+          <text x="242" y="157">participation</text>
+          <text x="370" y="157">+ workforce participation</text>
+          <text x="498" y="157">recurring revenue</text>
+        </g>
+        <g stroke="#5a6660" stroke-width="1.2" fill="none">
+          <path d="M298 148 L312 148" marker-end="url(#vh)"/>
+          <path d="M426 148 L440 148" marker-end="url(#vh)"/>
+        </g>
+      </g>
+      <!-- funding brackets -->
+      <g font-family="Arial" font-size="8.5">
+        <path d="M32 192 L32 198 L556 198 L556 192" stroke="#5a6660" fill="none" stroke-width="1"/>
+        <text x="294" y="212" text-anchor="middle" fill="#141414" font-weight="700">Public funding: NIH SBIR Fast-Track &#183; Phase IIB &#183; CRP</text>
+        <path d="M568 192 L568 198 L698 198 L698 192" stroke="#5a6660" fill="none" stroke-width="1"/>
+        <text x="633" y="208" text-anchor="middle" fill="#141414" font-weight="700" font-size="8">Private: revenue,</text>
+        <text x="633" y="218" text-anchor="middle" fill="#141414" font-weight="700" font-size="8">investors, partnerships</text>
+      </g>
+    </svg>

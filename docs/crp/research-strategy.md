@@ -3,8 +3,8 @@ PROVENANCE: Text export of "2. Research Plan" (Google Drive, Live Grant Document
 file 1dWDYwyS-OPNCmzOHBODh0FR1GyNc9Y4N), snapshot taken 2026-08-17 after TJ Falohun and
 Qiping Fan's structural passes (last Drive modification 2026-08-17 14:04 UTC).
 The Google Doc remains the surface where humans comment; this file is the working text
-for the GitHub revision workflow. Figures are referenced by caption only — the export
-does not carry images. [cite]/[verify] markers are part of the draft, not errors.
+for the GitHub revision workflow. Figures are embedded inline from figures/research-strategy/
+(see figures/MANIFEST.md). [cite]/[verify] markers are part of the draft, not errors.
 -->
 
 # Research Strategy (working snapshot, 2026-08-17)
@@ -13,7 +13,8 @@ SIGNIFICANCE
 
 The unmet need. Care needs are growing faster than the country's capacity to provide and finance them. Americans are living longer with more chronic illness: 61 million are 65 or older today, heading toward 88.8 million by 2060. Care costs are rising against limited retirement savings, and family caregiving capacity is shrinking. The caregiving workforce cannot keep pace with the growing demand. The direct-care field must fill 9.7 million workers by 2034,\[cite\] and turnover approaches 80 percent in 2023, so agencies turn away families they cannot staff. The resources that do exist are poorly utilized: an estimated $58 billion in financial assistance goes unclaimed each year because households cannot identify or navigate complex eligibility programs (Figure 1). The result is unmet need, and unmet need in the geriatric population converts into preventable hospitalization, premature institutionalization, and avoidable Medicare and Medicaid spending. Solving the crisis requires both better resource utilization and expanded caregiver capacity, and that pairing is the design of this project.
 
-Figure 1: Two constraints produce one crisis. Aid that already exists goes unclaimed, and the workforce to deliver care does not exist. CareNavigator addresses both.
+![Figure 1](figures/research-strategy/fig-1.png)
+*Figure 1: Two constraints produce one crisis. Aid that already exists goes unclaimed, and the workforce to deliver care does not exist. CareNavigator addresses both.*
 
 The product and the business model. Olera serves both the families who need care and the providers who deliver it. The platform draws over 15,500 visitors a month, and 725 providers have onboarded. The CareNavigator is a family-facing AI navigation service that reads a household's situation, identifies the aid and services it qualifies for, prepares the applications, and follows each one to a decision. It runs on a curated national database of elder-care aid and services and returns every outcome to that database. The Provider Growth Suite is the paid tools providers use to find caregivers and clients. Keeping core navigation free is both mission and model. Under Olera’s proposed two-sided marketplace model, families in an affordability crisis are not asked to pay, and instead providers pay for optional growth tools to acquire new clients and staff.
 
@@ -40,7 +41,8 @@ Key Innovation 2: Longitudinal AI navigation that does the work and stays with t
 
 Key Innovation 3: A proprietary national resource and outcomes database that learns the real rules from every completed case. A general-purpose AI can fill out a form. It cannot know which of the dozens of scattered federal, state, and local programs a specific household qualifies for, because that knowledge does not exist in usable form on the open web. Across Phase I-IIB, Olera assembled a national directory of 72,000+ providers and benefit programs alongside 700+ paying-for-care guides, curated by experts, versioned, and re-verified against fresh sources in all fifty states. Some resources are never published at all. Those enter the database through structured field work, expert curation, direct outreach to agencies and providers, and the outcomes of applications prepared through the platform. The deeper problem is that published rules are often neither accurate nor current. Because Olera executes applications and follows each case, it learns what programs actually decide, and every completed case becomes a longitudinal record: what the family needed, what it qualified for, where the application stalled, whether local capacity existed, what care was established, and what happened after. At the volume this project funds, those records accumulate into a program-by-program, county-by-county picture of elder-care need, resources, and outcomes that exists nowhere else, with legitimate public-health value for surveillance of unmet need. Commercially, that record is the durable barrier. It cannot be assembled without an execution loop and the family volume to generate it. A competitor who copies the features starts with an empty database, while Olera's is already fed by thousands of families a month and sharpens with every family served.
 
-Figure 2: One loop, two sides. Consented family demand is the reason a provider signs in. Whether it is also what keeps them paying is the hypothesis Aim 3 tests.
+![Figure 2](figures/research-strategy/fig-2.png)
+*Figure 2: One loop, two sides. Consented family demand is the reason a provider signs in. Whether it is also what keeps them paying is the hypothesis Aim 3 tests.*
 
 PRELIMINARY WORK
 
@@ -48,11 +50,13 @@ CareNavigator matured across NIA SBIR Phase I/II Fast-Track (impact score 20) an
 
 National reach at no acquisition cost. The platform draws about 15,500 visitors a month through organic search, has grown from roughly 50 a day in 2023 to more than 500 today at near-zero acquisition cost, arriving through benefits screening, care guides, provider pages, and the caregiver community. That national organic baseline is what let us release real products, observe real usage, and make product decisions from user behavior rather than guesses. Validation followed the same pattern: the care-planning tool scored 4.6 of 5 on the Mobile Application Rating Scale among family caregivers (n=31), against the instrument's acceptability threshold of 3.6 and the AI agents scored approximately 5.6 of 7 in structured evaluation of technology acceptance, exceeding the pre-specified benchmark.\[cite\]
 
-Figure 3: Demand arrives on its own. Organic search alone brings more than 15,000 families a month at near-zero acquisition cost, in nearly every county in the country.
+![Figure 3](figures/research-strategy/fig-3.png)
+*Figure 3: Demand arrives on its own. Organic search alone brings more than 15,000 families a month at near-zero acquisition cost, in nearly every county in the country.*
 
 The family-facing CareNavigator MVP. Benefits eligibility, AI guidance, and provider matching are live nationally, and two-way benefits messaging has become a significant inbound driver of care-seeker profiles that seed providers demand. Prior usage also revealed the gap this award closes: matching alone is not enough. Families fall off during execution, follow-up does not exist, and the database lacks closed-loop outcome data. Aim 1 builds the execution and follow-up loops and hardens the integrated system.
 
-Figure 4: What the CareNavigator does for one family. Seven questions match one Houston household to twenty programs worth an estimated $955 a month. The platform prepares each application and the family submits it.
+![Figure 4](figures/research-strategy/fig-4.png)
+*Figure 4: What the CareNavigator does for one family. Seven questions match one Houston household to twenty programs worth an estimated $955 a month. The platform prepares each application and the family submits it.*
 
 A provider-paid workforce precedent. Franchisees of Comfort Keepers, Visiting Angels, Senior Helpers, and Homewatch CareGivers paid Olera $275 a month for access to caregivers it recruited. That happened in the Texas A\&M MedJobs pilot, which ran eight months across two semesters, drew more than 900 student applicants, and placed about 100 of them. Early paid placements validated willingness to pay; we then built a self-serve MVP staffing tool to remove the manual delivery that capped the pilot's scale. Executives across these nationwide franchised home-care agencies have expressed interest in broader scaling after additional local validation, and the model is replicating with minimal staff effort: a committed provider and a university advisor are prepared for a fall pilot in Indiana, seeded by a single coordinator. This offering enters the CRP ahead of the other provider tools because it already carries direct paid evidence; Aim 2 hardens it through accelerated Build-Measure-Learn.
 
@@ -66,7 +70,8 @@ APPROACH
 
 Overall design and timetable. Olera reaches families in nearly every U.S. county. Providers arrive with different constraints, some unable to staff the shifts they already have, others with capacity they cannot fill, and the suite carries a tool for each. What they share is the platform, and inquiries from care seekers reliably return them to it. Among providers with an account, activity runs roughly fifteen times higher on the day a lead arrives (Preliminary Work). We concentrate family and provider recruitment in twelve markets that differ in family demand, so that demand's effect on price and retention can be measured. Aims 1 and 2 run concurrently there, each advancing its product to the endpoint that aim defines. Aim 3 then prices what they produce and tests whether provider revenue sustains the platform. Table 1 gives the timetable and the go/no-go gate for each period, every gate registered in advance and auditable by the program officer.
 
-Table 1: Timetable and go/no-go gates. Aims 1 and 2 run in parallel, and each offering graduates into Aim 3 on its own gate. Every gate is registered in advance and can come back negative.
+![Table 1](figures/research-strategy/table-1.png)
+*Table 1: Timetable and go/no-go gates. Aims 1 and 2 run in parallel, and each offering graduates into Aim 3 on its own gate. Every gate is registered in advance and can come back negative.*
 
 Regulatory posture. CareNavigator is navigational and administrative software, not a medical device, so no FDA authorization pathway applies. The obligations that do apply are designed in. Flat-fee subscriptions and need-driven recommendations keep the marketplace outside Anti-Kickback and steering exposure, family data is handled under HIPAA-aligned controls, caregivers are employed and supervised by licensed providers rather than by Olera, and all human-subjects research is submitted for IRB review with no exemption claimed. Legal guidance runs through our established relationship with the Aggie Legal Office at Texas A\&M. The full regulatory analysis appears in the Commercialization Plan.
 
@@ -221,6 +226,7 @@ Evidence package: delivered with every component evaluated against an acceptance
 
 Aim 3 decision point and deliverable. The planning estimates, roughly 300 paying provider accounts averaging about $200 per month across both lines, about $720K ARR, are stated now and updated by measured results as Aims 1-3 report. Aim 3 succeeds when the analyst-confirmed model shows viable markets at the pre-registered bars, payback under 12 months and 3:1 LTV:CAC, with margin at or above the derived sustainability threshold, and when provider revenue at steady state covers the Task 1.3 cost of serving families, the cross-side test this two-sided model stands on, with the case where it does not pre-committed for report. The deliverable is a validated business model: price, packaging, acquisition cost, retention, margin, both market-entry playbooks, the sustainable-growth forecast, and the investor acceleration model.
 
-Figure 5: The economic hypothesis the award tests. Provider revenue reaches break-even by the end of the award, and private capital accelerates a model already shown to work. Trajectories are illustrative.
+![Figure 5](figures/research-strategy/fig-5.png)
+*Figure 5: The economic hypothesis the award tests. Provider revenue reaches break-even by the end of the award, and private capital accelerates a model already shown to work. Trajectories are illustrative.*
 
 Problems and alternatives. Each failure mode carries a pre-set response. Insufficient family liquidity in a market: reallocate or increase Aim 1 family acquisition there before touching price. A tool short of its readiness endpoint: keep it in Build-Measure-Learn and price the others; graduation is per offering. Price below cost to serve: improve product value where the Task 3.2 interviews locate the gap, cut acquisition and serving cost, repackage, and re-test in the pre-registered second round. Margins positive but below the sustainability threshold: optimize acquisition and cost structure before opening further markets. Private capital unavailable: continue slower expansion funded by operating margins, which the organic trajectory in Figure 5 already models. In every case, no expansion into new markets until the market model is viable.

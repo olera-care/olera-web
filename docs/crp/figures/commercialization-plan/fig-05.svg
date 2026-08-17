@@ -1,0 +1,88 @@
+<svg style="width:6.35in;margin:0 auto;display:block" viewBox="0 0 1000 240" role="img" aria-label="The CareNavigator platform and what its database connects families to. Left: families, free forever, connect through the platform core to providers and the workforce engine. Right: the provider and service types indexed and the aid and benefit program categories screened.">
+      <g transform="translate(0,-8) scale(0.86)">
+
+      <defs>
+        <marker id="pf" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#3f4f49"/></marker>
+        <marker id="pg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#2e7d5b"/></marker>
+      </defs>
+      <!-- Families -->
+      <rect x="10" y="30" width="170" height="128" rx="6" fill="#eaf3ee" stroke="#2e7d5b"/>
+      <text x="95" y="48" text-anchor="middle" font-family="Arial" font-size="10" font-weight="700" fill="#1d4d3a">Families · free forever</text>
+      <g font-family="Arial" font-size="8.5" fill="#2c3a35" text-anchor="middle">
+        <text x="95" y="66">older adults + family caregivers</text>
+        <text x="95" y="82">web and mobile app</text>
+        <text x="95" y="98">screen → match → execute →</text>
+        <text x="95" y="108">follow up</text>
+        <text x="95" y="124">one persistent family profile,</text>
+        <text x="95" y="134">re-engaged as needs evolve</text>
+      </g>
+      <!-- Core -->
+      <rect x="270" y="16" width="180" height="156" rx="6" fill="#3f4f49"/>
+      <text x="360" y="34" text-anchor="middle" font-family="Arial" font-size="10" font-weight="700" fill="#fff">CareNavigator core</text>
+      <g font-family="Arial" font-size="8.5" fill="#dfe9e4" text-anchor="middle">
+        <text x="360" y="54">curated national database:</text>
+        <text x="360" y="64">72,000+ providers · aid programs</text>
+        <text x="360" y="84">AI navigation agents, tuned for</text>
+        <text x="360" y="94">the domain, grounded in the</text>
+        <text x="360" y="104">database for every factual answer</text>
+        <text x="360" y="124">matching on need and eligibility</text>
+        <text x="360" y="134">alone · no paid placement</text>
+        <text x="360" y="154">every pathway instrumented</text>
+      </g>
+      <!-- Providers -->
+      <rect x="540" y="30" width="170" height="128" rx="6" fill="#eef1f0" stroke="#5f7d74"/>
+      <text x="625" y="48" text-anchor="middle" font-family="Arial" font-size="10" font-weight="700" fill="#2c3a35">Providers · the paying side</text>
+      <g font-family="Arial" font-size="8.5" fill="#2c3a35" text-anchor="middle">
+        <text x="625" y="66">all segments, private-pay</text>
+        <text x="625" y="76">and insurance-paid</text>
+        <text x="625" y="94">free profile + base referrals</text>
+        <text x="625" y="112">Growth Suite subscriptions:</text>
+        <text x="625" y="122" font-weight="700">Staffing · Boost · Conversion</text>
+      </g>
+      <!-- flows -->
+      <path d="M180 78 L266 78" stroke="#3f4f49" stroke-width="1.6" fill="none" marker-end="url(#pf)"/>
+      <path d="M270 110 L184 110" stroke="#3f4f49" stroke-width="1.6" fill="none" marker-end="url(#pf)"/>
+      <text x="225" y="71" text-anchor="middle" font-family="Arial" font-size="7.5" fill="#4a554f">needs · eligibility</text>
+      <text x="225" y="123" text-anchor="middle" font-family="Arial" font-size="7.5" fill="#4a554f">aid + care established</text>
+      <path d="M450 78 L536 78" stroke="#3f4f49" stroke-width="1.6" fill="none" marker-end="url(#pf)"/>
+      <path d="M540 110 L454 110" stroke="#3f4f49" stroke-width="1.6" fill="none" marker-end="url(#pf)"/>
+      <text x="493" y="63" text-anchor="middle" font-family="Arial" font-size="7.5" font-weight="700" fill="#3f4f49">demand:</text>
+      <text x="493" y="72" text-anchor="middle" font-family="Arial" font-size="7.5" fill="#4a554f">qualified connections</text>
+      <text x="493" y="123" text-anchor="middle" font-family="Arial" font-size="7.5" fill="#4a554f">capacity · outcomes</text>
+      <!-- workforce lane -->
+      <rect x="270" y="196" width="180" height="44" rx="6" fill="#fbfcfc" stroke="#2e7d5b" stroke-dasharray="5 3"/>
+      <text x="360" y="214" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#1d4d3a">Workforce engine</text>
+      <text x="360" y="228" text-anchor="middle" font-family="Arial" font-size="8" fill="#2c3a35">recruited · screened · credentialed</text>
+      <path d="M450 216 C 535 208, 595 188, 628 164" stroke="#2e7d5b" stroke-width="1.8" fill="none" marker-end="url(#pg)"/>
+      <text x="572" y="238" text-anchor="middle" font-family="Arial" font-size="7.5" font-weight="700" fill="#2e7d5b">capacity: hired and employed by providers</text>
+    
+      </g>
+      <text x="817" y="14" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#1d4d3a">Inside the curated database</text>
+      <rect x="640" y="22" width="355" height="98" rx="6" fill="#fbfcfc" stroke="#2e7d5b"/>
+      <text x="652" y="38" font-family="Arial" font-size="10.5" font-weight="700" fill="#1d4d3a">Providers and services indexed</text>
+      <g font-family="Arial" font-size="9.5" fill="#2c3a35">
+        <text x="652" y="53">home care</text>
+        <text x="652" y="66">home health</text>
+        <text x="652" y="79">hospice</text>
+        <text x="652" y="92">assisted &amp; independent living</text>
+        <text x="652" y="105">memory care</text>
+        <text x="828" y="53">skilled nursing &amp; rehabilitation</text>
+        <text x="828" y="66">adult day programs</text>
+        <text x="828" y="79">CCRCs</text>
+        <text x="828" y="92">geriatric care managers</text>
+        <text x="828" y="105">individual caregivers</text>
+      </g>
+      <rect x="640" y="128" width="355" height="98" rx="6" fill="#fbfcfc" stroke="#2e7d5b"/>
+      <text x="652" y="144" font-family="Arial" font-size="10.5" font-weight="700" fill="#1d4d3a">Aid and benefit programs screened</text>
+      <g font-family="Arial" font-size="9.5" fill="#2c3a35">
+        <text x="652" y="159">healthcare &amp; insurance assistance</text>
+        <text x="652" y="172">prescription assistance</text>
+        <text x="652" y="185">food &amp; nutrition</text>
+        <text x="652" y="198">income &amp; financial assistance</text>
+        <text x="652" y="211">housing &amp; utilities</text>
+        <text x="828" y="159">veterans benefits</text>
+        <text x="828" y="172">transportation</text>
+        <text x="828" y="185">caregiver support &amp; respite</text>
+        <text x="828" y="198">home- &amp; community-based services</text>
+      </g>
+    </svg>

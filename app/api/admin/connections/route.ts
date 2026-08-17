@@ -888,20 +888,41 @@ export async function GET(request: NextRequest) {
 
     // Fetch engagement events filtered by CONNECTION_ID in metadata
     // This ensures each connection shows only its own engagement, not provider-wide
+    // NOTE: Supabase .in() has a limit (~300 items), so we batch the query
 
     if (allProviderKeys.length > 0) {
-      const { data: actEvents, error: actError } = await db
-        .from("provider_activity")
-        .select("provider_id, event_type, created_at, metadata")
-        .in("provider_id", allProviderKeys)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
-        .order("created_at", { ascending: false })
-        .limit(10000);
+      // Batch provider keys to avoid Supabase .in() limit (Bad Request error)
+      const BATCH_SIZE = 200;
+      const allActEvents: Array<{
+        provider_id: string;
+        event_type: string;
+        created_at: string;
+        metadata: unknown;
+      }> = [];
+
+      for (let i = 0; i < allProviderKeys.length; i += BATCH_SIZE) {
+        const batch = allProviderKeys.slice(i, i + BATCH_SIZE);
+        const { data: batchEvents, error: batchError } = await db
+          .from("provider_activity")
+          .select("provider_id, event_type, created_at, metadata")
+          .in("provider_id", batch)
+          .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
+          .order("created_at", { ascending: false })
+          .limit(10000);
+
+        if (batchError) {
+          console.error(`[connections] activity batch ${i / BATCH_SIZE} error:`, batchError.message);
+        } else if (batchEvents) {
+          allActEvents.push(...batchEvents);
+        }
+      }
+
+      const actEvents = allActEvents;
 
       // DEBUG: Log activity events query results
       const leadOpenedEvents = actEvents?.filter(e => e.event_type === "lead_opened") ?? [];
       const eventsWithConnId = leadOpenedEvents.filter(e => (e.metadata as Record<string, unknown>)?.connection_id || (e.metadata as Record<string, unknown>)?.lead_id);
-      console.log(`[connections DEBUG] actEvents total: ${actEvents?.length ?? 0}, lead_opened: ${leadOpenedEvents.length}, with connection_id: ${eventsWithConnId.length}, error: ${actError?.message ?? "none"}`);
+      console.log(`[connections DEBUG] actEvents total: ${actEvents?.length ?? 0}, lead_opened: ${leadOpenedEvents.length}, with connection_id: ${eventsWithConnId.length}`);
       if (eventsWithConnId.length > 0) {
         const sample = eventsWithConnId[0];
         const meta = sample.metadata as Record<string, unknown>;

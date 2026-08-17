@@ -7,6 +7,34 @@ interface NotificationResult {
   leadEmailsSent: number;
   questionEmailsSent: number;
   leadsSkipped: number;
+  /** Older repeats of a question text we already sent — suppressed, never sent. */
+  questionDuplicatesSuppressed: number;
+}
+
+/**
+ * Collapse a question to its comparable form. Families pick from the same
+ * suggested-question chips, so one provider accumulates the identical text over
+ * and over ("What's included in the monthly fee?" ×14). Punctuation and casing
+ * are the only variation those repeats carry, so stripping both is enough —
+ * this deliberately does NOT try to match paraphrases, which would need a model
+ * and would risk suppressing a genuinely different question.
+ */
+interface QuestionRow {
+  id: string;
+  question: string;
+  asker_name: string | null;
+  metadata: unknown;
+  created_at: string | null;
+  /** Which slug variant this row was filed under (set at gather time). */
+  sourceSlug: string;
+}
+
+function questionKey(text: string | null | undefined): string {
+  return String(text ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 interface SendDeferredNotificationsOptions {
@@ -27,6 +55,13 @@ interface SendDeferredNotificationsOptions {
   /** If true, provider has unsubscribed from lead emails */
   leadsUnsubscribed?: boolean;
   /**
+   * Report what a question flush WOULD do — which texts survive the dedupe and
+   * how many repeats collapse — without sending anything or touching metadata.
+   * Lets a batch caller preview a backlog before firing cold mail at it.
+   * Leads are unaffected (they are not deduped).
+   */
+  dryRunQuestions?: boolean;
+  /**
    * Cap how many QUESTION notifications to send this call (newest first), so a
    * large backlog can be paced instead of blasting the provider all at once.
    * Undefined = no cap (send all) — preserves existing add-email behavior.
@@ -46,6 +81,11 @@ interface SendDeferredNotificationsOptions {
  * Finds all pending leads and questions that haven't been notified yet
  * (based on `email_sent_at` not being set) and sends notifications.
  *
+ * Questions are deduped by text before sending: a provider holding the same
+ * suggested question fourteen times gets asked it once (the newest instance),
+ * and the older repeats are stamped `email_suppressed_at` so no later call
+ * sends them either.
+ *
  * Note: Callers are responsible for audit logging. This function does not
  * create audit log entries to avoid duplicate logs.
  */
@@ -60,6 +100,7 @@ export async function sendDeferredNotificationsForProvider(
     additionalSlugVariants = [],
     leadsUnsubscribed,
     maxQuestions,
+    dryRunQuestions,
   } = options;
   const db = getServiceClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
@@ -77,6 +118,7 @@ export async function sendDeferredNotificationsForProvider(
     leadEmailsSent: 0,
     questionEmailsSent: 0,
     leadsSkipped: 0,
+    questionDuplicatesSuppressed: 0,
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -337,121 +379,165 @@ export async function sendDeferredNotificationsForProvider(
   // Track which questions we've already processed to avoid duplicates
   const processedQuestionIds = new Set<string>();
 
+  // Only fetch pending questions (not answered, archived, or rejected). Gather
+  // across EVERY slug variant first, then sort globally newest-first, so both
+  // the dedupe below and a capped flush see one ordered backlog rather than one
+  // per variant.
+  const gathered: QuestionRow[] = [];
   // Convert Set to Array for iteration (avoids TypeScript downlevelIteration issues)
   for (const slug of Array.from(slugVariants)) {
-    // Stop once we've hit the per-call question cap (paced flush).
-    if (maxQuestions !== undefined && result.questionEmailsSent >= maxQuestions) break;
-
-    // Only fetch pending questions (not answered, archived, or rejected).
-    // Newest first so a paced/capped flush sends the freshest questions —
-    // the ones a family is most likely still waiting on.
     const { data: pendingQuestions } = await db
       .from("provider_questions")
-      .select("id, question, asker_name, metadata")
+      .select("id, question, asker_name, metadata, created_at")
       .eq("provider_id", slug)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
-    // Filter to only those without email_sent_at and not already processed
-    const unnotifiedQuestions = (pendingQuestions ?? []).filter((q) => {
-      if (processedQuestionIds.has(q.id)) return false;
-      const meta = (q.metadata as Record<string, unknown>) || {};
-      return !meta.email_sent_at;
-    });
+    // Filter to only those without email_sent_at and not already suppressed as
+    // a duplicate by an earlier call.
+    for (const row of (pendingQuestions ?? []) as Omit<QuestionRow, "sourceSlug">[]) {
+      if (processedQuestionIds.has(row.id)) continue;
+      const meta = (row.metadata as Record<string, unknown>) || {};
+      if (meta.email_sent_at || meta.email_suppressed_at) continue;
+      processedQuestionIds.add(row.id);
+      gathered.push({ ...row, sourceSlug: slug });
+    }
+  }
+  gathered.sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
 
-    for (const q of unnotifiedQuestions) {
-      // Honor the per-call cap across all slug variants.
-      if (maxQuestions !== undefined && result.questionEmailsSent >= maxQuestions) break;
-      try {
-        // Re-fetch metadata to check if another process already sent this notification
-        const { data: freshQ } = await db
-          .from("provider_questions")
-          .select("metadata")
-          .eq("id", q.id)
-          .maybeSingle();
-
-        // Skip if question was deleted by another process
-        if (!freshQ) {
-          processedQuestionIds.add(q.id);
-          continue;
-        }
-
-        const meta = (freshQ.metadata as Record<string, unknown>) || {};
-
-        // Skip if already sent by another process
-        if (meta.email_sent_at) {
-          processedQuestionIds.add(q.id);
-          continue;
-        }
-
-        const qaVariant = assignQuestionVariant();
-        const qaInbox = questionReceivedInbox({
-          providerName: providerName || "your organization",
-          question: q.question,
-          variant: qaVariant,
-        });
-
-        const emailLogId = await reserveEmailLogId({
-          to: email,
-          subject: qaInbox.subject,
-          emailType: "question_received",
-          recipientType: "provider",
-          providerId: profileId || slug,
-          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
-        });
-
-        // Generate one-click URL with signed token
-        let providerUrl: string;
-        try {
-          providerUrl = generateNotificationUrl(slug, email, "question", q.id, siteUrl);
-          providerUrl = appendTrackingParams(providerUrl, emailLogId);
-        } catch (tokenErr) {
-          // Untokenized fallback = the recipient hits a sign-in wall they can't
-          // pass. Should never happen — make it loud if it does.
-          console.error("[deferred-notifications] generateNotificationUrl failed — sending UNTOKENIZED link:", tokenErr);
-          providerUrl = appendTrackingParams(`${siteUrl}/provider/${slug}/onboard?action=question&actionId=${q.id}`, emailLogId);
-        }
-
-        const { success: questionEmailSuccess } = await sendEmail({
-          to: email,
-          subject: qaInbox.subject,
-          html: questionReceivedEmail({
-            providerName: providerName || "Provider",
-            askerName: q.asker_name || "A family",
-            question: q.question,
-            providerUrl,
-            providerSlug: slug,
-            preheader: qaInbox.preheader,
-          }),
-          emailType: "question_received",
-          recipientType: "provider",
-          providerId: profileId || slug,
-          emailLogId: emailLogId ?? undefined,
-          metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
-        });
-
-        // Only mark as sent if email actually succeeded
-        if (!questionEmailSuccess) {
-          console.error(`[send-deferred] Question email send failed for question ${q.id}, skipping metadata update`);
-          processedQuestionIds.add(q.id);
-          continue;
-        }
-
-        // Mark as sent
+  // Dedupe by question text. A provider holding "What's included in the monthly
+  // fee?" fourteen times should be asked it ONCE — the newest instance carries
+  // the family still waiting. Older repeats are marked suppressed so a later
+  // call (another surface, another enrichment run) never resurrects them.
+  const unnotifiedQuestions: QuestionRow[] = [];
+  const newestByKey = new Map<string, string>();
+  for (const q of gathered) {
+    const key = questionKey(q.question);
+    const firstId = newestByKey.get(key);
+    if (key && firstId) {
+      if (!dryRunQuestions) {
+        const meta = (q.metadata as Record<string, unknown>) || {};
+        meta.email_suppressed_at = new Date().toISOString();
+        meta.email_suppressed_reason = "duplicate_question";
+        meta.duplicate_of_question_id = firstId;
         delete meta.needs_provider_email;
-        meta.email_sent_at = new Date().toISOString();
-        const { error: metaUpdateErr } = await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
-        if (metaUpdateErr) {
-          // Email was sent but metadata not updated - log warning for debugging
-          // This could cause duplicate sends on retry, but we can't unsend the email
-          console.warn(`[send-deferred] Question email sent for ${q.id} but metadata update failed:`, metaUpdateErr);
+        const { error: supErr } = await db
+          .from("provider_questions")
+          .update({ metadata: meta })
+          .eq("id", q.id);
+        if (supErr) {
+          console.warn(`[send-deferred] Failed to mark question ${q.id} as duplicate:`, supErr);
         }
-
-        processedQuestionIds.add(q.id);
-        result.questionEmailsSent++;
-      } catch (err) {
-        console.error(`[send-deferred] Failed to send question notification for ${q.id}:`, err);
       }
+      result.questionDuplicatesSuppressed++;
+      continue;
+    }
+    if (key) newestByKey.set(key, q.id);
+    unnotifiedQuestions.push(q);
+  }
+
+  for (const q of unnotifiedQuestions) {
+    // Honor the per-call cap across all slug variants.
+    if (maxQuestions !== undefined && result.questionEmailsSent >= maxQuestions) break;
+    // The variant this question was actually filed under — the one-click URL
+    // must point at the page the question lives on, not the canonical slug.
+    const slug = q.sourceSlug;
+    if (dryRunQuestions) {
+      console.log(
+        `[send-deferred][dry-run] ${providerSlug} → ${email}: "${String(q.question).slice(0, 90)}"`,
+      );
+      result.questionEmailsSent++;
+      continue;
+    }
+    try {
+      // Re-fetch metadata to check if another process already sent this notification
+      const { data: freshQ } = await db
+        .from("provider_questions")
+        .select("metadata")
+        .eq("id", q.id)
+        .maybeSingle();
+
+      // Skip if question was deleted by another process
+      if (!freshQ) {
+        processedQuestionIds.add(q.id);
+        continue;
+      }
+
+      const meta = (freshQ.metadata as Record<string, unknown>) || {};
+
+      // Skip if already sent by another process
+      if (meta.email_sent_at) {
+        processedQuestionIds.add(q.id);
+        continue;
+      }
+
+      const qaVariant = assignQuestionVariant();
+      const qaInbox = questionReceivedInbox({
+        providerName: providerName || "your organization",
+        question: q.question,
+        variant: qaVariant,
+      });
+
+      const emailLogId = await reserveEmailLogId({
+        to: email,
+        subject: qaInbox.subject,
+        emailType: "question_received",
+        recipientType: "provider",
+        providerId: profileId || slug,
+        metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
+      });
+
+      // Generate one-click URL with signed token
+      let providerUrl: string;
+      try {
+        providerUrl = generateNotificationUrl(slug, email, "question", q.id, siteUrl);
+        providerUrl = appendTrackingParams(providerUrl, emailLogId);
+      } catch (tokenErr) {
+        // Untokenized fallback = the recipient hits a sign-in wall they can't
+        // pass. Should never happen — make it loud if it does.
+        console.error("[deferred-notifications] generateNotificationUrl failed — sending UNTOKENIZED link:", tokenErr);
+        providerUrl = appendTrackingParams(`${siteUrl}/provider/${slug}/onboard?action=question&actionId=${q.id}`, emailLogId);
+      }
+
+      const { success: questionEmailSuccess } = await sendEmail({
+        to: email,
+        subject: qaInbox.subject,
+        html: questionReceivedEmail({
+          providerName: providerName || "Provider",
+          askerName: q.asker_name || "A family",
+          question: q.question,
+          providerUrl,
+          providerSlug: slug,
+          preheader: qaInbox.preheader,
+        }),
+        emailType: "question_received",
+        recipientType: "provider",
+        providerId: profileId || slug,
+        emailLogId: emailLogId ?? undefined,
+        metadata: { variant: qaVariant, phi_filtered: qaInbox.phiFiltered },
+      });
+
+      // Only mark as sent if email actually succeeded
+      if (!questionEmailSuccess) {
+        console.error(`[send-deferred] Question email send failed for question ${q.id}, skipping metadata update`);
+        processedQuestionIds.add(q.id);
+        continue;
+      }
+
+      // Mark as sent
+      delete meta.needs_provider_email;
+      meta.email_sent_at = new Date().toISOString();
+      const { error: metaUpdateErr } = await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+      if (metaUpdateErr) {
+        // Email was sent but metadata not updated - log warning for debugging
+        // This could cause duplicate sends on retry, but we can't unsend the email
+        console.warn(`[send-deferred] Question email sent for ${q.id} but metadata update failed:`, metaUpdateErr);
+      }
+
+      processedQuestionIds.add(q.id);
+      result.questionEmailsSent++;
+    } catch (err) {
+      console.error(`[send-deferred] Failed to send question notification for ${q.id}:`, err);
     }
   }
 
